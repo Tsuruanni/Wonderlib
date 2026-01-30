@@ -56,6 +56,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   - Chapter navigation bar (progress, prev/next)
   - Scroll-based progress tracking
 
+### Inline Activities - Microlearning System (2026-01-30)
+- **Yeni aktivite sistemi** - paragraflar arasına inline aktiviteler
+  - `TrueFalseActivity` - Doğru/Yanlış soruları
+  - `WordTranslationActivity` - Kelime çevirisi (çoktan seçmeli)
+  - `FindWordsActivity` - Kelime bulma (multi-select chips)
+- **Progressive reveal** - aktivite tamamlanmadan sonraki içerik görünmüyor
+- **XP sistemi** - doğru cevaplarda XP animasyonu (+5 XP)
+- **Auto-scroll** - aktivite tamamlandığında yeni içeriğe kayma
+- **Kompakt UI** - minimal, mobile-friendly aktivite kartları
+- **Arkaplan rengi** - doğru/yanlış duruma göre kart rengi değişiyor
+- **Home butonu** - reader'da sol üste geri dönüş ikonu eklendi
+- Mock data güncellendi (3 aktivite tipi için örnek veriler)
+
 ### Known Issues
 - Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)
 - Supabase şeması henüz oluşturulmadı (tablolar boş)

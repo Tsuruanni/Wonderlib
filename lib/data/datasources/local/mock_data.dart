@@ -9,6 +9,207 @@ import '../../../domain/entities/user.dart';
 import '../../../domain/entities/vocabulary.dart';
 
 class MockData {
+  // ============================================
+  // INLINE ACTIVITIES (Microlearning)
+  // ============================================
+
+  /// Inline activities for chapter-1-1 (The Drawing)
+  static final inlineActivitiesChapter1 = [
+    // After paragraph 1: True/False about the picture
+    const InlineActivity(
+      id: 'inline-1-1',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 0,
+      content: TrueFalseContent(
+        statement: 'Anlatıcı resmi bir gazetede gördü',
+        correctAnswer: false,
+      ),
+      xpReward: 5,
+    ),
+
+    // After paragraph 2: Word translation
+    const InlineActivity(
+      id: 'inline-1-2',
+      type: InlineActivityType.wordTranslation,
+      afterParagraphIndex: 1,
+      content: WordTranslationContent(
+        word: 'magnificent',
+        correctAnswer: 'muhteşem',
+        options: ['muhteşem', 'korkunç', 'sıradan'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['magnificent'],
+    ),
+
+    // After paragraph 3: True/False about the hat
+    const InlineActivity(
+      id: 'inline-1-3',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 2,
+      content: TrueFalseContent(
+        statement: 'Yetişkinler çizimin bir şapka olduğunu düşündü',
+        correctAnswer: true,
+      ),
+      xpReward: 5,
+    ),
+
+    // After paragraph 4: Find words from paragraph
+    const InlineActivity(
+      id: 'inline-1-4',
+      type: InlineActivityType.findWords,
+      afterParagraphIndex: 3,
+      content: FindWordsContent(
+        instruction: 'Paragrafta geçen iki kelimeyi bul',
+        options: ['Coğrafya', 'Matematik', 'Müzik'],
+        correctAnswers: ['Coğrafya', 'Matematik'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['geography', 'arithmetic'],
+    ),
+
+    // After paragraph 5: Word translation
+    const InlineActivity(
+      id: 'inline-1-5',
+      type: InlineActivityType.wordTranslation,
+      afterParagraphIndex: 4,
+      content: WordTranslationContent(
+        word: 'masterpiece',
+        correctAnswer: 'başyapıt',
+        options: ['başyapıt', 'resim', 'çizgi'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['masterpiece'],
+    ),
+  ];
+
+  /// Inline activities for chapter-1-2 (The Pilot)
+  static final inlineActivitiesChapter2 = [
+    const InlineActivity(
+      id: 'inline-2-1',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 0,
+      content: TrueFalseContent(
+        statement: 'Anlatıcı pilot olmayı seçti',
+        correctAnswer: true,
+      ),
+      xpReward: 5,
+    ),
+
+    const InlineActivity(
+      id: 'inline-2-2',
+      type: InlineActivityType.wordTranslation,
+      afterParagraphIndex: 1,
+      content: WordTranslationContent(
+        word: 'distinguish',
+        correctAnswer: 'ayırt etmek',
+        options: ['ayırt etmek', 'uçmak', 'kaybolmak'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['distinguish'],
+    ),
+
+    const InlineActivity(
+      id: 'inline-2-3',
+      type: InlineActivityType.findWords,
+      afterParagraphIndex: 2,
+      content: FindWordsContent(
+        instruction: 'Yetişkinlerle ilgili iki kelime bul',
+        options: ['Anlayışlı', 'Önemli', 'Çocuksu'],
+        correctAnswers: ['Anlayışlı', 'Önemli'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['clear-sighted', 'consequence'],
+    ),
+
+    const InlineActivity(
+      id: 'inline-2-4',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 3,
+      content: TrueFalseContent(
+        statement: 'Anlatıcı yetişkinler hakkındaki fikrini değiştirdi',
+        correctAnswer: false,
+      ),
+      xpReward: 5,
+    ),
+  ];
+
+  /// Inline activities for chapter-1-3 (The Little Prince Arrives)
+  static final inlineActivitiesChapter3 = [
+    const InlineActivity(
+      id: 'inline-3-1',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 0,
+      content: TrueFalseContent(
+        statement: 'Anlatıcının uçağı Sahra Çölü\'nde arızalandı',
+        correctAnswer: true,
+      ),
+      xpReward: 5,
+    ),
+
+    const InlineActivity(
+      id: 'inline-3-2',
+      type: InlineActivityType.wordTranslation,
+      afterParagraphIndex: 1,
+      content: WordTranslationContent(
+        word: 'scarcely',
+        correctAnswer: 'zar zor',
+        options: ['zar zor', 'bolca', 'hızlıca'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['scarcely'],
+    ),
+
+    const InlineActivity(
+      id: 'inline-3-3',
+      type: InlineActivityType.findWords,
+      afterParagraphIndex: 2,
+      content: FindWordsContent(
+        instruction: 'Anlatıcının durumunu anlatan iki kelime bul',
+        options: ['Yalnız', 'İzole', 'Mutlu'],
+        correctAnswers: ['Yalnız', 'İzole'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['alone', 'isolated'],
+    ),
+
+    const InlineActivity(
+      id: 'inline-3-4',
+      type: InlineActivityType.wordTranslation,
+      afterParagraphIndex: 3,
+      content: WordTranslationContent(
+        word: 'amazement',
+        correctAnswer: 'şaşkınlık',
+        options: ['şaşkınlık', 'korku', 'mutluluk'],
+      ),
+      xpReward: 5,
+      vocabularyWords: ['amazement'],
+    ),
+
+    const InlineActivity(
+      id: 'inline-3-5',
+      type: InlineActivityType.trueFalse,
+      afterParagraphIndex: 4,
+      content: TrueFalseContent(
+        statement: 'Küçük ses anlatıcıdan bir koyun çizmesini istedi',
+        correctAnswer: true,
+      ),
+      xpReward: 5,
+    ),
+  ];
+
+  /// Get inline activities for a specific chapter
+  static List<InlineActivity> getInlineActivities(String chapterId) {
+    switch (chapterId) {
+      case 'chapter-1-1':
+        return inlineActivitiesChapter1;
+      case 'chapter-1-2':
+        return inlineActivitiesChapter2;
+      case 'chapter-1-3':
+        return inlineActivitiesChapter3;
+      default:
+        return [];
+    }
+  }
   // Schools
   static final schools = [
     School(

@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../widgets/reader/chapter_navigation_bar.dart';
-import '../../widgets/reader/reader_content.dart';
+import '../../widgets/reader/integrated_reader_content.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
 import '../../widgets/reader/vocabulary_popup.dart';
 
@@ -119,6 +119,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             backgroundColor: settings.theme.background,
             foregroundColor: settings.theme.text,
             elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.home_outlined, color: settings.theme.text),
+              onPressed: () => context.go('/library/book/${widget.bookId}'),
+            ),
             title: Text(
               chapter.title,
               style: TextStyle(
@@ -127,6 +131,42 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               ),
             ),
             actions: [
+              // Session XP indicator
+              Consumer(
+                builder: (context, ref, child) {
+                  final sessionXP = ref.watch(sessionXPProvider);
+                  if (sessionXP > 0) {
+                    return Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF38A169).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.bolt,
+                            color: Color(0xFF38A169),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '+$sessionXP XP',
+                            style: const TextStyle(
+                              color: Color(0xFF38A169),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
               // Settings button
               IconButton(
                 icon: Icon(Icons.settings, color: settings.theme.text),
@@ -156,13 +196,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Chapter content
+                    // Chapter content with inline activities
                     if (chapter.content != null)
-                      ReaderContent(
-                        content: chapter.content!,
-                        vocabulary: chapter.vocabulary,
+                      IntegratedReaderContent(
+                        chapter: chapter,
                         settings: settings,
                         onVocabularyTap: _onVocabularyTap,
+                        scrollController: _scrollController,
                       )
                     else
                       Text(

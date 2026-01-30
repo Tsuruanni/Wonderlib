@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+/// Activity types for end-of-chapter quizzes (legacy)
 enum ActivityType {
   multipleChoice,
   trueFalse,
@@ -8,6 +9,130 @@ enum ActivityType {
   fillBlank,
   shortAnswer,
 }
+
+/// Inline activity types for microlearning during reading
+enum InlineActivityType {
+  trueFalse,        // D/Y soruları
+  wordTranslation,  // Kelime çevirisi seç
+  findWords,        // Paragraftan kelime bul
+}
+
+// ============================================
+// INLINE ACTIVITIES (Microlearning)
+// ============================================
+
+/// Base class for inline activity content
+abstract class InlineActivityContent extends Equatable {
+  const InlineActivityContent();
+}
+
+/// True/False activity content
+class TrueFalseContent extends InlineActivityContent {
+  final String statement;
+  final bool correctAnswer;
+
+  const TrueFalseContent({
+    required this.statement,
+    required this.correctAnswer,
+  });
+
+  @override
+  List<Object?> get props => [statement, correctAnswer];
+}
+
+/// Word translation activity content
+class WordTranslationContent extends InlineActivityContent {
+  final String word;
+  final String correctAnswer;
+  final List<String> options;
+
+  const WordTranslationContent({
+    required this.word,
+    required this.correctAnswer,
+    required this.options,
+  });
+
+  @override
+  List<Object?> get props => [word, correctAnswer, options];
+}
+
+/// Find words activity content (multi-select)
+class FindWordsContent extends InlineActivityContent {
+  final String instruction;
+  final List<String> options;
+  final List<String> correctAnswers;
+
+  const FindWordsContent({
+    required this.instruction,
+    required this.options,
+    required this.correctAnswers,
+  });
+
+  @override
+  List<Object?> get props => [instruction, options, correctAnswers];
+}
+
+/// Inline activity that appears between paragraphs during reading
+class InlineActivity extends Equatable {
+  final String id;
+  final InlineActivityType type;
+  final int afterParagraphIndex;
+  final InlineActivityContent content;
+  final int xpReward;
+
+  /// Words to add to vocabulary when this activity is completed
+  /// (for word_translation and find_words types)
+  final List<String> vocabularyWords;
+
+  const InlineActivity({
+    required this.id,
+    required this.type,
+    required this.afterParagraphIndex,
+    required this.content,
+    this.xpReward = 5,
+    this.vocabularyWords = const [],
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    type,
+    afterParagraphIndex,
+    content,
+    xpReward,
+    vocabularyWords,
+  ];
+}
+
+/// Result of an inline activity answer
+class InlineActivityResult extends Equatable {
+  final String activityId;
+  final bool isCorrect;
+  final int xpEarned;
+  final List<String> wordsLearned;
+  final DateTime answeredAt;
+
+  const InlineActivityResult({
+    required this.activityId,
+    required this.isCorrect,
+    required this.xpEarned,
+    this.wordsLearned = const [],
+    required this.answeredAt,
+  });
+
+  @override
+  List<Object?> get props => [
+    activityId,
+    isCorrect,
+    xpEarned,
+    wordsLearned,
+    answeredAt,
+  ];
+}
+
+// ============================================
+// LEGACY ACTIVITIES (End-of-chapter)
+// ============================================
 
 class Activity extends Equatable {
   final String id;

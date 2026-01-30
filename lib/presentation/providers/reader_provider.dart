@@ -117,3 +117,75 @@ final readingTimerProvider =
 
 /// Current scroll progress (0.0 to 1.0)
 final scrollProgressProvider = StateProvider<double>((ref) => 0.0);
+
+// ============================================
+// INLINE ACTIVITY STATE
+// ============================================
+
+/// Completed inline activities (activityId -> result)
+class InlineActivityStateNotifier extends StateNotifier<Map<String, bool>> {
+  InlineActivityStateNotifier() : super({});
+
+  void markCompleted(String activityId, bool isCorrect) {
+    state = {...state, activityId: isCorrect};
+  }
+
+  bool isCompleted(String activityId) {
+    return state.containsKey(activityId);
+  }
+
+  bool? getResult(String activityId) {
+    return state[activityId];
+  }
+
+  void reset() {
+    state = {};
+  }
+}
+
+/// Provider for tracking completed inline activities
+final inlineActivityStateProvider =
+    StateNotifierProvider<InlineActivityStateNotifier, Map<String, bool>>((ref) {
+  return InlineActivityStateNotifier();
+});
+
+/// Total XP earned in current reading session
+class SessionXPNotifier extends StateNotifier<int> {
+  SessionXPNotifier() : super(0);
+
+  void addXP(int amount) {
+    state = state + amount;
+  }
+
+  void reset() {
+    state = 0;
+  }
+}
+
+/// Provider for session XP
+final sessionXPProvider =
+    StateNotifierProvider<SessionXPNotifier, int>((ref) {
+  return SessionXPNotifier();
+});
+
+/// Words learned in current session (to add to vocabulary)
+class LearnedWordsNotifier extends StateNotifier<List<String>> {
+  LearnedWordsNotifier() : super([]);
+
+  void addWords(List<String> words) {
+    final newWords = words.where((w) => !state.contains(w)).toList();
+    if (newWords.isNotEmpty) {
+      state = [...state, ...newWords];
+    }
+  }
+
+  void reset() {
+    state = [];
+  }
+}
+
+/// Provider for words learned in session
+final learnedWordsProvider =
+    StateNotifierProvider<LearnedWordsNotifier, List<String>>((ref) {
+  return LearnedWordsNotifier();
+});

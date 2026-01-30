@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (UI Implementation tamamlandı)
+Son güncelleme: 2026-01-30 (Inline Activities eklendi)
 
 ## Current Phase
 
@@ -29,7 +29,7 @@ Son güncelleme: 2026-01-30 (UI Implementation tamamlandı)
 - [x] Dijital kütüphane (kitap listesi) - grid/list, filters, search
 - [x] Okuma ekranı (sayfa görüntüleme) - reader with vocabulary
 - [x] Anlık sözlük (kelimeye tıkla) - vocabulary popup
-- [ ] Bölüm sonu aktiviteleri (3 tip)
+- [x] Inline aktiviteler (3 tip) - true/false, word translation, find words
 - [ ] XP ve seviye sistemi (UI var, backend yok)
 - [x] Basit profil sayfası
 
@@ -57,7 +57,7 @@ Son güncelleme: 2026-01-30 (UI Implementation tamamlandı)
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
 | Supabase DB şeması | - | Not started | Tablolar henüz yok |
-| Activity sayfası | - | Not started | Bölüm sonu quiz/aktivite |
+| Final Quiz | - | Not started | Bölüm sonu gamified quiz (escape room) |
 | Vocabulary sayfası | - | Not started | Kelime pratik modülü |
 
 ## Blockers
@@ -92,6 +92,7 @@ Son güncelleme: 2026-01-30 (UI Implementation tamamlandı)
 | Library Page | 2026-01-30 | Grid/list, filters, search |
 | Book Detail | 2026-01-30 | SliverAppBar, chapter list, FAB |
 | Reader Page | 2026-01-30 | Vocabulary highlighting, settings, nav |
+| Inline Activities | 2026-01-30 | 3 aktivite tipi, progressive reveal, XP animasyonu |
 
 ## Decisions Log
 

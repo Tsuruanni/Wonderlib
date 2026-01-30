@@ -33,6 +33,16 @@ class Chapter extends Equatable {
   bool get hasContent => content != null && content!.isNotEmpty;
   bool get hasImages => imageUrls.isNotEmpty;
 
+  /// Split content into paragraphs (by double newline)
+  List<String> get paragraphs {
+    if (content == null || content!.isEmpty) return [];
+    return content!
+        .split(RegExp(r'\n\n+'))
+        .map((p) => p.trim())
+        .where((p) => p.isNotEmpty)
+        .toList();
+  }
+
   @override
   List<Object?> get props => [
         id,
