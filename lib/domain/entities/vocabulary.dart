@@ -6,11 +6,13 @@ class VocabularyWord extends Equatable {
   final String? phonetic;
   final String meaningTR;
   final String? meaningEN;
-  final String? exampleSentence;
+  final List<String> exampleSentences; // Up to 2 example sentences
   final String? audioUrl;
   final String? imageUrl;
   final String? level;
   final List<String> categories;
+  final List<String> synonyms;
+  final List<String> antonyms;
   final DateTime createdAt;
 
   const VocabularyWord({
@@ -19,16 +21,24 @@ class VocabularyWord extends Equatable {
     this.phonetic,
     required this.meaningTR,
     this.meaningEN,
-    this.exampleSentence,
+    this.exampleSentences = const [],
     this.audioUrl,
     this.imageUrl,
     this.level,
     this.categories = const [],
+    this.synonyms = const [],
+    this.antonyms = const [],
     required this.createdAt,
   });
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
+  bool get hasExamples => exampleSentences.isNotEmpty;
+  bool get hasSynonyms => synonyms.isNotEmpty;
+  bool get hasAntonyms => antonyms.isNotEmpty;
+
+  /// Get the first example sentence (for backward compatibility)
+  String? get exampleSentence => exampleSentences.isNotEmpty ? exampleSentences.first : null;
 
   @override
   List<Object?> get props => [
@@ -37,11 +47,13 @@ class VocabularyWord extends Equatable {
         phonetic,
         meaningTR,
         meaningEN,
-        exampleSentence,
+        exampleSentences,
         audioUrl,
         imageUrl,
         level,
         categories,
+        synonyms,
+        antonyms,
         createdAt,
       ];
 }

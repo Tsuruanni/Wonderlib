@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/sm2_algorithm.dart';
 import '../../data/datasources/local/mock_data.dart';
 import '../../domain/entities/vocabulary.dart';
+import '../../domain/entities/word_list.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
 
@@ -312,3 +314,146 @@ final vocabularyReviewControllerProvider =
     StateNotifierProvider<VocabularyReviewController, VocabularyReviewState>((ref) {
   return VocabularyReviewController(ref);
 });
+
+// ============================================
+// WORD LIST PROVIDERS
+// ============================================
+
+/// All word lists from mock data
+final allWordListsProvider = Provider<List<WordList>>((ref) {
+  return MockData.wordLists;
+});
+
+/// System word lists (admin-created)
+final systemWordListsProvider = Provider<List<WordList>>((ref) {
+  final lists = ref.watch(allWordListsProvider);
+  return lists.where((l) => l.isSystem).toList();
+});
+
+/// Story vocabulary lists (from books user has read)
+final storyWordListsProvider = Provider<List<WordList>>((ref) {
+  final lists = ref.watch(allWordListsProvider);
+  return lists.where((l) => l.category == WordListCategory.storyVocab).toList();
+});
+
+/// Word lists by category
+final wordListsByCategoryProvider = Provider.family<List<WordList>, WordListCategory>((ref, category) {
+  final lists = ref.watch(allWordListsProvider);
+  return lists.where((l) => l.category == category).toList();
+});
+
+/// Single word list by ID
+final wordListByIdProvider = Provider.family<WordList?, String>((ref, id) {
+  final lists = ref.watch(allWordListsProvider);
+  try {
+    return lists.firstWhere((l) => l.id == id);
+  } catch (_) {
+    return null;
+  }
+});
+
+/// Words for a specific list
+final wordsForListProvider = Provider.family<List<VocabularyWord>, String>((ref, listId) {
+  return MockData.getWordsForList(listId);
+});
+
+/// User's progress for all word lists
+final userWordListProgressProvider = Provider<List<UserWordListProgress>>((ref) {
+  return MockData.userWordListProgress;
+});
+
+/// User's progress for a specific word list
+final progressForListProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {
+  final progressList = ref.watch(userWordListProgressProvider);
+  try {
+    return progressList.firstWhere((p) => p.wordListId == listId);
+  } catch (_) {
+    return null;
+  }
+});
+
+/// Word lists with progress (for display in hub)
+final wordListsWithProgressProvider = Provider<List<WordListWithProgress>>((ref) {
+  final lists = ref.watch(allWordListsProvider);
+  final progressList = ref.watch(userWordListProgressProvider);
+
+  final progressMap = {for (var p in progressList) p.wordListId: p};
+
+  return lists.map((list) {
+    return WordListWithProgress(
+      wordList: list,
+      progress: progressMap[list.id],
+    );
+  }).toList();
+});
+
+/// Word lists user has started (for "Continue Learning" section)
+final continueWordListsProvider = Provider<List<WordListWithProgress>>((ref) {
+  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
+  return listsWithProgress
+      .where((lwp) => lwp.progress != null && !lwp.progress!.isFullyComplete)
+      .toList()
+    ..sort((a, b) => (b.progress?.updatedAt ?? DateTime(0))
+        .compareTo(a.progress?.updatedAt ?? DateTime(0)));
+});
+
+/// Recommended word lists (system lists user hasn't started)
+final recommendedWordListsProvider = Provider<List<WordListWithProgress>>((ref) {
+  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
+  return listsWithProgress
+      .where((lwp) => lwp.wordList.isSystem && lwp.progress == null)
+      .toList();
+});
+
+/// Total words due for review across all lists (SM-2)
+final totalDueWordsCountProvider = Provider<int>((ref) {
+  final dueWords = ref.watch(wordsDueForReviewProvider);
+  return dueWords.length;
+});
+
+/// Combined class for word list with its progress
+class WordListWithProgress {
+  final WordList wordList;
+  final UserWordListProgress? progress;
+
+  const WordListWithProgress({
+    required this.wordList,
+    this.progress,
+  });
+
+  double get progressPercentage => progress?.progressPercentage ?? 0.0;
+  bool get isStarted => progress != null;
+  bool get isComplete => progress?.isFullyComplete ?? false;
+  int? get nextPhase => progress?.nextPhase;
+}
+
+/// Vocabulary hub stats
+final vocabularyHubStatsProvider = Provider<VocabularyHubStats>((ref) {
+  final allWords = ref.watch(userVocabularyProvider);
+  final dueCount = ref.watch(totalDueWordsCountProvider);
+  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
+
+  final masteredCount = allWords.where((w) => w.isMastered).length;
+  final completedLists = listsWithProgress.where((l) => l.isComplete).length;
+
+  return VocabularyHubStats(
+    totalWords: allWords.length,
+    masteredWords: masteredCount,
+    dueForReview: dueCount,
+    completedLists: completedLists,
+  );
+});
+
+class VocabularyHubStats {
+  final int totalWords;
+  final int masteredWords;
+  final int dueForReview;
+  final int completedLists;
+
+  const VocabularyHubStats({
+    required this.totalWords,
+    required this.masteredWords,
+    required this.dueForReview,
+    required this.completedLists,
+  });
+}
