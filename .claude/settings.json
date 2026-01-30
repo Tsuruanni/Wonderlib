@@ -1,0 +1,92 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(pwd)",
+      "Bash(echo:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(touch:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(tree:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(which:*)",
+      "Bash(whoami)",
+      "Bash(date)",
+      "Bash(env:*)",
+
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote:*)",
+      "Bash(gh:*)",
+
+      "Bash(flutter:*)",
+      "Bash(dart:*)",
+      "Bash(pub:*)",
+
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(node:*)",
+
+      "Bash(supabase:*)",
+
+      "Bash(claude:*)",
+
+      "Bash(brew:*)",
+      "Bash(code:*)",
+      "Bash(open:*)",
+
+      "WebSearch",
+      "WebFetch",
+      "WebFetch(domain:*)"
+    ],
+    "ask": [
+      "Bash(rm:*)",
+      "Bash(rm -rf:*)",
+      "Bash(del:*)",
+      "Bash(mv:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(chmod:*)",
+      "Bash(chown:*)",
+      "Bash(sudo:*)",
+
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Edit(**/*.config)",
+      "Edit(**/*.conf)",
+      "Edit(**/*.yaml)",
+      "Edit(**/*.yml)",
+      "Edit(**/config/*)",
+      "Edit(~/.ssh/*)",
+      "Edit(~/.gitconfig)",
+      "Edit(~/.zshrc)",
+      "Edit(~/.bashrc)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf /*)",
+      "Bash(> /dev/sda)",
+      "Bash(dd if=*)",
+      "Bash(mkfs.*)",
+      "Bash(format *)"
+    ]
+  }
+}

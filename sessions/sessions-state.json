@@ -1,0 +1,34 @@
+{
+  "version": "unknown",
+  "current_task": {
+    "name": null,
+    "file": null,
+    "branch": null,
+    "status": null,
+    "created": null,
+    "started": null,
+    "updated": null,
+    "dependencies": null,
+    "submodules": null
+  },
+  "active_protocol": null,
+  "api": {
+    "startup_load": false,
+    "completion": false,
+    "todos_clear": false
+  },
+  "mode": "implementation",
+  "todos": {
+    "active": [],
+    "stashed": []
+  },
+  "model": "opus",
+  "flags": {
+    "context_85": true,
+    "context_90": true,
+    "subagent": false,
+    "noob": true,
+    "bypass_mode": false
+  },
+  "metadata": {}
+}

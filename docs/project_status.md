@@ -1,0 +1,98 @@
+# Project Status
+
+Son güncelleme: 2026-01-30 (UI Audit sonrası)
+
+## Current Phase
+
+**Faz 1: MVP Foundation** 🔄 Devam ediyor (UI shell tamamlandı, DB şeması eksik)
+
+## Roadmap
+
+### Faz 0: Altyapı ✅
+- [x] GitHub repo oluşturma
+- [x] Supabase projesi kurulumu
+- [x] Cloudflare R2 (medya storage)
+- [x] Sentry (error tracking)
+- [x] PostHog (analytics)
+- [x] CLAUDE.md ve dökümanlar
+
+### Faz 1: MVP Foundation 🔄 (Aktif)
+- [x] Flutter proje oluşturma
+- [x] Temel klasör yapısı (Clean Architecture)
+- [x] Supabase bağlantısı (client kurulu, şema eksik)
+- [x] Authentication UI (school code + login ekranları)
+- [x] Temel UI shell (GoRouter, theme)
+- [ ] Bottom navigation eklenmeli
+- [ ] Supabase database şeması oluşturulmalı
+
+### Faz 2: Öğrenci MVP
+- [ ] Dijital kütüphane (kitap listesi)
+- [ ] Okuma ekranı (sayfa görüntüleme)
+- [ ] Anlık sözlük (kelimeye tıkla)
+- [ ] Bölüm sonu aktiviteleri (3 tip)
+- [ ] XP ve seviye sistemi
+- [ ] Basit profil sayfası
+
+### Faz 3: Öğretmen MVP
+- [ ] Öğretmen dashboard
+- [ ] Sınıf listesi ve öğrenci takibi
+- [ ] Görev atama
+- [ ] Temel raporlar
+
+### Faz 4: Admin & İçerik
+- [ ] Admin panel
+- [ ] Okul/kullanıcı yönetimi
+- [ ] Kitap ekleme arayüzü
+- [ ] İçerik pipeline
+
+### Faz 5+: İleri Özellikler
+- [ ] Kelime egzersizi modülü
+- [ ] Sesli okuma / karaoke
+- [ ] Rozet sistemi
+- [ ] Offline mod
+- [ ] Mobil app yayını
+
+## In Progress
+
+| Task | Assignee | Status | Notes |
+|------|----------|--------|-------|
+| Supabase DB şeması | - | Not started | Tablolar henüz yok |
+| Bottom Navigation | - | Not started | Home, Library, Vocabulary, Profile |
+| Library sayfası | - | Not started | Kitap grid/list |
+| Reader sayfası | - | Not started | Metin okuma UI |
+
+## Blockers
+
+| Blocker | Impact | Resolution |
+|---------|--------|------------|
+| Supabase şeması yok | Auth ve veri akışı çalışmıyor (mock data ile çalışıyor) | Migration dosyaları oluşturulmalı |
+
+## Tech Debt
+
+| Item | Priority | Notes |
+|------|----------|-------|
+| Mock data uyuşmazlığı | Low | Home'da kitap adı/kapak uyuşmuyor |
+
+## Recently Completed
+
+| Task | Date | Notes |
+|------|------|-------|
+| GitHub repo | 2026-01-30 | Tsuruanni/Wonderlib |
+| Supabase setup | 2026-01-30 | EU region, Wonderlib projesi |
+| R2 bucket | 2026-01-30 | readeng-media |
+| Sentry setup | 2026-01-30 | Flutter project |
+| PostHog setup | 2026-01-30 | EU region |
+| Docs structure | 2026-01-30 | CLAUDE.md, architecture, changelog |
+| Flutter proje | 2026-01-30 | Clean Architecture yapısı |
+| Auth UI | 2026-01-30 | School code + login ekranları |
+| Home page | 2026-01-30 | Stats, continue reading, quick actions |
+| Profile page | 2026-01-30 | Avatar, stats, sign out |
+| UI Audit | 2026-01-30 | Playwright ile tam test yapıldı |
+
+## Decisions Log
+
+| Date | Decision | Rationale |
+|------|----------|-----------|
+| 2026-01-30 | Flutter + Supabase stack | Tek codebase, hızlı MVP, düşük maliyet |
+| 2026-01-30 | Meilisearch atlandı | Supabase FTS yeterli, MVP için maliyet düşürme |
+| 2026-01-30 | Learning Locker atlandı | MVP için gerekli değil, sonra eklenebilir |

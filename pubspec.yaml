@@ -1,0 +1,73 @@
+name: readeng
+description: K12 English Reading Platform - Interactive reading and vocabulary learning for students
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Navigation
+  go_router: ^13.0.1
+
+  # Network & Backend
+  dio: ^5.4.0
+  supabase_flutter: ^2.3.0
+  connectivity_plus: ^5.0.2
+
+  # Local Storage
+  sqflite: ^2.3.0
+  path_provider: ^2.1.1
+  shared_preferences: ^2.2.2
+  flutter_secure_storage: ^9.0.0
+
+  # UI Components
+  flutter_svg: ^2.0.9
+  cached_network_image: ^3.3.1
+  shimmer: ^3.0.0
+  lottie: ^3.0.0
+
+  # Audio
+  just_audio: ^0.9.36
+  audio_session: ^0.1.18
+
+  # Utils
+  intl: any
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  uuid: ^4.2.2
+  timeago: ^3.6.1
+  flutter_dotenv: ^5.1.0
+
+  # Analytics & Monitoring
+  sentry_flutter: ^7.14.0
+  posthog_flutter: ^4.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  riverpod_generator: ^2.6.0
+  build_runner: ^2.4.8
+  json_serializable: ^6.7.1
+  mockito: ^5.4.4
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+    - .env
+
