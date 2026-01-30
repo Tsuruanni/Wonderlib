@@ -1,8 +1,120 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/datasources/local/mock_data.dart';
 import '../../domain/entities/vocabulary.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
+
+// ============================================
+// MOCK-BASED PROVIDERS (for development)
+// ============================================
+
+/// All vocabulary words from mock data
+final mockVocabularyWordsProvider = Provider<List<VocabularyWord>>((ref) {
+  return MockData.vocabularyWords;
+});
+
+/// Vocabulary progress from mock data
+final mockVocabularyProgressProvider = Provider<List<VocabularyProgress>>((ref) {
+  return MockData.vocabularyProgress;
+});
+
+/// User's learned words with progress
+final userVocabularyProvider = Provider<List<UserVocabularyItem>>((ref) {
+  final words = ref.watch(mockVocabularyWordsProvider);
+  final progress = ref.watch(mockVocabularyProgressProvider);
+
+  final progressMap = {for (var p in progress) p.wordId: p};
+
+  return words.map((word) {
+    final wordProgress = progressMap[word.id];
+    return UserVocabularyItem(
+      word: word,
+      progress: wordProgress,
+    );
+  }).toList();
+});
+
+/// Words due for review today
+final wordsDueForReviewProvider = Provider<List<UserVocabularyItem>>((ref) {
+  final items = ref.watch(userVocabularyProvider);
+  return items.where((item) {
+    if (item.progress == null) return false;
+    return item.progress!.isDueForReview;
+  }).toList();
+});
+
+/// New words (not started yet)
+final newWordsToLearnProvider = Provider<List<UserVocabularyItem>>((ref) {
+  final items = ref.watch(userVocabularyProvider);
+  return items.where((item) => item.progress == null || item.progress!.isNew).toList();
+});
+
+/// Vocabulary stats
+final vocabularyStatsSimpleProvider = Provider<VocabularyStats>((ref) {
+  final items = ref.watch(userVocabularyProvider);
+
+  int totalWords = items.length;
+  int newCount = 0;
+  int learningCount = 0;
+  int reviewingCount = 0;
+  int masteredCount = 0;
+
+  for (final item in items) {
+    if (item.progress == null) {
+      newCount++;
+    } else {
+      switch (item.progress!.status) {
+        case VocabularyStatus.newWord:
+          newCount++;
+        case VocabularyStatus.learning:
+          learningCount++;
+        case VocabularyStatus.reviewing:
+          reviewingCount++;
+        case VocabularyStatus.mastered:
+          masteredCount++;
+      }
+    }
+  }
+
+  return VocabularyStats(
+    totalWords: totalWords,
+    newCount: newCount,
+    learningCount: learningCount,
+    reviewingCount: reviewingCount,
+    masteredCount: masteredCount,
+  );
+});
+
+/// User vocabulary item combining word and progress
+class UserVocabularyItem {
+  final VocabularyWord word;
+  final VocabularyProgress? progress;
+
+  const UserVocabularyItem({required this.word, this.progress});
+
+  VocabularyStatus get status => progress?.status ?? VocabularyStatus.newWord;
+  bool get isMastered => progress?.isMastered ?? false;
+}
+
+/// Simple vocabulary stats
+class VocabularyStats {
+  final int totalWords;
+  final int newCount;
+  final int learningCount;
+  final int reviewingCount;
+  final int masteredCount;
+
+  const VocabularyStats({
+    required this.totalWords,
+    required this.newCount,
+    required this.learningCount,
+    required this.reviewingCount,
+    required this.masteredCount,
+  });
+
+  int get inProgressCount => learningCount + reviewingCount;
+}
 
 /// Provides all vocabulary words with optional filters
 final vocabularyWordsProvider =

@@ -6,6 +6,7 @@ import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/vocabulary_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -33,12 +34,12 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 // Welcome header
                 Text(
-                  'Welcome back, ${user.firstName}!',
+                  'Merhaba, ${user.firstName}!',
                   style: context.textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Keep up your reading streak!',
+                  'Okuma serisini devam ettir!',
                   style: context.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 24),
@@ -68,43 +69,48 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                // Daily Tasks
+                const _DailyTasksSection(),
+                const SizedBox(height: 24),
 
                 // Continue Reading
                 _ContinueReadingSection(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 // Quick actions
                 Text(
-                  'Quick Actions',
+                  'Hızlı Erişim',
                   style: context.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
 
                 _QuickActionCard(
                   icon: Icons.library_books,
-                  title: 'Browse Library',
-                  subtitle: 'Discover new books',
+                  title: 'Kütüphane',
+                  subtitle: 'Yeni kitapları keşfet',
                   onTap: () => context.go(AppRoutes.library),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 _QuickActionCard(
                   icon: Icons.abc,
-                  title: 'Vocabulary Practice',
-                  subtitle: 'Review your words',
+                  title: 'Kelime Pratiği',
+                  subtitle: 'Kelimelerini tekrar et',
                   onTap: () => context.go(AppRoutes.vocabulary),
                 ),
-                const SizedBox(height: 12),
 
                 // Teacher-only action
-                if (user.role.canManageStudents)
+                if (user.role.canManageStudents) ...[
+                  const SizedBox(height: 8),
                   _QuickActionCard(
                     icon: Icons.dashboard,
-                    title: 'Teacher Dashboard',
-                    subtitle: 'Manage your classes',
+                    title: 'Öğretmen Paneli',
+                    subtitle: 'Sınıflarını yönet',
                     onTap: () => context.go(AppRoutes.teacherDashboard),
                   ),
+                ],
               ],
             ),
           );
@@ -129,7 +135,7 @@ class _ContinueReadingSection extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Continue Reading',
+              'Okumaya Devam Et',
               style: context.textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
@@ -188,6 +194,180 @@ class _ContinueReadingSection extends ConsumerWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _DailyTasksSection extends ConsumerWidget {
+  const _DailyTasksSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vocabStats = ref.watch(vocabularyStatsSimpleProvider);
+    final dueWords = ref.watch(wordsDueForReviewProvider);
+
+    // Daily tasks data
+    final tasks = [
+      _DailyTask(
+        icon: Icons.menu_book,
+        title: '10 dakika oku',
+        progress: 0.6, // Mock: 6/10 minutes
+        progressText: '6/10 dk',
+        color: Colors.blue,
+        isComplete: false,
+      ),
+      _DailyTask(
+        icon: Icons.abc,
+        title: 'Kelime tekrarı',
+        progress: dueWords.isEmpty ? 1.0 : 0.0,
+        progressText: dueWords.isEmpty ? 'Tamamlandı' : '${dueWords.length} kelime',
+        color: Colors.purple,
+        isComplete: dueWords.isEmpty,
+      ),
+      _DailyTask(
+        icon: Icons.quiz,
+        title: 'Aktivite tamamla',
+        progress: 1.0, // Mock: completed
+        progressText: 'Tamamlandı',
+        color: Colors.green,
+        isComplete: true,
+      ),
+    ];
+
+    final completedCount = tasks.where((t) => t.isComplete).length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Günlük Görevler',
+              style: context.textTheme.titleLarge,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: completedCount == tasks.length
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : context.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '$completedCount/${tasks.length}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: completedCount == tasks.length
+                      ? Colors.green
+                      : context.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...tasks.map((task) => _DailyTaskCard(task: task)),
+      ],
+    );
+  }
+}
+
+class _DailyTask {
+  final IconData icon;
+  final String title;
+  final double progress;
+  final String progressText;
+  final Color color;
+  final bool isComplete;
+
+  const _DailyTask({
+    required this.icon,
+    required this.title,
+    required this.progress,
+    required this.progressText,
+    required this.color,
+    required this.isComplete,
+  });
+}
+
+class _DailyTaskCard extends StatelessWidget {
+  final _DailyTask task;
+
+  const _DailyTaskCard({required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Icon
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: task.isComplete
+                    ? Colors.green.withValues(alpha: 0.2)
+                    : task.color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                task.isComplete ? Icons.check : task.icon,
+                color: task.isComplete ? Colors.green : task.color,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Title and progress
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      decoration: task.isComplete ? TextDecoration.lineThrough : null,
+                      color: task.isComplete
+                          ? context.colorScheme.outline
+                          : context.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: task.progress,
+                            minHeight: 6,
+                            backgroundColor: context.colorScheme.surfaceContainerHighest,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              task.isComplete ? Colors.green : task.color,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        task.progressText,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

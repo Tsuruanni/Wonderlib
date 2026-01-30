@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (Inline Activities eklendi)
+Son güncelleme: 2026-01-30 (Vocabulary & Daily Tasks eklendi)
 
 ## Current Phase
 
@@ -58,7 +58,6 @@ Son güncelleme: 2026-01-30 (Inline Activities eklendi)
 |------|----------|--------|-------|
 | Supabase DB şeması | - | Not started | Tablolar henüz yok |
 | Final Quiz | - | Not started | Bölüm sonu gamified quiz (escape room) |
-| Vocabulary sayfası | - | Not started | Kelime pratik modülü |
 
 ## Blockers
 
@@ -93,6 +92,8 @@ Son güncelleme: 2026-01-30 (Inline Activities eklendi)
 | Book Detail | 2026-01-30 | SliverAppBar, chapter list, FAB |
 | Reader Page | 2026-01-30 | Vocabulary highlighting, settings, nav |
 | Inline Activities | 2026-01-30 | 3 aktivite tipi, progressive reveal, XP animasyonu |
+| Vocabulary Page | 2026-01-30 | Liste, flashcard pratik, stats |
+| Daily Tasks | 2026-01-30 | Home sayfasında günlük görevler widget'ı |
 
 ## Decisions Log
 

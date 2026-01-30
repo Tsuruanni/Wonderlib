@@ -56,6 +56,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   - Chapter navigation bar (progress, prev/next)
   - Scroll-based progress tracking
 
+### Vocabulary & Daily Tasks (2026-01-30)
+- **Vocabulary sayfası** tam implementasyon
+  - Kelime listesi (Tümü/Tekrar/Yeni tabs)
+  - Status göstergeleri (new, learning, reviewing, mastered)
+  - Kelime detay sheet (anlam, fonetik, örnek cümle)
+  - Flashcard pratik modu (doğru/yanlış değerlendirme)
+  - Stats kartı (toplam, ustalaşılan, öğreniliyor)
+- **Günlük Görevler widget'ı** - Home sayfasında
+  - 10 dakika oku
+  - Kelime tekrarı
+  - Aktivite tamamla
+  - Progress barlar ve tamamlanma durumu
+- **UI Polish** - Türkçe çeviriler (Home sayfası)
+
 ### Inline Activities - Microlearning System (2026-01-30)
 - **Yeni aktivite sistemi** - paragraflar arasına inline aktiviteler
   - `TrueFalseActivity` - Doğru/Yanlış soruları
