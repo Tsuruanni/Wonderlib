@@ -13,6 +13,7 @@ import '../presentation/screens/vocabulary/vocabulary_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/widgets/shell/main_shell_scaffold.dart';
 
 // Route paths
 abstract class AppRoutes {
@@ -20,7 +21,7 @@ abstract class AppRoutes {
   static const login = '/login';
   static const home = '/';
   static const library = '/library';
-  static const bookDetail = '/book/:bookId';
+  static const bookDetail = '/library/book'; // Use with bookId parameter
   static const reader = '/reader/:bookId/:chapterId';
   static const activity = '/activity/:chapterId';
   static const vocabulary = '/vocabulary';
@@ -28,10 +29,18 @@ abstract class AppRoutes {
   static const teacherDashboard = '/teacher';
 }
 
+// Navigation shell keys for each branch
+final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
+final _libraryNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'library');
+final _vocabularyNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'vocabulary');
+final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.schoolCode,
     debugLogDiagnostics: true,
     redirect: (context, state) {
@@ -50,7 +59,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      // Auth routes
+      // Auth routes (outside shell)
       GoRoute(
         path: AppRoutes.schoolCode,
         name: 'schoolCode',
@@ -65,28 +74,78 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Main app routes
-      GoRoute(
-        path: AppRoutes.home,
-        name: 'home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.library,
-        name: 'library',
-        builder: (context, state) => const LibraryScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.bookDetail,
-        name: 'bookDetail',
-        builder: (context, state) {
-          final bookId = state.pathParameters['bookId']!;
-          return BookDetailScreen(bookId: bookId);
+      // Main app shell with bottom navigation
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainShellScaffold(navigationShell: navigationShell);
         },
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            navigatorKey: _homeNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                name: 'home',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 1: Library
+          StatefulShellBranch(
+            navigatorKey: _libraryNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.library,
+                name: 'library',
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  // Book detail is nested under library
+                  GoRoute(
+                    path: 'book/:bookId',
+                    name: 'bookDetail',
+                    builder: (context, state) {
+                      final bookId = state.pathParameters['bookId']!;
+                      return BookDetailScreen(bookId: bookId);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          // Branch 2: Vocabulary
+          StatefulShellBranch(
+            navigatorKey: _vocabularyNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.vocabulary,
+                name: 'vocabulary',
+                builder: (context, state) => const VocabularyScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 3: Profile
+          StatefulShellBranch(
+            navigatorKey: _profileNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                name: 'profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
+
+      // Full-screen routes (outside shell)
       GoRoute(
         path: AppRoutes.reader,
         name: 'reader',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final bookId = state.pathParameters['bookId']!;
           final chapterId = state.pathParameters['chapterId']!;
@@ -96,26 +155,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.activity,
         name: 'activity',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final chapterId = state.pathParameters['chapterId']!;
           return ActivityScreen(chapterId: chapterId);
         },
       ),
-      GoRoute(
-        path: AppRoutes.vocabulary,
-        name: 'vocabulary',
-        builder: (context, state) => const VocabularyScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        name: 'profile',
-        builder: (context, state) => const ProfileScreen(),
-      ),
 
-      // Teacher routes
+      // Teacher routes (outside shell for now)
       GoRoute(
         path: AppRoutes.teacherDashboard,
         name: 'teacherDashboard',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const TeacherDashboardScreen(),
       ),
     ],

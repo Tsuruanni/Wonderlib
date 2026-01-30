@@ -1,10 +1,10 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (UI Audit sonrası)
+Son güncelleme: 2026-01-30 (UI Implementation tamamlandı)
 
 ## Current Phase
 
-**Faz 1: MVP Foundation** 🔄 Devam ediyor (UI shell tamamlandı, DB şeması eksik)
+**Faz 1: MVP Foundation** ✅ UI tamamlandı, DB şeması eksik
 
 ## Roadmap
 
@@ -16,22 +16,22 @@ Son güncelleme: 2026-01-30 (UI Audit sonrası)
 - [x] PostHog (analytics)
 - [x] CLAUDE.md ve dökümanlar
 
-### Faz 1: MVP Foundation 🔄 (Aktif)
+### Faz 1: MVP Foundation ✅
 - [x] Flutter proje oluşturma
 - [x] Temel klasör yapısı (Clean Architecture)
 - [x] Supabase bağlantısı (client kurulu, şema eksik)
 - [x] Authentication UI (school code + login ekranları)
 - [x] Temel UI shell (GoRouter, theme)
-- [ ] Bottom navigation eklenmeli
+- [x] Bottom navigation (StatefulShellRoute, 4 tab)
 - [ ] Supabase database şeması oluşturulmalı
 
-### Faz 2: Öğrenci MVP
-- [ ] Dijital kütüphane (kitap listesi)
-- [ ] Okuma ekranı (sayfa görüntüleme)
-- [ ] Anlık sözlük (kelimeye tıkla)
+### Faz 2: Öğrenci MVP 🔄 (Aktif)
+- [x] Dijital kütüphane (kitap listesi) - grid/list, filters, search
+- [x] Okuma ekranı (sayfa görüntüleme) - reader with vocabulary
+- [x] Anlık sözlük (kelimeye tıkla) - vocabulary popup
 - [ ] Bölüm sonu aktiviteleri (3 tip)
-- [ ] XP ve seviye sistemi
-- [ ] Basit profil sayfası
+- [ ] XP ve seviye sistemi (UI var, backend yok)
+- [x] Basit profil sayfası
 
 ### Faz 3: Öğretmen MVP
 - [ ] Öğretmen dashboard
@@ -57,9 +57,8 @@ Son güncelleme: 2026-01-30 (UI Audit sonrası)
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
 | Supabase DB şeması | - | Not started | Tablolar henüz yok |
-| Bottom Navigation | - | Not started | Home, Library, Vocabulary, Profile |
-| Library sayfası | - | Not started | Kitap grid/list |
-| Reader sayfası | - | Not started | Metin okuma UI |
+| Activity sayfası | - | Not started | Bölüm sonu quiz/aktivite |
+| Vocabulary sayfası | - | Not started | Kelime pratik modülü |
 
 ## Blockers
 
@@ -72,6 +71,7 @@ Son güncelleme: 2026-01-30 (UI Audit sonrası)
 | Item | Priority | Notes |
 |------|----------|-------|
 | Mock data uyuşmazlığı | Low | Home'da kitap adı/kapak uyuşmuyor |
+| "Add to vocabulary" | Medium | Reader'da kelime ekleme henüz çalışmıyor |
 
 ## Recently Completed
 
@@ -88,6 +88,10 @@ Son güncelleme: 2026-01-30 (UI Audit sonrası)
 | Home page | 2026-01-30 | Stats, continue reading, quick actions |
 | Profile page | 2026-01-30 | Avatar, stats, sign out |
 | UI Audit | 2026-01-30 | Playwright ile tam test yapıldı |
+| Bottom Navigation | 2026-01-30 | StatefulShellRoute, 4 tabs |
+| Library Page | 2026-01-30 | Grid/list, filters, search |
+| Book Detail | 2026-01-30 | SliverAppBar, chapter list, FAB |
+| Reader Page | 2026-01-30 | Vocabulary highlighting, settings, nav |
 
 ## Decisions Log
 

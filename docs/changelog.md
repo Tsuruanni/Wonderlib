@@ -30,18 +30,36 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
   - `/login` - Giriş ekranı, Email/Student # toggle (tam işlevsel)
   - `/` - Ana sayfa: XP, Streak, Level stats + Continue Reading + Quick Actions
   - `/profile` - Profil sayfası: Avatar, stats, sign out
-- **Placeholder sayfalar:**
-  - `/library` - "Library coming soon" empty state
-  - `/vocabulary` - "Vocabulary practice coming soon" empty state
-  - `/teacher` - "Teacher Dashboard coming soon" empty state
-  - `/book/:id` - Sadece Book ID gösteriyor
-  - `/reader/:bookId/:chapterId` - Sadece Book/Chapter ID gösteriyor
-  - `/activity/:chapterId` - Sadece Chapter Activity ID gösteriyor
+
+### UI/Flutter - Major Update (2026-01-30)
+- **Bottom Navigation** eklendi (StatefulShellRoute)
+  - 4 tab: Home, Library, Vocabulary, Profile
+  - Tab state korunuyor (scroll position, etc.)
+  - Reader/Activity tam ekran açılıyor
+- **Library sayfası** tam implementasyon
+  - Grid/List view toggle
+  - CEFR seviye filtreleme (A1-C2)
+  - Arama fonksiyonu
+  - LevelBadge widget (seviyeye göre renk)
+  - BookGridCard, BookListTile widgets
+- **Book Detail sayfası** tam implementasyon
+  - SliverAppBar ile collapsible cover image
+  - Kitap bilgileri (author, level, duration, word count)
+  - Reading progress indicator
+  - Chapter list with completion status
+  - "Start/Continue Reading" FAB
+- **Reader sayfası** tam implementasyon
+  - Vocabulary highlighting (tıklanabilir kelimeler)
+  - VocabularyPopup (kelime tanımı)
+  - Reader settings (font size, line height, theme)
+  - 3 tema: Light, Sepia, Dark
+  - Chapter navigation bar (progress, prev/next)
+  - Scroll-based progress tracking
 
 ### Known Issues
 - Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)
-- Bottom navigation henüz yok
 - Supabase şeması henüz oluşturulmadı (tablolar boş)
+- Vocabulary "Add to vocabulary" henüz çalışmıyor (TODO)
 
 ---
 

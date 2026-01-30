@@ -17,12 +17,6 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ReadEng'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.go(AppRoutes.profile),
-          ),
-        ],
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -148,7 +142,7 @@ class _ContinueReadingSection extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   final book = books[index];
                   return GestureDetector(
-                    onTap: () => context.go('/book/${book.id}'),
+                    onTap: () => context.go('/library/book/${book.id}'),
                     child: SizedBox(
                       width: 130,
                       child: Column(
