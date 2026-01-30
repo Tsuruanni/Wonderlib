@@ -9,7 +9,13 @@ import '../presentation/screens/library/library_screen.dart';
 import '../presentation/screens/library/book_detail_screen.dart';
 import '../presentation/screens/reader/reader_screen.dart';
 import '../presentation/screens/reader/activity_screen.dart';
-import '../presentation/screens/vocabulary/vocabulary_screen.dart';
+import '../presentation/screens/vocabulary/vocabulary_hub_screen.dart';
+import '../presentation/screens/vocabulary/word_list_detail_screen.dart';
+import '../presentation/screens/vocabulary/category_browse_screen.dart';
+import '../presentation/screens/vocabulary/phases/phase1_learn_screen.dart';
+import '../presentation/screens/vocabulary/phases/phase2_spelling_screen.dart';
+import '../presentation/screens/vocabulary/phases/phase3_flashcards_screen.dart';
+import '../presentation/screens/vocabulary/phases/phase4_review_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
 import '../presentation/providers/auth_provider.dart';
@@ -121,7 +127,65 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.vocabulary,
                 name: 'vocabulary',
-                builder: (context, state) => const VocabularyScreen(),
+                builder: (context, state) => const VocabularyHubScreen(),
+                routes: [
+                  // Word list detail
+                  GoRoute(
+                    path: 'list/:listId',
+                    name: 'wordListDetail',
+                    builder: (context, state) {
+                      final listId = state.pathParameters['listId']!;
+                      return WordListDetailScreen(listId: listId);
+                    },
+                    routes: [
+                      // Phase 1: Learn Vocab
+                      GoRoute(
+                        path: 'phase/1',
+                        name: 'phase1Learn',
+                        builder: (context, state) {
+                          final listId = state.pathParameters['listId']!;
+                          return Phase1LearnScreen(listId: listId);
+                        },
+                      ),
+                      // Phase 2: Spelling
+                      GoRoute(
+                        path: 'phase/2',
+                        name: 'phase2Spelling',
+                        builder: (context, state) {
+                          final listId = state.pathParameters['listId']!;
+                          return Phase2SpellingScreen(listId: listId);
+                        },
+                      ),
+                      // Phase 3: Flashcards
+                      GoRoute(
+                        path: 'phase/3',
+                        name: 'phase3Flashcards',
+                        builder: (context, state) {
+                          final listId = state.pathParameters['listId']!;
+                          return Phase3FlashcardsScreen(listId: listId);
+                        },
+                      ),
+                      // Phase 4: Review Quiz
+                      GoRoute(
+                        path: 'phase/4',
+                        name: 'phase4Review',
+                        builder: (context, state) {
+                          final listId = state.pathParameters['listId']!;
+                          return Phase4ReviewScreen(listId: listId);
+                        },
+                      ),
+                    ],
+                  ),
+                  // Category browse
+                  GoRoute(
+                    path: 'category/:categoryName',
+                    name: 'categoryBrowse',
+                    builder: (context, state) {
+                      final categoryName = state.pathParameters['categoryName']!;
+                      return CategoryBrowseScreen(categoryName: categoryName);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

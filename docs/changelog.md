@@ -83,6 +83,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Home butonu** - reader'da sol üste geri dönüş ikonu eklendi
 - Mock data güncellendi (3 aktivite tipi için örnek veriler)
 
+### Vocabulary Builder - 4-Phase Learning System (2026-01-30)
+- **Wordela-inspired Vocabulary Builder** tam implementasyon
+  - Phase 1: Learn Vocab - Grid view, kelime kartları, audio, definition toggle
+  - Phase 2: Spelling - Dinleyerek yazma, responsive letter boxes, backspace handling
+  - Phase 3: Flashcards - SM-2 flip cards, "I don't know / Got it / Very EASY" buttons
+  - Phase 4: Review Quiz - Çoktan seçmeli + fill-in-blank, %70 geçme kriteri
+- **Word List Hub** - Horizontal scroll cards, Continue Learning, Recommended, Categories
+- **Word List Detail** - SliverAppBar, phase progress tracking, FAB navigation
+- **Category Browse** - Word listelerini kategoriye göre listele
+- **Progress Controller** - StateNotifier ile phase completion tracking
+- **Navigation Flow** - Phase tamamlandığında pushReplacement ile sonraki phase'e geçiş
+
+### Fixed
+- Phase completion navigation - Continue to Next Phase butonu çalışıyor
+- Spelling backspace - Focus widget ile onKeyEvent handling
+- Horizontal card overflow - Container height 160→180px
+- Header progress indicator - Bottom collision fix (top positioning)
+
 ### Known Issues
 - Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)
 - Supabase şeması henüz oluşturulmadı (tablolar boş)

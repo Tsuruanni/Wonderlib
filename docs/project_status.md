@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (UI English, Profile refactor)
+Son güncelleme: 2026-01-30 (Vocabulary Builder 4-Phase System)
 
 ## Current Phase
 
@@ -46,7 +46,7 @@ Son güncelleme: 2026-01-30 (UI English, Profile refactor)
 - [ ] İçerik pipeline
 
 ### Faz 5+: İleri Özellikler
-- [ ] Kelime egzersizi modülü
+- [x] Kelime egzersizi modülü (4-Phase Vocabulary Builder)
 - [ ] Sesli okuma / karaoke
 - [ ] Rozet sistemi
 - [ ] Offline mod
@@ -97,6 +97,9 @@ Son güncelleme: 2026-01-30 (UI English, Profile refactor)
 | Profile refactor | 2026-01-30 | Profile tab kaldırıldı, AppBar'a taşındı |
 | UI English | 2026-01-30 | Tüm UI metinleri İngilizce'ye çevrildi |
 | Recommended Books | 2026-01-30 | Home'da kitap önerisi slider'ı |
+| Vocabulary Builder | 2026-01-30 | 4-phase learning: Learn, Spelling, Flashcards, Review |
+| Word List Hub | 2026-01-30 | Continue Learning, Recommended, Categories sections |
+| Phase Progress | 2026-01-30 | StateNotifier ile progress tracking |
 
 ## Decisions Log
 

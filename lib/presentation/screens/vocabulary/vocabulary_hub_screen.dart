@@ -1,0 +1,576 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/word_list.dart';
+import '../../providers/vocabulary_provider.dart';
+
+/// Main vocabulary hub screen with word lists organized by sections
+class VocabularyHubScreen extends ConsumerWidget {
+  const VocabularyHubScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dueCount = ref.watch(totalDueWordsCountProvider);
+    final continueLeaning = ref.watch(continueWordListsProvider);
+    final recommended = ref.watch(recommendedWordListsProvider);
+    final storyLists = ref.watch(storyWordListsProvider);
+    final hubStats = ref.watch(vocabularyHubStatsProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('My Vocabulary'),
+        actions: [
+          // Stats chip
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Chip(
+              avatar: const Icon(Icons.star, size: 18),
+              label: Text('${hubStats.masteredWords} mastered'),
+              backgroundColor: Colors.amber.withValues(alpha: 0.2),
+            ),
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: 24),
+        children: [
+          // Due words banner
+          if (dueCount > 0) _DueWordsBanner(dueCount: dueCount),
+
+          // Continue Learning section
+          if (continueLeaning.isNotEmpty) ...[
+            _SectionHeader(
+              title: 'Continue Learning',
+              icon: Icons.play_circle_outline,
+            ),
+            _HorizontalListSection(lists: continueLeaning),
+          ],
+
+          // Recommended section
+          if (recommended.isNotEmpty) ...[
+            _SectionHeader(
+              title: 'Recommended for You',
+              icon: Icons.star_outline,
+            ),
+            _HorizontalListSection(lists: recommended),
+          ],
+
+          // My Word Lists (story vocabulary)
+          if (storyLists.isNotEmpty) ...[
+            _SectionHeader(
+              title: 'My Word Lists',
+              icon: Icons.bookmark_outline,
+            ),
+            _VerticalListSection(lists: storyLists, ref: ref),
+          ],
+
+          // Explore Categories
+          _SectionHeader(
+            title: 'Explore Categories',
+            icon: Icons.category_outlined,
+          ),
+          const _CategoriesGrid(),
+
+          // Empty state if nothing to show
+          if (continueLeaning.isEmpty && recommended.isEmpty && storyLists.isEmpty)
+            _EmptyState(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Banner showing due words count with review button
+class _DueWordsBanner extends StatelessWidget {
+  final int dueCount;
+
+  const _DueWordsBanner({required this.dueCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            context.colorScheme.primary,
+            context.colorScheme.primary.withValues(alpha: 0.8),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: context.colorScheme.primary.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.flash_on,
+              color: Colors.white,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$dueCount words due for review',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Keep your streak going!',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          FilledButton(
+            onPressed: () {
+              // TODO: Navigate to review screen
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: context.colorScheme.primary,
+            ),
+            child: const Text('Review'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Section header with icon and title
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _SectionHeader({
+    required this.title,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: context.colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: context.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal scrolling list of word list cards
+class _HorizontalListSection extends StatelessWidget {
+  final List<WordListWithProgress> lists;
+
+  const _HorizontalListSection({required this.lists});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: lists.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return _WordListCard(listWithProgress: lists[index]);
+        },
+      ),
+    );
+  }
+}
+
+/// Vertical list of word list items
+class _VerticalListSection extends StatelessWidget {
+  final List<WordList> lists;
+  final WidgetRef ref;
+
+  const _VerticalListSection({required this.lists, required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: lists.map((list) {
+          final progress = ref.watch(progressForListProvider(list.id));
+          return _WordListTile(
+            wordList: list,
+            progress: progress,
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+/// Card widget for a word list (used in horizontal scroll)
+class _WordListCard extends StatelessWidget {
+  final WordListWithProgress listWithProgress;
+
+  const _WordListCard({required this.listWithProgress});
+
+  @override
+  Widget build(BuildContext context) {
+    final list = listWithProgress.wordList;
+    final progress = listWithProgress.progress;
+
+    return GestureDetector(
+      onTap: () {
+        context.push('/vocabulary/list/${list.id}');
+      },
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: context.colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: context.colorScheme.outline.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: _getCategoryColor(list.category).withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                list.category.icon,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Title
+            Text(
+              list.name,
+              style: context.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+
+            // Word count and level
+            Text(
+              '${list.wordCount} words${list.level != null ? ' • ${list.level}' : ''}',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.colorScheme.outline,
+              ),
+            ),
+
+            const Spacer(),
+
+            // Progress bar
+            if (progress != null) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: progress.progressPercentage,
+                  minHeight: 6,
+                  backgroundColor: context.colorScheme.outline.withValues(alpha: 0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _getCategoryColor(list.category),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${(progress.progressPercentage * 100).toInt()}% complete',
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.outline,
+                ),
+              ),
+            ] else
+              Text(
+                'Not started',
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.outline,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getCategoryColor(WordListCategory category) {
+    switch (category) {
+      case WordListCategory.commonWords:
+        return Colors.blue;
+      case WordListCategory.gradeLevel:
+        return Colors.purple;
+      case WordListCategory.testPrep:
+        return Colors.orange;
+      case WordListCategory.thematic:
+        return Colors.teal;
+      case WordListCategory.storyVocab:
+        return Colors.pink;
+    }
+  }
+}
+
+/// Tile widget for word list (used in vertical list)
+class _WordListTile extends StatelessWidget {
+  final WordList wordList;
+  final UserWordListProgress? progress;
+
+  const _WordListTile({
+    required this.wordList,
+    this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        onTap: () {
+          context.push('/vocabulary/list/${wordList.id}');
+        },
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: context.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            wordList.category.icon,
+            style: const TextStyle(fontSize: 20),
+          ),
+        ),
+        title: Text(
+          wordList.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text('${wordList.wordCount} words'),
+        trailing: progress != null
+            ? _buildProgressIndicator(context, progress!)
+            : const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicator(BuildContext context, UserWordListProgress progress) {
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: progress.progressPercentage,
+            strokeWidth: 4,
+            backgroundColor: context.colorScheme.outline.withValues(alpha: 0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              progress.isFullyComplete ? Colors.green : context.colorScheme.primary,
+            ),
+          ),
+          Text(
+            '${(progress.progressPercentage * 100).toInt()}%',
+            style: context.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal scrolling category cards (same size as word list cards)
+class _CategoriesGrid extends ConsumerWidget {
+  const _CategoriesGrid();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categories = [
+      WordListCategory.commonWords,
+      WordListCategory.gradeLevel,
+      WordListCategory.testPrep,
+      WordListCategory.thematic,
+    ];
+
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: categories.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final lists = ref.watch(wordListsByCategoryProvider(category));
+          return _CategoryCard(
+            category: category,
+            listCount: lists.length,
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Card for a category (fixed width like word list cards)
+class _CategoryCard extends StatelessWidget {
+  final WordListCategory category;
+  final int listCount;
+
+  const _CategoryCard({
+    required this.category,
+    required this.listCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        context.push('/vocabulary/category/${category.name}');
+      },
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              _getCategoryColor(category),
+              _getCategoryColor(category).withValues(alpha: 0.7),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                category.icon,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            const Spacer(),
+            Text(
+              category.displayName,
+              style: context.textTheme.titleSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$listCount lists',
+              style: context.textTheme.bodySmall?.copyWith(
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getCategoryColor(WordListCategory category) {
+    switch (category) {
+      case WordListCategory.commonWords:
+        return Colors.blue;
+      case WordListCategory.gradeLevel:
+        return Colors.purple;
+      case WordListCategory.testPrep:
+        return Colors.orange;
+      case WordListCategory.thematic:
+        return Colors.teal;
+      case WordListCategory.storyVocab:
+        return Colors.pink;
+    }
+  }
+}
+
+/// Empty state when no lists available
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.library_books_outlined,
+            size: 64,
+            color: context.colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No word lists yet',
+            style: context.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Start reading stories to build your vocabulary!',
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.colorScheme.outline,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: () {
+              context.go('/library');
+            },
+            icon: const Icon(Icons.menu_book),
+            label: const Text('Browse Library'),
+          ),
+        ],
+      ),
+    );
+  }
+}

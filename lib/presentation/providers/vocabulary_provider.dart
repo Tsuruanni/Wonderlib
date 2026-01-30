@@ -457,3 +457,78 @@ class VocabularyHubStats {
     required this.completedLists,
   });
 }
+
+// ============================================
+// WORD LIST PROGRESS CONTROLLER
+// ============================================
+
+/// Controller for managing word list progress state
+class WordListProgressController extends StateNotifier<Map<String, UserWordListProgress>> {
+  WordListProgressController() : super({}) {
+    _initFromMock();
+  }
+
+  void _initFromMock() {
+    final mockProgress = MockData.userWordListProgress;
+    state = {for (var p in mockProgress) p.wordListId: p};
+  }
+
+  /// Get progress for a specific list
+  UserWordListProgress? getProgress(String listId) {
+    return state[listId];
+  }
+
+  /// Complete a phase for a word list
+  void completePhase(String listId, int phase, {int? score, int? total}) {
+    final existing = state[listId];
+
+    UserWordListProgress updated;
+    if (existing != null) {
+      updated = UserWordListProgress(
+        id: existing.id,
+        userId: existing.userId,
+        wordListId: listId,
+        phase1Complete: phase == 1 ? true : existing.phase1Complete,
+        phase2Complete: phase == 2 ? true : existing.phase2Complete,
+        phase3Complete: phase == 3 ? true : existing.phase3Complete,
+        phase4Complete: phase == 4 ? true : existing.phase4Complete,
+        phase4Score: phase == 4 ? score : existing.phase4Score,
+        phase4Total: phase == 4 ? total : existing.phase4Total,
+        updatedAt: DateTime.now(),
+      );
+    } else {
+      updated = UserWordListProgress(
+        id: 'progress-$listId',
+        userId: 'user-1',
+        wordListId: listId,
+        phase1Complete: phase == 1,
+        phase2Complete: phase == 2,
+        phase3Complete: phase == 3,
+        phase4Complete: phase == 4,
+        phase4Score: phase == 4 ? score : null,
+        phase4Total: phase == 4 ? total : null,
+        updatedAt: DateTime.now(),
+      );
+    }
+
+    state = {...state, listId: updated};
+  }
+
+  /// Reset progress for a word list
+  void resetProgress(String listId) {
+    final newState = Map<String, UserWordListProgress>.from(state);
+    newState.remove(listId);
+    state = newState;
+  }
+}
+
+final wordListProgressControllerProvider =
+    StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>((ref) {
+  return WordListProgressController();
+});
+
+/// Get progress for a specific list (reactive)
+final wordListProgressProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {
+  final progressMap = ref.watch(wordListProgressControllerProvider);
+  return progressMap[listId];
+});
