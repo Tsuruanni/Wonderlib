@@ -18,6 +18,17 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ReadEng'),
+        actions: [
+          // Profile button
+          IconButton(
+            icon: const CircleAvatar(
+              radius: 16,
+              child: Icon(Icons.person, size: 20),
+            ),
+            onPressed: () => context.push(AppRoutes.profile),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -34,12 +45,12 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 // Welcome header
                 Text(
-                  'Merhaba, ${user.firstName}!',
+                  'Welcome back, ${user.firstName}!',
                   style: context.textTheme.headlineSmall,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Okuma serisini devam ettir!',
+                  'Keep up your reading streak!',
                   style: context.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 24),
@@ -79,38 +90,8 @@ class HomeScreen extends ConsumerWidget {
                 _ContinueReadingSection(),
                 const SizedBox(height: 24),
 
-                // Quick actions
-                Text(
-                  'Hızlı Erişim',
-                  style: context.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 16),
-
-                _QuickActionCard(
-                  icon: Icons.library_books,
-                  title: 'Kütüphane',
-                  subtitle: 'Yeni kitapları keşfet',
-                  onTap: () => context.go(AppRoutes.library),
-                ),
-                const SizedBox(height: 8),
-
-                _QuickActionCard(
-                  icon: Icons.abc,
-                  title: 'Kelime Pratiği',
-                  subtitle: 'Kelimelerini tekrar et',
-                  onTap: () => context.go(AppRoutes.vocabulary),
-                ),
-
-                // Teacher-only action
-                if (user.role.canManageStudents) ...[
-                  const SizedBox(height: 8),
-                  _QuickActionCard(
-                    icon: Icons.dashboard,
-                    title: 'Öğretmen Paneli',
-                    subtitle: 'Sınıflarını yönet',
-                    onTap: () => context.go(AppRoutes.teacherDashboard),
-                  ),
-                ],
+                // Recommended Books
+                _RecommendedBooksSection(),
               ],
             ),
           );
@@ -120,115 +101,36 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _ContinueReadingSection extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final continueReadingAsync = ref.watch(continueReadingProvider);
-
-    return continueReadingAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (books) {
-        if (books.isEmpty) return const SizedBox.shrink();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Okumaya Devam Et',
-              style: context.textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 200,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: books.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) {
-                  final book = books[index];
-                  return GestureDetector(
-                    onTap: () => context.go('/library/book/${book.id}'),
-                    child: SizedBox(
-                      width: 130,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                color: context.colorScheme.surfaceContainerHighest,
-                                image: book.coverUrl != null
-                                    ? DecorationImage(
-                                        image: NetworkImage(book.coverUrl!),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
-                              ),
-                              child: book.coverUrl == null
-                                  ? Center(
-                                      child: Icon(
-                                        Icons.book,
-                                        size: 40,
-                                        color: context.colorScheme.onSurfaceVariant,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            book.title,
-                            style: context.textTheme.bodyMedium,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
 class _DailyTasksSection extends ConsumerWidget {
   const _DailyTasksSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vocabStats = ref.watch(vocabularyStatsSimpleProvider);
     final dueWords = ref.watch(wordsDueForReviewProvider);
 
     // Daily tasks data
     final tasks = [
       _DailyTask(
         icon: Icons.menu_book,
-        title: '10 dakika oku',
+        title: 'Read for 10 minutes',
         progress: 0.6, // Mock: 6/10 minutes
-        progressText: '6/10 dk',
+        progressText: '6/10 min',
         color: Colors.blue,
         isComplete: false,
       ),
       _DailyTask(
         icon: Icons.abc,
-        title: 'Kelime tekrarı',
+        title: 'Review vocabulary',
         progress: dueWords.isEmpty ? 1.0 : 0.0,
-        progressText: dueWords.isEmpty ? 'Tamamlandı' : '${dueWords.length} kelime',
+        progressText: dueWords.isEmpty ? 'Done' : '${dueWords.length} words',
         color: Colors.purple,
         isComplete: dueWords.isEmpty,
       ),
       _DailyTask(
         icon: Icons.quiz,
-        title: 'Aktivite tamamla',
+        title: 'Complete an activity',
         progress: 1.0, // Mock: completed
-        progressText: 'Tamamlandı',
+        progressText: 'Done',
         color: Colors.green,
         isComplete: true,
       ),
@@ -243,7 +145,7 @@ class _DailyTasksSection extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Günlük Görevler',
+              'Daily Tasks',
               style: context.textTheme.titleLarge,
             ),
             Container(
@@ -372,6 +274,189 @@ class _DailyTaskCard extends StatelessWidget {
   }
 }
 
+class _ContinueReadingSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final continueReadingAsync = ref.watch(continueReadingProvider);
+
+    return continueReadingAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (books) {
+        if (books.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Continue Reading',
+              style: context.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 200,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: books.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final book = books[index];
+                  return GestureDetector(
+                    onTap: () => context.go('/library/book/${book.id}'),
+                    child: SizedBox(
+                      width: 130,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: context.colorScheme.surfaceContainerHighest,
+                                image: book.coverUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(book.coverUrl!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: book.coverUrl == null
+                                  ? Center(
+                                      child: Icon(
+                                        Icons.book,
+                                        size: 40,
+                                        color: context.colorScheme.onSurfaceVariant,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            book.title,
+                            style: context.textTheme.bodyMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RecommendedBooksSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final booksAsync = ref.watch(booksProvider(null));
+
+    return booksAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (books) {
+        if (books.length <= 1) return const SizedBox.shrink();
+
+        // Show books the user hasn't started yet (mock: just show last few books)
+        final recommended = books.reversed.take(4).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Books You Might Like',
+                  style: context.textTheme.titleLarge,
+                ),
+                TextButton(
+                  onPressed: () => context.go(AppRoutes.library),
+                  child: const Text('See All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 180,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: recommended.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final book = recommended[index];
+                  return GestureDetector(
+                    onTap: () => context.go('/library/book/${book.id}'),
+                    child: SizedBox(
+                      width: 120,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: context.colorScheme.surfaceContainerHighest,
+                                image: book.coverUrl != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(book.coverUrl!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: book.coverUrl == null
+                                  ? Center(
+                                      child: Icon(
+                                        Icons.book,
+                                        size: 36,
+                                        color: context.colorScheme.onSurfaceVariant,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            book.title,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            book.level,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.outline,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -408,36 +493,6 @@ class _StatCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _QuickActionCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: context.colorScheme.primaryContainer,
-          child: Icon(icon, color: context.colorScheme.onPrimaryContainer),
-        ),
-        title: Text(title),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
     );
   }

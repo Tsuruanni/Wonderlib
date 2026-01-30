@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// Main shell scaffold that provides persistent bottom navigation
-/// for the app's main sections: Home, Library, Vocabulary, Profile
+/// for the app's main sections: Home, Library, Vocabulary
 class MainShellScaffold extends StatelessWidget {
   const MainShellScaffold({
     super.key,
@@ -33,11 +33,6 @@ class MainShellScaffold extends StatelessWidget {
             icon: Icon(Icons.abc_outlined),
             selectedIcon: Icon(Icons.abc),
             label: 'Vocabulary',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
           ),
         ],
       ),

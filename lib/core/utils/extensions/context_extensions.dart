@@ -30,7 +30,7 @@ extension BuildContextExtensions on BuildContext {
 
   void pop<T>([T? result]) => navigator.pop(result);
 
-  Future<T?> push<T>(Widget page) {
+  Future<T?> pushPage<T>(Widget page) {
     return navigator.push<T>(
       MaterialPageRoute(builder: (_) => page),
     );

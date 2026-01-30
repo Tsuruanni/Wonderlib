@@ -34,7 +34,6 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _libraryNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'library');
 final _vocabularyNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'vocabulary');
-final _profileNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -126,19 +125,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-
-          // Branch 3: Profile
-          StatefulShellBranch(
-            navigatorKey: _profileNavigatorKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.profile,
-                name: 'profile',
-                builder: (context, state) => const ProfileScreen(),
-              ),
-            ],
-          ),
         ],
+      ),
+
+      // Profile route (full-screen, outside shell)
+      GoRoute(
+        path: AppRoutes.profile,
+        name: 'profile',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProfileScreen(),
       ),
 
       // Full-screen routes (outside shell)

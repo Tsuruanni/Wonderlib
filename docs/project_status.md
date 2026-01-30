@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (Vocabulary & Daily Tasks eklendi)
+Son güncelleme: 2026-01-30 (UI English, Profile refactor)
 
 ## Current Phase
 
@@ -22,7 +22,7 @@ Son güncelleme: 2026-01-30 (Vocabulary & Daily Tasks eklendi)
 - [x] Supabase bağlantısı (client kurulu, şema eksik)
 - [x] Authentication UI (school code + login ekranları)
 - [x] Temel UI shell (GoRouter, theme)
-- [x] Bottom navigation (StatefulShellRoute, 4 tab)
+- [x] Bottom navigation (StatefulShellRoute, 3 tabs: Home, Library, Vocabulary)
 - [ ] Supabase database şeması oluşturulmalı
 
 ### Faz 2: Öğrenci MVP 🔄 (Aktif)
@@ -94,6 +94,9 @@ Son güncelleme: 2026-01-30 (Vocabulary & Daily Tasks eklendi)
 | Inline Activities | 2026-01-30 | 3 aktivite tipi, progressive reveal, XP animasyonu |
 | Vocabulary Page | 2026-01-30 | Liste, flashcard pratik, stats |
 | Daily Tasks | 2026-01-30 | Home sayfasında günlük görevler widget'ı |
+| Profile refactor | 2026-01-30 | Profile tab kaldırıldı, AppBar'a taşındı |
+| UI English | 2026-01-30 | Tüm UI metinleri İngilizce'ye çevrildi |
+| Recommended Books | 2026-01-30 | Home'da kitap önerisi slider'ı |
 
 ## Decisions Log
 

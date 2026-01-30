@@ -51,6 +51,7 @@ User Action → Local DB (Isar) → UI Update → Sync Queue → Supabase (when 
 - **API çağrıları:** `data/datasources/remote/` altında topla
 - **Lokal veri:** `data/datasources/local/` altında Isar kullan
 - Gereksiz abstraction üretme, mevcut pattern'i takip et
+- **UI Language:** All user-facing text must be in English (no Turkish in UI)
 
 # Testing & Quality
 - **Test aracı:** flutter_test, mockito

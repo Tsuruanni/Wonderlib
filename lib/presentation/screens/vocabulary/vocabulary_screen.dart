@@ -37,13 +37,13 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelimelerim'),
+        title: const Text('My Vocabulary'),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'Tümü (${allWords.length})'),
-            Tab(text: 'Tekrar (${dueWords.length})'),
-            Tab(text: 'Yeni (${newWords.length})'),
+            Tab(text: 'All (${allWords.length})'),
+            Tab(text: 'Review (${dueWords.length})'),
+            Tab(text: 'New (${newWords.length})'),
           ],
         ),
       ),
@@ -58,8 +58,8 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
               controller: _tabController,
               children: [
                 _WordListView(words: allWords),
-                _WordListView(words: dueWords, emptyMessage: 'Tekrar edilecek kelime yok'),
-                _WordListView(words: newWords, emptyMessage: 'Yeni kelime yok'),
+                _WordListView(words: dueWords, emptyMessage: 'No words to review'),
+                _WordListView(words: newWords, emptyMessage: 'No new words'),
               ],
             ),
           ),
@@ -69,7 +69,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
           ? FloatingActionButton.extended(
               onPressed: () => _startPractice(context, [...dueWords, ...newWords.take(5)]),
               icon: const Icon(Icons.play_arrow),
-              label: const Text('Pratik Yap'),
+              label: const Text('Practice'),
             )
           : null,
     );
@@ -112,18 +112,18 @@ class _StatsCard extends StatelessWidget {
             children: [
               _StatItem(
                 value: stats.totalWords.toString(),
-                label: 'Toplam',
+                label: 'Total',
                 icon: Icons.library_books,
               ),
               _StatItem(
                 value: stats.masteredCount.toString(),
-                label: 'Ustalaşılan',
+                label: 'Mastered',
                 icon: Icons.star,
                 color: Colors.amber,
               ),
               _StatItem(
                 value: stats.inProgressCount.toString(),
-                label: 'Öğreniliyor',
+                label: 'Learning',
                 icon: Icons.trending_up,
                 color: Colors.blue,
               ),
@@ -142,7 +142,7 @@ class _StatsCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${((stats.masteredCount / stats.totalWords) * 100).toStringAsFixed(0)}% ustalaşıldı',
+            '${((stats.masteredCount / stats.totalWords) * 100).toStringAsFixed(0)}% mastered',
             style: context.textTheme.bodySmall,
           ),
         ],
@@ -186,7 +186,7 @@ class _WordListView extends StatelessWidget {
 
   const _WordListView({
     required this.words,
-    this.emptyMessage = 'Kelime bulunamadı',
+    this.emptyMessage = 'No words found',
   });
 
   @override
@@ -333,7 +333,7 @@ class _WordDetailSheet extends StatelessWidget {
 
               // Turkish meaning
               _DetailRow(
-                label: 'Türkçe',
+                label: 'Turkish',
                 value: word.meaningTR,
               ),
 
@@ -346,7 +346,7 @@ class _WordDetailSheet extends StatelessWidget {
               if (word.exampleSentence != null) ...[
                 const SizedBox(height: 16),
                 Text(
-                  'Örnek Cümle',
+                  'Example Sentence',
                   style: context.textTheme.labelLarge?.copyWith(
                     color: context.colorScheme.outline,
                   ),
@@ -473,7 +473,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pratik (${_currentIndex + 1}/${widget.words.length})'),
+        title: Text('Practice (${_currentIndex + 1}/${widget.words.length})'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
@@ -514,7 +514,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _answerCard(false),
                     icon: const Icon(Icons.close),
-                    label: const Text('Bilmedim'),
+                    label: const Text("Don't Know"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade100,
                       foregroundColor: Colors.red.shade900,
@@ -527,7 +527,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _answerCard(true),
                     icon: const Icon(Icons.check),
-                    label: const Text('Bildim'),
+                    label: const Text('I Know'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green.shade100,
                       foregroundColor: Colors.green.shade900,
@@ -542,7 +542,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
           Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              'Cevabı görmek için karta dokun',
+              'Tap card to see the answer',
               style: context.textTheme.bodyMedium?.copyWith(
                 color: context.colorScheme.outline,
               ),
@@ -656,7 +656,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Pratik Tamamlandı!',
+              'Practice Complete!',
               style: context.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -667,17 +667,17 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
               children: [
                 _ResultStat(
                   value: _correctCount.toString(),
-                  label: 'Doğru',
+                  label: 'Correct',
                   color: Colors.green,
                 ),
                 _ResultStat(
                   value: _incorrectCount.toString(),
-                  label: 'Yanlış',
+                  label: 'Incorrect',
                   color: Colors.red,
                 ),
                 _ResultStat(
                   value: '$accuracy%',
-                  label: 'Başarı',
+                  label: 'Accuracy',
                   color: context.colorScheme.primary,
                 ),
               ],
@@ -686,7 +686,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
             FilledButton.icon(
               onPressed: () => Navigator.of(context).pop(),
               icon: const Icon(Icons.done),
-              label: const Text('Tamam'),
+              label: const Text('Done'),
             ),
           ],
         ),
