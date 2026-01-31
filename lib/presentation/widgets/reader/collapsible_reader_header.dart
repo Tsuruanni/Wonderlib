@@ -277,7 +277,7 @@ class _CollapsedContent extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        '$chapterNumber. BÖLÜM',
+                        'CHAPTER $chapterNumber',
                         style: TextStyle(
                           color: textColor.withValues(alpha: 0.6),
                           fontSize: 11,
@@ -431,7 +431,7 @@ class _ChapterCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$chapterNumber. BÖLÜM',
+                  'CHAPTER $chapterNumber',
                   style: TextStyle(
                     color: textColor.withValues(alpha: 0.6),
                     fontSize: 11,

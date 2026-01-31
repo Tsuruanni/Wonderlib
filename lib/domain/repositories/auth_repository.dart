@@ -22,4 +22,8 @@ abstract class AuthRepository {
   Future<Either<Failure, bool>> validateSchoolCode(String code);
 
   Stream<User?> get authStateChanges;
+
+  /// Refreshes the current user data and broadcasts to stream
+  /// Call this after XP or profile changes to update UI
+  Future<void> refreshCurrentUser();
 }

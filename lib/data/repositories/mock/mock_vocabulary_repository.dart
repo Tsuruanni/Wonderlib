@@ -43,7 +43,7 @@ class MockVocabularyRepository implements VocabularyRepository {
 
     final word = MockData.vocabularyWords.where((w) => w.id == id).firstOrNull;
     if (word == null) {
-      return const Left(NotFoundFailure('Kelime bulunamadı'));
+      return const Left(NotFoundFailure('Word not found'));
     }
     return Right(word);
   }
@@ -172,5 +172,40 @@ class MockVocabularyRepository implements VocabularyRepository {
       'mastered': userProgress.where((p) => p.status == VocabularyStatus.mastered).length,
       'dueToday': userProgress.where((p) => p.isDueForReview).length,
     });
+  }
+
+  @override
+  Future<Either<Failure, VocabularyProgress>> addWordToVocabulary({
+    required String userId,
+    required String wordId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Check if already exists
+    final existing = _progressList.where(
+      (p) => p.userId == userId && p.wordId == wordId,
+    ).firstOrNull;
+
+    if (existing != null) {
+      return Right(existing);
+    }
+
+    // Create new progress
+    final now = DateTime.now();
+    final progress = VocabularyProgress(
+      id: 'mock-progress-${now.millisecondsSinceEpoch}',
+      userId: userId,
+      wordId: wordId,
+      status: VocabularyStatus.learning,
+      easeFactor: 2.5,
+      intervalDays: 1,
+      repetitions: 0,
+      nextReviewAt: now.add(const Duration(days: 1)),
+      lastReviewedAt: now,
+      createdAt: now,
+    );
+
+    _progressList.add(progress);
+    return Right(progress);
   }
 }

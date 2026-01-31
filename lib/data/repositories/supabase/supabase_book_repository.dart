@@ -98,11 +98,9 @@ class SupabaseBookRepository implements BookRepository {
 
       var query = _supabase.from('books').select().eq('status', 'published');
 
+      // Exclude books already being read (single filter instead of N loops)
       if (readBookIds.isNotEmpty) {
-        // Exclude books already being read
-        for (final bookId in readBookIds) {
-          query = query.neq('id', bookId);
-        }
+        query = query.not('id', 'in', '(${readBookIds.join(',')})');
       }
 
       final response = await query.limit(6).order('created_at', ascending: false);
@@ -378,6 +376,82 @@ class SupabaseBookRepository implements BookRepository {
           .toList();
 
       return Right(activities);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> saveInlineActivityResult({
+    required String userId,
+    required String activityId,
+    required bool isCorrect,
+    required int xpEarned,
+  }) async {
+    try {
+      // Check if already exists - prevents duplicate XP
+      final existing = await _supabase
+          .from('inline_activity_results')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('inline_activity_id', activityId)
+          .maybeSingle();
+
+      if (existing != null) {
+        return const Right(false); // Already completed - no XP should be awarded
+      }
+
+      // Insert new result
+      await _supabase.from('inline_activity_results').insert({
+        'user_id': userId,
+        'inline_activity_id': activityId,
+        'is_correct': isCorrect,
+        'xp_earned': xpEarned,
+        'completed_at': DateTime.now().toIso8601String(),
+      });
+
+      return const Right(true); // New completion - XP can be awarded
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+    required String userId,
+    required String chapterId,
+  }) async {
+    try {
+      // Get activity IDs for this chapter
+      final activitiesResponse = await _supabase
+          .from('inline_activities')
+          .select('id')
+          .eq('chapter_id', chapterId);
+
+      final activityIds = (activitiesResponse as List)
+          .map((a) => a['id'] as String)
+          .toList();
+
+      if (activityIds.isEmpty) {
+        return const Right([]);
+      }
+
+      // Get completed activities for this user
+      final resultsResponse = await _supabase
+          .from('inline_activity_results')
+          .select('inline_activity_id')
+          .eq('user_id', userId)
+          .inFilter('inline_activity_id', activityIds);
+
+      final completedIds = (resultsResponse as List)
+          .map((r) => r['inline_activity_id'] as String)
+          .toList();
+
+      return Right(completedIds);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

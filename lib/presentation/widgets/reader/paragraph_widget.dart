@@ -119,7 +119,7 @@ class ParagraphWidget extends StatelessWidget {
   }
 }
 
-/// "Hepsini çevir" button for paragraph translation
+/// "Translate all" button for paragraph translation
 class TranslateButton extends StatelessWidget {
   const TranslateButton({
     super.key,
@@ -145,7 +145,7 @@ class TranslateButton extends StatelessWidget {
           ),
         ),
         child: const Text(
-          'Hepsini çevir',
+          'Translate all',
           style: TextStyle(fontSize: 12),
         ),
       ),

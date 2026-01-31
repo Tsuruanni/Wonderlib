@@ -190,6 +190,21 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Stream<domain.User?> get authStateChanges => _authStateController.stream;
 
+  @override
+  Future<void> refreshCurrentUser() async {
+    final authUser = _supabase.auth.currentUser;
+    if (authUser == null) {
+      _authStateController.add(null);
+      return;
+    }
+
+    final userResult = await getCurrentUser();
+    userResult.fold(
+      (failure) => _authStateController.add(null),
+      (user) => _authStateController.add(user),
+    );
+  }
+
   /// Maps Supabase profile data to domain User entity
   domain.User _mapProfileToUser(Map<String, dynamic> data) {
     return domain.User(

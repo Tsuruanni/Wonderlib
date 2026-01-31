@@ -28,7 +28,7 @@ class MockActivityRepository implements ActivityRepository {
 
     final activity = MockData.activities.where((a) => a.id == id).firstOrNull;
     if (activity == null) {
-      return const Left(NotFoundFailure('Aktivite bulunamadı'));
+      return const Left(NotFoundFailure('Activity not found'));
     }
     return Right(activity);
   }

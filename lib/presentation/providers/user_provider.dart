@@ -62,6 +62,16 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   final Ref _ref;
 
   UserController(this._ref) : super(const AsyncValue.loading()) {
+    // Watch auth state changes and reload user when it changes
+    _ref.listen(authStateChangesProvider, (previous, next) {
+      final newUserId = next.valueOrNull?.id;
+      final oldUserId = previous?.valueOrNull?.id;
+
+      if (newUserId != oldUserId) {
+        _loadUser();
+      }
+    });
+
     _loadUser();
   }
 
@@ -71,6 +81,8 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       state = const AsyncValue.data(null);
       return;
     }
+
+    state = const AsyncValue.loading();
 
     final userRepo = _ref.read(userRepositoryProvider);
     final result = await userRepo.getUserById(userId);
@@ -94,6 +106,8 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         state = AsyncValue.data(user);
       },
     );
+    // Note: Badge checking is handled by the check_and_award_badges RPC
+    // called within SupabaseUserRepository.addXP()
   }
 
   Future<void> updateStreak() async {

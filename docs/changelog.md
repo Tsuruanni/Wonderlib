@@ -8,6 +8,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Code Quality & Bug Fixes (2026-01-31)
+
+#### Fixed
+- **Duplicate XP Prevention** - Two-layer defense: local state check + DB returns boolean to prevent awarding XP multiple times from same inline activity
+- **Add to Vocabulary from Reader** - Vocabulary popup now actually persists words to database (searches word, creates progress record)
+- **Badge Earning System** - Badge checking now triggers after XP award and streak update via `check_and_award_badges` RPC
+- **Memory Leaks** - Added `dispose()` methods and `ref.onDispose()` callbacks for StreamControllers in auth repository and sync service
+- **N+1 Query** - `getRecommendedBooks` now uses single `.not('id', 'in', ...)` query instead of loop
+- **Perfect Scores Query** - Fixed badge repository's perfect score calculation (was using invalid filter)
+- **XP Logs Column** - Fixed column name in badge repository (`reason` → `source`)
+
+#### Changed
+- **Env Validation** - `EnvConstants` now throws `StateError` on missing required values instead of returning empty strings
+- **Turkish Text Removed** - All remaining Turkish error messages and UI text translated to English:
+  - "Hepsini çevir" → "Translate all"
+  - "+XP kazandın" → "You earned +XP"
+  - "Bu rozet zaten kazanıldı" → "Badge already earned"
+  - Various mock repository error messages
+
+#### Added
+- **Test Users Expansion** - 4 test users with different states (fresh, active, advanced, teacher)
+- **Expanded Seed Data** - 36 inline activities across all books, reading progress, completed activities
+
 ### MockData Removal & Bug Fixes (2026-01-31)
 - **InlineActivities Provider** - `getInlineActivities()` method added to BookRepository, reader now fetches activities from Supabase
 - **MockData Eliminated** - All presentation layer MockData usages removed (reader_screen, integrated_reader_content)
@@ -145,7 +168,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 ### Known Issues
 - ~~Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)~~ ✅ Fixed - real data from Supabase
 - ~~Supabase şeması henüz oluşturulmadı (tablolar boş)~~ ✅ Fixed - 21 tables created with seed data
-- Vocabulary "Add to vocabulary" henüz çalışmıyor (TODO)
+- ~~Vocabulary "Add to vocabulary" henüz çalışmıyor (TODO)~~ ✅ Fixed - Reader popup now persists words
 
 ---
 

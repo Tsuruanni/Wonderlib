@@ -147,14 +147,15 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       final vocabCount = (vocabMastered as List).length;
 
-      // Get perfect activity scores
-      final perfectScores = await _supabase
+      // Get perfect activity scores (score == max_score)
+      final allScores = await _supabase
           .from('activity_results')
-          .select('id')
-          .eq('user_id', userId)
-          .filter('score', 'eq', 'max_score'); // This might need RPC
+          .select('score, max_score')
+          .eq('user_id', userId);
 
-      final perfectCount = (perfectScores as List).length;
+      final perfectCount = (allScores as List)
+          .where((r) => r['score'] != null && r['score'] == r['max_score'])
+          .length;
 
       // Get user's existing badges
       final existingBadges = await _supabase
@@ -274,7 +275,8 @@ class SupabaseBadgeRepository implements BadgeRepository {
       await _supabase.from('xp_logs').insert({
         'user_id': userId,
         'amount': amount,
-        'reason': reason,
+        'source': reason,
+        'description': 'Badge reward',
         'created_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {

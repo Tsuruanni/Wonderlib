@@ -134,20 +134,23 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
     final activityRepo = _ref.read(activityRepositoryProvider);
     final submitResult = await activityRepo.submitActivityResult(result);
 
-    return submitResult.fold(
-      (failure) {
-        state = state.copyWith(isSubmitting: false, error: failure.message);
-        return null;
-      },
-      (result) {
-        state = state.copyWith(
-          isSubmitting: false,
-          isComplete: true,
-          result: result,
-        );
-        return result;
-      },
+    if (submitResult.isLeft()) {
+      final failure = submitResult.fold((f) => f, (_) => null)!;
+      state = state.copyWith(isSubmitting: false, error: failure.message);
+      return null;
+    }
+
+    final activityResult = submitResult.fold((_) => null, (r) => r)!;
+
+    // Refresh user data to update XP in UI
+    await refreshUserData(_ref);
+
+    state = state.copyWith(
+      isSubmitting: false,
+      isComplete: true,
+      result: activityResult,
     );
+    return activityResult;
   }
 
   void reset() {

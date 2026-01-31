@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/repository_providers.dart';
+import '../../providers/user_provider.dart';
 import '../activities/activities.dart';
 import 'paragraph_widget.dart';
 
@@ -181,23 +183,60 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
     }
   }
 
-  void _handleActivityAnswer(
+  Future<void> _handleActivityAnswer(
     String activityId,
     bool isCorrect,
     int xpEarned,
     List<String> wordsLearned,
-  ) {
-    // Mark activity as completed
-    ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);
-
-    // Add XP if correct
-    if (xpEarned > 0) {
-      ref.read(sessionXPProvider.notifier).addXP(xpEarned);
+  ) async {
+    // Layer 1: Quick check local state to prevent double-processing
+    final completedActivities = ref.read(inlineActivityStateProvider);
+    if (completedActivities.containsKey(activityId)) {
+      return; // Already completed locally, skip everything
     }
 
-    // Add words to learned vocabulary
+    // Mark activity as completed in local state
+    ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);
+
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    // Layer 2: Save to DB and check if this is a NEW completion
+    final bookRepo = ref.read(bookRepositoryProvider);
+    final result = await bookRepo.saveInlineActivityResult(
+      userId: userId,
+      activityId: activityId,
+      isCorrect: isCorrect,
+      xpEarned: xpEarned,
+    );
+
+    // Extract whether this is a new completion (prevents duplicate XP)
+    final isNewCompletion = result.fold(
+      (failure) => false, // On error, don't award XP
+      (isNew) => isNew,
+    );
+
+    // Only award XP for NEW completions
+    if (isNewCompletion && xpEarned > 0) {
+      // Update local session XP counter
+      ref.read(sessionXPProvider.notifier).addXP(xpEarned);
+
+      // Persist XP to database AND update local state (no page reload)
+      await ref.read(userControllerProvider.notifier).addXP(xpEarned);
+    }
+
+    // Add words to learned vocabulary (idempotent - safe to retry)
     if (wordsLearned.isNotEmpty) {
       ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
+
+      // Persist to vocabulary_progress
+      final vocabRepo = ref.read(vocabularyRepositoryProvider);
+      for (final wordId in wordsLearned) {
+        await vocabRepo.addWordToVocabulary(
+          userId: userId,
+          wordId: wordId,
+        );
+      }
     }
   }
 }

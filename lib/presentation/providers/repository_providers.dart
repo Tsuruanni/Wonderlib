@@ -21,7 +21,9 @@ import '../../domain/repositories/word_list_repository.dart';
 /// All repositories now use Supabase implementations
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return SupabaseAuthRepository();
+  final repository = SupabaseAuthRepository();
+  ref.onDispose(() => repository.dispose());
+  return repository;
 });
 
 final bookRepositoryProvider = Provider<BookRepository>((ref) {

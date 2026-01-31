@@ -20,7 +20,7 @@ class MockBadgeRepository implements BadgeRepository {
 
     final badge = MockData.badges.where((b) => b.id == id).firstOrNull;
     if (badge == null) {
-      return const Left(NotFoundFailure('Rozet bulunamadı'));
+      return const Left(NotFoundFailure('Badge not found'));
     }
     return Right(badge);
   }
@@ -48,12 +48,12 @@ class MockBadgeRepository implements BadgeRepository {
     ).firstOrNull;
 
     if (existing != null) {
-      return const Left(ValidationFailure('Bu rozet zaten kazanıldı'));
+      return const Left(ValidationFailure('Badge already earned'));
     }
 
     final badge = MockData.badges.where((b) => b.id == badgeId).firstOrNull;
     if (badge == null) {
-      return const Left(NotFoundFailure('Rozet bulunamadı'));
+      return const Left(NotFoundFailure('Badge not found'));
     }
 
     final userBadge = UserBadge(

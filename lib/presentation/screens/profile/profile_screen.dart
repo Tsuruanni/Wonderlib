@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/user_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(authStateChangesProvider);
+    // Use userControllerProvider for profile data (XP, streak, level)
+    final userAsync = ref.watch(userControllerProvider);
 
     return Scaffold(
       appBar: AppBar(

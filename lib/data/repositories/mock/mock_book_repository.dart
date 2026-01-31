@@ -47,7 +47,7 @@ class MockBookRepository implements BookRepository {
 
     final book = MockData.books.where((b) => b.id == id).firstOrNull;
     if (book == null) {
-      return const Left(NotFoundFailure('Kitap bulunamadı'));
+      return const Left(NotFoundFailure('Book not found'));
     }
     return Right(book);
   }
@@ -101,7 +101,7 @@ class MockBookRepository implements BookRepository {
 
     final chapter = MockData.chapters.where((c) => c.id == chapterId).firstOrNull;
     if (chapter == null) {
-      return const Left(NotFoundFailure('Bölüm bulunamadı'));
+      return const Left(NotFoundFailure('Chapter not found'));
     }
     return Right(chapter);
   }
@@ -233,5 +233,38 @@ class MockBookRepository implements BookRepository {
   ) async {
     await Future.delayed(const Duration(milliseconds: 200));
     return Right(MockData.getInlineActivities(chapterId));
+  }
+
+  // Mock storage for inline activity results
+  final Map<String, bool> _inlineActivityResults = {};
+
+  @override
+  Future<Either<Failure, bool>> saveInlineActivityResult({
+    required String userId,
+    required String activityId,
+    required bool isCorrect,
+    required int xpEarned,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    final key = '$userId:$activityId';
+    if (_inlineActivityResults.containsKey(key)) {
+      return const Right(false); // Already exists - no XP
+    }
+    _inlineActivityResults[key] = isCorrect;
+    return const Right(true); // New completion - award XP
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+    required String userId,
+    required String chapterId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    final activities = MockData.getInlineActivities(chapterId);
+    final completedIds = activities
+        .where((a) => _inlineActivityResults.containsKey('$userId:${a.id}'))
+        .map((a) => a.id)
+        .toList();
+    return Right(completedIds);
   }
 }

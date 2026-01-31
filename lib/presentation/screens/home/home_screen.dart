@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -13,7 +13,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(authStateChangesProvider);
+    // Use userControllerProvider for profile data (XP, streak, level)
+    // This doesn't trigger reload when XP changes
+    final userAsync = ref.watch(userControllerProvider);
 
     return Scaffold(
       appBar: AppBar(

@@ -49,4 +49,18 @@ abstract class BookRepository {
   Future<Either<Failure, List<InlineActivity>>> getInlineActivities(
     String chapterId,
   );
+
+  /// Saves inline activity result and returns whether this is a NEW completion.
+  /// Returns `Right(true)` if newly completed, `Right(false)` if already existed.
+  Future<Either<Failure, bool>> saveInlineActivityResult({
+    required String userId,
+    required String activityId,
+    required bool isCorrect,
+    required int xpEarned,
+  });
+
+  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+    required String userId,
+    required String chapterId,
+  });
 }

@@ -189,10 +189,16 @@ class SyncServiceImpl implements SyncService {
 
   @override
   Stream<SyncStatus> get statusStream => _statusController.stream;
+
+  void dispose() {
+    _statusController.close();
+  }
 }
 
 @riverpod
 SyncService syncService(SyncServiceRef ref) {
   final networkInfo = ref.watch(networkInfoProvider);
-  return SyncServiceImpl(networkInfo: networkInfo);
+  final service = SyncServiceImpl(networkInfo: networkInfo);
+  ref.onDispose(() => service.dispose());
+  return service;
 }

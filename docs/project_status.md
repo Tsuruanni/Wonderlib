@@ -1,10 +1,10 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Full Supabase Integration)
+Son güncelleme: 2026-01-31 (Code Quality & Bug Fixes)
 
 ## Current Phase
 
-**Faz 2: Öğrenci MVP** ✅ Supabase tam entegrasyon
+**Faz 2: Öğrenci MVP** ✅ Complete (except offline mode)
 
 ## Roadmap
 
@@ -45,11 +45,12 @@ Son güncelleme: 2026-01-31 (Full Supabase Integration)
 - [ ] Kitap ekleme arayüzü
 - [ ] İçerik pipeline
 
-### Faz 5+: İleri Özellikler
+### Faz 4+: İleri Özellikler (Deferred)
 - [x] Kelime egzersizi modülü (4-Phase Vocabulary Builder)
+- [x] Rozet sistemi (badge earning after XP/streak)
+- [ ] Final Quiz (chapter-end gamified quiz) - deferred
+- [ ] Offline mod (SyncService) - deferred
 - [ ] Sesli okuma / karaoke
-- [ ] Rozet sistemi
-- [ ] Offline mod
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
 
@@ -57,8 +58,15 @@ Son güncelleme: 2026-01-31 (Full Supabase Integration)
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Final Quiz | - | Not started | Bölüm sonu gamified quiz (escape room) |
-| Edge Functions | - | Not started | award-xp, check-streak |
+| Testing & Validation | User | Active | Manual testing of all features |
+
+## Deferred to Phase 4
+
+| Task | Notes |
+|------|-------|
+| Final Quiz | Bölüm sonu gamified quiz (escape room) |
+| Offline Mode | SyncService + Isar local storage |
+| Edge Functions | award-xp, check-streak (currently using RPC functions) |
 
 ## Blockers
 
@@ -71,12 +79,20 @@ Son güncelleme: 2026-01-31 (Full Supabase Integration)
 | Item | Priority | Notes |
 |------|----------|-------|
 | ~~Mock data uyuşmazlığı~~ | ~~Low~~ | ✅ Artık gerçek veri kullanılıyor |
-| "Add to vocabulary" | Medium | Reader'da kelime ekleme henüz çalışmıyor |
+| ~~"Add to vocabulary"~~ | ~~Medium~~ | ✅ Reader'da kelime ekleme çalışıyor |
+| Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Duplicate XP Prevention | 2026-01-31 | Two-layer defense for inline activities |
+| Add to Vocabulary | 2026-01-31 | Reader vocabulary popup now persists words |
+| Badge Earning System | 2026-01-31 | Triggers after XP/streak changes |
+| Memory Leak Fixes | 2026-01-31 | StreamController dispose callbacks |
+| N+1 Query Fix | 2026-01-31 | getRecommendedBooks optimization |
+| Test Users Expansion | 2026-01-31 | 4 users, 36 activities in seed data |
+| Turkish Text Cleanup | 2026-01-31 | All UI/errors now in English |
 | MockData Removal | 2026-01-31 | Presentation layer no longer uses MockData |
 | InlineActivities Provider | 2026-01-31 | Reader activities fetched from Supabase |
 | Full Supabase Integration | 2026-01-31 | All 7 repositories now use Supabase |

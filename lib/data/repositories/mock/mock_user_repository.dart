@@ -15,7 +15,7 @@ class MockUserRepository implements UserRepository {
 
     final user = _users.where((u) => u.id == id).firstOrNull;
     if (user == null) {
-      return const Left(NotFoundFailure('Kullanıcı bulunamadı'));
+      return const Left(NotFoundFailure('User not found'));
     }
     return Right(user);
   }
@@ -26,7 +26,7 @@ class MockUserRepository implements UserRepository {
 
     final index = _users.indexWhere((u) => u.id == user.id);
     if (index == -1) {
-      return const Left(NotFoundFailure('Kullanıcı bulunamadı'));
+      return const Left(NotFoundFailure('User not found'));
     }
 
     final updatedUser = user.copyWith(updatedAt: DateTime.now());
@@ -40,7 +40,7 @@ class MockUserRepository implements UserRepository {
 
     final index = _users.indexWhere((u) => u.id == userId);
     if (index == -1) {
-      return const Left(NotFoundFailure('Kullanıcı bulunamadı'));
+      return const Left(NotFoundFailure('User not found'));
     }
 
     final user = _users[index];
@@ -71,7 +71,7 @@ class MockUserRepository implements UserRepository {
 
     final index = _users.indexWhere((u) => u.id == userId);
     if (index == -1) {
-      return const Left(NotFoundFailure('Kullanıcı bulunamadı'));
+      return const Left(NotFoundFailure('User not found'));
     }
 
     final user = _users[index];
@@ -110,7 +110,7 @@ class MockUserRepository implements UserRepository {
 
     final user = _users.where((u) => u.id == userId).firstOrNull;
     if (user == null) {
-      return const Left(NotFoundFailure('Kullanıcı bulunamadı'));
+      return const Left(NotFoundFailure('User not found'));
     }
 
     // Calculate stats from mock data

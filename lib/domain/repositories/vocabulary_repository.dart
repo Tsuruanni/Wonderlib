@@ -36,4 +36,10 @@ abstract class VocabularyRepository {
   });
 
   Future<Either<Failure, Map<String, int>>> getVocabularyStats(String userId);
+
+  /// Adds a word to user's vocabulary (creates initial progress)
+  Future<Either<Failure, VocabularyProgress>> addWordToVocabulary({
+    required String userId,
+    required String wordId,
+  });
 }

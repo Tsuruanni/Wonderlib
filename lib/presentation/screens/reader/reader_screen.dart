@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/repository_providers.dart';
@@ -32,28 +33,64 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    // Reset state for new chapter on initial load
+    // Load completed activities from DB and reset session state
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(inlineActivityStateProvider.notifier).reset();
+      _loadCompletedActivities();
       ref.read(sessionXPProvider.notifier).reset();
       ref.read(readingTimerProvider.notifier).reset();
     });
     _startReadingTimer();
   }
 
+  Future<void> _loadCompletedActivities() async {
+    final completedResult = await ref.read(
+      completedInlineActivitiesProvider(widget.chapterId).future,
+    );
+    ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
+  }
+
   @override
   void dispose() {
     _readingTimer?.cancel();
+    _saveReadingTime();
     super.dispose();
+  }
+
+  Future<void> _saveReadingTime() async {
+    final readingTime = ref.read(readingTimerProvider);
+    if (readingTime <= 0) return;
+
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final bookRepo = ref.read(bookRepositoryProvider);
+
+    // Get current progress
+    final progressResult = await bookRepo.getReadingProgress(
+      userId: userId,
+      bookId: widget.bookId,
+    );
+
+    progressResult.fold(
+      (failure) => null,
+      (progress) async {
+        // Update with new reading time
+        final updatedProgress = progress.copyWith(
+          totalReadingTime: progress.totalReadingTime + readingTime,
+          updatedAt: DateTime.now(),
+        );
+        await bookRepo.updateReadingProgress(updatedProgress);
+      },
+    );
   }
 
   @override
   void didUpdateWidget(ReaderScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset state when chapter changes (deferred to avoid widget tree modification)
+    // Load from DB when chapter changes (deferred to avoid widget tree modification)
     if (oldWidget.chapterId != widget.chapterId) {
       Future.microtask(() {
-        ref.read(inlineActivityStateProvider.notifier).reset();
+        _loadCompletedActivities();
         ref.read(sessionXPProvider.notifier).reset();
         ref.read(readingTimerProvider.notifier).reset();
       });
@@ -74,6 +111,59 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   void _closeVocabularyPopup() {
     ref.read(selectedVocabularyProvider.notifier).state = null;
     ref.read(vocabularyPopupPositionProvider.notifier).state = null;
+  }
+
+  Future<void> _addWordToVocabulary(String word) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final vocabRepo = ref.read(vocabularyRepositoryProvider);
+
+    // Search for the word to get its ID
+    final searchResult = await vocabRepo.searchWords(word);
+    final wordData = searchResult.fold(
+      (failure) => null,
+      (words) => words.isNotEmpty ? words.first : null,
+    );
+
+    if (wordData == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not find "$word" in vocabulary database'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Add to user's vocabulary
+    final result = await vocabRepo.addWordToVocabulary(
+      userId: userId,
+      wordId: wordData.id,
+    );
+
+    if (mounted) {
+      result.fold(
+        (failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to add "$word": ${failure.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        },
+        (progress) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Added "$word" to your vocabulary'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        },
+      );
+    }
   }
 
   @override
@@ -246,7 +336,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                                   mainAxisSize: MainAxisSize.min,
                                                   children: [
                                                     const Text(
-                                                      'Sonraki Bölüm',
+                                                      'Next Chapter',
                                                       style: TextStyle(
                                                         fontSize: 16,
                                                         fontWeight: FontWeight.bold,
@@ -290,7 +380,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
-                                              'Kitabı Tamamladın! 🎉',
+                                              'Book Completed! 🎉',
                                               style: TextStyle(
                                                 color: settings.theme.text,
                                                 fontSize: 18,
@@ -299,7 +389,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              '+$sessionXP XP kazandın',
+                                              'You earned +$sessionXP XP',
                                               style: const TextStyle(
                                                 color: Color(0xFF38A169),
                                                 fontSize: 14,
@@ -334,7 +424,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                             color: settings.theme.text.withValues(alpha: 0.3),
                                           ),
                                         ),
-                                        child: const Text('Kitap Detayına Dön'),
+                                        child: const Text('Back to Book Details'),
                                       ),
                                     ],
                                   ],
@@ -355,12 +445,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                   position: popupPosition,
                   onClose: _closeVocabularyPopup,
                   onAddToVocabulary: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Added "${selectedVocab.word}" to vocabulary'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                    _addWordToVocabulary(selectedVocab.word);
                   },
                 ),
             ],

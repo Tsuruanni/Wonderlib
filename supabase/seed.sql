@@ -127,53 +127,104 @@ INSERT INTO classes (id, school_id, name, grade, academic_year) VALUES
 ('77777777-0001-0001-0001-000000000001', '33333333-0001-0001-0001-000000000001', '5-A', '5', '2024-2025');
 
 -- =============================================
--- TEST USER (for development)
--- Email: test@demo.com / Password: Test1234
--- Student Number: 2024001
+-- TEST USERS (for development)
+-- All passwords: Test1234
 -- =============================================
+
+-- 1. FRESH USER: New student, 0 XP, no progress
+-- Email: fresh@demo.com
 INSERT INTO auth.users (
-  id,
-  instance_id,
-  email,
-  encrypted_password,
-  email_confirmed_at,
-  raw_app_meta_data,
-  raw_user_meta_data,
-  created_at,
-  updated_at,
-  role,
-  aud,
-  confirmation_token,
-  email_change,
-  email_change_token_new,
-  recovery_token
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
 ) VALUES (
   '88888888-0001-0001-0001-000000000001',
   '00000000-0000-0000-0000-000000000000',
-  'test@demo.com',
+  'fresh@demo.com',
   crypt('Test1234', gen_salt('bf')),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',
-  '{"first_name": "Test", "last_name": "Student", "student_number": "2024001", "school_code": "DEMO123"}',
-  NOW(),
-  NOW(),
-  'authenticated',
-  'authenticated',
-  '',
-  '',
-  '',
-  ''
+  '{"first_name": "Fresh", "last_name": "Student", "student_number": "2024001", "school_code": "DEMO123"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
 );
 
--- Update profile for test user (trigger creates it, we just update with school info)
 UPDATE profiles SET
-  first_name = 'Test',
-  last_name = 'Student',
-  role = 'student',
+  first_name = 'Fresh', last_name = 'Student', role = 'student',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
-  student_number = '2024001'
+  student_number = '2024001', xp = 0, current_streak = 0, longest_streak = 0
 WHERE id = '88888888-0001-0001-0001-000000000001';
+
+-- 2. ACTIVE USER: Mid-progress student, 500 XP, reading 1 book
+-- Email: active@demo.com
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0001-0001-0001-000000000002',
+  '00000000-0000-0000-0000-000000000000',
+  'active@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Active", "last_name": "Student", "student_number": "2024002", "school_code": "DEMO123"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+
+UPDATE profiles SET
+  first_name = 'Active', last_name = 'Student', role = 'student',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024002', xp = 500, current_streak = 3, longest_streak = 5
+WHERE id = '88888888-0001-0001-0001-000000000002';
+
+-- 3. ADVANCED USER: High-progress student, 5000 XP, many activities completed
+-- Email: advanced@demo.com (for duplicate XP testing)
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0001-0001-0001-000000000003',
+  '00000000-0000-0000-0000-000000000000',
+  'advanced@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Advanced", "last_name": "Student", "student_number": "2024003", "school_code": "DEMO123"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+
+UPDATE profiles SET
+  first_name = 'Advanced', last_name = 'Student', role = 'student',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024003', xp = 5000, current_streak = 14, longest_streak = 21
+WHERE id = '88888888-0001-0001-0001-000000000003';
+
+-- 4. TEACHER USER: For dashboard testing
+-- Email: teacher@demo.com
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0001-0001-0001-000000000004',
+  '00000000-0000-0000-0000-000000000000',
+  'teacher@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Demo", "last_name": "Teacher", "school_code": "DEMO123"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+
+UPDATE profiles SET
+  first_name = 'Demo', last_name = 'Teacher', role = 'teacher',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  xp = 0, current_streak = 0, longest_streak = 0
+WHERE id = '88888888-0001-0001-0001-000000000004';
 
 -- =============================================
 -- BOOKS
@@ -307,10 +358,12 @@ It was quite dark when she awakened again. The train had stopped at a station an
 190, 6, '[{"word": "awakened", "meaning": "uyandı", "phonetic": "/əˈweɪkənd/", "startIndex": 31, "endIndex": 39}, {"word": "glistening", "meaning": "parıldayan", "phonetic": "/ˈɡlɪsənɪŋ/", "startIndex": 262, "endIndex": 272}, {"word": "carriage", "meaning": "vagon, araba", "phonetic": "/ˈkærɪdʒ/", "startIndex": 329, "endIndex": 337}, {"word": "lulled", "meaning": "yatıştırılmış", "phonetic": "/lʌld/", "startIndex": 581, "endIndex": 587}]');
 
 -- =============================================
--- INLINE ACTIVITIES (for The Little Prince chapters)
+-- INLINE ACTIVITIES (for all books)
 -- =============================================
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+
+-- ========== THE LITTLE PRINCE ==========
 -- Chapter 1: The Drawing
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 ('66666666-0001-0001-0001-000000000001', '55555555-0001-0001-0001-000000000001', 'true_false', 0,
 '{"statement": "The narrator saw the picture in a newspaper.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
 ('66666666-0001-0001-0001-000000000002', '55555555-0001-0001-0001-000000000001', 'word_translation', 1,
@@ -318,18 +371,198 @@ INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, cont
 ('66666666-0001-0001-0001-000000000003', '55555555-0001-0001-0001-000000000001', 'true_false', 2,
 '{"statement": "The grown-ups thought the drawing was a hat.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0001-0001-0001-000000000004', '55555555-0001-0001-0001-000000000001', 'find_words', 3,
-'{"instruction": "Find two subjects the grown-ups suggested.", "options": ["Geography", "Music", "Arithmetic"], "correctAnswers": ["Geography", "Arithmetic"]}', 5, ARRAY['geography', 'arithmetic']),
+'{"instruction": "Find two subjects the grown-ups suggested.", "options": ["Geography", "Music", "Arithmetic"], "correctAnswers": ["Geography", "Arithmetic"]}', 5, ARRAY['geography', 'arithmetic']);
 
 -- Chapter 2: The Pilot
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 ('66666666-0001-0002-0001-000000000001', '55555555-0001-0001-0001-000000000002', 'true_false', 0,
 '{"statement": "The narrator chose to become a pilot.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0001-0002-0001-000000000002', '55555555-0001-0001-0001-000000000002', 'word_translation', 1,
 '{"word": "distinguish", "correctAnswer": "ayırt etmek", "options": ["ayırt etmek", "uçmak", "kaybolmak"]}', 5, ARRAY['distinguish']),
+('66666666-0001-0002-0001-000000000003', '55555555-0001-0001-0001-000000000002', 'true_false', 2,
+'{"statement": "The narrator improved his opinion of grown-ups over time.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
+('66666666-0001-0002-0001-000000000004', '55555555-0001-0001-0001-000000000002', 'word_translation', 3,
+'{"word": "consequence", "correctAnswer": "önem", "options": ["önem", "sonuç", "hata"]}', 5, ARRAY['consequence']);
 
 -- Chapter 3: The Little Prince Arrives
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 ('66666666-0001-0003-0001-000000000001', '55555555-0001-0001-0001-000000000003', 'true_false', 0,
 '{"statement": "The narrator''s plane crashed in the Sahara Desert.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0001-0003-0001-000000000002', '55555555-0001-0001-0001-000000000003', 'word_translation', 1,
 '{"word": "scarcely", "correctAnswer": "zar zor", "options": ["zar zor", "bolca", "hızlıca"]}', 5, ARRAY['scarcely']),
-('66666666-0001-0003-0001-000000000003', '55555555-0001-0001-0001-000000000003', 'true_false', 4,
+('66666666-0001-0003-0001-000000000003', '55555555-0001-0001-0001-000000000003', 'word_translation', 2,
+'{"word": "habitation", "correctAnswer": "yerleşim yeri", "options": ["yerleşim yeri", "alışkanlık", "hayvan"]}', 5, ARRAY['habitation']),
+('66666666-0001-0003-0001-000000000004', '55555555-0001-0001-0001-000000000003', 'true_false', 3,
 '{"statement": "The little voice asked for a drawing of a sheep.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]);
+
+-- ========== CHARLOTTE'S WEB ==========
+-- Chapter 1: Before Breakfast
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0002-0001-0001-000000000001', '55555555-0001-0002-0001-000000000001', 'true_false', 0,
+'{"statement": "Fern''s father was going to the hoghouse with an ax.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0002-0001-0001-000000000002', '55555555-0001-0002-0001-000000000001', 'word_translation', 1,
+'{"word": "runt", "correctAnswer": "sürünün en küçüğü", "options": ["sürünün en küçüğü", "en büyüğü", "en hızlısı"]}', 5, ARRAY['runt']),
+('66666666-0002-0001-0001-000000000003', '55555555-0001-0002-0001-000000000001', 'true_false', 2,
+'{"statement": "Fern was happy about her father''s decision.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
+('66666666-0002-0001-0001-000000000004', '55555555-0001-0002-0001-000000000001', 'word_translation', 3,
+'{"word": "shrieked", "correctAnswer": "çığlık attı", "options": ["çığlık attı", "fısıldadı", "güldü"]}', 5, ARRAY['shrieked']);
+
+-- Chapter 2: Wilbur
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0002-0002-0001-000000000001', '55555555-0001-0002-0001-000000000002', 'true_false', 0,
+'{"statement": "Fern fed Wilbur milk from a bottle.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0002-0002-0001-000000000002', '55555555-0001-0002-0001-000000000002', 'word_translation', 1,
+'{"word": "stroke", "correctAnswer": "okşamak", "options": ["okşamak", "vurmak", "itmek"]}', 5, ARRAY['stroke']),
+('66666666-0002-0002-0001-000000000003', '55555555-0001-0002-0001-000000000002', 'find_words', 2,
+'{"instruction": "What did Mrs. Arable do for Wilbur?", "options": ["Gave him a bath", "Tied a ribbon", "Read him stories"], "correctAnswers": ["Gave him a bath", "Tied a ribbon"]}', 5, ARRAY[]::TEXT[]),
+('66666666-0002-0002-0001-000000000004', '55555555-0001-0002-0001-000000000002', 'true_false', 3,
+'{"statement": "Wilbur was sold when he was five weeks old.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]);
+
+-- Chapter 3: Escape
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0002-0003-0001-000000000001', '55555555-0001-0002-0001-000000000003', 'word_translation', 0,
+'{"word": "barn", "correctAnswer": "ahır", "options": ["ahır", "ev", "okul"]}', 5, ARRAY['barn']),
+('66666666-0002-0003-0001-000000000002', '55555555-0001-0002-0001-000000000003', 'true_false', 1,
+'{"statement": "The barn smelled of hay and manure.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0002-0003-0001-000000000003', '55555555-0001-0002-0001-000000000003', 'word_translation', 2,
+'{"word": "perspiration", "correctAnswer": "ter", "options": ["ter", "su", "yağmur"]}', 5, ARRAY['perspiration']),
+('66666666-0002-0003-0001-000000000004', '55555555-0001-0002-0001-000000000003', 'find_words', 3,
+'{"instruction": "What made the barn smell?", "options": ["Hay", "Fish", "Manure", "Flowers"], "correctAnswers": ["Hay", "Fish", "Manure"]}', 5, ARRAY[]::TEXT[]);
+
+-- ========== THE SECRET GARDEN ==========
+-- Chapter 1: There Is No One Left
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0003-0001-0001-000000000001', '55555555-0001-0003-0001-000000000001', 'true_false', 0,
+'{"statement": "Mary Lennox was a pleasant-looking child.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
+('66666666-0003-0001-0001-000000000002', '55555555-0001-0003-0001-000000000001', 'word_translation', 1,
+'{"word": "disagreeable", "correctAnswer": "sevimsiz", "options": ["sevimsiz", "güzel", "mutlu"]}', 5, ARRAY['disagreeable']),
+('66666666-0003-0001-0001-000000000003', '55555555-0001-0003-0001-000000000001', 'true_false', 2,
+'{"statement": "Mary was born in India.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0003-0001-0001-000000000004', '55555555-0001-0003-0001-000000000001', 'word_translation', 3,
+'{"word": "amuse", "correctAnswer": "eğlendirmek", "options": ["eğlendirmek", "üzmek", "korkutmak"]}', 5, ARRAY['amuse']);
+
+-- Chapter 2: Mistress Mary Quite Contrary
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0003-0002-0001-000000000001', '55555555-0001-0003-0001-000000000002', 'true_false', 0,
+'{"statement": "Mary missed her mother very much.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
+('66666666-0003-0002-0001-000000000002', '55555555-0001-0003-0001-000000000002', 'word_translation', 1,
+'{"word": "self-absorbed", "correctAnswer": "bencil", "options": ["bencil", "cömert", "nazik"]}', 5, ARRAY['self-absorbed']),
+('66666666-0003-0002-0001-000000000003', '55555555-0001-0003-0001-000000000002', 'true_false', 2,
+'{"statement": "Mary was very young when she was left alone.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0003-0002-0001-000000000004', '55555555-0001-0003-0001-000000000002', 'word_translation', 3,
+'{"word": "polite", "correctAnswer": "kibar", "options": ["kibar", "kaba", "sessiz"]}', 5, ARRAY['polite']);
+
+-- Chapter 3: Across the Moor
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+('66666666-0003-0003-0001-000000000001', '55555555-0001-0003-0001-000000000003', 'word_translation', 0,
+'{"word": "awakened", "correctAnswer": "uyandı", "options": ["uyandı", "uyudu", "yürüdü"]}', 5, ARRAY['awakened']),
+('66666666-0003-0003-0001-000000000002', '55555555-0001-0003-0001-000000000003', 'true_false', 1,
+'{"statement": "Mrs. Medlock bought food at a station.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0003-0003-0001-000000000003', '55555555-0001-0003-0001-000000000003', 'word_translation', 2,
+'{"word": "glistening", "correctAnswer": "parıldayan", "options": ["parıldayan", "karanlık", "kuru"]}', 5, ARRAY['glistening']),
+('66666666-0003-0003-0001-000000000004', '55555555-0001-0003-0001-000000000003', 'true_false', 3,
+'{"statement": "The rain stopped during the journey.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]);
+
+-- =============================================
+-- READING PROGRESS (for test users)
+-- =============================================
+
+-- ACTIVE USER: Reading "The Little Prince", completed chapter 1
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000001',
+'55555555-0001-0001-0001-000000000002', 1, false, 33.33, 600,
+ARRAY['55555555-0001-0001-0001-000000000001']::UUID[], NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day');
+
+-- ACTIVE USER: Started "Charlotte's Web"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000002',
+'55555555-0001-0002-0001-000000000001', 1, false, 10.0, 180,
+ARRAY[]::UUID[], NOW() - INTERVAL '1 day', NOW());
+
+-- ADVANCED USER: Completed "The Little Prince"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, completed_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000001',
+'55555555-0001-0001-0001-000000000003', 1, true, 100.0, 2700,
+ARRAY['55555555-0001-0001-0001-000000000001', '55555555-0001-0001-0001-000000000002', '55555555-0001-0001-0001-000000000003']::UUID[],
+NOW() - INTERVAL '14 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days');
+
+-- ADVANCED USER: Completed "Charlotte's Web"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, completed_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000002',
+'55555555-0001-0002-0001-000000000003', 1, true, 100.0, 3600,
+ARRAY['55555555-0001-0002-0001-000000000001', '55555555-0001-0002-0001-000000000002', '55555555-0001-0002-0001-000000000003']::UUID[],
+NOW() - INTERVAL '10 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days');
+
+-- ADVANCED USER: Reading "The Secret Garden"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000003',
+'55555555-0001-0003-0001-000000000002', 1, false, 66.66, 1800,
+ARRAY['55555555-0001-0003-0001-000000000001', '55555555-0001-0003-0001-000000000002']::UUID[], NOW() - INTERVAL '3 days', NOW());
+
+-- =============================================
+-- COMPLETED INLINE ACTIVITIES (for ADVANCED user - to test duplicate XP prevention)
+-- =============================================
+INSERT INTO inline_activity_results (id, user_id, inline_activity_id, is_correct, xp_earned, answered_at) VALUES
+-- The Little Prince - All activities completed
+('aaaaaaaa-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000001', true, 5, NOW() - INTERVAL '10 days'),
+('aaaaaaaa-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000002', true, 5, NOW() - INTERVAL '10 days'),
+('aaaaaaaa-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000003', true, 5, NOW() - INTERVAL '10 days'),
+('aaaaaaaa-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000004', true, 5, NOW() - INTERVAL '10 days'),
+('aaaaaaaa-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000001', true, 5, NOW() - INTERVAL '9 days'),
+('aaaaaaaa-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000002', true, 5, NOW() - INTERVAL '9 days'),
+('aaaaaaaa-0001-0001-0001-000000000007', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000003', false, 0, NOW() - INTERVAL '9 days'),
+('aaaaaaaa-0001-0001-0001-000000000008', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000004', true, 5, NOW() - INTERVAL '9 days'),
+('aaaaaaaa-0001-0001-0001-000000000009', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000001', true, 5, NOW() - INTERVAL '8 days'),
+('aaaaaaaa-0001-0001-0001-000000000010', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000002', true, 5, NOW() - INTERVAL '8 days'),
+('aaaaaaaa-0001-0001-0001-000000000011', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000003', true, 5, NOW() - INTERVAL '8 days'),
+('aaaaaaaa-0001-0001-0001-000000000012', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000004', true, 5, NOW() - INTERVAL '8 days'),
+-- Charlotte's Web - All activities completed
+('aaaaaaaa-0001-0001-0001-000000000013', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000001', true, 5, NOW() - INTERVAL '7 days'),
+('aaaaaaaa-0001-0001-0001-000000000014', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000002', true, 5, NOW() - INTERVAL '7 days'),
+('aaaaaaaa-0001-0001-0001-000000000015', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000003', true, 5, NOW() - INTERVAL '7 days'),
+('aaaaaaaa-0001-0001-0001-000000000016', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000004', true, 5, NOW() - INTERVAL '7 days'),
+('aaaaaaaa-0001-0001-0001-000000000017', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000001', true, 5, NOW() - INTERVAL '6 days'),
+('aaaaaaaa-0001-0001-0001-000000000018', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000002', true, 5, NOW() - INTERVAL '6 days'),
+('aaaaaaaa-0001-0001-0001-000000000019', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000003', true, 5, NOW() - INTERVAL '6 days'),
+('aaaaaaaa-0001-0001-0001-000000000020', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000004', true, 5, NOW() - INTERVAL '6 days'),
+('aaaaaaaa-0001-0001-0001-000000000021', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000001', true, 5, NOW() - INTERVAL '5 days'),
+('aaaaaaaa-0001-0001-0001-000000000022', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000002', true, 5, NOW() - INTERVAL '5 days'),
+('aaaaaaaa-0001-0001-0001-000000000023', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000003', true, 5, NOW() - INTERVAL '5 days'),
+('aaaaaaaa-0001-0001-0001-000000000024', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000004', true, 5, NOW() - INTERVAL '5 days'),
+-- The Secret Garden - Chapter 1 & 2 activities completed (reading in progress)
+('aaaaaaaa-0001-0001-0001-000000000025', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000001', true, 5, NOW() - INTERVAL '3 days'),
+('aaaaaaaa-0001-0001-0001-000000000026', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000002', true, 5, NOW() - INTERVAL '3 days'),
+('aaaaaaaa-0001-0001-0001-000000000027', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000003', true, 5, NOW() - INTERVAL '3 days'),
+('aaaaaaaa-0001-0001-0001-000000000028', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000004', true, 5, NOW() - INTERVAL '3 days'),
+('aaaaaaaa-0001-0001-0001-000000000029', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000001', true, 5, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0001-0001-0001-000000000030', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000002', true, 5, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0001-0001-0001-000000000031', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000003', true, 5, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0001-0001-0001-000000000032', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000004', true, 5, NOW() - INTERVAL '2 days');
+
+-- ACTIVE USER: Completed some activities (chapter 1 of Little Prince)
+INSERT INTO inline_activity_results (id, user_id, inline_activity_id, is_correct, xp_earned, answered_at) VALUES
+('aaaaaaaa-0002-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000001', true, 5, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0002-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000002', true, 5, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0002-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000003', false, 0, NOW() - INTERVAL '2 days'),
+('aaaaaaaa-0002-0001-0001-000000000004', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000004', true, 5, NOW() - INTERVAL '2 days');
+
+-- =============================================
+-- VOCABULARY PROGRESS (words learned by users)
+-- Uses SM-2 spaced repetition: status, ease_factor, interval_days, repetitions
+-- =============================================
+INSERT INTO vocabulary_progress (id, user_id, word_id, status, ease_factor, interval_days, repetitions, next_review_at, last_reviewed_at) VALUES
+-- ACTIVE USER: Learning some words
+('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000001', 'learning', 2.50, 1, 2, NOW() + INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000002', 'new_word', 2.50, 0, 1, NOW() + INTERVAL '4 hours', NOW() - INTERVAL '2 days'),
+('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000003', 'reviewing', 2.60, 3, 4, NOW() + INTERVAL '3 days', NOW() - INTERVAL '1 day'),
+
+-- ADVANCED USER: Many words mastered
+('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
+('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000002', 'mastered', 2.70, 30, 8, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
+('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000003', 'mastered', 2.90, 30, 12, NOW() + INTERVAL '30 days', NOW() - INTERVAL '3 days'),
+('bbbbbbbb-0001-0001-0001-000000000007', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000004', 'reviewing', 2.60, 14, 7, NOW() + INTERVAL '14 days', NOW() - INTERVAL '2 days'),
+('bbbbbbbb-0001-0001-0001-000000000008', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000005', 'mastered', 2.75, 30, 9, NOW() + INTERVAL '30 days', NOW() - INTERVAL '7 days'),
+('bbbbbbbb-0001-0001-0001-000000000009', '88888888-0001-0001-0001-000000000003', '11111111-0001-0002-0001-000000000001', 'reviewing', 2.55, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '4 days'),
+('bbbbbbbb-0001-0001-0001-000000000010', '88888888-0001-0001-0001-000000000003', '11111111-0001-0002-0001-000000000002', 'learning', 2.50, 7, 4, NOW() + INTERVAL '7 days', NOW() - INTERVAL '2 days'),
+('bbbbbbbb-0001-0001-0001-000000000011', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '10 days'),
+('bbbbbbbb-0001-0001-0001-000000000012', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000002', 'reviewing', 2.60, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '6 days');

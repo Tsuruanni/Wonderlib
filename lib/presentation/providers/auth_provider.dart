@@ -142,3 +142,10 @@ final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
   return AuthController(ref);
 });
+
+/// Refreshes the current user data from database
+/// Call this after XP changes, profile updates, etc.
+Future<void> refreshUserData(Ref ref) async {
+  final authRepo = ref.read(authRepositoryProvider);
+  await authRepo.refreshCurrentUser();
+}

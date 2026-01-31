@@ -95,6 +95,11 @@ class SupabaseUserRepository implements UserRepository {
         'p_user_id': userId,
       });
 
+      // Check for new badges (including streak badges)
+      await _supabase.rpc('check_and_award_badges', params: {
+        'p_user_id': userId,
+      });
+
       // Fetch updated user
       final response = await _supabase
           .from('profiles')

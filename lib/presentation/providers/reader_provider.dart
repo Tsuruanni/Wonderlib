@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/chapter.dart';
+import 'auth_provider.dart';
+import 'repository_providers.dart';
 
 /// Reader theme options
 enum ReaderTheme {
@@ -61,33 +63,86 @@ class ReaderSettings {
   }
 }
 
-/// Reader settings notifier
+/// Reader settings notifier - loads from and saves to user profile
 class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
-  ReaderSettingsNotifier() : super(const ReaderSettings());
+  final Ref _ref;
+
+  ReaderSettingsNotifier(this._ref) : super(const ReaderSettings()) {
+    _loadFromProfile();
+  }
+
+  void _loadFromProfile() {
+    final user = _ref.read(authStateChangesProvider).valueOrNull;
+    if (user != null && user.settings.isNotEmpty) {
+      final readerSettings = user.settings['reader'] as Map<String, dynamic>?;
+      if (readerSettings != null) {
+        state = ReaderSettings(
+          fontSize: (readerSettings['fontSize'] as num?)?.toDouble() ?? 18,
+          lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
+          theme: _parseTheme(readerSettings['theme'] as String?),
+          showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
+        );
+      }
+    }
+  }
+
+  ReaderTheme _parseTheme(String? theme) {
+    switch (theme) {
+      case 'sepia':
+        return ReaderTheme.sepia;
+      case 'dark':
+        return ReaderTheme.dark;
+      default:
+        return ReaderTheme.light;
+    }
+  }
+
+  Future<void> _saveToProfile() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final user = _ref.read(authStateChangesProvider).valueOrNull;
+    if (user == null) return;
+
+    final updatedSettings = Map<String, dynamic>.from(user.settings);
+    updatedSettings['reader'] = {
+      'fontSize': state.fontSize,
+      'lineHeight': state.lineHeight,
+      'theme': state.theme.name,
+      'showVocabularyHighlights': state.showVocabularyHighlights,
+    };
+
+    final userRepo = _ref.read(userRepositoryProvider);
+    await userRepo.updateUser(user.copyWith(settings: updatedSettings));
+  }
 
   void setFontSize(double size) {
     state = state.copyWith(fontSize: size.clamp(14, 28));
+    _saveToProfile();
   }
 
   void setLineHeight(double height) {
     state = state.copyWith(lineHeight: height.clamp(1.2, 2.0));
+    _saveToProfile();
   }
 
   void setTheme(ReaderTheme theme) {
     state = state.copyWith(theme: theme);
+    _saveToProfile();
   }
 
   void toggleVocabularyHighlights() {
     state = state.copyWith(
       showVocabularyHighlights: !state.showVocabularyHighlights,
     );
+    _saveToProfile();
   }
 }
 
 /// Reader settings provider
 final readerSettingsProvider =
     StateNotifierProvider<ReaderSettingsNotifier, ReaderSettings>((ref) {
-  return ReaderSettingsNotifier();
+  return ReaderSettingsNotifier(ref);
 });
 
 /// Currently selected vocabulary word (for popup)
@@ -130,6 +185,14 @@ class InlineActivityStateNotifier extends StateNotifier<Map<String, bool>> {
     state = {...state, activityId: isCorrect};
   }
 
+  void loadFromList(List<String> completedIds) {
+    final newState = <String, bool>{};
+    for (final id in completedIds) {
+      newState[id] = true; // We don't know if it was correct, assume true
+    }
+    state = newState;
+  }
+
   bool isCompleted(String activityId) {
     return state.containsKey(activityId);
   }
@@ -147,6 +210,24 @@ class InlineActivityStateNotifier extends StateNotifier<Map<String, bool>> {
 final inlineActivityStateProvider =
     StateNotifierProvider<InlineActivityStateNotifier, Map<String, bool>>((ref) {
   return InlineActivityStateNotifier();
+});
+
+/// Loads completed inline activities for a chapter from database
+final completedInlineActivitiesProvider =
+    FutureProvider.family<List<String>, String>((ref, chapterId) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final bookRepo = ref.watch(bookRepositoryProvider);
+  final result = await bookRepo.getCompletedInlineActivities(
+    userId: userId,
+    chapterId: chapterId,
+  );
+
+  return result.fold(
+    (failure) => [],
+    (ids) => ids,
+  );
 });
 
 /// Total XP earned in current reading session

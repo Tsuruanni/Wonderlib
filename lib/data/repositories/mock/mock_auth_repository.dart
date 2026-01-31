@@ -32,7 +32,7 @@ class MockAuthRepository implements AuthRepository {
     // Find school by code
     final school = MockData.schools.where((s) => s.code == schoolCode).firstOrNull;
     if (school == null) {
-      return const Left(AuthFailure('Okul kodu bulunamadı'));
+      return const Left(AuthFailure('School code not found'));
     }
 
     // Find user by student number
@@ -41,12 +41,12 @@ class MockAuthRepository implements AuthRepository {
     ).firstOrNull;
 
     if (user == null) {
-      return const Left(AuthFailure('Öğrenci numarası bulunamadı'));
+      return const Left(AuthFailure('Student number not found'));
     }
 
     // Simple password check (in real app this would be hashed)
     if (password != '123456') {
-      return const Left(AuthFailure('Hatalı şifre'));
+      return const Left(AuthFailure('Invalid password'));
     }
 
     _currentUser = user;
@@ -63,11 +63,11 @@ class MockAuthRepository implements AuthRepository {
 
     final user = MockData.users.where((u) => u.email == email).firstOrNull;
     if (user == null) {
-      return const Left(AuthFailure('Kullanıcı bulunamadı'));
+      return const Left(AuthFailure('User not found'));
     }
 
     if (password != '123456') {
-      return const Left(AuthFailure('Hatalı şifre'));
+      return const Left(AuthFailure('Invalid password'));
     }
 
     _currentUser = user;
@@ -98,6 +98,12 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Stream<User?> get authStateChanges => _authStateController.stream;
+
+  @override
+  Future<void> refreshCurrentUser() async {
+    // In mock, just re-broadcast current user
+    _authStateController.add(_currentUser);
+  }
 
   void dispose() {
     _authStateController.close();

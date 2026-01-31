@@ -335,6 +335,52 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, VocabularyProgress>> addWordToVocabulary({
+    required String userId,
+    required String wordId,
+  }) async {
+    try {
+      // Check if progress already exists
+      final existing = await _supabase
+          .from('vocabulary_progress')
+          .select()
+          .eq('user_id', userId)
+          .eq('word_id', wordId)
+          .maybeSingle();
+
+      if (existing != null) {
+        return Right(_mapToVocabularyProgress(existing));
+      }
+
+      // Create new progress entry
+      final now = DateTime.now();
+      final data = {
+        'user_id': userId,
+        'word_id': wordId,
+        'status': 'learning',
+        'ease_factor': 2.5,
+        'interval_days': 1,
+        'repetitions': 0,
+        'next_review_at': now.add(const Duration(days: 1)).toIso8601String(),
+        'last_reviewed_at': now.toIso8601String(),
+        'created_at': now.toIso8601String(),
+      };
+
+      final response = await _supabase
+          .from('vocabulary_progress')
+          .insert(data)
+          .select()
+          .single();
+
+      return Right(_mapToVocabularyProgress(response));
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // MAPPING FUNCTIONS
   // ============================================

@@ -143,7 +143,7 @@ supabase functions serve                 # local edge function test
 ## Current State (2026-01-31)
 - **Local Supabase:** ✅ Docker ile çalışıyor, 21 tablo + seed data
 - **Remote Supabase:** ❌ Tablolar YOK (migrations push edilmedi)
-- **Flutter App:** ✅ Local Supabase'e bağlı (Auth + Book repositories)
+- **Flutter App:** ✅ Tüm 7 repository Supabase kullanıyor (Auth, Book, User, Activity, Vocabulary, WordList, Badge)
 
 ## 🚨 REMOTE PUSH YAPILMADI - ÇOK ÖNEMLİ!
 Tüm geliştirme LOCAL Supabase üzerinde yapılıyor. Production'a geçmeden önce:
@@ -157,11 +157,11 @@ Bu komut çalıştırılana kadar remote DB boş kalacak!
 |------------|----------------|--------|
 | AuthRepository | SupabaseAuthRepository | ✅ |
 | BookRepository | SupabaseBookRepository | ✅ |
-| UserRepository | MockUserRepository | ⏳ |
-| VocabularyRepository | MockVocabularyRepository | ⏳ |
-| WordListRepository | MockWordListRepository | ⏳ |
-| ActivityRepository | MockActivityRepository | ⏳ |
-| BadgeRepository | MockBadgeRepository | ⏳ |
+| UserRepository | SupabaseUserRepository | ✅ |
+| VocabularyRepository | SupabaseVocabularyRepository | ✅ |
+| WordListRepository | SupabaseWordListRepository | ✅ |
+| ActivityRepository | SupabaseActivityRepository | ✅ |
+| BadgeRepository | SupabaseBadgeRepository | ✅ |
 
 ## Test Kullanıcısı
 - **Email:** test@demo.com
