@@ -8,6 +8,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Student Assignments & Auto-Progress (2026-01-31)
+
+#### Added
+- **Student Assignments Screen** - Students can view all assigned tasks (To Do / Overdue / Completed groups)
+- **Assignment Detail Screen** - View task details, due date, progress, and navigate to content
+- **Home Assignments Section** - Pending assignments displayed on HomeScreen with badge count
+- **Auto Assignment Progress** - When student completes a chapter, assignment progress updates automatically
+- **Assignment Completion** - When all required chapters are read, assignment is marked complete
+
+#### Infrastructure
+- **StudentAssignmentRepository** - Domain interface + Supabase implementation
+- **Student Assignment Providers** - activeAssignmentsProvider, studentAssignmentDetailProvider
+- **Chapter Completion Integration** - ChapterCompletionNotifier now updates assignment progress
+
+### Phase 3: Teacher MVP (2026-01-31)
+
+#### Added
+- **Teacher Dashboard** - Stats cards (students, classes, assignments, avg progress), welcome header
+- **Role-based Navigation** - Separate shell for teachers (Dashboard, Classes, Assignments, Reports)
+- **Classes Screen** - View all classes with student count and average progress
+- **Class Detail Screen** - View students in class with XP, level, streak, books read
+- **Student Detail Screen** - Full student profile with reading progress per book
+- **Assignments Management** - Create, view, delete assignments; assign to classes
+- **Assignment Detail** - Student-by-student progress tracking with completion rates
+- **Reports Hub** - 4 report types: Class Overview, Reading Progress, Assignment Performance, Leaderboard
+- **TeacherRepository** - Full Supabase implementation for teacher operations
+- **Assignment Seed Data** - 3 test assignments with student progress data
+
 ### Reader Persistence Fixes (2026-01-31)
 
 #### Fixed

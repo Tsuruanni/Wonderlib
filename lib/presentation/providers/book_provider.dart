@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/reading_progress.dart';
+import '../../domain/repositories/student_assignment_repository.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
+import 'student_assignment_provider.dart';
 
 /// Provides all published books with optional filters
 final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filters) async {
@@ -129,13 +131,85 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
     result.fold(
       (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (progress) {
+      (progress) async {
         state = const AsyncValue.data(null);
         // Invalidate providers to refresh UI
         _ref.invalidate(readingProgressProvider(bookId));
         _ref.invalidate(continueReadingProvider); // Refresh continue reading list
+
+        // Update assignment progress if this book is part of an assignment
+        await _updateAssignmentProgress(
+          userId: userId,
+          bookId: bookId,
+          chapterId: chapterId,
+          completedChapterIds: progress.completedChapterIds,
+        );
       },
     );
+  }
+
+  /// Check if book is part of an active assignment and update progress
+  Future<void> _updateAssignmentProgress({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+    required List<String> completedChapterIds,
+  }) async {
+    try {
+      // Get active assignments
+      final assignmentRepo = _ref.read(studentAssignmentRepositoryProvider);
+      final assignmentsResult = await assignmentRepo.getActiveAssignments(userId);
+
+      assignmentsResult.fold(
+        (failure) {}, // Silently fail - don't break chapter completion
+        (assignments) async {
+          // Find assignments that include this book
+          for (final assignment in assignments) {
+            if (assignment.bookId == bookId &&
+                assignment.status != StudentAssignmentStatus.completed) {
+              // Calculate progress based on completed chapters vs required chapters
+              final requiredChapters = assignment.chapterIds;
+
+              if (requiredChapters.isEmpty) {
+                // If no specific chapters, consider any reading as progress
+                continue;
+              }
+
+              // Count how many required chapters are completed
+              final completedRequired = requiredChapters
+                  .where((id) => completedChapterIds.contains(id))
+                  .length;
+
+              final progress = (completedRequired / requiredChapters.length) * 100;
+
+              // Update assignment progress
+              if (progress >= 100) {
+                // All chapters complete - mark assignment as complete
+                await assignmentRepo.completeAssignment(
+                  userId,
+                  assignment.assignmentId,
+                  null, // No score for reading completion
+                );
+              } else {
+                // Update progress
+                await assignmentRepo.updateAssignmentProgress(
+                  userId,
+                  assignment.assignmentId,
+                  progress,
+                );
+              }
+
+              // Invalidate assignment providers to refresh UI
+              _ref.invalidate(studentAssignmentsProvider);
+              _ref.invalidate(activeAssignmentsProvider);
+              _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+            }
+          }
+        },
+      );
+    } catch (e) {
+      // Don't throw - assignment update failure shouldn't break chapter completion
+    }
   }
 }
 

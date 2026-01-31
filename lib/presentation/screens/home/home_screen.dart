@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/repositories/student_assignment_repository.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/student_assignment_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 
@@ -84,6 +86,9 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
 
+                // Pending Assignments
+                const _PendingAssignmentsSection(),
+
                 // Daily Tasks
                 const _DailyTasksSection(),
                 const SizedBox(height: 24),
@@ -98,6 +103,174 @@ class HomeScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _PendingAssignmentsSection extends ConsumerWidget {
+  const _PendingAssignmentsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignmentsAsync = ref.watch(activeAssignmentsProvider);
+
+    return assignmentsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (assignments) {
+        if (assignments.isEmpty) return const SizedBox.shrink();
+
+        // Only show first 3 assignments
+        final displayAssignments = assignments.take(3).toList();
+        final hasMore = assignments.length > 3;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Assignments',
+                      style: context.textTheme.titleLarge,
+                    ),
+                    if (assignments.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${assignments.length}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => context.push(AppRoutes.studentAssignments),
+                  child: const Text('See All'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ...displayAssignments.map((assignment) => _AssignmentCard(
+              assignment: assignment,
+              onTap: () => context.push('/assignments/${assignment.assignmentId}'),
+            )),
+            if (hasMore)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '+${assignments.length - 3} more assignments',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 24),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AssignmentCard extends StatelessWidget {
+  const _AssignmentCard({
+    required this.assignment,
+    required this.onTap,
+  });
+
+  final StudentAssignment assignment;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isOverdue = assignment.status == StudentAssignmentStatus.overdue;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      color: isOverdue ? Colors.red.withValues(alpha: 0.05) : null,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isOverdue
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isOverdue ? Icons.warning : Icons.assignment,
+                  color: isOverdue ? Colors.red : Colors.blue,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      assignment.title,
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      isOverdue
+                          ? 'Overdue!'
+                          : '${assignment.daysRemaining} days left',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: isOverdue ? Colors.red : context.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Progress or arrow
+              if (assignment.progress > 0) ...[
+                Text(
+                  '${assignment.progress.toStringAsFixed(0)}%',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Icon(
+                Icons.chevron_right,
+                color: context.colorScheme.outline,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

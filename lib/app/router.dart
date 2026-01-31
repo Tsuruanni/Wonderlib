@@ -19,6 +19,8 @@ import '../presentation/screens/vocabulary/phases/phase2_spelling_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase3_flashcards_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase4_review_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
+import '../presentation/screens/student/student_assignments_screen.dart';
+import '../presentation/screens/student/student_assignment_detail_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
 import '../presentation/screens/teacher/classes_screen.dart';
 import '../presentation/screens/teacher/class_detail_screen.dart';
@@ -49,6 +51,8 @@ abstract class AppRoutes {
   static const activity = '/activity/:chapterId';
   static const vocabulary = '/vocabulary';
   static const profile = '/profile';
+  static const studentAssignments = '/assignments';
+  static const studentAssignmentDetail = '/assignments/:assignmentId';
 
   // Teacher routes
   static const teacherDashboard = '/teacher';
@@ -330,6 +334,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'profile',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ProfileScreen(),
+      ),
+
+      // Student assignments list (full-screen)
+      GoRoute(
+        path: AppRoutes.studentAssignments,
+        name: 'studentAssignments',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const StudentAssignmentsScreen(),
+      ),
+
+      // Student assignment detail (full-screen)
+      GoRoute(
+        path: AppRoutes.studentAssignmentDetail,
+        name: 'studentAssignmentDetail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final assignmentId = state.pathParameters['assignmentId']!;
+          return StudentAssignmentDetailScreen(assignmentId: assignmentId);
+        },
       ),
 
       // Reader route (full-screen)

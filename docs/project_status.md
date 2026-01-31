@@ -1,10 +1,10 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Reader Persistence Fixes)
+Son güncelleme: 2026-01-31 (Phase 3 Complete + Student Assignments)
 
 ## Current Phase
 
-**Faz 2: Öğrenci MVP** ✅ Complete (except offline mode)
+**Faz 3: Öğretmen MVP** ✅ Complete
 
 ## Roadmap
 
@@ -33,11 +33,12 @@ Son güncelleme: 2026-01-31 (Reader Persistence Fixes)
 - [x] XP ve seviye sistemi (UI + Supabase backend)
 - [x] Basit profil sayfası
 
-### Faz 3: Öğretmen MVP
-- [ ] Öğretmen dashboard
-- [ ] Sınıf listesi ve öğrenci takibi
-- [ ] Görev atama
-- [ ] Temel raporlar
+### Faz 3: Öğretmen MVP ✅
+- [x] Öğretmen dashboard
+- [x] Sınıf listesi ve öğrenci takibi
+- [x] Görev atama
+- [x] Temel raporlar
+- [x] Student assignment view (öğrenci tarafı)
 
 ### Faz 4: Admin & İçerik
 - [ ] Admin panel
@@ -86,6 +87,13 @@ Son güncelleme: 2026-01-31 (Reader Persistence Fixes)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Student Assignments | 2026-01-31 | Students can view/complete assigned tasks, auto-progress updates |
+| Assignment Auto-Progress | 2026-01-31 | Chapter completion triggers assignment progress calculation |
+| Phase 3: Teacher MVP | 2026-01-31 | Dashboard, Classes, Assignments, Reports (4 tabs) |
+| Teacher Reports | 2026-01-31 | Class Overview, Reading Progress, Assignments, Leaderboard |
+| Teacher Assignments | 2026-01-31 | Create, view, delete assignments with student progress |
+| Class Management | 2026-01-31 | Classes list, class detail, student detail screens |
+| Teacher Dashboard | 2026-01-31 | Stats cards, role-based navigation |
 | Activity State Persistence | 2026-01-31 | Fixed caching + timing issues on chapter re-entry |
 | Continue Reading Fix | 2026-01-31 | Completed books removed from list |
 | Reading Time Persistence | 2026-01-31 | Fixed async issue, added periodic save |
