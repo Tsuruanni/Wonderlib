@@ -33,7 +33,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    // Load completed activities from DB and reset session state
+    // Load completed activities and reset state after frame is built
+    // (Riverpod doesn't allow provider modification during widget lifecycle)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCompletedActivities();
       _updateCurrentChapter();
@@ -44,9 +45,18 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _loadCompletedActivities() async {
+    // 1. Reset state first to prevent stale data from previous chapters
+    ref.read(inlineActivityStateProvider.notifier).reset();
+
+    // 2. Invalidate cached provider to force fresh fetch from DB
+    ref.invalidate(completedInlineActivitiesProvider(widget.chapterId));
+
+    // 3. Fetch fresh data from database
     final completedResult = await ref.read(
       completedInlineActivitiesProvider(widget.chapterId).future,
     );
+
+    // 4. Load completed activities into state
     ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
   }
 
@@ -84,25 +94,25 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       bookId: widget.bookId,
     );
 
-    progressResult.fold(
-      (failure) => null,
-      (progress) async {
-        // Update with new reading time
-        final updatedProgress = progress.copyWith(
-          totalReadingTime: progress.totalReadingTime + readingTime,
-          updatedAt: DateTime.now(),
-        );
-        await bookRepo.updateReadingProgress(updatedProgress);
-      },
-    );
+    // Handle result properly (fold with async doesn't await the callback)
+    if (progressResult.isRight()) {
+      final progress = progressResult.getOrElse(() => throw Exception('unreachable'));
+      final updatedProgress = progress.copyWith(
+        totalReadingTime: progress.totalReadingTime + readingTime,
+        updatedAt: DateTime.now(),
+      );
+      await bookRepo.updateReadingProgress(updatedProgress);
+    }
   }
 
   @override
   void didUpdateWidget(ReaderScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Load from DB when chapter changes (deferred to avoid widget tree modification)
+    // Handle chapter change (deferred to avoid provider modification during build)
     if (oldWidget.chapterId != widget.chapterId) {
-      Future.microtask(() {
+      Future.microtask(() async {
+        // Save reading time before switching chapters
+        await _saveReadingTime();
         _loadCompletedActivities();
         _updateCurrentChapter();
         ref.read(sessionXPProvider.notifier).reset();
@@ -112,8 +122,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   void _startReadingTimer() {
-    _readingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    _readingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       ref.read(readingTimerProvider.notifier).tick();
+
+      // Save reading time every 30 seconds to prevent data loss
+      final seconds = ref.read(readingTimerProvider);
+      if (seconds > 0 && seconds % 30 == 0) {
+        _saveReadingTime();
+        // Reset timer after saving to avoid double-counting
+        ref.read(readingTimerProvider.notifier).reset();
+      }
     });
   }
 
@@ -277,7 +295,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                         readingTimeSeconds: readingTime,
                         backgroundColor: settings.theme.background,
                         textColor: settings.theme.text,
-                        onClose: () => context.go('/library/book/${widget.bookId}'),
+                        onClose: () async {
+                          await _saveReadingTime();
+                          if (context.mounted) {
+                            context.go('/library/book/${widget.bookId}');
+                          }
+                        },
                         onSettingsTap: () => ReaderSettingsSheet.show(context),
                       ),
                     ),
@@ -290,8 +313,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // Chapter content with inline activities
+                            // Key ensures widget recreates when chapter changes,
+                            // resetting internal state like _previousCompletedCount
                             if (chapter.content != null)
                               IntegratedReaderContent(
+                                key: ValueKey(chapter.id),
                                 chapter: chapter,
                                 settings: settings,
                                 onVocabularyTap: _onVocabularyTap,
@@ -319,6 +345,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                         width: double.infinity,
                                         child: ElevatedButton(
                                           onPressed: () async {
+                                            // Save reading time before navigating
+                                            await _saveReadingTime();
                                             // Mark current chapter as complete
                                             await ref.read(chapterCompletionProvider.notifier).markComplete(
                                               bookId: widget.bookId,
@@ -416,6 +444,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                       const SizedBox(height: 16),
                                       OutlinedButton(
                                         onPressed: () async {
+                                          // Save reading time before navigating
+                                          await _saveReadingTime();
                                           // Mark chapter as complete
                                           await ref.read(chapterCompletionProvider.notifier).markComplete(
                                             bookId: widget.bookId,

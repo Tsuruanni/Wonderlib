@@ -8,6 +8,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Persistence Fixes (2026-01-31)
+
+#### Fixed
+- **Activity State Persistence** - Completed activities now properly load when re-entering chapters (fixed provider caching + state reset timing)
+- **Continue Reading Shows Completed Books** - Books are now removed from Continue Reading after all chapters completed (invalidate continueReadingProvider)
+- **Reading Time Not Saved** - Fixed async callback in fold() not being awaited, added periodic save every 30s
+
+#### Changed
+- **Periodic Reading Time Save** - Reading time now saved every 30 seconds to prevent data loss
+- **Navigation Saves Time** - Close button, Next Chapter, and Back to Book buttons now save reading time before navigating
+- **Widget Key for Chapter** - IntegratedReaderContent now keyed by chapter.id to reset internal state on chapter change
+
 ### Code Quality & Bug Fixes (2026-01-31)
 
 #### Fixed

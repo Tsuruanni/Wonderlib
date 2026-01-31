@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Code Quality & Bug Fixes)
+Son güncelleme: 2026-01-31 (Reader Persistence Fixes)
 
 ## Current Phase
 
@@ -86,6 +86,9 @@ Son güncelleme: 2026-01-31 (Code Quality & Bug Fixes)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Activity State Persistence | 2026-01-31 | Fixed caching + timing issues on chapter re-entry |
+| Continue Reading Fix | 2026-01-31 | Completed books removed from list |
+| Reading Time Persistence | 2026-01-31 | Fixed async issue, added periodic save |
 | Duplicate XP Prevention | 2026-01-31 | Two-layer defense for inline activities |
 | Add to Vocabulary | 2026-01-31 | Reader vocabulary popup now persists words |
 | Badge Earning System | 2026-01-31 | Triggers after XP/streak changes |

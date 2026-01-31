@@ -131,8 +131,9 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       (failure) => state = AsyncValue.error(failure, StackTrace.current),
       (progress) {
         state = const AsyncValue.data(null);
-        // Invalidate reading progress to refresh UI
+        // Invalidate providers to refresh UI
         _ref.invalidate(readingProgressProvider(bookId));
+        _ref.invalidate(continueReadingProvider); // Refresh continue reading list
       },
     );
   }
