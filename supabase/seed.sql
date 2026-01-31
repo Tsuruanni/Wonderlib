@@ -120,8 +120,54 @@ INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
 INSERT INTO schools (id, name, code, status, subscription_tier) VALUES
 ('33333333-0001-0001-0001-000000000001', 'Demo School', 'DEMO123', 'active', 'pro');
 
--- Note: Sample users will be created when they sign up via Supabase Auth
--- The handle_new_user trigger will create their profile automatically
+-- =============================================
+-- SAMPLE CLASS (for development)
+-- =============================================
+INSERT INTO classes (id, school_id, name, grade, academic_year) VALUES
+('77777777-0001-0001-0001-000000000001', '33333333-0001-0001-0001-000000000001', '5-A', '5', '2024-2025');
+
+-- =============================================
+-- TEST USER (for development)
+-- Email: test@demo.com / Password: Test1234
+-- Student Number: 2024001
+-- =============================================
+INSERT INTO auth.users (
+  id,
+  instance_id,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  role,
+  aud,
+  confirmation_token
+) VALUES (
+  '88888888-0001-0001-0001-000000000001',
+  '00000000-0000-0000-0000-000000000000',
+  'test@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Test", "last_name": "Student", "student_number": "2024001", "school_code": "DEMO123"}',
+  NOW(),
+  NOW(),
+  'authenticated',
+  'authenticated',
+  ''
+);
+
+-- Update profile for test user (trigger creates it, we just update with school info)
+UPDATE profiles SET
+  first_name = 'Test',
+  last_name = 'Student',
+  role = 'student',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024001'
+WHERE id = '88888888-0001-0001-0001-000000000001';
 
 -- =============================================
 -- BOOKS
