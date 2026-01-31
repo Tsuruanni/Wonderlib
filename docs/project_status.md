@@ -51,6 +51,7 @@ Son güncelleme: 2026-01-31 (Full Supabase Integration)
 - [ ] Rozet sistemi
 - [ ] Offline mod
 - [ ] Mobil app yayını
+- [ ] Remote Supabase deployment (`supabase db push`)
 
 ## In Progress
 

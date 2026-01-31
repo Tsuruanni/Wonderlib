@@ -85,7 +85,13 @@ class SupabaseActivityRepository implements ActivityRepository {
       if (attemptNumber == 1 || result.score == result.maxScore) {
         final xpToAward = _calculateXP(result.score, result.maxScore);
         if (xpToAward > 0) {
-          await _awardXP(result.userId, xpToAward, 'activity_complete');
+          await _awardXP(
+            result.userId,
+            xpToAward,
+            'activity',
+            sourceId: result.activityId,
+            description: 'Activity completed',
+          );
         }
       }
 
@@ -208,25 +214,37 @@ class SupabaseActivityRepository implements ActivityRepository {
     return 2; // Participation XP
   }
 
-  Future<void> _awardXP(String userId, int amount, String reason) async {
+  Future<Map<String, dynamic>?> _awardXP(
+    String userId,
+    int amount,
+    String source, {
+    String? sourceId,
+    String? description,
+  }) async {
     try {
-      // Update profile XP
-      await _supabase.rpc('increment_xp', params: {
-        'user_id': userId,
-        'amount': amount,
+      // Use the stored function for atomic XP award + level calculation
+      final result = await _supabase.rpc('award_xp_transaction', params: {
+        'p_user_id': userId,
+        'p_amount': amount,
+        'p_source': source,
+        'p_source_id': sourceId,
+        'p_description': description,
       });
 
-      // Log XP award
-      await _supabase.from('xp_logs').insert({
-        'user_id': userId,
-        'amount': amount,
-        'reason': reason,
-        'created_at': DateTime.now().toIso8601String(),
+      // Also check for new badges
+      await _supabase.rpc('check_and_award_badges', params: {
+        'p_user_id': userId,
       });
+
+      if (result != null && (result as List).isNotEmpty) {
+        return result[0] as Map<String, dynamic>;
+      }
+      return null;
     } catch (e) {
       // Log but don't fail the main operation
       // ignore: avoid_print
       print('Failed to award XP: $e');
+      return null;
     }
   }
 

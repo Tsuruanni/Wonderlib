@@ -58,39 +58,26 @@ class SupabaseUserRepository implements UserRepository {
   @override
   Future<Either<Failure, domain.User>> addXP(String userId, int amount) async {
     try {
-      // Get current XP
-      final currentUser = await _supabase
-          .from('profiles')
-          .select('xp, level')
-          .eq('id', userId)
-          .single();
+      // Use stored function for atomic XP award + level calculation + logging
+      await _supabase.rpc('award_xp_transaction', params: {
+        'p_user_id': userId,
+        'p_amount': amount,
+        'p_source': 'manual',
+        'p_source_id': null,
+        'p_description': 'XP awarded',
+      });
 
-      final currentXP = currentUser['xp'] as int? ?? 0;
-      final newXP = currentXP + amount;
+      // Check for new badges
+      await _supabase.rpc('check_and_award_badges', params: {
+        'p_user_id': userId,
+      });
 
-      // Calculate new level
-      final newLevel = _calculateLevel(newXP);
-
-      // Update profile
+      // Fetch updated user
       final response = await _supabase
           .from('profiles')
-          .update({
-            'xp': newXP,
-            'level': newLevel,
-            'last_activity_date': DateTime.now().toIso8601String().split('T')[0],
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', userId)
           .select()
+          .eq('id', userId)
           .single();
-
-      // Log XP
-      await _supabase.from('xp_logs').insert({
-        'user_id': userId,
-        'amount': amount,
-        'reason': 'xp_award',
-        'created_at': DateTime.now().toIso8601String(),
-      });
 
       return Right(_mapToUser(response));
     } on PostgrestException catch (e) {
@@ -103,65 +90,19 @@ class SupabaseUserRepository implements UserRepository {
   @override
   Future<Either<Failure, domain.User>> updateStreak(String userId) async {
     try {
+      // Use stored function for atomic streak calculation
+      await _supabase.rpc('update_user_streak', params: {
+        'p_user_id': userId,
+      });
+
+      // Fetch updated user
       final response = await _supabase
           .from('profiles')
-          .select('current_streak, longest_streak, last_activity_date')
-          .eq('id', userId)
-          .single();
-
-      final lastActivityStr = response['last_activity_date'] as String?;
-      final currentStreak = response['current_streak'] as int? ?? 0;
-      final longestStreak = response['longest_streak'] as int? ?? 0;
-
-      final today = DateTime.now();
-      final todayDate = DateTime(today.year, today.month, today.day);
-
-      int newStreak = currentStreak;
-      int newLongest = longestStreak;
-
-      if (lastActivityStr != null) {
-        final lastActivity = DateTime.parse(lastActivityStr);
-        final lastActivityDate = DateTime(
-          lastActivity.year,
-          lastActivity.month,
-          lastActivity.day,
-        );
-
-        final daysDiff = todayDate.difference(lastActivityDate).inDays;
-
-        if (daysDiff == 0) {
-          // Same day, no change
-        } else if (daysDiff == 1) {
-          // Consecutive day
-          newStreak = currentStreak + 1;
-          if (newStreak > longestStreak) {
-            newLongest = newStreak;
-          }
-        } else {
-          // Streak broken
-          newStreak = 1;
-        }
-      } else {
-        // First activity
-        newStreak = 1;
-        if (newStreak > longestStreak) {
-          newLongest = newStreak;
-        }
-      }
-
-      final updateResponse = await _supabase
-          .from('profiles')
-          .update({
-            'current_streak': newStreak,
-            'longest_streak': newLongest,
-            'last_activity_date': todayDate.toIso8601String().split('T')[0],
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', userId)
           .select()
+          .eq('id', userId)
           .single();
 
-      return Right(_mapToUser(updateResponse));
+      return Right(_mapToUser(response));
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -174,56 +115,27 @@ class SupabaseUserRepository implements UserRepository {
     String userId,
   ) async {
     try {
-      // Get user profile
-      final profile = await _supabase
-          .from('profiles')
-          .select('xp, level, current_streak, longest_streak')
-          .eq('id', userId)
-          .single();
+      // Use stored function for optimized stats query
+      final result = await _supabase.rpc('get_user_stats', params: {
+        'p_user_id': userId,
+      });
 
-      // Get reading stats
-      final readingProgress = await _supabase
-          .from('reading_progress')
-          .select('id, is_completed, total_reading_time')
-          .eq('user_id', userId);
+      if (result == null || (result as List).isEmpty) {
+        return const Left(NotFoundFailure('User stats not found'));
+      }
 
-      final progressList = readingProgress as List;
-      final booksStarted = progressList.length;
-      final booksCompleted =
-          progressList.where((p) => p['is_completed'] == true).length;
-      final totalReadingTime = progressList.fold<int>(
-        0,
-        (sum, p) => sum + (p['total_reading_time'] as int? ?? 0),
-      );
-
-      // Get activity stats
-      final activityResults = await _supabase
-          .from('activity_results')
-          .select('id')
-          .eq('user_id', userId);
-
-      // Get vocabulary stats
-      final vocabProgress = await _supabase
-          .from('vocabulary_progress')
-          .select('id, status')
-          .eq('user_id', userId);
-
-      final vocabList = vocabProgress as List;
-      final wordsLearned = vocabList.length;
-      final wordsMastered =
-          vocabList.where((v) => v['status'] == 'mastered').length;
+      final stats = result[0] as Map<String, dynamic>;
 
       return Right({
-        'xp': profile['xp'] as int? ?? 0,
-        'level': profile['level'] as int? ?? 1,
-        'current_streak': profile['current_streak'] as int? ?? 0,
-        'longest_streak': profile['longest_streak'] as int? ?? 0,
-        'books_started': booksStarted,
-        'books_completed': booksCompleted,
-        'total_reading_time': totalReadingTime,
-        'activities_completed': (activityResults as List).length,
-        'words_learned': wordsLearned,
-        'words_mastered': wordsMastered,
+        'xp': stats['total_xp'] as int? ?? 0,
+        'level': stats['current_level'] as int? ?? 1,
+        'current_streak': stats['current_streak'] as int? ?? 0,
+        'longest_streak': stats['longest_streak'] as int? ?? 0,
+        'books_completed': stats['books_completed'] as int? ?? 0,
+        'chapters_completed': stats['chapters_completed'] as int? ?? 0,
+        'total_reading_time': stats['reading_time_total'] as int? ?? 0,
+        'words_mastered': stats['words_mastered'] as int? ?? 0,
+        'badges_earned': stats['badges_earned'] as int? ?? 0,
       });
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));

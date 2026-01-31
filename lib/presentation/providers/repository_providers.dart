@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/edge_function_service.dart';
 import '../../data/repositories/supabase/supabase_activity_repository.dart';
 import '../../data/repositories/supabase/supabase_auth_repository.dart';
 import '../../data/repositories/supabase/supabase_badge_repository.dart';
@@ -56,4 +57,9 @@ final inlineActivitiesProvider =
     (failure) => [],
     (activities) => activities,
   );
+});
+
+/// Edge Function service provider (for XP awards, streak updates)
+final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
+  return EdgeFunctionService();
 });
