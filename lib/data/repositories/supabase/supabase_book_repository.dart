@@ -409,7 +409,7 @@ class SupabaseBookRepository implements BookRepository {
         'inline_activity_id': activityId,
         'is_correct': isCorrect,
         'xp_earned': xpEarned,
-        'completed_at': DateTime.now().toIso8601String(),
+        'answered_at': DateTime.now().toIso8601String(),
       });
 
       return const Right(true); // New completion - XP can be awarded
