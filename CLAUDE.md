@@ -137,3 +137,47 @@ supabase functions serve                 # local edge function test
 - `award-xp` - XP kazandırma + badge kontrolü + xAPI log
 - `check-streak` - Streak hesaplama ve bonus XP
 - Tüm functions `supabase/functions/` altında
+
+# ⚠️ IMPORTANT: Development Status
+
+## Current State (2026-01-31)
+- **Local Supabase:** ✅ Docker ile çalışıyor, 21 tablo + seed data
+- **Remote Supabase:** ❌ Tablolar YOK (migrations push edilmedi)
+- **Flutter App:** ✅ Local Supabase'e bağlı (Auth + Book repositories)
+
+## 🚨 REMOTE PUSH YAPILMADI - ÇOK ÖNEMLİ!
+Tüm geliştirme LOCAL Supabase üzerinde yapılıyor. Production'a geçmeden önce:
+```bash
+supabase db push  # migrations'ları remote'a gönder
+```
+Bu komut çalıştırılana kadar remote DB boş kalacak!
+
+## Supabase Entegrasyon Durumu
+| Repository | Implementation | Status |
+|------------|----------------|--------|
+| AuthRepository | SupabaseAuthRepository | ✅ |
+| BookRepository | SupabaseBookRepository | ✅ |
+| UserRepository | MockUserRepository | ⏳ |
+| VocabularyRepository | MockVocabularyRepository | ⏳ |
+| WordListRepository | MockWordListRepository | ⏳ |
+| ActivityRepository | MockActivityRepository | ⏳ |
+| BadgeRepository | MockBadgeRepository | ⏳ |
+
+## Test Kullanıcısı
+- **Email:** test@demo.com
+- **Password:** Test1234
+- **School Code:** DEMO123
+- **Student Number:** 2024001
+
+## Local Development Setup
+```bash
+# 1. Docker Desktop'ı aç
+# 2. Local Supabase başlat
+supabase start
+
+# 3. .env zaten local URL kullanıyor
+SUPABASE_URL=http://127.0.0.1:54321
+
+# 4. Uygulamayı çalıştır
+flutter run -d chrome
+```

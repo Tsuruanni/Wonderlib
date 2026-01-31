@@ -79,3 +79,4 @@ supabase/.temp/
 # FVM
 .fvm/
 .playwright-mcp/
+.env.production

@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/mock/mock_activity_repository.dart';
-import '../../data/repositories/mock/mock_auth_repository.dart';
 import '../../data/repositories/mock/mock_badge_repository.dart';
-import '../../data/repositories/mock/mock_book_repository.dart';
 import '../../data/repositories/mock/mock_user_repository.dart';
 import '../../data/repositories/mock/mock_vocabulary_repository.dart';
 import '../../data/repositories/mock/mock_word_list_repository.dart';
+import '../../data/repositories/supabase/supabase_auth_repository.dart';
+import '../../data/repositories/supabase/supabase_book_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
@@ -16,14 +16,14 @@ import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
 
 /// Repository providers
-/// When switching to Supabase, just change these implementations
+/// Auth and Book now use Supabase, others still use Mock
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return MockAuthRepository();
+  return SupabaseAuthRepository();
 });
 
 final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  return MockBookRepository();
+  return SupabaseBookRepository();
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {

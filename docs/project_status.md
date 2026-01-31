@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Reader Screen Overhaul)
+Son güncelleme: 2026-01-31 (Local Supabase Integration)
 
 ## Current Phase
 
@@ -63,7 +63,7 @@ Son güncelleme: 2026-01-31 (Reader Screen Overhaul)
 
 | Blocker | Impact | Resolution |
 |---------|--------|------------|
-| Supabase şeması yok | Auth ve veri akışı çalışmıyor (mock data ile çalışıyor) | Migration dosyaları oluşturulmalı |
+| ~~Supabase şeması yok~~ | ~~Auth ve veri akışı çalışmıyor~~ | ✅ Local Supabase entegrasyonu tamamlandı |
 
 ## Tech Debt
 
@@ -76,6 +76,7 @@ Son güncelleme: 2026-01-31 (Reader Screen Overhaul)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Local Supabase Integration | 2026-01-31 | Auth + Book repos, seed data, test user |
 | Reader Collapsible Header | 2026-01-31 | Expanded/collapsed states, book cover, chapter info |
 | Activity-based Progress | 2026-01-31 | Progress = completed activities / total activities |
 | Chapter Completion System | 2026-01-31 | completedChapterIds persistence, chapter locking |

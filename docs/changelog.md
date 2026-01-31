@@ -8,6 +8,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Local Supabase Integration (2026-01-31)
+- **Environment Config** - `.env` updated to use local Supabase (`127.0.0.1:54321`)
+- **SupabaseAuthRepository** - Full implementation with school code + email login
+- **SupabaseBookRepository** - Full implementation with books, chapters, reading progress
+- **Repository Providers** - Switched Auth and Book from Mock to Supabase implementations
+- **Seed Data** - 6 books, 9 chapters, 9 inline activities, test user (test@demo.com)
+- **Trigger Fix** - `handle_new_user()` now uses `public.profiles` for schema qualification
+- **Test User** - `test@demo.com` / `Test1234` linked to Demo School (DEMO123, 2024001)
+
 ### Reader Screen Overhaul (2026-01-31)
 - **Collapsible Header** - Expanded: kitap kapağı, başlık, chapter kartı; Collapsed: chapter info, XP, reading time, progress bar
 - **Activity-based Progress** - Scroll yerine aktivite tamamlama oranına göre progress (%completed activities)
