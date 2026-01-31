@@ -143,7 +143,10 @@ INSERT INTO auth.users (
   updated_at,
   role,
   aud,
-  confirmation_token
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
 ) VALUES (
   '88888888-0001-0001-0001-000000000001',
   '00000000-0000-0000-0000-000000000000',
@@ -156,6 +159,9 @@ INSERT INTO auth.users (
   NOW(),
   'authenticated',
   'authenticated',
+  '',
+  '',
+  '',
   ''
 );
 
