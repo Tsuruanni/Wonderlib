@@ -6,12 +6,14 @@ import '../../data/repositories/mock/mock_badge_repository.dart';
 import '../../data/repositories/mock/mock_book_repository.dart';
 import '../../data/repositories/mock/mock_user_repository.dart';
 import '../../data/repositories/mock/mock_vocabulary_repository.dart';
+import '../../data/repositories/mock/mock_word_list_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/vocabulary_repository.dart';
+import '../../domain/repositories/word_list_repository.dart';
 
 /// Repository providers
 /// When switching to Supabase, just change these implementations
@@ -38,4 +40,8 @@ final activityRepositoryProvider = Provider<ActivityRepository>((ref) {
 
 final badgeRepositoryProvider = Provider<BadgeRepository>((ref) {
   return MockBadgeRepository();
+});
+
+final wordListRepositoryProvider = Provider<WordListRepository>((ref) {
+  return MockWordListRepository();
 });

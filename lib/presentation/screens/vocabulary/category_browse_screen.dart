@@ -23,26 +23,30 @@ class CategoryBrowseScreen extends ConsumerWidget {
       );
     }
 
-    final lists = ref.watch(wordListsByCategoryProvider(category));
+    final listsAsync = ref.watch(wordListsByCategoryProvider(category));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(category.displayName),
       ),
-      body: lists.isEmpty
-          ? _EmptyState(category: category)
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: lists.length,
-              itemBuilder: (context, index) {
-                final list = lists[index];
-                final progress = ref.watch(progressForListProvider(list.id));
-                return _WordListCard(
-                  wordList: list,
-                  progress: progress,
-                );
-              },
-            ),
+      body: listsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (lists) => lists.isEmpty
+            ? _EmptyState(category: category)
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  final progressAsync = ref.watch(progressForListProvider(list.id));
+                  return _WordListCard(
+                    wordList: list,
+                    progress: progressAsync.valueOrNull,
+                  );
+                },
+              ),
+      ),
     );
   }
 

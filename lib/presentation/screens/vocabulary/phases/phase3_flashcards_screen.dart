@@ -28,6 +28,7 @@ class _Phase3FlashcardsScreenState extends ConsumerState<Phase3FlashcardsScreen>
   bool _isFlipped = false;
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
+  List<VocabularyWord> _words = [];
 
   // Stats
   int _dontKnowCount = 0;
@@ -82,9 +83,7 @@ class _Phase3FlashcardsScreenState extends ConsumerState<Phase3FlashcardsScreen>
   }
 
   void _nextCard() {
-    final words = ref.read(wordsForListProvider(widget.listId));
-
-    if (_currentIndex < words.length - 1) {
+    if (_currentIndex < _words.length - 1) {
       // Reset flip state
       if (_isFlipped) {
         _flipController.reverse();
@@ -184,14 +183,29 @@ class _Phase3FlashcardsScreenState extends ConsumerState<Phase3FlashcardsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final wordList = ref.watch(wordListByIdProvider(widget.listId));
-    final words = ref.watch(wordsForListProvider(widget.listId));
+    final wordListAsync = ref.watch(wordListByIdProvider(widget.listId));
+    final wordsAsync = ref.watch(wordsForListProvider(widget.listId));
+
+    final wordList = wordListAsync.valueOrNull;
+    final words = wordsAsync.valueOrNull ?? [];
+
+    if (wordsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Flashcards')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (words.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Flashcards')),
         body: const Center(child: Text('No words in this list')),
       );
+    }
+
+    // Cache words for use in methods
+    if (_words.isEmpty) {
+      _words = words;
     }
 
     final currentWord = words[_currentIndex];

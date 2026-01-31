@@ -1,122 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/utils/sm2_algorithm.dart';
-import '../../data/datasources/local/mock_data.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/word_list.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
 
 // ============================================
-// MOCK-BASED PROVIDERS (for development)
+// VOCABULARY WORD PROVIDERS
 // ============================================
-
-/// All vocabulary words from mock data
-final mockVocabularyWordsProvider = Provider<List<VocabularyWord>>((ref) {
-  return MockData.vocabularyWords;
-});
-
-/// Vocabulary progress from mock data
-final mockVocabularyProgressProvider = Provider<List<VocabularyProgress>>((ref) {
-  return MockData.vocabularyProgress;
-});
-
-/// User's learned words with progress
-final userVocabularyProvider = Provider<List<UserVocabularyItem>>((ref) {
-  final words = ref.watch(mockVocabularyWordsProvider);
-  final progress = ref.watch(mockVocabularyProgressProvider);
-
-  final progressMap = {for (var p in progress) p.wordId: p};
-
-  return words.map((word) {
-    final wordProgress = progressMap[word.id];
-    return UserVocabularyItem(
-      word: word,
-      progress: wordProgress,
-    );
-  }).toList();
-});
-
-/// Words due for review today
-final wordsDueForReviewProvider = Provider<List<UserVocabularyItem>>((ref) {
-  final items = ref.watch(userVocabularyProvider);
-  return items.where((item) {
-    if (item.progress == null) return false;
-    return item.progress!.isDueForReview;
-  }).toList();
-});
-
-/// New words (not started yet)
-final newWordsToLearnProvider = Provider<List<UserVocabularyItem>>((ref) {
-  final items = ref.watch(userVocabularyProvider);
-  return items.where((item) => item.progress == null || item.progress!.isNew).toList();
-});
-
-/// Vocabulary stats
-final vocabularyStatsSimpleProvider = Provider<VocabularyStats>((ref) {
-  final items = ref.watch(userVocabularyProvider);
-
-  int totalWords = items.length;
-  int newCount = 0;
-  int learningCount = 0;
-  int reviewingCount = 0;
-  int masteredCount = 0;
-
-  for (final item in items) {
-    if (item.progress == null) {
-      newCount++;
-    } else {
-      switch (item.progress!.status) {
-        case VocabularyStatus.newWord:
-          newCount++;
-        case VocabularyStatus.learning:
-          learningCount++;
-        case VocabularyStatus.reviewing:
-          reviewingCount++;
-        case VocabularyStatus.mastered:
-          masteredCount++;
-      }
-    }
-  }
-
-  return VocabularyStats(
-    totalWords: totalWords,
-    newCount: newCount,
-    learningCount: learningCount,
-    reviewingCount: reviewingCount,
-    masteredCount: masteredCount,
-  );
-});
-
-/// User vocabulary item combining word and progress
-class UserVocabularyItem {
-  final VocabularyWord word;
-  final VocabularyProgress? progress;
-
-  const UserVocabularyItem({required this.word, this.progress});
-
-  VocabularyStatus get status => progress?.status ?? VocabularyStatus.newWord;
-  bool get isMastered => progress?.isMastered ?? false;
-}
-
-/// Simple vocabulary stats
-class VocabularyStats {
-  final int totalWords;
-  final int newCount;
-  final int learningCount;
-  final int reviewingCount;
-  final int masteredCount;
-
-  const VocabularyStats({
-    required this.totalWords,
-    required this.newCount,
-    required this.learningCount,
-    required this.reviewingCount,
-    required this.masteredCount,
-  });
-
-  int get inProgressCount => learningCount + reviewingCount;
-}
 
 /// Provides all vocabulary words with optional filters
 final vocabularyWordsProvider =
@@ -199,6 +90,128 @@ class VocabularyFilters {
     this.pageSize = 50,
   });
 }
+
+// ============================================
+// USER VOCABULARY PROVIDERS (using repository)
+// ============================================
+
+/// All vocabulary words (sync provider for UI)
+final allVocabularyWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {
+  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
+  final result = await vocabRepo.getAllWords();
+  return result.fold((f) => [], (words) => words);
+});
+
+/// User's vocabulary progress
+final userVocabularyProgressProvider = FutureProvider<List<VocabularyProgress>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
+  final result = await vocabRepo.getUserProgress(userId);
+  return result.fold((f) => [], (progress) => progress);
+});
+
+/// User's learned words with progress (combined)
+final userVocabularyProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {
+  final words = await ref.watch(allVocabularyWordsProvider.future);
+  final progress = await ref.watch(userVocabularyProgressProvider.future);
+
+  final progressMap = {for (var p in progress) p.wordId: p};
+
+  return words.map((word) {
+    final wordProgress = progressMap[word.id];
+    return UserVocabularyItem(
+      word: word,
+      progress: wordProgress,
+    );
+  }).toList();
+});
+
+/// Words due for review today
+final wordsDueForReviewProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {
+  final items = await ref.watch(userVocabularyProvider.future);
+  return items.where((item) {
+    if (item.progress == null) return false;
+    return item.progress!.isDueForReview;
+  }).toList();
+});
+
+/// New words (not started yet)
+final newWordsToLearnProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {
+  final items = await ref.watch(userVocabularyProvider.future);
+  return items.where((item) => item.progress == null || item.progress!.isNew).toList();
+});
+
+/// Vocabulary stats (simple)
+final vocabularyStatsSimpleProvider = FutureProvider<VocabularyStats>((ref) async {
+  final items = await ref.watch(userVocabularyProvider.future);
+
+  int totalWords = items.length;
+  int newCount = 0;
+  int learningCount = 0;
+  int reviewingCount = 0;
+  int masteredCount = 0;
+
+  for (final item in items) {
+    if (item.progress == null) {
+      newCount++;
+    } else {
+      switch (item.progress!.status) {
+        case VocabularyStatus.newWord:
+          newCount++;
+        case VocabularyStatus.learning:
+          learningCount++;
+        case VocabularyStatus.reviewing:
+          reviewingCount++;
+        case VocabularyStatus.mastered:
+          masteredCount++;
+      }
+    }
+  }
+
+  return VocabularyStats(
+    totalWords: totalWords,
+    newCount: newCount,
+    learningCount: learningCount,
+    reviewingCount: reviewingCount,
+    masteredCount: masteredCount,
+  );
+});
+
+/// User vocabulary item combining word and progress
+class UserVocabularyItem {
+  final VocabularyWord word;
+  final VocabularyProgress? progress;
+
+  const UserVocabularyItem({required this.word, this.progress});
+
+  VocabularyStatus get status => progress?.status ?? VocabularyStatus.newWord;
+  bool get isMastered => progress?.isMastered ?? false;
+}
+
+/// Simple vocabulary stats
+class VocabularyStats {
+  final int totalWords;
+  final int newCount;
+  final int learningCount;
+  final int reviewingCount;
+  final int masteredCount;
+
+  const VocabularyStats({
+    required this.totalWords,
+    required this.newCount,
+    required this.learningCount,
+    required this.reviewingCount,
+    required this.masteredCount,
+  });
+
+  int get inProgressCount => learningCount + reviewingCount;
+}
+
+// ============================================
+// VOCABULARY REVIEW CONTROLLER
+// ============================================
 
 /// Vocabulary review controller
 class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
@@ -316,66 +329,75 @@ final vocabularyReviewControllerProvider =
 });
 
 // ============================================
-// WORD LIST PROVIDERS
+// WORD LIST PROVIDERS (using repository)
 // ============================================
 
-/// All word lists from mock data
-final allWordListsProvider = Provider<List<WordList>>((ref) {
-  return MockData.wordLists;
+/// All word lists
+final allWordListsProvider = FutureProvider<List<WordList>>((ref) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getAllWordLists();
+  return result.fold((f) => [], (lists) => lists);
 });
 
 /// System word lists (admin-created)
-final systemWordListsProvider = Provider<List<WordList>>((ref) {
-  final lists = ref.watch(allWordListsProvider);
-  return lists.where((l) => l.isSystem).toList();
+final systemWordListsProvider = FutureProvider<List<WordList>>((ref) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getAllWordLists(isSystem: true);
+  return result.fold((f) => [], (lists) => lists);
 });
 
 /// Story vocabulary lists (from books user has read)
-final storyWordListsProvider = Provider<List<WordList>>((ref) {
-  final lists = ref.watch(allWordListsProvider);
-  return lists.where((l) => l.category == WordListCategory.storyVocab).toList();
+final storyWordListsProvider = FutureProvider<List<WordList>>((ref) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getAllWordLists(category: WordListCategory.storyVocab);
+  return result.fold((f) => [], (lists) => lists);
 });
 
 /// Word lists by category
-final wordListsByCategoryProvider = Provider.family<List<WordList>, WordListCategory>((ref, category) {
-  final lists = ref.watch(allWordListsProvider);
-  return lists.where((l) => l.category == category).toList();
+final wordListsByCategoryProvider = FutureProvider.family<List<WordList>, WordListCategory>((ref, category) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getAllWordLists(category: category);
+  return result.fold((f) => [], (lists) => lists);
 });
 
 /// Single word list by ID
-final wordListByIdProvider = Provider.family<WordList?, String>((ref, id) {
-  final lists = ref.watch(allWordListsProvider);
-  try {
-    return lists.firstWhere((l) => l.id == id);
-  } catch (_) {
-    return null;
-  }
+final wordListByIdProvider = FutureProvider.family<WordList?, String>((ref, id) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getWordListById(id);
+  return result.fold((f) => null, (list) => list);
 });
 
 /// Words for a specific list
-final wordsForListProvider = Provider.family<List<VocabularyWord>, String>((ref, listId) {
-  return MockData.getWordsForList(listId);
+final wordsForListProvider = FutureProvider.family<List<VocabularyWord>, String>((ref, listId) async {
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getWordsForList(listId);
+  return result.fold((f) => [], (words) => words);
 });
 
 /// User's progress for all word lists
-final userWordListProgressProvider = Provider<List<UserWordListProgress>>((ref) {
-  return MockData.userWordListProgress;
+final userWordListProgressProvider = FutureProvider<List<UserWordListProgress>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getUserWordListProgress(userId);
+  return result.fold((f) => [], (progress) => progress);
 });
 
 /// User's progress for a specific word list
-final progressForListProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {
-  final progressList = ref.watch(userWordListProgressProvider);
-  try {
-    return progressList.firstWhere((p) => p.wordListId == listId);
-  } catch (_) {
-    return null;
-  }
+final progressForListProvider = FutureProvider.family<UserWordListProgress?, String>((ref, listId) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return null;
+
+  final repo = ref.watch(wordListRepositoryProvider);
+  final result = await repo.getProgressForList(userId: userId, listId: listId);
+  return result.fold((f) => null, (progress) => progress);
 });
 
 /// Word lists with progress (for display in hub)
-final wordListsWithProgressProvider = Provider<List<WordListWithProgress>>((ref) {
-  final lists = ref.watch(allWordListsProvider);
-  final progressList = ref.watch(userWordListProgressProvider);
+final wordListsWithProgressProvider = FutureProvider<List<WordListWithProgress>>((ref) async {
+  final lists = await ref.watch(allWordListsProvider.future);
+  final progressList = await ref.watch(userWordListProgressProvider.future);
 
   final progressMap = {for (var p in progressList) p.wordListId: p};
 
@@ -388,26 +410,27 @@ final wordListsWithProgressProvider = Provider<List<WordListWithProgress>>((ref)
 });
 
 /// Word lists user has started (for "Continue Learning" section)
-final continueWordListsProvider = Provider<List<WordListWithProgress>>((ref) {
-  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
-  return listsWithProgress
+final continueWordListsProvider = FutureProvider<List<WordListWithProgress>>((ref) async {
+  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);
+  final filtered = listsWithProgress
       .where((lwp) => lwp.progress != null && !lwp.progress!.isFullyComplete)
       .toList()
     ..sort((a, b) => (b.progress?.updatedAt ?? DateTime(0))
         .compareTo(a.progress?.updatedAt ?? DateTime(0)));
+  return filtered;
 });
 
 /// Recommended word lists (system lists user hasn't started)
-final recommendedWordListsProvider = Provider<List<WordListWithProgress>>((ref) {
-  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
+final recommendedWordListsProvider = FutureProvider<List<WordListWithProgress>>((ref) async {
+  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);
   return listsWithProgress
       .where((lwp) => lwp.wordList.isSystem && lwp.progress == null)
       .toList();
 });
 
 /// Total words due for review across all lists (SM-2)
-final totalDueWordsCountProvider = Provider<int>((ref) {
-  final dueWords = ref.watch(wordsDueForReviewProvider);
+final totalDueWordsCountProvider = FutureProvider<int>((ref) async {
+  final dueWords = await ref.watch(wordsDueForReviewProvider.future);
   return dueWords.length;
 });
 
@@ -428,10 +451,10 @@ class WordListWithProgress {
 }
 
 /// Vocabulary hub stats
-final vocabularyHubStatsProvider = Provider<VocabularyHubStats>((ref) {
-  final allWords = ref.watch(userVocabularyProvider);
-  final dueCount = ref.watch(totalDueWordsCountProvider);
-  final listsWithProgress = ref.watch(wordListsWithProgressProvider);
+final vocabularyHubStatsProvider = FutureProvider<VocabularyHubStats>((ref) async {
+  final allWords = await ref.watch(userVocabularyProvider.future);
+  final dueCount = await ref.watch(totalDueWordsCountProvider.future);
+  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);
 
   final masteredCount = allWords.where((w) => w.isMastered).length;
   final completedLists = listsWithProgress.where((l) => l.isComplete).length;
@@ -464,13 +487,24 @@ class VocabularyHubStats {
 
 /// Controller for managing word list progress state
 class WordListProgressController extends StateNotifier<Map<String, UserWordListProgress>> {
-  WordListProgressController() : super({}) {
-    _initFromMock();
+  final Ref _ref;
+
+  WordListProgressController(this._ref) : super({}) {
+    _loadProgress();
   }
 
-  void _initFromMock() {
-    final mockProgress = MockData.userWordListProgress;
-    state = {for (var p in mockProgress) p.wordListId: p};
+  Future<void> _loadProgress() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final repo = _ref.read(wordListRepositoryProvider);
+    final result = await repo.getUserWordListProgress(userId);
+    result.fold(
+      (f) => null,
+      (progress) {
+        state = {for (var p in progress) p.wordListId: p};
+      },
+    );
   }
 
   /// Get progress for a specific list
@@ -479,43 +513,33 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
   }
 
   /// Complete a phase for a word list
-  void completePhase(String listId, int phase, {int? score, int? total}) {
-    final existing = state[listId];
+  Future<void> completePhase(String listId, int phase, {int? score, int? total}) async {
+    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
+    final repo = _ref.read(wordListRepositoryProvider);
 
-    UserWordListProgress updated;
-    if (existing != null) {
-      updated = UserWordListProgress(
-        id: existing.id,
-        userId: existing.userId,
-        wordListId: listId,
-        phase1Complete: phase == 1 ? true : existing.phase1Complete,
-        phase2Complete: phase == 2 ? true : existing.phase2Complete,
-        phase3Complete: phase == 3 ? true : existing.phase3Complete,
-        phase4Complete: phase == 4 ? true : existing.phase4Complete,
-        phase4Score: phase == 4 ? score : existing.phase4Score,
-        phase4Total: phase == 4 ? total : existing.phase4Total,
-        updatedAt: DateTime.now(),
-      );
-    } else {
-      updated = UserWordListProgress(
-        id: 'progress-$listId',
-        userId: 'user-1',
-        wordListId: listId,
-        phase1Complete: phase == 1,
-        phase2Complete: phase == 2,
-        phase3Complete: phase == 3,
-        phase4Complete: phase == 4,
-        phase4Score: phase == 4 ? score : null,
-        phase4Total: phase == 4 ? total : null,
-        updatedAt: DateTime.now(),
-      );
-    }
+    final result = await repo.completePhase(
+      userId: userId,
+      listId: listId,
+      phase: phase,
+      score: score,
+      total: total,
+    );
 
-    state = {...state, listId: updated};
+    result.fold(
+      (f) => null,
+      (updated) {
+        state = {...state, listId: updated};
+      },
+    );
   }
 
   /// Reset progress for a word list
-  void resetProgress(String listId) {
+  Future<void> resetProgress(String listId) async {
+    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
+    final repo = _ref.read(wordListRepositoryProvider);
+
+    await repo.resetProgress(userId: userId, listId: listId);
+
     final newState = Map<String, UserWordListProgress>.from(state);
     newState.remove(listId);
     state = newState;
@@ -524,7 +548,7 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
 
 final wordListProgressControllerProvider =
     StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>((ref) {
-  return WordListProgressController();
+  return WordListProgressController(ref);
 });
 
 /// Get progress for a specific list (reactive)

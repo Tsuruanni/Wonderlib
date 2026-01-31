@@ -26,14 +26,15 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
   bool _answered = false;
   int? _selectedOptionIndex;
   String _fillInAnswer = '';
-  late List<_QuizQuestion> _questions;
+  List<_QuizQuestion> _questions = [];
+  List<VocabularyWord> _words = [];
+  bool _initialized = false;
   final Random _random = Random();
   final TextEditingController _fillInController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _generateQuestions();
   }
 
   @override
@@ -42,10 +43,12 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
     super.dispose();
   }
 
-  void _generateQuestions() {
-    final words = ref.read(wordsForListProvider(widget.listId));
+  void _generateQuestions(List<VocabularyWord> words, {bool reset = false}) {
     if (words.isEmpty) return;
+    if (_initialized && !reset) return;
 
+    _words = words;
+    _initialized = true;
     _questions = [];
 
     for (final word in words) {
@@ -229,7 +232,7 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
                   _fillInAnswer = '';
                   _fillInController.clear();
                 });
-                _generateQuestions();
+                _generateQuestions(_words, reset: true);
               },
               child: const Text('Try Again'),
             ),
@@ -247,8 +250,23 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wordList = ref.watch(wordListByIdProvider(widget.listId));
-    final words = ref.watch(wordsForListProvider(widget.listId));
+    final wordListAsync = ref.watch(wordListByIdProvider(widget.listId));
+    final wordsAsync = ref.watch(wordsForListProvider(widget.listId));
+
+    final wordList = wordListAsync.valueOrNull;
+    final words = wordsAsync.valueOrNull ?? [];
+
+    if (wordsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Review')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Initialize questions when data is available
+    if (!_initialized && words.isNotEmpty) {
+      _generateQuestions(words);
+    }
 
     if (words.isEmpty || _questions.isEmpty) {
       return Scaffold(

@@ -106,7 +106,8 @@ class _DailyTasksSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dueWords = ref.watch(wordsDueForReviewProvider);
+    final dueWordsAsync = ref.watch(wordsDueForReviewProvider);
+    final dueWords = dueWordsAsync.valueOrNull ?? [];
 
     // Daily tasks data
     final tasks = [

@@ -12,11 +12,18 @@ class VocabularyHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dueCount = ref.watch(totalDueWordsCountProvider);
-    final continueLeaning = ref.watch(continueWordListsProvider);
-    final recommended = ref.watch(recommendedWordListsProvider);
-    final storyLists = ref.watch(storyWordListsProvider);
-    final hubStats = ref.watch(vocabularyHubStatsProvider);
+    final dueCountAsync = ref.watch(totalDueWordsCountProvider);
+    final continueLearningAsync = ref.watch(continueWordListsProvider);
+    final recommendedAsync = ref.watch(recommendedWordListsProvider);
+    final storyListsAsync = ref.watch(storyWordListsProvider);
+    final hubStatsAsync = ref.watch(vocabularyHubStatsProvider);
+
+    // Extract values with defaults
+    final dueCount = dueCountAsync.valueOrNull ?? 0;
+    final continueLeaning = continueLearningAsync.valueOrNull ?? [];
+    final recommended = recommendedAsync.valueOrNull ?? [];
+    final storyLists = storyListsAsync.valueOrNull ?? [];
+    final hubStats = hubStatsAsync.valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +34,7 @@ class VocabularyHubScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(right: 16),
             child: Chip(
               avatar: const Icon(Icons.star, size: 18),
-              label: Text('${hubStats.masteredWords} mastered'),
+              label: Text('${hubStats?.masteredWords ?? 0} mastered'),
               backgroundColor: Colors.amber.withValues(alpha: 0.2),
             ),
           ),
@@ -227,10 +234,10 @@ class _VerticalListSection extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: lists.map((list) {
-          final progress = ref.watch(progressForListProvider(list.id));
+          final progressAsync = ref.watch(progressForListProvider(list.id));
           return _WordListTile(
             wordList: list,
-            progress: progress,
+            progress: progressAsync.valueOrNull,
           );
         }).toList(),
       ),
@@ -440,10 +447,10 @@ class _CategoriesGrid extends ConsumerWidget {
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final category = categories[index];
-          final lists = ref.watch(wordListsByCategoryProvider(category));
+          final listsAsync = ref.watch(wordListsByCategoryProvider(category));
           return _CategoryCard(
             category: category,
-            listCount: lists.length,
+            listCount: listsAsync.valueOrNull?.length ?? 0,
           );
         },
       ),

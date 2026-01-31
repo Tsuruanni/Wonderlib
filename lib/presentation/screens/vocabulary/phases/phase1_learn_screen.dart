@@ -23,8 +23,18 @@ class _Phase1LearnScreenState extends ConsumerState<Phase1LearnScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wordList = ref.watch(wordListByIdProvider(widget.listId));
-    final words = ref.watch(wordsForListProvider(widget.listId));
+    final wordListAsync = ref.watch(wordListByIdProvider(widget.listId));
+    final wordsAsync = ref.watch(wordsForListProvider(widget.listId));
+
+    final wordList = wordListAsync.valueOrNull;
+    final words = wordsAsync.valueOrNull ?? [];
+
+    if (wordsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Learn Vocab')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (words.isEmpty) {
       return Scaffold(

@@ -25,6 +25,8 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
   bool _isCorrect = false;
   int _correctCount = 0;
   int _incorrectCount = 0;
+  bool _initialized = false;
+  List<VocabularyWord> _words = [];
 
   late List<FocusNode> _focusNodes;
   late List<TextEditingController> _controllers;
@@ -32,12 +34,14 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeInputFields();
+    _focusNodes = [];
+    _controllers = [];
   }
 
-  void _initializeInputFields() {
-    final words = ref.read(wordsForListProvider(widget.listId));
-    if (words.isEmpty) return;
+  void _initializeInputFields(List<VocabularyWord> words) {
+    if (words.isEmpty || _initialized) return;
+    _words = words;
+    _initialized = true;
 
     final wordLength = words[_currentIndex].word.length;
     _userInput = List.filled(wordLength, '');
@@ -46,10 +50,9 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
   }
 
   void _resetForNextWord() {
-    final words = ref.read(wordsForListProvider(widget.listId));
-    if (_currentIndex >= words.length) return;
+    if (_currentIndex >= _words.length) return;
 
-    final wordLength = words[_currentIndex].word.length;
+    final wordLength = _words[_currentIndex].word.length;
 
     // Dispose old controllers and focus nodes
     for (final controller in _controllers) {
@@ -88,14 +91,29 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final wordList = ref.watch(wordListByIdProvider(widget.listId));
-    final words = ref.watch(wordsForListProvider(widget.listId));
+    final wordListAsync = ref.watch(wordListByIdProvider(widget.listId));
+    final wordsAsync = ref.watch(wordsForListProvider(widget.listId));
+
+    final wordList = wordListAsync.valueOrNull;
+    final words = wordsAsync.valueOrNull ?? [];
+
+    if (wordsAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Spelling')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     if (words.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Spelling')),
         body: const Center(child: Text('No words in this list')),
       );
+    }
+
+    // Initialize on first load
+    if (!_initialized) {
+      _initializeInputFields(words);
     }
 
     final currentWord = words[_currentIndex];
@@ -272,8 +290,7 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
   }
 
   void _checkAnswer() {
-    final words = ref.read(wordsForListProvider(widget.listId));
-    final correctWord = words[_currentIndex].word.toLowerCase();
+    final correctWord = _words[_currentIndex].word.toLowerCase();
     final userWord = _userInput.join().toLowerCase();
 
     setState(() {
@@ -290,9 +307,7 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
   }
 
   void _nextWord() {
-    final words = ref.read(wordsForListProvider(widget.listId));
-
-    if (_currentIndex < words.length - 1) {
+    if (_currentIndex < _words.length - 1) {
       setState(() {
         _currentIndex++;
       });

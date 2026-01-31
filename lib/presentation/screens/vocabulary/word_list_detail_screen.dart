@@ -14,9 +14,20 @@ class WordListDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final wordList = ref.watch(wordListByIdProvider(listId));
+    final wordListAsync = ref.watch(wordListByIdProvider(listId));
     final progress = ref.watch(wordListProgressProvider(listId));
-    final words = ref.watch(wordsForListProvider(listId));
+    final wordsAsync = ref.watch(wordsForListProvider(listId));
+
+    // Handle loading state
+    if (wordListAsync.isLoading) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final wordList = wordListAsync.valueOrNull;
+    final words = wordsAsync.valueOrNull ?? [];
 
     if (wordList == null) {
       return Scaffold(
