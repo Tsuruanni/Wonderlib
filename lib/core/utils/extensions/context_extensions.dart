@@ -28,7 +28,7 @@ extension BuildContextExtensions on BuildContext {
   // Navigation shortcuts
   NavigatorState get navigator => Navigator.of(this);
 
-  void pop<T>([T? result]) => navigator.pop(result);
+  // Note: pop() removed - use GoRouter's context.pop() instead
 
   Future<T?> pushPage<T>(Widget page) {
     return navigator.push<T>(
