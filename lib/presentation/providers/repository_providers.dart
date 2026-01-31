@@ -8,6 +8,7 @@ import '../../data/repositories/supabase/supabase_book_repository.dart';
 import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
+import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../domain/entities/activity.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -16,6 +17,7 @@ import '../../domain/repositories/book_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
+import '../../domain/repositories/teacher_repository.dart';
 
 /// Repository providers
 /// All repositories now use Supabase implementations
@@ -48,6 +50,10 @@ final badgeRepositoryProvider = Provider<BadgeRepository>((ref) {
 
 final wordListRepositoryProvider = Provider<WordListRepository>((ref) {
   return SupabaseWordListRepository();
+});
+
+final teacherRepositoryProvider = Provider<TeacherRepository>((ref) {
+  return SupabaseTeacherRepository();
 });
 
 /// Inline activities provider (for reader screen)

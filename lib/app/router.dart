@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/config/app_config.dart';
+import '../core/constants/app_constants.dart';
 import '../presentation/screens/auth/school_code_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
@@ -19,28 +20,64 @@ import '../presentation/screens/vocabulary/phases/phase3_flashcards_screen.dart'
 import '../presentation/screens/vocabulary/phases/phase4_review_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
+import '../presentation/screens/teacher/classes_screen.dart';
+import '../presentation/screens/teacher/class_detail_screen.dart';
+import '../presentation/screens/teacher/student_detail_screen.dart';
+import '../presentation/screens/teacher/assignments_screen.dart';
+import '../presentation/screens/teacher/create_assignment_screen.dart';
+import '../presentation/screens/teacher/assignment_detail_screen.dart';
+import '../presentation/screens/teacher/reports_screen.dart';
+import '../presentation/screens/teacher/reports/class_overview_report_screen.dart';
+import '../presentation/screens/teacher/reports/reading_progress_report_screen.dart';
+import '../presentation/screens/teacher/reports/assignment_report_screen.dart';
+import '../presentation/screens/teacher/reports/leaderboard_report_screen.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/widgets/shell/main_shell_scaffold.dart';
+import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
 
 // Route paths
 abstract class AppRoutes {
+  // Auth routes
   static const schoolCode = '/school-code';
   static const login = '/login';
+
+  // Student routes
   static const home = '/';
   static const library = '/library';
-  static const bookDetail = '/library/book'; // Use with bookId parameter
+  static const bookDetail = '/library/book';
   static const reader = '/reader/:bookId/:chapterId';
   static const activity = '/activity/:chapterId';
   static const vocabulary = '/vocabulary';
   static const profile = '/profile';
+
+  // Teacher routes
   static const teacherDashboard = '/teacher';
+  static const teacherClasses = '/teacher/classes';
+  static const teacherClassDetail = '/teacher/classes/:classId';
+  static const teacherStudentDetail = '/teacher/classes/:classId/student/:studentId';
+  static const teacherAssignments = '/teacher/assignments';
+  static const teacherCreateAssignment = '/teacher/assignments/create';
+  static const teacherAssignmentDetail = '/teacher/assignments/:assignmentId';
+  static const teacherReports = '/teacher/reports';
+  static const teacherReportClassOverview = '/teacher/reports/class-overview';
+  static const teacherReportReadingProgress = '/teacher/reports/reading-progress';
+  static const teacherReportAssignments = '/teacher/reports/assignments';
+  static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
 }
 
-// Navigation shell keys for each branch
+// Navigation shell keys
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
+
+// Student shell keys
 final _homeNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'home');
 final _libraryNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'library');
 final _vocabularyNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'vocabulary');
+
+// Teacher shell keys
+final _teacherDashboardNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'teacherDashboard');
+final _teacherClassesNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses');
+final _teacherAssignmentsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
+final _teacherReportsNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports');
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
@@ -59,12 +96,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthRoute = state.matchedLocation == AppRoutes.schoolCode ||
           state.matchedLocation == AppRoutes.login;
 
+      // Not authenticated - redirect to auth
       if (!isAuthenticated && !isAuthRoute) {
         return AppRoutes.schoolCode;
       }
 
+      // Authenticated on auth route - redirect based on role
       if (isAuthenticated && isAuthRoute) {
+        final role = authState.valueOrNull?.role;
+        if (role == UserRole.teacher || role == UserRole.head || role == UserRole.admin) {
+          return AppRoutes.teacherDashboard;
+        }
         return AppRoutes.home;
+      }
+
+      // Role-based route protection
+      if (isAuthenticated) {
+        final role = authState.valueOrNull?.role;
+        final isTeacherOrHigher = role == UserRole.teacher ||
+                                   role == UserRole.head ||
+                                   role == UserRole.admin;
+        final isTeacherRoute = state.matchedLocation.startsWith('/teacher');
+
+        // Teacher trying to access student home -> redirect to dashboard
+        if (isTeacherOrHigher && state.matchedLocation == AppRoutes.home) {
+          return AppRoutes.teacherDashboard;
+        }
+
+        // Student trying to access teacher routes -> redirect to home
+        if (!isTeacherOrHigher && isTeacherRoute) {
+          return AppRoutes.home;
+        }
       }
 
       return null;
@@ -85,7 +147,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Main app shell with bottom navigation
+      // =============================================
+      // STUDENT SHELL
+      // =============================================
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return MainShellScaffold(navigationShell: navigationShell);
@@ -198,7 +262,69 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // Profile route (full-screen, outside shell)
+      // =============================================
+      // TEACHER SHELL
+      // =============================================
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return TeacherShellScaffold(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Dashboard
+          StatefulShellBranch(
+            navigatorKey: _teacherDashboardNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherDashboard,
+                name: 'teacherDashboard',
+                builder: (context, state) => const TeacherDashboardScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 1: Classes
+          StatefulShellBranch(
+            navigatorKey: _teacherClassesNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherClasses,
+                name: 'teacherClasses',
+                builder: (context, state) => const ClassesScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 2: Assignments
+          StatefulShellBranch(
+            navigatorKey: _teacherAssignmentsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherAssignments,
+                name: 'teacherAssignments',
+                builder: (context, state) => const AssignmentsScreen(),
+              ),
+            ],
+          ),
+
+          // Branch 3: Reports
+          StatefulShellBranch(
+            navigatorKey: _teacherReportsNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherReports,
+                name: 'teacherReports',
+                builder: (context, state) => const ReportsScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // =============================================
+      // STANDALONE ROUTES (outside both shells)
+      // =============================================
+
+      // Profile route (full-screen)
       GoRoute(
         path: AppRoutes.profile,
         name: 'profile',
@@ -206,7 +332,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ProfileScreen(),
       ),
 
-      // Full-screen routes (outside shell)
+      // Reader route (full-screen)
       GoRoute(
         path: AppRoutes.reader,
         name: 'reader',
@@ -217,6 +343,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           return ReaderScreen(bookId: bookId, chapterId: chapterId);
         },
       ),
+
+      // Activity route (full-screen)
       GoRoute(
         path: AppRoutes.activity,
         name: 'activity',
@@ -227,13 +355,73 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // Teacher routes (outside shell for now)
+      // Class detail route (full-screen, teacher only)
       GoRoute(
-        path: AppRoutes.teacherDashboard,
-        name: 'teacherDashboard',
+        path: AppRoutes.teacherClassDetail,
+        name: 'classDetail',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const TeacherDashboardScreen(),
+        builder: (context, state) {
+          final classId = state.pathParameters['classId']!;
+          return ClassDetailScreen(classId: classId);
+        },
       ),
+
+      // Student detail route (full-screen, teacher only)
+      GoRoute(
+        path: AppRoutes.teacherStudentDetail,
+        name: 'studentDetail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final studentId = state.pathParameters['studentId']!;
+          return StudentDetailScreen(studentId: studentId);
+        },
+      ),
+
+      // Create assignment route (full-screen, teacher only)
+      GoRoute(
+        path: AppRoutes.teacherCreateAssignment,
+        name: 'createAssignment',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CreateAssignmentScreen(),
+      ),
+
+      // Assignment detail route (full-screen, teacher only)
+      GoRoute(
+        path: AppRoutes.teacherAssignmentDetail,
+        name: 'assignmentDetail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final assignmentId = state.pathParameters['assignmentId']!;
+          return AssignmentDetailScreen(assignmentId: assignmentId);
+        },
+      ),
+
+      // Report routes (full-screen, teacher only)
+      GoRoute(
+        path: AppRoutes.teacherReportClassOverview,
+        name: 'reportClassOverview',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ClassOverviewReportScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teacherReportReadingProgress,
+        name: 'reportReadingProgress',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ReadingProgressReportScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teacherReportAssignments,
+        name: 'reportAssignments',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AssignmentReportScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teacherReportLeaderboard,
+        name: 'reportLeaderboard',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LeaderboardReportScreen(),
+      ),
+
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(

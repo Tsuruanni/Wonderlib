@@ -566,3 +566,35 @@ INSERT INTO vocabulary_progress (id, user_id, word_id, status, ease_factor, inte
 ('bbbbbbbb-0001-0001-0001-000000000010', '88888888-0001-0001-0001-000000000003', '11111111-0001-0002-0001-000000000002', 'learning', 2.50, 7, 4, NOW() + INTERVAL '7 days', NOW() - INTERVAL '2 days'),
 ('bbbbbbbb-0001-0001-0001-000000000011', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '10 days'),
 ('bbbbbbbb-0001-0001-0001-000000000012', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000002', 'reviewing', 2.60, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '6 days');
+
+-- =============================================
+-- ASSIGNMENTS (Teacher assignments for testing)
+-- =============================================
+INSERT INTO assignments (id, teacher_id, class_id, type, title, description, content_config, start_date, due_date, created_at) VALUES
+-- Active assignment: Read Little Prince chapters 1-2
+('cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'Read The Little Prince - Chapters 1-2', 'Read and complete all activities for chapters 1 and 2 of The Little Prince.', '{"bookId": "22222222-0001-0001-0001-000000000001", "chapterIds": ["44444444-0001-0001-0001-000000000001", "44444444-0001-0001-0001-000000000002"]}', NOW() - INTERVAL '3 days', NOW() + INTERVAL '4 days', NOW() - INTERVAL '3 days'),
+
+-- Upcoming assignment: Vocabulary practice
+('cccccccc-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'vocabulary', 'A1 Vocabulary Practice', 'Master the first 10 A1 level vocabulary words.', '{"wordListId": null}', NOW() + INTERVAL '2 days', NOW() + INTERVAL '9 days', NOW()),
+
+-- Overdue assignment
+('cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'Animal Farm - Chapter 1', 'Complete the first chapter of Animal Farm.', '{"bookId": "22222222-0001-0001-0001-000000000002", "chapterIds": ["44444444-0002-0001-0001-000000000001"]}', NOW() - INTERVAL '14 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '14 days');
+
+-- =============================================
+-- ASSIGNMENT STUDENTS (Student progress on assignments)
+-- =============================================
+INSERT INTO assignment_students (id, assignment_id, student_id, status, progress, score, started_at, completed_at) VALUES
+-- Assignment 1 (Active): Mixed progress
+('dddddddd-0001-0001-0001-000000000001', 'cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000001', 'pending', 0, NULL, NULL, NULL),
+('dddddddd-0001-0001-0001-000000000002', 'cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', 'in_progress', 50, NULL, NOW() - INTERVAL '2 days', NULL),
+('dddddddd-0001-0001-0001-000000000003', 'cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000003', 'completed', 100, 95.5, NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day'),
+
+-- Assignment 2 (Upcoming): All pending
+('dddddddd-0001-0001-0001-000000000004', 'cccccccc-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000001', 'pending', 0, NULL, NULL, NULL),
+('dddddddd-0001-0001-0001-000000000005', 'cccccccc-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', 'pending', 0, NULL, NULL, NULL),
+('dddddddd-0001-0001-0001-000000000006', 'cccccccc-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000003', 'pending', 0, NULL, NULL, NULL),
+
+-- Assignment 3 (Overdue): Some completed, some overdue
+('dddddddd-0001-0001-0001-000000000007', 'cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000001', 'overdue', 30, NULL, NOW() - INTERVAL '12 days', NULL),
+('dddddddd-0001-0001-0001-000000000008', 'cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', 'completed', 100, 88.0, NOW() - INTERVAL '13 days', NOW() - INTERVAL '8 days'),
+('dddddddd-0001-0001-0001-000000000009', 'cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', 'completed', 100, 100.0, NOW() - INTERVAL '13 days', NOW() - INTERVAL '10 days');
