@@ -1,10 +1,10 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Local Supabase Integration)
+Son güncelleme: 2026-01-31 (Full Supabase Integration)
 
 ## Current Phase
 
-**Faz 1: MVP Foundation** ✅ UI tamamlandı, DB şeması eksik
+**Faz 2: Öğrenci MVP** ✅ Supabase tam entegrasyon
 
 ## Roadmap
 
@@ -23,14 +23,14 @@ Son güncelleme: 2026-01-31 (Local Supabase Integration)
 - [x] Authentication UI (school code + login ekranları)
 - [x] Temel UI shell (GoRouter, theme)
 - [x] Bottom navigation (StatefulShellRoute, 3 tabs: Home, Library, Vocabulary)
-- [ ] Supabase database şeması oluşturulmalı
+- [x] Supabase database şeması oluşturuldu (21 tablo, local + seed data)
 
 ### Faz 2: Öğrenci MVP 🔄 (Aktif)
 - [x] Dijital kütüphane (kitap listesi) - grid/list, filters, search
 - [x] Okuma ekranı (sayfa görüntüleme) - reader with vocabulary
 - [x] Anlık sözlük (kelimeye tıkla) - vocabulary popup
 - [x] Inline aktiviteler (3 tip) - true/false, word translation, find words
-- [ ] XP ve seviye sistemi (UI var, backend yok)
+- [x] XP ve seviye sistemi (UI + Supabase backend)
 - [x] Basit profil sayfası
 
 ### Faz 3: Öğretmen MVP
@@ -56,26 +56,34 @@ Son güncelleme: 2026-01-31 (Local Supabase Integration)
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Supabase DB şeması | - | Not started | Tablolar henüz yok |
 | Final Quiz | - | Not started | Bölüm sonu gamified quiz (escape room) |
+| Edge Functions | - | Not started | award-xp, check-streak |
 
 ## Blockers
 
 | Blocker | Impact | Resolution |
 |---------|--------|------------|
-| ~~Supabase şeması yok~~ | ~~Auth ve veri akışı çalışmıyor~~ | ✅ Local Supabase entegrasyonu tamamlandı |
+| ~~Supabase şeması yok~~ | ~~Auth ve veri akışı çalışmıyor~~ | ✅ Full Supabase entegrasyonu tamamlandı |
 
 ## Tech Debt
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Mock data uyuşmazlığı | Low | Home'da kitap adı/kapak uyuşmuyor |
+| ~~Mock data uyuşmazlığı~~ | ~~Low~~ | ✅ Artık gerçek veri kullanılıyor |
 | "Add to vocabulary" | Medium | Reader'da kelime ekleme henüz çalışmıyor |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| MockData Removal | 2026-01-31 | Presentation layer no longer uses MockData |
+| InlineActivities Provider | 2026-01-31 | Reader activities fetched from Supabase |
+| Full Supabase Integration | 2026-01-31 | All 7 repositories now use Supabase |
+| SupabaseActivityRepository | 2026-01-31 | Activity results, XP awarding |
+| SupabaseUserRepository | 2026-01-31 | XP, streak, leaderboard |
+| SupabaseVocabularyRepository | 2026-01-31 | SM-2 spaced repetition |
+| SupabaseWordListRepository | 2026-01-31 | 4-phase vocabulary builder |
+| SupabaseBadgeRepository | 2026-01-31 | Badge earning system |
 | Local Supabase Integration | 2026-01-31 | Auth + Book repos, seed data, test user |
 | Reader Collapsible Header | 2026-01-31 | Expanded/collapsed states, book cover, chapter info |
 | Activity-based Progress | 2026-01-31 | Progress = completed activities / total activities |

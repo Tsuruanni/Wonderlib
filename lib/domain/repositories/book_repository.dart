@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
+import '../entities/activity.dart';
 import '../entities/book.dart';
 import '../entities/chapter.dart';
 import '../entities/reading_progress.dart';
@@ -44,4 +45,8 @@ abstract class BookRepository {
     required String bookId,
     required String chapterId,
   });
+
+  Future<Either<Failure, List<InlineActivity>>> getInlineActivities(
+    String chapterId,
+  );
 }

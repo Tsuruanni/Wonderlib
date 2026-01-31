@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../data/datasources/local/mock_data.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/repository_providers.dart';
 import '../../widgets/reader/collapsible_reader_header.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
@@ -128,9 +128,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         final nextChapter = hasNextChapter ? chapters[currentIndex + 1] : null;
 
         // Set total activities count for progress calculation
-        final inlineActivities = MockData.getInlineActivities(chapter.id);
+        final activitiesAsync = ref.watch(inlineActivitiesProvider(chapter.id));
+        final inlineActivitiesCount = activitiesAsync.when(
+          data: (activities) => activities.length,
+          loading: () => 0,
+          error: (_, __) => 0,
+        );
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ref.read(totalActivitiesProvider.notifier).state = inlineActivities.length;
+          ref.read(totalActivitiesProvider.notifier).state = inlineActivitiesCount;
         });
 
         return Scaffold(

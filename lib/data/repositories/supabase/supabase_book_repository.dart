@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/reading_progress.dart';
@@ -361,6 +362,29 @@ class SupabaseBookRepository implements BookRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<InlineActivity>>> getInlineActivities(
+    String chapterId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('inline_activities')
+          .select()
+          .eq('chapter_id', chapterId)
+          .order('after_paragraph_index', ascending: true);
+
+      final activities = (response as List)
+          .map((json) => _mapToInlineActivity(json))
+          .toList();
+
+      return Right(activities);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // MAPPING FUNCTIONS
   // ============================================
@@ -457,5 +481,66 @@ class SupabaseBookRepository implements BookRepository {
           : null,
       updatedAt: DateTime.parse(data['updated_at'] as String),
     );
+  }
+
+  InlineActivity _mapToInlineActivity(Map<String, dynamic> data) {
+    final type = _parseInlineActivityType(data['type'] as String?);
+    final contentJson = data['content'] as Map<String, dynamic>? ?? {};
+    final content = _parseInlineActivityContent(type, contentJson);
+
+    final vocabWordsJson = data['vocabulary_words'] as List<dynamic>?;
+    final vocabWords =
+        vocabWordsJson?.map((w) => w as String).toList() ?? [];
+
+    return InlineActivity(
+      id: data['id'] as String,
+      type: type,
+      afterParagraphIndex: data['after_paragraph_index'] as int? ?? 0,
+      content: content,
+      xpReward: data['xp_reward'] as int? ?? 5,
+      vocabularyWords: vocabWords,
+    );
+  }
+
+  InlineActivityType _parseInlineActivityType(String? type) {
+    switch (type) {
+      case 'word_translation':
+        return InlineActivityType.wordTranslation;
+      case 'find_words':
+        return InlineActivityType.findWords;
+      default:
+        return InlineActivityType.trueFalse;
+    }
+  }
+
+  InlineActivityContent _parseInlineActivityContent(
+    InlineActivityType type,
+    Map<String, dynamic> json,
+  ) {
+    switch (type) {
+      case InlineActivityType.trueFalse:
+        return TrueFalseContent(
+          statement: json['statement'] as String? ?? '',
+          correctAnswer: json['correctAnswer'] as bool? ?? false,
+        );
+      case InlineActivityType.wordTranslation:
+        final optionsJson = json['options'] as List<dynamic>?;
+        final options = optionsJson?.map((o) => o as String).toList() ?? [];
+        return WordTranslationContent(
+          word: json['word'] as String? ?? '',
+          correctAnswer: json['correctAnswer'] as String? ?? '',
+          options: options,
+        );
+      case InlineActivityType.findWords:
+        final optionsJson = json['options'] as List<dynamic>?;
+        final options = optionsJson?.map((o) => o as String).toList() ?? [];
+        final correctJson = json['correctAnswers'] as List<dynamic>?;
+        final correct = correctJson?.map((c) => c as String).toList() ?? [];
+        return FindWordsContent(
+          instruction: json['instruction'] as String? ?? '',
+          options: options,
+          correctAnswers: correct,
+        );
+    }
   }
 }

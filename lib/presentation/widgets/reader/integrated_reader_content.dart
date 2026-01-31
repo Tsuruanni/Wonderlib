@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/datasources/local/mock_data.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/repository_providers.dart';
 import '../activities/activities.dart';
 import 'paragraph_widget.dart';
 
@@ -34,8 +34,15 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
   @override
   Widget build(BuildContext context) {
     final paragraphs = widget.chapter.paragraphs;
-    final inlineActivities = MockData.getInlineActivities(widget.chapter.id);
+    final activitiesAsync = ref.watch(inlineActivitiesProvider(widget.chapter.id));
     final completedActivities = ref.watch(inlineActivityStateProvider);
+
+    // Get inline activities from async state
+    final inlineActivities = activitiesAsync.when(
+      data: (activities) => activities,
+      loading: () => <InlineActivity>[],
+      error: (_, __) => <InlineActivity>[],
+    );
 
     // Check if a new activity was just completed to trigger scroll
     final currentCompletedCount = completedActivities.length;

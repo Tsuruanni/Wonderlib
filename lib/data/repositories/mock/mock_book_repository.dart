@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/reading_progress.dart';
@@ -224,5 +225,13 @@ class MockBookRepository implements BookRepository {
     }
 
     return Right(progress);
+  }
+
+  @override
+  Future<Either<Failure, List<InlineActivity>>> getInlineActivities(
+    String chapterId,
+  ) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    return Right(MockData.getInlineActivities(chapterId));
   }
 }

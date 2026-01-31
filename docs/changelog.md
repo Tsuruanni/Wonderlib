@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### MockData Removal & Bug Fixes (2026-01-31)
+- **InlineActivities Provider** - `getInlineActivities()` method added to BookRepository, reader now fetches activities from Supabase
+- **MockData Eliminated** - All presentation layer MockData usages removed (reader_screen, integrated_reader_content)
+- **Vocabulary Screen Fix** - AsyncValue handling fixed (was causing type errors with FutureProvider)
+- **Slash Command** - `/update-docs-and-commit` custom command for automated documentation updates
+
+### Full Supabase Repository Integration (2026-01-31)
+- **SupabaseActivityRepository** - Activity results, XP awarding, best score tracking
+- **SupabaseUserRepository** - XP management, streak calculation, leaderboard queries
+- **SupabaseVocabularyRepository** - SM-2 spaced repetition, word progress tracking
+- **SupabaseWordListRepository** - 4-phase vocabulary builder (learn, spelling, flashcards, review)
+- **SupabaseBadgeRepository** - Badge earning logic, earnable badge checking
+- **Provider Updates** - All 7 repository providers now use Supabase implementations
+- **Table Name Fixes** - vocabulary_words, word_list_items, user_word_list_progress
+
 ### Local Supabase Integration (2026-01-31)
 - **Environment Config** - `.env` updated to use local Supabase (`127.0.0.1:54321`)
 - **SupabaseAuthRepository** - Full implementation with school code + email login
@@ -128,8 +143,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - Header progress indicator - Bottom collision fix (top positioning)
 
 ### Known Issues
-- Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)
-- Supabase şeması henüz oluşturulmadı (tablolar boş)
+- ~~Home'da kitap adı "The Little Prince" ama kapak görseli "Fantastic Mr. Fox" (mock veri uyuşmazlığı)~~ ✅ Fixed - real data from Supabase
+- ~~Supabase şeması henüz oluşturulmadı (tablolar boş)~~ ✅ Fixed - 21 tables created with seed data
 - Vocabulary "Add to vocabulary" henüz çalışmıyor (TODO)
 
 ---

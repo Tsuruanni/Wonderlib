@@ -30,10 +30,21 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
 
   @override
   Widget build(BuildContext context) {
-    final stats = ref.watch(vocabularyStatsSimpleProvider);
-    final allWords = ref.watch(userVocabularyProvider);
-    final dueWords = ref.watch(wordsDueForReviewProvider);
-    final newWords = ref.watch(newWordsToLearnProvider);
+    final statsAsync = ref.watch(vocabularyStatsSimpleProvider);
+    final allWordsAsync = ref.watch(userVocabularyProvider);
+    final dueWordsAsync = ref.watch(wordsDueForReviewProvider);
+    final newWordsAsync = ref.watch(newWordsToLearnProvider);
+
+    // Extract values from AsyncValue, using empty lists/defaults while loading
+    final allWords = allWordsAsync.valueOrNull ?? [];
+    final dueWords = dueWordsAsync.valueOrNull ?? [];
+    final newWords = newWordsAsync.valueOrNull ?? [];
+    final stats = statsAsync.valueOrNull;
+
+    final isLoading = allWordsAsync.isLoading ||
+        dueWordsAsync.isLoading ||
+        newWordsAsync.isLoading ||
+        statsAsync.isLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,24 +58,26 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Stats Card
-          _StatsCard(stats: stats),
-
-          // Word Lists
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+      body: isLoading && stats == null
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                _WordListView(words: allWords),
-                _WordListView(words: dueWords, emptyMessage: 'No words to review'),
-                _WordListView(words: newWords, emptyMessage: 'No new words'),
+                // Stats Card
+                if (stats != null) _StatsCard(stats: stats),
+
+                // Word Lists
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _WordListView(words: allWords),
+                      _WordListView(words: dueWords, emptyMessage: 'No words to review'),
+                      _WordListView(words: newWords, emptyMessage: 'No new words'),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
       floatingActionButton: dueWords.isNotEmpty || newWords.isNotEmpty
           ? FloatingActionButton.extended(
               onPressed: () => _startPractice(context, [...dueWords, ...newWords.take(5)]),

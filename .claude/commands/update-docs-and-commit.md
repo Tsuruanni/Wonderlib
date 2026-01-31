@@ -1,97 +1,106 @@
+---
+allowed-tools: Bash, Read, Write, Edit, Grep, Glob
+argument-hint: "[optional commit message]"
+---
+
 # Update Docs and Commit
 
-Kod değişikliklerini analiz edip ilgili dökümanları güncelle ve commit oluştur.
+Analyze recent git changes and update project documentation, then commit everything.
 
-## Input
-$ARGUMENTS - Opsiyonel commit mesajı veya değişiklik açıklaması
+## Arguments
+$ARGUMENTS - Optional: commit message or description of changes. If empty, generate from git diff.
 
 ## Instructions
 
-### 1. Değişiklikleri Analiz Et
-
+### Step 1: Analyze Git Changes
+Run these commands to understand what changed:
 ```bash
 git status
-git diff --staged
+git diff --stat
 git diff
 ```
 
-Değişiklikleri kategorize et:
-- **Feature**: Yeni özellik eklendi
-- **Fix**: Bug düzeltildi
-- **Refactor**: Kod yapısı değişti
-- **Docs**: Döküman güncellendi
-- **Chore**: Bakım işleri (deps, config)
+If there are no staged or unstaged changes, inform the user and stop.
 
-### 2. changelog.md Güncelle
+### Step 2: Update docs/changelog.md
 
-`docs/changelog.md` dosyasında `[Unreleased]` bölümüne ekle:
+Read the current changelog and add entries for new changes under `## [Unreleased]`.
 
-- Yeni feature'lar → `### Added`
-- Değişiklikler → `### Changed`
-- Bug fix'ler → `### Fixed`
-- Kaldırılanlar → `### Removed`
+**Format to follow:**
+- Group changes by date with a descriptive header (e.g., `### Feature Name (YYYY-MM-DD)`)
+- Use bullet points with **bold** for key items
+- Categories: Added, Changed, Fixed, Removed, Infrastructure
 
-Format:
-```markdown
-### Added
-- Kısa açıklama (hangi dosya/modül etkilendi)
-```
+**Only add entries for:**
+- New features or functionality
+- Bug fixes
+- Breaking changes
+- Significant refactors
 
-### 3. architecture.md Güncelle (Sadece Gerekirse)
+**Do NOT add entries for:**
+- Minor code cleanups
+- Internal refactors with no user impact
+- Documentation-only changes (those go in the commit, not changelog)
 
-`docs/architecture.md` dosyasını SADECE şu durumlarda güncelle:
-- Yeni modül/klasör eklendi
-- Veri akışı değişti
-- Yeni servis entegre edildi
-- Veritabanı şeması değişti
+### Step 3: Update docs/architecture.md (if needed)
 
-Küçük kod değişikliklerinde DOKUNMA.
+Only update if there are **structural changes** such as:
+- New directories or modules added
+- New repository/provider patterns
+- Database schema changes
+- New external integrations
 
-### 4. project_status.md Güncelle
+Read the current architecture.md first. If no structural changes, skip this step.
 
-`docs/project_status.md` dosyasında:
+### Step 4: Update docs/project_status.md
 
-- Tamamlanan task'ları `Recently Completed` tablosuna taşı
-- `In Progress` tablosunu güncelle
-- Roadmap'te checkbox'ları işaretle (`- [x]`)
-- Varsa yeni blocker'ları ekle
-- `Son güncelleme` tarihini güncelle
+Read the current project_status.md and:
 
-### 5. Stage ve Commit
+1. **Update "Current Phase"** if a phase was completed
+2. **Check off completed items** in the Roadmap checkboxes `[x]`
+3. **Move completed tasks** from "In Progress" to "Recently Completed" table
+4. **Update "Blockers"** - cross out resolved blockers with ~~strikethrough~~
+5. **Update "Tech Debt"** - cross out resolved items
+6. **Update the "Son güncelleme" date** at the top
+
+### Step 5: Stage and Commit
 
 ```bash
-git add docs/
-git add <değişen-dosyalar>
-git commit -m "<commit-message>"
+# Stage all changes including docs
+git add -A
+
+# Create commit with descriptive message
+git commit -m "$(cat <<'EOF'
+<type>: <short description>
+
+<body - what changed and why>
+
+Docs updated:
+- changelog.md
+- project_status.md
+- architecture.md (if changed)
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+EOF
+)"
 ```
 
-Commit mesajı formatı:
-- Kullanıcı mesaj verdiyse: onu kullan
-- Vermediyse: değişiklik türüne göre otomatik oluştur
-  - `feat: <açıklama>` - yeni özellik
-  - `fix: <açıklama>` - bug fix
-  - `docs: <açıklama>` - döküman
-  - `refactor: <açıklama>` - refactoring
-  - `chore: <açıklama>` - bakım
+**Commit types:**
+- `feat:` - new feature
+- `fix:` - bug fix
+- `refactor:` - code restructuring
+- `docs:` - documentation only
+- `chore:` - maintenance tasks
 
-### 6. Özet Göster
+### Step 6: Report
 
-```markdown
-## Changes Summary
+After committing, show:
+1. The commit hash and message
+2. Summary of documentation updates
+3. Files changed count
 
-### Güncellenen Dosyalar
-- `docs/changelog.md` - X yeni entry
-- `docs/project_status.md` - Y task güncellendi
-- `docs/architecture.md` - (güncellendi/değişmedi)
-
-### Commit
-- Hash: <short-hash>
-- Message: <commit-message>
-```
-
-## Önemli Kurallar
-
-1. **Konservatif ol**: Sadece gerçekten değişmesi gereken dökümanları güncelle
-2. **Tutarlılık**: Mevcut format ve stile uy
-3. **Kısa tut**: Changelog entry'leri 1-2 cümle
-4. **Tarih ekle**: project_status.md'de her değişiklikte tarih güncelle
+## Notes
+- If the user provided $ARGUMENTS, use that as the basis for the commit message
+- Keep changelog entries concise but informative
+- Use English for all documentation updates
+- Do not push to remote unless explicitly asked
