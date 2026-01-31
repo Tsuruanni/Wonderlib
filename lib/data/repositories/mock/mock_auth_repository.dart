@@ -22,22 +22,15 @@ class MockAuthRepository implements AuthRepository {
   final _authStateController = StreamController<User?>.broadcast();
 
   @override
-  Future<Either<Failure, User>> signInWithSchoolCode({
-    required String schoolCode,
+  Future<Either<Failure, User>> signInWithStudentNumber({
     required String studentNumber,
     required String password,
   }) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
-    // Find school by code
-    final school = MockData.schools.where((s) => s.code == schoolCode).firstOrNull;
-    if (school == null) {
-      return const Left(AuthFailure('School code not found'));
-    }
-
-    // Find user by student number
+    // Find user by student number (globally unique)
     final user = MockData.users.where(
-      (u) => u.schoolId == school.id && u.studentNumber == studentNumber,
+      (u) => u.studentNumber == studentNumber,
     ).firstOrNull;
 
     if (user == null) {
@@ -86,14 +79,6 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<Either<Failure, User?>> getCurrentUser() async {
     return Right(_currentUser);
-  }
-
-  @override
-  Future<Either<Failure, bool>> validateSchoolCode(String code) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    final upperCode = code.toUpperCase();
-    final exists = MockData.schools.any((s) => s.code.toUpperCase() == upperCode);
-    return Right(exists);
   }
 
   @override

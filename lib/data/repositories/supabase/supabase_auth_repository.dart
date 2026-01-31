@@ -53,30 +53,15 @@ class SupabaseAuthRepository implements AuthRepository {
   final _authStateController = StreamController<domain.User?>.broadcast();
 
   @override
-  Future<Either<Failure, domain.User>> signInWithSchoolCode({
-    required String schoolCode,
+  Future<Either<Failure, domain.User>> signInWithStudentNumber({
     required String studentNumber,
     required String password,
   }) async {
     try {
-      // 1. Validate school code and get school ID
-      final schoolResponse = await _supabase
-          .from('schools')
-          .select('id')
-          .eq('code', schoolCode.toUpperCase())
-          .maybeSingle();
-
-      if (schoolResponse == null) {
-        return Left(AuthFailure.schoolNotFound());
-      }
-
-      final schoolId = schoolResponse['id'] as String;
-
-      // 2. Find user by student number in this school
+      // 1. Find user by student number (globally unique)
       final profileResponse = await _supabase
           .from('profiles')
           .select('id, email')
-          .eq('school_id', schoolId)
           .eq('student_number', studentNumber)
           .maybeSingle();
 
@@ -93,7 +78,7 @@ class SupabaseAuthRepository implements AuthRepository {
         );
       }
 
-      // 3. Sign in with email/password
+      // 2. Sign in with email/password
       final authResponse = await _supabase.auth.signInWithPassword(
         email: email,
         password: password,
@@ -103,7 +88,7 @@ class SupabaseAuthRepository implements AuthRepository {
         return Left(AuthFailure.invalidCredentials());
       }
 
-      // 4. Return the domain user
+      // 3. Return the domain user
       return getCurrentUser().then(
         (result) => result.fold(
           (failure) => Left(failure),
@@ -187,23 +172,6 @@ class SupabaseAuthRepository implements AuthRepository {
       }
 
       return Right(_mapProfileToUser(profileData));
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> validateSchoolCode(String code) async {
-    try {
-      final response = await _supabase
-          .from('schools')
-          .select('id')
-          .eq('code', code.toUpperCase())
-          .maybeSingle();
-
-      return Right(response != null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

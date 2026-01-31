@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../core/config/app_config.dart';
 import '../core/constants/app_constants.dart';
-import '../presentation/screens/auth/school_code_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
@@ -40,7 +39,6 @@ import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
 // Route paths
 abstract class AppRoutes {
   // Auth routes
-  static const schoolCode = '/school-code';
   static const login = '/login';
 
   // Student routes
@@ -88,7 +86,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.schoolCode,
+    initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.login,
     debugLogDiagnostics: true,
     redirect: (context, state) {
       // Skip auth redirect in development mode
@@ -97,12 +95,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       final isAuthenticated = authState.valueOrNull != null;
-      final isAuthRoute = state.matchedLocation == AppRoutes.schoolCode ||
-          state.matchedLocation == AppRoutes.login;
+      final isAuthRoute = state.matchedLocation == AppRoutes.login;
 
-      // Not authenticated - redirect to auth
+      // Not authenticated - redirect to login
       if (!isAuthenticated && !isAuthRoute) {
-        return AppRoutes.schoolCode;
+        return AppRoutes.login;
       }
 
       // Authenticated on auth route - redirect based on role
@@ -138,17 +135,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       // Auth routes (outside shell)
       GoRoute(
-        path: AppRoutes.schoolCode,
-        name: 'schoolCode',
-        builder: (context, state) => const SchoolCodeScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) {
-          final schoolCode = state.extra as String?;
-          return LoginScreen(schoolCode: schoolCode ?? '');
-        },
+        builder: (context, state) => const LoginScreen(),
       ),
 
       // =============================================

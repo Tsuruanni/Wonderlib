@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/extensions/string_extensions.dart';
 import '../../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  final String schoolCode;
-
-  const LoginScreen({
-    super.key,
-    required this.schoolCode,
-  });
+  const LoginScreen({super.key});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -42,10 +35,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     bool success;
     if (_useStudentNumber) {
-      success = await authController.signInWithSchoolCode(
+      success = await authController.signInWithStudentNumber(
         studentNumber: _emailController.text.trim(),
         password: _passwordController.text,
-        schoolCode: widget.schoolCode,
       );
     } else {
       success = await authController.signInWithEmail(
@@ -68,12 +60,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go(AppRoutes.schoolCode),
-        ),
-      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -86,40 +72,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // School badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.school,
-                            size: 16,
-                            color: context.colorScheme.onPrimaryContainer,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            widget.schoolCode,
-                            style: context.textTheme.labelLarge?.copyWith(
-                              color: context.colorScheme.onPrimaryContainer,
-                            ),
-                          ),
-                        ],
-                      ),
+                    // Logo
+                    Icon(
+                      Icons.menu_book_rounded,
+                      size: 80,
+                      color: context.colorScheme.primary,
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
 
+                    // App name
                     Text(
-                      'Welcome back!',
-                      style: context.textTheme.headlineMedium,
+                      'ReadEng',
+                      style: context.textTheme.headlineLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),

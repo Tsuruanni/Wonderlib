@@ -8,6 +8,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Remove School Code Screen (2026-02-01)
+
+#### Changed
+- **Simplified Login Flow** - Removed school code entry screen entirely
+- **Student Number Login** - Now globally unique (no school code needed)
+- **Direct Login** - App starts at login screen, not school code
+
+#### Removed
+- `SchoolCodeScreen` - Deleted (no longer needed for login)
+- `validateSchoolCode` method from AuthRepository
+- `signInWithSchoolCode` replaced with `signInWithStudentNumber`
+
+#### Infrastructure
+- **Migration** - Added `profiles_student_number_unique` partial index
+- **Auth Flow** - Student # lookup no longer requires school_id filter
+
 ### Book-Based Assignments & Library Locking (2026-02-01)
 
 #### Changed

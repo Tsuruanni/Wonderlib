@@ -87,6 +87,7 @@ Son güncelleme: 2026-02-01 (Book-Based Assignments + Library Locking)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Remove School Code Screen | 2026-02-01 | Direct login, global unique student numbers |
 | Book-Based Assignments | 2026-02-01 | Simplified to full book (no chapter selection), lockLibrary option |
 | Library Locking | 2026-02-01 | Teachers can lock library until assignment completed, soft lock UI |
 | Student Assignments | 2026-01-31 | Students can view/complete assigned tasks, auto-progress updates |

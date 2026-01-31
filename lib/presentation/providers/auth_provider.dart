@@ -62,27 +62,15 @@ class AuthController extends StateNotifier<AuthState> {
 
   AuthController(this._ref) : super(const AuthState());
 
-  /// Validate school code exists
-  Future<bool> validateSchoolCode(String code) async {
-    final authRepo = _ref.read(authRepositoryProvider);
-    final result = await authRepo.validateSchoolCode(code);
-    return result.fold(
-      (failure) => false,
-      (isValid) => isValid,
-    );
-  }
-
-  /// Sign in with school code (for students)
-  Future<bool> signInWithSchoolCode({
-    required String schoolCode,
+  /// Sign in with student number (globally unique)
+  Future<bool> signInWithStudentNumber({
     required String studentNumber,
     required String password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
     final authRepo = _ref.read(authRepositoryProvider);
-    final result = await authRepo.signInWithSchoolCode(
-      schoolCode: schoolCode,
+    final result = await authRepo.signInWithStudentNumber(
       studentNumber: studentNumber,
       password: password,
     );
@@ -99,7 +87,7 @@ class AuthController extends StateNotifier<AuthState> {
     );
   }
 
-  /// Sign in with email (for teachers/admins)
+  /// Sign in with email (for teachers/admins or students who prefer email)
   Future<bool> signInWithEmail({
     required String email,
     required String password,
