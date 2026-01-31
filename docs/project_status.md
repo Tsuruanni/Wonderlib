@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-30 (Vocabulary Builder 4-Phase System)
+Son güncelleme: 2026-01-31 (Reader Screen Overhaul)
 
 ## Current Phase
 
@@ -76,6 +76,10 @@ Son güncelleme: 2026-01-30 (Vocabulary Builder 4-Phase System)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Reader Collapsible Header | 2026-01-31 | Expanded/collapsed states, book cover, chapter info |
+| Activity-based Progress | 2026-01-31 | Progress = completed activities / total activities |
+| Chapter Completion System | 2026-01-31 | completedChapterIds persistence, chapter locking |
+| Next Chapter Navigation | 2026-01-31 | "Sonraki Bölüm" button, "Kitabı Tamamladın" message |
 | GitHub repo | 2026-01-30 | Tsuruanni/Wonderlib |
 | Supabase setup | 2026-01-30 | EU region, Wonderlib projesi |
 | R2 bucket | 2026-01-30 | readeng-media |

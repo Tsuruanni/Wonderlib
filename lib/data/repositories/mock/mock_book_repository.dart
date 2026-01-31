@@ -178,4 +178,51 @@ class MockBookRepository implements BookRepository {
 
     return Right(books);
   }
+
+  @override
+  Future<Either<Failure, ReadingProgress>> markChapterComplete({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    // Find existing progress or create new
+    var progress = _progressList
+        .where((p) => p.userId == userId && p.bookId == bookId)
+        .firstOrNull;
+
+    if (progress == null) {
+      // Create new progress
+      progress = ReadingProgress(
+        id: 'progress-${DateTime.now().millisecondsSinceEpoch}',
+        userId: userId,
+        bookId: bookId,
+        chapterId: chapterId,
+        completedChapterIds: [chapterId],
+        startedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      _progressList.add(progress);
+    } else {
+      // Update existing - add chapter to completed list if not already there
+      final completedIds = List<String>.from(progress.completedChapterIds);
+      if (!completedIds.contains(chapterId)) {
+        completedIds.add(chapterId);
+      }
+
+      final index = _progressList.indexWhere((p) => p.id == progress!.id);
+      progress = progress.copyWith(
+        chapterId: chapterId,
+        completedChapterIds: completedIds,
+        updatedAt: DateTime.now(),
+      );
+
+      if (index != -1) {
+        _progressList[index] = progress;
+      }
+    }
+
+    return Right(progress);
+  }
 }

@@ -2,21 +2,24 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/repositories/auth_repository.dart';
 import '../../datasources/local/mock_data.dart';
 
 class MockAuthRepository implements AuthRepository {
+  MockAuthRepository() {
+    // Auto-login with mock user when dev bypass is enabled
+    if (kDevBypassAuth) {
+      _currentUser = MockData.users[0];
+      // Use Future.microtask to ensure stream listeners are attached first
+      Future.microtask(() => _authStateController.add(_currentUser));
+    }
+  }
+
   User? _currentUser;
   final _authStateController = StreamController<User?>.broadcast();
-
-  MockAuthRepository() {
-    // Auto-login disabled for testing login flow
-    // To enable: uncomment the lines below
-    // _currentUser = MockData.users[0];
-    // _authStateController.add(_currentUser);
-  }
 
   @override
   Future<Either<Failure, User>> signInWithSchoolCode({

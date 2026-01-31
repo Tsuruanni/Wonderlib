@@ -189,3 +189,31 @@ final learnedWordsProvider =
     StateNotifierProvider<LearnedWordsNotifier, List<String>>((ref) {
   return LearnedWordsNotifier();
 });
+
+// ============================================
+// CHAPTER PROGRESS (ACTIVITY-BASED)
+// ============================================
+
+/// Total number of activities in current chapter
+final totalActivitiesProvider = StateProvider<int>((ref) => 0);
+
+/// Activity-based progress (0.0 to 1.0)
+/// Progress = completed activities / total activities
+final activityProgressProvider = Provider<double>((ref) {
+  final completedActivities = ref.watch(inlineActivityStateProvider);
+  final totalActivities = ref.watch(totalActivitiesProvider);
+
+  if (totalActivities == 0) return 0.0;
+
+  return (completedActivities.length / totalActivities).clamp(0.0, 1.0);
+});
+
+/// Whether all activities in the chapter are completed
+final isChapterCompleteProvider = Provider<bool>((ref) {
+  final completedActivities = ref.watch(inlineActivityStateProvider);
+  final totalActivities = ref.watch(totalActivitiesProvider);
+
+  if (totalActivities == 0) return false;
+
+  return completedActivities.length >= totalActivities;
+});

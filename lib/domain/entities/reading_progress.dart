@@ -9,6 +9,7 @@ class ReadingProgress extends Equatable {
   final bool isCompleted;
   final double completionPercentage;
   final int totalReadingTime; // in seconds
+  final List<String> completedChapterIds; // chapters user has completed
   final DateTime startedAt;
   final DateTime? completedAt;
   final DateTime updatedAt;
@@ -22,6 +23,7 @@ class ReadingProgress extends Equatable {
     this.isCompleted = false,
     this.completionPercentage = 0,
     this.totalReadingTime = 0,
+    this.completedChapterIds = const [],
     required this.startedAt,
     this.completedAt,
     required this.updatedAt,
@@ -44,6 +46,7 @@ class ReadingProgress extends Equatable {
     bool? isCompleted,
     double? completionPercentage,
     int? totalReadingTime,
+    List<String>? completedChapterIds,
     DateTime? startedAt,
     DateTime? completedAt,
     DateTime? updatedAt,
@@ -57,6 +60,7 @@ class ReadingProgress extends Equatable {
       isCompleted: isCompleted ?? this.isCompleted,
       completionPercentage: completionPercentage ?? this.completionPercentage,
       totalReadingTime: totalReadingTime ?? this.totalReadingTime,
+      completedChapterIds: completedChapterIds ?? this.completedChapterIds,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -73,6 +77,7 @@ class ReadingProgress extends Equatable {
         isCompleted,
         completionPercentage,
         totalReadingTime,
+        completedChapterIds,
         startedAt,
         completedAt,
         updatedAt,

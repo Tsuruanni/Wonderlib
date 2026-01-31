@@ -8,6 +8,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Screen Overhaul (2026-01-31)
+- **Collapsible Header** - Expanded: kitap kapağı, başlık, chapter kartı; Collapsed: chapter info, XP, reading time, progress bar
+- **Activity-based Progress** - Scroll yerine aktivite tamamlama oranına göre progress (%completed activities)
+- **Chapter Completion Persistence** - `ReadingProgress.completedChapterIds` ile tamamlanan chapter'lar kaydediliyor
+- **Chapter Locking** - Önceki chapter tamamlanmadan sonrakine geçiş engellendi (book detail'da kilit ikonu)
+- **Next Chapter Navigation** - Reader sonunda "Sonraki Bölüm" butonu (tüm aktiviteler tamamlanınca)
+- **Book Completion** - Son chapter tamamlanınca "Kitabı Tamamladın! 🎉" mesajı + XP summary
+- **State Reset** - Chapter değişiminde activity state sıfırlanıyor (erken completion bug fix)
+- **Settings Button** - SliverAppBar.actions'dan CollapsibleReaderHeader içine taşındı
+- **Bottom Bar Removed** - Reader'dan bottom navigation bar kaldırıldı
+- **Dev Bypass Auth** - `kDevBypassAuth` flag ile development'ta auth atlanabiliyor
+
+### Fixed
+- "Kitabı Tamamladın" mesajı aktiviteler tamamlanmadan görünme bug'ı düzeltildi
+- Settings butonu chapter thumbnail ile çakışma sorunu giderildi
+- Widget tree building sırasında provider modification hatası (Future.microtask ile çözüldü)
+
 ### Added
 - Proje başlatıldı
 - `CLAUDE.md` oluşturuldu - proje hafızası

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/config/app_config.dart';
 import '../presentation/screens/auth/school_code_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
@@ -46,9 +47,14 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
-    initialLocation: AppRoutes.schoolCode,
+    initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.schoolCode,
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      // Skip auth redirect in development mode
+      if (kDevBypassAuth) {
+        return null;
+      }
+
       final isAuthenticated = authState.valueOrNull != null;
       final isAuthRoute = state.matchedLocation == AppRoutes.schoolCode ||
           state.matchedLocation == AppRoutes.login;

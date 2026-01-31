@@ -38,4 +38,10 @@ abstract class BookRepository {
   );
 
   Future<Either<Failure, List<Book>>> getContinueReading(String userId);
+
+  Future<Either<Failure, ReadingProgress>> markChapterComplete({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+  });
 }

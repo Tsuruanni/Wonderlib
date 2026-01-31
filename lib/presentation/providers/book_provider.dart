@@ -105,6 +105,45 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
   );
 });
 
+/// Notifier for marking chapters as complete
+class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
+  final Ref _ref;
+
+  ChapterCompletionNotifier(this._ref) : super(const AsyncValue.data(null));
+
+  Future<void> markComplete({
+    required String bookId,
+    required String chapterId,
+  }) async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    state = const AsyncValue.loading();
+
+    final bookRepo = _ref.read(bookRepositoryProvider);
+    final result = await bookRepo.markChapterComplete(
+      userId: userId,
+      bookId: bookId,
+      chapterId: chapterId,
+    );
+
+    result.fold(
+      (failure) => state = AsyncValue.error(failure, StackTrace.current),
+      (progress) {
+        state = const AsyncValue.data(null);
+        // Invalidate reading progress to refresh UI
+        _ref.invalidate(readingProgressProvider(bookId));
+      },
+    );
+  }
+}
+
+/// Provider for chapter completion notifier
+final chapterCompletionProvider =
+    StateNotifierProvider<ChapterCompletionNotifier, AsyncValue<void>>((ref) {
+  return ChapterCompletionNotifier(ref);
+});
+
 /// Book filters
 class BookFilters {
   final String? level;

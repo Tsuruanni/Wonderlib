@@ -1439,6 +1439,7 @@ I jumped to my feet, completely thunderstruck. I blinked my eyes hard. I looked 
       isCompleted: false,
       completionPercentage: 33.3,
       totalReadingTime: 720,
+      completedChapterIds: ['chapter-1-1'], // User completed chapter 1
       startedAt: DateTime.now().subtract(const Duration(days: 3)),
       completedAt: null,
       updatedAt: DateTime.now().subtract(const Duration(hours: 2)),
@@ -1452,6 +1453,7 @@ I jumped to my feet, completely thunderstruck. I blinked my eyes hard. I looked 
       isCompleted: true,
       completionPercentage: 100,
       totalReadingTime: 900,
+      completedChapterIds: ['chapter-5-1', 'chapter-5-2', 'chapter-5-3'],
       startedAt: DateTime.now().subtract(const Duration(days: 7)),
       completedAt: DateTime.now().subtract(const Duration(days: 5)),
       updatedAt: DateTime.now().subtract(const Duration(days: 5)),

@@ -216,24 +216,37 @@ class BookDetailScreen extends ConsumerWidget {
                     );
                   }
 
+                  // Get completed chapter IDs for locking logic
+                  final completedIds = progress?.completedChapterIds ?? [];
+
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final chapter = chapters[index];
                         final isCurrentChapter = progress?.chapterId == chapter.id;
-                        final isCompleted = progress != null &&
-                            chapters
-                                .take(index)
-                                .every((c) => c.id != progress.chapterId);
+                        // Simple check: is this chapter ID in the completed list?
+                        final isCompleted = completedIds.contains(chapter.id);
+
+                        // Chapter is locked if any previous chapter is not completed
+                        // First chapter (index 0) is never locked
+                        bool isLocked = false;
+                        if (index > 0) {
+                          // Check if all previous chapters are completed
+                          for (int i = 0; i < index; i++) {
+                            if (!completedIds.contains(chapters[i].id)) {
+                              isLocked = true;
+                              break;
+                            }
+                          }
+                        }
 
                         return _ChapterTile(
                           number: index + 1,
                           title: chapter.title,
                           duration: chapter.estimatedMinutes,
-                          isCompleted: isCompleted && index < chapters.indexOf(
-                            chapters.firstWhere((c) => c.id == progress?.chapterId, orElse: () => chapters.first),
-                          ),
+                          isCompleted: isCompleted,
                           isCurrent: isCurrentChapter,
+                          isLocked: isLocked,
                           onTap: () {
                             context.go('/reader/$bookId/${chapter.id}');
                           },
@@ -374,6 +387,7 @@ class _ChapterTile extends StatelessWidget {
     required this.duration,
     required this.isCompleted,
     required this.isCurrent,
+    required this.isLocked,
     required this.onTap,
   });
 
@@ -382,6 +396,7 @@ class _ChapterTile extends StatelessWidget {
   final int? duration;
   final bool isCompleted;
   final bool isCurrent;
+  final bool isLocked;
   final VoidCallback onTap;
 
   @override
@@ -390,19 +405,23 @@ class _ChapterTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: isCompleted
-            ? colorScheme.primaryContainer
-            : isCurrent
-                ? colorScheme.primary
-                : colorScheme.surfaceContainerHighest,
+        backgroundColor: isLocked
+            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+            : isCompleted
+                ? colorScheme.primaryContainer
+                : isCurrent
+                    ? colorScheme.primary
+                    : colorScheme.surfaceContainerHighest,
         child: isCompleted
             ? Icon(Icons.check, color: colorScheme.primary, size: 20)
             : Text(
                 '$number',
                 style: TextStyle(
-                  color: isCurrent
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurfaceVariant,
+                  color: isLocked
+                      ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                      : isCurrent
+                          ? colorScheme.onPrimary
+                          : colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -411,20 +430,25 @@ class _ChapterTile extends StatelessWidget {
         title,
         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: isCurrent ? FontWeight.w600 : null,
+              color: isLocked ? colorScheme.onSurface.withValues(alpha: 0.5) : null,
             ),
       ),
       subtitle: duration != null
           ? Text(
               '$duration min',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                    color: isLocked
+                        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                        : colorScheme.onSurfaceVariant,
                   ),
             )
           : null,
-      trailing: isCurrent
-          ? Icon(Icons.play_circle_fill, color: colorScheme.primary)
-          : const Icon(Icons.chevron_right),
-      onTap: onTap,
+      trailing: isLocked
+          ? Icon(Icons.lock_outline, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5))
+          : isCurrent
+              ? Icon(Icons.play_circle_fill, color: colorScheme.primary)
+              : const Icon(Icons.chevron_right),
+      onTap: isLocked ? null : onTap,
     );
   }
 }

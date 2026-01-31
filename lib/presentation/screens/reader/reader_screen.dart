@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../data/datasources/local/mock_data.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../widgets/reader/chapter_navigation_bar.dart';
+import '../../widgets/reader/collapsible_reader_header.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
 import '../../widgets/reader/vocabulary_popup.dart';
@@ -26,40 +27,43 @@ class ReaderScreen extends ConsumerStatefulWidget {
 }
 
 class _ReaderScreenState extends ConsumerState<ReaderScreen> {
-  final ScrollController _scrollController = ScrollController();
   Timer? _readingTimer;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    // Reset state for new chapter on initial load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(inlineActivityStateProvider.notifier).reset();
+      ref.read(sessionXPProvider.notifier).reset();
+      ref.read(readingTimerProvider.notifier).reset();
+    });
     _startReadingTimer();
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
     _readingTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(ReaderScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset state when chapter changes (deferred to avoid widget tree modification)
+    if (oldWidget.chapterId != widget.chapterId) {
+      Future.microtask(() {
+        ref.read(inlineActivityStateProvider.notifier).reset();
+        ref.read(sessionXPProvider.notifier).reset();
+        ref.read(readingTimerProvider.notifier).reset();
+      });
+    }
   }
 
   void _startReadingTimer() {
     _readingTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       ref.read(readingTimerProvider.notifier).tick();
     });
-  }
-
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-
-    if (maxScroll > 0) {
-      final progress = (currentScroll / maxScroll).clamp(0.0, 1.0);
-      ref.read(scrollProgressProvider.notifier).state = progress;
-    }
   }
 
   void _onVocabularyTap(vocab, Offset position) {
@@ -78,9 +82,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final chaptersAsync = ref.watch(chaptersProvider(widget.bookId));
     final bookAsync = ref.watch(bookByIdProvider(widget.bookId));
     final settings = ref.watch(readerSettingsProvider);
-    final scrollProgress = ref.watch(scrollProgressProvider);
+    final activityProgress = ref.watch(activityProgressProvider);
+    final isChapterComplete = ref.watch(isChapterCompleteProvider);
     final selectedVocab = ref.watch(selectedVocabularyProvider);
     final popupPosition = ref.watch(vocabularyPopupPositionProvider);
+    final sessionXP = ref.watch(sessionXPProvider);
+    final readingTime = ref.watch(readingTimerProvider);
 
     return chapterAsync.when(
       loading: () => Scaffold(
@@ -107,135 +114,231 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           );
         }
 
+        final book = bookAsync.valueOrNull;
+        if (book == null) {
+          return Scaffold(
+            backgroundColor: settings.theme.background,
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
         final chapters = chaptersAsync.valueOrNull ?? [];
         final currentIndex = chapters.indexWhere((c) => c.id == widget.chapterId);
-        final hasPrevious = currentIndex > 0;
-        final hasNext = currentIndex < chapters.length - 1;
-        final isLastChapter = currentIndex == chapters.length - 1;
+        final hasNextChapter = currentIndex < chapters.length - 1;
+        final nextChapter = hasNextChapter ? chapters[currentIndex + 1] : null;
+
+        // Set total activities count for progress calculation
+        final inlineActivities = MockData.getInlineActivities(chapter.id);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(totalActivitiesProvider.notifier).state = inlineActivities.length;
+        });
 
         return Scaffold(
           backgroundColor: settings.theme.background,
-          appBar: AppBar(
-            backgroundColor: settings.theme.background,
-            foregroundColor: settings.theme.text,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.home_outlined, color: settings.theme.text),
-              onPressed: () => context.go('/library/book/${widget.bookId}'),
-            ),
-            title: Text(
-              chapter.title,
-              style: TextStyle(
-                color: settings.theme.text,
-                fontSize: 16,
-              ),
-            ),
-            actions: [
-              // Session XP indicator
-              Consumer(
-                builder: (context, ref, child) {
-                  final sessionXP = ref.watch(sessionXPProvider);
-                  if (sessionXP > 0) {
-                    return Container(
-                      margin: const EdgeInsets.only(right: 8),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF38A169).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.bolt,
-                            color: Color(0xFF38A169),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '+$sessionXP XP',
-                            style: const TextStyle(
-                              color: Color(0xFF38A169),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-              // Settings button
-              IconButton(
-                icon: Icon(Icons.settings, color: settings.theme.text),
-                onPressed: () => ReaderSettingsSheet.show(context),
-              ),
-            ],
-          ),
           body: Stack(
             children: [
-              // Main content
-              SingleChildScrollView(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 100),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Chapter title
-                    Text(
-                      chapter.title,
-                      style: TextStyle(
-                        fontSize: settings.fontSize + 8,
-                        fontWeight: FontWeight.bold,
-                        color: settings.theme.text,
-                        height: 1.3,
+              // Main scrollable content with collapsible header
+              NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification is ScrollUpdateNotification) {
+                    final maxScroll = notification.metrics.maxScrollExtent;
+                    final currentScroll = notification.metrics.pixels;
+                    if (maxScroll > 0) {
+                      final progress = (currentScroll / maxScroll).clamp(0.0, 1.0);
+                      ref.read(scrollProgressProvider.notifier).state = progress;
+                    }
+                  }
+                  return false;
+                },
+                child: CustomScrollView(
+                  slivers: [
+                    // Collapsible header
+                    SliverAppBar(
+                      expandedHeight: 400,
+                      collapsedHeight: 100,
+                      pinned: true,
+                      automaticallyImplyLeading: false,
+                      backgroundColor: settings.theme.background,
+                      flexibleSpace: CollapsibleReaderHeader(
+                        book: book,
+                        chapter: chapter,
+                        chapterNumber: currentIndex + 1,
+                        scrollProgress: activityProgress,
+                        sessionXP: sessionXP,
+                        readingTimeSeconds: readingTime,
+                        backgroundColor: settings.theme.background,
+                        textColor: settings.theme.text,
+                        onClose: () => context.go('/library/book/${widget.bookId}'),
+                        onSettingsTap: () => ReaderSettingsSheet.show(context),
                       ),
                     ),
 
-                    const SizedBox(height: 24),
-
-                    // Chapter content with inline activities
-                    if (chapter.content != null)
-                      IntegratedReaderContent(
-                        chapter: chapter,
-                        settings: settings,
-                        onVocabularyTap: _onVocabularyTap,
-                        scrollController: _scrollController,
-                      )
-                    else
-                      Text(
-                        'No content available for this chapter.',
-                        style: TextStyle(
-                          color: settings.theme.text.withValues(alpha: 0.7),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-
-                    const SizedBox(height: 32),
-
-                    // End of chapter indicator
-                    if (chapter.content != null)
-                      Center(
+                    // Chapter content
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.auto_stories,
-                              size: 32,
-                              color: settings.theme.text.withValues(alpha: 0.3),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'End of Chapter',
-                              style: TextStyle(
-                                color: settings.theme.text.withValues(alpha: 0.5),
-                                fontSize: 14,
+                            // Chapter content with inline activities
+                            if (chapter.content != null)
+                              IntegratedReaderContent(
+                                chapter: chapter,
+                                settings: settings,
+                                onVocabularyTap: _onVocabularyTap,
+                                scrollController: null,
+                              )
+                            else
+                              Text(
+                                'No content available for this chapter.',
+                                style: TextStyle(
+                                  color: settings.theme.text.withValues(alpha: 0.7),
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
-                            ),
+
+                            const SizedBox(height: 32),
+
+                            // Chapter completion actions (only visible when all activities done)
+                            if (chapter.content != null && isChapterComplete)
+                              Center(
+                                child: Column(
+                                  children: [
+                                    // Next chapter button
+                                    if (hasNextChapter && nextChapter != null) ...[
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            // Mark current chapter as complete
+                                            await ref.read(chapterCompletionProvider.notifier).markComplete(
+                                              bookId: widget.bookId,
+                                              chapterId: widget.chapterId,
+                                            );
+                                            if (context.mounted) {
+                                              context.go('/reader/${widget.bookId}/${nextChapter.id}');
+                                            }
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFFE53935),
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 24,
+                                              vertical: 16,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.arrow_forward, size: 20),
+                                              const SizedBox(width: 8),
+                                              Flexible(
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Text(
+                                                      'Sonraki Bölüm',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      nextChapter.title,
+                                                      style: const TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.normal,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+
+                                    // Book complete indicator (last chapter)
+                                    if (!hasNextChapter) ...[
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF38A169).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: const Color(0xFF38A169).withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            const Icon(
+                                              Icons.celebration,
+                                              size: 40,
+                                              color: Color(0xFF38A169),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Kitabı Tamamladın! 🎉',
+                                              style: TextStyle(
+                                                color: settings.theme.text,
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '+$sessionXP XP kazandın',
+                                              style: const TextStyle(
+                                                color: Color(0xFF38A169),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      OutlinedButton(
+                                        onPressed: () async {
+                                          // Mark chapter as complete
+                                          await ref.read(chapterCompletionProvider.notifier).markComplete(
+                                            bookId: widget.bookId,
+                                            chapterId: widget.chapterId,
+                                          );
+                                          if (context.mounted) {
+                                            context.go('/library/book/${widget.bookId}');
+                                          }
+                                        },
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: settings.theme.text,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 24,
+                                            vertical: 12,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          side: BorderSide(
+                                            color: settings.theme.text.withValues(alpha: 0.3),
+                                          ),
+                                        ),
+                                        child: const Text('Kitap Detayına Dön'),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
                           ],
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -247,7 +350,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                   position: popupPosition,
                   onClose: _closeVocabularyPopup,
                   onAddToVocabulary: () {
-                    // TODO: Add to user's vocabulary
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Added "${selectedVocab.word}" to vocabulary'),
@@ -257,31 +359,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                   },
                 ),
             ],
-          ),
-          bottomNavigationBar: ChapterNavigationBar(
-            chapterNumber: currentIndex + 1,
-            totalChapters: chapters.length,
-            scrollProgress: scrollProgress,
-            hasPrevious: hasPrevious,
-            hasNext: hasNext,
-            isLastChapter: isLastChapter,
-            onPrevious: hasPrevious
-                ? () {
-                    final prevChapter = chapters[currentIndex - 1];
-                    context.go('/reader/${widget.bookId}/${prevChapter.id}');
-                  }
-                : null,
-            onNext: hasNext
-                ? () {
-                    final nextChapter = chapters[currentIndex + 1];
-                    context.go('/reader/${widget.bookId}/${nextChapter.id}');
-                  }
-                : null,
-            onComplete: () {
-              // Mark chapter as complete and go back to book detail
-              // TODO: Update reading progress
-              context.go('/library/book/${widget.bookId}');
-            },
           ),
         );
       },
