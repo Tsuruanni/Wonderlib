@@ -267,12 +267,7 @@ class _QuickActionsRow extends StatelessWidget {
           child: _QuickActionButton(
             icon: Icons.add_circle_outline,
             label: 'New Assignment',
-            onTap: () {
-              // TODO: Navigate to create assignment
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon')),
-              );
-            },
+            onTap: () => context.push(AppRoutes.teacherCreateAssignment),
           ),
         ),
         const SizedBox(width: 12),
@@ -280,12 +275,7 @@ class _QuickActionsRow extends StatelessWidget {
           child: _QuickActionButton(
             icon: Icons.bar_chart,
             label: 'View Reports',
-            onTap: () {
-              // TODO: Navigate to reports
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming soon')),
-              );
-            },
+            onTap: () => context.go(AppRoutes.teacherReports),
           ),
         ),
       ],

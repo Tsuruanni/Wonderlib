@@ -4,10 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/book.dart';
+import '../../../domain/entities/chapter.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/book_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/teacher_provider.dart';
+import '../../providers/vocabulary_provider.dart';
 
 class CreateAssignmentScreen extends ConsumerStatefulWidget {
   const CreateAssignmentScreen({super.key});
@@ -29,7 +33,13 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
   // For book assignments
   String? _selectedBookId;
+  String? _selectedBookTitle;
   List<String> _selectedChapterIds = [];
+  List<Chapter> _selectedChapters = [];
+
+  // For vocabulary assignments
+  String? _selectedWordListId;
+  String? _selectedWordListName;
 
   @override
   void dispose() {
@@ -84,26 +94,32 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
       final teacherRepo = ref.read(teacherRepositoryProvider);
 
+      // Validate content selection
+      if (_selectedType == AssignmentType.book && _selectedBookId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a book')),
+        );
+        return;
+      }
+
+      if (_selectedType == AssignmentType.vocabulary && _selectedWordListId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a word list')),
+        );
+        return;
+      }
+
       // Build content config based on type
       Map<String, dynamic> contentConfig = {};
-      switch (_selectedType) {
-        case AssignmentType.book:
-          contentConfig = {
-            'bookId': _selectedBookId,
-            'chapterIds': _selectedChapterIds,
-          };
-          break;
-        case AssignmentType.vocabulary:
-          contentConfig = {
-            'wordListId': null, // TODO: Add word list selection
-          };
-          break;
-        case AssignmentType.mixed:
-          contentConfig = {
-            'bookId': _selectedBookId,
-            'wordListId': null,
-          };
-          break;
+      if (_selectedType == AssignmentType.book) {
+        contentConfig = {
+          'bookId': _selectedBookId,
+          'chapterIds': _selectedChapterIds,
+        };
+      } else if (_selectedType == AssignmentType.vocabulary) {
+        contentConfig = {
+          'wordListId': _selectedWordListId,
+        };
       }
 
       final data = CreateAssignmentData(
@@ -152,6 +168,59 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
     }
   }
 
+  Future<void> _showBookSelectionSheet(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => _BookSelectionSheet(
+          scrollController: scrollController,
+          selectedBookId: _selectedBookId,
+          selectedChapterIds: _selectedChapterIds,
+          onBookSelected: (book, chapters) {
+            setState(() {
+              _selectedBookId = book.id;
+              _selectedBookTitle = book.title;
+              _selectedChapters = chapters;
+              _selectedChapterIds = chapters.map((c) => c.id).toList();
+            });
+            Navigator.of(sheetContext).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showWordListSelectionSheet(BuildContext context, WidgetRef ref) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => _WordListSelectionSheet(
+          scrollController: scrollController,
+          selectedWordListId: _selectedWordListId,
+          onWordListSelected: (listId, listName) {
+            setState(() {
+              _selectedWordListId = listId;
+              _selectedWordListName = listName;
+            });
+            Navigator.of(sheetContext).pop();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final classesAsync = ref.watch(teacherClassesProvider);
@@ -183,19 +252,21 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 ),
                 ButtonSegment(
                   value: AssignmentType.vocabulary,
-                  label: Text('Vocab'),
+                  label: Text('Vocabulary'),
                   icon: Icon(Icons.abc),
-                ),
-                ButtonSegment(
-                  value: AssignmentType.mixed,
-                  label: Text('Mixed'),
-                  icon: Icon(Icons.library_books),
                 ),
               ],
               selected: {_selectedType},
               onSelectionChanged: (Set<AssignmentType> newSelection) {
                 setState(() {
                   _selectedType = newSelection.first;
+                  // Clear selections when type changes
+                  _selectedBookId = null;
+                  _selectedBookTitle = null;
+                  _selectedChapterIds = [];
+                  _selectedChapters = [];
+                  _selectedWordListId = null;
+                  _selectedWordListName = null;
                 });
               },
             ),
@@ -314,9 +385,8 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
             const SizedBox(height: 24),
 
-            // Content selection (placeholder - book/chapter selection would go here)
-            if (_selectedType == AssignmentType.book ||
-                _selectedType == AssignmentType.mixed) ...[
+            // Book content selection
+            if (_selectedType == AssignmentType.book) ...[
               Text(
                 'Book Content',
                 style: context.textTheme.titleSmall?.copyWith(
@@ -328,29 +398,33 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 child: ListTile(
                   leading: Icon(
                     Icons.menu_book,
-                    color: context.colorScheme.outline,
+                    color: _selectedBookId != null
+                        ? context.colorScheme.primary
+                        : context.colorScheme.outline,
                   ),
-                  title: const Text('Select Book & Chapters'),
+                  title: Text(
+                    _selectedBookId != null
+                        ? _selectedBookTitle ?? 'Book selected'
+                        : 'Select Book & Chapters',
+                  ),
                   subtitle: Text(
-                    'Tap to choose content',
-                    style: TextStyle(color: context.colorScheme.outline),
+                    _selectedBookId != null
+                        ? '${_selectedChapters.length} chapter(s) selected'
+                        : 'Tap to choose content',
+                    style: TextStyle(
+                      color: _selectedBookId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Implement book selection
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Book selection coming soon'),
-                      ),
-                    );
-                  },
+                  onTap: () => _showBookSelectionSheet(context, ref),
                 ),
               ),
             ],
 
-            if (_selectedType == AssignmentType.vocabulary ||
-                _selectedType == AssignmentType.mixed) ...[
-              const SizedBox(height: 16),
+            // Vocabulary content selection
+            if (_selectedType == AssignmentType.vocabulary) ...[
               Text(
                 'Vocabulary Content',
                 style: context.textTheme.titleSmall?.copyWith(
@@ -362,22 +436,27 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 child: ListTile(
                   leading: Icon(
                     Icons.abc,
-                    color: context.colorScheme.outline,
+                    color: _selectedWordListId != null
+                        ? context.colorScheme.primary
+                        : context.colorScheme.outline,
                   ),
-                  title: const Text('Select Word List'),
+                  title: Text(
+                    _selectedWordListId != null
+                        ? _selectedWordListName ?? 'Word list selected'
+                        : 'Select Word List',
+                  ),
                   subtitle: Text(
-                    'Tap to choose vocabulary',
-                    style: TextStyle(color: context.colorScheme.outline),
+                    _selectedWordListId != null
+                        ? 'Vocabulary assignment'
+                        : 'Tap to choose vocabulary',
+                    style: TextStyle(
+                      color: _selectedWordListId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
                   ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Implement word list selection
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Word list selection coming soon'),
-                      ),
-                    );
-                  },
+                  onTap: () => _showWordListSelectionSheet(context, ref),
                 ),
               ),
             ],
@@ -453,6 +532,328 @@ class _DatePickerCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// =============================================
+// BOOK SELECTION SHEET
+// =============================================
+
+class _BookSelectionSheet extends ConsumerStatefulWidget {
+  const _BookSelectionSheet({
+    required this.scrollController,
+    required this.selectedBookId,
+    required this.selectedChapterIds,
+    required this.onBookSelected,
+  });
+
+  final ScrollController scrollController;
+  final String? selectedBookId;
+  final List<String> selectedChapterIds;
+  final void Function(Book book, List<Chapter> chapters) onBookSelected;
+
+  @override
+  ConsumerState<_BookSelectionSheet> createState() => _BookSelectionSheetState();
+}
+
+class _BookSelectionSheetState extends ConsumerState<_BookSelectionSheet> {
+  String? _currentBookId;
+  final Set<String> _selectedChapterIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _currentBookId = widget.selectedBookId;
+    _selectedChapterIds.addAll(widget.selectedChapterIds);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final booksAsync = ref.watch(booksProvider(null));
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outlineVariant,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _currentBookId == null ? 'Select Book' : 'Select Chapters',
+                  style: context.textTheme.titleLarge,
+                ),
+              ),
+              if (_currentBookId != null)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _currentBookId = null;
+                      _selectedChapterIds.clear();
+                    });
+                  },
+                  child: const Text('Change Book'),
+                ),
+            ],
+          ),
+        ),
+
+        // Content
+        Expanded(
+          child: _currentBookId == null
+              ? _buildBookList(booksAsync)
+              : _buildChapterList(),
+        ),
+
+        // Confirm button (when chapters are selected)
+        if (_currentBookId != null && _selectedChapterIds.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.colorScheme.surface,
+              border: Border(
+                top: BorderSide(
+                  color: context.colorScheme.outlineVariant,
+                ),
+              ),
+            ),
+            child: FilledButton(
+              onPressed: () async {
+                final bookAsync = ref.read(bookByIdProvider(_currentBookId!));
+                final book = bookAsync.valueOrNull;
+                if (book == null) return;
+
+                final chaptersAsync = ref.read(chaptersProvider(_currentBookId!));
+                final allChapters = chaptersAsync.valueOrNull ?? [];
+                final selectedChapters = allChapters
+                    .where((c) => _selectedChapterIds.contains(c.id))
+                    .toList();
+
+                widget.onBookSelected(book, selectedChapters);
+              },
+              child: Text('Confirm (${_selectedChapterIds.length} chapters)'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildBookList(AsyncValue<List<Book>> booksAsync) {
+    return booksAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const Center(child: Text('Error loading books')),
+      data: (books) {
+        if (books.isEmpty) {
+          return const Center(child: Text('No books available'));
+        }
+
+        return ListView.builder(
+          controller: widget.scrollController,
+          itemCount: books.length,
+          itemBuilder: (context, index) {
+            final book = books[index];
+            return ListTile(
+              leading: book.coverUrl != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.network(
+                        book.coverUrl!,
+                        width: 40,
+                        height: 56,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 40,
+                          height: 56,
+                          color: context.colorScheme.surfaceContainerHighest,
+                          child: const Icon(Icons.menu_book, size: 20),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: 40,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(Icons.menu_book, size: 20),
+                    ),
+              title: Text(book.title),
+              subtitle: Text(
+                '${book.genre ?? 'Book'} • ${book.level}',
+                style: context.textTheme.bodySmall,
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                setState(() {
+                  _currentBookId = book.id;
+                });
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildChapterList() {
+    final chaptersAsync = ref.watch(chaptersProvider(_currentBookId!));
+
+    return chaptersAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const Center(child: Text('Error loading chapters')),
+      data: (chapters) {
+        if (chapters.isEmpty) {
+          return const Center(child: Text('No chapters available'));
+        }
+
+        return Column(
+          children: [
+            // Select all option
+            CheckboxListTile(
+              title: const Text('Select All Chapters'),
+              value: _selectedChapterIds.length == chapters.length,
+              tristate: true,
+              onChanged: (value) {
+                setState(() {
+                  if (value == true) {
+                    _selectedChapterIds.addAll(chapters.map((c) => c.id));
+                  } else {
+                    _selectedChapterIds.clear();
+                  }
+                });
+              },
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.builder(
+                controller: widget.scrollController,
+                itemCount: chapters.length,
+                itemBuilder: (context, index) {
+                  final chapter = chapters[index];
+                  final isSelected = _selectedChapterIds.contains(chapter.id);
+
+                  return CheckboxListTile(
+                    title: Text('Chapter ${chapter.orderIndex}: ${chapter.title}'),
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedChapterIds.add(chapter.id);
+                        } else {
+                          _selectedChapterIds.remove(chapter.id);
+                        }
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// =============================================
+// WORD LIST SELECTION SHEET
+// =============================================
+
+class _WordListSelectionSheet extends ConsumerWidget {
+  const _WordListSelectionSheet({
+    required this.scrollController,
+    required this.selectedWordListId,
+    required this.onWordListSelected,
+  });
+
+  final ScrollController scrollController;
+  final String? selectedWordListId;
+  final void Function(String listId, String listName) onWordListSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final wordListsAsync = ref.watch(allWordListsProvider);
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outlineVariant,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Select Word List',
+                  style: context.textTheme.titleLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Content
+        Expanded(
+          child: wordListsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(child: Text('Error loading word lists')),
+            data: (wordLists) {
+              if (wordLists.isEmpty) {
+                return const Center(child: Text('No word lists available'));
+              }
+
+              return ListView.builder(
+                controller: scrollController,
+                itemCount: wordLists.length,
+                itemBuilder: (context, index) {
+                  final wordList = wordLists[index];
+                  final isSelected = selectedWordListId == wordList.id;
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected
+                          ? context.colorScheme.primary
+                          : context.colorScheme.surfaceContainerHighest,
+                      child: Icon(
+                        Icons.abc,
+                        color: isSelected
+                            ? context.colorScheme.onPrimary
+                            : context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    title: Text(wordList.name),
+                    subtitle: Text(
+                      '${wordList.wordCount} words • ${wordList.category}',
+                      style: context.textTheme.bodySmall,
+                    ),
+                    trailing: isSelected
+                        ? Icon(Icons.check_circle, color: context.colorScheme.primary)
+                        : null,
+                    onTap: () => onWordListSelected(wordList.id, wordList.name),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
