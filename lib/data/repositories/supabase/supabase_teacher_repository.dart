@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -15,6 +16,8 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, TeacherStats>> getTeacherStats(String teacherId) async {
     try {
+      debugPrint('getTeacherStats: fetching for teacherId=$teacherId');
+
       // Get teacher's school
       final teacherData = await _supabase
           .from('profiles')
@@ -23,7 +26,10 @@ class SupabaseTeacherRepository implements TeacherRepository {
           .single();
 
       final schoolId = teacherData['school_id'] as String?;
+      debugPrint('getTeacherStats: schoolId=$schoolId');
+
       if (schoolId == null) {
+        debugPrint('getTeacherStats: schoolId is null');
         return const Right(TeacherStats(
           totalStudents: 0,
           totalClasses: 0,
@@ -80,6 +86,8 @@ class SupabaseTeacherRepository implements TeacherRepository {
         }
       }
 
+      debugPrint('getTeacherStats: result = students:$totalStudents, classes:$totalClasses, assignments:$activeAssignments, progress:$avgProgress');
+
       return Right(TeacherStats(
         totalStudents: totalStudents,
         totalClasses: totalClasses,
@@ -87,6 +95,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
         avgProgress: avgProgress,
       ));
     } on PostgrestException catch (e) {
+      debugPrint('getTeacherStats: PostgrestException = ${e.message}');
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));

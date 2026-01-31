@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
@@ -8,7 +9,10 @@ import 'repository_providers.dart';
 /// Provider for teacher dashboard statistics
 final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
+  debugPrint('teacherStatsProvider: userId = $userId');
+
   if (userId == null) {
+    debugPrint('teacherStatsProvider: userId is null, returning zeros');
     return const TeacherStats(
       totalStudents: 0,
       totalClasses: 0,
@@ -21,13 +25,19 @@ final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
   final result = await teacherRepo.getTeacherStats(userId);
 
   return result.fold(
-    (failure) => const TeacherStats(
-      totalStudents: 0,
-      totalClasses: 0,
-      activeAssignments: 0,
-      avgProgress: 0,
-    ),
-    (stats) => stats,
+    (failure) {
+      debugPrint('teacherStatsProvider: error = ${failure.message}');
+      return const TeacherStats(
+        totalStudents: 0,
+        totalClasses: 0,
+        activeAssignments: 0,
+        avgProgress: 0,
+      );
+    },
+    (stats) {
+      debugPrint('teacherStatsProvider: success = students:${stats.totalStudents}, classes:${stats.totalClasses}');
+      return stats;
+    },
   );
 });
 

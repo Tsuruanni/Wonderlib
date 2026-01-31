@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -11,18 +12,41 @@ import '../../../domain/repositories/auth_repository.dart';
 class SupabaseAuthRepository implements AuthRepository {
   SupabaseAuthRepository({SupabaseClient? supabase})
       : _supabase = supabase ?? Supabase.instance.client {
+    // Check for existing session on initialization
+    _initializeAuthState();
+
     // Listen to Supabase auth changes and broadcast domain User
     _supabase.auth.onAuthStateChange.listen((data) async {
+      debugPrint('Auth state change: event=${data.event}, hasSession=${data.session != null}');
       if (data.session != null) {
         final userResult = await getCurrentUser();
         userResult.fold(
           (failure) => _authStateController.add(null),
-          (user) => _authStateController.add(user),
+          (user) {
+            debugPrint('Auth: user loaded - id=${user?.id}, role=${user?.role}');
+            _authStateController.add(user);
+          },
         );
       } else {
         _authStateController.add(null);
       }
     });
+  }
+
+  /// Initialize auth state from existing session
+  Future<void> _initializeAuthState() async {
+    final session = _supabase.auth.currentSession;
+    debugPrint('Auth init: hasSession=${session != null}');
+    if (session != null) {
+      final userResult = await getCurrentUser();
+      userResult.fold(
+        (failure) => _authStateController.add(null),
+        (user) {
+          debugPrint('Auth init: user=${user?.id}');
+          _authStateController.add(user);
+        },
+      );
+    }
   }
 
   final SupabaseClient _supabase;
