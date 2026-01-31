@@ -63,4 +63,11 @@ abstract class BookRepository {
     required String userId,
     required String chapterId,
   });
+
+  /// Updates the current chapter being read (for Continue Reading feature)
+  Future<Either<Failure, void>> updateCurrentChapter({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+  });
 }

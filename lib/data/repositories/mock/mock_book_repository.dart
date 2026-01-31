@@ -267,4 +267,21 @@ class MockBookRepository implements BookRepository {
         .toList();
     return Right(completedIds);
   }
+
+  @override
+  Future<Either<Failure, void>> updateCurrentChapter({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+  }) async {
+    await Future.delayed(const Duration(milliseconds: 100));
+    // Update the progress entry with current chapter
+    final index = _progressList.indexWhere(
+      (p) => p.userId == userId && p.bookId == bookId,
+    );
+    if (index != -1) {
+      _progressList[index] = _progressList[index].copyWith(chapterId: chapterId);
+    }
+    return const Right(null);
+  }
 }

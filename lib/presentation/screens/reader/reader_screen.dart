@@ -36,6 +36,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     // Load completed activities from DB and reset session state
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCompletedActivities();
+      _updateCurrentChapter();
       ref.read(sessionXPProvider.notifier).reset();
       ref.read(readingTimerProvider.notifier).reset();
     });
@@ -47,6 +48,18 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       completedInlineActivitiesProvider(widget.chapterId).future,
     );
     ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
+  }
+
+  Future<void> _updateCurrentChapter() async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final bookRepo = ref.read(bookRepositoryProvider);
+    await bookRepo.updateCurrentChapter(
+      userId: userId,
+      bookId: widget.bookId,
+      chapterId: widget.chapterId,
+    );
   }
 
   @override
@@ -91,6 +104,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (oldWidget.chapterId != widget.chapterId) {
       Future.microtask(() {
         _loadCompletedActivities();
+        _updateCurrentChapter();
         ref.read(sessionXPProvider.notifier).reset();
         ref.read(readingTimerProvider.notifier).reset();
       });

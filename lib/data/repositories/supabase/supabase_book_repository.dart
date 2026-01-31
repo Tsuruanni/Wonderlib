@@ -459,6 +459,30 @@ class SupabaseBookRepository implements BookRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> updateCurrentChapter({
+    required String userId,
+    required String bookId,
+    required String chapterId,
+  }) async {
+    try {
+      await _supabase.from('reading_progress').upsert(
+        {
+          'user_id': userId,
+          'book_id': bookId,
+          'chapter_id': chapterId,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        onConflict: 'user_id,book_id',
+      );
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // MAPPING FUNCTIONS
   // ============================================

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
 import 'repository_providers.dart';
+import 'user_provider.dart';
 
 /// Provides the current user stream
 final authStateChangesProvider = StreamProvider<User?>((ref) {
@@ -94,6 +95,8 @@ class AuthController extends StateNotifier<AuthState> {
       },
       (user) {
         state = state.copyWith(isLoading: false, user: user);
+        // Update streak on login (sets to 1 for first-time users)
+        _ref.read(userControllerProvider.notifier).updateStreak();
         return true;
       },
     );
@@ -119,6 +122,8 @@ class AuthController extends StateNotifier<AuthState> {
       },
       (user) {
         state = state.copyWith(isLoading: false, user: user);
+        // Update streak on login (sets to 1 for first-time users)
+        _ref.read(userControllerProvider.notifier).updateStreak();
         return true;
       },
     );
