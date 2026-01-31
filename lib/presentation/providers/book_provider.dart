@@ -167,20 +167,21 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           for (final assignment in assignments) {
             if (assignment.bookId == bookId &&
                 assignment.status != StudentAssignmentStatus.completed) {
-              // Calculate progress based on completed chapters vs required chapters
-              final requiredChapters = assignment.chapterIds;
+              // Get all chapters for the book (book-based assignments)
+              final bookRepo = _ref.read(bookRepositoryProvider);
+              final chaptersResult = await bookRepo.getChapters(bookId);
 
-              if (requiredChapters.isEmpty) {
-                // If no specific chapters, consider any reading as progress
+              final totalChapters = chaptersResult.fold(
+                (failure) => 0,
+                (chapters) => chapters.length,
+              );
+
+              if (totalChapters == 0) {
                 continue;
               }
 
-              // Count how many required chapters are completed
-              final completedRequired = requiredChapters
-                  .where((id) => completedChapterIds.contains(id))
-                  .length;
-
-              final progress = (completedRequired / requiredChapters.length) * 100;
+              // Calculate progress: completed chapters / total chapters in book
+              final progress = (completedChapterIds.length / totalChapters) * 100;
 
               // Update assignment progress
               if (progress >= 100) {

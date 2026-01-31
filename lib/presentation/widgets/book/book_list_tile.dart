@@ -10,10 +10,12 @@ class BookListTile extends StatelessWidget {
     super.key,
     required this.book,
     required this.onTap,
+    this.showLockIcon = false,
   });
 
   final Book book;
   final VoidCallback onTap;
+  final bool showLockIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -30,24 +32,55 @@ class BookListTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cover thumbnail
-              Container(
-                width: 60,
-                height: 80,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: colorScheme.surfaceContainerHighest,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: book.coverUrl != null
-                    ? Image.network(
-                        book.coverUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return _ThumbnailPlaceholder(colorScheme: colorScheme);
-                        },
-                      )
-                    : _ThumbnailPlaceholder(colorScheme: colorScheme),
+              // Cover thumbnail with lock overlay
+              Stack(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: book.coverUrl != null
+                        ? Image.network(
+                            book.coverUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _ThumbnailPlaceholder(colorScheme: colorScheme);
+                            },
+                          )
+                        : _ThumbnailPlaceholder(colorScheme: colorScheme),
+                  ),
+                  // Lock overlay
+                  if (showLockIcon) ...[
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.black.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Icon(
+                          Icons.lock,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
 
               const SizedBox(width: 12),

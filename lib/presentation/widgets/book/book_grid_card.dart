@@ -10,10 +10,12 @@ class BookGridCard extends StatelessWidget {
     super.key,
     required this.book,
     required this.onTap,
+    this.showLockIcon = false,
   });
 
   final Book book;
   final VoidCallback onTap;
+  final bool showLockIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +83,36 @@ class BookGridCard extends StatelessWidget {
                   right: 8,
                   child: LevelBadge(level: book.level),
                 ),
+
+                // Lock icon overlay for locked books
+                if (showLockIcon) ...[
+                  // Semi-transparent overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
+                  // Lock icon
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

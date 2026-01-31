@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Book-Based Assignments & Library Locking (2026-02-01)
+
+#### Changed
+- **Simplified Assignment Creation** - Teachers now assign entire books (no chapter selection)
+- **Assignment contentConfig** - Removed `chapterIds`, added `lockLibrary` boolean option
+- **Progress Calculation** - Assignment progress now based on all chapters in book (not selected subset)
+
+#### Added
+- **Library Locking Feature** - Teachers can lock student library until assignment completed
+- **BookLockInfo Provider** - `book_access_provider.dart` manages lock state for students
+- **Locked Library Banner** - Students see banner explaining assignment lock
+- **Locked Book UI** - Lock icon overlay on inaccessible books (grid & list views)
+- **Locked Book Dialog** - Tap locked book shows explanation dialog
+- **Locked Book Screen** - Full screen explaining lock with navigation to assignments
+
 ### Student Assignments & Auto-Progress (2026-01-31)
 
 #### Added

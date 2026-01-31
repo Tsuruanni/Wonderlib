@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-01-31 (Phase 3 Complete + Student Assignments)
+Son güncelleme: 2026-02-01 (Book-Based Assignments + Library Locking)
 
 ## Current Phase
 
@@ -87,6 +87,8 @@ Son güncelleme: 2026-01-31 (Phase 3 Complete + Student Assignments)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Book-Based Assignments | 2026-02-01 | Simplified to full book (no chapter selection), lockLibrary option |
+| Library Locking | 2026-02-01 | Teachers can lock library until assignment completed, soft lock UI |
 | Student Assignments | 2026-01-31 | Students can view/complete assigned tasks, auto-progress updates |
 | Assignment Auto-Progress | 2026-01-31 | Chapter completion triggers assignment progress calculation |
 | Phase 3: Teacher MVP | 2026-01-31 | Dashboard, Classes, Assignments, Reports (4 tabs) |

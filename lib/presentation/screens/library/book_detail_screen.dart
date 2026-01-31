@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../widgets/book/level_badge.dart';
 
@@ -15,10 +16,16 @@ class BookDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final canAccess = ref.watch(canAccessBookProvider(bookId));
     final bookAsync = ref.watch(bookByIdProvider(bookId));
     final chaptersAsync = ref.watch(chaptersProvider(bookId));
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Show locked screen if book is not accessible
+    if (!canAccess) {
+      return _LockedBookScreen(bookId: bookId);
+    }
 
     return bookAsync.when(
       loading: () => const Scaffold(
@@ -449,6 +456,101 @@ class _ChapterTile extends StatelessWidget {
               ? Icon(Icons.play_circle_fill, color: colorScheme.primary)
               : const Icon(Icons.chevron_right),
       onTap: isLocked ? null : onTap,
+    );
+  }
+}
+
+/// Screen shown when student tries to access a locked book
+class _LockedBookScreen extends ConsumerWidget {
+  const _LockedBookScreen({required this.bookId});
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookAsync = ref.watch(bookByIdProvider(bookId));
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Book Locked'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Lock icon
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.lock_outline,
+                  size: 64,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Book title (if available)
+              bookAsync.whenData((book) {
+                if (book == null) return const SizedBox.shrink();
+                return Text(
+                  book.title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                  textAlign: TextAlign.center,
+                );
+              }).value ?? const SizedBox.shrink(),
+
+              const SizedBox(height: 16),
+
+              // Message
+              Text(
+                'This book is locked',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                'You have an active reading assignment. Complete your assigned book first to unlock all other books in the library.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 32),
+
+              // Go to assignments button
+              FilledButton.icon(
+                onPressed: () => context.go('/assignments'),
+                icon: const Icon(Icons.assignment),
+                label: const Text('View My Assignments'),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Back to library button
+              OutlinedButton.icon(
+                onPressed: () => context.go('/library'),
+                icon: const Icon(Icons.library_books),
+                label: const Text('Back to Library'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/book.dart';
-import '../../../domain/entities/chapter.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
@@ -34,8 +33,8 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
   // For book assignments
   String? _selectedBookId;
   String? _selectedBookTitle;
-  List<String> _selectedChapterIds = [];
-  List<Chapter> _selectedChapters = [];
+  int? _selectedBookChapterCount;
+  bool _lockLibrary = false;
 
   // For vocabulary assignments
   String? _selectedWordListId;
@@ -114,7 +113,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
       if (_selectedType == AssignmentType.book) {
         contentConfig = {
           'bookId': _selectedBookId,
-          'chapterIds': _selectedChapterIds,
+          'lockLibrary': _lockLibrary,
         };
       } else if (_selectedType == AssignmentType.vocabulary) {
         contentConfig = {
@@ -174,20 +173,18 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => DraggableScrollableSheet(
-        initialChildSize: 0.9,
+        initialChildSize: 0.7,
         minChildSize: 0.5,
-        maxChildSize: 0.95,
+        maxChildSize: 0.9,
         expand: false,
         builder: (_, scrollController) => _BookSelectionSheet(
           scrollController: scrollController,
           selectedBookId: _selectedBookId,
-          selectedChapterIds: _selectedChapterIds,
-          onBookSelected: (book, chapters) {
+          onBookSelected: (book, chapterCount) {
             setState(() {
               _selectedBookId = book.id;
               _selectedBookTitle = book.title;
-              _selectedChapters = chapters;
-              _selectedChapterIds = chapters.map((c) => c.id).toList();
+              _selectedBookChapterCount = chapterCount;
             });
             Navigator.of(sheetContext).pop();
           },
@@ -263,8 +260,8 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   // Clear selections when type changes
                   _selectedBookId = null;
                   _selectedBookTitle = null;
-                  _selectedChapterIds = [];
-                  _selectedChapters = [];
+                  _selectedBookChapterCount = null;
+                  _lockLibrary = false;
                   _selectedWordListId = null;
                   _selectedWordListName = null;
                 });
@@ -278,7 +275,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
               controller: _titleController,
               decoration: const InputDecoration(
                 labelText: 'Title',
-                hintText: 'e.g., Read Chapter 1-3',
+                hintText: 'e.g., Read The Little Prince',
                 border: OutlineInputBorder(),
               ),
               validator: (value) {
@@ -405,12 +402,12 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   title: Text(
                     _selectedBookId != null
                         ? _selectedBookTitle ?? 'Book selected'
-                        : 'Select Book & Chapters',
+                        : 'Select Book',
                   ),
                   subtitle: Text(
                     _selectedBookId != null
-                        ? '${_selectedChapters.length} chapter(s) selected'
-                        : 'Tap to choose content',
+                        ? '${_selectedBookChapterCount ?? 0} chapters (full book)'
+                        : 'Tap to choose a book',
                     style: TextStyle(
                       color: _selectedBookId != null
                           ? context.colorScheme.primary
@@ -421,6 +418,31 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   onTap: () => _showBookSelectionSheet(context, ref),
                 ),
               ),
+
+              // Lock library option
+              if (_selectedBookId != null) ...[
+                const SizedBox(height: 12),
+                Card(
+                  child: CheckboxListTile(
+                    title: const Text('Lock other books'),
+                    subtitle: const Text(
+                      'Students can only read this book until completed',
+                    ),
+                    value: _lockLibrary,
+                    onChanged: (value) {
+                      setState(() {
+                        _lockLibrary = value ?? false;
+                      });
+                    },
+                    secondary: Icon(
+                      _lockLibrary ? Icons.lock : Icons.lock_open,
+                      color: _lockLibrary
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ],
             ],
 
             // Vocabulary content selection
@@ -537,39 +559,22 @@ class _DatePickerCard extends StatelessWidget {
 }
 
 // =============================================
-// BOOK SELECTION SHEET
+// BOOK SELECTION SHEET (Simplified - no chapter selection)
 // =============================================
 
-class _BookSelectionSheet extends ConsumerStatefulWidget {
+class _BookSelectionSheet extends ConsumerWidget {
   const _BookSelectionSheet({
     required this.scrollController,
     required this.selectedBookId,
-    required this.selectedChapterIds,
     required this.onBookSelected,
   });
 
   final ScrollController scrollController;
   final String? selectedBookId;
-  final List<String> selectedChapterIds;
-  final void Function(Book book, List<Chapter> chapters) onBookSelected;
+  final void Function(Book book, int chapterCount) onBookSelected;
 
   @override
-  ConsumerState<_BookSelectionSheet> createState() => _BookSelectionSheetState();
-}
-
-class _BookSelectionSheetState extends ConsumerState<_BookSelectionSheet> {
-  String? _currentBookId;
-  final Set<String> _selectedChapterIds = {};
-
-  @override
-  void initState() {
-    super.initState();
-    _currentBookId = widget.selectedBookId;
-    _selectedChapterIds.addAll(widget.selectedChapterIds);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final booksAsync = ref.watch(booksProvider(null));
 
     return Column(
@@ -589,178 +594,79 @@ class _BookSelectionSheetState extends ConsumerState<_BookSelectionSheet> {
             children: [
               Expanded(
                 child: Text(
-                  _currentBookId == null ? 'Select Book' : 'Select Chapters',
+                  'Select Book',
                   style: context.textTheme.titleLarge,
                 ),
               ),
-              if (_currentBookId != null)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _currentBookId = null;
-                      _selectedChapterIds.clear();
-                    });
-                  },
-                  child: const Text('Change Book'),
-                ),
             ],
           ),
         ),
 
-        // Content
+        // Book list
         Expanded(
-          child: _currentBookId == null
-              ? _buildBookList(booksAsync)
-              : _buildChapterList(),
-        ),
+          child: booksAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(child: Text('Error loading books')),
+            data: (books) {
+              if (books.isEmpty) {
+                return const Center(child: Text('No books available'));
+              }
 
-        // Confirm button (when chapters are selected)
-        if (_currentBookId != null && _selectedChapterIds.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: context.colorScheme.surface,
-              border: Border(
-                top: BorderSide(
-                  color: context.colorScheme.outlineVariant,
-                ),
-              ),
-            ),
-            child: FilledButton(
-              onPressed: () async {
-                final bookAsync = ref.read(bookByIdProvider(_currentBookId!));
-                final book = bookAsync.valueOrNull;
-                if (book == null) return;
-
-                final chaptersAsync = ref.read(chaptersProvider(_currentBookId!));
-                final allChapters = chaptersAsync.valueOrNull ?? [];
-                final selectedChapters = allChapters
-                    .where((c) => _selectedChapterIds.contains(c.id))
-                    .toList();
-
-                widget.onBookSelected(book, selectedChapters);
-              },
-              child: Text('Confirm (${_selectedChapterIds.length} chapters)'),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildBookList(AsyncValue<List<Book>> booksAsync) {
-    return booksAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error loading books')),
-      data: (books) {
-        if (books.isEmpty) {
-          return const Center(child: Text('No books available'));
-        }
-
-        return ListView.builder(
-          controller: widget.scrollController,
-          itemCount: books.length,
-          itemBuilder: (context, index) {
-            final book = books[index];
-            return ListTile(
-              leading: book.coverUrl != null
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        book.coverUrl!,
-                        width: 40,
-                        height: 56,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          width: 40,
-                          height: 56,
-                          color: context.colorScheme.surfaceContainerHighest,
-                          child: const Icon(Icons.menu_book, size: 20),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      width: 40,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Icon(Icons.menu_book, size: 20),
-                    ),
-              title: Text(book.title),
-              subtitle: Text(
-                '${book.genre ?? 'Book'} • ${book.level}',
-                style: context.textTheme.bodySmall,
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                setState(() {
-                  _currentBookId = book.id;
-                });
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildChapterList() {
-    final chaptersAsync = ref.watch(chaptersProvider(_currentBookId!));
-
-    return chaptersAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Center(child: Text('Error loading chapters')),
-      data: (chapters) {
-        if (chapters.isEmpty) {
-          return const Center(child: Text('No chapters available'));
-        }
-
-        return Column(
-          children: [
-            // Select all option
-            CheckboxListTile(
-              title: const Text('Select All Chapters'),
-              value: _selectedChapterIds.length == chapters.length,
-              tristate: true,
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    _selectedChapterIds.addAll(chapters.map((c) => c.id));
-                  } else {
-                    _selectedChapterIds.clear();
-                  }
-                });
-              },
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                controller: widget.scrollController,
-                itemCount: chapters.length,
+              return ListView.builder(
+                controller: scrollController,
+                itemCount: books.length,
                 itemBuilder: (context, index) {
-                  final chapter = chapters[index];
-                  final isSelected = _selectedChapterIds.contains(chapter.id);
+                  final book = books[index];
+                  final isSelected = selectedBookId == book.id;
 
-                  return CheckboxListTile(
-                    title: Text('Chapter ${chapter.orderIndex}: ${chapter.title}'),
-                    value: isSelected,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedChapterIds.add(chapter.id);
-                        } else {
-                          _selectedChapterIds.remove(chapter.id);
-                        }
-                      });
-                    },
+                  return ListTile(
+                    leading: book.coverUrl != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: Image.network(
+                              book.coverUrl!,
+                              width: 40,
+                              height: 56,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 40,
+                                height: 56,
+                                color: context.colorScheme.surfaceContainerHighest,
+                                child: const Icon(Icons.menu_book, size: 20),
+                              ),
+                            ),
+                          )
+                        : Container(
+                            width: 40,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: context.colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Icon(Icons.menu_book, size: 20),
+                          ),
+                    title: Text(
+                      book.title,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : null,
+                        color: isSelected ? context.colorScheme.primary : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${book.chapterCount} chapters • ${book.level}',
+                      style: context.textTheme.bodySmall,
+                    ),
+                    trailing: isSelected
+                        ? Icon(Icons.check_circle, color: context.colorScheme.primary)
+                        : const Icon(Icons.chevron_right),
+                    onTap: () => onBookSelected(book, book.chapterCount),
                   );
                 },
-              ),
-            ),
-          ],
-        );
-      },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

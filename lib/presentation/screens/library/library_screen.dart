@@ -2,12 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/book_access_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../widgets/book/book_grid_card.dart';
 import '../../widgets/book/book_list_tile.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
+
+  void _showLockedBookDialog(BuildContext context, String bookTitle) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.lock_outline, size: 48),
+        title: const Text('Book Locked'),
+        content: Text(
+          'You have an active assignment. Complete your assigned reading first to unlock "$bookTitle" and other books.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,6 +71,9 @@ class LibraryScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          // Locked library banner
+          _LockedLibraryBanner(ref: ref),
+
           // Level filter chips (hidden during search)
           if (!isSearchActive)
             _LevelFilterChips(
@@ -91,11 +114,15 @@ class LibraryScreen extends ConsumerWidget {
                   return _BookGrid(
                     books: books,
                     onBookTap: (bookId) => context.go('/library/book/$bookId'),
+                    onLockedBookTap: (bookTitle) =>
+                        _showLockedBookDialog(context, bookTitle),
                   );
                 } else {
                   return _BookList(
                     books: books,
                     onBookTap: (bookId) => context.go('/library/book/$bookId'),
+                    onLockedBookTap: (bookTitle) =>
+                        _showLockedBookDialog(context, bookTitle),
                   );
                 }
               },
@@ -123,6 +150,51 @@ class _SearchField extends StatelessWidget {
       ),
       onChanged: (value) {
         ref.read(librarySearchQueryProvider.notifier).state = value;
+      },
+    );
+  }
+}
+
+class _LockedLibraryBanner extends ConsumerWidget {
+  const _LockedLibraryBanner({required this.ref});
+
+  final WidgetRef ref;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final lockInfo = ref.watch(bookLockProvider);
+
+    return lockInfo.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (info) {
+        if (!info.hasLock) return const SizedBox.shrink();
+
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          color: colorScheme.primaryContainer,
+          child: Row(
+            children: [
+              Icon(
+                Icons.assignment,
+                color: colorScheme.onPrimaryContainer,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'You have an active reading assignment. Complete it to unlock all books.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -178,17 +250,19 @@ class _LevelFilterChips extends StatelessWidget {
   }
 }
 
-class _BookGrid extends StatelessWidget {
+class _BookGrid extends ConsumerWidget {
   const _BookGrid({
     required this.books,
     required this.onBookTap,
+    required this.onLockedBookTap,
   });
 
   final List<dynamic> books;
   final ValueChanged<String> onBookTap;
+  final ValueChanged<String> onLockedBookTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -200,34 +274,54 @@ class _BookGrid extends StatelessWidget {
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
+        final canAccess = ref.watch(canAccessBookProvider(book.id));
+
         return BookGridCard(
           book: book,
-          onTap: () => onBookTap(book.id),
+          showLockIcon: !canAccess,
+          onTap: () {
+            if (canAccess) {
+              onBookTap(book.id);
+            } else {
+              onLockedBookTap(book.title);
+            }
+          },
         );
       },
     );
   }
 }
 
-class _BookList extends StatelessWidget {
+class _BookList extends ConsumerWidget {
   const _BookList({
     required this.books,
     required this.onBookTap,
+    required this.onLockedBookTap,
   });
 
   final List<dynamic> books;
   final ValueChanged<String> onBookTap;
+  final ValueChanged<String> onLockedBookTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
+        final canAccess = ref.watch(canAccessBookProvider(book.id));
+
         return BookListTile(
           book: book,
-          onTap: () => onBookTap(book.id),
+          showLockIcon: !canAccess,
+          onTap: () {
+            if (canAccess) {
+              onBookTap(book.id);
+            } else {
+              onLockedBookTap(book.title);
+            }
+          },
         );
       },
     );
