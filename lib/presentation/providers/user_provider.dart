@@ -87,10 +87,25 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userRepo = _ref.read(userRepositoryProvider);
     final result = await userRepo.getUserById(userId);
 
-    state = result.fold(
-      (failure) => AsyncValue.error(failure.message, StackTrace.current),
-      (user) => AsyncValue.data(user),
+    result.fold(
+      (failure) {
+        state = AsyncValue.error(failure.message, StackTrace.current);
+      },
+      (user) {
+        state = AsyncValue.data(user);
+        // Update streak after loading user (sets to 1 for first-time users)
+        // This is called here instead of auth to avoid timing issues
+        _updateStreakIfNeeded(user);
+      },
     );
+  }
+
+  Future<void> _updateStreakIfNeeded(User user) async {
+    // Only update if user has never had activity (streak = 0, no last activity date)
+    // This avoids unnecessary DB calls on every app open
+    if (user.currentStreak == 0 && user.lastActivityDate == null) {
+      await updateStreak();
+    }
   }
 
   Future<void> addXP(int amount) async {
