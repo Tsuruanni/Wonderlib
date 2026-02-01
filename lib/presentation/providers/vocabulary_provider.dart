@@ -324,7 +324,7 @@ class VocabularyReviewState {
 }
 
 final vocabularyReviewControllerProvider =
-    StateNotifierProvider<VocabularyReviewController, VocabularyReviewState>((ref) {
+    StateNotifierProvider.autoDispose<VocabularyReviewController, VocabularyReviewState>((ref) {
   return VocabularyReviewController(ref);
 });
 
@@ -547,7 +547,7 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
 }
 
 final wordListProgressControllerProvider =
-    StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>((ref) {
+    StateNotifierProvider.autoDispose<WordListProgressController, Map<String, UserWordListProgress>>((ref) {
   return WordListProgressController(ref);
 });
 

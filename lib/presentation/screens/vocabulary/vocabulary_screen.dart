@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../widgets/common/stat_item.dart';
 
 class VocabularyScreen extends ConsumerStatefulWidget {
   const VocabularyScreen({super.key});
@@ -123,22 +124,25 @@ class _StatsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _StatItem(
+              StatItem(
                 value: stats.totalWords.toString(),
                 label: 'Total',
                 icon: Icons.library_books,
+                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              _StatItem(
+              StatItem(
                 value: stats.masteredCount.toString(),
                 label: 'Mastered',
                 icon: Icons.star,
                 color: Colors.amber,
+                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              _StatItem(
+              StatItem(
                 value: stats.inProgressCount.toString(),
                 label: 'Learning',
                 icon: Icons.trending_up,
                 color: Colors.blue,
+                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -160,35 +164,6 @@ class _StatsCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color? color;
-
-  const _StatItem({
-    required this.value,
-    required this.label,
-    required this.icon,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: color ?? context.colorScheme.onPrimaryContainer, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        Text(label, style: context.textTheme.bodySmall),
-      ],
     );
   }
 }

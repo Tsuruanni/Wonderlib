@@ -206,7 +206,7 @@ class ActivitySessionState {
   }
 }
 
-final activitySessionControllerProvider = StateNotifierProvider.family<
+final activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<
     ActivitySessionController, ActivitySessionState, String>((ref, activityId) {
   return ActivitySessionController(ref, activityId);
 });

@@ -203,11 +203,11 @@ abstract class AppTheme {
         fillColor: AppColors.surfaceDark,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryDark.withOpacity(0.3)),
+          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryDark.withOpacity(0.3)),
+          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),

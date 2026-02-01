@@ -1,0 +1,14 @@
+        "signature": "EoUDCkYICxgCKkCm+MJJo9m/BiNqKXVGdiX+s2blTHetQ/OdQ8+z5xRVGTlMYkO5xZWx8UxpraeKrN5sKFoYZsAUw89iYqqJIjlqEgzCVSUkKRbwUuFLlGYaDN2P5s/1UT+CU1oPBCIw5NFPU7SR9vKX+oHCPEoKtIpDWNMBslUof5vKgLqKDo08v/Z1JpNuyj1tCZsTvKOHKuwBuokSKcy+BTd2lNFa+IJ9+RKaBX0skAfeBNdw6KcNnMYJL5hJKh15hpj1LXkaNlSvUSwmu0Mh4YzBRSfoL9lCL2qKnLj3LMC5x2bTKH/KGRC+X2bs5Ny4x4AN2+r7+hqxK5RwjuM8GHQeS3f5b4s7xjGN298RZ1YtCrL5oLBbtu/FKcNvBa6kNHa5TA22xPswDTph/IpWtTGQQxIyb9CBFMvpSzsap8ZHcOK0etp3qXLwUypmPbN8fKNwCgk7bKK4M2OqLrkD05pr5cRHCDpsFe62uLrRgHAVC6fduXaF0Fg1kbl8bjAxoVwxFrgYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Screen'lerdeki use case entegrasyonunu planlıyorum."
+      }
+    ]
+  }
+]

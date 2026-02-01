@@ -6,10 +6,11 @@ import 'package:intl/intl.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/repositories/teacher_repository.dart';
+import '../../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/teacher_provider.dart';
+import '../../providers/usecase_providers.dart';
 import '../../providers/vocabulary_provider.dart';
 
 class CreateAssignmentScreen extends ConsumerStatefulWidget {
@@ -92,49 +93,21 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
         throw Exception('Not authenticated');
       }
 
-      final teacherRepo = ref.read(teacherRepositoryProvider);
-
-      // Validate content selection
-      if (_selectedType == AssignmentType.book && _selectedBookId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a book')),
-        );
-        return;
-      }
-
-      if (_selectedType == AssignmentType.vocabulary && _selectedWordListId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a word list')),
-        );
-        return;
-      }
-
-      // Build content config based on type
-      Map<String, dynamic> contentConfig = {};
-      if (_selectedType == AssignmentType.book) {
-        contentConfig = {
-          'bookId': _selectedBookId,
-          'lockLibrary': _lockLibrary,
-        };
-      } else if (_selectedType == AssignmentType.vocabulary) {
-        contentConfig = {
-          'wordListId': _selectedWordListId,
-        };
-      }
-
-      final data = CreateAssignmentData(
+      final useCase = ref.read(createAssignmentUseCaseProvider);
+      final result = await useCase(CreateAssignmentParams(
+        teacherId: userId,
         classId: _selectedClassId,
         type: _selectedType,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim().isEmpty
             ? null
             : _descriptionController.text.trim(),
-        contentConfig: contentConfig,
+        bookId: _selectedBookId,
+        wordListId: _selectedWordListId,
+        lockLibrary: _lockLibrary,
         startDate: _startDate,
         dueDate: _dueDate,
-      );
-
-      final result = await teacherRepo.createAssignment(userId, data);
+      ),);
 
       result.fold(
         (failure) {
@@ -221,7 +194,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
   @override
   Widget build(BuildContext context) {
-    final classesAsync = ref.watch(teacherClassesProvider);
+    final classesAsync = ref.watch(currentTeacherClassesProvider);
     final dateFormat = DateFormat('MMM d, y');
 
     return Scaffold(

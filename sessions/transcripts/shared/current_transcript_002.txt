@@ -1,0 +1,310 @@
+          "new_string": "          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01UAPk64YUkezkQYtJryXg3o",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/analysis_options.yaml has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01111BHX9WjrwXdLCkJzqTpc",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/app/theme.dart has been updated. All occurrences of '          borderSide: BorderSide(color: AppColors.textSecondaryDark.withOpacity(0.3)),' were successfully replaced with '          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),'."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "All 3 tasks completed. Now let me verify by running dart analyze to make sure there are no errors.",
+        "signature": "EooCCkYICxgCKkBG8b3bHSpi3vdkHEOpZlbXtt0LnOycIUrwO7Jmkff7115zPg5MyP2STQE8ZfztQL/fZHMA6ncgUJvECRuwCR4PEgwniZ4BWrwGsm1gTtAaDNtS/P4Lj+hwbouNNSIw3O6oK6H1Z+0rYE0K1EyqfvMr1sk/n0lFY2i1DtiEhPwsLrX+emmw0M3i4jC6AUrgKnLKwliy0AvbqkG8Vx4YimDCuexNIEp6/mph7aQQBUMJTOtdFSJSS9ODrU6RiBueowjS6hSx5YD72/P++kObLqVyzWeI7SUBXLF1d/m9rQ/BZjOFNvc8XuLxRSC3QCbCq7OesmYNfLXKwNKeaHQCHoTbm8MYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Düzeltmeler tamamlandı. Şimdi doğrulama yapıyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_012zDeeWXxPcGMyE5XvvVfWc",
+        "name": "ToolSearch",
+        "input": {
+          "query": "select:mcp__dart__analyze_files",
+          "max_results": 1
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "tool_use_id": "toolu_012zDeeWXxPcGMyE5XvvVfWc",
+        "content": [
+          {
+            "type": "tool_reference",
+            "tool_name": "mcp__dart__analyze_files"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Good, now I can run the Dart analyzer to verify the changes.",
+        "signature": "EuQBCkYICxgCKkDErRt+ig1m383Nym5VAOE3CjRe8Otn7rsauBjlqu7OV4HImRFl7WBzw37tVhbM51OUH+Cwig9LUa0JlUhcx5cHEgxxr5MdQVBgivIeM4MaDBdvKAPhd/v6iUBOoiIwroZC8jl/hRRfaATAQoMFxejZR2Fe29nLJKXfWLwyo2iU67WGN+HFH2yJm14m5jfcKky8xNLdx+nyNejIGsTczpgdjRSJ3J5RxESujUwHMYLevlhoEpxXCZRMw0tHap8q0udMUQBGZ0rYWITFvc4QTc7DQRAYS6QwAniuiPqdGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_018wja24mHhEEaH7ADCHqF2J",
+        "name": "mcp__dart__analyze_files",
+        "input": {
+          "roots": [
+            {
+              "root": "file:///Users/wonderelt/Desktop/wonderlib",
+              "paths": [
+                "lib/app/theme.dart",
+                "analysis_options.yaml"
+              ]
+            }
+          ]
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_018wja24mHhEEaH7ADCHqF2J",
+        "type": "tool_result",
+        "content": [
+          {
+            "type": "text",
+            "text": "No errors"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The Dart analyzer shows no errors. Let me also verify that the mock folder is indeed deleted and do a grep to confirm no mock repository imports exist.",
+        "signature": "EsACCkYICxgCKkCmHdoNQYBcA2UimSJRCNpA+xrtIKlay71+wauq+GrfSKws+qvC4c1hU6/Z3eTnY641mXgdZ5PDSfx8lqYyZgSkEgxDs7U0uwNIDpBN53waDH0JYgdJIlS08xxS3iIwgj5m3iiJiI4eKEm5/rjt0QyP6YYtrx6rmakQUSNBWqt7GZj8WKJzzX+lZSU6cfMgKqcBb5jNSmY80JAWarMK++YKvnKVvigghCXuEyx3rx5qD8czFkPuiZY8Zv35XJW0+CZbtSUqArwpXiUurjrBfz2Q3iyPx2w5Aah71P3Go5g7l6T44eMwwTq1cu/MZHUp7bZK3+E+I89NqSFf6jbzi9ESklxQ9/Bz04YIO5e12giSmi1cRULmXVjmNz6ZdZ1vIltVQzf0dg5wPVtvWMUS5lI7cgU17PE7wzYYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Analiz temiz. Son kontrolleri yapıyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_018UQ8LidnjXQwfoAL2hvx5S",
+        "name": "Bash",
+        "input": {
+          "command": "ls -la /Users/wonderelt/Desktop/wonderlib/lib/data/repositories/ 2>/dev/null || echo \"Directory check done\"",
+          "description": "Verify mock folder deleted"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01WWoFW9b6uHr7PZ98gs213z",
+        "name": "Grep",
+        "input": {
+          "pattern": "mock_.*_repository",
+          "path": "/Users/wonderelt/Desktop/wonderlib/lib",
+          "output_mode": "files_with_matches"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_018UQ8LidnjXQwfoAL2hvx5S",
+        "type": "tool_result",
+        "content": "total 0\ndrwxr-xr-x@  3 wonderelt  staff   96 Feb  1 11:13 .\ndrwxr-xr-x@  5 wonderelt  staff  160 Jan 30 14:11 ..\ndrwxr-xr-x@ 11 wonderelt  staff  352 Feb  1 05:51 supabase",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01WWoFW9b6uHr7PZ98gs213z",
+        "type": "tool_result",
+        "content": "No files found"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "All verification checks passed:\n1. Mock folder is deleted (only supabase folder remains under repositories)2. No imports of mock repositories found in the codebase\n3. Dart analyzer shows no errors\n\nFaz 1 tamamlandı. Let me summarize for the user.",
+        "signature": "EpwDCkYICxgCKkB1X9UlTS1B80tmjjxLM1gHv89BQ/PSbGundu09KchSTeuMlP3KyFl+jjF5sSOrla9R9UAhxIZL3hV6w0Vop2CYEgwSCsztmDMAuERPLacaDFlZX6l7V0mIL6FzQiIwalg3XTYzp8jJtxJjpwcxquEB9V/eWexDLlPa9/u2drUqN/kHAbLk8IqzdkHJ8jiJKoMCyO4y718qNjnnyYgm10L8f6Ee5f4Eq3EY71FyXueK26L6hDv+N5cskJpE8rEGv11U3JdbwzRElFAkc+Ljwd9TZrS42TCNPRb82JxbzmwxK4VxCfgXVUaORBRC51lLInnNzjj/1v+zS3BTDjCHTIlbgvnXNhMCn1OoKAGQsXq42d70ZYLCep1L4dxDZmkYHIOeY50HHspXaxdH/inhiL55c8iAQKlHIzA5CXv61G6BYwysCgrW/9y+0kSXbsP+EzcfmKzH3f3WC7/RSCvXcDyzrFIKiqPM1xbd+NtvQ2US/U0JjV16szkCET9FViQrirXBfncTo4MLUA55p047elbpdoPQQxgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "**Faz 1 tamamlandı.**\n\n| Görev | Durum |\n|-------|-------|\n| Mock repository silme (7 dosya) | ✅ |\n| Deprecated lint rule kaldırma | ✅ |\n| withOpacity → withValues (2 satır) | ✅ |\n| Dart analiz | ✅ Hata yok |\n| Mock import kontrolü | ✅ Hiç yok |\n\n**Temizlenen:** ~1,380 satır ölü kod\n\nFaz 2'ye (autoDispose eklemeleri) geçmek ister misiniz?"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": "evet analiz edelim"
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user wants to proceed to Phase 2 (autoDispose additions). Let me explore the codebase to understand the current provider patterns and identify which providers need autoDispose.\n\nFirst, let me read the existing plan to understand what was done.",
+        "signature": "Ep4DCkYICxgCKkDIPxZQ7TRDIqhTPvTFt6AFMHLP6NIxUyQNamSyGYuG/wSLhwElBpRTU8mGr7y808Vmegs6LK8VC3B6vpsanR6cEgx1cU3zCFNsHMdh1egaDPcBk09umH4i1QUGpyIwkebhttPS5IR/61yxhqVeuauC7fNLQxeRn7UPfLJKLhU1YnxTA25D6/tNTm9S8AfSKoUCIbVfVOj8FzX3o4Nou7q7gScJ57ESRpT1+lj/bnYoeTNohSviPgpL3lBBxodT1PO4fGY74DxRKEdiSAuMJNJmjDmVuNWX+PorEs2FJ6BvKOzr5fFAd8zsNIP+V7wpQNAL1Su9hp8x5mKvxCBl7iGneqGWBVgxZzgdPDtDBSu3Xvpq89jWg6wWZL9oFWSTffVSSHGjMhk3FuWsuaybOLiB8R/fuY5Qd4p6yQ5AzTCYJaQHD9taI7W0Wfuo+zzAWmXTsK4oqBA7QQS0VGcuRHpeCVlU9vSHoSE679BSDpODMoi3pfg2srFd1d6wOpJYxoY+S8/3txKYYjdtAkOOZWfXBQYfTY87GAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Faz 2 için provider'ları analiz ediyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_0163bo4nRThxSP3gMyrbPVzk",
+        "name": "Task",
+        "input": {
+          "description": "Analyze providers for autoDispose",
+          "prompt": "Analyze all Riverpod providers in the codebase for autoDispose usage. Focus on:\n\n1. Find all provider files in lib/presentation/providers/\n2. Count total providers vs providers using autoDispose\n3. Identify HIGH PRIORITY providers that MUST have autoDispose:\n   - StateNotifierProvider.family (session-based, per-entity state)\n   - StateNotifierProvider for timers, sessions, temporary state\n   - FutureProvider.family that fetch data per screen/entity\n   \n4. Categorize providers into:\n   - MUST ADD autoDispose (memory leak risk)\n   - SHOULD ADD autoDispose (good practice)\n   - KEEP AS IS (global state, app-wide cache)\n\n5. List specific file:line for each provider that needs autoDispose\n\nFocus especially on:\n- activity_provider.dart (activitySessionControllerProvider)\n- book_provider.dart (readingControllerProvider)\n- reader_provider.dart (readingTimerProvider, sessionXPProvider)\n\nProvide a prioritized list with exact locations.",
+          "subagent_type": "Explore"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_0163bo4nRThxSP3gMyrbPVzk",
+        "type": "tool_result",
+        "content": [
+          {
+            "type": "text",
+            "text": "Excellent! Now I have a complete picture of all the providers. Let me create a comprehensive analysis report.\n\n## Comprehensive Riverpod AutoDispose Analysis\n\nI've analyzed all 12 provider files in `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/`. Here's the detailed report:\n\n---\n\n### SUMMARY STATISTICS\n\n**Total Providers Analyzed:** 97\n**Providers WITH autoDispose:** 0\n**Providers WITHOUT autoDispose:** 97\n**Risk Level:** HIGH - Multiple critical memory leak risks identified\n\n---\n\n### CRITICAL FINDINGS - HIGH PRIORITY (MUST ADD autoDispose)\n\n#### 1. **Activity Session Controller** (SEVERE)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart`\n- **Line 209-212:** `activitySessionControllerProvider`\n  - **Type:** `StateNotifierProvider.family<ActivitySessionController, ActivitySessionState, String>`\n  - **Risk:** Session-based state per activity. Holds activity data, answers, submission state\n  - **Memory Impact:** Each completed activity instance persists in memory indefinitely\n  - **Symptom:** User completes 10 activities → 10 controllers remain in memory\n  - **Fix:** Add `.autoDispose` after `.family`\n\n#### 2. **Reading Controller** (SEVERE)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart`\n- **Line 314-317:** `readingControllerProvider`\n  - **Type:** `StateNotifierProvider.family<ReadingController, AsyncValue<ReadingProgress?>, String>`\n  - **Risk:** Per-book reading progress tracking. Loads and caches entire reading state\n  - **Memory Impact:** Each book user opens stores full progress object. Reading 20 books = 20 controllers\n  - **Symptom:** User reads multiple books → all previous reading sessions stay cached\n  - **Fix:** Add `.autoDispose` after `.family`\n\n#### 3. **Chapter Completion Controller** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart`\n- **Line 218-221:** `chapterCompletionProvider`\n  - **Type:** `StateNotifierProvider<ChapterCompletionNotifier, AsyncValue<void>>`\n  - **Risk:** Global state for chapter marking, holds operation state\n  - **Memory Impact:** Accumulates invalidation side-effects over time\n  - **Fix:** Add `.autoDispose` (not `.family`, but still needs disposal)\n\n#### 4. **Reading Timer** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart`\n- **Line 168-171:** `readingTimerProvider`\n  - **Type:** `StateNotifierProvider<ReadingTimerNotifier, int>`\n  - **Risk:** Increments every second during reading. Persists after reader screen closes\n  - **Memory Impact:** Timer accumulates state indefinitely\n  - **Problem:** Even if user reads 5 chapters, only ONE global timer exists, but it never resets\n  - **Fix:** Add `.autoDispose`\n\n#### 5. **Session XP Provider** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart`\n- **Line 247-250:** `sessionXPProvider`\n  - **Type:** `StateNotifierProvider<SessionXPNotifier, int>`\n  - **Risk:** Accumulates XP during reading session. Never cleared between sessions\n  - **Memory Impact:** State value grows, old sessions leak\n  - **Symptom:** XP from session 1 bleeds into UI calculations\n  - **Fix:** Add `.autoDispose`\n\n#### 6. **Inline Activity State** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart`\n- **Line 210-213:** `inlineActivityStateProvider`\n  - **Type:** `StateNotifierProvider<InlineActivityStateNotifier, Map<String, bool>>`\n  - **Risk:** Global map of completed activities. Never cleared\n  - **Memory Impact:** Map grows indefinitely as user completes activities\n  - **Symptom:** User completes 100 inline activities → map keeps all 100\n  - **Fix:** Add `.autoDispose`\n\n#### 7. **Learned Words Provider** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart`\n- **Line 269-272:** `learnedWordsProvider`\n  - **Type:** `StateNotifierProvider<LearnedWordsNotifier, List<String>>`\n  - **Risk:** Accumulates learned words across reading sessions\n  - **Memory Impact:** List grows but never resets\n  - **Fix:** Add `.autoDispose`\n\n#### 8. **Vocabulary Review Controller** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart`\n- **Line 326-329:** `vocabularyReviewControllerProvider`\n  - **Type:** `StateNotifierProvider<VocabularyReviewController, VocabularyReviewState>`\n  - **Risk:** Holds entire review session state. User starts quiz → state persists\n  - **Memory Impact:** Each review session controller stays resident\n  - **Fix:** Add `.autoDispose`\n\n#### 9. **Word List Progress Controller** (HIGH)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart`\n- **Line 549-552:** `wordListProgressControllerProvider`\n  - **Type:** `StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>`\n  - **Risk:** Caches all word list progress. Map can grow large\n  - **Memory Impact:** All completed lists stay in memory\n  - **Fix:** Add `.autoDispose`\n\n---\n\n### SIGNIFICANT CONCERNS - `.family` FutureProviders (SHOULD ADD autoDispose)\n\nThese are FutureProvider.family instances that fetch per-entity data. While they don't hold explicit state like StateNotifier, they cache async data indefinitely:\n\n#### Activity Providers\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart`\n- **Line 10-17:** `chapterActivitiesProvider` → Caches activities per chapter\n- **Line 21-28:** `activityByIdProvider` → Caches individual activity\n- **Line 32-45:** `activityBestResultProvider` → Caches best result per activity\n\n#### Book Providers\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart`\n- **Line 12-25:** `booksProvider(filters)` → Caches filtered book lists\n- **Line 38-46:** `bookSearchProvider(query)` → Caches search results\n- **Line 75-82:** `chaptersProvider(bookId)` → Caches chapters per book\n- **Line 95-108:** `readingProgressProvider(bookId)` → Caches progress per book\n\n#### Teacher Providers (All `.family` variants)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/teacher_provider.dart`\n- **Line 51-63:** `teacherClassesProvider(schoolId)`\n- **Line 77-85:** `classStudentsProvider(classId)`\n- **Line 101-109:** `studentProgressProvider(studentId)`\n- **Line 145-153:** `assignmentStudentsProvider(assignmentId)`\n\n#### Vocabulary Providers\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart`\n- **Line 14-26:** `vocabularyWordsProvider(filters)`\n- **Line 30-38:** `vocabularySearchProvider(query)`\n- **Line 357-361:** `wordListsByCategoryProvider(category)`\n- **Line 364-368:** `wordListByIdProvider(id)`\n- **Line 371-375:** `wordsForListProvider(listId)`\n- **Line 388-395:** `progressForListProvider(listId)`\n\n#### Student Assignment Providers\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/student_assignment_provider.dart`\n- **Line 49-62:** `studentAssignmentDetailProvider(assignmentId)`\n\n---\n\n### GLOBAL STATE - KEEP AS IS (No autoDispose needed)\n\nThese providers manage app-wide state that should persist:\n\n#### Authentication (Global User Session)\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/auth_provider.dart`\n- Line 8: `authStateChangesProvider` - Auth stream (global)\n- Line 14: `currentUserProvider` - Current user (global)\n- Line 24: `isAuthenticatedProvider` - Auth status (global)\n- Line 30: `currentUserIdProvider` - User ID (global, used everywhere)\n- Line 132: `authControllerProvider` - Login/logout controller (global)\n\n#### Repository Providers\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/repository_providers.dart`\n- All providers (Lines 25-72) - Singleton repositories (should remain global)\n\n#### Library View State\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/library_provider.dart`\n- Line 10: `libraryViewModeProvider` - UI preference (global)\n- Line 15: `selectedLevelProvider` - Filter state (global)\n- Line 18: `librarySearchQueryProvider` - Search state (global)\n- Line 21: `isSearchActiveProvider` - Search toggle (global)\n\n#### User Controller\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/user_provider.dart`\n- Line 151: `userControllerProvider` - Current user XP/streak (global, required for dashboard)\n\n#### Badge Controller\n**File:** `/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/badge_provider.dart`\n- Line 121: `badgeControllerProvider` - Badge state (global)\n\n---\n\n### MEMORY LEAK MECHANICS\n\n**Example Scenario - Activity Session:**\n1. User opens Activity #1 → `activitySessionControllerProvider(\"activity-1\")` created\n2. User submits answers → Controller persists in memory\n3. User navigates away, opens Activity #2 → `activitySessionControllerProvider(\"activity-2\")` created\n4. **WITHOUT autoDispose:** Both controllers stay in memory\n5. After 20 activities: 20 controllers × ~50KB each = ~1MB leaked\n\n**For Timer/Session XP:**\n1. User starts reading chapter → `readingTimerProvider` ticks every second\n2. After 10 minutes: state = 600\n3. User reads another chapter → Same provider, state continues: 1200, 1800, etc.\n4. **Without reset:** Timer keeps incrementing globally across all reading sessions\n\n---\n\n### RECOMMENDED FIXES (Prioritized)\n\n**TIER 1 - Apply immediately (memory leak hotspots):**\n```\n1. activity_provider.dart:209 - activitySessionControllerProvider.autoDispose\n2. book_provider.dart:314 - readingControllerProvider.autoDispose\n3. reader_provider.dart:168 - readingTimerProvider.autoDispose\n4. reader_provider.dart:247 - sessionXPProvider.autoDispose\n5. reader_provider.dart:210 - inlineActivityStateProvider.autoDispose\n6. reader_provider.dart:269 - learnedWordsProvider.autoDispose\n```\n\n**TIER 2 - Apply next (state accumulation risks):**\n```\n7. book_provider.dart:218 - chapterCompletionProvider.autoDispose\n8. vocabulary_provider.dart:326 - vocabularyReviewControllerProvider.autoDispose\n9. vocabulary_provider.dart:549 - wordListProgressControllerProvider.autoDispose\n```\n\n**TIER 3 - Apply for consistency (optional but recommended):**\n```\nAll .family FutureProviders should have .autoDispose added\nEstimated count: ~25 providers\n```\n\n---\n\n### IMPLEMENTATION PATTERN\n\n**Before:**\n```dart\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n  return ReadingTimerNotifier();\n});\n```\n\n**After:**\n```dart\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n  return ReadingTimerNotifier();\n});\n```\n\n**For .family providers:**\n```dart\nfinal activitySessionControllerProvider = StateNotifierProvider.family.autoDispose<\n    ActivitySessionController, ActivitySessionState, String>((ref, activityId) {\n  return ActivitySessionController(ref, activityId);\n});\n```\n\n---\n\n### TESTING RECOMMENDATIONS\n\nAfter implementing autoDispose:\n1. Monitor memory usage in DevTools Memory profiler\n2. Test rapid navigation between screens\n3. Verify reading sessions don't share state\n4. Check that completing multiple activities doesn't accumulate state\n5. Confirm session XP resets when reader screen closes\n\nThis analysis identifies **97 providers** with **14 critical/high-risk** memory leak issues that should be addressed in order of priority."
+          },
+          {
+            "type": "text",
+            "text": "agentId: a0a457b (for resuming to continue this agent's work if needed)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "This is a very comprehensive analysis. Now I need to update the plan file with the Phase 2 information and get user approval.\n\nLet me summarize the key findings:\n- 97 total providers, 0 with autoDispose\n- 9 critical StateNotifier providers that MUST have autoDispose (Tier 1 + Tier 2)\n- ~25 FutureProvider.family that SHOULD have autoDispose (Tier 3)\n\nLet me update the plan file.",
+        "signature": "EqAECkYICxgCKkA6dyEc8dJPLbLMoNYAoSZVFckxGy1JhrgxCJfg85OXMhoYkcaoeiCW6HCZdq9VWeIlte46y1AD65Ljyw8aMenGEgz+ZhqMh8fx0Qo3ns8aDMYZfEWUs0guwdW2tSIwbMpDdUjOviDTUiIEUAAEjKWWk0FSFq9sG9k9g7zfp5YMx8viFPbX2WMw5gL0F744KocDuOPFHUkUqznFYl8HskoohHHEmlC8h3y8VCAaH3w549ASyGXLHLtTN+F3PbhitugRUNZMxIMJ24Du68pgrZZqOJJY81gA24EpgWQmo4rtVEiSgk7BY/ntQ8xqv/dy9lnUxnl4Vh1a/ZgrPk33dzkAihdckxO3WHqn4Dpb2U4suL+Bzz5meKJvIFfy96rpAKeki6H8cdUD0MU6TNhlOKuMejzFLvSCPKyhUIAF/WSHNpIm6gXQa+wJ0jUw4eeTx2BTVtBWQGWDUC5SKDJH4NOgPlDI8M8t0PSsI488fSN/Leo4eLcPI/aUEpEPMB0cLmov83xTpcnWC/WVDeIjisXxm6ZtGnovpdMojpu33y8haQG1VjCoDNLzYVXhAjmsahQavdDU2obk/aTJ76UREJJAc9EhuIoE5FtSAJy/GPviujrNDFPlszt3w1HOvjEqRXMYZbPswaUXw2HQ2k8Aoizhsy98ksIJXt9uWwsIDPxT3N9+jxHlVeiYBA7rsLHKMx1wizJFTmVB+hgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Kapsamlı analiz tamamlandı. Planı güncelliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_013FYbK5skpsGzReYLibJAWC",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/.claude/plans/stateless-swimming-creek.md",

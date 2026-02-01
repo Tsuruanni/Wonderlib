@@ -44,6 +44,8 @@ class StudentSummary {
   final String id;
   final String firstName;
   final String lastName;
+  final String? studentNumber;
+  final String? email;
   final String? avatarUrl;
   final int xp;
   final int level;
@@ -55,6 +57,8 @@ class StudentSummary {
     required this.id,
     required this.firstName,
     required this.lastName,
+    this.studentNumber,
+    this.email,
     this.avatarUrl,
     required this.xp,
     required this.level,
@@ -106,6 +110,33 @@ abstract class TeacherRepository {
 
   /// Delete an assignment
   Future<Either<Failure, void>> deleteAssignment(String assignmentId);
+
+  // =============================================
+  // CLASS MANAGEMENT METHODS
+  // =============================================
+
+  /// Create a new class
+  Future<Either<Failure, String>> createClass({
+    required String schoolId,
+    required String name,
+    String? description,
+  });
+
+  /// Update a student's class assignment
+  Future<Either<Failure, void>> updateStudentClass({
+    required String studentId,
+    required String newClassId,
+  });
+
+  // =============================================
+  // PASSWORD MANAGEMENT METHODS
+  // =============================================
+
+  /// Send password reset email to student
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email);
+
+  /// Generate and set new password for student (returns the new password)
+  Future<Either<Failure, String>> resetStudentPassword(String studentId);
 }
 
 /// Student's progress on a specific book

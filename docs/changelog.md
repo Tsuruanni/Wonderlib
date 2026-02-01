@@ -8,6 +8,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Clean Architecture Refactor - Phase 1 (2026-02-01)
+
+#### Added
+- **UseCase Layer Foundation** - Base `UseCase<Type, Params>` abstract class with `Either<Failure, T>` return type
+- **4 Initial UseCases** - `ResetStudentPasswordUseCase`, `ChangeStudentClassUseCase`, `CreateAssignmentUseCase`, `SaveReadingProgressUseCase`
+- **UseCase Providers** - Centralized `usecase_providers.dart` for dependency injection
+- **Common Widgets** - Extracted `XPBadge` and `StatItem` for reuse across screens
+- **Architecture Documentation** - Comprehensive refactor plan (`CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`, `REFACTOR_CHECKLIST.md`)
+
+#### Changed
+- **CLAUDE.md Updated** - Added Clean Architecture rules, YASAK table, UseCase/Model templates
+- **3 Screens Use UseCases** - `class_detail_screen`, `create_assignment_screen`, `reader_screen` now call UseCases instead of repositories
+- **Provider autoDispose** - Added to 9 providers to prevent memory leaks
+
+#### Removed
+- **Mock Repositories Deleted** - 7 files (~1,380 lines): `mock_activity_repository.dart`, `mock_auth_repository.dart`, `mock_badge_repository.dart`, `mock_book_repository.dart`, `mock_user_repository.dart`, `mock_vocabulary_repository.dart`, `mock_word_list_repository.dart`
+
+#### Fixed
+- **Deprecated API** - `withOpacity()` → `withValues(alpha:)` in theme.dart
+- **Lint Rule** - Removed deprecated `avoid_returning_null_for_future` from analysis_options.yaml
+
+#### Infrastructure
+- **Docs Reorganization** - Moved `readeng-prd.md`, `readeng-trd-v2.md`, `readeng-user-flows.md` to `docs/`
+- **Edge Function** - `reset-student-password` Supabase function added
+- **Migration** - `20260201000003_teacher_class_management.sql` for class management features
+
 ### Router & Navigation Fixes (2026-02-01)
 
 #### Fixed

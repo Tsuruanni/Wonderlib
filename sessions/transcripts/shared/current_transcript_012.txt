@@ -1,0 +1,172 @@
+],\n   548→        ),\n   549→      ),\n   550→    );\n   551→  }\n   552→\n   553→  IconData _getStatusIcon(AssignmentStatus status) {\n   554→    switch (status) {\n   555→      case AssignmentStatus.pending:\n   556→        return Icons.schedule;\n   557→      case AssignmentStatus.inProgress:\n   558→        return Icons.play_circle_outline;\n   559→      case AssignmentStatus.completed:\n   560→        return Icons.check_circle;\n   561→      case AssignmentStatus.overdue:\n   562→        return Icons.warning;\n   563→    }\n   564→  }\n   565→\n   566→  Color _getStatusColor(AssignmentStatus status) {\n   567→    switch (status) {\n   568→      case AssignmentStatus.pending:\n   569→        return Colors.grey;\n   570→      case AssignmentStatus.inProgress:\n   571→        return Colors.blue;\n   572→      case AssignmentStatus.completed:\n   573→        return Colors.green;\n   574→      case AssignmentStatus.overdue:\n   575→        return Colors.red;\n   576→    }\n   577→  }\n   578→\n   579→  Color _getScoreColor(double score) {\n   580→    if (score >= 80) return Colors.green;\n   581→    if (score >= 60) return Colors.orange;\n   582→    return Colors.red;\n   583→  }\n   584→}\n   585→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I have the exact implementations. Let me:\n1. Create xp_badge.dart\n2. Create stat_item.dart\n3. Update the 7 files to remove the local implementations and import the common ones\n\nLet me first check if the common folder exists.",
+        "signature": "EowDCkYICxgCKkAijq7e4v2AxC8r7IJRPBsIGhwG35dprspWkGMP0bzdsW1zII6HZm8LMhBRNwnXng+KsUaQQ8vVvP+symMg2SMsEgwI5RIkrs/9v4FvxpkaDEEMOypwIfALDiFTySIwy1tmrK5sQ1CKW8x1UJif+NGfrbz5vVyLNB6yXW6gXz4SaE5jE2SZXxZzBXoqCWG4KvMBqkRZAvVNeJOWgtkqyOYUiLWr5al8U20j8axMCc1eYi7PQWyk7Qn8Q7nRNA8j6WCX6njJ+VEm8HFGL/3cvczcpr3qBHvoM5ixCPjiblN3tynTL5bj++bNXzdzi81CCHU2tfthhNOfKbUkm9DFTrbYu8jNbMByi3676YjdiPDQV1RMA5cTvdKxJqnSr9O43iXIIqIGWL32ys2hR2f8s68pUxEsfeoXdCyArBkAeath0y2Jp5lsaotI7d6/6gCniaGEWwQrNoAF+D/h+6Nkym2u1GGS7NBTtD8eUEHRIn/lLdDAewC/WXWvE3l4mMzFM1RSlvN2GAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi ortak widget'ları oluşturuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01GicxHY9Z1kCGDTy6qNWjof",
+        "name": "Bash",
+        "input": {
+          "command": "mkdir -p /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/common",
+          "description": "Create common widgets directory"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01GicxHY9Z1kCGDTy6qNWjof",
+        "type": "tool_result",
+        "content": "",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Good, now let me create the two widget files.",
+        "signature": "EtUBCkYICxgCKkC62f+VgKjKYaNjy2YRO0LPdvXf7GNBpht9TrjSs8Uk4s4n8anxVXqgtyUmzwPsSewwqWF5fW3T2s56nu5q3W0KEgzOKoz5qVmK5fzBl98aDAR2Zawz47WoRMyi2yIwOoaVitj2EHfOTpP4sHDbqN2P1A5PQuqco48WOaQI4yU/47rZCpYsvE1oyO7y7Z2ZKj06L+GrJ2d3BaDQKJzFnBtXdrvmt8Zup7V8TVWfzabqYHkpOr9D5+wJgBRhrfIJAlH4mH7Cj5BDytqPq3BlGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_016Jkjvx8T7ktaSY4ggkSzZN",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/common/xp_badge.dart",
+          "content": "import 'package:flutter/material.dart';\n\n/// Animated XP badge that appears when user earns XP\nclass XPBadge extends StatefulWidget {\n  const XPBadge({\n    super.key,\n    required this.xp,\n    required this.onComplete,\n  });\n\n  final int xp;\n  final VoidCallback onComplete;\n\n  @override\n  State<XPBadge> createState() => _XPBadgeState();\n}\n\nclass _XPBadgeState extends State<XPBadge> with SingleTickerProviderStateMixin {\n  late AnimationController _controller;\n  late Animation<double> _scaleAnimation;\n  late Animation<double> _fadeAnimation;\n\n  @override\n  void initState() {\n    super.initState();\n    _controller = AnimationController(\n      duration: const Duration(milliseconds: 1200),\n      vsync: this,\n    );\n\n    _scaleAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),\n      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),\n    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));\n\n    _fadeAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),\n    ]).animate(_controller);\n\n    _controller.forward().then((_) => widget.onComplete());\n  }\n\n  @override\n  void dispose() {\n    _controller.dispose();\n    super.dispose();\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return FadeTransition(\n      opacity: _fadeAnimation,\n      child: ScaleTransition(\n        scale: _scaleAnimation,\n        child: Container(\n          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),\n          decoration: BoxDecoration(\n            gradient: const LinearGradient(\n              colors: [Color(0xFF38A169), Color(0xFF48BB78)],\n            ),\n            borderRadius: BorderRadius.circular(12),\n          ),\n          child: Row(\n            mainAxisSize: MainAxisSize.min,\n            children: [\n              const Icon(Icons.bolt, color: Colors.white, size: 14),\n              const SizedBox(width: 3),\n              Text(\n                '+${widget.xp}',\n                style: const TextStyle(\n                  color: Colors.white,\n                  fontWeight: FontWeight.bold,\n                  fontSize: 12,\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_016Jkjvx8T7ktaSY4ggkSzZN",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/common/xp_badge.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01YNHLg5crzjebKVTQXvqjLP",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/common/stat_item.dart",
+          "content": "import 'package:flutter/material.dart';\n\nimport '../../../core/utils/extensions/context_extensions.dart';\n\n/// Reusable stat item widget for displaying a value with label\nclass StatItem extends StatelessWidget {\n  const StatItem({\n    super.key,\n    required this.value,\n    required this.label,\n    this.icon,\n    this.color,\n    this.valueStyle,\n    this.labelStyle,\n  });\n\n  final String value;\n  final String label;\n  final IconData? icon;\n  final Color? color;\n  final TextStyle? valueStyle;\n  final TextStyle? labelStyle;\n\n  @override\n  Widget build(BuildContext context) {\n    return Column(\n      children: [\n        if (icon != null) ...[\n          Icon(\n            icon,\n            color: color ?? context.colorScheme.onPrimaryContainer,\n            size: 24,\n          ),\n          const SizedBox(height: 4),\n        ],\n        Text(\n          value,\n          style: valueStyle ??\n              context.textTheme.titleMedium?.copyWith(\n                fontWeight: FontWeight.bold,\n              ),\n        ),\n        Text(\n          label,\n          style: labelStyle ??\n              context.textTheme.bodySmall?.copyWith(\n                color: context.colorScheme.outline,\n              ),\n        ),\n      ],\n    );\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01YNHLg5crzjebKVTQXvqjLP",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/common/stat_item.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I need to update the 7 files:\n\n1. For XPBadge (3 files):\n   - word_translation_activity.dart - remove _XPBadge class (lines 260-336), add import, change _XPBadge to XPBadge\n   - find_words_activity.dart - same\n   - true_false_activity.dart - same\n\n2. For StatItem (4 files):\n   - assignment_detail_screen.dart - remove _StatItem class (lines 404-438), add import, change _StatItem to StatItem\n   - assignment_report_screen.dart - same\n   - vocabulary_screen.dart - same\n   - reports_screen.dart - same\n\nLet me read the other files first to understand them, then make the edits.",
+        "signature": "EuYFCkYICxgCKkBtwvoaJxfD392wmW1fRduAbrEtCvHto1wzKaNaUjQ+IxcdVmpyDQauHhVD9d1qLICEpQkpc/XVqgDUysukYXLnEgygHcGKfYiRMk9dSlUaDHfI0YVAg/NV/jBTrSIwBLj20/nZ3/+UDs7sitNB1v4v0D/l7JC8IplRti3fsncwMh7uEa2EJ/7AHoCCxuz+Ks0EAiMVjfWsN1KirEDY2zCJPpRUBm9MNsAx1+g79l7PU4OqC+49/0tPHFhqPgEKrStwiKzBfRpWImGKrQKNJJerYOh7+i7KOkkj2Zt6tma7ljDAgU2yc96AmJd4EuukvVpuYlMs9eutgU/3q4514Bu++W50Tq8mMINuSJuseAZtrsAJTuwPk+xoFR/hBF8Asl+mgxy6KiuF/28D/ua8d+TKOGN3gA6ft+Tt14eKkJddOZgHgdSrDEZVjJUi+7blBb/nZJlINCBGt6vxAGeXFfHy6RfW4sncTDuQo83RdGrRCvC7DNZA/bOT0hATA2KA3Qb0ev2Fkdn2p27mJQWWD2efNNnjTTiWXUKlAjdniE7nzI+IOJmukcRsykSNEu16t50YiHQ/SmnPpbJtSgt6foLHu6EoVqy3duj6qitIYm+D6Ivm+1Mv0mQJ7G4veaq390vqdon86eBk7SDAOFPeqUT/BiW33BVvurjQqETk5n334PWFMx7xEMPTMuZxPiZmD07JZFSc+S8nw8esLk2wjnxy5BzBgTX6h0m9eekvO4Rcxxegw29eaXmOvufuLoqSFxtd6AWYBeCXkctpqyFCvplVf/RZwXk6c7MiivH1cNv/u7ls8hfswtGdSF1TJZq7vy/5BCBuQzsoJvQX2lZTAIIJk6A64oJytOpCMfupWeCmV5yXVF/2X/shKPE6eneYXZpbJlh/TB3l7Ivohj862WkU46cWQ8h8Bs0mIJv1l8O6Y7arufuAEq3P1zBZNPpXTgq4P/eZoDgqqzBrMiTxQhgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Ortak widget'lar oluşturuldu. Şimdi kaynak dosyaları güncelliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01SVgKS1CV3GfQQ5rHaUjoKf",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01W4qGoYzp76ZPaBePJbEHUN",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01SVgKS1CV3GfQQ5rHaUjoKf",
+        "type": "tool_result",

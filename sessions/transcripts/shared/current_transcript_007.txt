@@ -1,0 +1,401 @@
+        "thinking": "Now I can see the exact lines for each provider. Let me make the edits:\n\n1. **reader_provider.dart:**\n   - Line 168-169: `readingTimerProvider` → add `.autoDispose`\n   - Line 210-211: `inlineActivityStateProvider` → add `.autoDispose`\n   - Line 247-248: `sessionXPProvider` → add `.autoDispose`\n   - Line 269-270: `learnedWordsProvider` → add `.autoDispose`\n\n2. **activity_provider.dart:**\n   - Line 209-210: `activitySessionControllerProvider` → add `.autoDispose` between `.family` and `<`\n\n3. **book_provider.dart:**\n   - Line 218-219: `chapterCompletionProvider` → add `.autoDispose`\n   - Line 314-315: `readingControllerProvider` → add `.autoDispose` between `.family` and `<`\n\n4. **vocabulary_provider.dart:**\n   - Line 326-327: `vocabularyReviewControllerProvider` → add `.autoDispose`\n   - Line 549-550: `wordListProgressControllerProvider` → add `.autoDispose`\n\nLet me make all edits now.",
+        "signature": "ErEICkYICxgCKkDegTmRNoOoNtDaHIDiKimWcVLgbccw81V+g+l1Bi6VUhe5aD7IkvzjJe9oneYYEYA6IxgkcHZg/7wjotneSSlLEgxh0nRfk3zC7XyU0EMaDFB0rYV2zeikyEWZHSIw2r+EW4XN/o9liiKRLZ5E55tNVILxV59uwLjx+Ty7gqCu89qktAIJCY7IuW4RmQpyKpgHaDObhP1Gb6g9LjEQikDcDdL5R9E+Ll3tUrweZozUByPbNX05ZRL4cW+LQ6p3tcN+5pYAen+oBe/Bah/mbIsJeXdTgExQSGdZBKIQo6K7GXMZ5qOjeBqryrARbg1ryFa0EAXpviT7G+y8afx71gMJvEJnZrzzk+69Jg/9pCbjq2E88Hd7Nhk9FaM9L0phm/kWe4XMwSxIjZ1bM4zRJw32ztJeqajr+6wzORXDjw20yHqHbO4N26GAALmPPsgg+TrKvIsiTBa6Dt07d0/+hQ7vtDElmUwqhqvWkheB/lC1cg52XBcx/E4kDoLFZgUa/bqE96UvOGQbrXvh4+d3YjAj83VoxgzVYJSFdUpuvJz84wVOvW+76m4ZaE36gSBp9PaQAmQ6MTgSNvjMvdJgOXdAXVBrdyid4Vr1uZ1dIMdCwA3UFotdjPz1BvaT1eezX/bIT3ew6+cmLhw1k7mEm8s/eeJgSulZqpxNrxS5YtZgUrF/Eb60V2U+E2lZk0j5Lshmf7TqV1kx7vm8KxL4YpzGTE3kOsCmr34wokhzlHaI5fCVNnkSok2zsklXhfTRyw4awXVdl8OOIPkpviaYjMgQzeINxwT0qlR7NRElWP+J+6L+0cS6m5ZYPtlZqJNRpqU3PVtYOZt/EmLJhUpUQH5VPwgh5ot22Fhubc3tn02He4Gq257QSaJx5MyZx45W3pJO8mKUBBpt8XdMQ8iyfKSF8nTWM+sETr/4BvGJc4YGCdH2vjkePKslhjnkugJxa5PMoIMeTunkTCvNZc6oNIXw8EA1kHlAMn9SlB4q9FwPjjJVSp/td3UM5i5dbqANkOfiqNxzdsKFyg/SkvsBNtKZWPkxCZiYTxHrvEUAjM4ctyTGyVJDb4EpgZtg2IMeBoW9R5so1lOs/Wafd/o9hvWtYAqX7zy4TmKq5UmR8Jj47C0tS4D8Fj+BW+ycAyWESVUf28ODZbl1+A8tcPLIB/mSss2cl7Uw3RsjHHEtOSDFwM1RRGXtX+FJyCnExgYg6CT/boemKxv0/kMvFpspsPqIiURHMKkU6Z/3bL3boqeDKbxkEcRK9nEK76TzaBaUK0YC9S5uFMshlu7Lv4x2SqxIWfhPb+JfP1ZyEX89S0cRYzq2roXCuCmY7hEJFpIv1D6uUbUcwuztWZsxag/2c6zQykdxt5m9H2ebaYMr7BqtgnG+tUnclGhgRfMmBJjxVrZdGLuHxw8P2WoYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Dosyaları okudum. Şimdi 9 provider'a autoDispose ekliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_013x7ksNPMqTEUZ1YB4xM6dz",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "final readingTimerProvider =\n    StateNotifierProvider<ReadingTimerNotifier, int>((ref) {",
+          "new_string": "final readingTimerProvider =\n    StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01GNgZy7bybP6kCTqs34ymZm",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "final inlineActivityStateProvider =\n    StateNotifierProvider<InlineActivityStateNotifier, Map<String, bool>>((ref) {",
+          "new_string": "final inlineActivityStateProvider =\n    StateNotifierProvider.autoDispose<InlineActivityStateNotifier, Map<String, bool>>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_013x7ksNPMqTEUZ1YB4xM6dz",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01R8K95WxWMrzGYrxo9hYayx",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "final sessionXPProvider =\n    StateNotifierProvider<SessionXPNotifier, int>((ref) {",
+          "new_string": "final sessionXPProvider =\n    StateNotifierProvider.autoDispose<SessionXPNotifier, int>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01RMRA3JiNYQKhHpQZQK696D",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "final learnedWordsProvider =\n    StateNotifierProvider<LearnedWordsNotifier, List<String>>((ref) {",
+          "new_string": "final learnedWordsProvider =\n    StateNotifierProvider.autoDispose<LearnedWordsNotifier, List<String>>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01GNgZy7bybP6kCTqs34ymZm",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01GUo8Ue5scUzCEt5wT25PLq",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart",
+          "old_string": "final activitySessionControllerProvider = StateNotifierProvider.family<\n    ActivitySessionController, ActivitySessionState, String>((ref, activityId) {",
+          "new_string": "final activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<\n    ActivitySessionController, ActivitySessionState, String>((ref, activityId) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01R8K95WxWMrzGYrxo9hYayx",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01WSGdJ6dhGGg6uJ4h2RM6Gw",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart",
+          "old_string": "final chapterCompletionProvider =\n    StateNotifierProvider<ChapterCompletionNotifier, AsyncValue<void>>((ref) {",
+          "new_string": "final chapterCompletionProvider =\n    StateNotifierProvider.autoDispose<ChapterCompletionNotifier, AsyncValue<void>>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01C2JDFkRjFJiSa8j9Cysedw",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart",
+          "old_string": "final readingControllerProvider = StateNotifierProvider.family<\n    ReadingController, AsyncValue<ReadingProgress?>, String>((ref, bookId) {",
+          "new_string": "final readingControllerProvider = StateNotifierProvider.autoDispose.family<\n    ReadingController, AsyncValue<ReadingProgress?>, String>((ref, bookId) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01RMRA3JiNYQKhHpQZQK696D",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01V5j232RLPFSUSZ5ditsqb9",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart",
+          "old_string": "final vocabularyReviewControllerProvider =\n    StateNotifierProvider<VocabularyReviewController, VocabularyReviewState>((ref) {",
+          "new_string": "final vocabularyReviewControllerProvider =\n    StateNotifierProvider.autoDispose<VocabularyReviewController, VocabularyReviewState>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01GUo8Ue5scUzCEt5wT25PLq",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01WLztUNBN1ciJSGtRuJQ6S9",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart",
+          "old_string": "final wordListProgressControllerProvider =\n    StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>((ref) {",
+          "new_string": "final wordListProgressControllerProvider =\n    StateNotifierProvider.autoDispose<WordListProgressController, Map<String, UserWordListProgress>>((ref) {"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01WSGdJ6dhGGg6uJ4h2RM6Gw",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01C2JDFkRjFJiSa8j9Cysedw",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01V5j232RLPFSUSZ5ditsqb9",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01WLztUNBN1ciJSGtRuJQ6S9",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "All 9 edits completed successfully. Now let me verify with dart analyze.",
+        "signature": "EvABCkYICxgCKkARylro3oX4/UG953tGI2AyVxtaFdt37nrus3OXdltBglgLkNB0WHW6Y75UTFgAh45Z/JhHMdjTkzgllK6Mcp5TEgwkDP79Zl0dVVMQT6gaDCEjL6/uGjfFzAiKLSIw6dOa4RO9+0chJ9gTrElFTZUnoiMDreN5995K921tyJjvEBVHuYjWCUkcwQdc+XBOKliZ9VksW/arTlriwE6satd2eFpwzLK8jaGMgofirHdi3Oy7YVYJDwlX4UAYDX0r7NQNQmD71bJdSPQTiPgb3lFq9hjeRVXNtLweo/Cl7iozbDIg6d8dXpycGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "9 provider güncellendi. Doğrulama yapıyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01ARiSdvsALTmrW4ER8U7F9q",
+        "name": "mcp__dart__analyze_files",
+        "input": {
+          "roots": [
+            {
+              "root": "file:///Users/wonderelt/Desktop/wonderlib",
+              "paths": [
+                "lib/presentation/providers/"
+              ]
+            }
+          ]
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01ARiSdvsALTmrW4ER8U7F9q",
+        "type": "tool_result",
+        "content": [
+          {
+            "type": "text",
+            "text": "No errors"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Dart analyze passed with no errors. Faz 2 is complete.",
+        "signature": "Et4BCkYICxgCKkC9qAXDNEryWVpFMjUmYtU4uWN5Dw0lO81EN7uYDwXBMyMPCD1txcAPMVBt7rJYIkCadvQgYhb9jrJmfEilJdI9EgzC2Vy1xLIRWniWAYoaDBjtma+cnEziadF6eyIwa4S20Lmwv2FEC/wjXJBoPieYV8FoYDAx6/3KBKrTHDAnrrAApmDZNEIjLi+7Cv8fKkaOGbzYlrsG1VMfWuV0fVqWbs1Y7UEootGyGocgDX3WqmQRHud0Ljg95nM85lTkKngYmlFzdI9AgvDlaQId/TLaFFhfiOCwGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "**Faz 2 tamamlandı.**\n\n| Dosya | Provider | Durum |\n|-------|----------|-------|\n| `reader_provider.dart` | `readingTimerProvider` | ✅ |\n| `reader_provider.dart` | `inlineActivityStateProvider` | ✅ |\n| `reader_provider.dart` | `sessionXPProvider` | ✅ |\n| `reader_provider.dart` | `learnedWordsProvider` | ✅ |\n| `activity_provider.dart` | `activitySessionControllerProvider` | ✅ |\n| `book_provider.dart` | `chapterCompletionProvider` | ✅ |\n| `book_provider.dart` | `readingControllerProvider` | ✅ |\n| `vocabulary_provider.dart` | `vocabularyReviewControllerProvider` | ✅ |\n| `vocabulary_provider.dart` | `wordListProgressControllerProvider` | ✅ |\n\n**Dart analiz:** ✅ Hata yok\n\n**Özet (Faz 1 + Faz 2):**\n- 7 mock repository silindi (~1,380 satır)\n- 1 deprecated lint kaldırıldı\n- 2 withOpacity düzeltildi\n- 9 provider'a autoDispose eklendi (memory leak önlendi)\n\nFaz 3'e (duplicate widget extraction) geçelim mi?"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": "geçelim. önce planlayalım."
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user wants to proceed to Phase 3 (duplicate widget extraction) and wants me to plan it first. Let me explore the duplicate widgets mentioned in the code review document to understand what needs to be extracted.\n\nFrom the code review document, these are the duplicate widgets:\n1. _XPBadge Widget (3 files, ~180 lines)\n2. _StatItem Widget (4 files, ~120 lines)\n3. _SectionHeader Widget (3 files, ~90 lines)\n4. _AssignmentCard Widget (3 files, ~250 lines)\n5. _MiniStat Widget (3 files, ~90 lines)\n6. _EmptyState Widget (3 files, ~120 lines)\n\nLet me explore these to understand the exact implementations and plan the extraction.",
+        "signature": "EpsGCkYICxgCKkD+2uKWmYVxHO9mWClmlLFUpNOjYiEoqyi0eq9IVArRd5G1q2OwfBgqMX7EuhlMFEB5qZGw/QFZ0S0zyTXxdGDtEgzvtQWtgnSMbu/rsA4aDCC86YQLnUp8SwXN+iIwoP7ViwT5HELvEyuFihwM0cf1Klu9ibMcYv9mULpmZ148c1wTe7SCu7w6l6UTq/KFKoIFJ9wrS6uKfiWrM2xCySKFuW1ZarGgsCe3/H15mMGbWh9rP1UgAoBlZuaxyqYmdANzZpt4RGczQlhvN1lSRgHGPd2D/Vbct1w0GgCn1IjXxVMGu6X+Fxa880EEZrW/XxbL0yQvUv9WcxDHblujmCOz7j8QTJZAs1NFVIb0QzrrT3ayymOhiXTOu/eZC3lHZXIkl/HKwKbiRo4tb5GwWGNfKHAA/yCRLXeKzwjJAmJ7PBomui3XozgXyBPGClgD4r2hvmVIY/PaYgkrFsAXoUy3KKrXkGn/1fJQFqqZkPonsRp8qFqLSc7SWDLcikX6AlnFhYGWAiWG6WQNaMAXanjtzNgmjWmU8nCLCLj3Q/eCcvCSqYOW/DxjcLDLHRma52PLpj4AiqwjG7D4wIcFs0Vw/WMDSzq4ftuD7J3VoDpAbxaFQVqwfGa3+eQLrusys4UFoxH8kxQWZ0l3omKEYi90wkd823azsmB43uCCVcA76MN2tTyCEy3YoqmWB+EvrL8XY3z2WVRk67WK5t68WxdF7BKK8E1RDUTflobE3WaQXtKe8Ce04+K6ooFx76mllQ1QfzQEyYzTqvYFnYLWbil1zvKiaT/LR/NyDN90KhQvUbBEQnYPLW+fSp7KMxfm6DtaUz0YyPAHw7qfh2oORgmWrAYUnqt6jHACM+oueu9WZ/w6eNWPXhtYZmdBVqGYj7YDIKyIiIMIvCZBFTK7ENDFb6PgXhkALbi4+MPltQw6AEq9Cy6jDvPcF+7SzyBoFH0HmaN7DY+VB44yXKFHiRycW++QgppXvdyRxOKkzqFzHYdmjlZl3zVG9IEifwg4NrjpY37nplUwE56EIIUo6mRU5IQ5GAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Faz 3 için duplicate widget'ları analiz ediyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01GTsoQ2qWBsrbrab1trrDHf",
+        "name": "Task",
+        "input": {
+          "description": "Analyze duplicate widgets",
+          "prompt": "Analyze the duplicate widgets mentioned in the code review. For each widget type, read the implementations and identify:\n\n1. **_XPBadge** - in these files:\n   - lib/presentation/widgets/activities/word_translation_activity.dart\n   - lib/presentation/widgets/activities/find_words_activity.dart\n   - lib/presentation/widgets/activities/true_false_activity.dart\n\n2. **_StatItem** - in these files:\n   - lib/presentation/screens/teacher/assignment_detail_screen.dart\n   - lib/presentation/screens/teacher/reports/assignment_report_screen.dart\n   - lib/presentation/screens/vocabulary/vocabulary_screen.dart\n   - lib/presentation/screens/teacher/reports_screen.dart\n\n3. **_EmptyState** - in these files:\n   - lib/presentation/screens/library/library_screen.dart\n   - lib/presentation/screens/vocabulary/category_browse_screen.dart\n   - lib/presentation/screens/vocabulary/vocabulary_hub_screen.dart\n\nFor each widget:\n- Show the exact implementation from ONE file (as reference)\n- Note any differences between implementations\n- Suggest the unified API (constructor parameters)\n- Recommend the target file path in lib/presentation/widgets/common/\n\nFocus on creating a practical extraction plan.",
+          "subagent_type": "Explore"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01GTsoQ2qWBsrbrab1trrDHf",
+        "type": "tool_result",
+        "content": [
+          {
+            "type": "text",

@@ -1,0 +1,197 @@
+        "content": "     1→import 'package:dartz/dartz.dart';\n     2→\n     3→import '../../core/errors/failures.dart';\n     4→import '../entities/user.dart';\n     5→\n     6→/// Statistics for teacher dashboard\n     7→class TeacherStats {\n     8→  final int totalStudents;\n     9→  final int totalClasses;\n    10→  final int activeAssignments;\n    11→  final double avgProgress;\n    12→\n    13→  const TeacherStats({\n    14→    required this.totalStudents,\n    15→    required this.totalClasses,\n    16→    required this.activeAssignments,\n    17→    required this.avgProgress,\n    18→  });\n    19→}\n    20→\n    21→/// Class entity for teacher view\n    22→class TeacherClass {\n    23→  final String id;\n    24→  final String name;\n    25→  final int? grade;\n    26→  final String? academicYear;\n    27→  final int studentCount;\n    28→  final double avgProgress;\n    29→  final DateTime? createdAt;\n    30→\n    31→  const TeacherClass({\n    32→    required this.id,\n    33→    required this.name,\n    34→    this.grade,\n    35→    this.academicYear,\n    36→    required this.studentCount,\n    37→    required this.avgProgress,\n    38→    this.createdAt,\n    39→  });\n    40→}\n    41→\n    42→/// Student summary for class view\n    43→class StudentSummary {\n    44→  final String id;\n    45→  final String firstName;\n    46→  final String lastName;\n    47→  final String? studentNumber;\n    48→  final String? email;\n    49→  final String? avatarUrl;\n    50→  final int xp;\n    51→  final int level;\n    52→  final int currentStreak;\n    53→  final int booksRead;\n    54→  final double avgProgress;\n    55→\n    56→  const StudentSummary({\n    57→    required this.id,\n    58→    required this.firstName,\n    59→    required this.lastName,\n    60→    this.studentNumber,\n    61→    this.email,\n    62→    this.avatarUrl,\n    63→    required this.xp,\n    64→    required this.level,\n    65→    required this.currentStreak,\n    66→    required this.booksRead,\n    67→    required this.avgProgress,\n    68→  });\n    69→\n    70→  String get fullName => '$firstName $lastName';\n    71→}\n    72→\n    73→/// Repository for teacher-specific operations\n    74→abstract class TeacherRepository {\n    75→  /// Get dashboard statistics for a teacher\n    76→  Future<Either<Failure, TeacherStats>> getTeacherStats(String teacherId);\n    77→\n    78→  /// Get list of classes for a teacher's school\n    79→  Future<Either<Failure, List<TeacherClass>>> getClasses(String schoolId);\n    80→\n    81→  /// Get students in a specific class\n    82→  Future<Either<Failure, List<StudentSummary>>> getClassStudents(String classId);\n    83→\n    84→  /// Get detailed student info (for student detail screen)\n    85→  Future<Either<Failure, User>> getStudentDetail(String studentId);\n    86→\n    87→  /// Get student's reading progress across all books\n    88→  Future<Either<Failure, List<StudentBookProgress>>> getStudentProgress(String studentId);\n    89→\n    90→  // =============================================\n    91→  // ASSIGNMENT METHODS\n    92→  // =============================================\n    93→\n    94→  /// Get all assignments created by a teacher\n    95→  Future<Either<Failure, List<Assignment>>> getAssignments(String teacherId);\n    96→\n    97→  /// Get assignment detail with student progress\n    98→  Future<Either<Failure, Assignment>> getAssignmentDetail(String assignmentId);\n    99→\n   100→  /// Get students' progress for an assignment\n   101→  Future<Either<Failure, List<AssignmentStudent>>> getAssignmentStudents(\n   102→    String assignmentId,\n   103→  );\n   104→\n   105→  /// Create a new assignment\n   106→  Future<Either<Failure, Assignment>> createAssignment(\n   107→    String teacherId,\n   108→    CreateAssignmentData data,\n   109→  );\n   110→\n   111→  /// Delete an assignment\n   112→  Future<Either<Failure, void>> deleteAssignment(String assignmentId);\n   113→\n   114→  // =============================================\n   115→  // CLASS MANAGEMENT METHODS\n   116→  // =============================================\n   117→\n   118→  /// Create a new class\n   119→  Future<Either<Failure, String>> createClass({\n   120→    required String schoolId,\n   121→    required String name,\n   122→    String? description,\n   123→  });\n   124→\n   125→  /// Update a student's class assignment\n   126→  Future<Either<Failure, void>> updateStudentClass({\n   127→    required String studentId,\n   128→    required String newClassId,\n   129→  });\n   130→\n   131→  // =============================================\n   132→  // PASSWORD MANAGEMENT METHODS\n   133→  // =============================================\n   134→\n   135→  /// Send password reset email to student\n   136→  Future<Either<Failure, void>> sendPasswordResetEmail(String email);\n   137→\n   138→  /// Generate and set new password for student (returns the new password)\n   139→  Future<Either<Failure, String>> resetStudentPassword(String studentId);\n   140→}\n   141→\n   142→/// Student's progress on a specific book\n   143→class StudentBookProgress {\n   144→  final String bookId;\n   145→  final String bookTitle;\n   146→  final String? bookCoverUrl;\n   147→  final double completionPercentage;\n   148→  final int totalReadingTime;\n   149→  final int completedChapters;\n   150→  final int totalChapters;\n   151→  final DateTime? lastReadAt;\n   152→\n   153→  const StudentBookProgress({\n   154→    required this.bookId,\n   155→    required this.bookTitle,\n   156→    this.bookCoverUrl,\n   157→    required this.completionPercentage,\n   158→    required this.totalReadingTime,\n   159→    required this.completedChapters,\n   160→    required this.totalChapters,\n   161→    this.lastReadAt,\n   162→  });\n   163→}\n   164→\n   165→// =============================================\n   166→// ASSIGNMENT ENTITIES\n   167→// =============================================\n   168→\n   169→/// Assignment type enum\n   170→enum AssignmentType {\n   171→  book,\n   172→  vocabulary,\n   173→  mixed;\n   174→\n   175→  String get displayName {\n   176→    switch (this) {\n   177→      case AssignmentType.book:\n   178→        return 'Book Reading';\n   179→      case AssignmentType.vocabulary:\n   180→        return 'Vocabulary';\n   181→      case AssignmentType.mixed:\n   182→        return 'Mixed';\n   183→    }\n   184→  }\n   185→\n   186→  static AssignmentType fromString(String value) {\n   187→    switch (value) {\n   188→      case 'book':\n   189→        return AssignmentType.book;\n   190→      case 'vocabulary':\n   191→        return AssignmentType.vocabulary;\n   192→      case 'mixed':\n   193→        return AssignmentType.mixed;\n   194→      default:\n   195→        return AssignmentType.book;\n   196→    }\n   197→  }\n   198→}\n   199→\n   200→/// Assignment status for students\n   201→enum AssignmentStatus {\n   202→  pending,\n   203→  inProgress,\n   204→  completed,\n   205→  overdue;\n   206→\n   207→  String get displayName {\n   208→    switch (this) {\n   209→      case AssignmentStatus.pending:\n   210→        return 'Not Started';\n   211→      case AssignmentStatus.inProgress:\n   212→        return 'In Progress';\n   213→      case AssignmentStatus.completed:\n   214→        return 'Completed';\n   215→      case AssignmentStatus.overdue:\n   216→        return 'Overdue';\n   217→    }\n   218→  }\n   219→\n   220→  static AssignmentStatus fromString(String value) {\n   221→    switch (value) {\n   222→      case 'pending':\n   223→        return AssignmentStatus.pending;\n   224→      case 'in_progress':\n   225→        return AssignmentStatus.inProgress;\n   226→      case 'completed':\n   227→        return AssignmentStatus.completed;\n   228→      case 'overdue':\n   229→        return AssignmentStatus.overdue;\n   230→      default:\n   231→        return AssignmentStatus.pending;\n   232→    }\n   233→  }\n   234→}\n   235→\n   236→/// Assignment entity for teacher view\n   237→class Assignment {\n   238→  final String id;\n   239→  final String teacherId;\n   240→  final String? classId;\n   241→  final String? className;\n   242→  final AssignmentType type;\n   243→  final String title;\n   244→  final String? description;\n   245→  final Map<String, dynamic> contentConfig;\n   246→  final DateTime startDate;\n   247→  final DateTime dueDate;\n   248→  final DateTime createdAt;\n   249→  final int totalStudents;\n   250→  final int completedStudents;\n   251→\n   252→  const Assignment({\n   253→    required this.id,\n   254→    required this.teacherId,\n   255→    this.classId,\n   256→    this.className,\n   257→    required this.type,\n   258→    required this.title,\n   259→    this.description,\n   260→    required this.contentConfig,\n   261→    required this.startDate,\n   262→    required this.dueDate,\n   263→    required this.createdAt,\n   264→    required this.totalStudents,\n   265→    required this.completedStudents,\n   266→  });\n   267→\n   268→  double get completionRate =>\n   269→      totalStudents > 0 ? (completedStudents / totalStudents) * 100 : 0;\n   270→\n   271→  bool get isOverdue => DateTime.now().isAfter(dueDate);\n   272→  bool get isActive =>\n   273→      DateTime.now().isAfter(startDate) && DateTime.now().isBefore(dueDate);\n   274→  bool get isUpcoming => DateTime.now().isBefore(startDate);\n   275→}\n   276→\n   277→/// Student's progress on a specific assignment\n   278→class AssignmentStudent {\n   279→  final String id;\n   280→  final String studentId;\n   281→  final String studentName;\n   282→  final String? avatarUrl;\n   283→  final AssignmentStatus status;\n   284→  final double progress;\n   285→  final double? score;\n   286→  final DateTime? startedAt;\n   287→  final DateTime? completedAt;\n   288→\n   289→  const AssignmentStudent({\n   290→    required this.id,\n   291→    required this.studentId,\n   292→    required this.studentName,\n   293→    this.avatarUrl,\n   294→    required this.status,\n   295→    required this.progress,\n   296→    this.score,\n   297→    this.startedAt,\n   298→    this.completedAt,\n   299→  });\n   300→}\n   301→\n   302→/// Data for creating a new assignment\n   303→class CreateAssignmentData {\n   304→  final String? classId;\n   305→  final List<String>? studentIds;\n   306→  final AssignmentType type;\n   307→  final String title;\n   308→  final String? description;\n   309→  final Map<String, dynamic> contentConfig;\n   310→  final DateTime startDate;\n   311→  final DateTime dueDate;\n   312→\n   313→  const CreateAssignmentData({\n   314→    this.classId,\n   315→    this.studentIds,\n   316→    required this.type,\n   317→    required this.title,\n   318→    this.description,\n   319→    required this.contentConfig,\n   320→    required this.startDate,\n   321→    required this.dueDate,\n   322→  });\n   323→}\n   324→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01QAhQFuRD2nzp5hiDGhmihr",
+        "type": "tool_result",
+        "content": "Found 1 file\nlib/core/errors/failures.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I have the TeacherRepository interface and the Failure class location. Let me also check the BookRepository for SaveReadingProgressUseCase, then start creating the use cases.",
+        "signature": "EtsCCkYICxgCKkBr9hg8lzW32gVUQOz1rAgGxpBoh3a8bQVYcrj59ajIu6EWvUDpg938JNQCG6PeI5DrdmX/F5aPXWg6SnQTUfAbEgxoXqBwlLSxdqYQm/caDE1jgwWlvCTJgvfdOSIwGj3NdkF0EC828z1qYlK3mYnlnFHRwFwrHVK3YstR+Xz2M424TbO7QAvzsMFF7krEKsIBjQMoYngqnNSWjZ0PeNWr5AK9OEnuQf5E1uw/NVz64bXaBWN+U9VCFdSBk/3yPrURR6N+9qr4/TOsYSK0RL0ShMoP5zBXd/V8tvwx13YE6yQNKPv5FJkS56BCgmyDbcA7xe+n8L4bsGqgqvqo8tU61huVpOuqB7J9QdjaPx6RaorhHNkr2aW/T5RDElM+u+Ql2UaBKFgG0lLX/k/dV3Ln32VPPHeg+xgu53vvLsWTgMu3UyBeHZQBaWpOWKFHwQ3bpzoYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01RN8HLkLzxoh1CG1xijsfPw",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/core/errors/failures.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01RN8HLkLzxoh1CG1xijsfPw",
+        "type": "tool_result",
+        "content": "     1→import 'package:equatable/equatable.dart';\n     2→\n     3→/// Base failure class for functional error handling\n     4→/// Used with dartz Either<Failure, Success> pattern\n     5→abstract class Failure extends Equatable {\n     6→  final String message;\n     7→  final String? code;\n     8→\n     9→  const Failure({\n    10→    required this.message,\n    11→    this.code,\n    12→  });\n    13→\n    14→  @override\n    15→  List<Object?> get props => [message, code];\n    16→}\n    17→\n    18→/// Server/API failures\n    19→class ServerFailure extends Failure {\n    20→  final int? statusCode;\n    21→\n    22→  const ServerFailure(\n    23→    String message, {\n    24→    String? code,\n    25→    this.statusCode,\n    26→  }) : super(message: message, code: code);\n    27→\n    28→  @override\n    29→  List<Object?> get props => [message, code, statusCode];\n    30→}\n    31→\n    32→/// Network connectivity failures\n    33→class NetworkFailure extends Failure {\n    34→  const NetworkFailure([String message = 'No internet connection'])\n    35→      : super(message: message, code: 'NO_NETWORK');\n    36→}\n    37→\n    38→/// Local cache/database failures\n    39→class CacheFailure extends Failure {\n    40→  const CacheFailure(String message)\n    41→      : super(message: message, code: 'CACHE_ERROR');\n    42→}\n    43→\n    44→/// Authentication failures\n    45→class AuthFailure extends Failure {\n    46→  const AuthFailure(String message, {String? code})\n    47→      : super(message: message, code: code ?? 'AUTH_ERROR');\n    48→\n    49→  factory AuthFailure.invalidCredentials() => const AuthFailure(\n    50→        'Invalid email or password',\n    51→        code: 'INVALID_CREDENTIALS',\n    52→      );\n    53→\n    54→  factory AuthFailure.schoolNotFound() => const AuthFailure(\n    55→        'School not found',\n    56→        code: 'SCHOOL_NOT_FOUND',\n    57→      );\n    58→\n    59→  factory AuthFailure.sessionExpired() => const AuthFailure(\n    60→        'Session expired, please login again',\n    61→        code: 'SESSION_EXPIRED',\n    62→      );\n    63→}\n    64→\n    65→/// Validation failures\n    66→class ValidationFailure extends Failure {\n    67→  final Map<String, List<String>>? fieldErrors;\n    68→\n    69→  const ValidationFailure(\n    70→    String message, {\n    71→    this.fieldErrors,\n    72→  }) : super(message: message, code: 'VALIDATION_ERROR');\n    73→\n    74→  @override\n    75→  List<Object?> get props => [message, code, fieldErrors];\n    76→}\n    77→\n    78→/// Sync failures for offline-first operations\n    79→class SyncFailure extends Failure {\n    80→  const SyncFailure(String message)\n    81→      : super(message: message, code: 'SYNC_ERROR');\n    82→}\n    83→\n    84→/// Not found failure\n    85→class NotFoundFailure extends Failure {\n    86→  const NotFoundFailure(String message)\n    87→      : super(message: message, code: 'NOT_FOUND');\n    88→}\n    89→\n    90→/// Generic unexpected failure\n    91→class UnexpectedFailure extends Failure {\n    92→  const UnexpectedFailure([String message = 'An unexpected error occurred'])\n    93→      : super(message: message, code: 'UNEXPECTED');\n    94→}\n    95→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I have all the information I need. Let me create the use cases step by step:\n\n1. Base UseCase class\n2. ResetStudentPasswordUseCase\n3. ChangeStudentClassUseCase\n4. CreateAssignmentUseCase\n5. SaveReadingProgressUseCase\n6. UseCase providers\n\nLet me start.",
+        "signature": "EqUDCkYICxgCKkDf9mT4KoV/xxTIx+s8/MhcKa4i4/5VjhT2MO0aqpvxmTrO2ZPdyL8xG5AqJEv7ylaie5t1v3f/czL6ZkiS8UzgEgztuqrM/GQo57faRLkaDAlWYAqQ+iOIf5SyqiIwf9gv1ATTHZkq8EsZeq3HDV/oSL88b9OFGS7Slm4JCtrKSwBABovV23Qk6vn3I7DvKowCcx24orzqNkjYY/CtOrK4JonZ99L812g8TQSBoFqFxt6PBgt6CNiFUtJdR+c+cGMVuFybTWKqHHWfWjaTi3QMlO4SVZ1087jXE5pWWnuyipRFpYCN+AfAo8C/xY78W4IQ3dqFpnYVCeU0ZBuqmCFltPmlNktx+QhDeekMalJSH1OBuDPnzozVLvAPb2y29nGFOdPCiBPTbhN05rvLWJPLXOH5GNmJO8bXTLXv/7oLha/pkKgdvxJRjvyrCiWRMusCrsqykSEiDWo6iMuvOznjQOJhxKzDH1i7YZbzBWP7Ejlb+0Z4YFTBg1YrM/MqTe1BeZhqWUNl8XMmkFfQq/2Qxs0umzC6Iz6cpTx/sxgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi use case'leri oluşturuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Ko42NC476DctJ1gAkJTQBV",
+        "name": "Bash",
+        "input": {
+          "command": "mkdir -p /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/teacher /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/assignment /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/reading",
+          "description": "Create use case directories"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Ko42NC476DctJ1gAkJTQBV",
+        "type": "tool_result",
+        "content": "",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now let me create the use case files.",
+        "signature": "Es0BCkYICxgCKkBt31J83825+bJeMOJFu76aSGnTllalFaKWgS+X+sfpBrk72NiqXux/ukj+SCCHKTDZRPQ5CWxP/UrMTcbNjtFkEgz9CmQnkkBgxORJm84aDMZkgZlu4gmD6IKpOiIwlx386H81PZ57YUzMPZWOcOa/CRZSKjzAbqVEnMJE9hm+dK0lKuuwdInzmab1wQ6jKjUP6WU2PQ0ZE7PCXuCBqbl2ePwh7k4yTv0h9mLZFS+ZGiJM6ve7TensgWqkmT7fhuQaAITechgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NSG5GhwQJVT6VZcu6dvdCd",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/usecase.dart",
+          "content": "import 'package:dartz/dartz.dart';\n\nimport '../../core/errors/failures.dart';\n\n/// Base use case interface\n/// Type = return type, Params = input parameters\nabstract class UseCase<Type, Params> {\n  Future<Either<Failure, Type>> call(Params params);\n}\n\n/// Use when no parameters needed\nclass NoParams {\n  const NoParams();\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01NSG5GhwQJVT6VZcu6dvdCd",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/usecase.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_0188uzJVo3oAuYEcZoSPLEoG",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/teacher/reset_student_password_usecase.dart",
+          "content": "import 'package:dartz/dartz.dart';\n\nimport '../../../core/errors/failures.dart';\nimport '../../repositories/teacher_repository.dart';\nimport '../usecase.dart';\n\nclass ResetStudentPasswordParams {\n  final String studentId;\n\n  const ResetStudentPasswordParams({required this.studentId});\n}\n\n/// Resets a student's password and returns the new password\nclass ResetStudentPasswordUseCase\n    implements UseCase<String, ResetStudentPasswordParams> {\n  final TeacherRepository _repository;\n\n  const ResetStudentPasswordUseCase(this._repository);\n\n  @override\n  Future<Either<Failure, String>> call(ResetStudentPasswordParams params) {\n    return _repository.resetStudentPassword(params.studentId);\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_0188uzJVo3oAuYEcZoSPLEoG",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/teacher/reset_student_password_usecase.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Vixf3ojjeykJ13SsQnLfry",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/teacher/change_student_class_usecase.dart",
+          "content": "import 'package:dartz/dartz.dart';\n\nimport '../../../core/errors/failures.dart';\nimport '../../repositories/teacher_repository.dart';\nimport '../usecase.dart';\n\nclass ChangeStudentClassParams {\n  final String studentId;\n  final String newClassId;\n\n  const ChangeStudentClassParams({\n    required this.studentId,\n    required this.newClassId,\n  });\n}\n\n/// Changes a student's class assignment\nclass ChangeStudentClassUseCase\n    implements UseCase<void, ChangeStudentClassParams> {\n  final TeacherRepository _repository;\n\n  const ChangeStudentClassUseCase(this._repository);\n\n  @override\n  Future<Either<Failure, void>> call(ChangeStudentClassParams params) {\n    return _repository.updateStudentClass(\n      studentId: params.studentId,\n      newClassId: params.newClassId,\n    );\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Vixf3ojjeykJ13SsQnLfry",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/teacher/change_student_class_usecase.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01W8bLoA8jHzuKh9nZPTmB7G",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/domain/usecases/assignment/create_assignment_usecase.dart",

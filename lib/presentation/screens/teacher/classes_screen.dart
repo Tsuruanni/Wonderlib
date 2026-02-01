@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/repository_providers.dart';
 import '../../providers/teacher_provider.dart';
 
 class ClassesScreen extends ConsumerWidget {
@@ -11,15 +13,20 @@ class ClassesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final classesAsync = ref.watch(teacherClassesProvider);
+    final classesAsync = ref.watch(currentTeacherClassesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Classes'),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCreateClassDialog(context, ref),
+        icon: const Icon(Icons.add),
+        label: const Text('New Class'),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(teacherClassesProvider);
+          ref.invalidate(currentTeacherClassesProvider);
         },
         child: classesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,7 +39,7 @@ class ClassesScreen extends ConsumerWidget {
                 Text('Error loading classes', style: context.textTheme.bodyLarge),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => ref.invalidate(teacherClassesProvider),
+                  onPressed: () => ref.invalidate(currentTeacherClassesProvider),
                   child: const Text('Retry'),
                 ),
               ],
@@ -83,6 +90,116 @@ class ClassesScreen extends ConsumerWidget {
           },
         ),
       ),
+    );
+  }
+
+  void _showCreateClassDialog(BuildContext context, WidgetRef ref) {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Create New Class'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Class Name *',
+                  hintText: 'e.g., 5A, Grade 7',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a class name';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: descController,
+                decoration: const InputDecoration(
+                  labelText: 'Description (optional)',
+                  hintText: 'e.g., Morning English class',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+
+              Navigator.pop(dialogContext);
+              await _createClass(
+                context,
+                ref,
+                nameController.text.trim(),
+                descController.text.trim().isEmpty ? null : descController.text.trim(),
+              );
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createClass(
+    BuildContext context,
+    WidgetRef ref,
+    String name,
+    String? description,
+  ) async {
+    // Get teacher's school ID
+    final user = ref.read(authStateChangesProvider).valueOrNull;
+    if (user == null || user.schoolId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error: Could not determine school')),
+      );
+      return;
+    }
+
+    final teacherRepo = ref.read(teacherRepositoryProvider);
+    final result = await teacherRepo.createClass(
+      schoolId: user.schoolId,
+      name: name,
+      description: description,
+    );
+
+    if (!context.mounted) return;
+
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${failure.message}'),
+            backgroundColor: context.colorScheme.error,
+          ),
+        );
+      },
+      (classId) {
+        ref.invalidate(currentTeacherClassesProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Class "$name" created'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      },
     );
   }
 }

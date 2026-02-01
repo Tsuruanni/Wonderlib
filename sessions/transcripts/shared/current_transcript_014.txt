@@ -1,0 +1,188 @@
+        "content": "     1→import 'package:flutter/material.dart';\n     2→\n     3→import '../../../domain/entities/activity.dart';\n     4→import '../../providers/reader_provider.dart';\n     5→\n     6→/// True/False inline activity widget - compact version\n     7→class TrueFalseActivity extends StatefulWidget {\n     8→  const TrueFalseActivity({\n     9→    super.key,\n    10→    required this.activity,\n    11→    required this.settings,\n    12→    required this.onAnswer,\n    13→    this.isCompleted = false,\n    14→    this.wasCorrect,\n    15→  });\n    16→\n    17→  final InlineActivity activity;\n    18→  final ReaderSettings settings;\n    19→  final void Function(bool isCorrect, int xpEarned) onAnswer;\n    20→  final bool isCompleted;\n    21→  final bool? wasCorrect;\n    22→\n    23→  @override\n    24→  State<TrueFalseActivity> createState() => _TrueFalseActivityState();\n    25→}\n    26→\n    27→class _TrueFalseActivityState extends State<TrueFalseActivity>\n    28→    with SingleTickerProviderStateMixin {\n    29→  bool? _selectedAnswer;\n    30→  bool _isAnswered = false;\n    31→  bool? _isCorrect;\n    32→  bool _showXPAnimation = false;\n    33→\n    34→  late AnimationController _animationController;\n    35→  late Animation<double> _scaleAnimation;\n    36→\n    37→  TrueFalseContent get content => widget.activity.content as TrueFalseContent;\n    38→\n    39→  @override\n    40→  void initState() {\n    41→    super.initState();\n    42→    _animationController = AnimationController(\n    43→      duration: const Duration(milliseconds: 300),\n    44→      vsync: this,\n    45→    );\n    46→    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(\n    47→      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),\n    48→    );\n    49→\n    50→    if (widget.isCompleted) {\n    51→      _isAnswered = true;\n    52→      _isCorrect = widget.wasCorrect;\n    53→      _selectedAnswer = widget.wasCorrect == true\n    54→          ? content.correctAnswer\n    55→          : !content.correctAnswer;\n    56→    }\n    57→  }\n    58→\n    59→  @override\n    60→  void dispose() {\n    61→    _animationController.dispose();\n    62→    super.dispose();\n    63→  }\n    64→\n    65→  void _handleAnswer(bool answer) {\n    66→    if (_isAnswered || widget.isCompleted) return;\n    67→\n    68→    setState(() {\n    69→      _selectedAnswer = answer;\n    70→      _isAnswered = true;\n    71→      _isCorrect = answer == content.correctAnswer;\n    72→      if (_isCorrect!) {\n    73→        _showXPAnimation = true;\n    74→        _animationController.forward();\n    75→      }\n    76→    });\n    77→\n    78→    widget.onAnswer(_isCorrect!, _isCorrect! ? widget.activity.xpReward : 0);\n    79→  }\n    80→\n    81→  @override\n    82→  Widget build(BuildContext context) {\n    83→    final bool answered = _isAnswered || widget.isCompleted;\n    84→    final bool? correct = _isCorrect ?? widget.wasCorrect;\n    85→\n    86→    Color cardColor;\n    87→    Color borderColor;\n    88→\n    89→    if (answered && correct != null) {\n    90→      if (correct) {\n    91→        cardColor = const Color(0xFF38A169).withValues(alpha: 0.1);\n    92→        borderColor = const Color(0xFF38A169).withValues(alpha: 0.5);\n    93→      } else {\n    94→        cardColor = const Color(0xFFE53E3E).withValues(alpha: 0.1);\n    95→        borderColor = const Color(0xFFE53E3E).withValues(alpha: 0.5);\n    96→      }\n    97→    } else {\n    98→      cardColor = widget.settings.theme == ReaderTheme.dark\n    99→          ? const Color(0xFF1F2937)\n   100→          : const Color(0xFFF8FAFC);\n   101→      borderColor = widget.settings.theme == ReaderTheme.dark\n   102→          ? const Color(0xFF374151)\n   103→          : const Color(0xFFE2E8F0);\n   104→    }\n   105→\n   106→    return AnimatedBuilder(\n   107→      animation: _scaleAnimation,\n   108→      builder: (context, child) => Transform.scale(\n   109→        scale: _scaleAnimation.value,\n   110→        child: child,\n   111→      ),\n   112→      child: Container(\n   113→        margin: const EdgeInsets.symmetric(vertical: 12),\n   114→        decoration: BoxDecoration(\n   115→          color: cardColor,\n   116→          borderRadius: BorderRadius.circular(12),\n   117→          border: Border.all(color: borderColor, width: 1.5),\n   118→        ),\n   119→        child: Stack(\n   120→          clipBehavior: Clip.none,\n   121→          children: [\n   122→            Padding(\n   123→              padding: const EdgeInsets.all(16),\n   124→              child: Column(\n   125→                crossAxisAlignment: CrossAxisAlignment.center,\n   126→                children: [\n   127→                  // Statement\n   128→                  Text(\n   129→                    content.statement,\n   130→                    textAlign: TextAlign.center,\n   131→                    style: TextStyle(\n   132→                      fontSize: widget.settings.fontSize,\n   133→                      fontWeight: FontWeight.w500,\n   134→                      color: widget.settings.theme.text,\n   135→                      height: 1.4,\n   136→                    ),\n   137→                  ),\n   138→\n   139→                  const SizedBox(height: 14),\n   140→\n   141→                  // Options - side by side\n   142→                  Row(\n   143→                    children: [\n   144→                      Expanded(child: _buildOption(true, 'Doğru')),\n   145→                      const SizedBox(width: 10),\n   146→                      Expanded(child: _buildOption(false, 'Yanlış')),\n   147→                    ],\n   148→                  ),\n   149→                ],\n   150→              ),\n   151→            ),\n   152→\n   153→            // XP Animation\n   154→            if (_showXPAnimation)\n   155→              Positioned(\n   156→                top: -8,\n   157→                right: 12,\n   158→                child: _XPBadge(\n   159→                  xp: widget.activity.xpReward,\n   160→                  onComplete: () {\n   161→                    if (mounted) {\n   162→                      setState(() => _showXPAnimation = false);\n   163→                    }\n   164→                  },\n   165→                ),\n   166→              ),\n   167→          ],\n   168→        ),\n   169→      ),\n   170→    );\n   171→  }\n   172→\n   173→  Widget _buildOption(bool value, String label) {\n   174→    final bool answered = _isAnswered || widget.isCompleted;\n   175→    final isSelected = _selectedAnswer == value;\n   176→    final isCorrectOption = content.correctAnswer == value;\n   177→\n   178→    Color backgroundColor;\n   179→    Color borderColor;\n   180→    Color textColor;\n   181→\n   182→    if (answered) {\n   183→      if (isCorrectOption) {\n   184→        backgroundColor = const Color(0xFF38A169).withValues(alpha: 0.2);\n   185→        borderColor = const Color(0xFF38A169);\n   186→        textColor = const Color(0xFF38A169);\n   187→      } else if (isSelected && !isCorrectOption) {\n   188→        backgroundColor = const Color(0xFFE53E3E).withValues(alpha: 0.2);\n   189→        borderColor = const Color(0xFFE53E3E);\n   190→        textColor = const Color(0xFFE53E3E);\n   191→      } else {\n   192→        backgroundColor = widget.settings.theme == ReaderTheme.dark\n   193→            ? const Color(0xFF374151).withValues(alpha: 0.5)\n   194→            : const Color(0xFFF1F5F9);\n   195→        borderColor = Colors.transparent;\n   196→        textColor = widget.settings.theme == ReaderTheme.dark\n   197→            ? const Color(0xFF6B7280)\n   198→            : const Color(0xFF94A3B8);\n   199→      }\n   200→    } else {\n   201→      backgroundColor = widget.settings.theme == ReaderTheme.dark\n   202→          ? const Color(0xFF374151)\n   203→          : Colors.white;\n   204→      borderColor = widget.settings.theme == ReaderTheme.dark\n   205→          ? const Color(0xFF4B5563)\n   206→          : const Color(0xFFE2E8F0);\n   207→      textColor = widget.settings.theme.text;\n   208→    }\n   209→\n   210→    return GestureDetector(\n   211→      onTap: () => _handleAnswer(value),\n   212→      child: AnimatedContainer(\n   213→        duration: const Duration(milliseconds: 200),\n   214→        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),\n   215→        decoration: BoxDecoration(\n   216→          color: backgroundColor,\n   217→          borderRadius: BorderRadius.circular(10),\n   218→          border: Border.all(\n   219→            color: borderColor,\n   220→            width: isSelected || (answered && isCorrectOption) ? 2 : 1.5,\n   221→          ),\n   222→        ),\n   223→        child: Text(\n   224→          label,\n   225→          textAlign: TextAlign.center,\n   226→          style: TextStyle(\n   227→            fontSize: 14,\n   228→            fontWeight: FontWeight.w600,\n   229→            color: textColor,\n   230→          ),\n   231→        ),\n   232→      ),\n   233→    );\n   234→  }\n   235→}\n   236→\n   237→class _XPBadge extends StatefulWidget {\n   238→  const _XPBadge({required this.xp, required this.onComplete});\n   239→  final int xp;\n   240→  final VoidCallback onComplete;\n   241→\n   242→  @override\n   243→  State<_XPBadge> createState() => _XPBadgeState();\n   244→}\n   245→\n   246→class _XPBadgeState extends State<_XPBadge> with SingleTickerProviderStateMixin {\n   247→  late AnimationController _controller;\n   248→  late Animation<double> _scaleAnimation;\n   249→  late Animation<double> _fadeAnimation;\n   250→\n   251→  @override\n   252→  void initState() {\n   253→    super.initState();\n   254→    _controller = AnimationController(\n   255→      duration: const Duration(milliseconds: 1200),\n   256→      vsync: this,\n   257→    );\n   258→\n   259→    _scaleAnimation = TweenSequence<double>([\n   260→      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),\n   261→      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),\n   262→      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),\n   263→    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));\n   264→\n   265→    _fadeAnimation = TweenSequence<double>([\n   266→      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),\n   267→      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),\n   268→      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),\n   269→    ]).animate(_controller);\n   270→\n   271→    _controller.forward().then((_) => widget.onComplete());\n   272→  }\n   273→\n   274→  @override\n   275→  void dispose() {\n   276→    _controller.dispose();\n   277→    super.dispose();\n   278→  }\n   279→\n   280→  @override\n   281→  Widget build(BuildContext context) {\n   282→    return FadeTransition(\n   283→      opacity: _fadeAnimation,\n   284→      child: ScaleTransition(\n   285→        scale: _scaleAnimation,\n   286→        child: Container(\n   287→          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),\n   288→          decoration: BoxDecoration(\n   289→            gradient: const LinearGradient(\n   290→              colors: [Color(0xFF38A169), Color(0xFF48BB78)],\n   291→            ),\n   292→            borderRadius: BorderRadius.circular(12),\n   293→          ),\n   294→          child: Row(\n   295→            mainAxisSize: MainAxisSize.min,\n   296→            children: [\n   297→              const Icon(Icons.bolt, color: Colors.white, size: 14),\n   298→              const SizedBox(width: 3),\n   299→              Text(\n   300→                '+${widget.xp}',\n   301→                style: const TextStyle(\n   302→                  color: Colors.white,\n   303→                  fontWeight: FontWeight.bold,\n   304→                  fontSize: 12,\n   305→                ),\n   306→              ),\n   307→            ],\n   308→          ),\n   309→        ),\n   310→      ),\n   311→    );\n   312→  }\n   313→}\n   314→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I need to update these 3 files to:\n1. Add import for xp_badge.dart\n2. Remove _XPBadge class\n3. Change _XPBadge to XPBadge in usage\n\nLet me make the edits for all 3 activity files.",
+        "signature": "Et0CCkYICxgCKkAJIKcDJ58aLNn+T1Fgu/uPO/IYJ4e7FzJFhodG2nQXQBwdodszhYUitTcgnh65KYEY2KeAJ/GqpOizqHmKqH4/EgxnQLAuqkOnD42+9V4aDEzr7vuVsy2m1B0+HyIwGJ8/Xx9SBRLrXBMxyz6Pbp2gcsoepjoJtz8qRjmOc10SC6C20s/ecBkNvQmU3k8RKsQBe7D3DFdBlcNSKd8qJfh1utO8NR1+HAIw5wA4YBmNCe1zztFwnKFvDqDZtHqwEfwXkSaOymRs+FzE2VTfePI58Hdd8bpzSwb97pvpv+dE1RYld2xt7H3DurJzGNRzzvC57ToBy5rAILttAi+Bu+6U+5kCLYEXTrrz2CQw+ZkYP+iKtF2cqNLybBi5xYFOjONYFrd5BlCSZCvyI2ittJcooyjxF+9w7Hc97jfWqCFH83Dl9f4nSTNd8esSFTc6B0AlMnqRAhgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi 3 activity dosyasını güncelliyorum (XPBadge için)."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01XLykCirrb5mbFxoXmi2KsJ",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart",
+          "old_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';",
+          "new_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';\nimport '../common/xp_badge.dart';"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_017zesSHenej865xD8bMgaUC",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart",
+          "old_string": "                child: _XPBadge(",
+          "new_string": "                child: XPBadge("
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01XLykCirrb5mbFxoXmi2KsJ",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_017zesSHenej865xD8bMgaUC",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01ARiQhNRg39M6E87Vae7s8K",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart",
+          "old_string": "}\n\nclass _XPBadge extends StatefulWidget {\n  const _XPBadge({required this.xp, required this.onComplete});\n  final int xp;\n  final VoidCallback onComplete;\n\n  @override\n  State<_XPBadge> createState() => _XPBadgeState();\n}\n\nclass _XPBadgeState extends State<_XPBadge> with SingleTickerProviderStateMixin {\n  late AnimationController _controller;\n  late Animation<double> _scaleAnimation;\n  late Animation<double> _fadeAnimation;\n\n  @override\n  void initState() {\n    super.initState();\n    _controller = AnimationController(\n      duration: const Duration(milliseconds: 1200),\n      vsync: this,\n    );\n\n    _scaleAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),\n      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),\n    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));\n\n    _fadeAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),\n    ]).animate(_controller);\n\n    _controller.forward().then((_) => widget.onComplete());\n  }\n\n  @override\n  void dispose() {\n    _controller.dispose();\n    super.dispose();\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return FadeTransition(\n      opacity: _fadeAnimation,\n      child: ScaleTransition(\n        scale: _scaleAnimation,\n        child: Container(\n          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),\n          decoration: BoxDecoration(\n            gradient: const LinearGradient(\n              colors: [Color(0xFF38A169), Color(0xFF48BB78)],\n            ),\n            borderRadius: BorderRadius.circular(12),\n          ),\n          child: Row(\n            mainAxisSize: MainAxisSize.min,\n            children: [\n              const Icon(Icons.bolt, color: Colors.white, size: 14),\n              const SizedBox(width: 3),\n              Text(\n                '+${widget.xp}',\n                style: const TextStyle(\n                  color: Colors.white,\n                  fontWeight: FontWeight.bold,\n                  fontSize: 12,\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n}",
+          "new_string": "}"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01ARiQhNRg39M6E87Vae7s8K",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now let me do the same for find_words_activity.dart and true_false_activity.dart",
+        "signature": "EvgBCkYICxgCKkCncIp8VhZN/qA4iwdFH0kth5hT/DWRY0iw2l+am7uMJay9aSuepIq0TmVCY0SHoF+iQMqfxWSK0oCHhIw4MgHlEgxTY1hGelbWYkxo0fAaDBXO/aXIpeuN0xSYRyIw9+gYZkBQE5sd/MWnKSLNES/vbk0kqX0GbJRYFeepIkUWZZFs79voc/gNeFcw35mkKmCdNwRiXI7C+QNk5i6bHq/oyRU9oc1FVXVGDW9OMm/eJxTbcl524sbrU1ehNsr8KdvpgXzdC778rtfFfGjlln3uvrFh0LHbBitCtuyIeM01h6F5THJ2WE9AjvWYW/a4giYYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01H2eHyodoFA2JgQj3DbwfRx",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart",
+          "old_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';",
+          "new_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';\nimport '../common/xp_badge.dart';"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_015R46kZkNECxtcVCDqL1Adj",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart",
+          "old_string": "                child: _XPBadge(",
+          "new_string": "                child: XPBadge("
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01H2eHyodoFA2JgQj3DbwfRx",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_015R46kZkNECxtcVCDqL1Adj",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01MdhRcFdRTbbST6cgaEEjZ9",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart",

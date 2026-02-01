@@ -1,0 +1,152 @@
+          "content": "# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_013FYbK5skpsGzReYLibJAWC",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/.claude/plans/stateless-swimming-creek.md has been overwritten successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Plan is ready. Now I should call ExitPlanMode to get user approval.",
+        "signature": "EusBCkYICxgCKkA4+04uUxSwxFIRnStWCAdaNQrOcSbXhz58zev7jXUxSHe/3X1OJdHievV4tV05XjO5fh1PgWf4qzmPkBpJ4FznEgx9iElshra+JWYUQUAaDHOI1TeDx8Pcvpt+ASIwVgLJMuDaFsYSJb/BKOOa+ETdDQEQugE9sfPh3BjymqCB9pUA4yKAF7EmMivrFkVlKlOUH5CLeaFmYeKQCHYuKpY9s9jdXsdIWPWhxnxXKHddvjZ3MeHc6KH6idnI90ea6dsy+yN4z8UytJR1UdzEvp7och2Ud+tobU3vHIl0vuSUbB6MwBgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Plan hazır. 9 kritik provider'a autoDispose eklenecek.\n\n**Özet:**\n- 4 dosya değişecek\n- 9 provider düzeltilecek\n- En büyük risk: `reader_provider.dart` (4 provider)"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01WiteGYoXYs6fqEmqbkuSiP",
+        "name": "ExitPlanMode",
+        "input": {
+          "plan": "# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "content": "User has approved your plan. You can now start coding. Start with updating your todo list if applicable\n\nYour plan has been saved to: /Users/wonderelt/.claude/plans/stateless-swimming-creek.md\nYou can refer back to it if needed during implementation.\n\n## Approved Plan:\n# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n",
+        "tool_use_id": "toolu_01WiteGYoXYs6fqEmqbkuSiP"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Plan approved. Now I need to read the files and make the edits. Let me start with reading all 4 provider files to understand the exact syntax.",
+        "signature": "ErcCCkYICxgCKkAGFI1ISLceEPiESAw/bg8u5g2sopHtohUf1YlZUe8/SJbm64plEvuQEoM2lQz8ksgQMYphCpHWTp6xquakDZXEEgx/3+OHFrQDkIlPlSgaDAnXEvUGC5gFoYt+diIwex36X6DH5Wl9rO9LZI5jN5LTFsOyM/7OT9EdzE7W/ljs5EJjVkj39qW4fVTQF4wrKp4BirMoJiK/FmS3IxAA7ZN8E9AkciljCfJ/RW2b51PjKvnGgupuJoGesv3FyzrgwdoWadFXkqsqR6uG7hk/dXNTiPEeIkncyOMrRpUh2alyhNs8BEIOC6Iqm9v1IuZyniAyprQp3o6Z5y7xxrKhLAlbYbqFUxmxj3Gmo691VHNQvgaGU6tHX1TPnObeLJnFIy84jPlMOz7M2xLEhu4npu8YAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Başlıyorum. Önce dosyaları okuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_019vnm7TuxBRZDaf9tC1NGWc",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01FBoTaHWUUSyhp3uWBbtu7M",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NM5pYod4Sqq7zD9AaLBUMT",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01SfNHnTqjUAyPTdjfqTDq99",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_019vnm7TuxBRZDaf9tC1NGWc",
+        "type": "tool_result",

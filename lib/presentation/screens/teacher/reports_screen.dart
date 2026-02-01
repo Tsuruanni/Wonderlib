@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/stat_item.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -105,25 +106,25 @@ class _QuickStatsCard extends StatelessWidget {
               data: (stats) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _StatItem(
+                  StatItem(
                     value: '${stats.totalStudents}',
                     label: 'Students',
                     icon: Icons.people,
                     color: Colors.blue,
                   ),
-                  _StatItem(
+                  StatItem(
                     value: '${stats.totalClasses}',
                     label: 'Classes',
                     icon: Icons.class_,
                     color: Colors.green,
                   ),
-                  _StatItem(
+                  StatItem(
                     value: '${stats.activeAssignments}',
                     label: 'Active Tasks',
                     icon: Icons.assignment,
                     color: Colors.orange,
                   ),
-                  _StatItem(
+                  StatItem(
                     value: '${stats.avgProgress.toStringAsFixed(0)}%',
                     label: 'Avg Progress',
                     icon: Icons.trending_up,
@@ -135,42 +136,6 @@ class _QuickStatsCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({
-    required this.value,
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: context.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: context.textTheme.bodySmall?.copyWith(
-            color: context.colorScheme.outline,
-          ),
-        ),
-      ],
     );
   }
 }

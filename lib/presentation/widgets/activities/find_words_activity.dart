@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
+import '../common/xp_badge.dart';
 
 /// Find words activity widget (multi-select) - compact version
 class FindWordsActivity extends StatefulWidget {
@@ -199,7 +200,7 @@ class _FindWordsActivityState extends State<FindWordsActivity>
               Positioned(
                 top: -8,
                 right: 12,
-                child: _XPBadge(
+                child: XPBadge(
                   xp: widget.activity.xpReward,
                   onComplete: () {
                     if (mounted) {
@@ -278,84 +279,6 @@ class _FindWordsActivityState extends State<FindWordsActivity>
             fontWeight: isSelected || (answered && isCorrectOption)
                 ? FontWeight.w600
                 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _XPBadge extends StatefulWidget {
-  const _XPBadge({required this.xp, required this.onComplete});
-  final int xp;
-  final VoidCallback onComplete;
-
-  @override
-  State<_XPBadge> createState() => _XPBadgeState();
-}
-
-class _XPBadgeState extends State<_XPBadge> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),
-    ]).animate(_controller);
-
-    _controller.forward().then((_) => widget.onComplete());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF38A169), Color(0xFF48BB78)],
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.bolt, color: Colors.white, size: 14),
-              const SizedBox(width: 3),
-              Text(
-                '+${widget.xp}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
           ),
         ),
       ),

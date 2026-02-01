@@ -216,7 +216,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
 /// Provider for chapter completion notifier
 final chapterCompletionProvider =
-    StateNotifierProvider<ChapterCompletionNotifier, AsyncValue<void>>((ref) {
+    StateNotifierProvider.autoDispose<ChapterCompletionNotifier, AsyncValue<void>>((ref) {
   return ChapterCompletionNotifier(ref);
 });
 
@@ -311,7 +311,7 @@ class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
   }
 }
 
-final readingControllerProvider = StateNotifierProvider.family<
+final readingControllerProvider = StateNotifierProvider.autoDispose.family<
     ReadingController, AsyncValue<ReadingProgress?>, String>((ref, bookId) {
   return ReadingController(ref, bookId);
 });

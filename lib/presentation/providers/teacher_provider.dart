@@ -41,20 +41,35 @@ final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
   );
 });
 
-/// Provider for teacher's classes
-final teacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
+/// Provider for current teacher's profile
+final currentTeacherProfileProvider = FutureProvider<User?>((ref) async {
   final user = ref.watch(authStateChangesProvider).valueOrNull;
-  if (user == null || user.schoolId.isEmpty) {
+  return user;
+});
+
+/// Provider for teacher's classes (by school ID)
+final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>((ref, schoolId) async {
+  if (schoolId.isEmpty) {
     return [];
   }
 
   final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getClasses(user.schoolId);
+  final result = await teacherRepo.getClasses(schoolId);
 
   return result.fold(
     (failure) => [],
     (classes) => classes,
   );
+});
+
+/// Provider for current teacher's classes (convenience wrapper)
+final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
+  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  if (user == null || user.schoolId.isEmpty) {
+    return [];
+  }
+
+  return ref.watch(teacherClassesProvider(user.schoolId).future);
 });
 
 /// Provider for students in a specific class

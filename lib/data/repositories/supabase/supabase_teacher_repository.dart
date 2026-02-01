@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -18,18 +20,15 @@ class SupabaseTeacherRepository implements TeacherRepository {
     try {
       debugPrint('getTeacherStats: fetching for teacherId=$teacherId');
 
-      // Get teacher's school
-      final teacherData = await _supabase
-          .from('profiles')
-          .select('school_id')
-          .eq('id', teacherId)
-          .single();
+      // Use RPC function to get all stats in single query (eliminates N+1)
+      final response = await _supabase.rpc(
+        'get_teacher_stats',
+        params: {'p_teacher_id': teacherId},
+      );
 
-      final schoolId = teacherData['school_id'] as String?;
-      debugPrint('getTeacherStats: schoolId=$schoolId');
-
-      if (schoolId == null) {
-        debugPrint('getTeacherStats: schoolId is null');
+      final data = (response as List).firstOrNull;
+      if (data == null) {
+        debugPrint('getTeacherStats: no data returned');
         return const Right(TeacherStats(
           totalStudents: 0,
           totalClasses: 0,
@@ -38,62 +37,16 @@ class SupabaseTeacherRepository implements TeacherRepository {
         ));
       }
 
-      // Count students in school
-      final studentsResponse = await _supabase
-          .from('profiles')
-          .select('id')
-          .eq('school_id', schoolId)
-          .eq('role', 'student');
-      final totalStudents = (studentsResponse as List).length;
+      final stats = TeacherStats(
+        totalStudents: (data['total_students'] as num?)?.toInt() ?? 0,
+        totalClasses: (data['total_classes'] as num?)?.toInt() ?? 0,
+        activeAssignments: (data['active_assignments'] as num?)?.toInt() ?? 0,
+        avgProgress: (data['avg_progress'] as num?)?.toDouble() ?? 0,
+      );
 
-      // Count classes in school
-      final classesResponse = await _supabase
-          .from('classes')
-          .select('id')
-          .eq('school_id', schoolId);
-      final totalClasses = (classesResponse as List).length;
+      debugPrint('getTeacherStats: result = students:${stats.totalStudents}, classes:${stats.totalClasses}, assignments:${stats.activeAssignments}, progress:${stats.avgProgress}');
 
-      // Count active assignments by this teacher
-      final now = DateTime.now().toIso8601String();
-      final assignmentsResponse = await _supabase
-          .from('assignments')
-          .select('id')
-          .eq('teacher_id', teacherId)
-          .gte('due_date', now);
-      final activeAssignments = (assignmentsResponse as List).length;
-
-      // Calculate average progress (from reading_progress)
-      double avgProgress = 0;
-      if (totalStudents > 0) {
-        final studentIds = (studentsResponse as List)
-            .map((s) => s['id'] as String)
-            .toList();
-
-        if (studentIds.isNotEmpty) {
-          final progressResponse = await _supabase
-              .from('reading_progress')
-              .select('completion_percentage')
-              .inFilter('user_id', studentIds);
-
-          final progressList = progressResponse as List;
-          if (progressList.isNotEmpty) {
-            final total = progressList.fold<double>(
-              0,
-              (sum, p) => sum + ((p['completion_percentage'] as num?)?.toDouble() ?? 0),
-            );
-            avgProgress = total / progressList.length;
-          }
-        }
-      }
-
-      debugPrint('getTeacherStats: result = students:$totalStudents, classes:$totalClasses, assignments:$activeAssignments, progress:$avgProgress');
-
-      return Right(TeacherStats(
-        totalStudents: totalStudents,
-        totalClasses: totalClasses,
-        activeAssignments: activeAssignments,
-        avgProgress: avgProgress,
-      ));
+      return Right(stats);
     } on PostgrestException catch (e) {
       debugPrint('getTeacherStats: PostgrestException = ${e.message}');
       return Left(ServerFailure(e.message, code: e.code));
@@ -105,59 +58,25 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, List<TeacherClass>>> getClasses(String schoolId) async {
     try {
-      final response = await _supabase
-          .from('classes')
-          .select()
-          .eq('school_id', schoolId)
-          .order('name', ascending: true);
+      // Use RPC function to get all class stats in single query (eliminates N+1)
+      final response = await _supabase.rpc(
+        'get_classes_with_stats',
+        params: {'p_school_id': schoolId},
+      );
 
-      final classes = <TeacherClass>[];
-
-      for (final classData in response as List) {
-        final classId = classData['id'] as String;
-
-        // Count students in this class
-        final studentsResponse = await _supabase
-            .from('profiles')
-            .select('id')
-            .eq('class_id', classId)
-            .eq('role', 'student');
-        final studentCount = (studentsResponse as List).length;
-
-        // Calculate average progress for class
-        double avgProgress = 0;
-        if (studentCount > 0) {
-          final studentIds = (studentsResponse as List)
-              .map((s) => s['id'] as String)
-              .toList();
-
-          final progressResponse = await _supabase
-              .from('reading_progress')
-              .select('completion_percentage')
-              .inFilter('user_id', studentIds);
-
-          final progressList = progressResponse as List;
-          if (progressList.isNotEmpty) {
-            final total = progressList.fold<double>(
-              0,
-              (sum, p) => sum + ((p['completion_percentage'] as num?)?.toDouble() ?? 0),
-            );
-            avgProgress = total / progressList.length;
-          }
-        }
-
-        classes.add(TeacherClass(
-          id: classId,
-          name: classData['name'] as String,
-          grade: classData['grade'] as int?,
-          academicYear: classData['academic_year'] as String?,
-          studentCount: studentCount,
-          avgProgress: avgProgress,
-          createdAt: classData['created_at'] != null
-              ? DateTime.parse(classData['created_at'] as String)
+      final classes = (response as List).map((data) {
+        return TeacherClass(
+          id: data['id'] as String,
+          name: data['name'] as String,
+          grade: data['grade'] as int?,
+          academicYear: data['academic_year'] as String?,
+          studentCount: (data['student_count'] as num?)?.toInt() ?? 0,
+          avgProgress: (data['avg_progress'] as num?)?.toDouble() ?? 0,
+          createdAt: data['created_at'] != null
+              ? DateTime.parse(data['created_at'] as String)
               : null,
-        ));
-      }
+        );
+      }).toList();
 
       return Right(classes);
     } on PostgrestException catch (e) {
@@ -170,54 +89,26 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, List<StudentSummary>>> getClassStudents(String classId) async {
     try {
-      final response = await _supabase
-          .from('profiles')
-          .select()
-          .eq('class_id', classId)
-          .eq('role', 'student')
-          .order('first_name', ascending: true);
+      // Use RPC function that includes avg_progress (eliminates N+1)
+      final response = await _supabase.rpc(
+        'get_students_in_class',
+        params: {'p_class_id': classId},
+      );
 
-      final students = <StudentSummary>[];
-
-      for (final studentData in response as List) {
-        final studentId = studentData['id'] as String;
-
-        // Count completed books
-        final booksResponse = await _supabase
-            .from('reading_progress')
-            .select('id')
-            .eq('user_id', studentId)
-            .eq('is_completed', true);
-        final booksRead = (booksResponse as List).length;
-
-        // Calculate average progress
-        final progressResponse = await _supabase
-            .from('reading_progress')
-            .select('completion_percentage')
-            .eq('user_id', studentId);
-
-        double avgProgress = 0;
-        final progressList = progressResponse as List;
-        if (progressList.isNotEmpty) {
-          final total = progressList.fold<double>(
-            0,
-            (sum, p) => sum + ((p['completion_percentage'] as num?)?.toDouble() ?? 0),
-          );
-          avgProgress = total / progressList.length;
-        }
-
-        students.add(StudentSummary(
-          id: studentId,
-          firstName: studentData['first_name'] as String,
-          lastName: studentData['last_name'] as String,
-          avatarUrl: studentData['avatar_url'] as String?,
-          xp: (studentData['xp'] as int?) ?? 0,
-          level: (studentData['level'] as int?) ?? 1,
-          currentStreak: (studentData['current_streak'] as int?) ?? 0,
-          booksRead: booksRead,
-          avgProgress: avgProgress,
-        ));
-      }
+      final students = (response as List).map((data) {
+        return StudentSummary(
+          id: data['id'] as String,
+          firstName: data['first_name'] as String,
+          lastName: data['last_name'] as String,
+          studentNumber: data['student_number'] as String?,
+          email: data['email'] as String?,
+          xp: (data['xp'] as num?)?.toInt() ?? 0,
+          level: (data['level'] as num?)?.toInt() ?? 1,
+          currentStreak: (data['streak'] as num?)?.toInt() ?? 0,
+          booksRead: (data['books_read'] as num?)?.toInt() ?? 0,
+          avgProgress: (data['avg_progress'] as num?)?.toDouble() ?? 0,
+        );
+      }).toList();
 
       return Right(students);
     } on PostgrestException catch (e) {
@@ -252,49 +143,26 @@ class SupabaseTeacherRepository implements TeacherRepository {
     String studentId,
   ) async {
     try {
-      final response = await _supabase
-          .from('reading_progress')
-          .select('''
-            *,
-            books:book_id (
-              id,
-              title,
-              cover_url
-            )
-          ''')
-          .eq('user_id', studentId)
-          .order('updated_at', ascending: false);
+      // Use RPC function that includes chapter counts (eliminates N+1)
+      final response = await _supabase.rpc(
+        'get_student_progress_with_books',
+        params: {'p_student_id': studentId},
+      );
 
-      final progressList = <StudentBookProgress>[];
-
-      for (final data in response as List) {
-        final bookData = data['books'] as Map<String, dynamic>?;
-        if (bookData == null) continue;
-
-        // Get chapter count for this book
-        final chaptersResponse = await _supabase
-            .from('chapters')
-            .select('id')
-            .eq('book_id', bookData['id'] as String);
-        final totalChapters = (chaptersResponse as List).length;
-
-        final completedChapterIds = data['completed_chapter_ids'] as List?;
-        final completedChapters = completedChapterIds?.length ?? 0;
-
-        progressList.add(StudentBookProgress(
-          bookId: bookData['id'] as String,
-          bookTitle: bookData['title'] as String,
-          bookCoverUrl: bookData['cover_url'] as String?,
-          completionPercentage:
-              (data['completion_percentage'] as num?)?.toDouble() ?? 0,
-          totalReadingTime: (data['total_reading_time'] as int?) ?? 0,
-          completedChapters: completedChapters,
-          totalChapters: totalChapters,
-          lastReadAt: data['updated_at'] != null
-              ? DateTime.parse(data['updated_at'] as String)
+      final progressList = (response as List).map((data) {
+        return StudentBookProgress(
+          bookId: data['book_id'] as String,
+          bookTitle: data['book_title'] as String,
+          bookCoverUrl: data['book_cover_url'] as String?,
+          completionPercentage: (data['completion_percentage'] as num?)?.toDouble() ?? 0,
+          totalReadingTime: (data['total_reading_time'] as num?)?.toInt() ?? 0,
+          completedChapters: (data['completed_chapters'] as num?)?.toInt() ?? 0,
+          totalChapters: (data['total_chapters'] as num?)?.toInt() ?? 0,
+          lastReadAt: data['last_read_at'] != null
+              ? DateTime.parse(data['last_read_at'] as String)
               : null,
-        ));
-      }
+        );
+      }).toList();
 
       return Right(progressList);
     } on PostgrestException catch (e) {
@@ -352,39 +220,18 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, List<Assignment>>> getAssignments(String teacherId) async {
     try {
-      final response = await _supabase
-          .from('assignments')
-          .select('''
-            *,
-            classes:class_id (name)
-          ''')
-          .eq('teacher_id', teacherId)
-          .order('due_date', ascending: true);
+      // Use RPC function that includes student stats (eliminates N+1)
+      final response = await _supabase.rpc(
+        'get_assignments_with_stats',
+        params: {'p_teacher_id': teacherId},
+      );
 
-      final assignments = <Assignment>[];
-
-      for (final data in response as List) {
-        final assignmentId = data['id'] as String;
-
-        // Get student counts
-        final studentsResponse = await _supabase
-            .from('assignment_students')
-            .select('status')
-            .eq('assignment_id', assignmentId);
-
-        final studentsList = studentsResponse as List;
-        final totalStudents = studentsList.length;
-        final completedStudents = studentsList
-            .where((s) => s['status'] == 'completed')
-            .length;
-
-        final classData = data['classes'] as Map<String, dynamic>?;
-
-        assignments.add(Assignment(
-          id: assignmentId,
+      final assignments = (response as List).map((data) {
+        return Assignment(
+          id: data['id'] as String,
           teacherId: data['teacher_id'] as String,
           classId: data['class_id'] as String?,
-          className: classData?['name'] as String?,
+          className: data['class_name'] as String?,
           type: AssignmentType.fromString(data['type'] as String),
           title: data['title'] as String,
           description: data['description'] as String?,
@@ -392,10 +239,10 @@ class SupabaseTeacherRepository implements TeacherRepository {
           startDate: DateTime.parse(data['start_date'] as String),
           dueDate: DateTime.parse(data['due_date'] as String),
           createdAt: DateTime.parse(data['created_at'] as String),
-          totalStudents: totalStudents,
-          completedStudents: completedStudents,
-        ));
-      }
+          totalStudents: (data['total_students'] as num?)?.toInt() ?? 0,
+          completedStudents: (data['completed_students'] as num?)?.toInt() ?? 0,
+        );
+      }).toList();
 
       return Right(assignments);
     } on PostgrestException catch (e) {
@@ -586,5 +433,95 @@ class SupabaseTeacherRepository implements TeacherRepository {
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
+  }
+
+  // =============================================
+  // CLASS MANAGEMENT METHODS
+  // =============================================
+
+  @override
+  Future<Either<Failure, String>> createClass({
+    required String schoolId,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      final response = await _supabase.from('classes').insert({
+        'school_id': schoolId,
+        'name': name,
+        'description': description,
+      }).select('id').single();
+
+      return Right(response['id'] as String);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateStudentClass({
+    required String studentId,
+    required String newClassId,
+  }) async {
+    try {
+      await _supabase.from('profiles').update({
+        'class_id': newClassId,
+      }).eq('id', studentId);
+
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  // =============================================
+  // PASSWORD MANAGEMENT METHODS
+  // =============================================
+
+  @override
+  Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
+    try {
+      await _supabase.auth.resetPasswordForEmail(email);
+      return const Right(null);
+    } on AuthException catch (e) {
+      return Left(AuthFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> resetStudentPassword(String studentId) async {
+    try {
+      // Generate random password
+      final newPassword = _generateRandomPassword();
+
+      // Call edge function to set password
+      final response = await _supabase.functions.invoke(
+        'reset-student-password',
+        body: {'studentId': studentId, 'newPassword': newPassword},
+      );
+
+      if (response.status != 200) {
+        final error = response.data?['error'] as String? ?? 'Failed to reset password';
+        return Left(ServerFailure(error));
+      }
+
+      return Right(newPassword);
+    } on FunctionException catch (e) {
+      return Left(ServerFailure(e.details?.toString() ?? e.toString()));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  String _generateRandomPassword() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final random = Random.secure();
+    return List.generate(10, (_) => chars[random.nextInt(chars.length)]).join();
   }
 }

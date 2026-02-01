@@ -11,7 +11,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final classesAsync = ref.watch(teacherClassesProvider);
+    final classesAsync = ref.watch(currentTeacherClassesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -19,7 +19,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(teacherClassesProvider);
+          ref.invalidate(currentTeacherClassesProvider);
         },
         child: classesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,7 +32,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                 Text('Error loading classes', style: context.textTheme.bodyLarge),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => ref.invalidate(teacherClassesProvider),
+                  onPressed: () => ref.invalidate(currentTeacherClassesProvider),
                   child: const Text('Retry'),
                 ),
               ],

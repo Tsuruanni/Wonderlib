@@ -7,7 +7,7 @@ import '../../../providers/teacher_provider.dart';
 
 /// Provider that aggregates all students from all classes for leaderboard
 final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
-  final classesResult = await ref.watch(teacherClassesProvider.future);
+  final classesResult = await ref.watch(currentTeacherClassesProvider.future);
 
   final allStudents = <StudentSummary>[];
 
@@ -36,7 +36,7 @@ class LeaderboardReportScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(allStudentsLeaderboardProvider);
-          ref.invalidate(teacherClassesProvider);
+          ref.invalidate(currentTeacherClassesProvider);
         },
         child: studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),

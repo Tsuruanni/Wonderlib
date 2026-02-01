@@ -1,0 +1,75 @@
+          "plan": "# Faz 3: Duplicate Widget Extraction\n\n## Özet\n3 widget tipi, 10 dosyada tekrarlanıyor (~400 satır). Ortak widget'lar çıkarılacak.\n\n---\n\n## Widget 1: XPBadge (En Kolay)\n\n**Durum:** 3 dosyada birebir aynı implementasyon\n\n**Kaynak dosyalar:**\n- `lib/presentation/widgets/activities/word_translation_activity.dart`\n- `lib/presentation/widgets/activities/find_words_activity.dart`\n- `lib/presentation/widgets/activities/true_false_activity.dart`\n\n**Hedef:** `lib/presentation/widgets/common/xp_badge.dart`\n\n**API:**\n```dart\nclass XPBadge extends StatefulWidget {\n  const XPBadge({\n    super.key,\n    required this.xp,\n    required this.onComplete,\n  });\n\n  final int xp;\n  final VoidCallback onComplete;\n}\n```\n\n**İşlem:**\n1. `xp_badge.dart` oluştur (mevcut kodu kopyala, `_` kaldır)\n2. 3 activity dosyasından `_XPBadge` sil\n3. Import ekle ve kullanımları güncelle\n\n---\n\n## Widget 2: StatItem (Orta Zorluk)\n\n**Durum:** 4 dosyada varyasyonlar var\n\n| Dosya | icon | color | valueStyle |\n|-------|------|-------|------------|\n| assignment_detail_screen | ✅ required | ✅ required | titleMedium |\n| assignment_report_screen | ❌ yok | ❌ yok | headlineSmall |\n| vocabulary_screen | ✅ required | ❓ optional | titleLarge |\n| reports_screen | ✅ required | ✅ required | titleMedium |\n\n**Hedef:** `lib/presentation/widgets/common/stat_item.dart`\n\n**Unified API:**\n```dart\nclass StatItem extends StatelessWidget {\n  const StatItem({\n    super.key,\n    required this.value,\n    required this.label,\n    this.icon,\n    this.color,\n    this.valueStyle,\n    this.labelStyle,\n  });\n\n  final String value;\n  final String label;\n  final IconData? icon;\n  final Color? color;\n  final TextStyle? valueStyle;\n  final TextStyle? labelStyle;\n}\n```\n\n**İşlem:**\n1. `stat_item.dart` oluştur\n2. 4 dosyadan `_StatItem` sil\n3. Kullanımları güncelle (parametreleri geçir)\n\n---\n\n## Widget 3: EmptyState (Zor - ATLA)\n\n**Durum:** 3 dosyada çok farklı implementasyonlar\n- Library: filter-based dinamik mesaj\n- Category: kategori emoji + container\n- Hub: action button var\n\n**Karar:** Bu widget'ı ATLIYORUZ çünkü:\n- Her biri farklı context-specific logic içeriyor\n- Birleştirmek karmaşık ve fayda/maliyet oranı düşük\n- Kod duplikasyonu düşük (~40 satır/dosya)\n\n---\n\n## Uygulama Sırası\n\n### Adım 1: XPBadge oluştur\n```\nlib/presentation/widgets/common/xp_badge.dart\n```\n\n### Adım 2: Activity dosyalarını güncelle (3 dosya)\n- `_XPBadge` classını sil\n- `import '../common/xp_badge.dart';` ekle\n- `_XPBadge` → `XPBadge` değiştir\n\n### Adım 3: StatItem oluştur\n```\nlib/presentation/widgets/common/stat_item.dart\n```\n\n### Adım 4: Screen dosyalarını güncelle (4 dosya)\n- `_StatItem` classını sil\n- `import '../../widgets/common/stat_item.dart';` ekle\n- Kullanımları güncelle\n\n---\n\n## Dosya Listesi\n\n| Dosya | İşlem |\n|-------|-------|\n| `lib/presentation/widgets/common/xp_badge.dart` | OLUŞTUR |\n| `lib/presentation/widgets/common/stat_item.dart` | OLUŞTUR |\n| `word_translation_activity.dart` | `_XPBadge` sil, import ekle |\n| `find_words_activity.dart` | `_XPBadge` sil, import ekle |\n| `true_false_activity.dart` | `_XPBadge` sil, import ekle |\n| `assignment_detail_screen.dart` | `_StatItem` sil, import ekle |\n| `assignment_report_screen.dart` | `_StatItem` sil, import ekle |\n| `vocabulary_screen.dart` | `_StatItem` sil, import ekle |\n| `reports_screen.dart` | `_StatItem` sil, import ekle |\n\n**Toplam:** 2 yeni dosya, 7 dosya güncelleme\n\n---\n\n## Doğrulama\n\n```bash\ndart analyze lib/presentation/widgets/common/\ndart analyze lib/presentation/widgets/activities/\ndart analyze lib/presentation/screens/teacher/\ndart analyze lib/presentation/screens/vocabulary/\n```\n\n---\n\n## Kazanım\n\n- ~180 satır XPBadge duplikasyonu → 1 dosya\n- ~120 satır StatItem duplikasyonu → 1 dosya\n- Toplam ~300 satır tasarruf\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "content": "User has approved your plan. You can now start coding. Start with updating your todo list if applicable\n\nYour plan has been saved to: /Users/wonderelt/.claude/plans/stateless-swimming-creek.md\nYou can refer back to it if needed during implementation.\n\n## Approved Plan:\n# Faz 3: Duplicate Widget Extraction\n\n## Özet\n3 widget tipi, 10 dosyada tekrarlanıyor (~400 satır). Ortak widget'lar çıkarılacak.\n\n---\n\n## Widget 1: XPBadge (En Kolay)\n\n**Durum:** 3 dosyada birebir aynı implementasyon\n\n**Kaynak dosyalar:**\n- `lib/presentation/widgets/activities/word_translation_activity.dart`\n- `lib/presentation/widgets/activities/find_words_activity.dart`\n- `lib/presentation/widgets/activities/true_false_activity.dart`\n\n**Hedef:** `lib/presentation/widgets/common/xp_badge.dart`\n\n**API:**\n```dart\nclass XPBadge extends StatefulWidget {\n  const XPBadge({\n    super.key,\n    required this.xp,\n    required this.onComplete,\n  });\n\n  final int xp;\n  final VoidCallback onComplete;\n}\n```\n\n**İşlem:**\n1. `xp_badge.dart` oluştur (mevcut kodu kopyala, `_` kaldır)\n2. 3 activity dosyasından `_XPBadge` sil\n3. Import ekle ve kullanımları güncelle\n\n---\n\n## Widget 2: StatItem (Orta Zorluk)\n\n**Durum:** 4 dosyada varyasyonlar var\n\n| Dosya | icon | color | valueStyle |\n|-------|------|-------|------------|\n| assignment_detail_screen | ✅ required | ✅ required | titleMedium |\n| assignment_report_screen | ❌ yok | ❌ yok | headlineSmall |\n| vocabulary_screen | ✅ required | ❓ optional | titleLarge |\n| reports_screen | ✅ required | ✅ required | titleMedium |\n\n**Hedef:** `lib/presentation/widgets/common/stat_item.dart`\n\n**Unified API:**\n```dart\nclass StatItem extends StatelessWidget {\n  const StatItem({\n    super.key,\n    required this.value,\n    required this.label,\n    this.icon,\n    this.color,\n    this.valueStyle,\n    this.labelStyle,\n  });\n\n  final String value;\n  final String label;\n  final IconData? icon;\n  final Color? color;\n  final TextStyle? valueStyle;\n  final TextStyle? labelStyle;\n}\n```\n\n**İşlem:**\n1. `stat_item.dart` oluştur\n2. 4 dosyadan `_StatItem` sil\n3. Kullanımları güncelle (parametreleri geçir)\n\n---\n\n## Widget 3: EmptyState (Zor - ATLA)\n\n**Durum:** 3 dosyada çok farklı implementasyonlar\n- Library: filter-based dinamik mesaj\n- Category: kategori emoji + container\n- Hub: action button var\n\n**Karar:** Bu widget'ı ATLIYORUZ çünkü:\n- Her biri farklı context-specific logic içeriyor\n- Birleştirmek karmaşık ve fayda/maliyet oranı düşük\n- Kod duplikasyonu düşük (~40 satır/dosya)\n\n---\n\n## Uygulama Sırası\n\n### Adım 1: XPBadge oluştur\n```\nlib/presentation/widgets/common/xp_badge.dart\n```\n\n### Adım 2: Activity dosyalarını güncelle (3 dosya)\n- `_XPBadge` classını sil\n- `import '../common/xp_badge.dart';` ekle\n- `_XPBadge` → `XPBadge` değiştir\n\n### Adım 3: StatItem oluştur\n```\nlib/presentation/widgets/common/stat_item.dart\n```\n\n### Adım 4: Screen dosyalarını güncelle (4 dosya)\n- `_StatItem` classını sil\n- `import '../../widgets/common/stat_item.dart';` ekle\n- Kullanımları güncelle\n\n---\n\n## Dosya Listesi\n\n| Dosya | İşlem |\n|-------|-------|\n| `lib/presentation/widgets/common/xp_badge.dart` | OLUŞTUR |\n| `lib/presentation/widgets/common/stat_item.dart` | OLUŞTUR |\n| `word_translation_activity.dart` | `_XPBadge` sil, import ekle |\n| `find_words_activity.dart` | `_XPBadge` sil, import ekle |\n| `true_false_activity.dart` | `_XPBadge` sil, import ekle |\n| `assignment_detail_screen.dart` | `_StatItem` sil, import ekle |\n| `assignment_report_screen.dart` | `_StatItem` sil, import ekle |\n| `vocabulary_screen.dart` | `_StatItem` sil, import ekle |\n| `reports_screen.dart` | `_StatItem` sil, import ekle |\n\n**Toplam:** 2 yeni dosya, 7 dosya güncelleme\n\n---\n\n## Doğrulama\n\n```bash\ndart analyze lib/presentation/widgets/common/\ndart analyze lib/presentation/widgets/activities/\ndart analyze lib/presentation/screens/teacher/\ndart analyze lib/presentation/screens/vocabulary/\n```\n\n---\n\n## Kazanım\n\n- ~180 satır XPBadge duplikasyonu → 1 dosya\n- ~120 satır StatItem duplikasyonu → 1 dosya\n- Toplam ~300 satır tasarruf\n",
+        "tool_use_id": "toolu_01C9GkD6Kdiugr1iSYLsY6Ft"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Plan approved. Now I need to implement:\n\n1. Create XPBadge widget\n2. Update 3 activity files\n3. Create StatItem widget\n4. Update 4 screen files\n\nLet me first read the source files to get the exact implementations.",
+        "signature": "EvkCCkYICxgCKkA9OmtrLMtKbEnaE8v7WU4NEI++w/aRSfQqrksB/yl5YmJUJq5o0SqwUeED3UNWuSdt1MX0wUr+PRTclRG8SGn3EgytytkzT9vWmcL0aWcaDNXw6C1a7y5lA/3frCIwwlA40Id1E2G5iD7181d+pe37/dba0cHsUSNMEYyLS7QSJmeRcpjVtamqQk1VcWQ/KuAB/4AzF2hbWKnZGJmki7N8QX/xcHarKcBkr8vv1lMVsZkz7lz6AAlNOn3GhIOc9B4Ux7S2D/DQaFsjNAvQk3dpKo7bJ8h5WVWmDOMiVcy4aZaZa91zpy18KLEpmcUm//6I3FuItHkEJyth+CW822tZq1ze2M6j6+k7fQ4NS2TxVEILiLbFXOUZKr+Ga3WbiaaN/VB8urHrudOAVQqpFF2FJWAMmqlD76jJ8hKfJow8QGJeDQm+jTMCYSkLVxOE59ytHJfsrKQd+aHQkhRVTRBXQe6b+ViJS8sfK+LQo2Ti77IYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Başlıyorum. Önce kaynak dosyaları okuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01SozGhJUvKGn6Pgm7md3BnY",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/word_translation_activity.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NmS4Ycqvu6ZebNka98saWR",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/screens/teacher/assignment_detail_screen.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01SozGhJUvKGn6Pgm7md3BnY",
+        "type": "tool_result",

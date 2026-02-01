@@ -166,7 +166,7 @@ class ReadingTimerNotifier extends StateNotifier<int> {
 
 /// Reading timer provider
 final readingTimerProvider =
-    StateNotifierProvider<ReadingTimerNotifier, int>((ref) {
+    StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {
   return ReadingTimerNotifier();
 });
 
@@ -208,7 +208,7 @@ class InlineActivityStateNotifier extends StateNotifier<Map<String, bool>> {
 
 /// Provider for tracking completed inline activities
 final inlineActivityStateProvider =
-    StateNotifierProvider<InlineActivityStateNotifier, Map<String, bool>>((ref) {
+    StateNotifierProvider.autoDispose<InlineActivityStateNotifier, Map<String, bool>>((ref) {
   return InlineActivityStateNotifier();
 });
 
@@ -245,7 +245,7 @@ class SessionXPNotifier extends StateNotifier<int> {
 
 /// Provider for session XP
 final sessionXPProvider =
-    StateNotifierProvider<SessionXPNotifier, int>((ref) {
+    StateNotifierProvider.autoDispose<SessionXPNotifier, int>((ref) {
   return SessionXPNotifier();
 });
 
@@ -267,7 +267,7 @@ class LearnedWordsNotifier extends StateNotifier<List<String>> {
 
 /// Provider for words learned in session
 final learnedWordsProvider =
-    StateNotifierProvider<LearnedWordsNotifier, List<String>>((ref) {
+    StateNotifierProvider.autoDispose<LearnedWordsNotifier, List<String>>((ref) {
   return LearnedWordsNotifier();
 });
 

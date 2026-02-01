@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../widgets/common/stat_item.dart';
 
 class AssignmentReportScreen extends ConsumerWidget {
   const AssignmentReportScreen({super.key});
@@ -88,17 +89,38 @@ class AssignmentReportScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _StatItem(
+                            StatItem(
                               value: '$totalAssignments',
                               label: 'Assignments',
+                              valueStyle: context.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: context.colorScheme.onPrimaryContainer,
+                              ),
+                              labelStyle: context.textTheme.bodySmall?.copyWith(
+                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                              ),
                             ),
-                            _StatItem(
+                            StatItem(
                               value: '$totalCompleted/$totalStudents',
                               label: 'Completed',
+                              valueStyle: context.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: context.colorScheme.onPrimaryContainer,
+                              ),
+                              labelStyle: context.textTheme.bodySmall?.copyWith(
+                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                              ),
                             ),
-                            _StatItem(
+                            StatItem(
                               value: '${avgCompletionRate.toStringAsFixed(0)}%',
                               label: 'Avg Rate',
+                              valueStyle: context.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: context.colorScheme.onPrimaryContainer,
+                              ),
+                              labelStyle: context.textTheme.bodySmall?.copyWith(
+                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                              ),
                             ),
                           ],
                         ),
@@ -127,37 +149,6 @@ class AssignmentReportScreen extends ConsumerWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({
-    required this.value,
-    required this.label,
-  });
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: context.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: context.colorScheme.onPrimaryContainer,
-          ),
-        ),
-        Text(
-          label,
-          style: context.textTheme.bodySmall?.copyWith(
-            color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-          ),
-        ),
-      ],
     );
   }
 }

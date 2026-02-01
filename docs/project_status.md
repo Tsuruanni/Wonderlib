@@ -1,10 +1,10 @@
 # Project Status
 
-Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
+Son güncelleme: 2026-02-01 (Clean Architecture Refactor Started)
 
 ## Current Phase
 
-**Faz 3: Öğretmen MVP** ✅ Complete
+**Faz 5: Clean Architecture Refactor** 🔄 In Progress
 
 ## Roadmap
 
@@ -46,6 +46,19 @@ Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
 - [ ] Kitap ekleme arayüzü
 - [ ] İçerik pipeline
 
+### Faz 5: Clean Architecture Refactor 🔄
+- [x] UseCase base class and initial 4 UseCases
+- [x] Common widgets extraction (XPBadge, StatItem)
+- [x] Mock repositories deleted
+- [x] Provider autoDispose for memory leaks
+- [x] Refactor plan documentation
+- [ ] Model layer (JSON ↔ Entity separation)
+- [ ] Complete UseCase layer (~48 total)
+- [ ] Update all Providers to use UseCases
+- [ ] Remove repository imports from all Screens
+
+See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
+
 ### Faz 4+: İleri Özellikler (Deferred)
 - [x] Kelime egzersizi modülü (4-Phase Vocabulary Builder)
 - [x] Rozet sistemi (badge earning after XP/streak)
@@ -59,6 +72,7 @@ Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
+| Clean Architecture Refactor | Claude + User | Active | Model layer + UseCases for all modules |
 | Testing & Validation | User | Active | Manual testing of all features |
 
 ## Deferred to Phase 4
@@ -81,12 +95,18 @@ Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
 |------|----------|-------|
 | ~~Mock data uyuşmazlığı~~ | ~~Low~~ | ✅ Artık gerçek veri kullanılıyor |
 | ~~"Add to vocabulary"~~ | ~~Medium~~ | ✅ Reader'da kelime ekleme çalışıyor |
+| ~~Mock repositories~~ | ~~High~~ | ✅ Deleted 7 mock repository files |
+| ~~withOpacity deprecated~~ | ~~Low~~ | ✅ Changed to withValues(alpha:) |
+| Screens importing repositories | High | Being fixed in Clean Architecture refactor |
+| Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Clean Architecture Phase 1 | 2026-02-01 | UseCase base, 4 UseCases, common widgets, mock cleanup |
+| Refactor Plan Documentation | 2026-02-01 | CLEAN_ARCHITECTURE_REFACTOR_PLAN.md, REFACTOR_CHECKLIST.md |
 | Router & Navigation Fixes | 2026-02-01 | GoRouter key collision fix, splash screen, auth timing |
 | Remove School Code Screen | 2026-02-01 | Direct login, global unique student numbers |
 | Book-Based Assignments | 2026-02-01 | Simplified to full book (no chapter selection), lockLibrary option |
@@ -150,6 +170,10 @@ Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
 
 | Date | Decision | Rationale |
 |------|----------|-----------|
+| 2026-02-01 | Full Clean Architecture Refactor | Ensure maintainability, testability, future activity types |
+| 2026-02-01 | Model/Entity separation | Decouple JSON parsing from domain, enable multi-source data |
+| 2026-02-01 | Include Badge/XPLog in Model layer | Consistency across all entities |
+| 2026-02-01 | Module-by-module refactor | Risk mitigation, independent testing per module |
 | 2026-01-30 | Flutter + Supabase stack | Tek codebase, hızlı MVP, düşük maliyet |
 | 2026-01-30 | Meilisearch atlandı | Supabase FTS yeterli, MVP için maliyet düşürme |
 | 2026-01-30 | Learning Locker atlandı | MVP için gerekli değil, sonra eklenebilir |

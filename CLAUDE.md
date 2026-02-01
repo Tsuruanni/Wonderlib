@@ -17,13 +17,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Analytics:** PostHog
 - **Error Tracking:** Sentry
 
-**Klasör yapısı (hedef):**
+**Klasör yapısı:**
 ```
 lib/
 ├── core/           # constants, errors, network, services
-├── data/           # datasources (local/remote), models, repositories
-├── domain/         # entities, repository interfaces, usecases
-├── presentation/   # providers, screens, widgets
+├── data/
+│   ├── models/     # JSON↔Entity dönüşümü (Supabase response → Entity)
+│   └── repositories/supabase/  # Repository implementasyonları
+├── domain/
+│   ├── entities/   # Saf iş nesneleri (Flutter bağımsız)
+│   ├── repositories/  # Repository interface'leri
+│   └── usecases/   # İş mantığı (tek sorumluluk)
+├── presentation/
+│   ├── providers/  # Riverpod state management
+│   ├── screens/    # UI katmanı
+│   └── widgets/    # Reusable components
 └── l10n/           # localization (TR/EN)
 ```
 
@@ -31,6 +39,43 @@ lib/
 - Clean Architecture (domain-driven)
 - Offline-first: önce lokal kaydet, sonra senkronize et
 - Repository pattern ile data abstraction
+- **Model/Entity ayrımı:** Data layer JSON parse, Domain layer saf kalır
+
+## ⚠️ Clean Architecture Kuralları (KRİTİK)
+
+**Katman Akışı (TEK YÖN):**
+```
+Screen → Provider → UseCase → Repository Interface
+                                      ↑
+                              Repository Impl → Model → Supabase
+```
+
+**YASAK İşlemler:**
+| Yapma | Neden |
+|-------|-------|
+| Screen'de Repository import | Presentation → Domain direkt bağlantı yasak |
+| Screen'de `ref.read(xxxRepositoryProvider)` | UseCase üzerinden git |
+| UseCase'de Flutter import | Domain katmanı saf kalmalı |
+| Entity'de `fromJson`/`toJson` | Model katmanında olmalı |
+
+**DOĞRU Pattern:**
+```dart
+// Screen - sadece Provider kullanır
+final data = ref.watch(someProvider);
+
+// Provider - UseCase çağırır
+final result = await ref.read(someUseCaseProvider)(SomeParams(...));
+
+// UseCase - Repository interface kullanır
+return _repository.someMethod(params);
+
+// Repository Impl - Model kullanır
+final model = SomeModel.fromJson(json);
+return model.toEntity();
+```
+
+**Refactor Planı:** `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
+**Checklist:** `docs/REFACTOR_CHECKLIST.md`
 
 **Offline-First Data Flow:**
 ```
@@ -47,11 +92,40 @@ User Action → Local DB (Isar) → UI Update → Sync Queue → Supabase (when 
   - Dosyalar: `snake_case.dart`
   - Sınıflar: `PascalCase`
   - Değişkenler/fonksiyonlar: `camelCase`
+  - UseCase: `VerbNounUseCase` (örn: `GetBooksUseCase`, `CreateAssignmentUseCase`)
+  - Model: `EntityNameModel` (örn: `BookModel`, `UserModel`)
 - **State:** Riverpod providers, immutable state
-- **API çağrıları:** `data/datasources/remote/` altında topla
+- **UseCase'ler:** `lib/domain/usecases/` altında, `Either<Failure, T>` döndürmeli
+- **Model'ler:** `lib/data/models/` altında, `toEntity()` ve `fromJson()` içermeli
+- **API çağrıları:** Repository implementasyonları üzerinden
 - **Lokal veri:** `data/datasources/local/` altında Isar kullan
 - Gereksiz abstraction üretme, mevcut pattern'i takip et
 - **UI Language:** All user-facing text must be in English (no Turkish in UI)
+
+## UseCase Şablonu
+```dart
+class XxxUseCase implements UseCase<ReturnType, XxxParams> {
+  final XxxRepository _repository;
+  const XxxUseCase(this._repository);
+
+  @override
+  Future<Either<Failure, ReturnType>> call(XxxParams params) {
+    return _repository.someMethod(params.field);
+  }
+}
+```
+
+## Model Şablonu
+```dart
+class XxxModel {
+  // fields...
+
+  factory XxxModel.fromJson(Map<String, dynamic> json) { ... }
+  Map<String, dynamic> toJson() { ... }
+  XxxEntity toEntity() { ... }
+  factory XxxModel.fromEntity(XxxEntity entity) { ... }
+}
+```
 
 # Testing & Quality
 - **Test aracı:** flutter_test, mockito
@@ -114,12 +188,22 @@ supabase functions serve                 # local edge function test
 - **Kod yazarken:**
   - Mevcut dosyayı oku, stilini takip et
   - Yeni pattern icat etme, mevcut olanı kullan
+  - **Clean Architecture kurallarına uy** (yukarıdaki YASAK tablosuna bak)
+- **Yeni özellik eklerken:**
+  1. Model oluştur (`lib/data/models/`)
+  2. UseCase oluştur (`lib/domain/usecases/`)
+  3. Provider güncelle (UseCase kullan)
+  4. Screen'de Provider kullan (Repository değil!)
 - **Değişiklik sonrası:** `## Changes Summary` ile değişen dosyaları listele
+- **Doğrulama:** `dart analyze` ve `grep -r "import.*domain/repositories" lib/presentation/screens/`
 
 # Context & Limits
 - Bu dosya her zaman okunuyor - sadece genel kurallar burada
 - Feature detayları için: `readeng-prd.md`, `readeng-trd-v2.md`, `readeng-user-flows.md`
+- **Mimari plan:** `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
+- **Refactor checklist:** `docs/REFACTOR_CHECKLIST.md`
 - Kod ile bu kurallar çelişirse: önce mevcut kodu koru, çelişkiyi raporla
+- **Clean Architecture ihlali görürsen:** Düzelt veya raporla (Screen'de repository import vb.)
 
 # Domain Özeti
 - **Kullanıcı rolleri:** student, teacher, head, admin
@@ -140,10 +224,21 @@ supabase functions serve                 # local edge function test
 
 # ⚠️ IMPORTANT: Development Status
 
-## Current State (2026-01-31)
+## Current State (2026-02-01)
 - **Local Supabase:** ✅ Docker ile çalışıyor, 21 tablo + seed data
 - **Remote Supabase:** ❌ Tablolar YOK (migrations push edilmedi)
-- **Flutter App:** ✅ Tüm 7 repository Supabase kullanıyor (Auth, Book, User, Activity, Vocabulary, WordList, Badge)
+- **Flutter App:** ✅ Tüm 9 repository Supabase kullanıyor
+- **Clean Architecture Refactor:** 🔄 Devam ediyor (bkz: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`)
+
+## Mimari Refactor Durumu
+| Katman | Durum | Not |
+|--------|-------|-----|
+| Repository Interface | ✅ Tamamlandı | 9 interface |
+| Repository Impl | ✅ Tamamlandı | Supabase implementasyonları |
+| Model Layer | 🔄 Ekleniyor | `lib/data/models/` |
+| UseCase Layer | 🔄 Ekleniyor | 4 mevcut, ~48 hedef |
+| Provider Layer | 🔄 Güncelleniyor | UseCase kullanacak |
+| Screen Layer | 🔄 Temizleniyor | Repository import kaldırılacak |
 
 ## 🚨 REMOTE PUSH YAPILMADI - ÇOK ÖNEMLİ!
 Tüm geliştirme LOCAL Supabase üzerinde yapılıyor. Production'a geçmeden önce:

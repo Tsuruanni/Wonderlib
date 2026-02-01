@@ -43,27 +43,44 @@
 │  Screens, Widgets, Providers (Riverpod)                      │
 │  - UI rendering                                               │
 │  - User input handling                                        │
-│  - State management                                           │
+│  - State management via Providers                             │
+│  ⚠️ MUST NOT import repositories directly                    │
 └──────────────────────────────────────────────────────────────┘
-                              │
+                              │ calls
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                       DOMAIN                                  │
 │  Entities, UseCases, Repository Interfaces                   │
-│  - Business logic                                             │
-│  - Platform-agnostic                                          │
+│  - Business logic in UseCases                                 │
+│  - Platform-agnostic (no Flutter imports)                     │
 │  - No external dependencies                                   │
+│  - UseCases return Either<Failure, T>                         │
 └──────────────────────────────────────────────────────────────┘
-                              │
+                              │ implements
                               ▼
 ┌──────────────────────────────────────────────────────────────┐
 │                        DATA                                   │
 │  Models, DataSources, Repository Implementations             │
+│  - Models: JSON ↔ Entity transformation                       │
 │  - API calls (Supabase)                                       │
 │  - Local storage (Isar)                                       │
-│  - Data transformation                                        │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+### Data Flow (Correct Pattern)
+
+```
+Screen → Provider → UseCase → Repository Interface
+                                      ↑
+                         Repository Impl → Model → Supabase/Isar
+```
+
+**Rules:**
+- Screens use Providers only (never repositories)
+- Providers call UseCases
+- UseCases depend on Repository interfaces
+- Repository implementations use Models for JSON parsing
+- Models have `toEntity()` and `fromJson()` methods
 
 ### Directory Structure
 
@@ -86,21 +103,53 @@ lib/
 │   ├── datasources/
 │   │   ├── local/            # Isar databases
 │   │   └── remote/           # Supabase calls
-│   ├── models/               # JSON serializable
-│   └── repositories/         # Implementations
+│   ├── models/               # JSON ↔ Entity transformation
+│   │   ├── auth/             # UserModel
+│   │   ├── book/             # BookModel, ChapterModel
+│   │   ├── activity/         # ActivityModel
+│   │   └── ...
+│   └── repositories/
+│       └── supabase/         # Supabase implementations
 │
 ├── domain/
-│   ├── entities/             # Business objects
-│   ├── repositories/         # Interfaces
+│   ├── entities/             # Pure business objects (no JSON)
+│   ├── repositories/         # Repository interfaces
 │   └── usecases/             # Business logic
+│       ├── usecase.dart      # Base UseCase class
+│       ├── auth/             # Auth UseCases
+│       ├── book/             # Book UseCases
+│       ├── reading/          # Reading UseCases
+│       ├── activity/         # Activity UseCases
+│       ├── vocabulary/       # Vocabulary UseCases
+│       ├── teacher/          # Teacher UseCases
+│       └── assignment/       # Assignment UseCases
 │
 ├── presentation/
-│   ├── providers/            # Riverpod providers
+│   ├── providers/
+│   │   ├── usecase_providers.dart  # All UseCase providers
+│   │   ├── repository_providers.dart
+│   │   └── *_provider.dart   # Feature providers
 │   ├── screens/              # Page widgets
-│   └── widgets/              # Reusable components
+│   └── widgets/
+│       └── common/           # Shared widgets (XPBadge, StatItem)
 │
 └── l10n/                     # Localization
 ```
+
+### UseCase Pattern
+
+```dart
+// lib/domain/usecases/usecase.dart
+abstract class UseCase<Type, Params> {
+  Future<Either<Failure, Type>> call(Params params);
+}
+
+class NoParams {
+  const NoParams();
+}
+```
+
+**Refactor Status:** See `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 ## Core Data Flows
 

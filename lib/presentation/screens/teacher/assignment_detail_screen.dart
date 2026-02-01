@@ -7,6 +7,7 @@ import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/stat_item.dart';
 
 class AssignmentDetailScreen extends ConsumerWidget {
   const AssignmentDetailScreen({
@@ -377,19 +378,19 @@ class _StatsBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _StatItem(
+          StatItem(
             value: '${assignment.totalStudents}',
             label: 'Students',
             icon: Icons.people,
             color: Colors.blue,
           ),
-          _StatItem(
+          StatItem(
             value: '${assignment.completedStudents}',
             label: 'Completed',
             icon: Icons.check_circle,
             color: Colors.green,
           ),
-          _StatItem(
+          StatItem(
             value: '${assignment.completionRate.toStringAsFixed(0)}%',
             label: 'Progress',
             icon: Icons.trending_up,
@@ -397,42 +398,6 @@ class _StatsBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({
-    required this.value,
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: context.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: context.textTheme.bodySmall?.copyWith(
-            color: context.colorScheme.outline,
-          ),
-        ),
-      ],
     );
   }
 }
