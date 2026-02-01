@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
+import '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
+import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/repository_providers.dart';
+import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
 import '../activities/activities.dart';
 import 'paragraph_widget.dart';
@@ -202,13 +205,13 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
     if (userId == null) return;
 
     // Layer 2: Save to DB and check if this is a NEW completion
-    final bookRepo = ref.read(bookRepositoryProvider);
-    final result = await bookRepo.saveInlineActivityResult(
+    final useCase = ref.read(saveInlineActivityResultUseCaseProvider);
+    final result = await useCase(SaveInlineActivityResultParams(
       userId: userId,
       activityId: activityId,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
-    );
+    ));
 
     // Extract whether this is a new completion (prevents duplicate XP)
     final isNewCompletion = result.fold(

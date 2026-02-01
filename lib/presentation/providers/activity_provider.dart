@@ -6,15 +6,27 @@ import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
 import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
 import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
 import '../../domain/usecases/activity/get_best_result_usecase.dart';
+import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
 
-/// Provides activities for a chapter
+/// Provides activities for a chapter (end-of-chapter quizzes)
 final chapterActivitiesProvider =
     FutureProvider.family<List<Activity>, String>((ref, chapterId) async {
   final useCase = ref.watch(getActivitiesByChapterUseCaseProvider);
   final result = await useCase(GetActivitiesByChapterParams(chapterId: chapterId));
+  return result.fold(
+    (failure) => [],
+    (activities) => activities,
+  );
+});
+
+/// Provides inline activities for a chapter (microlearning during reading)
+final inlineActivitiesProvider =
+    FutureProvider.family<List<InlineActivity>, String>((ref, chapterId) async {
+  final useCase = ref.watch(getInlineActivitiesUseCaseProvider);
+  final result = await useCase(GetInlineActivitiesParams(chapterId: chapterId));
   return result.fold(
     (failure) => [],
     (activities) => activities,

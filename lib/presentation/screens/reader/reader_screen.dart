@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
+import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';

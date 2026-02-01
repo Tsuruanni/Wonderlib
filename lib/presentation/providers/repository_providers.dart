@@ -56,16 +56,7 @@ final teacherRepositoryProvider = Provider<TeacherRepository>((ref) {
   return SupabaseTeacherRepository();
 });
 
-/// Inline activities provider (for reader screen)
-final inlineActivitiesProvider =
-    FutureProvider.family<List<InlineActivity>, String>((ref, chapterId) async {
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getInlineActivities(chapterId);
-  return result.fold(
-    (failure) => [],
-    (activities) => activities,
-  );
-});
+// NOTE: inlineActivitiesProvider moved to activity_provider.dart with UseCase
 
 /// Edge Function service provider (for XP awards, streak updates)
 final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
