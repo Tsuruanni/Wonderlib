@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/repositories/student_assignment_repository.dart';
+import '../../models/assignment/student_assignment_model.dart';
 
 class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository {
   SupabaseStudentAssignmentRepository({SupabaseClient? supabase})
@@ -45,48 +46,12 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
         final assignmentData = data['assignments'] as Map<String, dynamic>?;
         if (assignmentData == null) continue;
 
-        final teacherData = assignmentData['profiles'] as Map<String, dynamic>?;
-        final classData = assignmentData['classes'] as Map<String, dynamic>?;
-
-        String? teacherName;
-        if (teacherData != null) {
-          final firstName = teacherData['first_name'] as String? ?? '';
-          final lastName = teacherData['last_name'] as String? ?? '';
-          teacherName = '$firstName $lastName'.trim();
+        try {
+          assignments.add(StudentAssignmentModel.fromJson(data).toEntity());
+        } catch (e) {
+          debugPrint('Error parsing assignment: $e');
+          continue;
         }
-
-        // Check if overdue
-        final dueDate = DateTime.parse(assignmentData['due_date'] as String);
-        final statusStr = data['status'] as String? ?? 'pending';
-        var status = StudentAssignmentStatus.fromString(statusStr);
-
-        // Auto-update status to overdue if past due date and not completed
-        if (status != StudentAssignmentStatus.completed &&
-            DateTime.now().isAfter(dueDate)) {
-          status = StudentAssignmentStatus.overdue;
-        }
-
-        assignments.add(StudentAssignment(
-          id: data['id'] as String,
-          assignmentId: assignmentData['id'] as String,
-          title: assignmentData['title'] as String,
-          description: assignmentData['description'] as String?,
-          type: StudentAssignmentType.fromString(assignmentData['type'] as String),
-          status: status,
-          progress: (data['progress'] as num?)?.toDouble() ?? 0,
-          score: (data['score'] as num?)?.toDouble(),
-          teacherName: teacherName,
-          className: classData?['name'] as String?,
-          startDate: DateTime.parse(assignmentData['start_date'] as String),
-          dueDate: dueDate,
-          startedAt: data['started_at'] != null
-              ? DateTime.parse(data['started_at'] as String)
-              : null,
-          completedAt: data['completed_at'] != null
-              ? DateTime.parse(data['completed_at'] as String)
-              : null,
-          contentConfig: (assignmentData['content_config'] as Map<String, dynamic>?) ?? {},
-        ));
       }
 
       return Right(assignments);
@@ -145,46 +110,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
         return const Left(NotFoundFailure('Assignment not found'));
       }
 
-      final teacherData = assignmentData['profiles'] as Map<String, dynamic>?;
-      final classData = assignmentData['classes'] as Map<String, dynamic>?;
-
-      String? teacherName;
-      if (teacherData != null) {
-        final firstName = teacherData['first_name'] as String? ?? '';
-        final lastName = teacherData['last_name'] as String? ?? '';
-        teacherName = '$firstName $lastName'.trim();
-      }
-
-      final dueDate = DateTime.parse(assignmentData['due_date'] as String);
-      final statusStr = response['status'] as String? ?? 'pending';
-      var status = StudentAssignmentStatus.fromString(statusStr);
-
-      if (status != StudentAssignmentStatus.completed &&
-          DateTime.now().isAfter(dueDate)) {
-        status = StudentAssignmentStatus.overdue;
-      }
-
-      return Right(StudentAssignment(
-        id: response['id'] as String,
-        assignmentId: assignmentData['id'] as String,
-        title: assignmentData['title'] as String,
-        description: assignmentData['description'] as String?,
-        type: StudentAssignmentType.fromString(assignmentData['type'] as String),
-        status: status,
-        progress: (response['progress'] as num?)?.toDouble() ?? 0,
-        score: (response['score'] as num?)?.toDouble(),
-        teacherName: teacherName,
-        className: classData?['name'] as String?,
-        startDate: DateTime.parse(assignmentData['start_date'] as String),
-        dueDate: dueDate,
-        startedAt: response['started_at'] != null
-            ? DateTime.parse(response['started_at'] as String)
-            : null,
-        completedAt: response['completed_at'] != null
-            ? DateTime.parse(response['completed_at'] as String)
-            : null,
-        contentConfig: (assignmentData['content_config'] as Map<String, dynamic>?) ?? {},
-      ));
+      return Right(StudentAssignmentModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return const Left(NotFoundFailure('Assignment not found'));

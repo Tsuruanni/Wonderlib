@@ -9,6 +9,7 @@ import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
+import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
 import '../../domain/entities/activity.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -18,6 +19,7 @@ import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/repositories/student_assignment_repository.dart';
 
 /// Repository providers
 /// All repositories now use Supabase implementations
@@ -54,6 +56,10 @@ final wordListRepositoryProvider = Provider<WordListRepository>((ref) {
 
 final teacherRepositoryProvider = Provider<TeacherRepository>((ref) {
   return SupabaseTeacherRepository();
+});
+
+final studentAssignmentRepositoryProvider = Provider<StudentAssignmentRepository>((ref) {
+  return SupabaseStudentAssignmentRepository();
 });
 
 // NOTE: inlineActivitiesProvider moved to activity_provider.dart with UseCase

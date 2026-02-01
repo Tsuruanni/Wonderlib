@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
+import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
 import '../activities/activities.dart';
@@ -233,12 +233,12 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
       ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
 
       // Persist to vocabulary_progress
-      final vocabRepo = ref.read(vocabularyRepositoryProvider);
+      final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
       for (final wordId in wordsLearned) {
-        await vocabRepo.addWordToVocabulary(
+        await addWordUseCase(AddWordToVocabularyParams(
           userId: userId,
           wordId: wordId,
-        );
+        ));
       }
     }
   }

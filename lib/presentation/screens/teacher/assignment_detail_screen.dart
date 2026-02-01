@@ -5,8 +5,9 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
-import '../../providers/repository_providers.dart';
+import '../../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../providers/teacher_provider.dart';
+import '../../providers/usecase_providers.dart';
 import '../../widgets/common/stat_item.dart';
 
 class AssignmentDetailScreen extends ConsumerWidget {
@@ -182,8 +183,8 @@ class _AssignmentAppBar extends StatelessWidget {
               if (confirmed == true && context.mounted) {
                 // Delete assignment
                 final container = ProviderScope.containerOf(context);
-                final teacherRepo = container.read(teacherRepositoryProvider);
-                final result = await teacherRepo.deleteAssignment(assignment.id);
+                final useCase = container.read(deleteAssignmentUseCaseProvider);
+                final result = await useCase(DeleteAssignmentParams(assignmentId: assignment.id));
 
                 result.fold(
                   (failure) {

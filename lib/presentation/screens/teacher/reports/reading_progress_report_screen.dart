@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/extensions/context_extensions.dart';
-import '../../../providers/repository_providers.dart';
+import '../../../../domain/usecases/book/get_books_usecase.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/usecase_providers.dart';
 
 /// Book reading stats for the school
 class BookReadingStats {
@@ -34,10 +35,10 @@ final bookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((ref) as
   final user = ref.watch(authStateChangesProvider).valueOrNull;
   if (user == null) return [];
 
-  final bookRepo = ref.watch(bookRepositoryProvider);
+  final getBooksUseCase = ref.watch(getBooksUseCaseProvider);
 
   // Get all books
-  final booksResult = await bookRepo.getBooks();
+  final booksResult = await getBooksUseCase(const GetBooksParams());
 
   return booksResult.fold(
     (failure) => [],

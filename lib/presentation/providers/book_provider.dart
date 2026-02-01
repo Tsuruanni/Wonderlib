@@ -14,6 +14,9 @@ import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
+import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
+import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
@@ -166,9 +169,11 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
     required List<String> completedChapterIds,
   }) async {
     try {
-      // Get active assignments
-      final assignmentRepo = _ref.read(studentAssignmentRepositoryProvider);
-      final assignmentsResult = await assignmentRepo.getActiveAssignments(userId);
+      // Get active assignments using UseCase
+      final getActiveAssignmentsUseCase = _ref.read(getActiveAssignmentsUseCaseProvider);
+      final assignmentsResult = await getActiveAssignmentsUseCase(
+        GetActiveAssignmentsParams(studentId: userId),
+      );
 
       assignmentsResult.fold(
         (failure) {}, // Silently fail - don't break chapter completion
@@ -195,21 +200,23 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
               // Calculate progress: completed chapters / total chapters in book
               final progress = (completedChapterIds.length / totalChapters) * 100;
 
-              // Update assignment progress
+              // Update assignment progress using UseCases
               if (progress >= 100) {
                 // All chapters complete - mark assignment as complete
-                await assignmentRepo.completeAssignment(
-                  userId,
-                  assignment.assignmentId,
-                  null, // No score for reading completion
-                );
+                final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
+                await completeAssignmentUseCase(CompleteAssignmentParams(
+                  studentId: userId,
+                  assignmentId: assignment.assignmentId,
+                  score: null, // No score for reading completion
+                ));
               } else {
                 // Update progress
-                await assignmentRepo.updateAssignmentProgress(
-                  userId,
-                  assignment.assignmentId,
-                  progress,
-                );
+                final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
+                await updateAssignmentProgressUseCase(UpdateAssignmentProgressParams(
+                  studentId: userId,
+                  assignmentId: assignment.assignmentId,
+                  progress: progress,
+                ));
               }
 
               // Invalidate assignment providers to refresh UI

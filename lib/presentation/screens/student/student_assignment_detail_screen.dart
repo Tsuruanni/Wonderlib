@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/student_assignment_repository.dart';
+import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/student_assignment_provider.dart';
+import '../../providers/usecase_providers.dart';
 
 class StudentAssignmentDetailScreen extends ConsumerWidget {
   const StudentAssignmentDetailScreen({
@@ -410,8 +412,11 @@ class _AssignmentDetailContent extends ConsumerWidget {
     if (assignment.status == StudentAssignmentStatus.pending) {
       final userId = ref.read(currentUserIdProvider);
       if (userId != null) {
-        final repo = ref.read(studentAssignmentRepositoryProvider);
-        await repo.startAssignment(userId, assignment.assignmentId);
+        final useCase = ref.read(startAssignmentUseCaseProvider);
+        await useCase(StartAssignmentParams(
+          studentId: userId,
+          assignmentId: assignment.assignmentId,
+        ));
         ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
         ref.invalidate(studentAssignmentsProvider);
       }

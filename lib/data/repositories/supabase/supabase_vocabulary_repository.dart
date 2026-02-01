@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/vocabulary_repository.dart';
+import '../../models/vocabulary/vocabulary_progress_model.dart';
+import '../../models/vocabulary/vocabulary_word_model.dart';
 
 class SupabaseVocabularyRepository implements VocabularyRepository {
   SupabaseVocabularyRepository({SupabaseClient? supabase})
@@ -36,7 +38,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .order('word', ascending: true);
 
       final words =
-          (response as List).map((json) => _mapToVocabularyWord(json)).toList();
+          (response as List).map((json) => VocabularyWordModel.fromJson(json).toEntity()).toList();
 
       return Right(words);
     } on PostgrestException catch (e) {
@@ -52,7 +54,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final response =
           await _supabase.from('vocabulary_words').select().eq('id', id).single();
 
-      return Right(_mapToVocabularyWord(response));
+      return Right(VocabularyWordModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return const Left(NotFoundFailure('Word not found'));
@@ -75,7 +77,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .limit(30);
 
       final words =
-          (response as List).map((json) => _mapToVocabularyWord(json)).toList();
+          (response as List).map((json) => VocabularyWordModel.fromJson(json).toEntity()).toList();
 
       return Right(words);
     } on PostgrestException catch (e) {
@@ -97,7 +99,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .order('created_at', ascending: false);
 
       final progressList = (response as List)
-          .map((json) => _mapToVocabularyProgress(json))
+          .map((json) => VocabularyProgressModel.fromJson(json).toEntity())
           .toList();
 
       return Right(progressList);
@@ -134,7 +136,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         return Right(newProgress);
       }
 
-      return Right(_mapToVocabularyProgress(response));
+      return Right(VocabularyProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -150,7 +152,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final data = {
         'user_id': progress.userId,
         'word_id': progress.wordId,
-        'status': _statusToString(progress.status),
+        'status': VocabularyProgressModel.statusToString(progress.status),
         'ease_factor': progress.easeFactor,
         'interval_days': progress.intervalDays,
         'repetitions': progress.repetitions,
@@ -186,7 +188,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
             .single();
       }
 
-      return Right(_mapToVocabularyProgress(response));
+      return Right(VocabularyProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -225,7 +227,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .inFilter('id', wordIds);
 
       final words = (wordsResponse as List)
-          .map((json) => _mapToVocabularyWord(json))
+          .map((json) => VocabularyWordModel.fromJson(json).toEntity())
           .toList();
 
       return Right(words);
@@ -265,7 +267,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final wordsResponse = await query.limit(limit).order('level');
 
       final words = (wordsResponse as List)
-          .map((json) => _mapToVocabularyWord(json))
+          .map((json) => VocabularyWordModel.fromJson(json).toEntity())
           .toList();
 
       return Right(words);
@@ -350,7 +352,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .maybeSingle();
 
       if (existing != null) {
-        return Right(_mapToVocabularyProgress(existing));
+        return Right(VocabularyProgressModel.fromJson(existing).toEntity());
       }
 
       // Create new progress entry
@@ -373,7 +375,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .select()
           .single();
 
-      return Right(_mapToVocabularyProgress(response));
+      return Right(VocabularyProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -381,86 +383,4 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     }
   }
 
-  // ============================================
-  // MAPPING FUNCTIONS
-  // ============================================
-
-  VocabularyWord _mapToVocabularyWord(Map<String, dynamic> data) {
-    final examplesJson = data['example_sentences'] as List<dynamic>?;
-    final examples =
-        examplesJson?.map((e) => e as String).toList() ?? [];
-
-    final categoriesJson = data['categories'] as List<dynamic>?;
-    final categories =
-        categoriesJson?.map((c) => c as String).toList() ?? [];
-
-    final synonymsJson = data['synonyms'] as List<dynamic>?;
-    final synonyms = synonymsJson?.map((s) => s as String).toList() ?? [];
-
-    final antonymsJson = data['antonyms'] as List<dynamic>?;
-    final antonyms = antonymsJson?.map((a) => a as String).toList() ?? [];
-
-    return VocabularyWord(
-      id: data['id'] as String,
-      word: data['word'] as String,
-      phonetic: data['phonetic'] as String?,
-      meaningTR: data['meaning_tr'] as String? ?? '',
-      meaningEN: data['meaning_en'] as String?,
-      exampleSentences: examples,
-      audioUrl: data['audio_url'] as String?,
-      imageUrl: data['image_url'] as String?,
-      level: data['level'] as String?,
-      categories: categories,
-      synonyms: synonyms,
-      antonyms: antonyms,
-      createdAt: DateTime.parse(data['created_at'] as String),
-    );
-  }
-
-  VocabularyProgress _mapToVocabularyProgress(Map<String, dynamic> data) {
-    return VocabularyProgress(
-      id: data['id'] as String,
-      userId: data['user_id'] as String,
-      wordId: data['word_id'] as String,
-      status: _parseStatus(data['status'] as String?),
-      easeFactor: (data['ease_factor'] as num?)?.toDouble() ?? 2.5,
-      intervalDays: data['interval_days'] as int? ?? 0,
-      repetitions: data['repetitions'] as int? ?? 0,
-      nextReviewAt: data['next_review_at'] != null
-          ? DateTime.parse(data['next_review_at'] as String)
-          : null,
-      lastReviewedAt: data['last_reviewed_at'] != null
-          ? DateTime.parse(data['last_reviewed_at'] as String)
-          : null,
-      createdAt: DateTime.parse(data['created_at'] as String),
-    );
-  }
-
-  VocabularyStatus _parseStatus(String? status) {
-    switch (status) {
-      case 'new_word':
-        return VocabularyStatus.newWord;
-      case 'learning':
-        return VocabularyStatus.learning;
-      case 'reviewing':
-        return VocabularyStatus.reviewing;
-      case 'mastered':
-        return VocabularyStatus.mastered;
-      default:
-        return VocabularyStatus.newWord;
-    }
-  }
-
-  String _statusToString(VocabularyStatus status) {
-    switch (status) {
-      case VocabularyStatus.newWord:
-        return 'new_word';
-      case VocabularyStatus.learning:
-        return 'learning';
-      case VocabularyStatus.reviewing:
-        return 'reviewing';
-      case VocabularyStatus.mastered:
-        return 'mastered';
-    }
-  }
 }

@@ -1,16 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
+import '../../domain/usecases/user/add_xp_usecase.dart';
+import '../../domain/usecases/user/get_classmates_usecase.dart';
+import '../../domain/usecases/user/get_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_by_id_usecase.dart';
+import '../../domain/usecases/user/get_user_stats_usecase.dart';
+import '../../domain/usecases/user/update_streak_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return {};
 
-  final userRepo = ref.watch(userRepositoryProvider);
-  final result = await userRepo.getUserStats(userId);
+  final useCase = ref.watch(getUserStatsUseCaseProvider);
+  final result = await useCase(GetUserStatsParams(userId: userId));
   return result.fold(
     (failure) => {},
     (stats) => stats,
@@ -19,12 +25,12 @@ final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
 
 /// Provides leaderboard
 final leaderboardProvider = FutureProvider.family<List<User>, LeaderboardParams?>((ref, params) async {
-  final userRepo = ref.watch(userRepositoryProvider);
-  final result = await userRepo.getLeaderboard(
+  final useCase = ref.watch(getLeaderboardUseCaseProvider);
+  final result = await useCase(GetLeaderboardParams(
     schoolId: params?.schoolId,
     classId: params?.classId,
     limit: params?.limit ?? 10,
-  );
+  ));
   return result.fold(
     (failure) => [],
     (users) => users,
@@ -36,8 +42,8 @@ final classmatesProvider = FutureProvider<List<User>>((ref) async {
   final user = ref.watch(authStateChangesProvider).valueOrNull;
   if (user == null || user.classId == null) return [];
 
-  final userRepo = ref.watch(userRepositoryProvider);
-  final result = await userRepo.getClassmates(user.classId!);
+  final useCase = ref.watch(getClassmatesUseCaseProvider);
+  final result = await useCase(GetClassmatesParams(classId: user.classId!));
   return result.fold(
     (failure) => [],
     (users) => users,
@@ -80,8 +86,8 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   Future<void> _loadUserById(String userId) async {
     state = const AsyncValue.loading();
 
-    final userRepo = _ref.read(userRepositoryProvider);
-    final result = await userRepo.getUserById(userId);
+    final useCase = _ref.read(getUserByIdUseCaseProvider);
+    final result = await useCase(GetUserByIdParams(userId: userId));
 
     result.fold(
       (failure) {
@@ -115,8 +121,8 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    final userRepo = _ref.read(userRepositoryProvider);
-    final result = await userRepo.addXP(userId, amount);
+    final useCase = _ref.read(addXPUseCaseProvider);
+    final result = await useCase(AddXPParams(userId: userId, amount: amount));
 
     result.fold(
       (failure) => null,
@@ -132,8 +138,8 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    final userRepo = _ref.read(userRepositoryProvider);
-    final result = await userRepo.updateStreak(userId);
+    final useCase = _ref.read(updateStreakUseCaseProvider);
+    final result = await useCase(UpdateStreakParams(userId: userId));
 
     result.fold(
       (failure) => null,

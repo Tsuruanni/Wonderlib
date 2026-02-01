@@ -6,11 +6,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
+import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
+import '../../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/usecase_providers.dart';
 import '../../widgets/reader/collapsible_reader_header.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
@@ -143,10 +144,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final userId = ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    final vocabRepo = ref.read(vocabularyRepositoryProvider);
+    final searchUseCase = ref.read(searchWordsUseCaseProvider);
+    final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
 
     // Search for the word to get its ID
-    final searchResult = await vocabRepo.searchWords(word);
+    final searchResult = await searchUseCase(SearchWordsParams(query: word));
     final wordData = searchResult.fold(
       (failure) => null,
       (words) => words.isNotEmpty ? words.first : null,
@@ -165,10 +167,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     }
 
     // Add to user's vocabulary
-    final result = await vocabRepo.addWordToVocabulary(
+    final result = await addWordUseCase(AddWordToVocabularyParams(
       userId: userId,
       wordId: wordData.id,
-    );
+    ));
 
     if (mounted) {
       result.fold(

@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
+import '../../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/teacher_provider.dart';
+import '../../providers/usecase_providers.dart';
 
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
@@ -173,12 +174,12 @@ class ClassesScreen extends ConsumerWidget {
       return;
     }
 
-    final teacherRepo = ref.read(teacherRepositoryProvider);
-    final result = await teacherRepo.createClass(
+    final useCase = ref.read(createClassUseCaseProvider);
+    final result = await useCase(CreateClassParams(
       schoolId: user.schoolId,
       name: name,
       description: description,
-    );
+    ));
 
     if (!context.mounted) return;
 

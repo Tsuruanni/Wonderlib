@@ -2,8 +2,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/word_list.dart';
+import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
+import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
+import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
+import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
+import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/search_words_usecase.dart';
+import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
+import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
+import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
+import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
+import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
+import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
+import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
+import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 // ============================================
 // VOCABULARY WORD PROVIDERS
@@ -12,13 +27,13 @@ import 'repository_providers.dart';
 /// Provides all vocabulary words with optional filters
 final vocabularyWordsProvider =
     FutureProvider.family<List<VocabularyWord>, VocabularyFilters?>((ref, filters) async {
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getAllWords(
+  final useCase = ref.watch(getAllWordsUseCaseProvider);
+  final result = await useCase(GetAllWordsParams(
     level: filters?.level,
     categories: filters?.categories,
     page: filters?.page ?? 1,
     pageSize: filters?.pageSize ?? 50,
-  );
+  ));
   return result.fold(
     (failure) => [],
     (words) => words,
@@ -29,8 +44,8 @@ final vocabularyWordsProvider =
 final vocabularySearchProvider =
     FutureProvider.family<List<VocabularyWord>, String>((ref, query) async {
   if (query.isEmpty) return [];
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.searchWords(query);
+  final useCase = ref.watch(searchWordsUseCaseProvider);
+  final result = await useCase(SearchWordsParams(query: query));
   return result.fold(
     (failure) => [],
     (words) => words,
@@ -42,8 +57,8 @@ final dueForReviewProvider = FutureProvider<List<VocabularyWord>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getDueForReview(userId);
+  final useCase = ref.watch(getDueForReviewUseCaseProvider);
+  final result = await useCase(GetDueForReviewParams(userId: userId));
   return result.fold(
     (failure) => [],
     (words) => words,
@@ -55,8 +70,8 @@ final newWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getNewWords(userId: userId, limit: 10);
+  final useCase = ref.watch(getNewWordsUseCaseProvider);
+  final result = await useCase(GetNewWordsParams(userId: userId, limit: 10));
   return result.fold(
     (failure) => [],
     (words) => words,
@@ -68,8 +83,8 @@ final vocabularyStatsProvider = FutureProvider<Map<String, int>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return {};
 
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getVocabularyStats(userId);
+  final useCase = ref.watch(getVocabularyStatsUseCaseProvider);
+  final result = await useCase(GetVocabularyStatsParams(userId: userId));
   return result.fold(
     (failure) => {},
     (stats) => stats,
@@ -92,13 +107,13 @@ class VocabularyFilters {
 }
 
 // ============================================
-// USER VOCABULARY PROVIDERS (using repository)
+// USER VOCABULARY PROVIDERS (using UseCases)
 // ============================================
 
 /// All vocabulary words (sync provider for UI)
 final allVocabularyWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getAllWords();
+  final useCase = ref.watch(getAllWordsUseCaseProvider);
+  final result = await useCase(const GetAllWordsParams());
   return result.fold((f) => [], (words) => words);
 });
 
@@ -107,8 +122,8 @@ final userVocabularyProgressProvider = FutureProvider<List<VocabularyProgress>>(
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final vocabRepo = ref.watch(vocabularyRepositoryProvider);
-  final result = await vocabRepo.getUserProgress(userId);
+  final useCase = ref.watch(getUserVocabularyProgressUseCaseProvider);
+  final result = await useCase(GetUserVocabularyProgressParams(userId: userId));
   return result.fold((f) => [], (progress) => progress);
 });
 
@@ -229,11 +244,12 @@ class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
       return;
     }
 
-    final vocabRepo = _ref.read(vocabularyRepositoryProvider);
+    final dueUseCase = _ref.read(getDueForReviewUseCaseProvider);
+    final newUseCase = _ref.read(getNewWordsUseCaseProvider);
 
     // Get due words and new words
-    final dueResult = await vocabRepo.getDueForReview(userId);
-    final newResult = await vocabRepo.getNewWords(userId: userId, limit: 5);
+    final dueResult = await dueUseCase(GetDueForReviewParams(userId: userId));
+    final newResult = await newUseCase(GetNewWordsParams(userId: userId, limit: 5));
 
     final dueWords = dueResult.fold((f) => <VocabularyWord>[], (w) => w);
     final newWords = newResult.fold((f) => <VocabularyWord>[], (w) => w);
@@ -253,20 +269,21 @@ class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null || state.currentWord == null) return;
 
-    final vocabRepo = _ref.read(vocabularyRepositoryProvider);
+    final getProgressUseCase = _ref.read(getWordProgressUseCaseProvider);
+    final updateProgressUseCase = _ref.read(updateWordProgressUseCaseProvider);
 
     // Get current progress
-    final progressResult = await vocabRepo.getWordProgress(
+    final progressResult = await getProgressUseCase(GetWordProgressParams(
       userId: userId,
       wordId: state.currentWord!.id,
-    );
+    ));
 
     final progress = progressResult.fold((f) => null, (p) => p);
     if (progress == null) return;
 
     // Calculate next review
     final updatedProgress = progress.calculateNextReview(quality);
-    await vocabRepo.updateWordProgress(updatedProgress);
+    await updateProgressUseCase(UpdateWordProgressParams(progress: updatedProgress));
 
     // Update state
     state = state.copyWith(
@@ -329,48 +346,48 @@ final vocabularyReviewControllerProvider =
 });
 
 // ============================================
-// WORD LIST PROVIDERS (using repository)
+// WORD LIST PROVIDERS (using UseCases)
 // ============================================
 
 /// All word lists
 final allWordListsProvider = FutureProvider<List<WordList>>((ref) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getAllWordLists();
+  final useCase = ref.watch(getAllWordListsUseCaseProvider);
+  final result = await useCase(const GetAllWordListsParams());
   return result.fold((f) => [], (lists) => lists);
 });
 
 /// System word lists (admin-created)
 final systemWordListsProvider = FutureProvider<List<WordList>>((ref) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getAllWordLists(isSystem: true);
+  final useCase = ref.watch(getAllWordListsUseCaseProvider);
+  final result = await useCase(const GetAllWordListsParams(isSystem: true));
   return result.fold((f) => [], (lists) => lists);
 });
 
 /// Story vocabulary lists (from books user has read)
 final storyWordListsProvider = FutureProvider<List<WordList>>((ref) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getAllWordLists(category: WordListCategory.storyVocab);
+  final useCase = ref.watch(getAllWordListsUseCaseProvider);
+  final result = await useCase(const GetAllWordListsParams(category: WordListCategory.storyVocab));
   return result.fold((f) => [], (lists) => lists);
 });
 
 /// Word lists by category
 final wordListsByCategoryProvider = FutureProvider.family<List<WordList>, WordListCategory>((ref, category) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getAllWordLists(category: category);
+  final useCase = ref.watch(getAllWordListsUseCaseProvider);
+  final result = await useCase(GetAllWordListsParams(category: category));
   return result.fold((f) => [], (lists) => lists);
 });
 
 /// Single word list by ID
 final wordListByIdProvider = FutureProvider.family<WordList?, String>((ref, id) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getWordListById(id);
+  final useCase = ref.watch(getWordListByIdUseCaseProvider);
+  final result = await useCase(GetWordListByIdParams(listId: id));
   return result.fold((f) => null, (list) => list);
 });
 
 /// Words for a specific list
 final wordsForListProvider = FutureProvider.family<List<VocabularyWord>, String>((ref, listId) async {
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getWordsForList(listId);
+  final useCase = ref.watch(getWordsForListUseCaseProvider);
+  final result = await useCase(GetWordsForListParams(listId: listId));
   return result.fold((f) => [], (words) => words);
 });
 
@@ -379,8 +396,8 @@ final userWordListProgressProvider = FutureProvider<List<UserWordListProgress>>(
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getUserWordListProgress(userId);
+  final useCase = ref.watch(getUserWordListProgressUseCaseProvider);
+  final result = await useCase(GetUserWordListProgressParams(userId: userId));
   return result.fold((f) => [], (progress) => progress);
 });
 
@@ -389,8 +406,8 @@ final progressForListProvider = FutureProvider.family<UserWordListProgress?, Str
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return null;
 
-  final repo = ref.watch(wordListRepositoryProvider);
-  final result = await repo.getProgressForList(userId: userId, listId: listId);
+  final useCase = ref.watch(getProgressForListUseCaseProvider);
+  final result = await useCase(GetProgressForListParams(userId: userId, listId: listId));
   return result.fold((f) => null, (progress) => progress);
 });
 
@@ -497,8 +514,8 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    final repo = _ref.read(wordListRepositoryProvider);
-    final result = await repo.getUserWordListProgress(userId);
+    final useCase = _ref.read(getUserWordListProgressUseCaseProvider);
+    final result = await useCase(GetUserWordListProgressParams(userId: userId));
     result.fold(
       (f) => null,
       (progress) {
@@ -515,15 +532,15 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
   /// Complete a phase for a word list
   Future<void> completePhase(String listId, int phase, {int? score, int? total}) async {
     final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
-    final repo = _ref.read(wordListRepositoryProvider);
+    final useCase = _ref.read(completePhaseUseCaseProvider);
 
-    final result = await repo.completePhase(
+    final result = await useCase(CompletePhaseParams(
       userId: userId,
       listId: listId,
       phase: phase,
       score: score,
       total: total,
-    );
+    ));
 
     result.fold(
       (f) => null,
@@ -536,9 +553,9 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
   /// Reset progress for a word list
   Future<void> resetProgress(String listId) async {
     final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
-    final repo = _ref.read(wordListRepositoryProvider);
+    final useCase = _ref.read(resetProgressUseCaseProvider);
 
-    await repo.resetProgress(userId: userId, listId: listId);
+    await useCase(ResetProgressParams(userId: userId, listId: listId));
 
     final newState = Map<String, UserWordListProgress>.from(state);
     newState.remove(listId);

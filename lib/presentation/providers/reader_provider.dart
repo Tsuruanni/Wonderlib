@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/chapter.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
+import '../../domain/usecases/user/update_user_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
 import 'usecase_providers.dart';
 
 /// Reader theme options
@@ -114,8 +114,8 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
       'showVocabularyHighlights': state.showVocabularyHighlights,
     };
 
-    final userRepo = _ref.read(userRepositoryProvider);
-    await userRepo.updateUser(user.copyWith(settings: updatedSettings));
+    final updateUserUseCase = _ref.read(updateUserUseCaseProvider);
+    await updateUserUseCase(UpdateUserParams(user: user.copyWith(settings: updatedSettings)));
   }
 
   void setFontSize(double size) {

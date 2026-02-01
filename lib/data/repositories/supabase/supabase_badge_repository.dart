@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/repositories/badge_repository.dart';
+import '../../models/badge/badge_model.dart';
+import '../../models/badge/user_badge_model.dart';
 
 class SupabaseBadgeRepository implements BadgeRepository {
   SupabaseBadgeRepository({SupabaseClient? supabase})
@@ -22,7 +24,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
           .order('condition_value', ascending: true);
 
       final badges =
-          (response as List).map((json) => _mapToBadge(json)).toList();
+          (response as List).map((json) => BadgeModel.fromJson(json).toEntity()).toList();
 
       return Right(badges);
     } on PostgrestException catch (e) {
@@ -38,7 +40,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
       final response =
           await _supabase.from('badges').select().eq('id', id).single();
 
-      return Right(_mapToBadge(response));
+      return Right(BadgeModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return const Left(NotFoundFailure('Badge not found'));
@@ -59,7 +61,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
           .order('earned_at', ascending: false);
 
       final userBadges = (response as List)
-          .map((json) => _mapToUserBadge(json))
+          .map((json) => UserBadgeModel.fromJson(json).toEntity())
           .toList();
 
       return Right(userBadges);
@@ -86,7 +88,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       if (existing != null) {
         // Already has badge, return existing
-        return Right(_mapToUserBadge(existing));
+        return Right(UserBadgeModel.fromJson(existing).toEntity());
       }
 
       // Award the badge
@@ -106,7 +108,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
         await _awardXP(userId, badgeXP, 'badge_earned');
       }
 
-      return Right(_mapToUserBadge(response));
+      return Right(UserBadgeModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -176,7 +178,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
       final earnableBadges = <Badge>[];
 
       for (final badgeJson in (allBadges as List)) {
-        final badge = _mapToBadge(badgeJson);
+        final badge = BadgeModel.fromJson(badgeJson).toEntity();
 
         // Skip if already earned
         if (earnedBadgeIds.contains(badge.id)) continue;
@@ -237,7 +239,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
           .limit(limit);
 
       final badges = (response as List)
-          .map((json) => _mapToBadge(json['badges'] as Map<String, dynamic>))
+          .map((json) => BadgeModel.fromJson(json['badges'] as Map<String, dynamic>).toEntity())
           .toList();
 
       return Right(badges);
@@ -286,66 +288,4 @@ class SupabaseBadgeRepository implements BadgeRepository {
     }
   }
 
-  // ============================================
-  // MAPPING FUNCTIONS
-  // ============================================
-
-  Badge _mapToBadge(Map<String, dynamic> data) {
-    return Badge(
-      id: data['id'] as String,
-      name: data['name'] as String,
-      slug: data['slug'] as String,
-      description: data['description'] as String?,
-      icon: data['icon'] as String?,
-      category: data['category'] as String?,
-      conditionType: _parseConditionType(data['condition_type'] as String?),
-      conditionValue: data['condition_value'] as int? ?? 0,
-      xpReward: data['xp_reward'] as int? ?? 0,
-      isActive: data['is_active'] as bool? ?? true,
-      createdAt: DateTime.parse(data['created_at'] as String),
-    );
-  }
-
-  BadgeConditionType _parseConditionType(String? type) {
-    switch (type) {
-      case 'xp_total':
-        return BadgeConditionType.xpTotal;
-      case 'streak_days':
-        return BadgeConditionType.streakDays;
-      case 'books_completed':
-        return BadgeConditionType.booksCompleted;
-      case 'vocabulary_learned':
-        return BadgeConditionType.vocabularyLearned;
-      case 'perfect_scores':
-        return BadgeConditionType.perfectScores;
-      case 'level_completed':
-        return BadgeConditionType.levelCompleted;
-      case 'daily_login':
-        return BadgeConditionType.dailyLogin;
-      default:
-        return BadgeConditionType.xpTotal;
-    }
-  }
-
-  UserBadge _mapToUserBadge(Map<String, dynamic> data) {
-    final badgeData = data['badges'] as Map<String, dynamic>?;
-    final badge = badgeData != null
-        ? _mapToBadge(badgeData)
-        : Badge(
-            id: data['badge_id'] as String,
-            name: 'Unknown',
-            slug: 'unknown',
-            conditionType: BadgeConditionType.xpTotal,
-            conditionValue: 0,
-            createdAt: DateTime.now(),
-          );
-
-    return UserBadge(
-      id: data['id'] as String,
-      odId: data['user_id'] as String,
-      badgeId: data['badge_id'] as String,
-      badge: badge,
-      earnedAt: DateTime.parse(data['earned_at'] as String),
-    );
-  }
 }

@@ -7,7 +7,7 @@ import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../../domain/usecases/teacher/reset_student_password_usecase.dart';
-import '../../providers/repository_providers.dart';
+import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 
@@ -409,8 +409,8 @@ class _StudentCard extends ConsumerWidget {
   Future<void> _sendPasswordResetEmail(BuildContext context, WidgetRef ref) async {
     if (student.email == null) return;
 
-    final repo = ref.read(teacherRepositoryProvider);
-    final result = await repo.sendPasswordResetEmail(student.email!);
+    final useCase = ref.read(sendPasswordResetEmailUseCaseProvider);
+    final result = await useCase(SendPasswordResetEmailParams(email: student.email!));
 
     if (!context.mounted) return;
 

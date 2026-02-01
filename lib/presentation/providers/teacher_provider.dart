@@ -3,8 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
+import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
+import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
+import '../../domain/usecases/assignment/get_assignments_usecase.dart';
+import '../../domain/usecases/teacher/get_class_students_usecase.dart';
+import '../../domain/usecases/teacher/get_classes_usecase.dart';
+import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
+import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 /// Provider for teacher dashboard statistics
 final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
@@ -21,8 +30,8 @@ final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
     );
   }
 
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getTeacherStats(userId);
+  final useCase = ref.watch(getTeacherStatsUseCaseProvider);
+  final result = await useCase(GetTeacherStatsParams(teacherId: userId));
 
   return result.fold(
     (failure) {
@@ -53,8 +62,8 @@ final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>
     return [];
   }
 
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getClasses(schoolId);
+  final useCase = ref.watch(getClassesUseCaseProvider);
+  final result = await useCase(GetClassesParams(schoolId: schoolId));
 
   return result.fold(
     (failure) => [],
@@ -75,8 +84,8 @@ final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) a
 /// Provider for students in a specific class
 final classStudentsProvider =
     FutureProvider.family<List<StudentSummary>, String>((ref, classId) async {
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getClassStudents(classId);
+  final useCase = ref.watch(getClassStudentsUseCaseProvider);
+  final result = await useCase(GetClassStudentsParams(classId: classId));
 
   return result.fold(
     (failure) => [],
@@ -87,8 +96,8 @@ final classStudentsProvider =
 /// Provider for detailed student info
 final studentDetailProvider =
     FutureProvider.family<User?, String>((ref, studentId) async {
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getStudentDetail(studentId);
+  final useCase = ref.watch(getStudentDetailUseCaseProvider);
+  final result = await useCase(GetStudentDetailParams(studentId: studentId));
 
   return result.fold(
     (failure) => null,
@@ -99,8 +108,8 @@ final studentDetailProvider =
 /// Provider for student's book progress
 final studentProgressProvider =
     FutureProvider.family<List<StudentBookProgress>, String>((ref, studentId) async {
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getStudentProgress(studentId);
+  final useCase = ref.watch(getStudentProgressUseCaseProvider);
+  final result = await useCase(GetStudentProgressParams(studentId: studentId));
 
   return result.fold(
     (failure) => [],
@@ -119,8 +128,8 @@ final teacherAssignmentsProvider = FutureProvider<List<Assignment>>((ref) async 
     return [];
   }
 
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getAssignments(userId);
+  final useCase = ref.watch(getAssignmentsUseCaseProvider);
+  final result = await useCase(GetAssignmentsParams(teacherId: userId));
 
   return result.fold(
     (failure) => [],
@@ -131,8 +140,8 @@ final teacherAssignmentsProvider = FutureProvider<List<Assignment>>((ref) async 
 /// Provider for assignment detail
 final assignmentDetailProvider =
     FutureProvider.family<Assignment?, String>((ref, assignmentId) async {
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getAssignmentDetail(assignmentId);
+  final useCase = ref.watch(getAssignmentDetailUseCaseProvider);
+  final result = await useCase(GetAssignmentDetailParams(assignmentId: assignmentId));
 
   return result.fold(
     (failure) => null,
@@ -143,8 +152,8 @@ final assignmentDetailProvider =
 /// Provider for students in an assignment
 final assignmentStudentsProvider =
     FutureProvider.family<List<AssignmentStudent>, String>((ref, assignmentId) async {
-  final teacherRepo = ref.watch(teacherRepositoryProvider);
-  final result = await teacherRepo.getAssignmentStudents(assignmentId);
+  final useCase = ref.watch(getAssignmentStudentsUseCaseProvider);
+  final result = await useCase(GetAssignmentStudentsParams(assignmentId: assignmentId));
 
   return result.fold(
     (failure) => [],

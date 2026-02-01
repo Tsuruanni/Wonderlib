@@ -1,22 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
 import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
+import '../../domain/usecases/student_assignment/get_student_assignment_detail_usecase.dart';
+import '../../domain/usecases/student_assignment/get_student_assignments_usecase.dart';
 import 'auth_provider.dart';
-
-/// Provider for student assignment repository
-final studentAssignmentRepositoryProvider = Provider<StudentAssignmentRepository>((ref) {
-  return SupabaseStudentAssignmentRepository();
-});
+import 'usecase_providers.dart';
 
 /// Provider for all student assignments
 final studentAssignmentsProvider = FutureProvider<List<StudentAssignment>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final repo = ref.watch(studentAssignmentRepositoryProvider);
-  final result = await repo.getStudentAssignments(userId);
+  final useCase = ref.watch(getStudentAssignmentsUseCaseProvider);
+  final result = await useCase(GetStudentAssignmentsParams(studentId: userId));
 
   return result.fold(
     (failure) => [],
@@ -30,8 +28,8 @@ final activeAssignmentsProvider = FutureProvider<List<StudentAssignment>>((ref) 
   debugPrint('📋 activeAssignmentsProvider: userId=$userId');
   if (userId == null) return [];
 
-  final repo = ref.watch(studentAssignmentRepositoryProvider);
-  final result = await repo.getActiveAssignments(userId);
+  final useCase = ref.watch(getActiveAssignmentsUseCaseProvider);
+  final result = await useCase(GetActiveAssignmentsParams(studentId: userId));
 
   return result.fold(
     (failure) {
@@ -51,8 +49,11 @@ final studentAssignmentDetailProvider = FutureProvider.family<StudentAssignment?
     final userId = ref.watch(currentUserIdProvider);
     if (userId == null) return null;
 
-    final repo = ref.watch(studentAssignmentRepositoryProvider);
-    final result = await repo.getAssignmentDetail(userId, assignmentId);
+    final useCase = ref.watch(getStudentAssignmentDetailUseCaseProvider);
+    final result = await useCase(GetStudentAssignmentDetailParams(
+      studentId: userId,
+      assignmentId: assignmentId,
+    ));
 
     return result.fold(
       (failure) => null,
