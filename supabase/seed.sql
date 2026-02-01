@@ -144,7 +144,7 @@ INSERT INTO auth.users (
   crypt('Test1234', gen_salt('bf')),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',
-  '{"first_name": "Fresh", "last_name": "Student", "student_number": "2024001", "school_code": "DEMO123"}',
+  '{"first_name": "Fresh", "last_name": "Student", "student_number": "2024001", "school_code": "DEMO123", "role": "student"}',
   NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
 );
 
@@ -168,7 +168,7 @@ INSERT INTO auth.users (
   crypt('Test1234', gen_salt('bf')),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',
-  '{"first_name": "Active", "last_name": "Student", "student_number": "2024002", "school_code": "DEMO123"}',
+  '{"first_name": "Active", "last_name": "Student", "student_number": "2024002", "school_code": "DEMO123", "role": "student"}',
   NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
 );
 
@@ -192,7 +192,7 @@ INSERT INTO auth.users (
   crypt('Test1234', gen_salt('bf')),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',
-  '{"first_name": "Advanced", "last_name": "Student", "student_number": "2024003", "school_code": "DEMO123"}',
+  '{"first_name": "Advanced", "last_name": "Student", "student_number": "2024003", "school_code": "DEMO123", "role": "student"}',
   NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
 );
 
@@ -216,7 +216,7 @@ INSERT INTO auth.users (
   crypt('Test1234', gen_salt('bf')),
   NOW(),
   '{"provider": "email", "providers": ["email"]}',
-  '{"first_name": "Demo", "last_name": "Teacher", "school_code": "DEMO123"}',
+  '{"first_name": "Demo", "last_name": "Teacher", "school_code": "DEMO123", "role": "teacher"}',
   NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
 );
 

@@ -11,7 +11,9 @@ class ReadEngApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final router = ref.watch(routerProvider);
+    // Use ref.read - router instance never changes, only its internal state
+    // Using ref.watch would cause MaterialApp to rebuild, creating duplicate Navigator widgets
+    final router = ref.read(routerProvider);
 
     return MaterialApp.router(
       title: 'ReadEng',

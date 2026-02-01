@@ -369,10 +369,8 @@ class _AssignmentDetailContent extends ConsumerWidget {
                     assignment.type == StudentAssignmentType.mixed) ...[
                   _ContentCard(
                     icon: Icons.menu_book,
-                    title: 'Read assigned chapters',
-                    subtitle: assignment.bookId != null
-                        ? '${assignment.chapterIds.length} chapters'
-                        : 'Book reading assignment',
+                    title: 'Read assigned book',
+                    subtitle: 'Complete all chapters',
                     color: Colors.blue,
                     onTap: assignment.bookId != null
                         ? () => _startReading(context, ref, assignment)
@@ -419,9 +417,9 @@ class _AssignmentDetailContent extends ConsumerWidget {
       }
     }
 
-    // Navigate to book detail
+    // Navigate to book detail - use go() not push() to avoid shell navigation conflicts
     if (context.mounted) {
-      context.push('/library/book/${assignment.bookId}');
+      context.go('/library/book/${assignment.bookId}');
     }
   }
 

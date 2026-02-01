@@ -63,25 +63,21 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   UserController(this._ref) : super(const AsyncValue.loading()) {
     // Watch auth state changes and reload user when it changes
+    // fireImmediately ensures we load user right away if auth state is ready
     _ref.listen(authStateChangesProvider, (previous, next) {
-      final newUserId = next.valueOrNull?.id;
+      final newUser = next.valueOrNull;
       final oldUserId = previous?.valueOrNull?.id;
 
-      if (newUserId != oldUserId) {
-        _loadUser();
+      if (newUser != null && newUser.id != oldUserId) {
+        _loadUserById(newUser.id);
+      } else if (newUser == null && oldUserId != null) {
+        // User logged out
+        state = const AsyncValue.data(null);
       }
-    });
-
-    _loadUser();
+    }, fireImmediately: true);
   }
 
-  Future<void> _loadUser() async {
-    final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) {
-      state = const AsyncValue.data(null);
-      return;
-    }
-
+  Future<void> _loadUserById(String userId) async {
     state = const AsyncValue.loading();
 
     final userRepo = _ref.read(userRepositoryProvider);
@@ -93,11 +89,18 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       },
       (user) {
         state = AsyncValue.data(user);
-        // Update streak after loading user (sets to 1 for first-time users)
-        // This is called here instead of auth to avoid timing issues
         _updateStreakIfNeeded(user);
       },
     );
+  }
+
+  Future<void> _loadUser() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) {
+      state = const AsyncValue.data(null);
+      return;
+    }
+    await _loadUserById(userId);
   }
 
   Future<void> _updateStreakIfNeeded(User user) async {

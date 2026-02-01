@@ -8,6 +8,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Router & Navigation Fixes (2026-02-01)
+
+#### Fixed
+- **GoRouter GlobalKey Collision** - Resolved `!keyReservation.contains(key)` assertion failures
+- **Shell-to-Shell Navigation** - Fixed `context.push()` causing key conflicts when navigating from standalone routes to shell-nested routes
+- **Auth Timing Issue** - Added splash screen to prevent redirect racing during initial auth check
+- **User Metadata Role** - Added `role` field to `raw_user_meta_data` in seed data for router role checks
+
+#### Changed
+- **Router Architecture** - Removed all explicit GlobalKeys, GoRouter manages internally
+- **Auth State Handling** - Router now uses Supabase auth directly (not through Riverpod)
+- **App Widget** - Changed `ref.watch` to `ref.read` for router to prevent unnecessary rebuilds
+- **Navigation Pattern** - Use `context.go()` for cross-shell navigation, `context.push()` only within same shell
+
+#### Infrastructure
+- **Migration** - Added `created_at` column to `assignment_students` table
+
 ### Remove School Code Screen (2026-02-01)
 
 #### Changed

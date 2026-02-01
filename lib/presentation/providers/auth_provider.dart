@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
@@ -28,7 +29,9 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 /// Provides current user ID
 final currentUserIdProvider = Provider<String?>((ref) {
   final authState = ref.watch(authStateChangesProvider);
-  return authState.valueOrNull?.id;
+  final userId = authState.valueOrNull?.id;
+  debugPrint('🔐 currentUserIdProvider: $userId');
+  return userId;
 });
 
 /// Auth controller state

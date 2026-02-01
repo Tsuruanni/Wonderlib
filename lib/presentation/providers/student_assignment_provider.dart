@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
@@ -26,14 +27,21 @@ final studentAssignmentsProvider = FutureProvider<List<StudentAssignment>>((ref)
 /// Provider for active assignments only
 final activeAssignmentsProvider = FutureProvider<List<StudentAssignment>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
+  debugPrint('📋 activeAssignmentsProvider: userId=$userId');
   if (userId == null) return [];
 
   final repo = ref.watch(studentAssignmentRepositoryProvider);
   final result = await repo.getActiveAssignments(userId);
 
   return result.fold(
-    (failure) => [],
-    (assignments) => assignments,
+    (failure) {
+      debugPrint('📋 activeAssignmentsProvider: FAILURE=${failure.message}');
+      return [];
+    },
+    (assignments) {
+      debugPrint('📋 activeAssignmentsProvider: got ${assignments.length} assignments');
+      return assignments;
+    },
   );
 });
 

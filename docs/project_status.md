@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-01 (Book-Based Assignments + Library Locking)
+Son güncelleme: 2026-02-01 (Router & Navigation Fixes)
 
 ## Current Phase
 
@@ -87,6 +87,7 @@ Son güncelleme: 2026-02-01 (Book-Based Assignments + Library Locking)
 
 | Task | Date | Notes |
 |------|------|-------|
+| Router & Navigation Fixes | 2026-02-01 | GoRouter key collision fix, splash screen, auth timing |
 | Remove School Code Screen | 2026-02-01 | Direct login, global unique student numbers |
 | Book-Based Assignments | 2026-02-01 | Simplified to full book (no chapter selection), lockLibrary option |
 | Library Locking | 2026-02-01 | Teachers can lock library until assignment completed, soft lock UI |

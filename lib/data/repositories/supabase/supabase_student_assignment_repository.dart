@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -14,6 +15,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
   Future<Either<Failure, List<StudentAssignment>>> getStudentAssignments(
     String studentId,
   ) async {
+    debugPrint('🔍 getStudentAssignments called with studentId: $studentId');
     try {
       final response = await _supabase
           .from('assignment_students')
@@ -36,6 +38,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
           .eq('student_id', studentId)
           .order('created_at', ascending: false);
 
+      debugPrint('🔍 getStudentAssignments response count: ${(response as List).length}');
       final assignments = <StudentAssignment>[];
 
       for (final data in response as List) {

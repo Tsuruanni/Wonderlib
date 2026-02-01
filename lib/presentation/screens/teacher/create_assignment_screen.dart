@@ -26,8 +26,9 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
   AssignmentType _selectedType = AssignmentType.book;
   String? _selectedClassId;
-  DateTime _startDate = DateTime.now();
-  DateTime _dueDate = DateTime.now().add(const Duration(days: 7));
+  // Use start of today for start_date to avoid timezone issues
+  DateTime _startDate = DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
+  DateTime _dueDate = DateTime.now().add(const Duration(days: 7)).copyWith(hour: 23, minute: 59, second: 59);
   bool _isLoading = false;
 
   // For book assignments
