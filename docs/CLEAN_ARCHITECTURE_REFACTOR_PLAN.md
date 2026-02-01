@@ -477,7 +477,7 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 - [x] `lib/presentation/screens/auth/login_screen.dart` temizle (zaten temizdi)
 - [x] `lib/presentation/screens/splash_screen.dart` temizle (zaten temizdi)
 - [x] `dart analyze` çalıştır
-- [ ] Test et: Login akışı
+- [x] Test et: Login akışı
 - [x] Commit
 
 ---
@@ -514,29 +514,29 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 
 #### 2.3 Dosya Checklist
 
-- [ ] `lib/data/models/book/book_model.dart`
-- [ ] `lib/data/models/book/chapter_model.dart`
-- [ ] `lib/data/models/book/reading_progress_model.dart`
-- [ ] `lib/domain/usecases/book/get_books_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_book_by_id_usecase.dart`
-- [ ] `lib/domain/usecases/book/search_books_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_chapters_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_chapter_by_id_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_continue_reading_usecase.dart`
-- [ ] `lib/domain/usecases/reading/get_reading_progress_usecase.dart`
-- [ ] `lib/domain/usecases/reading/mark_chapter_complete_usecase.dart`
-- [ ] `lib/domain/usecases/reading/update_current_chapter_usecase.dart`
-- [ ] `lib/domain/usecases/reading/get_user_reading_history_usecase.dart`
-- [ ] `lib/data/repositories/supabase/supabase_book_repository.dart` güncelle
-- [ ] `lib/presentation/providers/usecase_providers.dart` güncelle
-- [ ] `lib/presentation/providers/book_provider.dart` güncelle
-- [ ] `lib/presentation/screens/library/library_screen.dart` temizle
-- [ ] `lib/presentation/screens/library/book_detail_screen.dart` temizle
-- [ ] `lib/presentation/screens/reader/reader_screen.dart` temizle
-- [ ] `lib/presentation/screens/home/home_screen.dart` temizle
-- [ ] `dart analyze` çalıştır
+- [x] `lib/data/models/book/book_model.dart`
+- [x] `lib/data/models/book/chapter_model.dart`
+- [x] `lib/data/models/book/reading_progress_model.dart`
+- [x] `lib/domain/usecases/book/get_books_usecase.dart`
+- [x] `lib/domain/usecases/book/get_book_by_id_usecase.dart`
+- [x] `lib/domain/usecases/book/search_books_usecase.dart`
+- [x] `lib/domain/usecases/book/get_chapters_usecase.dart`
+- [x] `lib/domain/usecases/book/get_chapter_by_id_usecase.dart`
+- [x] `lib/domain/usecases/book/get_continue_reading_usecase.dart`
+- [x] `lib/domain/usecases/reading/get_reading_progress_usecase.dart`
+- [x] `lib/domain/usecases/reading/mark_chapter_complete_usecase.dart`
+- [x] `lib/domain/usecases/reading/update_current_chapter_usecase.dart`
+- [x] `lib/domain/usecases/reading/get_user_reading_history_usecase.dart`
+- [x] `lib/data/repositories/supabase/supabase_book_repository.dart` güncelle
+- [x] `lib/presentation/providers/usecase_providers.dart` güncelle
+- [x] `lib/presentation/providers/book_provider.dart` güncelle
+- [x] `lib/presentation/screens/library/library_screen.dart` temizle (zaten temizdi)
+- [x] `lib/presentation/screens/library/book_detail_screen.dart` temizle (zaten temizdi)
+- [x] `lib/presentation/screens/reader/reader_screen.dart` temizle
+- [x] `lib/presentation/screens/home/home_screen.dart` temizle (zaten temizdi)
+- [x] `dart analyze` çalıştır
 - [ ] Test et: Kütüphane, kitap detay, okuma
-- [ ] Commit
+- [x] Commit
 
 ---
 
@@ -838,8 +838,8 @@ flutter test
 | Modül | Model | UseCase | Provider | Screen | Test | Commit |
 |-------|-------|---------|----------|--------|------|--------|
 | 0. Hazırlık | - | - | - | - | - | ✅ |
-| 1. Auth | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ |
-| 2. Book & Reading | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| 1. Auth | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 2. Book & Reading | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ |
 | 3. Activity | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 4. Vocabulary | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 5. Badge & User | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |

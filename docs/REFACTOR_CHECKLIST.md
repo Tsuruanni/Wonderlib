@@ -37,7 +37,7 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 
 ### Doğrulama
 - [x] `dart analyze lib/domain/usecases/auth/`
-- [ ] Login test et
+- [x] Login test et
 - [x] Commit & Merge
 
 ---
@@ -47,32 +47,33 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 **Branch:** `git checkout -b refactor/book-module`
 
 ### Dosyalar
-- [ ] `lib/data/models/book/book_model.dart`
-- [ ] `lib/data/models/book/chapter_model.dart`
-- [ ] `lib/data/models/book/reading_progress_model.dart`
-- [ ] `lib/domain/usecases/book/get_books_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_book_by_id_usecase.dart`
-- [ ] `lib/domain/usecases/book/search_books_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_chapters_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_chapter_by_id_usecase.dart`
-- [ ] `lib/domain/usecases/book/get_continue_reading_usecase.dart`
-- [ ] `lib/domain/usecases/reading/get_reading_progress_usecase.dart`
-- [ ] `lib/domain/usecases/reading/mark_chapter_complete_usecase.dart`
-- [ ] `lib/domain/usecases/reading/update_current_chapter_usecase.dart`
+- [x] `lib/data/models/book/book_model.dart`
+- [x] `lib/data/models/book/chapter_model.dart`
+- [x] `lib/data/models/book/reading_progress_model.dart`
+- [x] `lib/domain/usecases/book/get_books_usecase.dart`
+- [x] `lib/domain/usecases/book/get_book_by_id_usecase.dart`
+- [x] `lib/domain/usecases/book/search_books_usecase.dart`
+- [x] `lib/domain/usecases/book/get_chapters_usecase.dart`
+- [x] `lib/domain/usecases/book/get_chapter_by_id_usecase.dart`
+- [x] `lib/domain/usecases/book/get_continue_reading_usecase.dart`
+- [x] `lib/domain/usecases/reading/get_reading_progress_usecase.dart`
+- [x] `lib/domain/usecases/reading/mark_chapter_complete_usecase.dart`
+- [x] `lib/domain/usecases/reading/update_current_chapter_usecase.dart`
+- [x] `lib/domain/usecases/reading/get_user_reading_history_usecase.dart`
 
 ### Güncellemeler
-- [ ] `supabase_book_repository.dart` → Model kullan
-- [ ] `usecase_providers.dart` → Book UseCase'leri ekle
-- [ ] `book_provider.dart` → UseCase kullan
-- [ ] `library_screen.dart` → Temizle
-- [ ] `book_detail_screen.dart` → Temizle
-- [ ] `reader_screen.dart` → Temizle
-- [ ] `home_screen.dart` → Temizle
+- [x] `supabase_book_repository.dart` → Model kullan
+- [x] `usecase_providers.dart` → Book UseCase'leri ekle
+- [x] `book_provider.dart` → UseCase kullan
+- [x] `library_screen.dart` → Temizle (zaten temizdi)
+- [x] `book_detail_screen.dart` → Temizle (zaten temizdi)
+- [x] `reader_screen.dart` → Temizle
+- [x] `home_screen.dart` → Temizle (zaten temizdi)
 
 ### Doğrulama
-- [ ] `dart analyze`
+- [x] `dart analyze`
 - [ ] Kütüphane + Okuma test et
-- [ ] Commit & Merge
+- [x] Commit & Merge
 
 ---
 

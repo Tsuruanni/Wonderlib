@@ -9,6 +9,7 @@ import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/repository_providers.dart';
 import '../../providers/usecase_providers.dart';
 import '../../widgets/reader/collapsible_reader_header.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
