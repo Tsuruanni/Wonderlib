@@ -122,7 +122,8 @@ lib/
 │       ├── activity/         # Activity UseCases
 │       ├── vocabulary/       # Vocabulary UseCases
 │       ├── teacher/          # Teacher UseCases
-│       └── assignment/       # Assignment UseCases
+│       ├── assignment/       # Assignment UseCases
+│       └── content/          # ContentBlock UseCases
 │
 ├── presentation/
 │   ├── providers/
@@ -237,8 +238,10 @@ Update UI, show notifications
 - `profiles` - User data + gamification stats
 
 ### Content
-- `books` - Book metadata
-- `chapters` - Book content
+- `books` - Book metadata (title, author, level, cover_image_url)
+- `chapters` - Book content (use_content_blocks flag)
+- `content_blocks` - Structured content (text, image, audio, activity types)
+  - `word_timings` JSONB - Audio-text sync data for karaoke highlighting
 - `activities` - Comprehension exercises
 - `vocabulary_words` - Word definitions
 

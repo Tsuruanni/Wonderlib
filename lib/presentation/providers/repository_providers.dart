@@ -10,7 +10,9 @@ import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
+import '../../data/repositories/supabase/supabase_content_block_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../../domain/repositories/content_block_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
 import '../../domain/repositories/book_repository.dart';
@@ -66,4 +68,8 @@ final studentAssignmentRepositoryProvider = Provider<StudentAssignmentRepository
 /// Edge Function service provider (for XP awards, streak updates)
 final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
   return EdgeFunctionService();
+});
+
+final contentBlockRepositoryProvider = Provider<ContentBlockRepository>((ref) {
+  return SupabaseContentBlockRepository();
 });

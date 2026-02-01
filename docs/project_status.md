@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-01 (Dependency Updates & Bug Fixes)
+Son güncelleme: 2026-02-02 (Audio Sync & Word-Level Highlighting)
 
 ## Current Phase
 
@@ -62,9 +62,9 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 ### Faz 4+: İleri Özellikler (Deferred)
 - [x] Kelime egzersizi modülü (4-Phase Vocabulary Builder)
 - [x] Rozet sistemi (badge earning after XP/streak)
+- [x] Sesli okuma / karaoke (word-level highlighting with Fal AI TTS)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
-- [ ] Sesli okuma / karaoke
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
 
@@ -110,6 +110,9 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Audio Sync & Karaoke | 2026-02-02 | Word-level highlighting, Fal AI TTS, ContentBlock architecture |
+| Admin Panel | 2026-02-02 | Separate Flutter web app for content management |
+| Content Block System | 2026-02-02 | Replaces plain text chapters with structured blocks |
 | Dependency Updates | 2026-02-01 | flutter_lints 5.0, sentry 8.x, connectivity_plus 6.x, etc. |
 | Reading Progress Bug Fix | 2026-02-01 | "Continue Reading" condition, chapter completion for no-activity chapters |
 | Code Quality Fixes | 2026-02-01 | N+1 query, timer error handling, AudioService null safety |

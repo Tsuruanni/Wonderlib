@@ -1,0 +1,204 @@
+        "content": "The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). To tell you how to proceed, the user said:\ndüşünmemiz gereken başka şeyler var. öncelikle şu, qwen şart değil. elevenlabs timestampsli veriyorsa bunu entegre yapabiliriz. süreç de kolaylaşır. bu her bir seferinde render edilmeyecek değil mi? tek seferde bunu yüklediğimizde; tek metin için en başta bir kere render edilecek mesela ve sonradan tüm kullanıcılar bunu kullanabilecek? madem öyle bu ışıkta 4. faz olan ürün ekleme (kitap ekleme panelini belki eklemek daha doğru olacak. ne düşünüyorsun?",
+        "is_error": true,
+        "tool_use_id": "toolu_01UuN3KtanNBG3TDnT1fDVVQ"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user has raised important points:\n\n1. **ElevenLabs vs Qwen**: They're asking if ElevenLabs provides word-level timestamps. If it does, the pipeline would be simpler (no need for separate forced alignment step).\n\n2. **One-time render**: They're confirming that the audio+timestamps are generated ONCE and then all users can use it. This is correct - the audio generation happens at content creation time, not at runtime.\n\n3. **Admin panel priority**: Since the audio is generated once at content creation, they're suggesting adding an admin/book creation panel might be more important (as Faz 4 or earlier).\n\nLet me:\n1. Research ElevenLabs API to see if it provides word-level timestamps\n2. Confirm the one-time render model\n3. Consider adding admin panel to the scope\n\nLet me search for ElevenLabs timestamp capabilities.",
+        "signature": "EtsHCkYICxgCKkCd+z9/JKBt/aLswO2fso1JGoxLrRVdba+SJci62iPZfznmEmkBPkjBB8SScLeltngzAIX6MNfjDzgoEEJ9vzOVEgy+AenHjDz5hJUNQsEaDB6h+OFnkC8NoGQK2iIwRIRsfTMQ0gpwle3R8qB5DhSYBKftrl1X3N5ZTkwOMfoYdGVFXkHRIyO4oK6rU2g+KsIG0oALQrqseEMALplE2YSudyO58jtMl5x7FpkyJSisVUUSIMAarxt7cKffLA+WOba4p96p/SalI9tViSJrQhapglk0/V0/K70gaHlmLp/EJx4spFj14owb0mbH7eg1TGyl/GfHNX5OIBsfW7gqO8lZCq5bsUBsrq25QKbzvh/iHBUZC52QkPW72FnTzGe9AcDV9jq1ooZgEdeP5W0jOKOMHZlFYO1f+qCOIc8SuAUQb63cWswAl/Em4ZeoHCx0zaB9TEQxvnUeCJyUg8onoZ6N9mvJQfzdVDFLy70O945Tw196mQf5CFGwDjkHWObj+5SQq8uLuW91339BX542bgI8XMyjVW6hWny3XolT4klBWs7aMeaMQIO5a+70tGRaR3oWbmhWavz6wzu2kEyQ2TiW5KCcLzAJWa1LvphMlUW4pwdNJV8KuZ6T/OiE9NwNJMuVLiodV17imzdp8eG2P90eWPKIi9k8680uRfyQzV4cwctFODdmslWqbgWcoEomHwl7BACXrcq9ySXpYy0I4tnY0nkkF0uufhnGxt9CpfSmuNHL4P5hnY1amxquRacfPhYrpUuAYYTmroUuRHqe6K186cyopyxcGvAdm45estuoCWnXPRG9ENetBvMaNS/7V2+YA6WBkIauJv9D//T+XyfelGYyo/lo3v3wO2veL1HdQlrk95/XF6oZdOQHQPJpIrvPIcHpHwM2XbUrDsIYFiccW5a3JAG534L2YCO5WQGSmKvHD2wM3byPvqXq/bDX9NfyEAblvA//FwwtrEvqpPjTf5FHI4ABxykPYPYC941zYlROcPxg7ppXFNRNuA8mPA7SLvzy+WirChl0VRiAK7XOtqAQGcTpmFId9hAj4zIDO4RhwlPuZpigvUzfQkoAVbeRQCKSaN3faNEq9Xg88Pykx/MlyueKhkPxBIhE1FPE+o89T2A9OKtuBqn/A7rd/wv2Aj7q/UM4A7uSb2t/AiXaoKLkTASq2dCJBvWtNu7wgaPH0kr7SGpaM8b682xpGih/0P0KGWDn2WIRFKsDF/P3/9/5lB2eDMhD/oCNuNEF/SfcKI5gThiPsLm1qLIUv+jY2b5uZVJFG9D5GDffeNc17/c0GAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Çok iyi noktalar. ElevenLabs'ın timestamp desteğini araştırıyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01TsHfW3xtZrhov1krwChqfs",
+        "name": "WebSearch",
+        "input": {
+          "query": "ElevenLabs API word level timestamps alignment 2025"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01TsHfW3xtZrhov1krwChqfs",
+        "type": "tool_result",
+        "content": "Web search results for query: \"ElevenLabs API word level timestamps alignment 2025\"\n\nLinks: [{\"title\":\"Create speech with timing | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps\"},{\"title\":\"ElevenLabs Eleven V3 Timing | Text-to-Speech With Word-Level Timestamps and Alignment API | WaveSpeedAI\",\"url\":\"https://wavespeed.ai/models/elevenlabs/eleven-v3/timing\"},{\"title\":\"Forced Alignment | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/overview/capabilities/forced-alignment\"},{\"title\":\"tts — pipecat-ai documentation - elevenlabs\",\"url\":\"https://reference-server.pipecat.ai/en/stable/api/pipecat.services.elevenlabs.tts.html\"},{\"title\":\"Transcripts (product guide) | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/creative-platform/products/transcripts\"},{\"title\":\"Changelog | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/changelog\"},{\"title\":\"Documentation | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/overview/intro\"},{\"title\":\"Elevenlabs TTS with word timing · Issue #1339 · pipecat-ai/pipecat\",\"url\":\"https://github.com/pipecat-ai/pipecat/issues/1339\"},{\"title\":\"Create transcript | ElevenLabs Documentation\",\"url\":\"https://elevenlabs.io/docs/api-reference/speech-to-text/convert\"},{\"title\":\"ElevenLabs Developers on X: \\\"Introducing the new Forced Alignment API, trained on over 150 languages. Just provide an audio file and its transcript to receive precise timestamps for every word and character. https://t.co/xYmsqmwg7F\\\" / X\",\"url\":\"https://x.com/ElevenLabsDevs/status/1909234711546708030\"}]\n\nHere are the search results for ElevenLabs API word level timestamps and alignment:\n\n## ElevenLabs API Timestamp & Alignment Features\n\n### Text-to-Speech with Timestamps\nElevenLabs offers an API endpoint to generate speech from text with precise character-level timing information for audio-text synchronization.(no content)The endpoint is `POST https://api.elevenlabs.io/v1/text-to-speech/:voice_id/with-timestamps`.\n\n### Forced Alignment API\nThe ElevenLabs Forced Alignment API turns spoken audio and text into a time-aligned transcript. This is useful for cases where you have audio recording and a transcript, but need exact timestamps for each word or phrase in the transcript.(no content)The new Forced Alignment API, announced in April 2025, is trained on over 150 languages. You just provide an audio file and its transcript to receive precise timestamps for every word and character.\n\nKey limitations:\n- Forced Alignment costs the same as the Speech to Text API. Forced Alignment does not support diarization.\n- The maximum file size for Forced Alignment is 3GB. For audio files, the maximum duration is 10 hours.\n\n### Eleven V3 Timing Features\nElevenLabs Eleven-V3 Timing converts text to natural speech and returns alignment metadata—character/word timestamps in JSON—for precise subtitles, karaoke effects, and lip-sync.(no content)It returns alignment metadata with per-character/per-word timestamps (start–end in seconds), making it easy to build auto-subtitles, word-highlighting, reading trainers, talking avatars, and precise dubbing tools.\n\n### Speech-to-Text Timestamp Granularity\nIn the speech-to-text API, you can set the granularity of the timestamps in the transcription. 'word' provides word-level timestamps and 'character' provides character-level timestamps per word.\n\n### Recent Updates (from Changelog)\nText to Dialogue now supports timestamped outputs with character-level alignment and voice segment tracking via `POST /v1/text-to-dialogue/with-timestamps`.(no content)Word timestamps have been added to music generation with detailed responses, enabled with the `with_timestamps` parameter.\n\n### Integration with Pipecat\nThe ElevenLabsTTSService is a WebSocket-based TTS service with word timestamps. It provides real-time text-to-speech using ElevenLabs' WebSocket streaming API and supports word-level timestamps, audio context management, and various voice customization options.\n\n\nREMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Excellent! ElevenLabs provides built-in word-level timestamps via their `/with-timestamps` endpoint. This simplifies our pipeline significantly - no need for a separate forced alignment step!\n\nKey findings:\n1. **TTS with Timestamps**: `POST /v1/text-to-speech/:voice_id/with-timestamps` - returns character/word level timestamps directly\n2. **Forced Alignment API**: Can also align existing audio with text (150+ languages)\n3. **Eleven V3 Timing**: Perfect for karaoke effects and word-highlighting\n\nThis means our pipeline simplifies to:\n```\nText → ElevenLabs TTS with timestamps → Audio + Word Timings (one API call!)\n```\n\nNo need for WhisperX or Aeneas!\n\nNow to the user's second point:\n- Yes, audio is generated ONCE when content is created\n- All users then stream/download the same audio\n- Word timings are stored in database, applied at runtime\n\nFor the admin panel question:\n- Since audio generation is a content creation activity\n- It makes sense to add this to the book/chapter creation workflow\n- This could be Faz 1 even, since without it there's no content to test with\n\nLet me update the plan with these findings and add admin panel consideration.",
+        "signature": "EqYKCkYICxgCKkBb1Q1yRta6fkpqIpfgMUfofr+6CoJlrYtedwzZog/t3FLg04+1NOdCv8RUm5KhAGD8m87cejUbc20GB8sAXKW5EgxEfo39CoL/8JXeja4aDP1/jRa0REwKtEz97yIwOA77J7L/V8JZF2PIOFGzz+Wu7X32GIIHaUqAbBrzvJkYioq0Xs9cle8yj1uCL0Z9Ko0JOCQbIomUxwnH8GVRTBFVwxiG65Ho/v/44Tqx0HJpm20IqCrugtzF9OBpBezqI5MEt+4SmxDE3oHLbsuHr3QCMM0/8ASiIPLAUK+YQw7Z6kSP3tjM1u9r2Sm8Q8LYYASuWf+HQ1Whc72d5N+udLMEEGJbDvXFC9WLpD+X3lCKf5a8Pe1obTgYhV5xNKsVIs01f9NekoPNdgfjC402NCeTFgrBXi4UBjD3TLRSwc2OheRxXG9RaoBVhXr63iwncFD3bXkGbXCHcwCuXYQmXEUbqcd4zzxpDA83DLoBOgEMyHSt1MIc2B0VYqcZtqXEMGQqS3HzFcu3urpMhLNRJojX2GOnZyhtp1Huemf09r9gVXOPzDs3dV4wQMEVZa6Qyw3/RzdfMpcESyymCG/6zAXD9UHEjOuY1xp5w29UT5mFIVMWXDGswcDa60pW87AE13BlYTbg1rhcqHK2qfd5Q2ivnwnTfe7l66CC78ThdsAydYYjlCnk7jOb9DBguRYJuNVUilwXJqJOzvAlqStP4MTrfbyemHPDGcGxO6ShJgZMIoVJbqz3v/U8yRdCCI0xUXX7pwWHzQLeuKqj8UiHIzzYCseGcvNh61ccgeLXX5QX9agzz73KHiozmAS8DnNpaw7iFuKHCUGFX2eCEb0QCQx568BQZ4SL7xmH4md08kmWQ9i99M9yTaRuTP1oinOR2PvFZ0lISUoL6itDfOTdo2z8JdAkeEkAFjmcxCuSy4cTZpWpjf/KwlzomY4sLrEC27u4pw0U3kqO9/drAtPxo8V/ptRqdEi9P2tMiULEl1GFYcxDbK5LjUj4SyMls281b7v73Ex23Ta2YBddB/FciDfexopi0yQVzDOt9HBxBjxdYOjxH4vInZjIctb0hWfoj8ItvRpFbygE2sP66Qnrfwva6/s98d4llezTO/xOGi7lpXYhlEFwDzo7UeKBm3CxuFzuOf8qjxwXOJKcx65LixZAFzhSQmQzJU581NiTMs3CPrwiVOHcaHZqkI5T24V6UaFzZbY5+1aPPFwtlvP3qHcZ6gFmORLuKstN/488JL3gaTwu281zIwC2yIqrfAFHkSgA1qM8s4YLzpjbfEKnBRPWU92td2+CkF8Pr3MbhLuAEQ07xTR1gI3UxpiiS8ClEfwrjb+3Ituig9J9LmZHGujRpDJaZ6FTibaD9vHkR2trmfUH2zf+ra3ak7jTSUsEixhDAwt0RhYSQjW+Q6J4nyfQmKpdiwBpT7gNyP2EJ7fHd20aOkocqanCbBbEQV75t6S4p7rIs/pARojwkTT23hiVfKQJa7ctYgWZTVWfuideigoESBqPq7dItcgQtWg8r6007wNj6/h+XY/gumMpJCJrH+WGtmwqsx82KTzTNCcewfNuDbB8sgD/Tdlj16DNyKDziQZtwoPeDvf1sUTqX07UpL7SD0Gxp+9rVRuprpOC+mrIi0/bzRmEota5F3IuMY6jxe3F9jloOQxFJR3L0KxVQRdIZRUAGmug77h6JtjTGdj3Ai87dznJxFURWxUIqakMjR/7ma63mpn7dvxjGxgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Mükemmel haber! ElevenLabs **kelime-seviye timestamp'i direkt veriyor** - ayrı forced alignment'a gerek yok!\n\n## ElevenLabs Avantajı\n\n**Endpoint**: `POST /v1/text-to-speech/:voice_id/with-timestamps`\n- Tek API çağrısı = Audio + Word Timings\n- Karakter ve kelime seviyesi timestamp\n- 150+ dil desteği (Türkçe dahil olabilir)\n- Karaoke efekti için ideal\n\n**Pipeline Basitleşiyor**:\n```\nText → ElevenLabs TTS with-timestamps → Audio + WordTimings (tek çağrı!)\n```\n\n---\n\n**Doğru anlıyorsun**: Audio+timing **BİR KEZ** oluşturulur, database'e yazılır. Sonra tüm kullanıcılar aynı veriyi kullanır. Runtime'da render yok.\n\nBu durumda **admin/kitap ekleme paneli** gerçekten kritik çünkü:\n1. İçerik oluşturulmadan test edilecek bir şey yok\n2. Teacher/admin'in TTS oluşturma akışına ihtiyacı var\n3. Preview + approve workflow gerekli\n\nSources:\n- [ElevenLabs TTS with Timestamps](https://elevenlabs.io/docs/api-reference/text-to-speech/convert-with-timestamps)\n- [ElevenLabs Forced Alignment](https://elevenlabs.io/docs/overview/capabilities/forced-alignment)"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01YSzrBw1fcrxAmepRKCeqfq",
+        "name": "AskUserQuestion",
+        "input": {
+          "questions": [
+            {
+              "question": "Admin paneli scope'a nasıl dahil edelim?",
+              "header": "Admin Panel",
+              "options": [
+                {
+                  "label": "Faz 1'e ekle (Recommended)",
+                  "description": "Database + Domain + Admin Panel birlikte. Flutter widget'ları sonra. Test için content gerekli."
+                },
+                {
+                  "label": "Ayrı Faz olarak",
+                  "description": "Önce reader widget'ları, sonra admin. Manual DB insert ile test."
+                },
+                {
+                  "label": "Sadece Edge Function",
+                  "description": "Admin UI yok, Edge Function API üzerinden content oluştur. Postman/curl ile test."
+                }
+              ],
+              "multiSelect": false
+            },
+            {
+              "question": "Admin paneli nerede yaşasın?",
+              "header": "Panel Lokasyonu",
+              "options": [
+                {
+                  "label": "Teacher Dashboard içinde",
+                  "description": "Mevcut teacher ekranlarına 'Kitap Ekle/Düzenle' tab'ı ekle."
+                },
+                {
+                  "label": "Ayrı Admin Web App",
+                  "description": "Flutter web veya Next.js ile ayrı admin portal. Daha esnek ama ek geliştirme."
+                },
+                {
+                  "label": "Henüz karar vermedim",
+                  "description": "Sadece Edge Function + API ile başla, UI sonra düşünülsün."
+                }
+              ],
+              "multiSelect": false
+            }
+          ]
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "content": "User has answered your questions: \"Admin paneli scope'a nasıl dahil edelim?\"=\"Faz 1'e ekle (Recommended)\", \"Admin paneli nerede yaşasın?\"=\"Ayrı Admin Web App\". You can now continue with the user's answers in mind.",
+        "tool_use_id": "toolu_01YSzrBw1fcrxAmepRKCeqfq"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "User decisions:\n1. Admin panel should be in Faz 1 (first phase)\n2. Admin panel should be a separate web app (Flutter web or Next.js)\n\nThis makes sense - they want:\n- Content creation capability from the start\n- Dedicated admin portal separate from the student/teacher app\n\nLet me update the plan with:\n1. ElevenLabs integration (simplified pipeline)\n2. Admin panel as Faz 1\n3. Separate admin web app architecture\n\nI'll also need to reorganize the phases.",
+        "signature": "EuQECkYICxgCKkBkNJz+wniRIwHOk4x2a0dWHSWCTQm4Xla16EQ99adaZTXTaqiZotYyCI53+/etd/N1qm+/91yvliyS0MLtiMonEgzjCf9ocyV+lLhIJ1UaDB8YYAji1PFkI2kpYiIwv3ChN0kYCGWRbIoYkZBJnUX04bTlxN2UQKna8PBRb6+im8NnC8eAncoWRINYhAdIKssDpgr0VTx1xdgeD1mkn0fshSx9GZHhsTpUWP7/1ENGkpOezMdupxNcFkyq06r8OYXZrbQ3o5h2fOluF7rQ88pz50lF4yyMAL9HR/iBkC8PonNW9N+Wzi55cVXYMWXEc4gtdq0v+WnRo1c1I1PKbTDyl9vqrsjcRlerIv4JtN3JP9NzCV0IEahhvlFRGm4OQniKBxWsTT5MGdSZVdzNwRW9sQRg0k6Es5C/rW70xhIl/sX+4owriq/NsRVaUgnITPQ4xSJ4XnnhozWHLlleFORvOt33Wd6oezuyQyRqI8n7hnkGip501kM5b31aVw2i1ExzegoZT+iVR+Us5RdeNVMfEOJNTxinvvU2zsNL61UGmBcC5JBU3iQ8ClZseof5W1Mg/OqwbH2o3wEAM4tiL5W1rh1G9kPrHW7Qx4y59bjDZ1ljZq8VbCwaBH9X9Ozo0qcT8h4MynER6Jhc3SgebGgidXcntSagiKaOERgUl26NPkSxfHbQL+utjh7cHjKoLdR6fxejEDEnQx0Tlhgs4tAt2rYv2hGGYdix/5stvUAHUMAYFK3NQ6Hm5QVPfgub+f2HKfZi3pQ74v2gD7fmOf5YolV2EvqqRYRtZywCGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Planı güncelliyorum: ElevenLabs entegrasyonu + Admin Panel Faz 1'de."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01LpubfKC8dv1NFzYUo5UGbD",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/.claude/plans/polymorphic-munching-ember.md",
+          "old_string": "## Kullanıcı Kararları\n- **Audio Kaynağı**: Fal AI (Qwen-3 TTS) + Forced Alignment\n- **Highlight Seviyesi**: Kelime seviyesi (karaoke)\n- **Veri Yapısı**: ContentBlock entity oluşturulacak (restructure)\n- **Scope**: Faz 1 + 2 birlikte (MVP + auto-scroll + word highlight)",
+          "new_string": "## Kullanıcı Kararları\n- **Audio Kaynağı**: ~~Fal AI~~ → **ElevenLabs TTS with-timestamps** (tek API, timestamp dahil)\n- **Highlight Seviyesi**: Kelime seviyesi (karaoke)\n- **Veri Yapısı**: ContentBlock entity oluşturulacak (restructure)\n- **Scope**: Faz 1 + 2 birlikte (MVP + auto-scroll + word highlight)\n- **Admin Panel**: Faz 1'e dahil, ayrı web app olarak"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01LpubfKC8dv1NFzYUo5UGbD",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/.claude/plans/polymorphic-munching-ember.md has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I need to update the Audio Pipeline section to use ElevenLabs instead of Fal AI + WhisperX.",
+        "signature": "EocCCkYICxgCKkCZ60tMGN2ryt9+kZuRsr61TdTKu1pIWjjoY5+hPPvCe8DpGybww/XaaJsdVQP/F3z2t4t2wIVfhCsB9yti2Um8EgzQCuq3EBQ2KZurezIaDDEX7WARwOVL4VVetCIw8FUdEV5nBRub14WuvkOW/zpUyQ6jy/yp3GasqIn4ypKV+CJcau59MDLr4TDTFr0UKm+0Cf6KW2EZHfXMKnYnecUQAAnB4IyayNSCSyLMWTLG9ZzRQL6pH9Hsx0JZ+y91QkzN6CoCCFGIPr7UBsqAqgCK4ERpma5aS8tuwlpmvM9Dbn97SvFtzjLPhnA13E98cIAxe8WmvzLADDRZzAyvlwMYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NcgGVoVNwNoddMUzcX6MzU",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/.claude/plans/polymorphic-munching-ember.md",
+          "old_string": "## Audio Pipeline: Fal AI + Forced Alignment\n\n### Fal AI Qwen-3 TTS Özellikleri\n- **Endpoint**: `fal-ai/qwen-3-tts/text-to-speech/1.7b`\n- **Voices**: Vivian, Serena, Dylan, Eric, Ryan, Aiden, vs.\n- **Languages**: Auto, English, Turkish?, Chinese, Spanish, French...\n- **Output**: MP3, 24kHz, mono\n- **⚠️ SINIR**: Timestamp vermiyor, sadece toplam duration\n\n### Gerekli Pipeline\n\n```\n┌─────────────┐     ┌─────────────┐     ┌─────────────────┐\n│ ContentBlock│────▶│  Fal AI     │────▶│  Audio File     │\n│   (text)    │     │  TTS API    │     │  (.mp3)         │\n└─────────────┘     └─────────────┘     └─────────────────┘\n       │                                        │\n       │                                        ▼\n       │            ┌─────────────────┐  ┌─────────────────┐\n       └───────────▶│ Forced Aligner  │◀─│  Text + Audio   │\n                    │ (WhisperX/Aeneas)│  │                 │\n                    └─────────────────┘  └─────────────────┘\n                            │\n                            ▼\n                    ┌─────────────────┐\n                    │  Word Timings   │\n                    │  (JSON)         │\n                    └─────────────────┘\n```\n\n### Forced Alignment Seçenekleri\n\n| Tool | Pros | Cons |\n|------|------|------|\n| **WhisperX** | En doğru, kelime-seviye, çok dilli | GPU gerektirir, yavaş |\n| **Aeneas** | Hızlı, lightweight | Cümle-seviye (kelime için hack gerekir) |\n| **Gentle** | Kelime-seviye, iyi doğruluk | Self-hosted, sadece İngilizce |\n\n**Önerilen**: WhisperX (Edge Function veya external service olarak)\n\n### Edge Function: generate-audio-sync\n\n```typescript\n// supabase/functions/generate-audio-sync/index.ts\nDeno.serve(async (req) => {\n  const { blockId, text, voice } = await req.json();\n\n  // 1. Fal AI TTS çağır\n  const audioResult = await fal.subscribe(\"fal-ai/qwen-3-tts/text-to-speech/1.7b\", {\n    input: { text, voice }\n  });\n\n  // 2. Audio'yu R2'ye yükle\n  const audioUrl = await uploadToR2(audioResult.url, blockId);\n\n  // 3. WhisperX ile forced alignment (external API veya self-hosted)\n  const wordTimings = await runForcedAlignment(text, audioUrl);\n\n  // 4. content_blocks tablosunu güncelle\n  await supabase.from('content_blocks').update({\n    audio_url: audioUrl,\n    word_timings: wordTimings\n  }).eq('id', blockId);\n\n  return Response.json({ success: true, audioUrl, wordTimings });\n});\n```",

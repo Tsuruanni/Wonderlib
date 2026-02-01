@@ -13,7 +13,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../providers/content_block_provider.dart';
+import '../../widgets/reader/audio_player_controls.dart';
 import '../../widgets/reader/collapsible_reader_header.dart';
+import '../../widgets/reader/content_block_list.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
 import '../../widgets/reader/vocabulary_popup.dart';
@@ -157,6 +160,73 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   void _closeVocabularyPopup() {
     ref.read(selectedVocabularyProvider.notifier).state = null;
     ref.read(vocabularyPopupPositionProvider.notifier).state = null;
+  }
+
+  /// Builds the chapter content widget based on content type.
+  /// Uses ContentBlockList for chapters with content blocks,
+  /// falls back to IntegratedReaderContent for legacy plain text content.
+  Widget _buildChapterContent({
+    required chapter,
+    required ReaderSettings settings,
+  }) {
+    // Check if chapter uses content blocks
+    final usesContentBlocks = ref.watch(chapterUsesContentBlocksProvider(chapter.id));
+
+    return usesContentBlocks.when(
+      data: (usesBlocks) {
+        if (usesBlocks) {
+          // New content block system
+          return ContentBlockList(
+            key: ValueKey('blocks-${chapter.id}'),
+            chapter: chapter,
+            settings: settings,
+            onVocabularyTap: _onVocabularyTap,
+          );
+        } else if (chapter.content != null) {
+          // Legacy plain text content
+          return IntegratedReaderContent(
+            key: ValueKey(chapter.id),
+            chapter: chapter,
+            settings: settings,
+            onVocabularyTap: _onVocabularyTap,
+            scrollController: null,
+          );
+        } else {
+          return Text(
+            'No content available for this chapter.',
+            style: TextStyle(
+              color: settings.theme.text.withValues(alpha: 0.7),
+              fontStyle: FontStyle.italic,
+            ),
+          );
+        }
+      },
+      loading: () => Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: settings.theme.text.withValues(alpha: 0.5),
+        ),
+      ),
+      error: (_, __) {
+        // On error, try legacy content
+        if (chapter.content != null) {
+          return IntegratedReaderContent(
+            key: ValueKey(chapter.id),
+            chapter: chapter,
+            settings: settings,
+            onVocabularyTap: _onVocabularyTap,
+            scrollController: null,
+          );
+        }
+        return Text(
+          'Failed to load content.',
+          style: TextStyle(
+            color: settings.theme.text.withValues(alpha: 0.7),
+            fontStyle: FontStyle.italic,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _addWordToVocabulary(String word) async {
@@ -327,25 +397,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Chapter content with inline activities
-                            // Key ensures widget recreates when chapter changes,
-                            // resetting internal state like _previousCompletedCount
-                            if (chapter.content != null)
-                              IntegratedReaderContent(
-                                key: ValueKey(chapter.id),
-                                chapter: chapter,
-                                settings: settings,
-                                onVocabularyTap: _onVocabularyTap,
-                                scrollController: null,
-                              )
-                            else
-                              Text(
-                                'No content available for this chapter.',
-                                style: TextStyle(
-                                  color: settings.theme.text.withValues(alpha: 0.7),
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
+                            // Chapter content - uses ContentBlockList if available,
+                            // falls back to IntegratedReaderContent for legacy content
+                            _buildChapterContent(
+                              chapter: chapter,
+                              settings: settings,
+                            ),
 
                             const SizedBox(height: 32),
 
@@ -507,6 +564,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                     _addWordToVocabulary(selectedVocab.word);
                   },
                 ),
+
+              // Floating audio player controls
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: AudioPlayerControls(settings: settings),
+                ),
+              ),
             ],
           ),
         );

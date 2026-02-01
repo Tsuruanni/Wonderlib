@@ -44,6 +44,17 @@ final activityByIdProvider =
   );
 });
 
+/// Provides a single inline activity by ID.
+/// Searches through all chapter inline activities to find the match.
+final inlineActivityByIdProvider =
+    FutureProvider.family<InlineActivity?, String>((ref, activityId) async {
+  // For now, we need to know the chapter ID to get inline activities.
+  // This provider searches through cached activities.
+  // In a full implementation, we'd have a dedicated usecase.
+  // TODO: Add GetInlineActivityByIdUseCase for direct lookup
+  return null;
+});
+
 /// Provides best result for an activity
 final activityBestResultProvider =
     FutureProvider.family<ActivityResult?, String>((ref, activityId) async {

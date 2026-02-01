@@ -1,0 +1,278 @@
+[
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01GdmBQt1hUs7pDp8FybqnnY",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/.claude/plans/polymorphic-munching-ember.md"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Good, I've written the initial plan. Now I need to ask the user some clarifying questions to finalize the design decisions before completing the plan.\n\nKey questions:\n1. Audio source - pre-recorded or TTS?\n2. Granularity - word, sentence, or paragraph level?\n3. Architecture - keep current or restructure to content blocks?\n4. Priority/scope - MVP first?\n\nLet me ask these questions using AskUserQuestion.",
+        "signature": "ErkECkYICxgCKkAYsL2SvppO3vNfqAf3AMe7BcKFMa92Z5yI5qW65UJmpq6kS57xBeK+Tm2DBYSH9SZRdYlFpSxQKP4Ro4n6GHx2Egxk0F+oTLlQPki0WwcaDH5WRUJgg3Yb7VXRfCIw9jZGKMc2ydIWB+Mw+fEjNkCOcSZPidJpKAq15oOTpClXjJd7oWz5+kGoxI0NeirSKqADXNnwMCPWmk87nsSRiea5LOnU7qjc8BjnP8S+u2s6j8kJWU1BdJsfaQGU/7NX5bJI68nRm6ya1bESKDij/28VXcJbo8cQXxGUVizj0P1cJQG1Zi4Akq7aWI/7UAsbZIWhetwTUcUQOvwWtHaBBvlUAexFb5FPu+7goXufExrb4M6/wZReZUV6x9aQ2ueFS3pIoYe4iplGqi1e8o3cG3YsjrDIcdV/rdwQ6TMzCQxMkYbid8AR3hIrsJHG3gtC75D/xuZVC2A9LWkC4ciXDNeDMIvoudIbK40VBhbqPc796ysI0BTsKxkJQpwi1RBMVFE15HKN6tzyUB05mJ5UaetoLyZgNN5m3kdZd3IozJLgGFfzU8jftQDGXqrkKlKooiWlHbYxJe0rt5PFku0f9IwH+KiMLUuTIJt7Bjk1CzJWENkADnAFrr7NRX+9iTQ8CkVqdIpewbTOKVzNpQQI7w3FsGi2UiYNM95PHMZ4+VKiicUf3ldj9/GhNykKTCS3x/zLiXlE2VZu4qte8gaMohuc1yx22Q+NUS6L0Hpmk4SXxdQYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Plan taslağını oluşturdum. Şimdi implementasyonu şekillendirmek için birkaç kritik karar almamız lazım."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01YNpG1VTnUZxHcAz1pcJm76",
+        "name": "AskUserQuestion",
+        "input": {
+          "questions": [
+            {
+              "question": "Audio içeriği nasıl oluşturulacak?",
+              "header": "Audio Kaynağı",
+              "options": [
+                {
+                  "label": "TTS (Text-to-Speech)",
+                  "description": "Google Cloud TTS veya ElevenLabs ile otomatik ses üretimi. Edge Function ile entegre edilir."
+                },
+                {
+                  "label": "Pre-recorded (Manuel)",
+                  "description": "Profesyonel seslendirme. Audio dosyası + timing JSON manuel yüklenir."
+                },
+                {
+                  "label": "Hybrid (İkisi de)",
+                  "description": "Bazı kitaplar TTS, bazıları profesyonel kayıt. Her iki workflow desteklenir."
+                }
+              ],
+              "multiSelect": false
+            },
+            {
+              "question": "Highlight granularity ne olsun? (Ses çalarken ne kadar detaylı highlight?)",
+              "header": "Highlight",
+              "options": [
+                {
+                  "label": "Cümle seviyesi (Recommended)",
+                  "description": "Dengeli yaklaşım. Her cümle sırayla highlight edilir. Çoğu K-12 için uygun."
+                },
+                {
+                  "label": "Kelime seviyesi",
+                  "description": "Karaoke tarzı. K-2 öğrenciler için ideal ama daha fazla veri/processing gerektirir."
+                },
+                {
+                  "label": "Paragraf seviyesi",
+                  "description": "En basit. Tüm paragraf highlight edilir. Hızlı MVP için uygun."
+                }
+              ],
+              "multiSelect": false
+            },
+            {
+              "question": "Şu anda paragraflar plain text'ten parse ediliyor. Yapıyı değiştirelim mi?",
+              "header": "Veri Yapısı",
+              "options": [
+                {
+                  "label": "Mevcut yapıyı koru (Recommended)",
+                  "description": "AudioSyncData ayrı tablo. Backward compatible, migration az. Paragraflar runtime'da parse."
+                },
+                {
+                  "label": "ContentBlock entity oluştur",
+                  "description": "Her paragraf/görsel/aktivite ayrı block. Daha fazla refactor ama gelecekte esnek."
+                }
+              ],
+              "multiSelect": false
+            },
+            {
+              "question": "Hangi fazlardan başlayalım?",
+              "header": "Scope",
+              "options": [
+                {
+                  "label": "Faz 1 MVP (Recommended)",
+                  "description": "Temel audio playback + paragraf highlight. Hızlı value delivery, sonra iterate."
+                },
+                {
+                  "label": "Faz 1 + 2 birlikte",
+                  "description": "MVP + cümle highlight + auto-scroll. Daha complete experience ama daha uzun sürer."
+                }
+              ],
+              "multiSelect": false
+            }
+          ]
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "content": "User has answered your questions: \"Audio içeriği nasıl oluşturulacak?\"=\"fal ai apisi ile yaptırmayı planlıyorum. https://fal.ai/models/fal-ai/qwen-3-tts/text-to-speech/1.7b/api bu dökümanı oku lütfen. işimize yarar mı?\", \"Highlight granularity ne olsun? (Ses çalarken ne kadar detaylı highlight?)\"=\"Kelime seviyesi\", \"Şu anda paragraflar plain text'ten parse ediliyor. Yapıyı değiştirelim mi?\"=\"ContentBlock entity oluştur\", \"Hangi fazlardan başlayalım?\"=\"Faz 1 + 2 birlikte\". You can now continue with the user's answers in mind.",
+        "tool_use_id": "toolu_01YNpG1VTnUZxHcAz1pcJm76"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "The user has provided their preferences:\n\n1. **Audio Source**: Fal AI API with Qwen-3 TTS - I need to read the documentation\n2. **Highlight Granularity**: Kelime seviyesi (word-level) - most granular option\n3. **Data Structure**: ContentBlock entity oluştur - they want to restructure\n4. **Scope**: Faz 1 + 2 birlikte - MVP + sentence highlight + auto-scroll\n\nLet me fetch the Fal AI documentation to understand their TTS API capabilities.",
+        "signature": "Et0ECkYICxgCKkCt9PCW+ZfU432N91GidVuyLKGaouWIwDWQXC0RddaEX+SlB1WSUQuGwGaJrrsU9yfAufkeBq24RECGTbhehjF/EgzAnKins5Na2LLVqMcaDHyt9Vw2x8zTP3mH/CIw+WuQMkpn5bkObPjLKGZ9/ndcCaOqTMZcBhYss8GdFGPnZFGWdO5Dg8iLcipLWUxIKsQD7QlJ0UjMjaNbJIYhKKOm+tlXJKcsEFz1PmAYxf28u4s1nr8ctVxvRRxp0oNKNXNjqA4jQwzEFsXlya1tfeORLJJX4bk9THXpjHsRU5H3yxq+cS/5PZGDZdgW7ELI+f9fneXOt6DFbLqTEAV5XTp0v/OS2Twsn3Si1kDV67ZdTAFwUPEnUl2bgVEYnQ8ZqjAYMn4hrRD0R64AxxWdUFn9HdVxMoZHW+pUZG2TkjWruclzQK9Ct3DAeVLkJIXIXdc0Sb6I9iqqylwZcgs4EU0uesx8wa4tuLEJ09/rcZAY2oCDAAliG+//tNzfSxdeBZdXqcBE7kNLLr/I5lu1iAqd1PLboI7rZYx/uFukosXKJ/HsRbsY/Ebi1KiNOmlAft0bnraB52Er8no0l1TcPvAXXgnc45WNF6xvAWpDSJJRmOpQ+5ps926rqItAp8xNUZqkU4kTnJuSq/q11NcatwDsgzWsCcapuQ71HnXNdh7AawBaUiO6Fe8G/5AXslWiRToVOBxL0wIefBSc1ysTZwbmnixPRZV5k+G55YzMLNNjomdoO4dC8WEWjl6B88FvLawJ+ZzxDBicO2iNdpt63A+odfh1NUgYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Fal AI TTS dökümanını okuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01RGw7fQpi3rp1Nen8oQ3vd9",
+        "name": "WebFetch",
+        "input": {
+          "url": "https://fal.ai/models/fal-ai/qwen-3-tts/text-to-speech/1.7b/api",
+          "prompt": "Extract all information about:\n1. API endpoint and request format\n2. Input parameters (text, voice options, language support)\n3. Output format - especially if it provides word-level timestamps/timing data\n4. Rate limits, pricing, authentication\n5. Any examples of API usage\n6. Does it return timestamps for each word/sentence for synchronization?"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01RGw7fQpi3rp1Nen8oQ3vd9",
+        "type": "tool_result",
+        "content": "# Qwen 3 TTS API Analysis\n\n## 1. API Endpoint & Request Format\n**Endpoint:** `fal-ai/qwen-3-tts/text-to-speech/1.7b`\n\nThe API uses JavaScript/Node.js client with the `@fal-ai/client` package. Example submission:\n```javascript\nconst result = await fal.subscribe(\"fal-ai/qwen-3-tts/text-to-speech/1.7b\", {\n  input: { text: \"...\" }\n});\n```\n\n## 2. Input Parameters\n\n**Required:**\n- `text` (string): \"The text to be converted to speech\"\n\n**Optional:**\n- `voice`: Vivian, Serena, Uncle_Fu, Dylan, Eric, Ryan, Aiden, Ono_Anna, Sohee\n- `language`: Auto, English, Chinese, Spanish, French, German, Italian, Japanese, Korean, Portuguese, Russian (default: Auto)\n- `prompt`: Style guidance for speech generation\n- `speaker_voice_embedding_file_url`: Custom voice file in safetensors format\n- `reference_text`: Supporting text for cloned voices\n- Sampling controls: `top_k` (50), `top_p` (1), `temperature` (0.9), `repetition_penalty` (1.05)\n- Sub-talker parameters: `subtalker_dosample`, `subtalker_top_k`, `subtalker_top_p`, `subtalker_temperature`\n- `max_new_tokens`: Maximum codec tokens (default: 200, max: 8192)\n\n## 3. Output Format\nReturns an `AudioFile` object containing:\n- `url`: Download link\n- `file_name`: Generated filename\n- `sample_rate`: 24000 Hz\n- `content_type`: \"audio/mpeg\"\n- `duration`: Total length in seconds\n- `channels`: 1 (mono)\n\n**⚠️ No timestamp/synchronization data:** The output provides only overall duration, not word-level or sentence-level timing information.\n\n## 4. Rate Limits, Pricing, Authentication\n- **Authentication:** API Key via `FAL_KEY` environment variable or manual config\n- **Pricing:** \"Commercial use\" noted; specific rates not detailed in documentation\n- **Rate limiting:** Not explicitly specified in provided content\n- **Note:** \"Protect your API Key\" when using client-side implementations\n\n## 5. API Usage Examples\nText input example: \"I am solving the equation: x = [-b ± √(b²-4ac)] / 2a? Nobody can — it's a disaster (◍•͈⌔•͈◍), very sad!\"\n\nCustom voice example includes speaker embedding URL and reference text for improved quality.\n\n## 6. Synchronization Capabilities\n**No word-level timestamps provided.** The API returns complete audio files with total duration only—no granular timing data for individual words or sentences suitable for real-time synchronization or subtitle generation."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Important finding: Fal AI's Qwen-3 TTS does NOT provide word-level timestamps. It only returns the audio file with total duration. This means we'll need a separate **forced alignment** step to generate word-level timestamps.\n\nThe workflow will be:\n1. Generate audio with Fal AI TTS\n2. Run forced alignment (Aeneas, Gentle, or WhisperX) to get word timestamps\n3. Store both audio URL and timing data\n\nLet me update the plan with this information and also detail the ContentBlock architecture the user wants.",
+        "signature": "Ep4FCkYICxgCKkDvPdrEBPW1MG1Hen0dqf78NUmdULFMDCqSWiwQ1vDhavMxz7jf4GR0BB3WmyhwVVrE9irgigqPRKPMi9IZs3PcEgzLMlpR/wyE2n8lgZQaDEHGZR20GjYB6oiIbyIw56VeWFeSBxaTCYhwnwwzIqF2E56dz0Ywu6kVtXY+NZjwJczpCycCfBbeFwRTYB4UKoUE18PjFm96e1C9aCdGQHa0Z9lKU+af9dA+IGD+YyUr75J4LMSKG4z5cG3npU5WGckCJfmaVNUzEgnrLQtbDWKhtrBcv6OVBCEwxtvmWHR5rKxIpMkL2JTUKkoJ9Oh7NHC2hgBRxO//33Hsw5H4RmN+VS1RIfvP9pZae9B7WBsogUtqFMEkk+1vP+ZyhPJWHYj4BNOuRQWLD43Ssun8WzkMse/7kEPOgnNPQfyMZ5eoY6ta2bsivKxa7yQhaJ9xaFc6Tpo398huqMg3hrq2SiNx67C0IL/jwOo+Qu+PuZXco3x7D9syx2+K7aPUKAXhP8LRIelvarArrxMSoZM+ro14PGaOc5HRHe16xeKE4VHxuFGAymP3GCzoai5XkWFc+e85i18XWggEJSdmsIOO3QyKCRDZKwBSyNI8cXA6oM8nd71kLXkTWTMVvLX3Ahuhvo2XEzyE6KG37ky1mAXZjXAKvU2FqUhdMoUibDl/3Ol4xY1owrl4IgE3T17jNW+dyzNLqtgf/put+8qb69DxSuUmQhS69pj3cUj0a738fO0BKJQpe0pkPevcvu6SV8HuiTEF3DEOOjHYTVUxpckrb4C8KAKJkX8yK3ZZ2n+TJXNnbIWmq94S/mSwAMQfxDFFBcNgCtmO8GMGvGnPsrBh9oraOi9CRv2DGXwW4D6ChrlGDFHhF+ri+xgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Önemli bulgu: Fal AI TTS **kelime-seviye timestamp vermiyor**, sadece toplam süre dönüyor. Bu durumda **Forced Alignment** adımı gerekecek.\n\nPlanı güncelleyip ContentBlock mimarisini de ekliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01UUxqE75SGLwvdXRaZTMzZ6",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/.claude/plans/polymorphic-munching-ember.md",
+          "old_string": "# Senkronize Sesli Okuma ve Highlight Sistemi\n\n## Özet\nReader ekranlarına paragraf bazlı sesli okuma ve metin senkronizasyonu eklenmesi. Ses çalarken ilgili metin (kelime/cümle/paragraf) highlight edilecek.\n\n---\n\n## Mevcut Durum Analizi",
+          "new_string": "# Senkronize Sesli Okuma ve Highlight Sistemi\n\n## Özet\nReader ekranlarına paragraf bazlı sesli okuma ve **kelime-seviye metin senkronizasyonu** eklenmesi. Ses çalarken her kelime sırayla highlight edilecek (karaoke tarzı).\n\n## Kullanıcı Kararları\n- **Audio Kaynağı**: Fal AI (Qwen-3 TTS) + Forced Alignment\n- **Highlight Seviyesi**: Kelime seviyesi (karaoke)\n- **Veri Yapısı**: ContentBlock entity oluşturulacak (restructure)\n- **Scope**: Faz 1 + 2 birlikte (MVP + auto-scroll + word highlight)\n\n---\n\n## Mevcut Durum Analizi"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01UUxqE75SGLwvdXRaZTMzZ6",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/.claude/plans/polymorphic-munching-ember.md has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now let me update the plan with:\n1. Fal AI TTS integration details (no timestamps, need forced alignment)\n2. ContentBlock architecture\n3. Updated implementation phases\n\nLet me continue editing the plan file.",
+        "signature": "EvQCCkYICxgCKkCojfI4gMndvL8yKp1Wwo8sGjNEjoN+o1x7vlOBlx+0AMJe6ykq1d2W/gNY0RDWdxQa8aozAZbsUsuFszL3q9f/EgyQ9zl04xd5AJR1fuwaDFKSVH8NomUHpravASIwi+vW5hYtTi3PiArEUFq+imAYXR2LhVt7VkhQaeJpqyOLeST/xCiIJUDIzf+DL0UuKtsBR3LVPeqDnlEueZY+NCoGua/qAvmErthwfpimDzz04pbsPOVJLWQ/9BzM0cVai8viikHd4hrtvu+XDwwP9Od8FDX4huIpKhJVx+GRU4Cs2TUQ+SQttHCk/CmEhr7WFwDpe6UugXnqG6LG200RY1BVchI612+ZybtDxcfiE1xxP8nnRkjuPbbXIzs3Fq7xd0QOAEnLEhUKhPWH36/kUxOQpsNFPLxInP7+2oKqIwo7Dnv6mUNp7J44wsMoO62JO3lTuOTcHR/M0SZpkRjDpY0EwWwWHMrEcSKPO6mMGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NNX86fcBmN6mtA9TPkpfV3",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/.claude/plans/polymorphic-munching-ember.md",
+          "old_string": "## Content Block Konsepti (İsteğe Bağlı Genişletme)\n\nMevcut yapı: `Chapter.content` → plain text → runtime'da paragraf parse\n\n**Seçenek A: Mevcut Yapıyı Koru** (Önerilen)\n- `AudioSyncData` ayrı tablo olarak eklenir\n- Paragraflar content'ten parse edilmeye devam eder\n- Backward compatible\n\n**Seçenek B: Explicit Content Blocks**\n- Yeni `ContentBlock` entity oluştur\n- Her block: type (text/image/audio/activity), content, metadata\n- Daha fazla migration ve refactor gerektirir\n\n---\n\n## Input Format Gereksinimleri\n\nAudio + timing verisi oluşturmak için gerekenler:\n\n### Manuel Yükleme\n1. **Audio dosyası** (MP3/M4A)\n2. **Timing JSON** - Her segment için start/end zamanları\n   - Tool: Audacity, Aegisub, veya custom editor\n\n### Otomatik TTS + Alignment\n1. **Metin** (chapter.content)\n2. **TTS Servisi** → Audio oluştur (Google Cloud TTS, ElevenLabs)\n3. **Forced Alignment** → Timing çıkar (Aeneas, Gentle)",
+          "new_string": "## ContentBlock Mimarisi (SEÇİLDİ)\n\nMevcut `Chapter.content` (plain text) yapısından **explicit ContentBlock** yapısına geçiş.\n\n### Yeni Entity: ContentBlock\n\n```dart\nenum ContentBlockType {\n  text,      // Paragraf metni\n  image,     // Görsel\n  audio,     // Standalone ses (podcast tarzı)\n  activity,  // Inline aktivite referansı\n}\n\nclass ContentBlock {\n  final String id;\n  final String chapterId;\n  final int orderIndex;\n  final ContentBlockType type;\n\n  // Text block için\n  final String? text;\n  final List<WordTiming>? wordTimings;  // Kelime-seviye sync\n  final String? audioUrl;               // Bu blok için ses\n\n  // Image block için\n  final String? imageUrl;\n  final String? caption;\n\n  // Activity block için\n  final String? activityId;\n}\n\nclass WordTiming {\n  final String word;\n  final int startIndex;      // Metin içi karakter pozisyonu\n  final int endIndex;\n  final int startMs;         // Audio başlangıç (milisaniye)\n  final int endMs;           // Audio bitiş\n}\n```\n\n### Database Schema: content_blocks\n\n```sql\nCREATE TABLE content_blocks (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    chapter_id UUID NOT NULL REFERENCES chapters(id) ON DELETE CASCADE,\n    order_index INTEGER NOT NULL,\n    type VARCHAR(20) NOT NULL CHECK (type IN ('text', 'image', 'audio', 'activity')),\n\n    -- Text block\n    text TEXT,\n    audio_url VARCHAR(500),\n    word_timings JSONB,  -- [{word, startIndex, endIndex, startMs, endMs}]\n\n    -- Image block\n    image_url VARCHAR(500),\n    caption TEXT,\n\n    -- Activity block\n    activity_id UUID REFERENCES inline_activities(id),\n\n    created_at TIMESTAMPTZ DEFAULT NOW(),\n    updated_at TIMESTAMPTZ DEFAULT NOW(),\n\n    UNIQUE(chapter_id, order_index)\n);\n\nCREATE INDEX idx_content_blocks_chapter ON content_blocks(chapter_id);\n```\n\n### Migration Stratejisi\n\n```\nMevcut: chapters.content (plain text \"\\n\\n\" separated)\n        ↓\nYeni:   content_blocks tablosu (her paragraf ayrı row)\n```\n\n1. Mevcut chapter'ları parse et\n2. Her paragraf için `content_blocks` row oluştur\n3. `chapters.content` → deprecated (nullable yap)\n4. Yeni content ekleme artık `content_blocks` üzerinden\n\n---\n\n## Audio Pipeline: Fal AI + Forced Alignment\n\n### Fal AI Qwen-3 TTS Özellikleri\n- **Endpoint**: `fal-ai/qwen-3-tts/text-to-speech/1.7b`\n- **Voices**: Vivian, Serena, Dylan, Eric, Ryan, Aiden, vs.\n- **Languages**: Auto, English, Turkish?, Chinese, Spanish, French...\n- **Output**: MP3, 24kHz, mono\n- **⚠️ SINIR**: Timestamp vermiyor, sadece toplam duration\n\n### Gerekli Pipeline\n\n```\n┌─────────────┐     ┌─────────────┐     ┌─────────────────┐\n│ ContentBlock│────▶│  Fal AI     │────▶│  Audio File     │\n│   (text)    │     │  TTS API    │     │  (.mp3)         │\n└─────────────┘     └─────────────┘     └─────────────────┘\n       │                                        │\n       │                                        ▼\n       │            ┌─────────────────┐  ┌─────────────────┐\n       └───────────▶│ Forced Aligner  │◀─│  Text + Audio   │\n                    │ (WhisperX/Aeneas)│  │                 │\n                    └─────────────────┘  └─────────────────┘\n                            │\n                            ▼\n                    ┌─────────────────┐\n                    │  Word Timings   │\n                    │  (JSON)         │\n                    └─────────────────┘\n```\n\n### Forced Alignment Seçenekleri\n\n| Tool | Pros | Cons |\n|------|------|------|\n| **WhisperX** | En doğru, kelime-seviye, çok dilli | GPU gerektirir, yavaş |\n| **Aeneas** | Hızlı, lightweight | Cümle-seviye (kelime için hack gerekir) |\n| **Gentle** | Kelime-seviye, iyi doğruluk | Self-hosted, sadece İngilizce |\n\n**Önerilen**: WhisperX (Edge Function veya external service olarak)\n\n### Edge Function: generate-audio-sync\n\n```typescript\n// supabase/functions/generate-audio-sync/index.ts\nDeno.serve(async (req) => {\n  const { blockId, text, voice } = await req.json();\n\n  // 1. Fal AI TTS çağır\n  const audioResult = await fal.subscribe(\"fal-ai/qwen-3-tts/text-to-speech/1.7b\", {\n    input: { text, voice }\n  });\n\n  // 2. Audio'yu R2'ye yükle\n  const audioUrl = await uploadToR2(audioResult.url, blockId);\n\n  // 3. WhisperX ile forced alignment (external API veya self-hosted)\n  const wordTimings = await runForcedAlignment(text, audioUrl);\n\n  // 4. content_blocks tablosunu güncelle\n  await supabase.from('content_blocks').update({\n    audio_url: audioUrl,\n    word_timings: wordTimings\n  }).eq('id', blockId);\n\n  return Response.json({ success: true, audioUrl, wordTimings });\n});\n```"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01NNX86fcBmN6mtA9TPkpfV3",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/.claude/plans/polymorphic-munching-ember.md has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Now I need to update the implementation phases and the widget architecture to reflect word-level highlighting. Let me continue editing the plan.",
+        "signature": "ErkCCkYICxgCKkC1P+QRvwECeORyacD9As9R4tGmULGR+KpKxr2v2Z1mb9xOV6k1N0BYMdQGNmXeyxK6E6YlTFpeYJ2QjjWnM421EgzrSGGl9KuZ6+rQ43kaDECp2JCWhxqmQgT40CIwZXxDq1bmh7Mq4Fog2xiKnI2YjjKlNnKPgy6yMW3a/2SzSxEQtZT6829nZSXOUqfVKqABtY8/jAPcqoacPdwPb9WPiqLq4WpNVk9gJCtzoO0ti6tK4lQm+5mF6SuVoKlGpMK07OtkvnS0o8vDNUbvWeav6sxmjB4NlEYvr0ERQsCLb3x4dTOc6nyTlvViYSFR8bu5AYoz+X0/Fm/6cKrqvebWK5Zopz/s0i8g/zK9jRj2axYUX2c315fxIRLhdQT55gKMCr373rOxt5M1bWoP/MET6BgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01QUAaXnuHwXfyTg6SZYoDCu",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/.claude/plans/polymorphic-munching-ember.md",

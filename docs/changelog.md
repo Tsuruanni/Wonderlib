@@ -8,6 +8,48 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Audio Sync & Word-Level Highlighting (2026-02-02)
+
+#### Added
+- **ContentBlock Architecture** - New structured content system replacing plain text chapters
+  - `ContentBlock` entity with types: text, image, audio, activity
+  - `WordTiming` value object for audio-text synchronization
+  - Database table `content_blocks` with word_timings JSONB field
+- **Word-Level Highlighting (Karaoke)** - Real-time text highlighting during audio playback
+  - `WordHighlightText` widget renders words with timing-based highlighting
+  - Binary search O(log n) algorithm for active word lookup
+  - Vocabulary words remain tappable (shows definition popup)
+- **Audio Sync Provider** - `AudioSyncController` StateNotifier manages playback state
+  - Position stream tracking with word index calculation
+  - Playback speed control (0.75x to 2x)
+  - Block-level audio loading and state management
+- **Text Block Widget** - Renders paragraphs with inline play button
+- **Content Block List** - Progressive reveal orchestration for content blocks
+- **Audio Player Controls** - Floating player with progress bar, skip, speed controls
+- **Edge Function: generate-audio-sync** - Fal AI TTS integration
+  - Calls `fal-ai/elevenlabs/tts/eleven-v3` with timestamps
+  - Merges multi-sentence timestamp data
+  - Converts character timestamps to word-level timings
+  - Saves audio URL + word timings to database
+
+#### Fixed
+- **Fal AI Response Parsing** - Fixed `timestamps` array handling (was expecting `alignment` object)
+- **Multi-Sentence Timestamps** - Merge function combines timestamp entries from multiple sentences
+- **RLS Policies** - Fixed content management access for teachers (was admin-only)
+- **Books Schema** - Added `author` and `cover_image_url` columns
+
+#### Infrastructure
+- **5 New Migrations**:
+  - `20260201000020_create_content_blocks.sql` - ContentBlock table
+  - `20260201000021_migrate_content_to_blocks.sql` - Content migration
+  - `20260202000001_fix_content_blocks_rls.sql` - RLS for authenticated users
+  - `20260202000002_fix_content_management_rls.sql` - Teacher content management
+  - `20260202000003_add_author_to_books.sql` - Author column
+- **Admin Panel (readeng_admin/)** - Separate Flutter web app for content management
+  - Book/Chapter CRUD with content block editor
+  - Audio generation UI with Fal AI integration
+  - CEFR level dropdown (A1-C2)
+
 ### Dependency Updates & Bug Fixes (2026-02-01)
 
 #### Fixed
