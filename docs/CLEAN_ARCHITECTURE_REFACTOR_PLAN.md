@@ -471,6 +471,7 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 - [x] `lib/domain/usecases/auth/sign_in_with_student_number_usecase.dart`
 - [x] `lib/domain/usecases/auth/sign_out_usecase.dart`
 - [x] `lib/domain/usecases/auth/get_current_user_usecase.dart`
+- [x] `lib/domain/usecases/auth/refresh_current_user_usecase.dart`
 - [x] `lib/data/repositories/supabase/supabase_auth_repository.dart` güncelle
 - [x] `lib/presentation/providers/usecase_providers.dart` güncelle
 - [x] `lib/presentation/providers/auth_provider.dart` güncelle

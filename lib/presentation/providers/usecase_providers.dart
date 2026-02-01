@@ -11,6 +11,7 @@ import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart'
 import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import '../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
+import '../../domain/usecases/auth/refresh_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
@@ -49,6 +50,10 @@ final signOutUseCaseProvider = Provider((ref) {
 
 final getCurrentUserUseCaseProvider = Provider((ref) {
   return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
+});
+
+final refreshCurrentUserUseCaseProvider = Provider((ref) {
+  return RefreshCurrentUserUseCase(ref.watch(authRepositoryProvider));
 });
 
 // ============================================

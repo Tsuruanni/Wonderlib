@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
+import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/usecase.dart';
@@ -16,8 +17,8 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 
 /// Provides the current authenticated user
 final currentUserProvider = FutureProvider<User?>((ref) async {
-  final authRepo = ref.watch(authRepositoryProvider);
-  final result = await authRepo.getCurrentUser();
+  final useCase = ref.watch(getCurrentUserUseCaseProvider);
+  final result = await useCase(const NoParams());
   return result.fold(
     (failure) => null,
     (user) => user,
@@ -141,6 +142,6 @@ final authControllerProvider =
 /// Refreshes the current user data from database
 /// Call this after XP changes, profile updates, etc.
 Future<void> refreshUserData(Ref ref) async {
-  final authRepo = ref.read(authRepositoryProvider);
-  await authRepo.refreshCurrentUser();
+  final useCase = ref.read(refreshCurrentUserUseCaseProvider);
+  await useCase(const NoParams());
 }
