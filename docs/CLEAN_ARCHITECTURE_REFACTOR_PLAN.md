@@ -527,6 +527,8 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 - [x] `lib/domain/usecases/reading/mark_chapter_complete_usecase.dart`
 - [x] `lib/domain/usecases/reading/update_current_chapter_usecase.dart`
 - [x] `lib/domain/usecases/reading/get_user_reading_history_usecase.dart`
+- [x] `lib/domain/usecases/book/get_recommended_books_usecase.dart` (ek)
+- [x] `lib/domain/usecases/reading/update_reading_progress_usecase.dart` (ek)
 - [x] `lib/data/repositories/supabase/supabase_book_repository.dart` güncelle
 - [x] `lib/presentation/providers/usecase_providers.dart` güncelle
 - [x] `lib/presentation/providers/book_provider.dart` güncelle
