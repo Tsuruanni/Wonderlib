@@ -10,12 +10,14 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
+import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_user_reading_history_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
+import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import 'repository_providers.dart';
@@ -68,6 +70,10 @@ final getContinueReadingUseCaseProvider = Provider((ref) {
   return GetContinueReadingUseCase(ref.watch(bookRepositoryProvider));
 });
 
+final getRecommendedBooksUseCaseProvider = Provider((ref) {
+  return GetRecommendedBooksUseCase(ref.watch(bookRepositoryProvider));
+});
+
 // ============================================
 // TEACHER USE CASES
 // ============================================
@@ -110,4 +116,8 @@ final updateCurrentChapterUseCaseProvider = Provider((ref) {
 
 final getUserReadingHistoryUseCaseProvider = Provider((ref) {
   return GetUserReadingHistoryUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final updateReadingProgressUseCaseProvider = Provider((ref) {
+  return UpdateReadingProgressUseCase(ref.watch(bookRepositoryProvider));
 });

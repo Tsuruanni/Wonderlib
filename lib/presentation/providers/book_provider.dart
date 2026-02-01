@@ -9,11 +9,12 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
+import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
+import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
 
@@ -59,8 +60,8 @@ final recommendedBooksProvider = FutureProvider<List<Book>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getRecommendedBooks(userId);
+  final useCase = ref.watch(getRecommendedBooksUseCaseProvider);
+  final result = await useCase(GetRecommendedBooksParams(userId: userId));
   return result.fold(
     (failure) => [],
     (books) => books,
@@ -312,8 +313,8 @@ class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
       updatedAt: DateTime.now(),
     );
 
-    final bookRepo = _ref.read(bookRepositoryProvider);
-    final result = await bookRepo.updateReadingProgress(updated);
+    final useCase = _ref.read(updateReadingProgressUseCaseProvider);
+    final result = await useCase(UpdateReadingProgressParams(progress: updated));
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),
