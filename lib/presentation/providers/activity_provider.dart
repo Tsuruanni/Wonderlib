@@ -2,14 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/activity.dart';
+import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
+import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
+import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
+import '../../domain/usecases/activity/get_best_result_usecase.dart';
+import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import 'auth_provider.dart';
-import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 /// Provides activities for a chapter
 final chapterActivitiesProvider =
     FutureProvider.family<List<Activity>, String>((ref, chapterId) async {
-  final activityRepo = ref.watch(activityRepositoryProvider);
-  final result = await activityRepo.getActivitiesByChapter(chapterId);
+  final useCase = ref.watch(getActivitiesByChapterUseCaseProvider);
+  final result = await useCase(GetActivitiesByChapterParams(chapterId: chapterId));
   return result.fold(
     (failure) => [],
     (activities) => activities,
@@ -19,8 +24,8 @@ final chapterActivitiesProvider =
 /// Provides a single activity by ID
 final activityByIdProvider =
     FutureProvider.family<Activity?, String>((ref, activityId) async {
-  final activityRepo = ref.watch(activityRepositoryProvider);
-  final result = await activityRepo.getActivityById(activityId);
+  final useCase = ref.watch(getActivityByIdUseCaseProvider);
+  final result = await useCase(GetActivityByIdParams(activityId: activityId));
   return result.fold(
     (failure) => null,
     (activity) => activity,
@@ -33,11 +38,11 @@ final activityBestResultProvider =
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return null;
 
-  final activityRepo = ref.watch(activityRepositoryProvider);
-  final result = await activityRepo.getBestResult(
+  final useCase = ref.watch(getBestResultUseCaseProvider);
+  final result = await useCase(GetBestResultParams(
     userId: userId,
     activityId: activityId,
-  );
+  ));
   return result.fold(
     (failure) => null,
     (result) => result,
@@ -49,8 +54,8 @@ final activityStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return {};
 
-  final activityRepo = ref.watch(activityRepositoryProvider);
-  final result = await activityRepo.getActivityStats(userId);
+  final useCase = ref.watch(getActivityStatsUseCaseProvider);
+  final result = await useCase(GetActivityStatsParams(userId: userId));
   return result.fold(
     (failure) => {},
     (stats) => stats,
@@ -71,8 +76,8 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
   Future<void> _loadActivity() async {
     state = state.copyWith(isLoading: true);
 
-    final activityRepo = _ref.read(activityRepositoryProvider);
-    final result = await activityRepo.getActivityById(activityId);
+    final useCase = _ref.read(getActivityByIdUseCaseProvider);
+    final result = await useCase(GetActivityByIdParams(activityId: activityId));
 
     result.fold(
       (failure) {
@@ -131,8 +136,8 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
       completedAt: DateTime.now(),
     );
 
-    final activityRepo = _ref.read(activityRepositoryProvider);
-    final submitResult = await activityRepo.submitActivityResult(result);
+    final useCase = _ref.read(submitActivityResultUseCaseProvider);
+    final submitResult = await useCase(SubmitActivityResultParams(result: result));
 
     if (submitResult.isLeft()) {
       final failure = submitResult.fold((f) => f, (_) => null)!;

@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/repositories/activity_repository.dart';
+import '../../models/activity/activity_model.dart';
+import '../../models/activity/activity_result_model.dart';
 
 class SupabaseActivityRepository implements ActivityRepository {
   SupabaseActivityRepository({SupabaseClient? supabase})
@@ -22,8 +24,9 @@ class SupabaseActivityRepository implements ActivityRepository {
           .eq('chapter_id', chapterId)
           .order('order_index', ascending: true);
 
-      final activities =
-          (response as List).map((json) => _mapToActivity(json)).toList();
+      final activities = (response as List)
+          .map((json) => ActivityModel.fromJson(json as Map<String, dynamic>).toEntity())
+          .toList();
 
       return Right(activities);
     } on PostgrestException catch (e) {
@@ -39,7 +42,7 @@ class SupabaseActivityRepository implements ActivityRepository {
       final response =
           await _supabase.from('activities').select().eq('id', id).single();
 
-      return Right(_mapToActivity(response));
+      return Right(ActivityModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return const Left(NotFoundFailure('Activity not found'));
@@ -64,15 +67,16 @@ class SupabaseActivityRepository implements ActivityRepository {
 
       final attemptNumber = (existingResults as List).length + 1;
 
+      final resultModel = ActivityResultModel.fromEntity(result);
       final data = {
-        'user_id': result.userId,
-        'activity_id': result.activityId,
-        'score': result.score,
-        'max_score': result.maxScore,
-        'answers': result.answers,
-        'time_spent': result.timeSpent,
+        'user_id': resultModel.userId,
+        'activity_id': resultModel.activityId,
+        'score': resultModel.score,
+        'max_score': resultModel.maxScore,
+        'answers': resultModel.answers,
+        'time_spent': resultModel.timeSpent,
         'attempt_number': attemptNumber,
-        'completed_at': result.completedAt.toIso8601String(),
+        'completed_at': resultModel.completedAt.toIso8601String(),
       };
 
       final response = await _supabase
@@ -95,7 +99,7 @@ class SupabaseActivityRepository implements ActivityRepository {
         }
       }
 
-      return Right(_mapToActivityResult(response));
+      return Right(ActivityResultModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -121,7 +125,7 @@ class SupabaseActivityRepository implements ActivityRepository {
       final response = await query.order('completed_at', ascending: false);
 
       final results = (response as List)
-          .map((json) => _mapToActivityResult(json))
+          .map((json) => ActivityResultModel.fromJson(json as Map<String, dynamic>).toEntity())
           .toList();
 
       return Right(results);
@@ -151,7 +155,7 @@ class SupabaseActivityRepository implements ActivityRepository {
         return const Right(null);
       }
 
-      return Right(_mapToActivityResult(response));
+      return Right(ActivityResultModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -248,72 +252,4 @@ class SupabaseActivityRepository implements ActivityRepository {
     }
   }
 
-  // ============================================
-  // MAPPING FUNCTIONS
-  // ============================================
-
-  Activity _mapToActivity(Map<String, dynamic> data) {
-    final questionsJson = data['questions'] as List<dynamic>?;
-    final questions = questionsJson
-            ?.map((q) => ActivityQuestion(
-                  id: q['id'] as String? ?? '',
-                  question: q['question'] as String? ?? '',
-                  options: (q['options'] as List<dynamic>?)
-                          ?.map((o) => o as String)
-                          .toList() ??
-                      [],
-                  correctAnswer: q['correct_answer'],
-                  explanation: q['explanation'] as String?,
-                  imageUrl: q['image_url'] as String?,
-                  points: q['points'] as int? ?? 1,
-                ))
-            .toList() ??
-        [];
-
-    return Activity(
-      id: data['id'] as String,
-      chapterId: data['chapter_id'] as String,
-      type: _parseActivityType(data['type'] as String?),
-      orderIndex: data['order_index'] as int? ?? 0,
-      title: data['title'] as String?,
-      instructions: data['instructions'] as String?,
-      questions: questions,
-      settings: (data['settings'] as Map<String, dynamic>?) ?? {},
-      createdAt: DateTime.parse(data['created_at'] as String),
-      updatedAt: DateTime.parse(data['updated_at'] as String),
-    );
-  }
-
-  ActivityType _parseActivityType(String? type) {
-    switch (type) {
-      case 'multiple_choice':
-        return ActivityType.multipleChoice;
-      case 'true_false':
-        return ActivityType.trueFalse;
-      case 'matching':
-        return ActivityType.matching;
-      case 'ordering':
-        return ActivityType.ordering;
-      case 'fill_blank':
-        return ActivityType.fillBlank;
-      case 'short_answer':
-        return ActivityType.shortAnswer;
-      default:
-        return ActivityType.multipleChoice;
-    }
-  }
-
-  ActivityResult _mapToActivityResult(Map<String, dynamic> data) {
-    return ActivityResult(
-      id: data['id'] as String,
-      userId: data['user_id'] as String,
-      activityId: data['activity_id'] as String,
-      score: (data['score'] as num).toDouble(),
-      maxScore: (data['max_score'] as num).toDouble(),
-      answers: (data['answers'] as Map<String, dynamic>?) ?? {},
-      timeSpent: data['time_spent'] as int?,
-      attemptNumber: data['attempt_number'] as int? ?? 1,
-      completedAt: DateTime.parse(data['completed_at'] as String),
-    );
-  }
 }

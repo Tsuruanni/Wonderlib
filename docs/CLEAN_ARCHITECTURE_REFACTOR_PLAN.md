@@ -568,21 +568,24 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 
 #### 3.3 Dosya Checklist
 
-- [ ] `lib/data/models/activity/activity_model.dart`
-- [ ] `lib/data/models/activity/inline_activity_model.dart`
-- [ ] `lib/data/models/activity/activity_result_model.dart`
-- [ ] `lib/domain/usecases/activity/get_activities_by_chapter_usecase.dart`
-- [ ] `lib/domain/usecases/activity/get_inline_activities_usecase.dart`
-- [ ] `lib/domain/usecases/activity/submit_activity_result_usecase.dart`
-- [ ] `lib/domain/usecases/activity/save_inline_activity_result_usecase.dart`
-- [ ] `lib/domain/usecases/activity/get_completed_inline_activities_usecase.dart`
-- [ ] `lib/domain/usecases/activity/get_activity_stats_usecase.dart`
-- [ ] `lib/data/repositories/supabase/supabase_activity_repository.dart` güncelle
-- [ ] `lib/data/repositories/supabase/supabase_book_repository.dart` (inline activities) güncelle
-- [ ] `lib/presentation/providers/usecase_providers.dart` güncelle
-- [ ] `lib/presentation/providers/activity_provider.dart` güncelle
-- [ ] `lib/presentation/providers/reader_provider.dart` güncelle
-- [ ] `dart analyze` çalıştır
+- [x] `lib/data/models/activity/activity_model.dart`
+- [x] `lib/data/models/activity/inline_activity_model.dart`
+- [x] `lib/data/models/activity/activity_result_model.dart`
+- [x] `lib/domain/usecases/activity/get_activities_by_chapter_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_activity_by_id_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_activity_stats_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_best_result_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_user_activity_results_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_inline_activities_usecase.dart`
+- [x] `lib/domain/usecases/activity/submit_activity_result_usecase.dart`
+- [x] `lib/domain/usecases/activity/save_inline_activity_result_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_completed_inline_activities_usecase.dart`
+- [x] `lib/data/repositories/supabase/supabase_activity_repository.dart` güncelle
+- [x] `lib/data/repositories/supabase/supabase_book_repository.dart` (inline activities) güncelle
+- [x] `lib/presentation/providers/usecase_providers.dart` güncelle
+- [x] `lib/presentation/providers/activity_provider.dart` güncelle
+- [x] `lib/presentation/providers/reader_provider.dart` güncelle
+- [x] `dart analyze` çalıştır
 - [ ] Test et: Aktivite tamamlama
 - [ ] Commit
 
@@ -842,7 +845,7 @@ flutter test
 | 0. Hazırlık | - | - | - | - | - | ✅ |
 | 1. Auth | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | 2. Book & Reading | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ |
-| 3. Activity | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| 3. Activity | ✅ | ✅ | ✅ | ✅ | ⬜ | ⬜ |
 | 4. Vocabulary | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 5. Badge & User | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 6. Teacher | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |

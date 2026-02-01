@@ -82,21 +82,28 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 **Branch:** `git checkout -b refactor/activity-module`
 
 ### Dosyalar
-- [ ] `lib/data/models/activity/activity_model.dart`
-- [ ] `lib/data/models/activity/inline_activity_model.dart`
-- [ ] `lib/data/models/activity/activity_result_model.dart`
-- [ ] `lib/domain/usecases/activity/get_inline_activities_usecase.dart`
-- [ ] `lib/domain/usecases/activity/save_inline_activity_result_usecase.dart`
-- [ ] `lib/domain/usecases/activity/get_completed_inline_activities_usecase.dart`
-- [ ] `lib/domain/usecases/activity/submit_activity_result_usecase.dart`
+- [x] `lib/data/models/activity/activity_model.dart`
+- [x] `lib/data/models/activity/inline_activity_model.dart`
+- [x] `lib/data/models/activity/activity_result_model.dart`
+- [x] `lib/domain/usecases/activity/get_activities_by_chapter_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_activity_by_id_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_activity_stats_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_best_result_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_user_activity_results_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_inline_activities_usecase.dart`
+- [x] `lib/domain/usecases/activity/save_inline_activity_result_usecase.dart`
+- [x] `lib/domain/usecases/activity/get_completed_inline_activities_usecase.dart`
+- [x] `lib/domain/usecases/activity/submit_activity_result_usecase.dart`
 
 ### Güncellemeler
-- [ ] `supabase_activity_repository.dart` → Model kullan
-- [ ] `activity_provider.dart` → UseCase kullan
-- [ ] `reader_provider.dart` → UseCase kullan
+- [x] `supabase_activity_repository.dart` → Model kullan
+- [x] `supabase_book_repository.dart` → InlineActivityModel kullan
+- [x] `usecase_providers.dart` → Activity UseCase'leri ekle
+- [x] `activity_provider.dart` → UseCase kullan
+- [x] `reader_provider.dart` → UseCase kullan
 
 ### Doğrulama
-- [ ] `dart analyze`
+- [x] `dart analyze` → 0 error
 - [ ] Aktivite tamamlama test et
 - [ ] Commit & Merge
 

@@ -1,5 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
+import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
+import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
+import '../../domain/usecases/activity/get_best_result_usecase.dart';
+import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
+import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
+import '../../domain/usecases/activity/get_user_activity_results_usecase.dart';
+import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
+import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import '../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
@@ -120,4 +129,48 @@ final getUserReadingHistoryUseCaseProvider = Provider((ref) {
 
 final updateReadingProgressUseCaseProvider = Provider((ref) {
   return UpdateReadingProgressUseCase(ref.watch(bookRepositoryProvider));
+});
+
+// ============================================
+// ACTIVITY USE CASES
+// ============================================
+
+final getActivitiesByChapterUseCaseProvider = Provider((ref) {
+  return GetActivitiesByChapterUseCase(ref.watch(activityRepositoryProvider));
+});
+
+final getActivityByIdUseCaseProvider = Provider((ref) {
+  return GetActivityByIdUseCase(ref.watch(activityRepositoryProvider));
+});
+
+final submitActivityResultUseCaseProvider = Provider((ref) {
+  return SubmitActivityResultUseCase(ref.watch(activityRepositoryProvider));
+});
+
+final getUserActivityResultsUseCaseProvider = Provider((ref) {
+  return GetUserActivityResultsUseCase(ref.watch(activityRepositoryProvider));
+});
+
+final getBestResultUseCaseProvider = Provider((ref) {
+  return GetBestResultUseCase(ref.watch(activityRepositoryProvider));
+});
+
+final getActivityStatsUseCaseProvider = Provider((ref) {
+  return GetActivityStatsUseCase(ref.watch(activityRepositoryProvider));
+});
+
+// ============================================
+// INLINE ACTIVITY USE CASES (via BookRepository)
+// ============================================
+
+final getInlineActivitiesUseCaseProvider = Provider((ref) {
+  return GetInlineActivitiesUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final saveInlineActivityResultUseCaseProvider = Provider((ref) {
+  return SaveInlineActivityResultUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final getCompletedInlineActivitiesUseCaseProvider = Provider((ref) {
+  return GetCompletedInlineActivitiesUseCase(ref.watch(bookRepositoryProvider));
 });

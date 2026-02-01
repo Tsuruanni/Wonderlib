@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/chapter.dart';
+import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 /// Reader theme options
 enum ReaderTheme {
@@ -218,11 +220,11 @@ final completedInlineActivitiesProvider =
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getCompletedInlineActivities(
+  final useCase = ref.watch(getCompletedInlineActivitiesUseCaseProvider);
+  final result = await useCase(GetCompletedInlineActivitiesParams(
     userId: userId,
     chapterId: chapterId,
-  );
+  ));
 
   return result.fold(
     (failure) => [],
