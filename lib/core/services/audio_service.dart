@@ -51,39 +51,39 @@ class AudioService {
 
   /// Play audio from URL
   Future<void> play(String url) async {
-    await _player?.setUrl(url);
-    await _player?.play();
+    await player.setUrl(url);
+    await player.play();
   }
 
   /// Play audio from local file
   Future<void> playLocal(String filePath) async {
-    await _player?.setFilePath(filePath);
-    await _player?.play();
+    await player.setFilePath(filePath);
+    await player.play();
   }
 
   /// Pause playback
   Future<void> pause() async {
-    await _player?.pause();
+    await player.pause();
   }
 
   /// Resume playback
   Future<void> resume() async {
-    await _player?.play();
+    await player.play();
   }
 
   /// Stop playback
   Future<void> stop() async {
-    await _player?.stop();
+    await player.stop();
   }
 
   /// Seek to position
   Future<void> seek(Duration position) async {
-    await _player?.seek(position);
+    await player.seek(position);
   }
 
   /// Set playback speed
   Future<void> setSpeed(double speed) async {
-    await _player?.setSpeed(speed);
+    await player.setSpeed(speed);
   }
 
   /// Get current position stream

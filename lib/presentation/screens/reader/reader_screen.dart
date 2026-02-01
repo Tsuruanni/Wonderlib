@@ -123,7 +123,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       // Save reading time every 30 seconds to prevent data loss
       final seconds = ref.read(readingTimerProvider);
       if (seconds > 0 && seconds % 30 == 0) {
-        _saveReadingTime();
+        _saveReadingTime().catchError((error) {
+          // Silently handle save errors - will retry on next interval
+          debugPrint('Failed to save reading time: $error');
+        });
         // Reset timer after saving to avoid double-counting
         ref.read(readingTimerProvider.notifier).reset();
       }

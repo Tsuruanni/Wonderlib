@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-01 (Clean Architecture Refactor Started)
+Son güncelleme: 2026-02-01 (Code Quality Fixes)
 
 ## Current Phase
 
@@ -97,6 +97,9 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 | ~~"Add to vocabulary"~~ | ~~Medium~~ | ✅ Reader'da kelime ekleme çalışıyor |
 | ~~Mock repositories~~ | ~~High~~ | ✅ Deleted 7 mock repository files |
 | ~~withOpacity deprecated~~ | ~~Low~~ | ✅ Changed to withValues(alpha:) |
+| ~~N+1 query in vocabulary~~ | ~~High~~ | ✅ Fixed - single query instead of loop |
+| ~~Timer error handling~~ | ~~Medium~~ | ✅ Fixed - catchError added to reader |
+| ~~AudioService null safety~~ | ~~High~~ | ✅ Fixed - uses getter with StateError |
 | Screens importing repositories | High | Being fixed in Clean Architecture refactor |
 | Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
@@ -105,6 +108,7 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Code Quality Fixes | 2026-02-01 | N+1 query, timer error handling, AudioService null safety |
 | Clean Architecture Phase 1 | 2026-02-01 | UseCase base, 4 UseCases, common widgets, mock cleanup |
 | Refactor Plan Documentation | 2026-02-01 | CLEAN_ARCHITECTURE_REFACTOR_PLAN.md, REFACTOR_CHECKLIST.md |
 | Router & Navigation Fixes | 2026-02-01 | GoRouter key collision fix, splash screen, auth timing |

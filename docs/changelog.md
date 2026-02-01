@@ -8,6 +8,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Code Quality Fixes (2026-02-01)
+
+#### Fixed
+- **N+1 Query in Vocabulary Repository** - `getNewWords()` now uses single `.not('id', 'in', ...)` query instead of loop with `.neq()` for each word ID
+- **Timer Error Handling** - Reader screen periodic save now catches errors with `catchError()` to prevent silent failures
+- **AudioService Null Safety** - Methods now use `player` getter (throws StateError if not initialized) instead of `_player?` (silent fail)
+
 ### Clean Architecture Refactor - Phase 1 (2026-02-01)
 
 #### Added
