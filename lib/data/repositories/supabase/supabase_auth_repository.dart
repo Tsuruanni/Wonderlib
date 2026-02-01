@@ -4,10 +4,10 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/constants/app_constants.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/auth_repository.dart';
+import '../../models/auth/user_model.dart';
 
 class SupabaseAuthRepository implements AuthRepository {
   SupabaseAuthRepository({SupabaseClient? supabase})
@@ -197,42 +197,9 @@ class SupabaseAuthRepository implements AuthRepository {
     );
   }
 
-  /// Maps Supabase profile data to domain User entity
+  /// Maps Supabase profile data to domain User entity using Model layer
   domain.User _mapProfileToUser(Map<String, dynamic> data) {
-    return domain.User(
-      id: data['id'] as String,
-      schoolId: data['school_id'] as String? ?? '',
-      classId: data['class_id'] as String?,
-      role: _parseRole(data['role'] as String?),
-      studentNumber: data['student_number'] as String?,
-      firstName: data['first_name'] as String? ?? '',
-      lastName: data['last_name'] as String? ?? '',
-      email: data['email'] as String?,
-      avatarUrl: data['avatar_url'] as String?,
-      xp: data['xp'] as int? ?? 0,
-      level: data['level'] as int? ?? 1,
-      currentStreak: data['current_streak'] as int? ?? 0,
-      longestStreak: data['longest_streak'] as int? ?? 0,
-      lastActivityDate: data['last_activity_date'] != null
-          ? DateTime.parse(data['last_activity_date'] as String)
-          : null,
-      settings: (data['settings'] as Map<String, dynamic>?) ?? {},
-      createdAt: DateTime.parse(data['created_at'] as String),
-      updatedAt: DateTime.parse(data['updated_at'] as String),
-    );
-  }
-
-  UserRole _parseRole(String? role) {
-    switch (role) {
-      case 'teacher':
-        return UserRole.teacher;
-      case 'head':
-        return UserRole.head;
-      case 'admin':
-        return UserRole.admin;
-      default:
-        return UserRole.student;
-    }
+    return UserModel.fromJson(data).toEntity();
   }
 
   void dispose() {

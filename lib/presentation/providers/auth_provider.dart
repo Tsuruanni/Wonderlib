@@ -2,7 +2,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
+import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
+import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
+import '../../domain/usecases/usecase.dart';
 import 'repository_providers.dart';
+import 'usecase_providers.dart';
 
 /// Provides the current user stream
 final authStateChangesProvider = StreamProvider<User?>((ref) {
@@ -72,11 +76,11 @@ class AuthController extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    final authRepo = _ref.read(authRepositoryProvider);
-    final result = await authRepo.signInWithStudentNumber(
+    final useCase = _ref.read(signInWithStudentNumberUseCaseProvider);
+    final result = await useCase(SignInWithStudentNumberParams(
       studentNumber: studentNumber,
       password: password,
-    );
+    ));
 
     return result.fold(
       (failure) {
@@ -97,11 +101,11 @@ class AuthController extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    final authRepo = _ref.read(authRepositoryProvider);
-    final result = await authRepo.signInWithEmail(
+    final useCase = _ref.read(signInWithEmailUseCaseProvider);
+    final result = await useCase(SignInWithEmailParams(
       email: email,
       password: password,
-    );
+    ));
 
     return result.fold(
       (failure) {
@@ -118,8 +122,8 @@ class AuthController extends StateNotifier<AuthState> {
   /// Sign out
   Future<void> signOut() async {
     state = state.copyWith(isLoading: true);
-    final authRepo = _ref.read(authRepositoryProvider);
-    await authRepo.signOut();
+    final useCase = _ref.read(signOutUseCaseProvider);
+    await useCase(const NoParams());
     state = const AuthState();
   }
 
