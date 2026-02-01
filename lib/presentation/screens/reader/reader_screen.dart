@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
+import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../providers/repository_providers.dart';
 import '../../providers/usecase_providers.dart';
 import '../../widgets/reader/collapsible_reader_header.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
@@ -66,12 +66,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final userId = ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    final bookRepo = ref.read(bookRepositoryProvider);
-    await bookRepo.updateCurrentChapter(
+    final useCase = ref.read(updateCurrentChapterUseCaseProvider);
+    await useCase(UpdateCurrentChapterParams(
       userId: userId,
       bookId: widget.bookId,
       chapterId: widget.chapterId,
-    );
+    ));
   }
 
   @override

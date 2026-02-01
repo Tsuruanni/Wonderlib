@@ -7,6 +7,9 @@ import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/reading_progress.dart';
 import '../../../domain/repositories/book_repository.dart';
+import '../../models/book/book_model.dart';
+import '../../models/book/chapter_model.dart';
+import '../../models/book/reading_progress_model.dart';
 
 class SupabaseBookRepository implements BookRepository {
   SupabaseBookRepository({SupabaseClient? supabase})
@@ -484,101 +487,19 @@ class SupabaseBookRepository implements BookRepository {
   }
 
   // ============================================
-  // MAPPING FUNCTIONS
+  // MAPPING FUNCTIONS (using Model layer)
   // ============================================
 
   Book _mapToBook(Map<String, dynamic> data) {
-    return Book(
-      id: data['id'] as String,
-      title: data['title'] as String,
-      slug: data['slug'] as String,
-      description: data['description'] as String?,
-      coverUrl: data['cover_url'] as String?,
-      level: data['level'] as String,
-      genre: data['genre'] as String?,
-      ageGroup: data['age_group'] as String?,
-      estimatedMinutes: data['estimated_minutes'] as int?,
-      wordCount: data['word_count'] as int?,
-      chapterCount: data['chapter_count'] as int? ?? 0,
-      status: _parseBookStatus(data['status'] as String?),
-      metadata: (data['metadata'] as Map<String, dynamic>?) ?? {},
-      publishedAt: data['published_at'] != null
-          ? DateTime.parse(data['published_at'] as String)
-          : null,
-      createdAt: DateTime.parse(data['created_at'] as String),
-      updatedAt: DateTime.parse(data['updated_at'] as String),
-    );
-  }
-
-  BookStatus _parseBookStatus(String? status) {
-    switch (status) {
-      case 'published':
-        return BookStatus.published;
-      case 'archived':
-        return BookStatus.archived;
-      default:
-        return BookStatus.draft;
-    }
+    return BookModel.fromJson(data).toEntity();
   }
 
   Chapter _mapToChapter(Map<String, dynamic> data) {
-    final vocabularyJson = data['vocabulary'] as List<dynamic>?;
-    final vocabulary = vocabularyJson
-            ?.map(
-              (v) => ChapterVocabulary(
-                word: v['word'] as String,
-                meaning: v['meaning'] as String?,
-                phonetic: v['phonetic'] as String?,
-                startIndex: v['startIndex'] as int?,
-                endIndex: v['endIndex'] as int?,
-              ),
-            )
-            .toList() ??
-        [];
-
-    final imageUrlsJson = data['image_urls'] as List<dynamic>?;
-    final imageUrls =
-        imageUrlsJson?.map((url) => url as String).toList() ?? [];
-
-    return Chapter(
-      id: data['id'] as String,
-      bookId: data['book_id'] as String,
-      title: data['title'] as String,
-      orderIndex: data['order_index'] as int,
-      content: data['content'] as String?,
-      audioUrl: data['audio_url'] as String?,
-      imageUrls: imageUrls,
-      wordCount: data['word_count'] as int?,
-      estimatedMinutes: data['estimated_minutes'] as int?,
-      vocabulary: vocabulary,
-      createdAt: DateTime.parse(data['created_at'] as String),
-      updatedAt: DateTime.parse(data['updated_at'] as String),
-    );
+    return ChapterModel.fromJson(data).toEntity();
   }
 
   ReadingProgress _mapToReadingProgress(Map<String, dynamic> data) {
-    final completedChapterIdsJson =
-        data['completed_chapter_ids'] as List<dynamic>?;
-    final completedChapterIds =
-        completedChapterIdsJson?.map((id) => id as String).toList() ?? [];
-
-    return ReadingProgress(
-      id: data['id'] as String,
-      userId: data['user_id'] as String,
-      bookId: data['book_id'] as String,
-      chapterId: data['chapter_id'] as String?,
-      currentPage: data['current_page'] as int? ?? 1,
-      isCompleted: data['is_completed'] as bool? ?? false,
-      completionPercentage:
-          (data['completion_percentage'] as num?)?.toDouble() ?? 0.0,
-      totalReadingTime: data['total_reading_time'] as int? ?? 0,
-      completedChapterIds: completedChapterIds,
-      startedAt: DateTime.parse(data['started_at'] as String),
-      completedAt: data['completed_at'] != null
-          ? DateTime.parse(data['completed_at'] as String)
-          : null,
-      updatedAt: DateTime.parse(data['updated_at'] as String),
-    );
+    return ReadingProgressModel.fromJson(data).toEntity();
   }
 
   InlineActivity _mapToInlineActivity(Map<String, dynamic> data) {

@@ -4,20 +4,29 @@ import '../../domain/entities/book.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/reading_progress.dart';
 import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/usecases/book/get_book_by_id_usecase.dart';
+import '../../domain/usecases/book/get_books_usecase.dart';
+import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
+import '../../domain/usecases/book/get_chapters_usecase.dart';
+import '../../domain/usecases/book/get_continue_reading_usecase.dart';
+import '../../domain/usecases/book/search_books_usecase.dart';
+import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
+import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import 'auth_provider.dart';
 import 'repository_providers.dart';
 import 'student_assignment_provider.dart';
+import 'usecase_providers.dart';
 
 /// Provides all published books with optional filters
 final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filters) async {
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getBooks(
+  final useCase = ref.watch(getBooksUseCaseProvider);
+  final result = await useCase(GetBooksParams(
     level: filters?.level,
     genre: filters?.genre,
     ageGroup: filters?.ageGroup,
     page: filters?.page ?? 1,
     pageSize: filters?.pageSize ?? 20,
-  );
+  ));
   return result.fold(
     (failure) => [],
     (books) => books,
@@ -26,8 +35,8 @@ final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filt
 
 /// Provides a single book by ID
 final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getBookById(id);
+  final useCase = ref.watch(getBookByIdUseCaseProvider);
+  final result = await useCase(GetBookByIdParams(bookId: id));
   return result.fold(
     (failure) => null,
     (book) => book,
@@ -37,8 +46,8 @@ final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
 /// Provides book search results
 final bookSearchProvider = FutureProvider.family<List<Book>, String>((ref, query) async {
   if (query.isEmpty) return [];
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.searchBooks(query);
+  final useCase = ref.watch(searchBooksUseCaseProvider);
+  final result = await useCase(SearchBooksParams(query: query));
   return result.fold(
     (failure) => [],
     (books) => books,
@@ -63,8 +72,8 @@ final continueReadingProvider = FutureProvider<List<Book>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getContinueReading(userId);
+  final useCase = ref.watch(getContinueReadingUseCaseProvider);
+  final result = await useCase(GetContinueReadingParams(userId: userId));
   return result.fold(
     (failure) => [],
     (books) => books,
@@ -73,8 +82,8 @@ final continueReadingProvider = FutureProvider<List<Book>>((ref) async {
 
 /// Provides chapters for a book
 final chaptersProvider = FutureProvider.family<List<Chapter>, String>((ref, bookId) async {
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getChapters(bookId);
+  final useCase = ref.watch(getChaptersUseCaseProvider);
+  final result = await useCase(GetChaptersParams(bookId: bookId));
   return result.fold(
     (failure) => [],
     (chapters) => chapters,
@@ -83,8 +92,8 @@ final chaptersProvider = FutureProvider.family<List<Chapter>, String>((ref, book
 
 /// Provides a single chapter by ID
 final chapterByIdProvider = FutureProvider.family<Chapter?, String>((ref, chapterId) async {
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getChapterById(chapterId);
+  final useCase = ref.watch(getChapterByIdUseCaseProvider);
+  final result = await useCase(GetChapterByIdParams(chapterId: chapterId));
   return result.fold(
     (failure) => null,
     (chapter) => chapter,
@@ -96,11 +105,11 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return null;
 
-  final bookRepo = ref.watch(bookRepositoryProvider);
-  final result = await bookRepo.getReadingProgress(
+  final useCase = ref.watch(getReadingProgressUseCaseProvider);
+  final result = await useCase(GetReadingProgressParams(
     userId: userId,
     bookId: bookId,
-  );
+  ));
   return result.fold(
     (failure) => null,
     (progress) => progress,
@@ -122,12 +131,12 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
     state = const AsyncValue.loading();
 
-    final bookRepo = _ref.read(bookRepositoryProvider);
-    final result = await bookRepo.markChapterComplete(
+    final useCase = _ref.read(markChapterCompleteUseCaseProvider);
+    final result = await useCase(MarkChapterCompleteParams(
       userId: userId,
       bookId: bookId,
       chapterId: chapterId,
-    );
+    ));
 
     result.fold(
       (failure) => state = AsyncValue.error(failure, StackTrace.current),
@@ -168,8 +177,10 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
             if (assignment.bookId == bookId &&
                 assignment.status != StudentAssignmentStatus.completed) {
               // Get all chapters for the book (book-based assignments)
-              final bookRepo = _ref.read(bookRepositoryProvider);
-              final chaptersResult = await bookRepo.getChapters(bookId);
+              final getChaptersUseCase = _ref.read(getChaptersUseCaseProvider);
+              final chaptersResult = await getChaptersUseCase(
+                GetChaptersParams(bookId: bookId),
+              );
 
               final totalChapters = chaptersResult.fold(
                 (failure) => 0,
@@ -269,11 +280,11 @@ class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
       return;
     }
 
-    final bookRepo = _ref.read(bookRepositoryProvider);
-    final result = await bookRepo.getReadingProgress(
+    final useCase = _ref.read(getReadingProgressUseCaseProvider);
+    final result = await useCase(GetReadingProgressParams(
       userId: userId,
       bookId: bookId,
-    );
+    ));
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),
