@@ -12,9 +12,9 @@ git add . && git commit -m "chore: baseline before refactor"
 mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment,user}
 ```
 
-- [ ] Branch oluşturuldu
-- [ ] Baseline commit yapıldı
-- [ ] Model klasörleri oluşturuldu
+- [x] Branch oluşturuldu
+- [x] Baseline commit yapıldı
+- [x] Model klasörleri oluşturuldu
 
 ---
 
@@ -23,22 +23,22 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 **Branch:** `git checkout -b refactor/auth-module`
 
 ### Dosyalar
-- [ ] `lib/data/models/auth/user_model.dart`
-- [ ] `lib/domain/usecases/auth/sign_in_with_email_usecase.dart`
-- [ ] `lib/domain/usecases/auth/sign_in_with_student_number_usecase.dart`
-- [ ] `lib/domain/usecases/auth/sign_out_usecase.dart`
-- [ ] `lib/domain/usecases/auth/get_current_user_usecase.dart`
+- [x] `lib/data/models/auth/user_model.dart`
+- [x] `lib/domain/usecases/auth/sign_in_with_email_usecase.dart`
+- [x] `lib/domain/usecases/auth/sign_in_with_student_number_usecase.dart`
+- [x] `lib/domain/usecases/auth/sign_out_usecase.dart`
+- [x] `lib/domain/usecases/auth/get_current_user_usecase.dart`
 
 ### Güncellemeler
-- [ ] `supabase_auth_repository.dart` → Model kullan
-- [ ] `usecase_providers.dart` → Auth UseCase'leri ekle
-- [ ] `auth_provider.dart` → UseCase kullan
-- [ ] `login_screen.dart` → Repository import kaldır
+- [x] `supabase_auth_repository.dart` → Model kullan
+- [x] `usecase_providers.dart` → Auth UseCase'leri ekle
+- [x] `auth_provider.dart` → UseCase kullan
+- [x] `login_screen.dart` → Repository import kaldır (zaten yoktu)
 
 ### Doğrulama
-- [ ] `dart analyze lib/domain/usecases/auth/`
+- [x] `dart analyze lib/domain/usecases/auth/`
 - [ ] Login test et
-- [ ] Commit & Merge
+- [x] Commit & Merge
 
 ---
 

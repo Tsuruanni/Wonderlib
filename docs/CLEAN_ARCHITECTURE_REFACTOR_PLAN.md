@@ -3,7 +3,7 @@
 **Proje:** ReadEng (Wonderlib)
 **Oluşturulma:** 2026-02-01
 **Tahmini Süre:** 10-12 gün
-**Durum:** 🔴 Başlamadı
+**Durum:** 🟡 Devam Ediyor
 
 ---
 
@@ -428,10 +428,10 @@ lib/
 
 **Süre:** 1 saat
 
-- [ ] Git branch oluştur: `feature/clean-architecture-refactor`
-- [ ] Mevcut durumu commit et (baseline)
-- [ ] `lib/data/models/` klasörü oluştur
-- [ ] Model base yapısını hazırla
+- [x] Git branch oluştur: `feature/clean-architecture-refactor`
+- [x] Mevcut durumu commit et (baseline)
+- [x] `lib/data/models/` klasörü oluştur
+- [x] Model base yapısını hazırla
 
 ```bash
 # Komutlar
@@ -466,19 +466,19 @@ mkdir -p lib/data/models/{auth,book,activity,vocabulary,badge,teacher,assignment
 
 #### 1.3 Dosya Checklist
 
-- [ ] `lib/data/models/auth/user_model.dart`
-- [ ] `lib/domain/usecases/auth/sign_in_with_email_usecase.dart`
-- [ ] `lib/domain/usecases/auth/sign_in_with_student_number_usecase.dart`
-- [ ] `lib/domain/usecases/auth/sign_out_usecase.dart`
-- [ ] `lib/domain/usecases/auth/get_current_user_usecase.dart`
-- [ ] `lib/data/repositories/supabase/supabase_auth_repository.dart` güncelle
-- [ ] `lib/presentation/providers/usecase_providers.dart` güncelle
-- [ ] `lib/presentation/providers/auth_provider.dart` güncelle
-- [ ] `lib/presentation/screens/auth/login_screen.dart` temizle
-- [ ] `lib/presentation/screens/splash_screen.dart` temizle
-- [ ] `dart analyze` çalıştır
+- [x] `lib/data/models/auth/user_model.dart`
+- [x] `lib/domain/usecases/auth/sign_in_with_email_usecase.dart`
+- [x] `lib/domain/usecases/auth/sign_in_with_student_number_usecase.dart`
+- [x] `lib/domain/usecases/auth/sign_out_usecase.dart`
+- [x] `lib/domain/usecases/auth/get_current_user_usecase.dart`
+- [x] `lib/data/repositories/supabase/supabase_auth_repository.dart` güncelle
+- [x] `lib/presentation/providers/usecase_providers.dart` güncelle
+- [x] `lib/presentation/providers/auth_provider.dart` güncelle
+- [x] `lib/presentation/screens/auth/login_screen.dart` temizle (zaten temizdi)
+- [x] `lib/presentation/screens/splash_screen.dart` temizle (zaten temizdi)
+- [x] `dart analyze` çalıştır
 - [ ] Test et: Login akışı
-- [ ] Commit
+- [x] Commit
 
 ---
 
@@ -828,17 +828,17 @@ flutter test
 
 ### Başlangıç Kontrolleri
 
-- [ ] Git branch oluşturuldu: `feature/clean-architecture-refactor`
-- [ ] Baseline commit yapıldı
-- [ ] `lib/data/models/` klasörleri oluşturuldu
-- [ ] Plan dosyası okundu ve anlaşıldı
+- [x] Git branch oluşturuldu: `feature/clean-architecture-refactor`
+- [x] Baseline commit yapıldı
+- [x] `lib/data/models/` klasörleri oluşturuldu
+- [x] Plan dosyası okundu ve anlaşıldı
 
 ### Modül İlerleme Durumu
 
 | Modül | Model | UseCase | Provider | Screen | Test | Commit |
 |-------|-------|---------|----------|--------|------|--------|
-| 0. Hazırlık | - | - | - | - | - | ⬜ |
-| 1. Auth | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
+| 0. Hazırlık | - | - | - | - | - | ✅ |
+| 1. Auth | ✅ | ✅ | ✅ | ✅ | ⬜ | ✅ |
 | 2. Book & Reading | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 3. Activity | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
 | 4. Vocabulary | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ |
@@ -985,4 +985,5 @@ git branch -D feature/clean-architecture-refactor
 ---
 
 **Son Güncelleme:** 2026-02-01
-**Versiyon:** 1.0
+**Versiyon:** 1.1
+**İlerleme:** Modül 1 (Auth) tamamlandı
