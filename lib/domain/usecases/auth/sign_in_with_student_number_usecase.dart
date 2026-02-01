@@ -6,20 +6,20 @@ import '../../repositories/auth_repository.dart';
 import '../usecase.dart';
 
 class SignInWithStudentNumberParams {
-  final String studentNumber;
-  final String password;
 
   const SignInWithStudentNumberParams({
     required this.studentNumber,
     required this.password,
   });
+  final String studentNumber;
+  final String password;
 }
 
 class SignInWithStudentNumberUseCase
     implements UseCase<User, SignInWithStudentNumberParams> {
-  final AuthRepository _repository;
 
   const SignInWithStudentNumberUseCase(this._repository);
+  final AuthRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(SignInWithStudentNumberParams params) {

@@ -8,6 +8,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Dependency Updates & Bug Fixes (2026-02-01)
+
+#### Fixed
+- **Reading Progress "Continue Reading" Bug** - Fixed condition that showed "Start Reading" even when user had started a book. Now checks for actual DB record instead of `completionPercentage > 0`
+- **Chapter Completion Logic** - Chapters without inline activities now correctly mark as complete (was returning `false` when `totalActivities == 0`)
+- **connectivity_plus 6.x API** - Updated `NetworkInfo` for new API that returns `List<ConnectivityResult>` instead of single value
+- **Seed Data Email** - Added missing `email` field to all profile UPDATE statements in seed.sql
+
+#### Changed
+- **go_router pinned to 13.x** - Version 14.x breaks `StatefulShellRoute` API, kept at 13.2.5
+- **Error Logging Added** - `_updateCurrentChapter` and `_saveReadingTime` now log errors via `debugPrint` instead of silent failure
+
+#### Updated Dependencies
+- flutter_riverpod: 2.4.9 → 2.6.1
+- riverpod_annotation: 2.3.3 → 2.6.1
+- go_router: 13.0.1 → 13.2.5
+- connectivity_plus: 5.0.2 → 6.1.0
+- flutter_secure_storage: 9.0.0 → 9.2.0
+- just_audio: 0.9.36 → 0.9.40
+- audio_session: 0.1.18 → 0.1.25
+- sentry_flutter: 7.14.0 → 8.12.0
+- posthog_flutter: 4.0.1 → 4.11.0
+- flutter_lints: 3.0.1 → 5.0.0
+- riverpod_generator: 2.6.0 → 2.6.5
+- json_serializable: 6.7.1 → 6.9.0
+- mockito: 5.4.4 → 5.4.6
+- flutter_gen_runner: 5.4.0 → 5.8.0
+- flutter_dotenv: 5.1.0 → 5.2.1
+
 ### Code Quality Fixes (2026-02-01)
 
 #### Fixed

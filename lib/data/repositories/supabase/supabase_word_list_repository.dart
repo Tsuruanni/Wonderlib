@@ -251,19 +251,16 @@ class SupabaseWordListRepository implements WordListRepository {
                 phase1Complete: true,
                 updatedAt: now,
               );
-              break;
             case 2:
               progress = progress.copyWith(
                 phase2Complete: true,
                 updatedAt: now,
               );
-              break;
             case 3:
               progress = progress.copyWith(
                 phase3Complete: true,
                 updatedAt: now,
               );
-              break;
             case 4:
               progress = progress.copyWith(
                 phase4Complete: true,
@@ -272,7 +269,6 @@ class SupabaseWordListRepository implements WordListRepository {
                 completedAt: now,
                 updatedAt: now,
               );
-              break;
           }
 
           return updateWordListProgress(progress);

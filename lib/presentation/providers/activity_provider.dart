@@ -54,7 +54,7 @@ final activityBestResultProvider =
   final result = await useCase(GetBestResultParams(
     userId: userId,
     activityId: activityId,
-  ));
+  ),);
   return result.fold(
     (failure) => null,
     (result) => result,
@@ -76,14 +76,14 @@ final activityStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
 
 /// Activity session controller
 class ActivitySessionController extends StateNotifier<ActivitySessionState> {
-  final Ref _ref;
-  final String activityId;
-  final _uuid = const Uuid();
 
   ActivitySessionController(this._ref, this.activityId)
       : super(const ActivitySessionState()) {
     _loadActivity();
   }
+  final Ref _ref;
+  final String activityId;
+  final _uuid = const Uuid();
 
   Future<void> _loadActivity() async {
     state = state.copyWith(isLoading: true);
@@ -176,14 +176,6 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
 }
 
 class ActivitySessionState {
-  final bool isLoading;
-  final bool isSubmitting;
-  final bool isComplete;
-  final String? error;
-  final Activity? activity;
-  final Map<String, dynamic> answers;
-  final DateTime? startTime;
-  final ActivityResult? result;
 
   const ActivitySessionState({
     this.isLoading = false,
@@ -195,6 +187,14 @@ class ActivitySessionState {
     this.startTime,
     this.result,
   });
+  final bool isLoading;
+  final bool isSubmitting;
+  final bool isComplete;
+  final String? error;
+  final Activity? activity;
+  final Map<String, dynamic> answers;
+  final DateTime? startTime;
+  final ActivityResult? result;
 
   int get answeredCount => answers.length;
   int get totalQuestions => activity?.questions.length ?? 0;

@@ -6,16 +6,16 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetRecommendedBooksParams {
-  final String userId;
 
   const GetRecommendedBooksParams({required this.userId});
+  final String userId;
 }
 
 class GetRecommendedBooksUseCase
     implements UseCase<List<Book>, GetRecommendedBooksParams> {
-  final BookRepository _repository;
 
   const GetRecommendedBooksUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, List<Book>>> call(GetRecommendedBooksParams params) {

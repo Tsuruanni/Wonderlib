@@ -2,10 +2,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Service for calling Supabase Edge Functions
 class EdgeFunctionService {
-  final SupabaseClient _supabase;
 
   EdgeFunctionService({SupabaseClient? supabase})
       : _supabase = supabase ?? Supabase.instance.client;
+  final SupabaseClient _supabase;
 
   /// Award XP to user via edge function
   /// Returns XP result with level info and any new badges earned
@@ -68,12 +68,6 @@ class EdgeFunctionService {
 
 /// Result of awarding XP
 class AwardXPResult {
-  final bool success;
-  final int newXp;
-  final int newLevel;
-  final bool levelUp;
-  final List<BadgeEarned> newBadges;
-  final String? error;
 
   const AwardXPResult({
     required this.success,
@@ -100,13 +94,16 @@ class AwardXPResult {
       error: json['error'] as String?,
     );
   }
+  final bool success;
+  final int newXp;
+  final int newLevel;
+  final bool levelUp;
+  final List<BadgeEarned> newBadges;
+  final String? error;
 }
 
 /// Badge earned from XP award
 class BadgeEarned {
-  final String badgeId;
-  final String badgeName;
-  final int xpReward;
 
   const BadgeEarned({
     required this.badgeId,
@@ -121,17 +118,13 @@ class BadgeEarned {
       xpReward: json['xpReward'] as int? ?? 0,
     );
   }
+  final String badgeId;
+  final String badgeName;
+  final int xpReward;
 }
 
 /// Result of streak check
 class StreakResult {
-  final bool success;
-  final int streak;
-  final int longestStreak;
-  final bool streakBroken;
-  final bool streakExtended;
-  final int bonusXp;
-  final String? error;
 
   const StreakResult({
     required this.success,
@@ -154,13 +147,20 @@ class StreakResult {
       error: json['error'] as String?,
     );
   }
+  final bool success;
+  final int streak;
+  final int longestStreak;
+  final bool streakBroken;
+  final bool streakExtended;
+  final int bonusXp;
+  final String? error;
 }
 
 /// Exception for edge function errors
 class EdgeFunctionException implements Exception {
-  final String message;
 
   EdgeFunctionException(this.message);
+  final String message;
 
   @override
   String toString() => 'EdgeFunctionException: $message';

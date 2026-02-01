@@ -21,20 +21,16 @@ class AudioService {
         switch (event.type) {
           case AudioInterruptionType.duck:
             _player?.setVolume(0.5);
-            break;
           case AudioInterruptionType.pause:
           case AudioInterruptionType.unknown:
             _player?.pause();
-            break;
         }
       } else {
         switch (event.type) {
           case AudioInterruptionType.duck:
             _player?.setVolume(1.0);
-            break;
           case AudioInterruptionType.pause:
             _player?.play();
-            break;
           case AudioInterruptionType.unknown:
             break;
         }

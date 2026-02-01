@@ -5,17 +5,17 @@ import '../../repositories/teacher_repository.dart';
 import '../usecase.dart';
 
 class DeleteAssignmentParams {
-  final String assignmentId;
 
   const DeleteAssignmentParams({required this.assignmentId});
+  final String assignmentId;
 }
 
 /// Deletes an assignment
 class DeleteAssignmentUseCase
     implements UseCase<void, DeleteAssignmentParams> {
-  final TeacherRepository _repository;
 
   const DeleteAssignmentUseCase(this._repository);
+  final TeacherRepository _repository;
 
   @override
   Future<Either<Failure, void>> call(DeleteAssignmentParams params) {

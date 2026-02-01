@@ -2,17 +2,6 @@ import '../../../domain/entities/badge.dart';
 
 /// Model for Badge entity - handles JSON serialization
 class BadgeModel {
-  final String id;
-  final String name;
-  final String slug;
-  final String? description;
-  final String? icon;
-  final String? category;
-  final String conditionType;
-  final int conditionValue;
-  final int xpReward;
-  final bool isActive;
-  final DateTime createdAt;
 
   const BadgeModel({
     required this.id,
@@ -44,6 +33,33 @@ class BadgeModel {
     );
   }
 
+  factory BadgeModel.fromEntity(Badge entity) {
+    return BadgeModel(
+      id: entity.id,
+      name: entity.name,
+      slug: entity.slug,
+      description: entity.description,
+      icon: entity.icon,
+      category: entity.category,
+      conditionType: conditionTypeToString(entity.conditionType),
+      conditionValue: entity.conditionValue,
+      xpReward: entity.xpReward,
+      isActive: entity.isActive,
+      createdAt: entity.createdAt,
+    );
+  }
+  final String id;
+  final String name;
+  final String slug;
+  final String? description;
+  final String? icon;
+  final String? category;
+  final String conditionType;
+  final int conditionValue;
+  final int xpReward;
+  final bool isActive;
+  final DateTime createdAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -73,22 +89,6 @@ class BadgeModel {
       xpReward: xpReward,
       isActive: isActive,
       createdAt: createdAt,
-    );
-  }
-
-  factory BadgeModel.fromEntity(Badge entity) {
-    return BadgeModel(
-      id: entity.id,
-      name: entity.name,
-      slug: entity.slug,
-      description: entity.description,
-      icon: entity.icon,
-      category: entity.category,
-      conditionType: conditionTypeToString(entity.conditionType),
-      conditionValue: entity.conditionValue,
-      xpReward: entity.xpReward,
-      isActive: entity.isActive,
-      createdAt: entity.createdAt,
     );
   }
 

@@ -184,7 +184,7 @@ class _ThumbnailPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return ColoredBox(
       color: colorScheme.primaryContainer,
       child: Center(
         child: Icon(

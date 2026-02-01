@@ -1,14 +1,14 @@
 /// Base exception class for all app exceptions
 abstract class AppException implements Exception {
-  final String message;
-  final String? code;
-  final dynamic originalError;
 
   const AppException({
     required this.message,
     this.code,
     this.originalError,
   });
+  final String message;
+  final String? code;
+  final dynamic originalError;
 
   @override
   String toString() => 'AppException: $message (code: $code)';
@@ -16,7 +16,6 @@ abstract class AppException implements Exception {
 
 /// Server/API related exceptions
 class ServerException extends AppException {
-  final int? statusCode;
 
   const ServerException({
     required super.message,
@@ -89,6 +88,7 @@ class ServerException extends AppException {
         );
     }
   }
+  final int? statusCode;
 }
 
 /// Network connectivity exceptions
@@ -140,13 +140,13 @@ class AuthException extends AppException {
 
 /// Validation exceptions
 class ValidationException extends AppException {
-  final Map<String, List<String>>? fieldErrors;
 
   const ValidationException({
     required super.message,
     super.code = 'VALIDATION_ERROR',
     this.fieldErrors,
   });
+  final Map<String, List<String>>? fieldErrors;
 }
 
 /// Sync exceptions for offline-first operations

@@ -6,16 +6,16 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class GetUserVocabularyProgressParams {
-  final String userId;
 
   const GetUserVocabularyProgressParams({required this.userId});
+  final String userId;
 }
 
 class GetUserVocabularyProgressUseCase
     implements UseCase<List<VocabularyProgress>, GetUserVocabularyProgressParams> {
-  final VocabularyRepository _repository;
 
   const GetUserVocabularyProgressUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyProgress>>> call(

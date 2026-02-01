@@ -298,16 +298,12 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         switch (status) {
           case 'new_word':
             newCount++;
-            break;
           case 'learning':
             learningCount++;
-            break;
           case 'reviewing':
             reviewingCount++;
-            break;
           case 'mastered':
             masteredCount++;
-            break;
         }
       }
 

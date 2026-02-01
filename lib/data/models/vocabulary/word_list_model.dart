@@ -2,17 +2,6 @@ import '../../../domain/entities/word_list.dart';
 
 /// Model for WordList entity - handles JSON serialization
 class WordListModel {
-  final String id;
-  final String name;
-  final String description;
-  final String? level;
-  final String category;
-  final int wordCount;
-  final String? coverImageUrl;
-  final bool isSystem;
-  final String? sourceBookId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const WordListModel({
     required this.id,
@@ -44,6 +33,33 @@ class WordListModel {
     );
   }
 
+  factory WordListModel.fromEntity(WordList entity) {
+    return WordListModel(
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      level: entity.level,
+      category: categoryToString(entity.category),
+      wordCount: entity.wordCount,
+      coverImageUrl: entity.coverImageUrl,
+      isSystem: entity.isSystem,
+      sourceBookId: entity.sourceBookId,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String name;
+  final String description;
+  final String? level;
+  final String category;
+  final int wordCount;
+  final String? coverImageUrl;
+  final bool isSystem;
+  final String? sourceBookId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -73,22 +89,6 @@ class WordListModel {
       sourceBookId: sourceBookId,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory WordListModel.fromEntity(WordList entity) {
-    return WordListModel(
-      id: entity.id,
-      name: entity.name,
-      description: entity.description,
-      level: entity.level,
-      category: categoryToString(entity.category),
-      wordCount: entity.wordCount,
-      coverImageUrl: entity.coverImageUrl,
-      isSystem: entity.isSystem,
-      sourceBookId: entity.sourceBookId,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
     );
   }
 

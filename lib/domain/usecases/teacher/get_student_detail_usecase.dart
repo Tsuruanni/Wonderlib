@@ -6,17 +6,17 @@ import '../../repositories/teacher_repository.dart';
 import '../usecase.dart';
 
 class GetStudentDetailParams {
-  final String studentId;
 
   const GetStudentDetailParams({required this.studentId});
+  final String studentId;
 }
 
 /// Gets detailed student info for student detail screen
 class GetStudentDetailUseCase
     implements UseCase<User, GetStudentDetailParams> {
-  final TeacherRepository _repository;
 
   const GetStudentDetailUseCase(this._repository);
+  final TeacherRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(GetStudentDetailParams params) {

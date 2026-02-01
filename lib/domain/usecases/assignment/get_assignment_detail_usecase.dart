@@ -5,17 +5,17 @@ import '../../repositories/teacher_repository.dart';
 import '../usecase.dart';
 
 class GetAssignmentDetailParams {
-  final String assignmentId;
 
   const GetAssignmentDetailParams({required this.assignmentId});
+  final String assignmentId;
 }
 
 /// Gets assignment detail with student progress
 class GetAssignmentDetailUseCase
     implements UseCase<Assignment, GetAssignmentDetailParams> {
-  final TeacherRepository _repository;
 
   const GetAssignmentDetailUseCase(this._repository);
+  final TeacherRepository _repository;
 
   @override
   Future<Either<Failure, Assignment>> call(GetAssignmentDetailParams params) {

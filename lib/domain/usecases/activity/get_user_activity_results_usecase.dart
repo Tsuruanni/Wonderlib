@@ -6,20 +6,20 @@ import '../../repositories/activity_repository.dart';
 import '../usecase.dart';
 
 class GetUserActivityResultsParams {
-  final String userId;
-  final String? activityId;
 
   const GetUserActivityResultsParams({
     required this.userId,
     this.activityId,
   });
+  final String userId;
+  final String? activityId;
 }
 
 class GetUserActivityResultsUseCase
     implements UseCase<List<ActivityResult>, GetUserActivityResultsParams> {
-  final ActivityRepository _repository;
 
   const GetUserActivityResultsUseCase(this._repository);
+  final ActivityRepository _repository;
 
   @override
   Future<Either<Failure, List<ActivityResult>>> call(GetUserActivityResultsParams params) {

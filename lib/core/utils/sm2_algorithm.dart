@@ -117,31 +117,26 @@ extension SM2ResponseExtension on SM2Response {
       case SM2Response.dontKnow:
         return "I don't know!";
       case SM2Response.gotIt:
-        return "Got it!";
+        return 'Got it!';
       case SM2Response.veryEasy:
-        return "Very EASY!";
+        return 'Very EASY!';
     }
   }
 
   String get emoji {
     switch (this) {
       case SM2Response.dontKnow:
-        return "😕";
+        return '😕';
       case SM2Response.gotIt:
-        return "😊";
+        return '😊';
       case SM2Response.veryEasy:
-        return "🚀";
+        return '🚀';
     }
   }
 }
 
 /// Result of SM-2 calculation
 class SM2Result {
-  final double newEaseFactor;
-  final int newInterval;
-  final int newRepetitions;
-  final VocabularyStatus newStatus;
-  final DateTime nextReviewAt;
 
   const SM2Result({
     required this.newEaseFactor,
@@ -150,6 +145,11 @@ class SM2Result {
     required this.newStatus,
     required this.nextReviewAt,
   });
+  final double newEaseFactor;
+  final int newInterval;
+  final int newRepetitions;
+  final VocabularyStatus newStatus;
+  final DateTime nextReviewAt;
 
   @override
   String toString() {

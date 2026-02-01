@@ -243,7 +243,7 @@ class _LevelFilterChips extends StatelessWidget {
                   selectedColor: colorScheme.primaryContainer,
                   checkmarkColor: colorScheme.primary,
                 ),
-              )),
+              ),),
         ],
       ),
     );

@@ -233,12 +233,12 @@ class SupabaseActivityRepository implements ActivityRepository {
         'p_source': source,
         'p_source_id': sourceId,
         'p_description': description,
-      });
+      },);
 
       // Also check for new badges
       await _supabase.rpc('check_and_award_badges', params: {
         'p_user_id': userId,
-      });
+      },);
 
       if (result != null && (result as List).isNotEmpty) {
         return result[0] as Map<String, dynamic>;

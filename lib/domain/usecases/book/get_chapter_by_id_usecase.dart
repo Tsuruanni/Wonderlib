@@ -6,15 +6,15 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetChapterByIdParams {
-  final String chapterId;
 
   const GetChapterByIdParams({required this.chapterId});
+  final String chapterId;
 }
 
 class GetChapterByIdUseCase implements UseCase<Chapter, GetChapterByIdParams> {
-  final BookRepository _repository;
 
   const GetChapterByIdUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, Chapter>> call(GetChapterByIdParams params) {

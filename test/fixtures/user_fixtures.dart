@@ -170,4 +170,105 @@ class UserFixtures {
         createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
         updatedAt: DateTime.parse('2024-01-15T10:30:00Z'),
       );
+
+  /// User with updated XP (after XP addition)
+  static User userWithAddedXP({int addedXP = 50}) => User(
+        id: 'user-123',
+        schoolId: 'school-456',
+        classId: 'class-789',
+        role: UserRole.student,
+        studentNumber: '2024001',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        avatarUrl: 'https://example.com/avatar.png',
+        xp: 500 + addedXP,
+        level: 5,
+        currentStreak: 7,
+        longestStreak: 14,
+        lastActivityDate: DateTime.parse('2024-01-15T10:30:00Z'),
+        settings: const {'theme': 'dark', 'notifications': true},
+        createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        updatedAt: DateTime.now(),
+      );
+
+  /// User with updated streak
+  static User userWithUpdatedStreak() => User(
+        id: 'user-123',
+        schoolId: 'school-456',
+        classId: 'class-789',
+        role: UserRole.student,
+        studentNumber: '2024001',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john@example.com',
+        avatarUrl: 'https://example.com/avatar.png',
+        xp: 500,
+        level: 5,
+        currentStreak: 8, // Incremented from 7
+        longestStreak: 14,
+        lastActivityDate: DateTime.now(),
+        settings: const {'theme': 'dark', 'notifications': true},
+        createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        updatedAt: DateTime.now(),
+      );
+
+  /// User stats map
+  static Map<String, dynamic> validUserStats() => {
+        'total_xp': 500,
+        'current_level': 5,
+        'current_streak': 7,
+        'longest_streak': 14,
+        'books_completed': 3,
+        'chapters_read': 25,
+        'total_reading_time': 7200, // 2 hours in seconds
+        'vocabulary_learned': 150,
+        'activities_completed': 45,
+        'average_score': 85.5,
+        'badges_earned': 8,
+      };
+
+  /// Leaderboard users list
+  static List<User> leaderboardUsers() => [
+        highXPUser(),
+        validStudentUser(),
+        minimalUser(),
+      ];
+
+  /// Classmates list
+  static List<User> classmatesList() => [
+        validStudentUser(),
+        User(
+          id: 'classmate-1',
+          schoolId: 'school-456',
+          classId: 'class-789',
+          role: UserRole.student,
+          studentNumber: '2024002',
+          firstName: 'Alice',
+          lastName: 'Johnson',
+          xp: 750,
+          level: 7,
+          currentStreak: 5,
+          longestStreak: 10,
+          settings: const {},
+          createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+          updatedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+        ),
+        User(
+          id: 'classmate-2',
+          schoolId: 'school-456',
+          classId: 'class-789',
+          role: UserRole.student,
+          studentNumber: '2024003',
+          firstName: 'Bob',
+          lastName: 'Williams',
+          xp: 300,
+          level: 3,
+          currentStreak: 2,
+          longestStreak: 5,
+          settings: const {},
+          createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+          updatedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+        ),
+      ];
 }

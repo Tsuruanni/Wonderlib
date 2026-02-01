@@ -5,17 +5,17 @@ import '../../repositories/teacher_repository.dart';
 import '../usecase.dart';
 
 class GetAssignmentsParams {
-  final String teacherId;
 
   const GetAssignmentsParams({required this.teacherId});
+  final String teacherId;
 }
 
 /// Gets all assignments created by a teacher
 class GetAssignmentsUseCase
     implements UseCase<List<Assignment>, GetAssignmentsParams> {
-  final TeacherRepository _repository;
 
   const GetAssignmentsUseCase(this._repository);
+  final TeacherRepository _repository;
 
   @override
   Future<Either<Failure, List<Assignment>>> call(GetAssignmentsParams params) {

@@ -5,10 +5,6 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class SaveReadingProgressParams {
-  final String userId;
-  final String bookId;
-  final String chapterId;
-  final int additionalReadingTime;
 
   const SaveReadingProgressParams({
     required this.userId,
@@ -16,14 +12,18 @@ class SaveReadingProgressParams {
     required this.chapterId,
     required this.additionalReadingTime,
   });
+  final String userId;
+  final String bookId;
+  final String chapterId;
+  final int additionalReadingTime;
 }
 
 /// Saves reading progress with accumulated reading time
 class SaveReadingProgressUseCase
     implements UseCase<void, SaveReadingProgressParams> {
-  final BookRepository _repository;
 
   const SaveReadingProgressUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, void>> call(SaveReadingProgressParams params) async {

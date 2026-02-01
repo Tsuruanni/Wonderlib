@@ -53,7 +53,6 @@ import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
-import '../../domain/usecases/usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/get_leaderboard_usecase.dart';

@@ -33,7 +33,7 @@ final vocabularyWordsProvider =
     categories: filters?.categories,
     page: filters?.page ?? 1,
     pageSize: filters?.pageSize ?? 50,
-  ));
+  ),);
   return result.fold(
     (failure) => [],
     (words) => words,
@@ -93,10 +93,6 @@ final vocabularyStatsProvider = FutureProvider<Map<String, int>>((ref) async {
 
 /// Vocabulary filters
 class VocabularyFilters {
-  final String? level;
-  final List<String>? categories;
-  final int page;
-  final int pageSize;
 
   const VocabularyFilters({
     this.level,
@@ -104,6 +100,10 @@ class VocabularyFilters {
     this.page = 1,
     this.pageSize = 50,
   });
+  final String? level;
+  final List<String>? categories;
+  final int page;
+  final int pageSize;
 }
 
 // ============================================
@@ -132,7 +132,7 @@ final userVocabularyProvider = FutureProvider<List<UserVocabularyItem>>((ref) as
   final words = await ref.watch(allVocabularyWordsProvider.future);
   final progress = await ref.watch(userVocabularyProgressProvider.future);
 
-  final progressMap = {for (var p in progress) p.wordId: p};
+  final progressMap = {for (final p in progress) p.wordId: p};
 
   return words.map((word) {
     final wordProgress = progressMap[word.id];
@@ -162,7 +162,7 @@ final newWordsToLearnProvider = FutureProvider<List<UserVocabularyItem>>((ref) a
 final vocabularyStatsSimpleProvider = FutureProvider<VocabularyStats>((ref) async {
   final items = await ref.watch(userVocabularyProvider.future);
 
-  int totalWords = items.length;
+  final int totalWords = items.length;
   int newCount = 0;
   int learningCount = 0;
   int reviewingCount = 0;
@@ -196,10 +196,10 @@ final vocabularyStatsSimpleProvider = FutureProvider<VocabularyStats>((ref) asyn
 
 /// User vocabulary item combining word and progress
 class UserVocabularyItem {
-  final VocabularyWord word;
-  final VocabularyProgress? progress;
 
   const UserVocabularyItem({required this.word, this.progress});
+  final VocabularyWord word;
+  final VocabularyProgress? progress;
 
   VocabularyStatus get status => progress?.status ?? VocabularyStatus.newWord;
   bool get isMastered => progress?.isMastered ?? false;
@@ -207,11 +207,6 @@ class UserVocabularyItem {
 
 /// Simple vocabulary stats
 class VocabularyStats {
-  final int totalWords;
-  final int newCount;
-  final int learningCount;
-  final int reviewingCount;
-  final int masteredCount;
 
   const VocabularyStats({
     required this.totalWords,
@@ -220,6 +215,11 @@ class VocabularyStats {
     required this.reviewingCount,
     required this.masteredCount,
   });
+  final int totalWords;
+  final int newCount;
+  final int learningCount;
+  final int reviewingCount;
+  final int masteredCount;
 
   int get inProgressCount => learningCount + reviewingCount;
 }
@@ -230,10 +230,10 @@ class VocabularyStats {
 
 /// Vocabulary review controller
 class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
-  final Ref _ref;
 
   VocabularyReviewController(this._ref)
       : super(const VocabularyReviewState());
+  final Ref _ref;
 
   Future<void> loadReviewSession() async {
     state = state.copyWith(isLoading: true);
@@ -276,7 +276,7 @@ class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
     final progressResult = await getProgressUseCase(GetWordProgressParams(
       userId: userId,
       wordId: state.currentWord!.id,
-    ));
+    ),);
 
     final progress = progressResult.fold((f) => null, (p) => p);
     if (progress == null) return;
@@ -299,11 +299,6 @@ class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
 }
 
 class VocabularyReviewState {
-  final bool isLoading;
-  final List<VocabularyWord> words;
-  final int currentIndex;
-  final int correctCount;
-  final int incorrectCount;
 
   const VocabularyReviewState({
     this.isLoading = false,
@@ -312,6 +307,11 @@ class VocabularyReviewState {
     this.correctCount = 0,
     this.incorrectCount = 0,
   });
+  final bool isLoading;
+  final List<VocabularyWord> words;
+  final int currentIndex;
+  final int correctCount;
+  final int incorrectCount;
 
   VocabularyWord? get currentWord =>
       currentIndex < words.length ? words[currentIndex] : null;
@@ -416,7 +416,7 @@ final wordListsWithProgressProvider = FutureProvider<List<WordListWithProgress>>
   final lists = await ref.watch(allWordListsProvider.future);
   final progressList = await ref.watch(userWordListProgressProvider.future);
 
-  final progressMap = {for (var p in progressList) p.wordListId: p};
+  final progressMap = {for (final p in progressList) p.wordListId: p};
 
   return lists.map((list) {
     return WordListWithProgress(
@@ -433,7 +433,7 @@ final continueWordListsProvider = FutureProvider<List<WordListWithProgress>>((re
       .where((lwp) => lwp.progress != null && !lwp.progress!.isFullyComplete)
       .toList()
     ..sort((a, b) => (b.progress?.updatedAt ?? DateTime(0))
-        .compareTo(a.progress?.updatedAt ?? DateTime(0)));
+        .compareTo(a.progress?.updatedAt ?? DateTime(0)),);
   return filtered;
 });
 
@@ -453,13 +453,13 @@ final totalDueWordsCountProvider = FutureProvider<int>((ref) async {
 
 /// Combined class for word list with its progress
 class WordListWithProgress {
-  final WordList wordList;
-  final UserWordListProgress? progress;
 
   const WordListWithProgress({
     required this.wordList,
     this.progress,
   });
+  final WordList wordList;
+  final UserWordListProgress? progress;
 
   double get progressPercentage => progress?.progressPercentage ?? 0.0;
   bool get isStarted => progress != null;
@@ -485,10 +485,6 @@ final vocabularyHubStatsProvider = FutureProvider<VocabularyHubStats>((ref) asyn
 });
 
 class VocabularyHubStats {
-  final int totalWords;
-  final int masteredWords;
-  final int dueForReview;
-  final int completedLists;
 
   const VocabularyHubStats({
     required this.totalWords,
@@ -496,6 +492,10 @@ class VocabularyHubStats {
     required this.dueForReview,
     required this.completedLists,
   });
+  final int totalWords;
+  final int masteredWords;
+  final int dueForReview;
+  final int completedLists;
 }
 
 // ============================================
@@ -504,11 +504,11 @@ class VocabularyHubStats {
 
 /// Controller for managing word list progress state
 class WordListProgressController extends StateNotifier<Map<String, UserWordListProgress>> {
-  final Ref _ref;
 
   WordListProgressController(this._ref) : super({}) {
     _loadProgress();
   }
+  final Ref _ref;
 
   Future<void> _loadProgress() async {
     final userId = _ref.read(currentUserIdProvider);
@@ -519,7 +519,7 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
     result.fold(
       (f) => null,
       (progress) {
-        state = {for (var p in progress) p.wordListId: p};
+        state = {for (final p in progress) p.wordListId: p};
       },
     );
   }
@@ -540,7 +540,7 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
       phase: phase,
       score: score,
       total: total,
-    ));
+    ),);
 
     result.fold(
       (f) => null,

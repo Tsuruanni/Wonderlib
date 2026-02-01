@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-01 (Code Quality Fixes)
+Son güncelleme: 2026-02-01 (Dependency Updates & Bug Fixes)
 
 ## Current Phase
 
@@ -100,6 +100,8 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 | ~~N+1 query in vocabulary~~ | ~~High~~ | ✅ Fixed - single query instead of loop |
 | ~~Timer error handling~~ | ~~Medium~~ | ✅ Fixed - catchError added to reader |
 | ~~AudioService null safety~~ | ~~High~~ | ✅ Fixed - uses getter with StateError |
+| ~~Reading progress bug~~ | ~~High~~ | ✅ Fixed - Continue Reading condition, chapter completion logic |
+| ~~connectivity_plus 6.x~~ | ~~Medium~~ | ✅ Fixed - Updated for new List<ConnectivityResult> API |
 | Screens importing repositories | High | Being fixed in Clean Architecture refactor |
 | Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
@@ -108,6 +110,8 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Dependency Updates | 2026-02-01 | flutter_lints 5.0, sentry 8.x, connectivity_plus 6.x, etc. |
+| Reading Progress Bug Fix | 2026-02-01 | "Continue Reading" condition, chapter completion for no-activity chapters |
 | Code Quality Fixes | 2026-02-01 | N+1 query, timer error handling, AudioService null safety |
 | Clean Architecture Phase 1 | 2026-02-01 | UseCase base, 4 UseCases, common widgets, mock cleanup |
 | Refactor Plan Documentation | 2026-02-01 | CLEAN_ARCHITECTURE_REFACTOR_PLAN.md, REFACTOR_CHECKLIST.md |

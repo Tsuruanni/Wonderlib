@@ -54,7 +54,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
             // Font size
             _SettingRow(
               label: 'Font Size',
-              value: '${settings.fontSize.toStringAsFixed(0)}',
+              value: settings.fontSize.toStringAsFixed(0),
               child: Row(
                 children: [
                   IconButton(
@@ -87,7 +87,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
             // Line height
             _SettingRow(
               label: 'Line Spacing',
-              value: '${settings.lineHeight.toStringAsFixed(1)}',
+              value: settings.lineHeight.toStringAsFixed(1),
               child: Slider(
                 value: settings.lineHeight,
                 min: 1.2,

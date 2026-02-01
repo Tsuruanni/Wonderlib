@@ -29,7 +29,7 @@ extension StringExtensions on String {
 
   /// Remove HTML tags
   String get stripHtml {
-    return replaceAll(RegExp(r'<[^>]*>'), '');
+    return replaceAll(RegExp('<[^>]*>'), '');
   }
 
   /// Convert to slug

@@ -48,7 +48,7 @@ class VocabularyHubScreen extends ConsumerWidget {
 
           // Continue Learning section
           if (continueLeaning.isNotEmpty) ...[
-            _SectionHeader(
+            const _SectionHeader(
               title: 'Continue Learning',
               icon: Icons.play_circle_outline,
             ),
@@ -57,7 +57,7 @@ class VocabularyHubScreen extends ConsumerWidget {
 
           // Recommended section
           if (recommended.isNotEmpty) ...[
-            _SectionHeader(
+            const _SectionHeader(
               title: 'Recommended for You',
               icon: Icons.star_outline,
             ),
@@ -66,7 +66,7 @@ class VocabularyHubScreen extends ConsumerWidget {
 
           // My Word Lists (story vocabulary)
           if (storyLists.isNotEmpty) ...[
-            _SectionHeader(
+            const _SectionHeader(
               title: 'My Word Lists',
               icon: Icons.bookmark_outline,
             ),
@@ -74,7 +74,7 @@ class VocabularyHubScreen extends ConsumerWidget {
           ],
 
           // Explore Categories
-          _SectionHeader(
+          const _SectionHeader(
             title: 'Explore Categories',
             icon: Icons.category_outlined,
           ),
@@ -91,9 +91,9 @@ class VocabularyHubScreen extends ConsumerWidget {
 
 /// Banner showing due words count with review button
 class _DueWordsBanner extends StatelessWidget {
-  final int dueCount;
 
   const _DueWordsBanner({required this.dueCount});
+  final int dueCount;
 
   @override
   Widget build(BuildContext context) {
@@ -170,13 +170,13 @@ class _DueWordsBanner extends StatelessWidget {
 
 /// Section header with icon and title
 class _SectionHeader extends StatelessWidget {
-  final String title;
-  final IconData icon;
 
   const _SectionHeader({
     required this.title,
     required this.icon,
   });
+  final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -200,9 +200,9 @@ class _SectionHeader extends StatelessWidget {
 
 /// Horizontal scrolling list of word list cards
 class _HorizontalListSection extends StatelessWidget {
-  final List<WordListWithProgress> lists;
 
   const _HorizontalListSection({required this.lists});
+  final List<WordListWithProgress> lists;
 
   @override
   Widget build(BuildContext context) {
@@ -223,10 +223,10 @@ class _HorizontalListSection extends StatelessWidget {
 
 /// Vertical list of word list items
 class _VerticalListSection extends StatelessWidget {
-  final List<WordList> lists;
-  final WidgetRef ref;
 
   const _VerticalListSection({required this.lists, required this.ref});
+  final List<WordList> lists;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -247,9 +247,9 @@ class _VerticalListSection extends StatelessWidget {
 
 /// Card widget for a word list (used in horizontal scroll)
 class _WordListCard extends StatelessWidget {
-  final WordListWithProgress listWithProgress;
 
   const _WordListCard({required this.listWithProgress});
+  final WordListWithProgress listWithProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -359,13 +359,13 @@ class _WordListCard extends StatelessWidget {
 
 /// Tile widget for word list (used in vertical list)
 class _WordListTile extends StatelessWidget {
-  final WordList wordList;
-  final UserWordListProgress? progress;
 
   const _WordListTile({
     required this.wordList,
     this.progress,
   });
+  final WordList wordList;
+  final UserWordListProgress? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -460,13 +460,13 @@ class _CategoriesGrid extends ConsumerWidget {
 
 /// Card for a category (fixed width like word list cards)
 class _CategoryCard extends StatelessWidget {
-  final WordListCategory category;
-  final int listCount;
 
   const _CategoryCard({
     required this.category,
     required this.listCount,
   });
+  final WordListCategory category;
+  final int listCount;
 
   @override
   Widget build(BuildContext context) {

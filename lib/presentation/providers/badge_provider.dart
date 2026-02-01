@@ -60,9 +60,9 @@ final earnableBadgesProvider = FutureProvider<List<Badge>>((ref) async {
 
 /// Badge controller for awarding badges
 class BadgeController extends StateNotifier<BadgeState> {
-  final Ref _ref;
 
   BadgeController(this._ref) : super(const BadgeState());
+  final Ref _ref;
 
   Future<UserBadge?> awardBadge(String badgeId) async {
     final userId = _ref.read(currentUserIdProvider);
@@ -74,7 +74,7 @@ class BadgeController extends StateNotifier<BadgeState> {
     final result = await useCase(AwardBadgeParams(
       userId: userId,
       badgeId: badgeId,
-    ));
+    ),);
 
     return result.fold(
       (failure) {
@@ -100,15 +100,15 @@ class BadgeController extends StateNotifier<BadgeState> {
 }
 
 class BadgeState {
-  final bool isAwarding;
-  final String? error;
-  final UserBadge? recentlyAwarded;
 
   const BadgeState({
     this.isAwarding = false,
     this.error,
     this.recentlyAwarded,
   });
+  final bool isAwarding;
+  final String? error;
+  final UserBadge? recentlyAwarded;
 
   BadgeState copyWith({
     bool? isAwarding,

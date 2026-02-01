@@ -6,20 +6,20 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class AddWordToVocabularyParams {
-  final String userId;
-  final String wordId;
 
   const AddWordToVocabularyParams({
     required this.userId,
     required this.wordId,
   });
+  final String userId;
+  final String wordId;
 }
 
 class AddWordToVocabularyUseCase
     implements UseCase<VocabularyProgress, AddWordToVocabularyParams> {
-  final VocabularyRepository _repository;
 
   const AddWordToVocabularyUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, VocabularyProgress>> call(AddWordToVocabularyParams params) {

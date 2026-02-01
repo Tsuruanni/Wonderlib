@@ -5,17 +5,6 @@ import '../../repositories/teacher_repository.dart';
 import '../usecase.dart';
 
 class CreateAssignmentParams {
-  final String teacherId;
-  final String? classId;
-  final List<String>? studentIds;
-  final AssignmentType type;
-  final String title;
-  final String? description;
-  final String? bookId;
-  final String? wordListId;
-  final bool lockLibrary;
-  final DateTime startDate;
-  final DateTime dueDate;
 
   const CreateAssignmentParams({
     required this.teacherId,
@@ -30,14 +19,25 @@ class CreateAssignmentParams {
     required this.startDate,
     required this.dueDate,
   });
+  final String teacherId;
+  final String? classId;
+  final List<String>? studentIds;
+  final AssignmentType type;
+  final String title;
+  final String? description;
+  final String? bookId;
+  final String? wordListId;
+  final bool lockLibrary;
+  final DateTime startDate;
+  final DateTime dueDate;
 }
 
 /// Creates a new assignment with validation
 class CreateAssignmentUseCase
     implements UseCase<Assignment, CreateAssignmentParams> {
-  final TeacherRepository _repository;
 
   const CreateAssignmentUseCase(this._repository);
+  final TeacherRepository _repository;
 
   @override
   Future<Either<Failure, Assignment>> call(CreateAssignmentParams params) {

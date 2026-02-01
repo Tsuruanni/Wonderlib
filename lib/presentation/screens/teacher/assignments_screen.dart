@@ -97,7 +97,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   ...active.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => context.push('/teacher/assignments/${a.id}'),
-                  )),
+                  ),),
                   const SizedBox(height: 16),
                 ],
                 if (upcoming.isNotEmpty) ...[
@@ -105,7 +105,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   ...upcoming.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => context.push('/teacher/assignments/${a.id}'),
-                  )),
+                  ),),
                   const SizedBox(height: 16),
                 ],
                 if (overdue.isNotEmpty) ...[
@@ -113,7 +113,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   ...overdue.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => context.push('/teacher/assignments/${a.id}'),
-                  )),
+                  ),),
                 ],
               ],
             );

@@ -6,15 +6,15 @@ import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
 class GetUserByIdParams {
-  final String userId;
 
   const GetUserByIdParams({required this.userId});
+  final String userId;
 }
 
 class GetUserByIdUseCase implements UseCase<User, GetUserByIdParams> {
-  final UserRepository _repository;
 
   const GetUserByIdUseCase(this._repository);
+  final UserRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(GetUserByIdParams params) {

@@ -121,7 +121,7 @@ class ProfileScreen extends ConsumerWidget {
                       isDestructive: true,
                     );
 
-                    if (confirmed == true) {
+                    if (confirmed ?? false) {
                       await ref.read(authControllerProvider.notifier).signOut();
                     }
                   },
@@ -138,15 +138,15 @@ class ProfileScreen extends ConsumerWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
 
   const _StatRow({
     required this.label,
     required this.value,
     required this.icon,
   });
+  final String label;
+  final String value;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {

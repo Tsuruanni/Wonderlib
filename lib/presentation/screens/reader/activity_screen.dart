@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ActivityScreen extends ConsumerWidget {
-  final String chapterId;
 
   const ActivityScreen({
     super.key,
     required this.chapterId,
   });
+  final String chapterId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

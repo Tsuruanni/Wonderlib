@@ -3,23 +3,6 @@ import '../../../domain/entities/user.dart';
 
 /// Model for User entity - handles JSON serialization
 class UserModel {
-  final String id;
-  final String schoolId;
-  final String? classId;
-  final String role;
-  final String? studentNumber;
-  final String firstName;
-  final String lastName;
-  final String? email;
-  final String? avatarUrl;
-  final int xp;
-  final int level;
-  final int currentStreak;
-  final int longestStreak;
-  final DateTime? lastActivityDate;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const UserModel({
     required this.id,
@@ -64,6 +47,45 @@ class UserModel {
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
+
+  factory UserModel.fromEntity(User entity) {
+    return UserModel(
+      id: entity.id,
+      schoolId: entity.schoolId,
+      classId: entity.classId,
+      role: roleToString(entity.role),
+      studentNumber: entity.studentNumber,
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      avatarUrl: entity.avatarUrl,
+      xp: entity.xp,
+      level: entity.level,
+      currentStreak: entity.currentStreak,
+      longestStreak: entity.longestStreak,
+      lastActivityDate: entity.lastActivityDate,
+      settings: entity.settings,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String schoolId;
+  final String? classId;
+  final String role;
+  final String? studentNumber;
+  final String firstName;
+  final String lastName;
+  final String? email;
+  final String? avatarUrl;
+  final int xp;
+  final int level;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime? lastActivityDate;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -116,28 +138,6 @@ class UserModel {
       settings: settings,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory UserModel.fromEntity(User entity) {
-    return UserModel(
-      id: entity.id,
-      schoolId: entity.schoolId,
-      classId: entity.classId,
-      role: roleToString(entity.role),
-      studentNumber: entity.studentNumber,
-      firstName: entity.firstName,
-      lastName: entity.lastName,
-      email: entity.email,
-      avatarUrl: entity.avatarUrl,
-      xp: entity.xp,
-      level: entity.level,
-      currentStreak: entity.currentStreak,
-      longestStreak: entity.longestStreak,
-      lastActivityDate: entity.lastActivityDate,
-      settings: entity.settings,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
     );
   }
 

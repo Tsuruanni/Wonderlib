@@ -10,7 +10,6 @@ import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
-import '../../domain/entities/activity.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';

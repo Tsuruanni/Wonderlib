@@ -6,11 +6,6 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetBooksParams {
-  final String? level;
-  final String? genre;
-  final String? ageGroup;
-  final int page;
-  final int pageSize;
 
   const GetBooksParams({
     this.level,
@@ -19,12 +14,17 @@ class GetBooksParams {
     this.page = 1,
     this.pageSize = 20,
   });
+  final String? level;
+  final String? genre;
+  final String? ageGroup;
+  final int page;
+  final int pageSize;
 }
 
 class GetBooksUseCase implements UseCase<List<Book>, GetBooksParams> {
-  final BookRepository _repository;
 
   const GetBooksUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, List<Book>>> call(GetBooksParams params) {

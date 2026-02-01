@@ -6,15 +6,15 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetBookByIdParams {
-  final String bookId;
 
   const GetBookByIdParams({required this.bookId});
+  final String bookId;
 }
 
 class GetBookByIdUseCase implements UseCase<Book, GetBookByIdParams> {
-  final BookRepository _repository;
 
   const GetBookByIdUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, Book>> call(GetBookByIdParams params) {

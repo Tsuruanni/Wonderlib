@@ -6,16 +6,16 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class UpdateReadingProgressParams {
-  final ReadingProgress progress;
 
   const UpdateReadingProgressParams({required this.progress});
+  final ReadingProgress progress;
 }
 
 class UpdateReadingProgressUseCase
     implements UseCase<ReadingProgress, UpdateReadingProgressParams> {
-  final BookRepository _repository;
 
   const UpdateReadingProgressUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, ReadingProgress>> call(UpdateReadingProgressParams params) {

@@ -38,10 +38,6 @@ enum ReaderTheme {
 
 /// Reader settings state
 class ReaderSettings {
-  final double fontSize;
-  final double lineHeight;
-  final ReaderTheme theme;
-  final bool showVocabularyHighlights;
 
   const ReaderSettings({
     this.fontSize = 18,
@@ -49,6 +45,10 @@ class ReaderSettings {
     this.theme = ReaderTheme.light,
     this.showVocabularyHighlights = true,
   });
+  final double fontSize;
+  final double lineHeight;
+  final ReaderTheme theme;
+  final bool showVocabularyHighlights;
 
   ReaderSettings copyWith({
     double? fontSize,
@@ -67,11 +67,11 @@ class ReaderSettings {
 
 /// Reader settings notifier - loads from and saves to user profile
 class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
-  final Ref _ref;
 
   ReaderSettingsNotifier(this._ref) : super(const ReaderSettings()) {
     _loadFromProfile();
   }
+  final Ref _ref;
 
   void _loadFromProfile() {
     final user = _ref.read(authStateChangesProvider).valueOrNull;
@@ -224,7 +224,7 @@ final completedInlineActivitiesProvider =
   final result = await useCase(GetCompletedInlineActivitiesParams(
     userId: userId,
     chapterId: chapterId,
-  ));
+  ),);
 
   return result.fold(
     (failure) => [],
@@ -292,11 +292,13 @@ final activityProgressProvider = Provider<double>((ref) {
 });
 
 /// Whether all activities in the chapter are completed
+/// Note: If there are no activities, chapter is considered complete
 final isChapterCompleteProvider = Provider<bool>((ref) {
   final completedActivities = ref.watch(inlineActivityStateProvider);
   final totalActivities = ref.watch(totalActivitiesProvider);
 
-  if (totalActivities == 0) return false;
+  // If no activities, chapter is complete (can proceed to next)
+  if (totalActivities == 0) return true;
 
   return completedActivities.length >= totalActivities;
 });

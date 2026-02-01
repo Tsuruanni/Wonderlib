@@ -1,19 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class VocabularyWord extends Equatable {
-  final String id;
-  final String word;
-  final String? phonetic;
-  final String meaningTR;
-  final String? meaningEN;
-  final List<String> exampleSentences; // Up to 2 example sentences
-  final String? audioUrl;
-  final String? imageUrl;
-  final String? level;
-  final List<String> categories;
-  final List<String> synonyms;
-  final List<String> antonyms;
-  final DateTime createdAt;
 
   const VocabularyWord({
     required this.id,
@@ -30,6 +17,19 @@ class VocabularyWord extends Equatable {
     this.antonyms = const [],
     required this.createdAt,
   });
+  final String id;
+  final String word;
+  final String? phonetic;
+  final String meaningTR;
+  final String? meaningEN;
+  final List<String> exampleSentences; // Up to 2 example sentences
+  final String? audioUrl;
+  final String? imageUrl;
+  final String? level;
+  final List<String> categories;
+  final List<String> synonyms;
+  final List<String> antonyms;
+  final DateTime createdAt;
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
@@ -61,16 +61,6 @@ class VocabularyWord extends Equatable {
 enum VocabularyStatus { newWord, learning, reviewing, mastered }
 
 class VocabularyProgress extends Equatable {
-  final String id;
-  final String userId;
-  final String wordId;
-  final VocabularyStatus status;
-  final double easeFactor; // SM-2 algorithm ease factor
-  final int intervalDays;
-  final int repetitions;
-  final DateTime? nextReviewAt;
-  final DateTime? lastReviewedAt;
-  final DateTime createdAt;
 
   const VocabularyProgress({
     required this.id,
@@ -84,6 +74,16 @@ class VocabularyProgress extends Equatable {
     this.lastReviewedAt,
     required this.createdAt,
   });
+  final String id;
+  final String userId;
+  final String wordId;
+  final VocabularyStatus status;
+  final double easeFactor; // SM-2 algorithm ease factor
+  final int intervalDays;
+  final int repetitions;
+  final DateTime? nextReviewAt;
+  final DateTime? lastReviewedAt;
+  final DateTime createdAt;
 
   bool get isDueForReview {
     if (nextReviewAt == null) return true;

@@ -52,13 +52,13 @@ class _FindWordsActivityState extends State<FindWordsActivity>
     if (widget.isCompleted) {
       _isAnswered = true;
       _isCorrect = widget.wasCorrect;
-      if (widget.wasCorrect == true) {
+      if (widget.wasCorrect ?? false) {
         _selectedAnswers.addAll(content.correctAnswers);
       } else {
         _selectedAnswers.add(content.options.firstWhere(
           (o) => !content.correctAnswers.contains(o),
           orElse: () => content.options.first,
-        ));
+        ),);
       }
     }
   }

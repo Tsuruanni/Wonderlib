@@ -3,11 +3,6 @@ import 'badge_model.dart';
 
 /// Model for UserBadge entity - handles JSON serialization
 class UserBadgeModel {
-  final String id;
-  final String userId;
-  final String badgeId;
-  final Map<String, dynamic>? badgeData;
-  final DateTime earnedAt;
 
   const UserBadgeModel({
     required this.id,
@@ -26,6 +21,20 @@ class UserBadgeModel {
       earnedAt: DateTime.parse(json['earned_at'] as String),
     );
   }
+
+  factory UserBadgeModel.fromEntity(UserBadge entity) {
+    return UserBadgeModel(
+      id: entity.id,
+      userId: entity.odId,
+      badgeId: entity.badgeId,
+      earnedAt: entity.earnedAt,
+    );
+  }
+  final String id;
+  final String userId;
+  final String badgeId;
+  final Map<String, dynamic>? badgeData;
+  final DateTime earnedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -62,15 +71,6 @@ class UserBadgeModel {
       badgeId: badgeId,
       badge: badge,
       earnedAt: earnedAt,
-    );
-  }
-
-  factory UserBadgeModel.fromEntity(UserBadge entity) {
-    return UserBadgeModel(
-      id: entity.id,
-      userId: entity.odId,
-      badgeId: entity.badgeId,
-      earnedAt: entity.earnedAt,
     );
   }
 }

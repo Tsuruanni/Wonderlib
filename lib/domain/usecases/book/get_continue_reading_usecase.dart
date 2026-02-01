@@ -6,16 +6,16 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetContinueReadingParams {
-  final String userId;
 
   const GetContinueReadingParams({required this.userId});
+  final String userId;
 }
 
 class GetContinueReadingUseCase
     implements UseCase<List<Book>, GetContinueReadingParams> {
-  final BookRepository _repository;
 
   const GetContinueReadingUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, List<Book>>> call(GetContinueReadingParams params) {

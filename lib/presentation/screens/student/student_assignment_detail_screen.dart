@@ -72,7 +72,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
           expandedHeight: 200,
           pinned: true,
           flexibleSpace: FlexibleSpaceBar(
-            background: Container(
+            background: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -416,7 +416,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
         await useCase(StartAssignmentParams(
           studentId: userId,
           assignmentId: assignment.assignmentId,
-        ));
+        ),);
         ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
         ref.invalidate(studentAssignmentsProvider);
       }

@@ -2,18 +2,6 @@ import '../../../domain/entities/reading_progress.dart';
 
 /// Data model for ReadingProgress - handles JSON serialization
 class ReadingProgressModel {
-  final String id;
-  final String userId;
-  final String bookId;
-  final String? chapterId;
-  final int currentPage;
-  final bool isCompleted;
-  final double completionPercentage;
-  final int totalReadingTime;
-  final List<String> completedChapterIds;
-  final DateTime startedAt;
-  final DateTime? completedAt;
-  final DateTime updatedAt;
 
   const ReadingProgressModel({
     required this.id,
@@ -54,6 +42,35 @@ class ReadingProgressModel {
     );
   }
 
+  factory ReadingProgressModel.fromEntity(ReadingProgress entity) {
+    return ReadingProgressModel(
+      id: entity.id,
+      userId: entity.userId,
+      bookId: entity.bookId,
+      chapterId: entity.chapterId,
+      currentPage: entity.currentPage,
+      isCompleted: entity.isCompleted,
+      completionPercentage: entity.completionPercentage,
+      totalReadingTime: entity.totalReadingTime,
+      completedChapterIds: entity.completedChapterIds,
+      startedAt: entity.startedAt,
+      completedAt: entity.completedAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String userId;
+  final String bookId;
+  final String? chapterId;
+  final int currentPage;
+  final bool isCompleted;
+  final double completionPercentage;
+  final int totalReadingTime;
+  final List<String> completedChapterIds;
+  final DateTime startedAt;
+  final DateTime? completedAt;
+  final DateTime updatedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -85,23 +102,6 @@ class ReadingProgressModel {
       startedAt: startedAt,
       completedAt: completedAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory ReadingProgressModel.fromEntity(ReadingProgress entity) {
-    return ReadingProgressModel(
-      id: entity.id,
-      userId: entity.userId,
-      bookId: entity.bookId,
-      chapterId: entity.chapterId,
-      currentPage: entity.currentPage,
-      isCompleted: entity.isCompleted,
-      completionPercentage: entity.completionPercentage,
-      totalReadingTime: entity.totalReadingTime,
-      completedChapterIds: entity.completedChapterIds,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
-      updatedAt: entity.updatedAt,
     );
   }
 }

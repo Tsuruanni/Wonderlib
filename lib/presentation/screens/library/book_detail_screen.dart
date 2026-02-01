@@ -7,12 +7,12 @@ import '../../providers/book_provider.dart';
 import '../../widgets/book/level_badge.dart';
 
 class BookDetailScreen extends ConsumerWidget {
-  final String bookId;
 
   const BookDetailScreen({
     super.key,
     required this.bookId,
   });
+  final String bookId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -44,7 +44,9 @@ class BookDetailScreen extends ConsumerWidget {
         }
 
         final progress = progressAsync.valueOrNull;
-        final hasProgress = progress != null && progress.completionPercentage > 0;
+        // Check if user has actual progress (not fake in-memory progress)
+        // A reading_progress record from DB has a UUID id, fake ones have 'new-' prefix
+        final hasProgress = progress != null && !progress.id.startsWith('new-');
 
         return Scaffold(
           body: CustomScrollView(
@@ -63,7 +65,7 @@ class BookDetailScreen extends ConsumerWidget {
                           book.coverUrl!,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return Container(
+                            return ColoredBox(
                               color: colorScheme.primaryContainer,
                               child: Icon(
                                 Icons.book,
@@ -74,7 +76,7 @@ class BookDetailScreen extends ConsumerWidget {
                           },
                         )
                       else
-                        Container(
+                        ColoredBox(
                           color: colorScheme.primaryContainer,
                           child: Icon(
                             Icons.book,

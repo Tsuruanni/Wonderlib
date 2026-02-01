@@ -211,7 +211,7 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
       activityId: activityId,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
-    ));
+    ),);
 
     // Extract whether this is a new completion (prevents duplicate XP)
     final isNewCompletion = result.fold(
@@ -238,7 +238,7 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
         await addWordUseCase(AddWordToVocabularyParams(
           userId: userId,
           wordId: wordId,
-        ));
+        ),);
       }
     }
   }
@@ -248,11 +248,11 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
 abstract class _ContentItem {}
 
 class _ParagraphItem extends _ContentItem {
-  final String content;
   _ParagraphItem(this.content);
+  final String content;
 }
 
 class _ActivityItem extends _ContentItem {
-  final InlineActivity activity;
   _ActivityItem(this.activity);
+  final InlineActivity activity;
 }

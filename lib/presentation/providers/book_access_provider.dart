@@ -7,16 +7,16 @@ import 'student_assignment_provider.dart';
 
 /// Information about library book access restrictions
 class BookLockInfo {
-  /// Set of book IDs that student is allowed to access when locked
-  final Set<String> allowedBookIds;
-
-  /// Whether the student has any locked assignments
-  final bool hasLock;
 
   const BookLockInfo({
     required this.allowedBookIds,
     this.hasLock = false,
   });
+  /// Set of book IDs that student is allowed to access when locked
+  final Set<String> allowedBookIds;
+
+  /// Whether the student has any locked assignments
+  final bool hasLock;
 
   static const empty = BookLockInfo(allowedBookIds: {}, hasLock: false);
 }

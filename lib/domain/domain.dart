@@ -1,5 +1,5 @@
 /// Domain module exports
-library domain;
+library;
 
 // Entities
 export 'entities/activity.dart';

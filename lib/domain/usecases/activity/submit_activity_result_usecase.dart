@@ -6,16 +6,16 @@ import '../../repositories/activity_repository.dart';
 import '../usecase.dart';
 
 class SubmitActivityResultParams {
-  final ActivityResult result;
 
   const SubmitActivityResultParams({required this.result});
+  final ActivityResult result;
 }
 
 class SubmitActivityResultUseCase
     implements UseCase<ActivityResult, SubmitActivityResultParams> {
-  final ActivityRepository _repository;
 
   const SubmitActivityResultUseCase(this._repository);
+  final ActivityRepository _repository;
 
   @override
   Future<Either<Failure, ActivityResult>> call(SubmitActivityResultParams params) {

@@ -1,18 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class ReadingProgress extends Equatable {
-  final String id;
-  final String userId;
-  final String bookId;
-  final String? chapterId;
-  final int currentPage;
-  final bool isCompleted;
-  final double completionPercentage;
-  final int totalReadingTime; // in seconds
-  final List<String> completedChapterIds; // chapters user has completed
-  final DateTime startedAt;
-  final DateTime? completedAt;
-  final DateTime updatedAt;
 
   const ReadingProgress({
     required this.id,
@@ -28,6 +16,18 @@ class ReadingProgress extends Equatable {
     this.completedAt,
     required this.updatedAt,
   });
+  final String id;
+  final String userId;
+  final String bookId;
+  final String? chapterId;
+  final int currentPage;
+  final bool isCompleted;
+  final double completionPercentage;
+  final int totalReadingTime; // in seconds
+  final List<String> completedChapterIds; // chapters user has completed
+  final DateTime startedAt;
+  final DateTime? completedAt;
+  final DateTime updatedAt;
 
   String get formattedReadingTime {
     if (totalReadingTime < 60) return '${totalReadingTime}s';

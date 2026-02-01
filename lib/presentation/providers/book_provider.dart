@@ -30,7 +30,7 @@ final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filt
     ageGroup: filters?.ageGroup,
     page: filters?.page ?? 1,
     pageSize: filters?.pageSize ?? 20,
-  ));
+  ),);
   return result.fold(
     (failure) => [],
     (books) => books,
@@ -113,7 +113,7 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
   final result = await useCase(GetReadingProgressParams(
     userId: userId,
     bookId: bookId,
-  ));
+  ),);
   return result.fold(
     (failure) => null,
     (progress) => progress,
@@ -122,9 +122,9 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
 
 /// Notifier for marking chapters as complete
 class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
-  final Ref _ref;
 
   ChapterCompletionNotifier(this._ref) : super(const AsyncValue.data(null));
+  final Ref _ref;
 
   Future<void> markComplete({
     required String bookId,
@@ -140,7 +140,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       userId: userId,
       bookId: bookId,
       chapterId: chapterId,
-    ));
+    ),);
 
     result.fold(
       (failure) => state = AsyncValue.error(failure, StackTrace.current),
@@ -208,7 +208,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
                   studentId: userId,
                   assignmentId: assignment.assignmentId,
                   score: null, // No score for reading completion
-                ));
+                ),);
               } else {
                 // Update progress
                 final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
@@ -216,7 +216,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
                   studentId: userId,
                   assignmentId: assignment.assignmentId,
                   progress: progress,
-                ));
+                ),);
               }
 
               // Invalidate assignment providers to refresh UI
@@ -241,11 +241,6 @@ final chapterCompletionProvider =
 
 /// Book filters
 class BookFilters {
-  final String? level;
-  final String? genre;
-  final String? ageGroup;
-  final int page;
-  final int pageSize;
 
   const BookFilters({
     this.level,
@@ -254,6 +249,11 @@ class BookFilters {
     this.page = 1,
     this.pageSize = 20,
   });
+  final String? level;
+  final String? genre;
+  final String? ageGroup;
+  final int page;
+  final int pageSize;
 
   BookFilters copyWith({
     String? level,
@@ -274,12 +274,12 @@ class BookFilters {
 
 /// Reading controller for updating progress
 class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
-  final Ref _ref;
-  final String bookId;
 
   ReadingController(this._ref, this.bookId) : super(const AsyncValue.loading()) {
     _loadProgress();
   }
+  final Ref _ref;
+  final String bookId;
 
   Future<void> _loadProgress() async {
     final userId = _ref.read(currentUserIdProvider);
@@ -292,7 +292,7 @@ class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
     final result = await useCase(GetReadingProgressParams(
       userId: userId,
       bookId: bookId,
-    ));
+    ),);
 
     state = result.fold(
       (failure) => AsyncValue.error(failure.message, StackTrace.current),

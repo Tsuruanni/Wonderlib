@@ -42,6 +42,20 @@ abstract class GameConfig {
 
 /// Configuration for vocabulary/word-based games
 class VocabularyGameConfig implements GameConfig {
+
+  const VocabularyGameConfig({
+    this.timeLimit = const Duration(seconds: 60),
+    this.themeColor = Colors.purple,
+    this.difficulty = GameDifficulty.medium,
+    this.showHints = true,
+    this.allowSkip = false,
+    this.soundEnabled = true,
+    this.vibrationEnabled = true,
+    required this.wordIds,
+    this.optionCount = 4,
+    this.shuffleWords = true,
+    this.minimumCorrect,
+  });
   @override
   final Duration? timeLimit;
 
@@ -74,20 +88,6 @@ class VocabularyGameConfig implements GameConfig {
 
   /// Minimum correct answers to pass
   final int? minimumCorrect;
-
-  const VocabularyGameConfig({
-    this.timeLimit = const Duration(seconds: 60),
-    this.themeColor = Colors.purple,
-    this.difficulty = GameDifficulty.medium,
-    this.showHints = true,
-    this.allowSkip = false,
-    this.soundEnabled = true,
-    this.vibrationEnabled = true,
-    required this.wordIds,
-    this.optionCount = 4,
-    this.shuffleWords = true,
-    this.minimumCorrect,
-  });
 
   @override
   double get xpMultiplier => difficulty.multiplier;
@@ -124,6 +124,20 @@ class VocabularyGameConfig implements GameConfig {
 
 /// Configuration for reading comprehension activities
 class ReadingActivityConfig implements GameConfig {
+
+  const ReadingActivityConfig({
+    this.timeLimit,
+    this.themeColor = Colors.blue,
+    this.difficulty = GameDifficulty.medium,
+    this.showHints = true,
+    this.allowSkip = true,
+    this.soundEnabled = true,
+    this.vibrationEnabled = true,
+    required this.chapterId,
+    required this.activityIds,
+    this.randomizeQuestions = false,
+    this.passingScore = 70,
+  });
   @override
   final Duration? timeLimit;
 
@@ -156,20 +170,6 @@ class ReadingActivityConfig implements GameConfig {
 
   /// Passing score percentage (0-100)
   final int passingScore;
-
-  const ReadingActivityConfig({
-    this.timeLimit,
-    this.themeColor = Colors.blue,
-    this.difficulty = GameDifficulty.medium,
-    this.showHints = true,
-    this.allowSkip = true,
-    this.soundEnabled = true,
-    this.vibrationEnabled = true,
-    required this.chapterId,
-    required this.activityIds,
-    this.randomizeQuestions = false,
-    this.passingScore = 70,
-  });
 
   @override
   double get xpMultiplier => difficulty.multiplier;
@@ -205,6 +205,21 @@ class ReadingActivityConfig implements GameConfig {
 
 /// Configuration for word list practice games
 class WordListGameConfig implements GameConfig {
+
+  const WordListGameConfig({
+    this.timeLimit,
+    this.themeColor = Colors.teal,
+    this.difficulty = GameDifficulty.medium,
+    this.showHints = true,
+    this.allowSkip = false,
+    this.soundEnabled = true,
+    this.vibrationEnabled = true,
+    required this.wordListId,
+    this.phase = 1,
+    this.wordsPerSession = 10,
+    this.showContext = true,
+    this.enableTTS = true,
+  });
   @override
   final Duration? timeLimit;
 
@@ -240,21 +255,6 @@ class WordListGameConfig implements GameConfig {
 
   /// Enable text-to-speech
   final bool enableTTS;
-
-  const WordListGameConfig({
-    this.timeLimit,
-    this.themeColor = Colors.teal,
-    this.difficulty = GameDifficulty.medium,
-    this.showHints = true,
-    this.allowSkip = false,
-    this.soundEnabled = true,
-    this.vibrationEnabled = true,
-    required this.wordListId,
-    this.phase = 1,
-    this.wordsPerSession = 10,
-    this.showContext = true,
-    this.enableTTS = true,
-  });
 
   @override
   double get xpMultiplier => difficulty.multiplier * (phase * 0.5);

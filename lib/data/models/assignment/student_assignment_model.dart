@@ -2,21 +2,6 @@ import '../../../domain/repositories/student_assignment_repository.dart';
 
 /// Model for StudentAssignment - handles JSON serialization
 class StudentAssignmentModel {
-  final String id;
-  final String assignmentId;
-  final String title;
-  final String? description;
-  final String type;
-  final String status;
-  final double progress;
-  final double? score;
-  final String? teacherName;
-  final String? className;
-  final DateTime startDate;
-  final DateTime dueDate;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final Map<String, dynamic> contentConfig;
 
   const StudentAssignmentModel({
     required this.id,
@@ -40,7 +25,7 @@ class StudentAssignmentModel {
     final assignmentData = json['assignments'] as Map<String, dynamic>?;
 
     if (assignmentData == null) {
-      throw FormatException('Missing assignments data in JSON');
+      throw const FormatException('Missing assignments data in JSON');
     }
 
     final teacherData = assignmentData['profiles'] as Map<String, dynamic>?;
@@ -86,6 +71,41 @@ class StudentAssignmentModel {
     );
   }
 
+  factory StudentAssignmentModel.fromEntity(StudentAssignment entity) {
+    return StudentAssignmentModel(
+      id: entity.id,
+      assignmentId: entity.assignmentId,
+      title: entity.title,
+      description: entity.description,
+      type: _typeToString(entity.type),
+      status: _statusToString(entity.status),
+      progress: entity.progress,
+      score: entity.score,
+      teacherName: entity.teacherName,
+      className: entity.className,
+      startDate: entity.startDate,
+      dueDate: entity.dueDate,
+      startedAt: entity.startedAt,
+      completedAt: entity.completedAt,
+      contentConfig: entity.contentConfig,
+    );
+  }
+  final String id;
+  final String assignmentId;
+  final String title;
+  final String? description;
+  final String type;
+  final String status;
+  final double progress;
+  final double? score;
+  final String? teacherName;
+  final String? className;
+  final DateTime startDate;
+  final DateTime dueDate;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+  final Map<String, dynamic> contentConfig;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -123,26 +143,6 @@ class StudentAssignmentModel {
       startedAt: startedAt,
       completedAt: completedAt,
       contentConfig: contentConfig,
-    );
-  }
-
-  factory StudentAssignmentModel.fromEntity(StudentAssignment entity) {
-    return StudentAssignmentModel(
-      id: entity.id,
-      assignmentId: entity.assignmentId,
-      title: entity.title,
-      description: entity.description,
-      type: _typeToString(entity.type),
-      status: _statusToString(entity.status),
-      progress: entity.progress,
-      score: entity.score,
-      teacherName: entity.teacherName,
-      className: entity.className,
-      startDate: entity.startDate,
-      dueDate: entity.dueDate,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
-      contentConfig: entity.contentConfig,
     );
   }
 

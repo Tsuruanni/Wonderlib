@@ -2,22 +2,6 @@ import '../../../domain/entities/book.dart';
 
 /// Data model for Book - handles JSON serialization
 class BookModel {
-  final String id;
-  final String title;
-  final String slug;
-  final String? description;
-  final String? coverUrl;
-  final String level;
-  final String? genre;
-  final String? ageGroup;
-  final int? estimatedMinutes;
-  final int? wordCount;
-  final int chapterCount;
-  final BookStatus status;
-  final Map<String, dynamic> metadata;
-  final DateTime? publishedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const BookModel({
     required this.id,
@@ -61,6 +45,43 @@ class BookModel {
     );
   }
 
+  factory BookModel.fromEntity(Book entity) {
+    return BookModel(
+      id: entity.id,
+      title: entity.title,
+      slug: entity.slug,
+      description: entity.description,
+      coverUrl: entity.coverUrl,
+      level: entity.level,
+      genre: entity.genre,
+      ageGroup: entity.ageGroup,
+      estimatedMinutes: entity.estimatedMinutes,
+      wordCount: entity.wordCount,
+      chapterCount: entity.chapterCount,
+      status: entity.status,
+      metadata: entity.metadata,
+      publishedAt: entity.publishedAt,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String title;
+  final String slug;
+  final String? description;
+  final String? coverUrl;
+  final String level;
+  final String? genre;
+  final String? ageGroup;
+  final int? estimatedMinutes;
+  final int? wordCount;
+  final int chapterCount;
+  final BookStatus status;
+  final Map<String, dynamic> metadata;
+  final DateTime? publishedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -100,27 +121,6 @@ class BookModel {
       publishedAt: publishedAt,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory BookModel.fromEntity(Book entity) {
-    return BookModel(
-      id: entity.id,
-      title: entity.title,
-      slug: entity.slug,
-      description: entity.description,
-      coverUrl: entity.coverUrl,
-      level: entity.level,
-      genre: entity.genre,
-      ageGroup: entity.ageGroup,
-      estimatedMinutes: entity.estimatedMinutes,
-      wordCount: entity.wordCount,
-      chapterCount: entity.chapterCount,
-      status: entity.status,
-      metadata: entity.metadata,
-      publishedAt: entity.publishedAt,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
     );
   }
 

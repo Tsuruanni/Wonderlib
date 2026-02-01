@@ -28,13 +28,13 @@ abstract class InlineActivityContent extends Equatable {
 
 /// True/False activity content
 class TrueFalseContent extends InlineActivityContent {
-  final String statement;
-  final bool correctAnswer;
 
   const TrueFalseContent({
     required this.statement,
     required this.correctAnswer,
   });
+  final String statement;
+  final bool correctAnswer;
 
   @override
   List<Object?> get props => [statement, correctAnswer];
@@ -42,15 +42,15 @@ class TrueFalseContent extends InlineActivityContent {
 
 /// Word translation activity content
 class WordTranslationContent extends InlineActivityContent {
-  final String word;
-  final String correctAnswer;
-  final List<String> options;
 
   const WordTranslationContent({
     required this.word,
     required this.correctAnswer,
     required this.options,
   });
+  final String word;
+  final String correctAnswer;
+  final List<String> options;
 
   @override
   List<Object?> get props => [word, correctAnswer, options];
@@ -58,15 +58,15 @@ class WordTranslationContent extends InlineActivityContent {
 
 /// Find words activity content (multi-select)
 class FindWordsContent extends InlineActivityContent {
-  final String instruction;
-  final List<String> options;
-  final List<String> correctAnswers;
 
   const FindWordsContent({
     required this.instruction,
     required this.options,
     required this.correctAnswers,
   });
+  final String instruction;
+  final List<String> options;
+  final List<String> correctAnswers;
 
   @override
   List<Object?> get props => [instruction, options, correctAnswers];
@@ -74,15 +74,6 @@ class FindWordsContent extends InlineActivityContent {
 
 /// Inline activity that appears between paragraphs during reading
 class InlineActivity extends Equatable {
-  final String id;
-  final InlineActivityType type;
-  final int afterParagraphIndex;
-  final InlineActivityContent content;
-  final int xpReward;
-
-  /// Words to add to vocabulary when this activity is completed
-  /// (for word_translation and find_words types)
-  final List<String> vocabularyWords;
 
   const InlineActivity({
     required this.id,
@@ -92,6 +83,15 @@ class InlineActivity extends Equatable {
     this.xpReward = 5,
     this.vocabularyWords = const [],
   });
+  final String id;
+  final InlineActivityType type;
+  final int afterParagraphIndex;
+  final InlineActivityContent content;
+  final int xpReward;
+
+  /// Words to add to vocabulary when this activity is completed
+  /// (for word_translation and find_words types)
+  final List<String> vocabularyWords;
 
   @override
   List<Object?> get props => [
@@ -106,11 +106,6 @@ class InlineActivity extends Equatable {
 
 /// Result of an inline activity answer
 class InlineActivityResult extends Equatable {
-  final String activityId;
-  final bool isCorrect;
-  final int xpEarned;
-  final List<String> wordsLearned;
-  final DateTime answeredAt;
 
   const InlineActivityResult({
     required this.activityId,
@@ -119,6 +114,11 @@ class InlineActivityResult extends Equatable {
     this.wordsLearned = const [],
     required this.answeredAt,
   });
+  final String activityId;
+  final bool isCorrect;
+  final int xpEarned;
+  final List<String> wordsLearned;
+  final DateTime answeredAt;
 
   @override
   List<Object?> get props => [
@@ -135,16 +135,6 @@ class InlineActivityResult extends Equatable {
 // ============================================
 
 class Activity extends Equatable {
-  final String id;
-  final String chapterId;
-  final ActivityType type;
-  final int orderIndex;
-  final String? title;
-  final String? instructions;
-  final List<ActivityQuestion> questions;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const Activity({
     required this.id,
@@ -158,6 +148,16 @@ class Activity extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String chapterId;
+  final ActivityType type;
+  final int orderIndex;
+  final String? title;
+  final String? instructions;
+  final List<ActivityQuestion> questions;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   int get totalPoints => questions.fold(0, (sum, q) => sum + q.points);
   int get questionCount => questions.length;
@@ -178,13 +178,6 @@ class Activity extends Equatable {
 }
 
 class ActivityQuestion extends Equatable {
-  final String id;
-  final String question;
-  final List<String> options; // For multiple choice, matching
-  final dynamic correctAnswer; // String, List<String>, Map, etc.
-  final String? explanation;
-  final String? imageUrl;
-  final int points;
 
   const ActivityQuestion({
     required this.id,
@@ -195,6 +188,13 @@ class ActivityQuestion extends Equatable {
     this.imageUrl,
     this.points = 1,
   });
+  final String id;
+  final String question;
+  final List<String> options; // For multiple choice, matching
+  final dynamic correctAnswer; // String, List<String>, Map, etc.
+  final String? explanation;
+  final String? imageUrl;
+  final int points;
 
   bool checkAnswer(dynamic userAnswer) {
     if (correctAnswer is List && userAnswer is List) {
@@ -220,15 +220,6 @@ class ActivityQuestion extends Equatable {
 }
 
 class ActivityResult extends Equatable {
-  final String id;
-  final String userId;
-  final String activityId;
-  final double score;
-  final double maxScore;
-  final Map<String, dynamic> answers;
-  final int? timeSpent; // in seconds
-  final int attemptNumber;
-  final DateTime completedAt;
 
   const ActivityResult({
     required this.id,
@@ -241,6 +232,15 @@ class ActivityResult extends Equatable {
     this.attemptNumber = 1,
     required this.completedAt,
   });
+  final String id;
+  final String userId;
+  final String activityId;
+  final double score;
+  final double maxScore;
+  final Map<String, dynamic> answers;
+  final int? timeSpent; // in seconds
+  final int attemptNumber;
+  final DateTime completedAt;
 
   double get percentage => maxScore > 0 ? (score / maxScore) * 100 : 0;
   bool get isPassing => percentage >= 60;

@@ -2,14 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for StudentBookProgress - handles JSON serialization
 class StudentBookProgressModel {
-  final String bookId;
-  final String bookTitle;
-  final String? bookCoverUrl;
-  final double completionPercentage;
-  final int totalReadingTime;
-  final int completedChapters;
-  final int totalChapters;
-  final DateTime? lastReadAt;
 
   const StudentBookProgressModel({
     required this.bookId,
@@ -37,6 +29,27 @@ class StudentBookProgressModel {
     );
   }
 
+  factory StudentBookProgressModel.fromEntity(StudentBookProgress entity) {
+    return StudentBookProgressModel(
+      bookId: entity.bookId,
+      bookTitle: entity.bookTitle,
+      bookCoverUrl: entity.bookCoverUrl,
+      completionPercentage: entity.completionPercentage,
+      totalReadingTime: entity.totalReadingTime,
+      completedChapters: entity.completedChapters,
+      totalChapters: entity.totalChapters,
+      lastReadAt: entity.lastReadAt,
+    );
+  }
+  final String bookId;
+  final String bookTitle;
+  final String? bookCoverUrl;
+  final double completionPercentage;
+  final int totalReadingTime;
+  final int completedChapters;
+  final int totalChapters;
+  final DateTime? lastReadAt;
+
   Map<String, dynamic> toJson() {
     return {
       'book_id': bookId,
@@ -60,19 +73,6 @@ class StudentBookProgressModel {
       completedChapters: completedChapters,
       totalChapters: totalChapters,
       lastReadAt: lastReadAt,
-    );
-  }
-
-  factory StudentBookProgressModel.fromEntity(StudentBookProgress entity) {
-    return StudentBookProgressModel(
-      bookId: entity.bookId,
-      bookTitle: entity.bookTitle,
-      bookCoverUrl: entity.bookCoverUrl,
-      completionPercentage: entity.completionPercentage,
-      totalReadingTime: entity.totalReadingTime,
-      completedChapters: entity.completedChapters,
-      totalChapters: entity.totalChapters,
-      lastReadAt: entity.lastReadAt,
     );
   }
 }

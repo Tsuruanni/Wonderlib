@@ -10,9 +10,9 @@ import '../../../providers/vocabulary_provider.dart';
 /// Phase 2: Spelling
 /// Dictation exercise - listen and type the word
 class Phase2SpellingScreen extends ConsumerStatefulWidget {
-  final String listId;
 
   const Phase2SpellingScreen({super.key, required this.listId});
+  final String listId;
 
   @override
   ConsumerState<Phase2SpellingScreen> createState() => _Phase2SpellingScreenState();
@@ -272,10 +272,10 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
                       onPressed: _nextWord,
                       icon: Icon(_currentIndex < words.length - 1
                           ? Icons.arrow_forward
-                          : Icons.done_all),
+                          : Icons.done_all,),
                       label: Text(_currentIndex < words.length - 1
                           ? 'Next Word'
-                          : 'Complete'),
+                          : 'Complete',),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(200, 50),
                       ),
@@ -372,15 +372,15 @@ class _Phase2SpellingScreenState extends ConsumerState<Phase2SpellingScreen> {
 }
 
 class _ScoreChip extends StatelessWidget {
-  final IconData icon;
-  final int count;
-  final Color color;
 
   const _ScoreChip({
     required this.icon,
     required this.count,
     required this.color,
   });
+  final IconData icon;
+  final int count;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -409,9 +409,9 @@ class _ScoreChip extends StatelessWidget {
 }
 
 class _AudioButton extends StatelessWidget {
-  final VoidCallback onPressed;
 
   const _AudioButton({required this.onPressed});
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -449,13 +449,6 @@ class _AudioButton extends StatelessWidget {
 }
 
 class _LetterBoxes extends StatelessWidget {
-  final String word;
-  final List<String> userInput;
-  final List<TextEditingController> controllers;
-  final List<FocusNode> focusNodes;
-  final bool showResult;
-  final Function(int, String) onChanged;
-  final Function(int) onBackspace;
 
   const _LetterBoxes({
     required this.word,
@@ -466,6 +459,13 @@ class _LetterBoxes extends StatelessWidget {
     required this.onChanged,
     required this.onBackspace,
   });
+  final String word;
+  final List<String> userInput;
+  final List<TextEditingController> controllers;
+  final List<FocusNode> focusNodes;
+  final bool showResult;
+  final Function(int, String) onChanged;
+  final Function(int) onBackspace;
 
   @override
   Widget build(BuildContext context) {
@@ -558,7 +558,7 @@ class _LetterBoxes extends StatelessWidget {
                 ),
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
+                FilteringTextInputFormatter.allow(RegExp('[a-zA-Z]')),
               ],
               onChanged: (value) => onChanged(index, value),
               onSubmitted: (_) {
@@ -575,15 +575,15 @@ class _LetterBoxes extends StatelessWidget {
 }
 
 class _ResultDisplay extends StatelessWidget {
-  final bool isCorrect;
-  final String correctWord;
-  final String userWord;
 
   const _ResultDisplay({
     required this.isCorrect,
     required this.correctWord,
     required this.userWord,
   });
+  final bool isCorrect;
+  final String correctWord;
+  final String userWord;
 
   @override
   Widget build(BuildContext context) {

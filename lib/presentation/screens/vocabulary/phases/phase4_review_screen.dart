@@ -11,9 +11,9 @@ import '../../../providers/vocabulary_provider.dart';
 /// Phase 4: Review
 /// Quiz with multiple choice and fill-in-blank questions
 class Phase4ReviewScreen extends ConsumerStatefulWidget {
-  final String listId;
 
   const Phase4ReviewScreen({super.key, required this.listId});
+  final String listId;
 
   @override
   ConsumerState<Phase4ReviewScreen> createState() => _Phase4ReviewScreenState();
@@ -60,9 +60,9 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
         _questions.add(_QuizQuestion(
           type: _QuestionType.fillInBlank,
           word: word,
-          questionText: 'What word means:\n"${(word.meaningEN ?? word.meaningTR)}"',
+          questionText: 'What word means:\n"${word.meaningEN ?? word.meaningTR}"',
           correctAnswer: word.word,
-        ));
+        ),);
       } else {
         // Multiple choice: given word, pick the definition
         final wrongOptions = words
@@ -79,9 +79,9 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
           type: _QuestionType.multipleChoice,
           word: word,
           questionText: 'What is the meaning of "${word.word}"?',
-          correctAnswer: (word.meaningEN ?? word.meaningTR),
+          correctAnswer: word.meaningEN ?? word.meaningTR,
           options: options,
-        ));
+        ),);
       }
     }
 
@@ -440,10 +440,10 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
                       onPressed: _nextQuestion,
                       icon: Icon(_currentIndex < _questions.length - 1
                           ? Icons.arrow_forward
-                          : Icons.done_all),
+                          : Icons.done_all,),
                       label: Text(_currentIndex < _questions.length - 1
                           ? 'Next Question'
-                          : 'See Results'),
+                          : 'See Results',),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(double.infinity, 56),
                       ),
@@ -461,11 +461,6 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
 enum _QuestionType { multipleChoice, fillInBlank }
 
 class _QuizQuestion {
-  final _QuestionType type;
-  final VocabularyWord word;
-  final String questionText;
-  final String correctAnswer;
-  final List<String>? options;
 
   const _QuizQuestion({
     required this.type,
@@ -474,18 +469,23 @@ class _QuizQuestion {
     required this.correctAnswer,
     this.options,
   });
+  final _QuestionType type;
+  final VocabularyWord word;
+  final String questionText;
+  final String correctAnswer;
+  final List<String>? options;
 }
 
 class _ScoreChip extends StatelessWidget {
-  final IconData icon;
-  final int count;
-  final Color color;
 
   const _ScoreChip({
     required this.icon,
     required this.count,
     required this.color,
   });
+  final IconData icon;
+  final int count;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -514,11 +514,6 @@ class _ScoreChip extends StatelessWidget {
 }
 
 class _MultipleChoiceOptions extends StatelessWidget {
-  final List<String> options;
-  final int? selectedIndex;
-  final String correctAnswer;
-  final bool showResult;
-  final void Function(int)? onSelect;
 
   const _MultipleChoiceOptions({
     required this.options,
@@ -527,6 +522,11 @@ class _MultipleChoiceOptions extends StatelessWidget {
     required this.showResult,
     this.onSelect,
   });
+  final List<String> options;
+  final int? selectedIndex;
+  final String correctAnswer;
+  final bool showResult;
+  final void Function(int)? onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -628,10 +628,6 @@ class _MultipleChoiceOptions extends StatelessWidget {
 }
 
 class _FillInBlankInput extends StatelessWidget {
-  final TextEditingController controller;
-  final String correctAnswer;
-  final bool showResult;
-  final ValueChanged<String> onChanged;
 
   const _FillInBlankInput({
     required this.controller,
@@ -639,6 +635,10 @@ class _FillInBlankInput extends StatelessWidget {
     required this.showResult,
     required this.onChanged,
   });
+  final TextEditingController controller;
+  final String correctAnswer;
+  final bool showResult;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {

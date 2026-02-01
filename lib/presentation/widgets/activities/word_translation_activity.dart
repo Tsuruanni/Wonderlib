@@ -52,7 +52,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
     if (widget.isCompleted) {
       _isAnswered = true;
       _isCorrect = widget.wasCorrect;
-      _selectedAnswer = widget.wasCorrect == true
+      _selectedAnswer = widget.wasCorrect ?? false
           ? content.correctAnswer
           : content.options.firstWhere(
               (o) => o != content.correctAnswer,
@@ -163,7 +163,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
                     final option = entry.value;
                     return Padding(
                       padding: EdgeInsets.only(
-                          bottom: index < content.options.length - 1 ? 8 : 0),
+                          bottom: index < content.options.length - 1 ? 8 : 0,),
                       child: _buildOption(option),
                     );
                   }),

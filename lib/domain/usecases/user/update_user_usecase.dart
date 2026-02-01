@@ -6,15 +6,15 @@ import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
 class UpdateUserParams {
-  final User user;
 
   const UpdateUserParams({required this.user});
+  final User user;
 }
 
 class UpdateUserUseCase implements UseCase<User, UpdateUserParams> {
-  final UserRepository _repository;
 
   const UpdateUserUseCase(this._repository);
+  final UserRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(UpdateUserParams params) {

@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/chapter.dart';
@@ -79,7 +78,7 @@ class ReaderContent extends StatelessWidget {
         context,
         vocab,
         content.substring(start, end),
-      ));
+      ),);
 
       currentIndex = end;
     }

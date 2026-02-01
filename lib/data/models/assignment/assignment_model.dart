@@ -2,19 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for Assignment - handles JSON serialization
 class AssignmentModel {
-  final String id;
-  final String teacherId;
-  final String? classId;
-  final String? className;
-  final String type;
-  final String title;
-  final String? description;
-  final Map<String, dynamic> contentConfig;
-  final DateTime startDate;
-  final DateTime dueDate;
-  final DateTime createdAt;
-  final int totalStudents;
-  final int completedStudents;
 
   const AssignmentModel({
     required this.id,
@@ -52,6 +39,37 @@ class AssignmentModel {
     );
   }
 
+  factory AssignmentModel.fromEntity(Assignment entity) {
+    return AssignmentModel(
+      id: entity.id,
+      teacherId: entity.teacherId,
+      classId: entity.classId,
+      className: entity.className,
+      type: entity.type.name,
+      title: entity.title,
+      description: entity.description,
+      contentConfig: entity.contentConfig,
+      startDate: entity.startDate,
+      dueDate: entity.dueDate,
+      createdAt: entity.createdAt,
+      totalStudents: entity.totalStudents,
+      completedStudents: entity.completedStudents,
+    );
+  }
+  final String id;
+  final String teacherId;
+  final String? classId;
+  final String? className;
+  final String type;
+  final String title;
+  final String? description;
+  final Map<String, dynamic> contentConfig;
+  final DateTime startDate;
+  final DateTime dueDate;
+  final DateTime createdAt;
+  final int totalStudents;
+  final int completedStudents;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -85,24 +103,6 @@ class AssignmentModel {
       createdAt: createdAt,
       totalStudents: totalStudents,
       completedStudents: completedStudents,
-    );
-  }
-
-  factory AssignmentModel.fromEntity(Assignment entity) {
-    return AssignmentModel(
-      id: entity.id,
-      teacherId: entity.teacherId,
-      classId: entity.classId,
-      className: entity.className,
-      type: entity.type.name,
-      title: entity.title,
-      description: entity.description,
-      contentConfig: entity.contentConfig,
-      startDate: entity.startDate,
-      dueDate: entity.dueDate,
-      createdAt: entity.createdAt,
-      totalStudents: entity.totalStudents,
-      completedStudents: entity.completedStudents,
     );
   }
 }

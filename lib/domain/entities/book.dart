@@ -3,22 +3,6 @@ import 'package:equatable/equatable.dart';
 enum BookStatus { draft, published, archived }
 
 class Book extends Equatable {
-  final String id;
-  final String title;
-  final String slug;
-  final String? description;
-  final String? coverUrl;
-  final String level; // CEFR level: A1, A2, B1, B2, C1, C2
-  final String? genre;
-  final String? ageGroup; // elementary, middle, high
-  final int? estimatedMinutes;
-  final int? wordCount;
-  final int chapterCount;
-  final BookStatus status;
-  final Map<String, dynamic> metadata;
-  final DateTime? publishedAt;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const Book({
     required this.id,
@@ -38,6 +22,22 @@ class Book extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String title;
+  final String slug;
+  final String? description;
+  final String? coverUrl;
+  final String level; // CEFR level: A1, A2, B1, B2, C1, C2
+  final String? genre;
+  final String? ageGroup; // elementary, middle, high
+  final int? estimatedMinutes;
+  final int? wordCount;
+  final int chapterCount;
+  final BookStatus status;
+  final Map<String, dynamic> metadata;
+  final DateTime? publishedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   bool get isPublished => status == BookStatus.published;
   bool get isDraft => status == BookStatus.draft;

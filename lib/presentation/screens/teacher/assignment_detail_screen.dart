@@ -180,7 +180,7 @@ class _AssignmentAppBar extends StatelessWidget {
                 ),
               );
 
-              if (confirmed == true && context.mounted) {
+              if ((confirmed ?? false) && context.mounted) {
                 // Delete assignment
                 final container = ProviderScope.containerOf(context);
                 final useCase = container.read(deleteAssignmentUseCaseProvider);
@@ -223,7 +223,7 @@ class _AssignmentAppBar extends StatelessWidget {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        background: Container(
+        background: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [

@@ -3,13 +3,13 @@ import 'package:equatable/equatable.dart';
 /// Base failure class for functional error handling
 /// Used with dartz Either<Failure, Success> pattern
 abstract class Failure extends Equatable {
-  final String message;
-  final String? code;
 
   const Failure({
     required this.message,
     this.code,
   });
+  final String message;
+  final String? code;
 
   @override
   List<Object?> get props => [message, code];
@@ -17,13 +17,13 @@ abstract class Failure extends Equatable {
 
 /// Server/API failures
 class ServerFailure extends Failure {
-  final int? statusCode;
 
   const ServerFailure(
     String message, {
-    String? code,
+    super.code,
     this.statusCode,
-  }) : super(message: message, code: code);
+  }) : super(message: message);
+  final int? statusCode;
 
   @override
   List<Object?> get props => [message, code, statusCode];
@@ -64,12 +64,12 @@ class AuthFailure extends Failure {
 
 /// Validation failures
 class ValidationFailure extends Failure {
-  final Map<String, List<String>>? fieldErrors;
 
   const ValidationFailure(
     String message, {
     this.fieldErrors,
   }) : super(message: message, code: 'VALIDATION_ERROR');
+  final Map<String, List<String>>? fieldErrors;
 
   @override
   List<Object?> get props => [message, code, fieldErrors];

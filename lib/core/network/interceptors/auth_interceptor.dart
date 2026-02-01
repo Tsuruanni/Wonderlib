@@ -3,9 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Interceptor to add authentication token to requests
 class AuthInterceptor extends Interceptor {
-  final SupabaseClient _supabase;
 
   AuthInterceptor({required SupabaseClient supabase}) : _supabase = supabase;
+  final SupabaseClient _supabase;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {

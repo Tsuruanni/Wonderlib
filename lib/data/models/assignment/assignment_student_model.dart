@@ -2,15 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for AssignmentStudent - handles JSON serialization
 class AssignmentStudentModel {
-  final String id;
-  final String studentId;
-  final String studentName;
-  final String? avatarUrl;
-  final String status;
-  final double progress;
-  final double? score;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
 
   const AssignmentStudentModel({
     required this.id,
@@ -46,6 +37,29 @@ class AssignmentStudentModel {
     );
   }
 
+  factory AssignmentStudentModel.fromEntity(AssignmentStudent entity) {
+    return AssignmentStudentModel(
+      id: entity.id,
+      studentId: entity.studentId,
+      studentName: entity.studentName,
+      avatarUrl: entity.avatarUrl,
+      status: _statusToString(entity.status),
+      progress: entity.progress,
+      score: entity.score,
+      startedAt: entity.startedAt,
+      completedAt: entity.completedAt,
+    );
+  }
+  final String id;
+  final String studentId;
+  final String studentName;
+  final String? avatarUrl;
+  final String status;
+  final double progress;
+  final double? score;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -71,20 +85,6 @@ class AssignmentStudentModel {
       score: score,
       startedAt: startedAt,
       completedAt: completedAt,
-    );
-  }
-
-  factory AssignmentStudentModel.fromEntity(AssignmentStudent entity) {
-    return AssignmentStudentModel(
-      id: entity.id,
-      studentId: entity.studentId,
-      studentName: entity.studentName,
-      avatarUrl: entity.avatarUrl,
-      status: _statusToString(entity.status),
-      progress: entity.progress,
-      score: entity.score,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
     );
   }
 

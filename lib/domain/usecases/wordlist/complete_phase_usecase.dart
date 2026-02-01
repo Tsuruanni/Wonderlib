@@ -6,11 +6,6 @@ import '../../repositories/word_list_repository.dart';
 import '../usecase.dart';
 
 class CompletePhaseParams {
-  final String userId;
-  final String listId;
-  final int phase;
-  final int? score;
-  final int? total;
 
   const CompletePhaseParams({
     required this.userId,
@@ -19,13 +14,18 @@ class CompletePhaseParams {
     this.score,
     this.total,
   });
+  final String userId;
+  final String listId;
+  final int phase;
+  final int? score;
+  final int? total;
 }
 
 class CompletePhaseUseCase
     implements UseCase<UserWordListProgress, CompletePhaseParams> {
-  final WordListRepository _repository;
 
   const CompletePhaseUseCase(this._repository);
+  final WordListRepository _repository;
 
   @override
   Future<Either<Failure, UserWordListProgress>> call(CompletePhaseParams params) {

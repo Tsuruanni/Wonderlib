@@ -71,21 +71,6 @@ enum StudentAssignmentType {
 
 /// Assignment as seen by a student
 class StudentAssignment {
-  final String id;
-  final String assignmentId;
-  final String title;
-  final String? description;
-  final StudentAssignmentType type;
-  final StudentAssignmentStatus status;
-  final double progress;
-  final double? score;
-  final String? teacherName;
-  final String? className;
-  final DateTime startDate;
-  final DateTime dueDate;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final Map<String, dynamic> contentConfig;
 
   const StudentAssignment({
     required this.id,
@@ -104,6 +89,21 @@ class StudentAssignment {
     this.completedAt,
     required this.contentConfig,
   });
+  final String id;
+  final String assignmentId;
+  final String title;
+  final String? description;
+  final StudentAssignmentType type;
+  final StudentAssignmentStatus status;
+  final double progress;
+  final double? score;
+  final String? teacherName;
+  final String? className;
+  final DateTime startDate;
+  final DateTime dueDate;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+  final Map<String, dynamic> contentConfig;
 
   bool get isOverdue =>
       status != StudentAssignmentStatus.completed &&

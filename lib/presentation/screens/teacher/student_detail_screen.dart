@@ -51,7 +51,7 @@ class StudentDetailScreen extends ConsumerWidget {
                 expandedHeight: 200,
                 pinned: true,
                 flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
+                  background: DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [

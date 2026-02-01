@@ -3,23 +3,6 @@ import 'package:equatable/equatable.dart';
 import '../../core/constants/app_constants.dart';
 
 class User extends Equatable {
-  final String id;
-  final String schoolId;
-  final String? classId;
-  final UserRole role;
-  final String? studentNumber;
-  final String firstName;
-  final String lastName;
-  final String? email;
-  final String? avatarUrl;
-  final int xp;
-  final int level;
-  final int currentStreak;
-  final int longestStreak;
-  final DateTime? lastActivityDate;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const User({
     required this.id,
@@ -40,6 +23,23 @@ class User extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String schoolId;
+  final String? classId;
+  final UserRole role;
+  final String? studentNumber;
+  final String firstName;
+  final String lastName;
+  final String? email;
+  final String? avatarUrl;
+  final int xp;
+  final int level;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime? lastActivityDate;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   String get fullName => '$firstName $lastName';
 

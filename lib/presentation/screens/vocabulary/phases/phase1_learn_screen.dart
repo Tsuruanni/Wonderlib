@@ -9,9 +9,9 @@ import '../../../providers/vocabulary_provider.dart';
 /// Phase 1: Learn Vocab
 /// Grid view showing all words with images, audio, and definitions
 class Phase1LearnScreen extends ConsumerStatefulWidget {
-  final String listId;
 
   const Phase1LearnScreen({super.key, required this.listId});
+  final String listId;
 
   @override
   ConsumerState<Phase1LearnScreen> createState() => _Phase1LearnScreenState();
@@ -152,15 +152,15 @@ class _Phase1LearnScreenState extends ConsumerState<Phase1LearnScreen> {
 
 /// Card showing word details
 class _WordCard extends StatelessWidget {
-  final VocabularyWord word;
-  final bool showDefinition;
-  final VoidCallback onToggleDefinition;
 
   const _WordCard({
     required this.word,
     required this.showDefinition,
     required this.onToggleDefinition,
   });
+  final VocabularyWord word;
+  final bool showDefinition;
+  final VoidCallback onToggleDefinition;
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +170,7 @@ class _WordCard extends StatelessWidget {
         // Word image placeholder
         ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 160),
-          child: Container(
+          child: DecoratedBox(
             decoration: BoxDecoration(
               color: context.colorScheme.primaryContainer,
               borderRadius: BorderRadius.circular(16),
@@ -325,7 +325,7 @@ class _WordCard extends StatelessWidget {
                                   color: context.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                            )),
+                            ),),
                       ],
 
                       // Synonyms & Antonyms
@@ -357,7 +357,7 @@ class _WordCard extends StatelessWidget {
                                                     VisualDensity.compact,
                                                 backgroundColor: Colors.green
                                                     .withValues(alpha: 0.1),
-                                              ))
+                                              ),)
                                           .toList(),
                                     ),
                                   ],
@@ -386,7 +386,7 @@ class _WordCard extends StatelessWidget {
                                                     VisualDensity.compact,
                                                 backgroundColor: Colors.red
                                                     .withValues(alpha: 0.1),
-                                              ))
+                                              ),)
                                           .toList(),
                                     ),
                                   ],
@@ -421,9 +421,9 @@ class _WordCard extends StatelessWidget {
 }
 
 class _ImagePlaceholder extends StatelessWidget {
-  final VocabularyWord word;
 
   const _ImagePlaceholder({required this.word});
+  final VocabularyWord word;
 
   @override
   Widget build(BuildContext context) {
@@ -451,11 +451,6 @@ class _ImagePlaceholder extends StatelessWidget {
 
 /// Bottom navigation bar
 class _NavigationBar extends StatelessWidget {
-  final int currentIndex;
-  final int totalCount;
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
-  final VoidCallback? onComplete;
 
   const _NavigationBar({
     required this.currentIndex,
@@ -464,6 +459,11 @@ class _NavigationBar extends StatelessWidget {
     this.onNext,
     this.onComplete,
   });
+  final int currentIndex;
+  final int totalCount;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) {

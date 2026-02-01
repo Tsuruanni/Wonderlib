@@ -40,7 +40,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
           totalClasses: 0,
           activeAssignments: 0,
           avgProgress: 0,
-        ));
+        ),);
       }
 
       final stats = TeacherStatsModel.fromJson(data).toEntity();
@@ -201,7 +201,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
         response,
         totalStudents: totalStudents,
         completedStudents: completedStudents,
-      ).toEntity());
+      ).toEntity(),);
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
         return const Left(NotFoundFailure('Assignment not found'));
@@ -297,7 +297,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
           'student_id': studentId,
           'status': 'pending',
           'progress': 0,
-        }).toList();
+        },).toList();
 
         await _supabase.from('assignment_students').insert(assignmentStudents);
       }

@@ -70,15 +70,15 @@ class StudentAssignmentsScreen extends ConsumerWidget {
             // Group by status
             final active = assignments.where((a) =>
               a.status == StudentAssignmentStatus.pending ||
-              a.status == StudentAssignmentStatus.inProgress
+              a.status == StudentAssignmentStatus.inProgress,
             ).toList();
 
             final overdue = assignments.where((a) =>
-              a.status == StudentAssignmentStatus.overdue
+              a.status == StudentAssignmentStatus.overdue,
             ).toList();
 
             final completed = assignments.where((a) =>
-              a.status == StudentAssignmentStatus.completed
+              a.status == StudentAssignmentStatus.completed,
             ).toList();
 
             return ListView(
@@ -94,7 +94,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                   ...overdue.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => _navigateToAssignment(context, a),
-                  )),
+                  ),),
                   const SizedBox(height: 16),
                 ],
 
@@ -108,7 +108,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                   ...active.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => _navigateToAssignment(context, a),
-                  )),
+                  ),),
                   const SizedBox(height: 16),
                 ],
 
@@ -122,7 +122,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                   ...completed.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => _navigateToAssignment(context, a),
-                  )),
+                  ),),
                 ],
               ],
             );

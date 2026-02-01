@@ -6,19 +6,19 @@ import '../../repositories/auth_repository.dart';
 import '../usecase.dart';
 
 class SignInWithEmailParams {
-  final String email;
-  final String password;
 
   const SignInWithEmailParams({
     required this.email,
     required this.password,
   });
+  final String email;
+  final String password;
 }
 
 class SignInWithEmailUseCase implements UseCase<User, SignInWithEmailParams> {
-  final AuthRepository _repository;
 
   const SignInWithEmailUseCase(this._repository);
+  final AuthRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(SignInWithEmailParams params) {

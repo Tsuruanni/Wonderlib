@@ -6,20 +6,20 @@ import '../../repositories/word_list_repository.dart';
 import '../usecase.dart';
 
 class GetAllWordListsParams {
-  final WordListCategory? category;
-  final bool? isSystem;
 
   const GetAllWordListsParams({
     this.category,
     this.isSystem,
   });
+  final WordListCategory? category;
+  final bool? isSystem;
 }
 
 class GetAllWordListsUseCase
     implements UseCase<List<WordList>, GetAllWordListsParams> {
-  final WordListRepository _repository;
 
   const GetAllWordListsUseCase(this._repository);
+  final WordListRepository _repository;
 
   @override
   Future<Either<Failure, List<WordList>>> call(GetAllWordListsParams params) {

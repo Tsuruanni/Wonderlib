@@ -150,6 +150,7 @@ INSERT INTO auth.users (
 
 UPDATE profiles SET
   first_name = 'Fresh', last_name = 'Student', role = 'student',
+  email = 'fresh@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
   student_number = '2024001', xp = 0, current_streak = 0, longest_streak = 0
@@ -174,6 +175,7 @@ INSERT INTO auth.users (
 
 UPDATE profiles SET
   first_name = 'Active', last_name = 'Student', role = 'student',
+  email = 'active@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
   student_number = '2024002', xp = 500, current_streak = 3, longest_streak = 5
@@ -198,6 +200,7 @@ INSERT INTO auth.users (
 
 UPDATE profiles SET
   first_name = 'Advanced', last_name = 'Student', role = 'student',
+  email = 'advanced@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
   student_number = '2024003', xp = 5000, current_streak = 14, longest_streak = 21
@@ -222,6 +225,7 @@ INSERT INTO auth.users (
 
 UPDATE profiles SET
   first_name = 'Demo', last_name = 'Teacher', role = 'teacher',
+  email = 'teacher@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   xp = 0, current_streak = 0, longest_streak = 0
 WHERE id = '88888888-0001-0001-0001-000000000004';

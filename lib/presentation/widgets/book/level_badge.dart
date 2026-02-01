@@ -111,20 +111,16 @@ class LevelBadge extends StatelessWidget {
 enum LevelBadgeSize { small, medium, large }
 
 class _LevelColors {
-  final Color background;
-  final Color text;
 
   const _LevelColors({
     required this.background,
     required this.text,
   });
+  final Color background;
+  final Color text;
 }
 
 class _BadgeDimensions {
-  final double horizontalPadding;
-  final double verticalPadding;
-  final double fontSize;
-  final double borderRadius;
 
   const _BadgeDimensions({
     required this.horizontalPadding,
@@ -132,4 +128,8 @@ class _BadgeDimensions {
     required this.fontSize,
     required this.borderRadius,
   });
+  final double horizontalPadding;
+  final double verticalPadding;
+  final double fontSize;
+  final double borderRadius;
 }

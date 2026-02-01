@@ -2,15 +2,6 @@ import '../../../domain/entities/activity.dart';
 
 /// Model for ActivityResult entity - handles JSON serialization
 class ActivityResultModel {
-  final String id;
-  final String userId;
-  final String activityId;
-  final double score;
-  final double maxScore;
-  final Map<String, dynamic> answers;
-  final int? timeSpent;
-  final int attemptNumber;
-  final DateTime completedAt;
 
   const ActivityResultModel({
     required this.id,
@@ -37,6 +28,29 @@ class ActivityResultModel {
       completedAt: DateTime.parse(json['completed_at'] as String),
     );
   }
+
+  factory ActivityResultModel.fromEntity(ActivityResult entity) {
+    return ActivityResultModel(
+      id: entity.id,
+      userId: entity.userId,
+      activityId: entity.activityId,
+      score: entity.score,
+      maxScore: entity.maxScore,
+      answers: entity.answers,
+      timeSpent: entity.timeSpent,
+      attemptNumber: entity.attemptNumber,
+      completedAt: entity.completedAt,
+    );
+  }
+  final String id;
+  final String userId;
+  final String activityId;
+  final double score;
+  final double maxScore;
+  final Map<String, dynamic> answers;
+  final int? timeSpent;
+  final int attemptNumber;
+  final DateTime completedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -77,20 +91,6 @@ class ActivityResultModel {
       timeSpent: timeSpent,
       attemptNumber: attemptNumber,
       completedAt: completedAt,
-    );
-  }
-
-  factory ActivityResultModel.fromEntity(ActivityResult entity) {
-    return ActivityResultModel(
-      id: entity.id,
-      userId: entity.userId,
-      activityId: entity.activityId,
-      score: entity.score,
-      maxScore: entity.maxScore,
-      answers: entity.answers,
-      timeSpent: entity.timeSpent,
-      attemptNumber: entity.attemptNumber,
-      completedAt: entity.completedAt,
     );
   }
 }

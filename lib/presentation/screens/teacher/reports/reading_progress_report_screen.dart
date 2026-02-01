@@ -8,13 +8,6 @@ import '../../../providers/usecase_providers.dart';
 
 /// Book reading stats for the school
 class BookReadingStats {
-  final String bookId;
-  final String title;
-  final String? coverUrl;
-  final String level;
-  final int totalReaders;
-  final int completedReaders;
-  final double avgProgress;
 
   const BookReadingStats({
     required this.bookId,
@@ -25,6 +18,13 @@ class BookReadingStats {
     required this.completedReaders,
     required this.avgProgress,
   });
+  final String bookId;
+  final String title;
+  final String? coverUrl;
+  final String level;
+  final int totalReaders;
+  final int completedReaders;
+  final double avgProgress;
 
   double get completionRate =>
       totalReaders > 0 ? (completedReaders / totalReaders) * 100 : 0;
@@ -56,7 +56,7 @@ final bookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((ref) as
           totalReaders: 0, // Would be fetched from DB
           completedReaders: 0,
           avgProgress: 0,
-        ));
+        ),);
       }
 
       return stats;
@@ -272,7 +272,7 @@ class _BookStatsCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Icon(Icons.check_circle, size: 14, color: Colors.green),
+                      const Icon(Icons.check_circle, size: 14, color: Colors.green),
                       const SizedBox(width: 4),
                       Text(
                         '${book.completedReaders} completed',

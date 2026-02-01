@@ -107,7 +107,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                 ...classes.map((classItem) => _ClassReportCard(
                   classItem: classItem,
                   onTap: () => context.push('/teacher/classes/${classItem.id}'),
-                )),
+                ),),
               ],
             );
           },

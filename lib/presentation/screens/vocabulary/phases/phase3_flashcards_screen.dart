@@ -13,9 +13,9 @@ import '../../../providers/vocabulary_provider.dart';
 /// Phase 3: Flashcards
 /// Flip cards with SM-2 spaced repetition algorithm
 class Phase3FlashcardsScreen extends ConsumerStatefulWidget {
-  final String listId;
 
   const Phase3FlashcardsScreen({super.key, required this.listId});
+  final String listId;
 
   @override
   ConsumerState<Phase3FlashcardsScreen> createState() =>
@@ -252,7 +252,7 @@ class _Phase3FlashcardsScreenState extends ConsumerState<Phase3FlashcardsScreen>
                 _MiniStat(emoji: '😊', count: _gotItCount, color: Colors.blue),
                 const SizedBox(width: 24),
                 _MiniStat(
-                    emoji: '🚀', count: _veryEasyCount, color: Colors.green),
+                    emoji: '🚀', count: _veryEasyCount, color: Colors.green,),
               ],
             ),
           ),
@@ -321,15 +321,15 @@ class _Phase3FlashcardsScreenState extends ConsumerState<Phase3FlashcardsScreen>
 }
 
 class _MiniStat extends StatelessWidget {
-  final String emoji;
-  final int count;
-  final Color color;
 
   const _MiniStat({
     required this.emoji,
     required this.count,
     required this.color,
   });
+  final String emoji;
+  final int count;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -350,9 +350,9 @@ class _MiniStat extends StatelessWidget {
 }
 
 class _CardFront extends StatelessWidget {
-  final VocabularyWord word;
 
   const _CardFront({required this.word});
+  final VocabularyWord word;
 
   @override
   Widget build(BuildContext context) {
@@ -465,9 +465,9 @@ class _CardFront extends StatelessWidget {
 }
 
 class _CardBack extends StatelessWidget {
-  final VocabularyWord word;
 
   const _CardBack({required this.word});
+  final VocabularyWord word;
 
   @override
   Widget build(BuildContext context) {
@@ -536,7 +536,7 @@ class _CardBack extends StatelessWidget {
                             label: Text(s),
                             visualDensity: VisualDensity.compact,
                             backgroundColor: Colors.green.withValues(alpha: 0.1),
-                          ))
+                          ),)
                       .toList(),
                 ),
               ],
@@ -560,7 +560,7 @@ class _CardBack extends StatelessWidget {
                             label: Text(a),
                             visualDensity: VisualDensity.compact,
                             backgroundColor: Colors.red.withValues(alpha: 0.1),
-                          ))
+                          ),)
                       .toList(),
                 ),
               ],
@@ -573,15 +573,15 @@ class _CardBack extends StatelessWidget {
 }
 
 class _InfoSection extends StatelessWidget {
-  final String label;
-  final String content;
-  final IconData icon;
 
   const _InfoSection({
     required this.label,
     required this.content,
     required this.icon,
   });
+  final String label;
+  final String content;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -615,9 +615,9 @@ class _InfoSection extends StatelessWidget {
 }
 
 class _ResponseButtons extends StatelessWidget {
-  final void Function(SM2Response)? onResponse;
 
   const _ResponseButtons({this.onResponse});
+  final void Function(SM2Response)? onResponse;
 
   @override
   Widget build(BuildContext context) {
@@ -666,10 +666,6 @@ class _ResponseButtons extends StatelessWidget {
 }
 
 class _ResponseButton extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final Color color;
-  final VoidCallback? onPressed;
 
   const _ResponseButton({
     required this.emoji,
@@ -677,6 +673,10 @@ class _ResponseButton extends StatelessWidget {
     required this.color,
     this.onPressed,
   });
+  final String emoji;
+  final String label;
+  final Color color;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -713,10 +713,6 @@ class _ResponseButton extends StatelessWidget {
 }
 
 class _StatRow extends StatelessWidget {
-  final String emoji;
-  final String label;
-  final int count;
-  final Color color;
 
   const _StatRow({
     required this.emoji,
@@ -724,6 +720,10 @@ class _StatRow extends StatelessWidget {
     required this.count,
     required this.color,
   });
+  final String emoji;
+  final String label;
+  final int count;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

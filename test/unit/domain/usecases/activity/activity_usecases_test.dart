@@ -309,7 +309,18 @@ void main() {
 
     test('withUserIdOnly_shouldReturnAllUserResults', () async {
       // Arrange
-      final results = [ActivityResultFixtures.validResult()];
+      final results = [
+        ActivityResult(
+          id: 'result-123',
+          userId: 'user-123',
+          activityId: 'activity-789',
+          score: 80.0,
+          maxScore: 100.0,
+          answers: const {'q-1': 'Paris'},
+          attemptNumber: 1,
+          completedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+        ),
+      ];
       when(mockActivityRepository.getUserActivityResults(
         userId: 'user-123',
         activityId: null,

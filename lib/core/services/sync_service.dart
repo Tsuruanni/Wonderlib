@@ -15,11 +15,6 @@ enum SyncType {
 
 /// Represents a pending sync operation
 class SyncItem {
-  final String id;
-  final SyncType type;
-  final Map<String, dynamic> data;
-  final DateTime createdAt;
-  final int retryCount;
 
   SyncItem({
     required this.id,
@@ -28,6 +23,21 @@ class SyncItem {
     DateTime? createdAt,
     this.retryCount = 0,
   }) : createdAt = createdAt ?? DateTime.now();
+
+  factory SyncItem.fromJson(Map<String, dynamic> json) {
+    return SyncItem(
+      id: json['id'] as String,
+      type: SyncType.values.byName(json['type'] as String),
+      data: json['data'] as Map<String, dynamic>,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      retryCount: json['retryCount'] as int? ?? 0,
+    );
+  }
+  final String id;
+  final SyncType type;
+  final Map<String, dynamic> data;
+  final DateTime createdAt;
+  final int retryCount;
 
   SyncItem copyWith({int? retryCount}) {
     return SyncItem(
@@ -46,16 +56,6 @@ class SyncItem {
         'createdAt': createdAt.toIso8601String(),
         'retryCount': retryCount,
       };
-
-  factory SyncItem.fromJson(Map<String, dynamic> json) {
-    return SyncItem(
-      id: json['id'] as String,
-      type: SyncType.values.byName(json['type'] as String),
-      data: json['data'] as Map<String, dynamic>,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      retryCount: json['retryCount'] as int? ?? 0,
-    );
-  }
 }
 
 /// Service responsible for syncing local changes to the server
@@ -74,10 +74,6 @@ abstract class SyncService {
 }
 
 class SyncStatus {
-  final bool isSyncing;
-  final int pendingCount;
-  final int syncedCount;
-  final String? lastError;
 
   const SyncStatus({
     this.isSyncing = false,
@@ -85,6 +81,10 @@ class SyncStatus {
     this.syncedCount = 0,
     this.lastError,
   });
+  final bool isSyncing;
+  final int pendingCount;
+  final int syncedCount;
+  final String? lastError;
 
   SyncStatus copyWith({
     bool? isSyncing,
@@ -103,9 +103,6 @@ class SyncStatus {
 
 /// Implementation will be added when local database is set up
 class SyncServiceImpl implements SyncService {
-  final NetworkInfo _networkInfo;
-  final _statusController = StreamController<SyncStatus>.broadcast();
-  final List<SyncItem> _queue = [];
 
   SyncServiceImpl({required NetworkInfo networkInfo})
       : _networkInfo = networkInfo {
@@ -116,6 +113,9 @@ class SyncServiceImpl implements SyncService {
       }
     });
   }
+  final NetworkInfo _networkInfo;
+  final _statusController = StreamController<SyncStatus>.broadcast();
+  final List<SyncItem> _queue = [];
 
   @override
   Future<void> queueSync(SyncItem item) async {
@@ -136,7 +136,7 @@ class SyncServiceImpl implements SyncService {
     _statusController.add(SyncStatus(
       isSyncing: true,
       pendingCount: _queue.length,
-    ));
+    ),);
 
     var syncedCount = 0;
     final failedItems = <SyncItem>[];
@@ -150,7 +150,7 @@ class SyncServiceImpl implements SyncService {
           isSyncing: true,
           pendingCount: _queue.length,
           syncedCount: syncedCount,
-        ));
+        ),);
       } catch (e) {
         // Keep for retry, increment retry count
         if (item.retryCount < 3) {
@@ -165,7 +165,7 @@ class SyncServiceImpl implements SyncService {
       isSyncing: false,
       pendingCount: _queue.length,
       syncedCount: syncedCount,
-    ));
+    ),);
   }
 
   Future<void> _syncItem(SyncItem item) async {

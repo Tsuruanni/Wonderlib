@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
 
 /// Wrapper widget for inline activities
@@ -43,7 +42,7 @@ class ActivityWrapper extends StatelessWidget {
           : const Color(0xFFF7FAFC);
     }
 
-    if (isCorrect == true) {
+    if (isCorrect ?? false) {
       return settings.theme == ReaderTheme.dark
           ? const Color(0xFF1C4532)
           : const Color(0xFFC6F6D5);
@@ -61,7 +60,7 @@ class ActivityWrapper extends StatelessWidget {
           : const Color(0xFFE2E8F0);
     }
 
-    if (isCorrect == true) {
+    if (isCorrect ?? false) {
       return const Color(0xFF38A169);
     } else {
       return const Color(0xFFE53E3E);

@@ -11,17 +11,6 @@ enum BadgeConditionType {
 }
 
 class Badge extends Equatable {
-  final String id;
-  final String name;
-  final String slug;
-  final String? description;
-  final String? icon;
-  final String? category;
-  final BadgeConditionType conditionType;
-  final int conditionValue;
-  final int xpReward;
-  final bool isActive;
-  final DateTime createdAt;
 
   const Badge({
     required this.id,
@@ -36,6 +25,17 @@ class Badge extends Equatable {
     this.isActive = true,
     required this.createdAt,
   });
+  final String id;
+  final String name;
+  final String slug;
+  final String? description;
+  final String? icon;
+  final String? category;
+  final BadgeConditionType conditionType;
+  final int conditionValue;
+  final int xpReward;
+  final bool isActive;
+  final DateTime createdAt;
 
   @override
   List<Object?> get props => [
@@ -54,11 +54,6 @@ class Badge extends Equatable {
 }
 
 class UserBadge extends Equatable {
-  final String id;
-  final String odId;
-  final String badgeId;
-  final Badge badge;
-  final DateTime earnedAt;
 
   const UserBadge({
     required this.id,
@@ -67,6 +62,11 @@ class UserBadge extends Equatable {
     required this.badge,
     required this.earnedAt,
   });
+  final String id;
+  final String odId;
+  final String badgeId;
+  final Badge badge;
+  final DateTime earnedAt;
 
   @override
   List<Object?> get props => [id, odId, badgeId, badge, earnedAt];

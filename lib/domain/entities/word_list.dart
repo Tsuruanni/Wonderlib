@@ -2,17 +2,6 @@ import 'package:equatable/equatable.dart';
 
 /// Represents a collection of vocabulary words that can be studied together
 class WordList extends Equatable {
-  final String id;
-  final String name;
-  final String description;
-  final String? level; // A1, A2, B1, B2, C1, C2
-  final WordListCategory category;
-  final int wordCount;
-  final String? coverImageUrl;
-  final bool isSystem; // true = admin created, false = user created (story vocab)
-  final String? sourceBookId; // for story vocabulary lists
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const WordList({
     required this.id,
@@ -27,6 +16,17 @@ class WordList extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String name;
+  final String description;
+  final String? level; // A1, A2, B1, B2, C1, C2
+  final WordListCategory category;
+  final int wordCount;
+  final String? coverImageUrl;
+  final bool isSystem; // true = admin created, false = user created (story vocab)
+  final String? sourceBookId; // for story vocabulary lists
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   @override
   List<Object?> get props => [
@@ -87,18 +87,6 @@ extension WordListCategoryExtension on WordListCategory {
 
 /// Tracks user progress for a specific word list
 class UserWordListProgress extends Equatable {
-  final String id;
-  final String userId;
-  final String wordListId;
-  final bool phase1Complete; // Learn Vocab
-  final bool phase2Complete; // Spelling
-  final bool phase3Complete; // Flashcards
-  final bool phase4Complete; // Review
-  final int? phase4Score;    // Review score (e.g., 18/20)
-  final int? phase4Total;    // Total questions in review
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final DateTime updatedAt;
 
   const UserWordListProgress({
     required this.id,
@@ -114,6 +102,18 @@ class UserWordListProgress extends Equatable {
     this.completedAt,
     required this.updatedAt,
   });
+  final String id;
+  final String userId;
+  final String wordListId;
+  final bool phase1Complete; // Learn Vocab
+  final bool phase2Complete; // Spelling
+  final bool phase3Complete; // Flashcards
+  final bool phase4Complete; // Review
+  final int? phase4Score;    // Review score (e.g., 18/20)
+  final int? phase4Total;    // Total questions in review
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+  final DateTime updatedAt;
 
   /// Overall progress percentage (0.0 - 1.0)
   double get progressPercentage {

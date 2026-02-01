@@ -5,23 +5,23 @@ import '../../repositories/student_assignment_repository.dart';
 import '../usecase.dart';
 
 class UpdateAssignmentProgressParams {
-  final String studentId;
-  final String assignmentId;
-  final double progress;
 
   const UpdateAssignmentProgressParams({
     required this.studentId,
     required this.assignmentId,
     required this.progress,
   });
+  final String studentId;
+  final String assignmentId;
+  final double progress;
 }
 
 /// Updates assignment progress
 class UpdateAssignmentProgressUseCase
     implements UseCase<void, UpdateAssignmentProgressParams> {
-  final StudentAssignmentRepository _repository;
 
   const UpdateAssignmentProgressUseCase(this._repository);
+  final StudentAssignmentRepository _repository;
 
   @override
   Future<Either<Failure, void>> call(UpdateAssignmentProgressParams params) {

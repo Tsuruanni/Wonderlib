@@ -5,10 +5,6 @@ import '../entities/user.dart';
 
 /// Statistics for teacher dashboard
 class TeacherStats {
-  final int totalStudents;
-  final int totalClasses;
-  final int activeAssignments;
-  final double avgProgress;
 
   const TeacherStats({
     required this.totalStudents,
@@ -16,17 +12,14 @@ class TeacherStats {
     required this.activeAssignments,
     required this.avgProgress,
   });
+  final int totalStudents;
+  final int totalClasses;
+  final int activeAssignments;
+  final double avgProgress;
 }
 
 /// Class entity for teacher view
 class TeacherClass {
-  final String id;
-  final String name;
-  final int? grade;
-  final String? academicYear;
-  final int studentCount;
-  final double avgProgress;
-  final DateTime? createdAt;
 
   const TeacherClass({
     required this.id,
@@ -37,21 +30,17 @@ class TeacherClass {
     required this.avgProgress,
     this.createdAt,
   });
+  final String id;
+  final String name;
+  final int? grade;
+  final String? academicYear;
+  final int studentCount;
+  final double avgProgress;
+  final DateTime? createdAt;
 }
 
 /// Student summary for class view
 class StudentSummary {
-  final String id;
-  final String firstName;
-  final String lastName;
-  final String? studentNumber;
-  final String? email;
-  final String? avatarUrl;
-  final int xp;
-  final int level;
-  final int currentStreak;
-  final int booksRead;
-  final double avgProgress;
 
   const StudentSummary({
     required this.id,
@@ -66,6 +55,17 @@ class StudentSummary {
     required this.booksRead,
     required this.avgProgress,
   });
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String? studentNumber;
+  final String? email;
+  final String? avatarUrl;
+  final int xp;
+  final int level;
+  final int currentStreak;
+  final int booksRead;
+  final double avgProgress;
 
   String get fullName => '$firstName $lastName';
 }
@@ -141,14 +141,6 @@ abstract class TeacherRepository {
 
 /// Student's progress on a specific book
 class StudentBookProgress {
-  final String bookId;
-  final String bookTitle;
-  final String? bookCoverUrl;
-  final double completionPercentage;
-  final int totalReadingTime;
-  final int completedChapters;
-  final int totalChapters;
-  final DateTime? lastReadAt;
 
   const StudentBookProgress({
     required this.bookId,
@@ -160,6 +152,14 @@ class StudentBookProgress {
     required this.totalChapters,
     this.lastReadAt,
   });
+  final String bookId;
+  final String bookTitle;
+  final String? bookCoverUrl;
+  final double completionPercentage;
+  final int totalReadingTime;
+  final int completedChapters;
+  final int totalChapters;
+  final DateTime? lastReadAt;
 }
 
 // =============================================
@@ -235,19 +235,6 @@ enum AssignmentStatus {
 
 /// Assignment entity for teacher view
 class Assignment {
-  final String id;
-  final String teacherId;
-  final String? classId;
-  final String? className;
-  final AssignmentType type;
-  final String title;
-  final String? description;
-  final Map<String, dynamic> contentConfig;
-  final DateTime startDate;
-  final DateTime dueDate;
-  final DateTime createdAt;
-  final int totalStudents;
-  final int completedStudents;
 
   const Assignment({
     required this.id,
@@ -264,6 +251,19 @@ class Assignment {
     required this.totalStudents,
     required this.completedStudents,
   });
+  final String id;
+  final String teacherId;
+  final String? classId;
+  final String? className;
+  final AssignmentType type;
+  final String title;
+  final String? description;
+  final Map<String, dynamic> contentConfig;
+  final DateTime startDate;
+  final DateTime dueDate;
+  final DateTime createdAt;
+  final int totalStudents;
+  final int completedStudents;
 
   double get completionRate =>
       totalStudents > 0 ? (completedStudents / totalStudents) * 100 : 0;
@@ -276,15 +276,6 @@ class Assignment {
 
 /// Student's progress on a specific assignment
 class AssignmentStudent {
-  final String id;
-  final String studentId;
-  final String studentName;
-  final String? avatarUrl;
-  final AssignmentStatus status;
-  final double progress;
-  final double? score;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
 
   const AssignmentStudent({
     required this.id,
@@ -297,18 +288,19 @@ class AssignmentStudent {
     this.startedAt,
     this.completedAt,
   });
+  final String id;
+  final String studentId;
+  final String studentName;
+  final String? avatarUrl;
+  final AssignmentStatus status;
+  final double progress;
+  final double? score;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
 }
 
 /// Data for creating a new assignment
 class CreateAssignmentData {
-  final String? classId;
-  final List<String>? studentIds;
-  final AssignmentType type;
-  final String title;
-  final String? description;
-  final Map<String, dynamic> contentConfig;
-  final DateTime startDate;
-  final DateTime dueDate;
 
   const CreateAssignmentData({
     this.classId,
@@ -320,4 +312,12 @@ class CreateAssignmentData {
     required this.startDate,
     required this.dueDate,
   });
+  final String? classId;
+  final List<String>? studentIds;
+  final AssignmentType type;
+  final String title;
+  final String? description;
+  final Map<String, dynamic> contentConfig;
+  final DateTime startDate;
+  final DateTime dueDate;
 }

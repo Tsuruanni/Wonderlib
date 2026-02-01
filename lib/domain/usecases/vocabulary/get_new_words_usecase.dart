@@ -6,19 +6,19 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class GetNewWordsParams {
-  final String userId;
-  final int limit;
 
   const GetNewWordsParams({
     required this.userId,
     this.limit = 10,
   });
+  final String userId;
+  final int limit;
 }
 
 class GetNewWordsUseCase implements UseCase<List<VocabularyWord>, GetNewWordsParams> {
-  final VocabularyRepository _repository;
 
   const GetNewWordsUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyWord>>> call(GetNewWordsParams params) {

@@ -6,15 +6,15 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class SearchWordsParams {
-  final String query;
 
   const SearchWordsParams({required this.query});
+  final String query;
 }
 
 class SearchWordsUseCase implements UseCase<List<VocabularyWord>, SearchWordsParams> {
-  final VocabularyRepository _repository;
 
   const SearchWordsUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyWord>>> call(SearchWordsParams params) {

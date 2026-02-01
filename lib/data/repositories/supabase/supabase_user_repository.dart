@@ -65,12 +65,12 @@ class SupabaseUserRepository implements UserRepository {
         'p_source': 'manual',
         'p_source_id': null,
         'p_description': 'XP awarded',
-      });
+      },);
 
       // Check for new badges
       await _supabase.rpc('check_and_award_badges', params: {
         'p_user_id': userId,
-      });
+      },);
 
       // Fetch updated user
       final response = await _supabase
@@ -93,12 +93,12 @@ class SupabaseUserRepository implements UserRepository {
       // Use stored function for atomic streak calculation
       await _supabase.rpc('update_user_streak', params: {
         'p_user_id': userId,
-      });
+      },);
 
       // Check for new badges (including streak badges)
       await _supabase.rpc('check_and_award_badges', params: {
         'p_user_id': userId,
-      });
+      },);
 
       // Fetch updated user
       final response = await _supabase
@@ -123,7 +123,7 @@ class SupabaseUserRepository implements UserRepository {
       // Use stored function for optimized stats query
       final result = await _supabase.rpc('get_user_stats', params: {
         'p_user_id': userId,
-      });
+      },);
 
       if (result == null || (result as List).isEmpty) {
         return const Left(NotFoundFailure('User stats not found'));

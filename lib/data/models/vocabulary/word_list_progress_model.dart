@@ -2,18 +2,6 @@ import '../../../domain/entities/word_list.dart';
 
 /// Model for UserWordListProgress entity - handles JSON serialization
 class WordListProgressModel {
-  final String id;
-  final String userId;
-  final String wordListId;
-  final bool phase1Complete;
-  final bool phase2Complete;
-  final bool phase3Complete;
-  final bool phase4Complete;
-  final int? phase4Score;
-  final int? phase4Total;
-  final DateTime? startedAt;
-  final DateTime? completedAt;
-  final DateTime updatedAt;
 
   const WordListProgressModel({
     required this.id,
@@ -50,6 +38,35 @@ class WordListProgressModel {
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
   }
+
+  factory WordListProgressModel.fromEntity(UserWordListProgress entity) {
+    return WordListProgressModel(
+      id: entity.id,
+      userId: entity.userId,
+      wordListId: entity.wordListId,
+      phase1Complete: entity.phase1Complete,
+      phase2Complete: entity.phase2Complete,
+      phase3Complete: entity.phase3Complete,
+      phase4Complete: entity.phase4Complete,
+      phase4Score: entity.phase4Score,
+      phase4Total: entity.phase4Total,
+      startedAt: entity.startedAt,
+      completedAt: entity.completedAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String userId;
+  final String wordListId;
+  final bool phase1Complete;
+  final bool phase2Complete;
+  final bool phase3Complete;
+  final bool phase4Complete;
+  final int? phase4Score;
+  final int? phase4Total;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+  final DateTime updatedAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -99,23 +116,6 @@ class WordListProgressModel {
       startedAt: startedAt,
       completedAt: completedAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory WordListProgressModel.fromEntity(UserWordListProgress entity) {
-    return WordListProgressModel(
-      id: entity.id,
-      userId: entity.userId,
-      wordListId: entity.wordListId,
-      phase1Complete: entity.phase1Complete,
-      phase2Complete: entity.phase2Complete,
-      phase3Complete: entity.phase3Complete,
-      phase4Complete: entity.phase4Complete,
-      phase4Score: entity.phase4Score,
-      phase4Total: entity.phase4Total,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
-      updatedAt: entity.updatedAt,
     );
   }
 }

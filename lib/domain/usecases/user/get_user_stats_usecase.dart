@@ -5,16 +5,16 @@ import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
 class GetUserStatsParams {
-  final String userId;
 
   const GetUserStatsParams({required this.userId});
+  final String userId;
 }
 
 class GetUserStatsUseCase
     implements UseCase<Map<String, dynamic>, GetUserStatsParams> {
-  final UserRepository _repository;
 
   const GetUserStatsUseCase(this._repository);
+  final UserRepository _repository;
 
   @override
   Future<Either<Failure, Map<String, dynamic>>> call(GetUserStatsParams params) {

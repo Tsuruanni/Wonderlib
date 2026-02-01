@@ -6,16 +6,16 @@ import '../../repositories/badge_repository.dart';
 import '../usecase.dart';
 
 class GetUserBadgesParams {
-  final String userId;
 
   const GetUserBadgesParams({required this.userId});
+  final String userId;
 }
 
 class GetUserBadgesUseCase
     implements UseCase<List<UserBadge>, GetUserBadgesParams> {
-  final BadgeRepository _repository;
 
   const GetUserBadgesUseCase(this._repository);
+  final BadgeRepository _repository;
 
   @override
   Future<Either<Failure, List<UserBadge>>> call(GetUserBadgesParams params) {

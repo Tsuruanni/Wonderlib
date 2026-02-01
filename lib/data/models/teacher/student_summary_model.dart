@@ -2,17 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for StudentSummary - handles JSON serialization
 class StudentSummaryModel {
-  final String id;
-  final String firstName;
-  final String lastName;
-  final String? studentNumber;
-  final String? email;
-  final String? avatarUrl;
-  final int xp;
-  final int level;
-  final int currentStreak;
-  final int booksRead;
-  final double avgProgress;
 
   const StudentSummaryModel({
     required this.id,
@@ -44,6 +33,33 @@ class StudentSummaryModel {
     );
   }
 
+  factory StudentSummaryModel.fromEntity(StudentSummary entity) {
+    return StudentSummaryModel(
+      id: entity.id,
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      studentNumber: entity.studentNumber,
+      email: entity.email,
+      avatarUrl: entity.avatarUrl,
+      xp: entity.xp,
+      level: entity.level,
+      currentStreak: entity.currentStreak,
+      booksRead: entity.booksRead,
+      avgProgress: entity.avgProgress,
+    );
+  }
+  final String id;
+  final String firstName;
+  final String lastName;
+  final String? studentNumber;
+  final String? email;
+  final String? avatarUrl;
+  final int xp;
+  final int level;
+  final int currentStreak;
+  final int booksRead;
+  final double avgProgress;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -73,22 +89,6 @@ class StudentSummaryModel {
       currentStreak: currentStreak,
       booksRead: booksRead,
       avgProgress: avgProgress,
-    );
-  }
-
-  factory StudentSummaryModel.fromEntity(StudentSummary entity) {
-    return StudentSummaryModel(
-      id: entity.id,
-      firstName: entity.firstName,
-      lastName: entity.lastName,
-      studentNumber: entity.studentNumber,
-      email: entity.email,
-      avatarUrl: entity.avatarUrl,
-      xp: entity.xp,
-      level: entity.level,
-      currentStreak: entity.currentStreak,
-      booksRead: entity.booksRead,
-      avgProgress: entity.avgProgress,
     );
   }
 }

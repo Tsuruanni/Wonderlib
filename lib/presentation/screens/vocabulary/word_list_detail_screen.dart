@@ -8,9 +8,9 @@ import '../../providers/vocabulary_provider.dart';
 
 /// Detail screen for a word list showing phases and progress
 class WordListDetailScreen extends ConsumerWidget {
-  final String listId;
 
   const WordListDetailScreen({super.key, required this.listId});
+  final String listId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,7 +102,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     icon: Icons.keyboard,
                     color: Colors.purple,
                     isComplete: progress?.phase2Complete ?? false,
-                    isRecommended: progress?.phase1Complete == true &&
+                    isRecommended: (progress?.phase1Complete ?? false) &&
                                    progress?.phase2Complete != true,
                     onTap: () => _navigateToPhase(context, 2),
                   ),
@@ -113,7 +113,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     icon: Icons.flip,
                     color: Colors.orange,
                     isComplete: progress?.phase3Complete ?? false,
-                    isRecommended: progress?.phase2Complete == true &&
+                    isRecommended: (progress?.phase2Complete ?? false) &&
                                    progress?.phase3Complete != true,
                     onTap: () => _navigateToPhase(context, 3),
                   ),
@@ -124,7 +124,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     icon: Icons.quiz,
                     color: Colors.green,
                     isComplete: progress?.phase4Complete ?? false,
-                    isRecommended: progress?.phase3Complete == true &&
+                    isRecommended: (progress?.phase3Complete ?? false) &&
                                    progress?.phase4Complete != true,
                     onTap: () => _navigateToPhase(context, 4),
                     score: progress?.phase4Score,
@@ -171,13 +171,13 @@ class WordListDetailScreen extends ConsumerWidget {
 
 /// Header with gradient and list info
 class _ListHeader extends StatelessWidget {
-  final WordList wordList;
-  final UserWordListProgress? progress;
 
   const _ListHeader({
     required this.wordList,
     this.progress,
   });
+  final WordList wordList;
+  final UserWordListProgress? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -196,7 +196,7 @@ class _ListHeader extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        background: Container(
+        background: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -275,13 +275,13 @@ class _ListHeader extends StatelessWidget {
 
 /// Small stat chip
 class _StatChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
 
   const _StatChip({
     required this.icon,
     required this.label,
   });
+  final IconData icon;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -308,16 +308,6 @@ class _StatChip extends StatelessWidget {
 
 /// Card for a learning phase
 class _PhaseCard extends StatelessWidget {
-  final int phase;
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final bool isComplete;
-  final bool isRecommended;
-  final VoidCallback onTap;
-  final int? score;
-  final int? total;
 
   const _PhaseCard({
     required this.phase,
@@ -331,6 +321,16 @@ class _PhaseCard extends StatelessWidget {
     this.score,
     this.total,
   });
+  final int phase;
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final bool isComplete;
+  final bool isRecommended;
+  final VoidCallback onTap;
+  final int? score;
+  final int? total;
 
   @override
   Widget build(BuildContext context) {

@@ -6,19 +6,19 @@ import '../../repositories/activity_repository.dart';
 import '../usecase.dart';
 
 class GetBestResultParams {
-  final String userId;
-  final String activityId;
 
   const GetBestResultParams({
     required this.userId,
     required this.activityId,
   });
+  final String userId;
+  final String activityId;
 }
 
 class GetBestResultUseCase implements UseCase<ActivityResult?, GetBestResultParams> {
-  final ActivityRepository _repository;
 
   const GetBestResultUseCase(this._repository);
+  final ActivityRepository _repository;
 
   @override
   Future<Either<Failure, ActivityResult?>> call(GetBestResultParams params) {

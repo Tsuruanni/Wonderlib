@@ -53,7 +53,7 @@ final studentAssignmentDetailProvider = FutureProvider.family<StudentAssignment?
     final result = await useCase(GetStudentAssignmentDetailParams(
       studentId: userId,
       assignmentId: assignmentId,
-    ));
+    ),);
 
     return result.fold(
       (failure) => null,
@@ -68,6 +68,6 @@ final pendingAssignmentCountProvider = FutureProvider<int>((ref) async {
   return assignments.where((a) =>
     a.status == StudentAssignmentStatus.pending ||
     a.status == StudentAssignmentStatus.inProgress ||
-    a.status == StudentAssignmentStatus.overdue
+    a.status == StudentAssignmentStatus.overdue,
   ).length;
 });

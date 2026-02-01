@@ -10,8 +10,6 @@ import 'interceptors/logging_interceptor.dart';
 /// API client wrapper for HTTP requests
 /// Uses Dio for standard REST calls, Supabase client for Supabase-specific operations
 class ApiClient {
-  final Dio _dio;
-  final SupabaseClient _supabase;
 
   ApiClient({
     required String baseUrl,
@@ -34,6 +32,8 @@ class ApiClient {
       LoggingInterceptor(),
     ]);
   }
+  final Dio _dio;
+  final SupabaseClient _supabase;
 
   SupabaseClient get supabase => _supabase;
 

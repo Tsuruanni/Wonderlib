@@ -2,18 +2,6 @@ import '../../../domain/entities/chapter.dart';
 
 /// Data model for Chapter - handles JSON serialization
 class ChapterModel {
-  final String id;
-  final String bookId;
-  final String title;
-  final int orderIndex;
-  final String? content;
-  final String? audioUrl;
-  final List<String> imageUrls;
-  final int? wordCount;
-  final int? estimatedMinutes;
-  final List<ChapterVocabularyModel> vocabulary;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const ChapterModel({
     required this.id,
@@ -56,6 +44,37 @@ class ChapterModel {
     );
   }
 
+  factory ChapterModel.fromEntity(Chapter entity) {
+    return ChapterModel(
+      id: entity.id,
+      bookId: entity.bookId,
+      title: entity.title,
+      orderIndex: entity.orderIndex,
+      content: entity.content,
+      audioUrl: entity.audioUrl,
+      imageUrls: entity.imageUrls,
+      wordCount: entity.wordCount,
+      estimatedMinutes: entity.estimatedMinutes,
+      vocabulary: entity.vocabulary
+          .map((v) => ChapterVocabularyModel.fromEntity(v))
+          .toList(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String bookId;
+  final String title;
+  final int orderIndex;
+  final String? content;
+  final String? audioUrl;
+  final List<String> imageUrls;
+  final int? wordCount;
+  final int? estimatedMinutes;
+  final List<ChapterVocabularyModel> vocabulary;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -89,34 +108,10 @@ class ChapterModel {
       updatedAt: updatedAt,
     );
   }
-
-  factory ChapterModel.fromEntity(Chapter entity) {
-    return ChapterModel(
-      id: entity.id,
-      bookId: entity.bookId,
-      title: entity.title,
-      orderIndex: entity.orderIndex,
-      content: entity.content,
-      audioUrl: entity.audioUrl,
-      imageUrls: entity.imageUrls,
-      wordCount: entity.wordCount,
-      estimatedMinutes: entity.estimatedMinutes,
-      vocabulary: entity.vocabulary
-          .map((v) => ChapterVocabularyModel.fromEntity(v))
-          .toList(),
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    );
-  }
 }
 
 /// Data model for ChapterVocabulary
 class ChapterVocabularyModel {
-  final String word;
-  final String? meaning;
-  final String? phonetic;
-  final int? startIndex;
-  final int? endIndex;
 
   const ChapterVocabularyModel({
     required this.word,
@@ -136,6 +131,21 @@ class ChapterVocabularyModel {
     );
   }
 
+  factory ChapterVocabularyModel.fromEntity(ChapterVocabulary entity) {
+    return ChapterVocabularyModel(
+      word: entity.word,
+      meaning: entity.meaning,
+      phonetic: entity.phonetic,
+      startIndex: entity.startIndex,
+      endIndex: entity.endIndex,
+    );
+  }
+  final String word;
+  final String? meaning;
+  final String? phonetic;
+  final int? startIndex;
+  final int? endIndex;
+
   Map<String, dynamic> toJson() {
     return {
       'word': word,
@@ -153,16 +163,6 @@ class ChapterVocabularyModel {
       phonetic: phonetic,
       startIndex: startIndex,
       endIndex: endIndex,
-    );
-  }
-
-  factory ChapterVocabularyModel.fromEntity(ChapterVocabulary entity) {
-    return ChapterVocabularyModel(
-      word: entity.word,
-      meaning: entity.meaning,
-      phonetic: entity.phonetic,
-      startIndex: entity.startIndex,
-      endIndex: entity.endIndex,
     );
   }
 }

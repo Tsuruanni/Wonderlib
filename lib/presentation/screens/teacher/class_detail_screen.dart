@@ -559,13 +559,13 @@ class _StudentCard extends ConsumerWidget {
                   labelText: 'Select New Class',
                   border: OutlineInputBorder(),
                 ),
-                value: selectedClassId,
+                initialValue: selectedClassId,
                 items: classesAsync
                     .where((c) => c.id != classId) // Exclude current class
                     .map((c) => DropdownMenuItem(
                           value: c.id,
                           child: Text(c.name),
-                        ))
+                        ),)
                     .toList(),
                 onChanged: (value) {
                   setState(() => selectedClassId = value);
@@ -598,7 +598,7 @@ class _StudentCard extends ConsumerWidget {
     final result = await useCase(ChangeStudentClassParams(
       studentId: student.id,
       newClassId: newClassId,
-    ));
+    ),);
 
     if (!context.mounted) return;
 

@@ -6,16 +6,16 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class GetDueForReviewParams {
-  final String userId;
 
   const GetDueForReviewParams({required this.userId});
+  final String userId;
 }
 
 class GetDueForReviewUseCase
     implements UseCase<List<VocabularyWord>, GetDueForReviewParams> {
-  final VocabularyRepository _repository;
 
   const GetDueForReviewUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyWord>>> call(GetDueForReviewParams params) {

@@ -51,7 +51,7 @@ class _TrueFalseActivityState extends State<TrueFalseActivity>
     if (widget.isCompleted) {
       _isAnswered = true;
       _isCorrect = widget.wasCorrect;
-      _selectedAnswer = widget.wasCorrect == true
+      _selectedAnswer = widget.wasCorrect ?? false
           ? content.correctAnswer
           : !content.correctAnswer;
     }

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
-import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/usecase.dart';
@@ -41,15 +40,15 @@ final currentUserIdProvider = Provider<String?>((ref) {
 
 /// Auth controller state
 class AuthState {
-  final bool isLoading;
-  final String? error;
-  final User? user;
 
   const AuthState({
     this.isLoading = false,
     this.error,
     this.user,
   });
+  final bool isLoading;
+  final String? error;
+  final User? user;
 
   AuthState copyWith({
     bool? isLoading,
@@ -66,9 +65,9 @@ class AuthState {
 
 /// Auth controller for login/logout operations
 class AuthController extends StateNotifier<AuthState> {
-  final Ref _ref;
 
   AuthController(this._ref) : super(const AuthState());
+  final Ref _ref;
 
   /// Sign in with student number (globally unique)
   Future<bool> signInWithStudentNumber({
@@ -81,7 +80,7 @@ class AuthController extends StateNotifier<AuthState> {
     final result = await useCase(SignInWithStudentNumberParams(
       studentNumber: studentNumber,
       password: password,
-    ));
+    ),);
 
     return result.fold(
       (failure) {
@@ -106,7 +105,7 @@ class AuthController extends StateNotifier<AuthState> {
     final result = await useCase(SignInWithEmailParams(
       email: email,
       password: password,
-    ));
+    ),);
 
     return result.fold(
       (failure) {

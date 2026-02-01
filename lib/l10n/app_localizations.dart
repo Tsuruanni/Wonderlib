@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 /// Simple localization support
 /// For full l10n setup, use Flutter's built-in localization with .arb files
 class AppLocalizations {
-  final Locale locale;
 
   AppLocalizations(this.locale);
+  final Locale locale;
 
   static AppLocalizations of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations) ??

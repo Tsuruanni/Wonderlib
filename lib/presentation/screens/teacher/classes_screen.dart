@@ -179,7 +179,7 @@ class ClassesScreen extends ConsumerWidget {
       schoolId: user.schoolId,
       name: name,
       description: description,
-    ));
+    ),);
 
     if (!context.mounted) return;
 

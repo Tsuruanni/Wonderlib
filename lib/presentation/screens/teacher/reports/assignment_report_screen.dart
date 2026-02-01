@@ -143,7 +143,7 @@ class AssignmentReportScreen extends ConsumerWidget {
                 ...assignments.map((assignment) => _AssignmentReportCard(
                   assignment: assignment,
                   onTap: () => context.push('/teacher/assignments/${assignment.id}'),
-                )),
+                ),),
               ],
             );
           },

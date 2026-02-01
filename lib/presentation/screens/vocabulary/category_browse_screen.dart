@@ -8,9 +8,9 @@ import '../../providers/vocabulary_provider.dart';
 
 /// Screen to browse word lists in a specific category
 class CategoryBrowseScreen extends ConsumerWidget {
-  final String categoryName;
 
   const CategoryBrowseScreen({super.key, required this.categoryName});
+  final String categoryName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,13 +62,13 @@ class CategoryBrowseScreen extends ConsumerWidget {
 }
 
 class _WordListCard extends StatelessWidget {
-  final WordList wordList;
-  final UserWordListProgress? progress;
 
   const _WordListCard({
     required this.wordList,
     this.progress,
   });
+  final WordList wordList;
+  final UserWordListProgress? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -168,9 +168,9 @@ class _WordListCard extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  final WordListCategory category;
 
   const _EmptyState({required this.category});
+  final WordListCategory category;
 
   @override
   Widget build(BuildContext context) {

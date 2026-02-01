@@ -1,18 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class Chapter extends Equatable {
-  final String id;
-  final String bookId;
-  final String title;
-  final int orderIndex;
-  final String? content;
-  final String? audioUrl;
-  final List<String> imageUrls;
-  final int? wordCount;
-  final int? estimatedMinutes;
-  final List<ChapterVocabulary> vocabulary;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const Chapter({
     required this.id,
@@ -28,6 +16,18 @@ class Chapter extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String bookId;
+  final String title;
+  final int orderIndex;
+  final String? content;
+  final String? audioUrl;
+  final List<String> imageUrls;
+  final int? wordCount;
+  final int? estimatedMinutes;
+  final List<ChapterVocabulary> vocabulary;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasContent => content != null && content!.isNotEmpty;
@@ -62,11 +62,6 @@ class Chapter extends Equatable {
 
 /// Vocabulary word embedded in chapter
 class ChapterVocabulary extends Equatable {
-  final String word;
-  final String? meaning;
-  final String? phonetic;
-  final int? startIndex; // Position in content
-  final int? endIndex;
 
   const ChapterVocabulary({
     required this.word,
@@ -75,6 +70,11 @@ class ChapterVocabulary extends Equatable {
     this.startIndex,
     this.endIndex,
   });
+  final String word;
+  final String? meaning;
+  final String? phonetic;
+  final int? startIndex; // Position in content
+  final int? endIndex;
 
   @override
   List<Object?> get props => [word, meaning, phonetic, startIndex, endIndex];

@@ -6,20 +6,20 @@ import '../../repositories/word_list_repository.dart';
 import '../usecase.dart';
 
 class GetUserWordListProgressParams {
-  final String userId;
 
   const GetUserWordListProgressParams({required this.userId});
+  final String userId;
 }
 
 class GetUserWordListProgressUseCase
     implements UseCase<List<UserWordListProgress>, GetUserWordListProgressParams> {
-  final WordListRepository _repository;
 
   const GetUserWordListProgressUseCase(this._repository);
+  final WordListRepository _repository;
 
   @override
   Future<Either<Failure, List<UserWordListProgress>>> call(
-      GetUserWordListProgressParams params) {
+      GetUserWordListProgressParams params,) {
     return _repository.getUserWordListProgress(params.userId);
   }
 }

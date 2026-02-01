@@ -5,10 +5,6 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class SaveInlineActivityResultParams {
-  final String userId;
-  final String activityId;
-  final bool isCorrect;
-  final int xpEarned;
 
   const SaveInlineActivityResultParams({
     required this.userId,
@@ -16,15 +12,19 @@ class SaveInlineActivityResultParams {
     required this.isCorrect,
     required this.xpEarned,
   });
+  final String userId;
+  final String activityId;
+  final bool isCorrect;
+  final int xpEarned;
 }
 
 /// Saves inline activity result and returns whether this is a NEW completion.
 /// Returns `Right(true)` if newly completed, `Right(false)` if already existed.
 class SaveInlineActivityResultUseCase
     implements UseCase<bool, SaveInlineActivityResultParams> {
-  final BookRepository _repository;
 
   const SaveInlineActivityResultUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, bool>> call(SaveInlineActivityResultParams params) {

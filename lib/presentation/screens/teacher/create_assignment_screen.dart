@@ -302,7 +302,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 }
 
                 return DropdownButtonFormField<String>(
-                  value: _selectedClassId,
+                  initialValue: _selectedClassId,
                   decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Select a class',

@@ -19,14 +19,14 @@ import '../../widgets/reader/reader_settings_sheet.dart';
 import '../../widgets/reader/vocabulary_popup.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
-  final String bookId;
-  final String chapterId;
 
   const ReaderScreen({
     super.key,
     required this.bookId,
     required this.chapterId,
   });
+  final String bookId;
+  final String chapterId;
 
   @override
   ConsumerState<ReaderScreen> createState() => _ReaderScreenState();
@@ -67,14 +67,22 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   Future<void> _updateCurrentChapter() async {
     final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('Cannot update chapter: No user logged in');
+      return;
+    }
 
     final useCase = ref.read(updateCurrentChapterUseCaseProvider);
-    await useCase(UpdateCurrentChapterParams(
+    final result = await useCase(UpdateCurrentChapterParams(
       userId: userId,
       bookId: widget.bookId,
       chapterId: widget.chapterId,
-    ));
+    ),);
+
+    result.fold(
+      (failure) => debugPrint('Failed to update current chapter: ${failure.message}'),
+      (_) => debugPrint('Reading progress updated for chapter: ${widget.chapterId}'),
+    );
   }
 
   @override
@@ -89,15 +97,23 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (readingTime <= 0) return;
 
     final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('Cannot save reading time: No user logged in');
+      return;
+    }
 
     final useCase = ref.read(saveReadingProgressUseCaseProvider);
-    await useCase(SaveReadingProgressParams(
+    final result = await useCase(SaveReadingProgressParams(
       userId: userId,
       bookId: widget.bookId,
       chapterId: widget.chapterId,
       additionalReadingTime: readingTime,
     ),);
+
+    result.fold(
+      (failure) => debugPrint('Failed to save reading time: ${failure.message}'),
+      (_) => debugPrint('Saved $readingTime seconds of reading time'),
+    );
   }
 
   @override
@@ -173,7 +189,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final result = await addWordUseCase(AddWordToVocabularyParams(
       userId: userId,
       wordId: wordData.id,
-    ));
+    ),);
 
     if (mounted) {
       result.fold(

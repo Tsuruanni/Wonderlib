@@ -10,21 +10,23 @@ abstract class NetworkInfo {
 }
 
 class NetworkInfoImpl implements NetworkInfo {
-  final Connectivity _connectivity;
 
   NetworkInfoImpl({Connectivity? connectivity})
       : _connectivity = connectivity ?? Connectivity();
+  final Connectivity _connectivity;
 
   @override
   Future<bool> get isConnected async {
-    final result = await _connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
+    final results = await _connectivity.checkConnectivity();
+    // connectivity_plus 6.x returns List<ConnectivityResult>
+    return results.any((result) => result != ConnectivityResult.none);
   }
 
   @override
   Stream<bool> get onConnectivityChanged {
     return _connectivity.onConnectivityChanged.map(
-      (result) => result != ConnectivityResult.none,
+      // connectivity_plus 6.x emits List<ConnectivityResult>
+      (results) => results.any((result) => result != ConnectivityResult.none),
     );
   }
 }

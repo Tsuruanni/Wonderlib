@@ -6,16 +6,16 @@ import '../../repositories/word_list_repository.dart';
 import '../usecase.dart';
 
 class GetWordsForListParams {
-  final String listId;
 
   const GetWordsForListParams({required this.listId});
+  final String listId;
 }
 
 class GetWordsForListUseCase
     implements UseCase<List<VocabularyWord>, GetWordsForListParams> {
-  final WordListRepository _repository;
 
   const GetWordsForListUseCase(this._repository);
+  final WordListRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyWord>>> call(GetWordsForListParams params) {

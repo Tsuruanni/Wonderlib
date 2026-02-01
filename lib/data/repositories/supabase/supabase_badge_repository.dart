@@ -189,27 +189,20 @@ class SupabaseBadgeRepository implements BadgeRepository {
         switch (badge.conditionType) {
           case BadgeConditionType.xpTotal:
             canEarn = xp >= badge.conditionValue;
-            break;
           case BadgeConditionType.streakDays:
             canEarn = currentStreak >= badge.conditionValue;
-            break;
           case BadgeConditionType.booksCompleted:
             canEarn = booksCount >= badge.conditionValue;
-            break;
           case BadgeConditionType.vocabularyLearned:
             canEarn = vocabCount >= badge.conditionValue;
-            break;
           case BadgeConditionType.perfectScores:
             canEarn = perfectCount >= badge.conditionValue;
-            break;
           case BadgeConditionType.levelCompleted:
             // Check if user completed specific level
             canEarn = false; // Would need more complex logic
-            break;
           case BadgeConditionType.dailyLogin:
             // Special handling needed
             canEarn = false;
-            break;
         }
 
         if (canEarn) {

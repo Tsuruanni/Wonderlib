@@ -167,7 +167,7 @@ class _PendingAssignmentsSection extends ConsumerWidget {
             ...displayAssignments.map((assignment) => _AssignmentCard(
               assignment: assignment,
               onTap: () => context.push('/assignments/${assignment.assignmentId}'),
-            )),
+            ),),
             if (hasMore)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
@@ -286,7 +286,7 @@ class _DailyTasksSection extends ConsumerWidget {
 
     // Daily tasks data
     final tasks = [
-      _DailyTask(
+      const _DailyTask(
         icon: Icons.menu_book,
         title: 'Read for 10 minutes',
         progress: 0.6, // Mock: 6/10 minutes
@@ -302,7 +302,7 @@ class _DailyTasksSection extends ConsumerWidget {
         color: Colors.purple,
         isComplete: dueWords.isEmpty,
       ),
-      _DailyTask(
+      const _DailyTask(
         icon: Icons.quiz,
         title: 'Complete an activity',
         progress: 1.0, // Mock: completed
@@ -352,12 +352,6 @@ class _DailyTasksSection extends ConsumerWidget {
 }
 
 class _DailyTask {
-  final IconData icon;
-  final String title;
-  final double progress;
-  final String progressText;
-  final Color color;
-  final bool isComplete;
 
   const _DailyTask({
     required this.icon,
@@ -367,12 +361,18 @@ class _DailyTask {
     required this.color,
     required this.isComplete,
   });
+  final IconData icon;
+  final String title;
+  final double progress;
+  final String progressText;
+  final Color color;
+  final bool isComplete;
 }
 
 class _DailyTaskCard extends StatelessWidget {
-  final _DailyTask task;
 
   const _DailyTaskCard({required this.task});
+  final _DailyTask task;
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +485,7 @@ class _ContinueReadingSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Container(
+                            child: DecoratedBox(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color: context.colorScheme.surfaceContainerHighest,
@@ -575,7 +575,7 @@ class _RecommendedBooksSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Container(
+                            child: DecoratedBox(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color: context.colorScheme.surfaceContainerHighest,
@@ -634,10 +634,6 @@ class _RecommendedBooksSection extends ConsumerWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
 
   const _StatCard({
     required this.icon,
@@ -645,6 +641,10 @@ class _StatCard extends StatelessWidget {
     required this.value,
     required this.color,
   });
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

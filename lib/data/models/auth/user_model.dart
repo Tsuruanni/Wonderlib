@@ -4,23 +4,6 @@ import '../../../domain/entities/user.dart';
 /// Data model for User - handles JSON serialization
 /// Used by Repository implementations to parse Supabase responses
 class UserModel {
-  final String id;
-  final String schoolId;
-  final String? classId;
-  final UserRole role;
-  final String? studentNumber;
-  final String firstName;
-  final String lastName;
-  final String? email;
-  final String? avatarUrl;
-  final int xp;
-  final int level;
-  final int currentStreak;
-  final int longestStreak;
-  final DateTime? lastActivityDate;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const UserModel({
     required this.id,
@@ -67,6 +50,46 @@ class UserModel {
     );
   }
 
+  /// Create from domain Entity
+  factory UserModel.fromEntity(User entity) {
+    return UserModel(
+      id: entity.id,
+      schoolId: entity.schoolId,
+      classId: entity.classId,
+      role: entity.role,
+      studentNumber: entity.studentNumber,
+      firstName: entity.firstName,
+      lastName: entity.lastName,
+      email: entity.email,
+      avatarUrl: entity.avatarUrl,
+      xp: entity.xp,
+      level: entity.level,
+      currentStreak: entity.currentStreak,
+      longestStreak: entity.longestStreak,
+      lastActivityDate: entity.lastActivityDate,
+      settings: entity.settings,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String schoolId;
+  final String? classId;
+  final UserRole role;
+  final String? studentNumber;
+  final String firstName;
+  final String lastName;
+  final String? email;
+  final String? avatarUrl;
+  final int xp;
+  final int level;
+  final int currentStreak;
+  final int longestStreak;
+  final DateTime? lastActivityDate;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   /// Convert to JSON for Supabase
   Map<String, dynamic> toJson() {
     return {
@@ -110,29 +133,6 @@ class UserModel {
       settings: settings,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  /// Create from domain Entity
-  factory UserModel.fromEntity(User entity) {
-    return UserModel(
-      id: entity.id,
-      schoolId: entity.schoolId,
-      classId: entity.classId,
-      role: entity.role,
-      studentNumber: entity.studentNumber,
-      firstName: entity.firstName,
-      lastName: entity.lastName,
-      email: entity.email,
-      avatarUrl: entity.avatarUrl,
-      xp: entity.xp,
-      level: entity.level,
-      currentStreak: entity.currentStreak,
-      longestStreak: entity.longestStreak,
-      lastActivityDate: entity.lastActivityDate,
-      settings: entity.settings,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
     );
   }
 

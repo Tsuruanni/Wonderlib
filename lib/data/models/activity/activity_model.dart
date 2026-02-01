@@ -2,16 +2,6 @@ import '../../../domain/entities/activity.dart';
 
 /// Model for Activity entity - handles JSON serialization
 class ActivityModel {
-  final String id;
-  final String chapterId;
-  final String type;
-  final int orderIndex;
-  final String? title;
-  final String? instructions;
-  final List<ActivityQuestionModel> questions;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const ActivityModel({
     required this.id,
@@ -47,6 +37,31 @@ class ActivityModel {
     );
   }
 
+  factory ActivityModel.fromEntity(Activity entity) {
+    return ActivityModel(
+      id: entity.id,
+      chapterId: entity.chapterId,
+      type: _activityTypeToString(entity.type),
+      orderIndex: entity.orderIndex,
+      title: entity.title,
+      instructions: entity.instructions,
+      questions: entity.questions.map((q) => ActivityQuestionModel.fromEntity(q)).toList(),
+      settings: entity.settings,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+  final String id;
+  final String chapterId;
+  final String type;
+  final int orderIndex;
+  final String? title;
+  final String? instructions;
+  final List<ActivityQuestionModel> questions;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -74,21 +89,6 @@ class ActivityModel {
       settings: settings,
       createdAt: createdAt,
       updatedAt: updatedAt,
-    );
-  }
-
-  factory ActivityModel.fromEntity(Activity entity) {
-    return ActivityModel(
-      id: entity.id,
-      chapterId: entity.chapterId,
-      type: _activityTypeToString(entity.type),
-      orderIndex: entity.orderIndex,
-      title: entity.title,
-      instructions: entity.instructions,
-      questions: entity.questions.map((q) => ActivityQuestionModel.fromEntity(q)).toList(),
-      settings: entity.settings,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
     );
   }
 
@@ -131,13 +131,6 @@ class ActivityModel {
 
 /// Model for ActivityQuestion entity
 class ActivityQuestionModel {
-  final String id;
-  final String question;
-  final List<String> options;
-  final dynamic correctAnswer;
-  final String? explanation;
-  final String? imageUrl;
-  final int points;
 
   const ActivityQuestionModel({
     required this.id,
@@ -161,6 +154,25 @@ class ActivityQuestionModel {
     );
   }
 
+  factory ActivityQuestionModel.fromEntity(ActivityQuestion entity) {
+    return ActivityQuestionModel(
+      id: entity.id,
+      question: entity.question,
+      options: entity.options,
+      correctAnswer: entity.correctAnswer,
+      explanation: entity.explanation,
+      imageUrl: entity.imageUrl,
+      points: entity.points,
+    );
+  }
+  final String id;
+  final String question;
+  final List<String> options;
+  final dynamic correctAnswer;
+  final String? explanation;
+  final String? imageUrl;
+  final int points;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -182,18 +194,6 @@ class ActivityQuestionModel {
       explanation: explanation,
       imageUrl: imageUrl,
       points: points,
-    );
-  }
-
-  factory ActivityQuestionModel.fromEntity(ActivityQuestion entity) {
-    return ActivityQuestionModel(
-      id: entity.id,
-      question: entity.question,
-      options: entity.options,
-      correctAnswer: entity.correctAnswer,
-      explanation: entity.explanation,
-      imageUrl: entity.imageUrl,
-      points: entity.points,
     );
   }
 }

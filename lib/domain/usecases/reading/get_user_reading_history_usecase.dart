@@ -6,16 +6,16 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetUserReadingHistoryParams {
-  final String userId;
 
   const GetUserReadingHistoryParams({required this.userId});
+  final String userId;
 }
 
 class GetUserReadingHistoryUseCase
     implements UseCase<List<ReadingProgress>, GetUserReadingHistoryParams> {
-  final BookRepository _repository;
 
   const GetUserReadingHistoryUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, List<ReadingProgress>>> call(

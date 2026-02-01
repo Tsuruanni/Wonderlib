@@ -30,7 +30,7 @@ final leaderboardProvider = FutureProvider.family<List<User>, LeaderboardParams?
     schoolId: params?.schoolId,
     classId: params?.classId,
     limit: params?.limit ?? 10,
-  ));
+  ),);
   return result.fold(
     (failure) => [],
     (users) => users,
@@ -52,20 +52,19 @@ final classmatesProvider = FutureProvider<List<User>>((ref) async {
 
 /// Leaderboard params
 class LeaderboardParams {
-  final String? schoolId;
-  final String? classId;
-  final int limit;
 
   const LeaderboardParams({
     this.schoolId,
     this.classId,
     this.limit = 10,
   });
+  final String? schoolId;
+  final String? classId;
+  final int limit;
 }
 
 /// User controller for XP and streak updates
 class UserController extends StateNotifier<AsyncValue<User?>> {
-  final Ref _ref;
 
   UserController(this._ref) : super(const AsyncValue.loading()) {
     // Watch auth state changes and reload user when it changes
@@ -80,8 +79,9 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         // User logged out
         state = const AsyncValue.data(null);
       }
-    }, fireImmediately: true);
+    }, fireImmediately: true,);
   }
+  final Ref _ref;
 
   Future<void> _loadUserById(String userId) async {
     state = const AsyncValue.loading();

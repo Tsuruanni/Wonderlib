@@ -2,16 +2,6 @@ import '../../../domain/entities/vocabulary.dart';
 
 /// Model for VocabularyProgress entity - handles JSON serialization
 class VocabularyProgressModel {
-  final String id;
-  final String userId;
-  final String wordId;
-  final String status;
-  final double easeFactor;
-  final int intervalDays;
-  final int repetitions;
-  final DateTime? nextReviewAt;
-  final DateTime? lastReviewedAt;
-  final DateTime createdAt;
 
   const VocabularyProgressModel({
     required this.id,
@@ -44,6 +34,31 @@ class VocabularyProgressModel {
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
+
+  factory VocabularyProgressModel.fromEntity(VocabularyProgress entity) {
+    return VocabularyProgressModel(
+      id: entity.id,
+      userId: entity.userId,
+      wordId: entity.wordId,
+      status: statusToString(entity.status),
+      easeFactor: entity.easeFactor,
+      intervalDays: entity.intervalDays,
+      repetitions: entity.repetitions,
+      nextReviewAt: entity.nextReviewAt,
+      lastReviewedAt: entity.lastReviewedAt,
+      createdAt: entity.createdAt,
+    );
+  }
+  final String id;
+  final String userId;
+  final String wordId;
+  final String status;
+  final double easeFactor;
+  final int intervalDays;
+  final int repetitions;
+  final DateTime? nextReviewAt;
+  final DateTime? lastReviewedAt;
+  final DateTime createdAt;
 
   Map<String, dynamic> toJson() {
     return {
@@ -86,21 +101,6 @@ class VocabularyProgressModel {
       nextReviewAt: nextReviewAt,
       lastReviewedAt: lastReviewedAt,
       createdAt: createdAt,
-    );
-  }
-
-  factory VocabularyProgressModel.fromEntity(VocabularyProgress entity) {
-    return VocabularyProgressModel(
-      id: entity.id,
-      userId: entity.userId,
-      wordId: entity.wordId,
-      status: statusToString(entity.status),
-      easeFactor: entity.easeFactor,
-      intervalDays: entity.intervalDays,
-      repetitions: entity.repetitions,
-      nextReviewAt: entity.nextReviewAt,
-      lastReviewedAt: entity.lastReviewedAt,
-      createdAt: entity.createdAt,
     );
   }
 

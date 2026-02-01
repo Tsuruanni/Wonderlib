@@ -6,15 +6,15 @@ import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
 class UpdateStreakParams {
-  final String userId;
 
   const UpdateStreakParams({required this.userId});
+  final String userId;
 }
 
 class UpdateStreakUseCase implements UseCase<User, UpdateStreakParams> {
-  final UserRepository _repository;
 
   const UpdateStreakUseCase(this._repository);
+  final UserRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(UpdateStreakParams params) {

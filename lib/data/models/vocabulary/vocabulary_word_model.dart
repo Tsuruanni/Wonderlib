@@ -2,19 +2,6 @@ import '../../../domain/entities/vocabulary.dart';
 
 /// Model for VocabularyWord entity - handles JSON serialization
 class VocabularyWordModel {
-  final String id;
-  final String word;
-  final String? phonetic;
-  final String meaningTR;
-  final String? meaningEN;
-  final List<String> exampleSentences;
-  final String? audioUrl;
-  final String? imageUrl;
-  final String? level;
-  final List<String> categories;
-  final List<String> synonyms;
-  final List<String> antonyms;
-  final DateTime createdAt;
 
   const VocabularyWordModel({
     required this.id,
@@ -50,6 +37,37 @@ class VocabularyWordModel {
     );
   }
 
+  factory VocabularyWordModel.fromEntity(VocabularyWord entity) {
+    return VocabularyWordModel(
+      id: entity.id,
+      word: entity.word,
+      phonetic: entity.phonetic,
+      meaningTR: entity.meaningTR,
+      meaningEN: entity.meaningEN,
+      exampleSentences: entity.exampleSentences,
+      audioUrl: entity.audioUrl,
+      imageUrl: entity.imageUrl,
+      level: entity.level,
+      categories: entity.categories,
+      synonyms: entity.synonyms,
+      antonyms: entity.antonyms,
+      createdAt: entity.createdAt,
+    );
+  }
+  final String id;
+  final String word;
+  final String? phonetic;
+  final String meaningTR;
+  final String? meaningEN;
+  final List<String> exampleSentences;
+  final String? audioUrl;
+  final String? imageUrl;
+  final String? level;
+  final List<String> categories;
+  final List<String> synonyms;
+  final List<String> antonyms;
+  final DateTime createdAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -83,24 +101,6 @@ class VocabularyWordModel {
       synonyms: synonyms,
       antonyms: antonyms,
       createdAt: createdAt,
-    );
-  }
-
-  factory VocabularyWordModel.fromEntity(VocabularyWord entity) {
-    return VocabularyWordModel(
-      id: entity.id,
-      word: entity.word,
-      phonetic: entity.phonetic,
-      meaningTR: entity.meaningTR,
-      meaningEN: entity.meaningEN,
-      exampleSentences: entity.exampleSentences,
-      audioUrl: entity.audioUrl,
-      imageUrl: entity.imageUrl,
-      level: entity.level,
-      categories: entity.categories,
-      synonyms: entity.synonyms,
-      antonyms: entity.antonyms,
-      createdAt: entity.createdAt,
     );
   }
 

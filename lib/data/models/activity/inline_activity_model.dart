@@ -2,12 +2,6 @@ import '../../../domain/entities/activity.dart';
 
 /// Model for InlineActivity entity - handles JSON serialization
 class InlineActivityModel {
-  final String id;
-  final String type;
-  final int afterParagraphIndex;
-  final Map<String, dynamic> content;
-  final int xpReward;
-  final List<String> vocabularyWords;
 
   const InlineActivityModel({
     required this.id,
@@ -32,6 +26,23 @@ class InlineActivityModel {
     );
   }
 
+  factory InlineActivityModel.fromEntity(InlineActivity entity) {
+    return InlineActivityModel(
+      id: entity.id,
+      type: _inlineActivityTypeToString(entity.type),
+      afterParagraphIndex: entity.afterParagraphIndex,
+      content: _contentToJson(entity.type, entity.content),
+      xpReward: entity.xpReward,
+      vocabularyWords: entity.vocabularyWords,
+    );
+  }
+  final String id;
+  final String type;
+  final int afterParagraphIndex;
+  final Map<String, dynamic> content;
+  final int xpReward;
+  final List<String> vocabularyWords;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -51,17 +62,6 @@ class InlineActivityModel {
       content: _parseContent(type, content),
       xpReward: xpReward,
       vocabularyWords: vocabularyWords,
-    );
-  }
-
-  factory InlineActivityModel.fromEntity(InlineActivity entity) {
-    return InlineActivityModel(
-      id: entity.id,
-      type: _inlineActivityTypeToString(entity.type),
-      afterParagraphIndex: entity.afterParagraphIndex,
-      content: _contentToJson(entity.type, entity.content),
-      xpReward: entity.xpReward,
-      vocabularyWords: entity.vocabularyWords,
     );
   }
 
@@ -110,7 +110,7 @@ class InlineActivityModel {
               (json['correct_answers'] as List<dynamic>?)?.map((a) => a as String).toList() ?? [],
         );
       default:
-        return TrueFalseContent(
+        return const TrueFalseContent(
           statement: '',
           correctAnswer: true,
         );
@@ -145,11 +145,6 @@ class InlineActivityModel {
 
 /// Model for InlineActivityResult entity - handles JSON serialization
 class InlineActivityResultModel {
-  final String activityId;
-  final bool isCorrect;
-  final int xpEarned;
-  final List<String> wordsLearned;
-  final DateTime answeredAt;
 
   const InlineActivityResultModel({
     required this.activityId,
@@ -170,6 +165,21 @@ class InlineActivityResultModel {
     );
   }
 
+  factory InlineActivityResultModel.fromEntity(InlineActivityResult entity) {
+    return InlineActivityResultModel(
+      activityId: entity.activityId,
+      isCorrect: entity.isCorrect,
+      xpEarned: entity.xpEarned,
+      wordsLearned: entity.wordsLearned,
+      answeredAt: entity.answeredAt,
+    );
+  }
+  final String activityId;
+  final bool isCorrect;
+  final int xpEarned;
+  final List<String> wordsLearned;
+  final DateTime answeredAt;
+
   Map<String, dynamic> toJson() {
     return {
       'activity_id': activityId,
@@ -187,16 +197,6 @@ class InlineActivityResultModel {
       xpEarned: xpEarned,
       wordsLearned: wordsLearned,
       answeredAt: answeredAt,
-    );
-  }
-
-  factory InlineActivityResultModel.fromEntity(InlineActivityResult entity) {
-    return InlineActivityResultModel(
-      activityId: entity.activityId,
-      isCorrect: entity.isCorrect,
-      xpEarned: entity.xpEarned,
-      wordsLearned: entity.wordsLearned,
-      answeredAt: entity.answeredAt,
     );
   }
 }

@@ -51,7 +51,7 @@ class CollapsibleReaderHeader extends StatelessWidget {
 
         final isCollapsed = collapseProgress > 0.7;
 
-        return Container(
+        return ColoredBox(
           color: backgroundColor,
           child: SafeArea(
             bottom: false,

@@ -28,14 +28,14 @@ abstract class StorageService {
 }
 
 class StorageServiceImpl implements StorageService {
-  final FlutterSecureStorage _secureStorage;
-  final SharedPreferences _prefs;
 
   StorageServiceImpl({
     required FlutterSecureStorage secureStorage,
     required SharedPreferences prefs,
   })  : _secureStorage = secureStorage,
         _prefs = prefs;
+  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
 
   // Secure storage
   @override

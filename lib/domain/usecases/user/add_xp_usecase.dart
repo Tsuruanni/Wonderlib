@@ -6,19 +6,19 @@ import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
 class AddXPParams {
-  final String userId;
-  final int amount;
 
   const AddXPParams({
     required this.userId,
     required this.amount,
   });
+  final String userId;
+  final int amount;
 }
 
 class AddXPUseCase implements UseCase<User, AddXPParams> {
-  final UserRepository _repository;
 
   const AddXPUseCase(this._repository);
+  final UserRepository _repository;
 
   @override
   Future<Either<Failure, User>> call(AddXPParams params) {

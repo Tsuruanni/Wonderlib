@@ -2,10 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for TeacherStats - handles JSON serialization
 class TeacherStatsModel {
-  final int totalStudents;
-  final int totalClasses;
-  final int activeAssignments;
-  final double avgProgress;
 
   const TeacherStatsModel({
     required this.totalStudents,
@@ -23,6 +19,19 @@ class TeacherStatsModel {
     );
   }
 
+  factory TeacherStatsModel.fromEntity(TeacherStats entity) {
+    return TeacherStatsModel(
+      totalStudents: entity.totalStudents,
+      totalClasses: entity.totalClasses,
+      activeAssignments: entity.activeAssignments,
+      avgProgress: entity.avgProgress,
+    );
+  }
+  final int totalStudents;
+  final int totalClasses;
+  final int activeAssignments;
+  final double avgProgress;
+
   Map<String, dynamic> toJson() {
     return {
       'total_students': totalStudents,
@@ -38,15 +47,6 @@ class TeacherStatsModel {
       totalClasses: totalClasses,
       activeAssignments: activeAssignments,
       avgProgress: avgProgress,
-    );
-  }
-
-  factory TeacherStatsModel.fromEntity(TeacherStats entity) {
-    return TeacherStatsModel(
-      totalStudents: entity.totalStudents,
-      totalClasses: entity.totalClasses,
-      activeAssignments: entity.activeAssignments,
-      avgProgress: entity.avgProgress,
     );
   }
 }

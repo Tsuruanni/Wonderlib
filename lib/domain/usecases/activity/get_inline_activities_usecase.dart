@@ -6,16 +6,16 @@ import '../../repositories/book_repository.dart';
 import '../usecase.dart';
 
 class GetInlineActivitiesParams {
-  final String chapterId;
 
   const GetInlineActivitiesParams({required this.chapterId});
+  final String chapterId;
 }
 
 class GetInlineActivitiesUseCase
     implements UseCase<List<InlineActivity>, GetInlineActivitiesParams> {
-  final BookRepository _repository;
 
   const GetInlineActivitiesUseCase(this._repository);
+  final BookRepository _repository;
 
   @override
   Future<Either<Failure, List<InlineActivity>>> call(GetInlineActivitiesParams params) {

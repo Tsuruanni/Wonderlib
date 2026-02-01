@@ -2,13 +2,6 @@ import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for TeacherClass - handles JSON serialization
 class TeacherClassModel {
-  final String id;
-  final String name;
-  final int? grade;
-  final String? academicYear;
-  final int studentCount;
-  final double avgProgress;
-  final DateTime? createdAt;
 
   const TeacherClassModel({
     required this.id,
@@ -34,6 +27,25 @@ class TeacherClassModel {
     );
   }
 
+  factory TeacherClassModel.fromEntity(TeacherClass entity) {
+    return TeacherClassModel(
+      id: entity.id,
+      name: entity.name,
+      grade: entity.grade,
+      academicYear: entity.academicYear,
+      studentCount: entity.studentCount,
+      avgProgress: entity.avgProgress,
+      createdAt: entity.createdAt,
+    );
+  }
+  final String id;
+  final String name;
+  final int? grade;
+  final String? academicYear;
+  final int studentCount;
+  final double avgProgress;
+  final DateTime? createdAt;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -55,18 +67,6 @@ class TeacherClassModel {
       studentCount: studentCount,
       avgProgress: avgProgress,
       createdAt: createdAt,
-    );
-  }
-
-  factory TeacherClassModel.fromEntity(TeacherClass entity) {
-    return TeacherClassModel(
-      id: entity.id,
-      name: entity.name,
-      grade: entity.grade,
-      academicYear: entity.academicYear,
-      studentCount: entity.studentCount,
-      avgProgress: entity.avgProgress,
-      createdAt: entity.createdAt,
     );
   }
 }

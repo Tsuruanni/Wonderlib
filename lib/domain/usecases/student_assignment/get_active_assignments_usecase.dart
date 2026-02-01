@@ -5,17 +5,17 @@ import '../../repositories/student_assignment_repository.dart';
 import '../usecase.dart';
 
 class GetActiveAssignmentsParams {
-  final String studentId;
 
   const GetActiveAssignmentsParams({required this.studentId});
+  final String studentId;
 }
 
 /// Gets active (current) assignments for a student
 class GetActiveAssignmentsUseCase
     implements UseCase<List<StudentAssignment>, GetActiveAssignmentsParams> {
-  final StudentAssignmentRepository _repository;
 
   const GetActiveAssignmentsUseCase(this._repository);
+  final StudentAssignmentRepository _repository;
 
   @override
   Future<Either<Failure, List<StudentAssignment>>> call(GetActiveAssignmentsParams params) {

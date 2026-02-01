@@ -101,9 +101,9 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
 }
 
 class _StatsCard extends StatelessWidget {
-  final VocabularyStats stats;
 
   const _StatsCard({required this.stats});
+  final VocabularyStats stats;
 
   @override
   Widget build(BuildContext context) {
@@ -169,13 +169,13 @@ class _StatsCard extends StatelessWidget {
 }
 
 class _WordListView extends StatelessWidget {
-  final List<UserVocabularyItem> words;
-  final String emptyMessage;
 
   const _WordListView({
     required this.words,
     this.emptyMessage = 'No words found',
   });
+  final List<UserVocabularyItem> words;
+  final String emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -203,9 +203,9 @@ class _WordListView extends StatelessWidget {
 }
 
 class _WordCard extends StatelessWidget {
-  final UserVocabularyItem item;
 
   const _WordCard({required this.item});
+  final UserVocabularyItem item;
 
   @override
   Widget build(BuildContext context) {
@@ -244,9 +244,9 @@ class _WordCard extends StatelessWidget {
 }
 
 class _StatusIndicator extends StatelessWidget {
-  final VocabularyStatus status;
 
   const _StatusIndicator({required this.status});
+  final VocabularyStatus status;
 
   @override
   Widget build(BuildContext context) {
@@ -266,9 +266,9 @@ class _StatusIndicator extends StatelessWidget {
 }
 
 class _WordDetailSheet extends StatelessWidget {
-  final VocabularyWord word;
 
   const _WordDetailSheet({required this.word});
+  final VocabularyWord word;
 
   @override
   Widget build(BuildContext context) {
@@ -370,7 +370,7 @@ class _WordDetailSheet extends StatelessWidget {
                             label: Text(cat),
                             backgroundColor: context.colorScheme.secondaryContainer,
                           ),
-                        )),
+                        ),),
                   ],
                 ),
               ],
@@ -383,10 +383,10 @@ class _WordDetailSheet extends StatelessWidget {
 }
 
 class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
 
   const _DetailRow({required this.label, required this.value});
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
@@ -421,9 +421,9 @@ class _DetailRow extends StatelessWidget {
 // ============================================
 
 class _FlashcardPracticeScreen extends StatefulWidget {
-  final List<UserVocabularyItem> words;
 
   const _FlashcardPracticeScreen({required this.words});
+  final List<UserVocabularyItem> words;
 
   @override
   State<_FlashcardPracticeScreen> createState() => _FlashcardPracticeScreenState();
@@ -437,7 +437,7 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
 
   UserVocabularyItem get currentWord => widget.words[_currentIndex];
   bool get isComplete => _currentIndex >= widget.words.length;
-  double get progress => (_currentIndex) / widget.words.length;
+  double get progress => _currentIndex / widget.words.length;
 
   void _flipCard() {
     setState(() {
@@ -684,15 +684,15 @@ class _FlashcardPracticeScreenState extends State<_FlashcardPracticeScreen> {
 }
 
 class _ResultStat extends StatelessWidget {
-  final String value;
-  final String label;
-  final Color color;
 
   const _ResultStat({
     required this.value,
     required this.label,
     required this.color,
   });
+  final String value;
+  final String label;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {

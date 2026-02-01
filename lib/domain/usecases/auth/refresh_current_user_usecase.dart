@@ -5,9 +5,9 @@ import '../../repositories/auth_repository.dart';
 import '../usecase.dart';
 
 class RefreshCurrentUserUseCase implements UseCase<void, NoParams> {
-  final AuthRepository _repository;
 
   const RefreshCurrentUserUseCase(this._repository);
+  final AuthRepository _repository;
 
   @override
   Future<Either<Failure, void>> call(NoParams params) async {

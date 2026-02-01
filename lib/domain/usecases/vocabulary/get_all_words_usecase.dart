@@ -6,10 +6,6 @@ import '../../repositories/vocabulary_repository.dart';
 import '../usecase.dart';
 
 class GetAllWordsParams {
-  final String? level;
-  final List<String>? categories;
-  final int page;
-  final int pageSize;
 
   const GetAllWordsParams({
     this.level,
@@ -17,12 +13,16 @@ class GetAllWordsParams {
     this.page = 1,
     this.pageSize = 50,
   });
+  final String? level;
+  final List<String>? categories;
+  final int page;
+  final int pageSize;
 }
 
 class GetAllWordsUseCase implements UseCase<List<VocabularyWord>, GetAllWordsParams> {
-  final VocabularyRepository _repository;
 
   const GetAllWordsUseCase(this._repository);
+  final VocabularyRepository _repository;
 
   @override
   Future<Either<Failure, List<VocabularyWord>>> call(GetAllWordsParams params) {

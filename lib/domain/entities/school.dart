@@ -3,16 +3,6 @@ import 'package:equatable/equatable.dart';
 enum SchoolStatus { active, trial, suspended }
 
 class School extends Equatable {
-  final String id;
-  final String name;
-  final String code;
-  final String? logoUrl;
-  final SchoolStatus status;
-  final String subscriptionTier;
-  final DateTime? subscriptionExpiresAt;
-  final Map<String, dynamic> settings;
-  final DateTime createdAt;
-  final DateTime updatedAt;
 
   const School({
     required this.id,
@@ -26,6 +16,16 @@ class School extends Equatable {
     required this.createdAt,
     required this.updatedAt,
   });
+  final String id;
+  final String name;
+  final String code;
+  final String? logoUrl;
+  final SchoolStatus status;
+  final String subscriptionTier;
+  final DateTime? subscriptionExpiresAt;
+  final Map<String, dynamic> settings;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   bool get isActive => status == SchoolStatus.active;
   bool get isTrial => status == SchoolStatus.trial;
