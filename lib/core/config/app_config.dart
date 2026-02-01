@@ -159,3 +159,7 @@ class AppConfig {
   /// Enable crash reporting
   static const bool enableCrashReporting = true;
 }
+
+/// Development flag to bypass authentication (for testing)
+/// Set to true to skip login and go directly to home screen
+const bool kDevBypassAuth = false;

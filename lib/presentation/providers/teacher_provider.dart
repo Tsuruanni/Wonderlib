@@ -74,7 +74,9 @@ final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>
 /// Provider for current teacher's classes (convenience wrapper)
 final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
   final user = ref.watch(authStateChangesProvider).valueOrNull;
+  debugPrint('currentTeacherClassesProvider: user=$user, schoolId=${user?.schoolId}');
   if (user == null || user.schoolId.isEmpty) {
+    debugPrint('currentTeacherClassesProvider: returning empty - user or schoolId missing');
     return [];
   }
 

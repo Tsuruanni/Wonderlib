@@ -59,20 +59,27 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, List<TeacherClass>>> getClasses(String schoolId) async {
     try {
+      debugPrint('getClasses: fetching for schoolId=$schoolId');
+
       // Use RPC function to get all class stats in single query (eliminates N+1)
       final response = await _supabase.rpc(
         'get_classes_with_stats',
         params: {'p_school_id': schoolId},
       );
 
+      debugPrint('getClasses: response = $response');
+
       final classes = (response as List)
           .map((data) => TeacherClassModel.fromJson(data).toEntity())
           .toList();
 
+      debugPrint('getClasses: returning ${classes.length} classes');
       return Right(classes);
     } on PostgrestException catch (e) {
+      debugPrint('getClasses: PostgrestException = ${e.message}');
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
+      debugPrint('getClasses: Exception = $e');
       return Left(ServerFailure(e.toString()));
     }
   }

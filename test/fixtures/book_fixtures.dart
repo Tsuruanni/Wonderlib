@@ -1,4 +1,6 @@
 import 'package:readeng/domain/entities/book.dart';
+import 'package:readeng/domain/entities/chapter.dart';
+import 'package:readeng/domain/entities/reading_progress.dart';
 
 /// Test fixtures for Book-related tests
 class BookFixtures {
@@ -200,24 +202,33 @@ class ChapterFixtures {
       ];
 }
 
-/// Test fixtures for ReadingProgress-related tests
+/// Test fixtures for ReadingProgress-related tests (matching ReadingProgressModel)
 class ReadingProgressFixtures {
   ReadingProgressFixtures._();
 
-  /// Valid reading progress JSON
+  /// Valid reading progress JSON (matching actual ReadingProgressModel)
   static Map<String, dynamic> validProgressJson() => {
         'id': 'progress-1',
         'user_id': 'user-123',
         'book_id': 'book-123',
-        'current_chapter_id': 'chapter-2',
-        'current_chapter_index': 2,
-        'completed_chapter_ids': ['chapter-1'],
-        'completion_percentage': 33.3,
-        'total_time_spent': 600,
-        'last_read_at': '2024-01-15T10:30:00Z',
+        'chapter_id': 'chapter-2',
+        'current_page': 5,
         'is_completed': false,
-        'created_at': '2024-01-01T00:00:00Z',
+        'completion_percentage': 33.3,
+        'total_reading_time': 600,
+        'completed_chapter_ids': ['chapter-1'],
+        'started_at': '2024-01-01T00:00:00Z',
+        'completed_at': null,
         'updated_at': '2024-01-15T10:30:00Z',
+      };
+
+  /// Minimal progress JSON
+  static Map<String, dynamic> minimalProgressJson() => {
+        'id': 'progress-minimal',
+        'user_id': 'user-123',
+        'book_id': 'book-123',
+        'started_at': '2024-01-01T00:00:00Z',
+        'updated_at': '2024-01-01T00:00:00Z',
       };
 
   /// Completed book progress JSON
@@ -225,8 +236,11 @@ class ReadingProgressFixtures {
         'id': 'progress-completed',
         'user_id': 'user-123',
         'book_id': 'book-123',
-        'current_chapter_id': 'chapter-10',
-        'current_chapter_index': 10,
+        'chapter_id': 'chapter-10',
+        'current_page': 1,
+        'is_completed': true,
+        'completion_percentage': 100.0,
+        'total_reading_time': 3600,
         'completed_chapter_ids': [
           'chapter-1',
           'chapter-2',
@@ -239,11 +253,8 @@ class ReadingProgressFixtures {
           'chapter-9',
           'chapter-10'
         ],
-        'completion_percentage': 100.0,
-        'total_time_spent': 3600,
-        'last_read_at': '2024-01-15T10:30:00Z',
-        'is_completed': true,
-        'created_at': '2024-01-01T00:00:00Z',
+        'started_at': '2024-01-01T00:00:00Z',
+        'completed_at': '2024-01-15T10:30:00Z',
         'updated_at': '2024-01-15T10:30:00Z',
       };
 
@@ -252,14 +263,112 @@ class ReadingProgressFixtures {
         'id': 'progress-fresh',
         'user_id': 'user-123',
         'book_id': 'book-new',
-        'current_chapter_id': null,
-        'current_chapter_index': 0,
-        'completed_chapter_ids': [],
-        'completion_percentage': 0.0,
-        'total_time_spent': 0,
-        'last_read_at': null,
+        'chapter_id': null,
+        'current_page': 1,
         'is_completed': false,
-        'created_at': '2024-01-15T10:30:00Z',
+        'completion_percentage': 0.0,
+        'total_reading_time': 0,
+        'completed_chapter_ids': <String>[],
+        'started_at': '2024-01-15T10:30:00Z',
+        'completed_at': null,
         'updated_at': '2024-01-15T10:30:00Z',
       };
+
+  /// Progress with null optional fields
+  static Map<String, dynamic> progressJsonWithNulls() => {
+        'id': 'progress-nulls',
+        'user_id': 'user-123',
+        'book_id': 'book-123',
+        'chapter_id': null,
+        'current_page': null,
+        'is_completed': null,
+        'completion_percentage': null,
+        'total_reading_time': null,
+        'completed_chapter_ids': null,
+        'started_at': '2024-01-01T00:00:00Z',
+        'completed_at': null,
+        'updated_at': '2024-01-01T00:00:00Z',
+      };
+
+  /// Invalid progress JSON - missing id
+  static Map<String, dynamic> invalidProgressJsonMissingId() => {
+        'user_id': 'user-123',
+        'book_id': 'book-123',
+        'started_at': '2024-01-01T00:00:00Z',
+        'updated_at': '2024-01-01T00:00:00Z',
+      };
+
+  // ============================================
+  // Entity Fixtures
+  // ============================================
+
+  static ReadingProgress validProgress() => ReadingProgress(
+        id: 'progress-1',
+        userId: 'user-123',
+        bookId: 'book-123',
+        chapterId: 'chapter-2',
+        currentPage: 5,
+        isCompleted: false,
+        completionPercentage: 33.3,
+        totalReadingTime: 600,
+        completedChapterIds: const ['chapter-1'],
+        startedAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        updatedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+      );
+
+  static ReadingProgress completedProgress() => ReadingProgress(
+        id: 'progress-completed',
+        userId: 'user-123',
+        bookId: 'book-123',
+        chapterId: 'chapter-10',
+        currentPage: 1,
+        isCompleted: true,
+        completionPercentage: 100.0,
+        totalReadingTime: 3600,
+        completedChapterIds: const [
+          'chapter-1',
+          'chapter-2',
+          'chapter-3',
+          'chapter-4',
+          'chapter-5',
+        ],
+        startedAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        completedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+        updatedAt: DateTime.parse('2024-01-15T10:30:00Z'),
+      );
+}
+
+/// Test fixtures for Chapter entity
+class ChapterEntityFixtures {
+  ChapterEntityFixtures._();
+
+  static Chapter validChapter() => Chapter(
+        id: 'chapter-1',
+        bookId: 'book-123',
+        title: 'The Beginning',
+        orderIndex: 1,
+        content: 'Once upon a time, in a land far away...\n\nThe story continues here.',
+        audioUrl: 'https://example.com/audio/chapter-1.mp3',
+        imageUrls: const ['https://example.com/img1.jpg'],
+        wordCount: 500,
+        estimatedMinutes: 3,
+        vocabulary: const [
+          ChapterVocabulary(
+            word: 'adventure',
+            meaning: 'An exciting experience',
+            phonetic: '/ədˈventʃər/',
+          ),
+        ],
+        createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        updatedAt: DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+
+  static Chapter minimalChapter() => Chapter(
+        id: 'chapter-minimal',
+        bookId: 'book-123',
+        title: 'Minimal Chapter',
+        orderIndex: 1,
+        createdAt: DateTime.parse('2024-01-01T00:00:00Z'),
+        updatedAt: DateTime.parse('2024-01-01T00:00:00Z'),
+      );
 }
