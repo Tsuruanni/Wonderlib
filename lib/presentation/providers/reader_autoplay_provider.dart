@@ -130,7 +130,8 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
       Future.delayed(
         Duration(milliseconds: config.afterAudioDelayMs),
         () {
-          if (mounted && state.isAutoPlayEnabled) {
+          // Check if still enabled (StateNotifier doesn't have mounted property)
+          if (state.isAutoPlayEnabled) {
             _playBlock(nextAudioBlock);
           }
         },
@@ -157,7 +158,8 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
       Future.delayed(
         Duration(milliseconds: config.afterActivityDelayMs),
         () {
-          if (mounted && state.isAutoPlayEnabled) {
+          // Check if still enabled (StateNotifier doesn't have mounted property)
+          if (state.isAutoPlayEnabled) {
             _playBlock(nextAudioBlock);
           }
         },
@@ -208,16 +210,3 @@ final readerAutoPlayControllerProvider =
   return ReaderAutoPlayController(ref);
 });
 
-/// Provider for getting the next audio block after a given block ID
-final nextAudioBlockProvider = Provider.family<ContentBlock?, String>((ref, afterBlockId) {
-  final state = ref.watch(readerAutoPlayControllerProvider);
-  final currentIndex = state.blocks.indexWhere((b) => b.id == afterBlockId);
-  if (currentIndex == -1) return null;
-
-  for (int i = currentIndex + 1; i < state.blocks.length; i++) {
-    if (state.blocks[i].hasAudio) {
-      return state.blocks[i];
-    }
-  }
-  return null;
-});

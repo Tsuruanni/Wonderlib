@@ -8,6 +8,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Screen Refactoring & Dead Code Cleanup (2026-02-02)
+
+#### Changed
+- **Reader Screen Refactored** - Major restructuring for Clean Architecture compliance
+  - `reader_screen.dart` reduced from **613 lines to 215 lines** (-65%)
+  - `build()` method reduced from 309 lines to ~50 lines
+  - Extracted 4 new widget components for separation of concerns
+
+#### Added
+- **ReaderConstants** - Centralized hard-coded values (header heights, padding, colors)
+- **ChapterCompletionCard** - Next chapter button and book completion celebration UI
+- **ReaderPopups** - Vocabulary and word tap popup management
+- **ReaderBody** - Main scrollable content with collapsible header
+
+#### Fixed
+- **Critical Runtime Bug** - Fixed `mounted` property usage in `ReaderAutoPlayController`
+  - `StateNotifier` does not have `mounted` property (would throw runtime exception)
+  - Removed invalid checks at lines 133 and 160
+
+#### Removed
+- **Dead Code Cleanup** (~1450 lines removed):
+  - `sync_service.dart` + `.g.dart` - Never imported anywhere
+  - `storage_service.dart` + `.g.dart` - Never imported anywhere
+  - `game_config.dart` - Exported but never used
+  - `mock_data.dart` - 1000+ lines, never imported
+  - `nextAudioBlockProvider` - Defined but never used
+
 ### System Settings Integration (2026-02-02)
 
 #### Added

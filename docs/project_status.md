@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (System Settings Integration)
+Son güncelleme: 2026-02-02 (Reader Refactoring & Dead Code Cleanup)
 
 ## Current Phase
 
@@ -72,7 +72,7 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Clean Architecture Refactor | Claude + User | Active | Model layer + UseCases for all modules |
+| Clean Architecture Refactor | Claude + User | Active | Reader refactored, Model layer + UseCases remaining |
 | Testing & Validation | User | Active | Manual testing of all features |
 
 ## Deferred to Phase 4
@@ -110,6 +110,8 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Reader Screen Refactoring | 2026-02-02 | 613→215 lines, 4 new widgets, critical mounted bug fixed |
+| Dead Code Cleanup | 2026-02-02 | ~1450 lines removed (sync_service, storage_service, game_config, mock_data) |
 | System Settings Integration | 2026-02-02 | Clean Architecture: Entity, Repository, Model, UseCase, Provider for admin-configurable settings |
 | Multi-Meaning Vocabulary | 2026-02-02 | Word-tap popup, multiple meanings from different books, dev quick login |
 | Chapter-Level Batch Audio | 2026-02-02 | Single API call per chapter, consistent voice, cost reduction |

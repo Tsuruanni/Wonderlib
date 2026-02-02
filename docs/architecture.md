@@ -135,7 +135,12 @@ lib/
 │   │   └── *_provider.dart   # Feature providers
 │   ├── screens/              # Page widgets
 │   └── widgets/
-│       └── common/           # Shared widgets (XPBadge, StatItem)
+│       ├── common/           # Shared widgets (XPBadge, StatItem)
+│       └── reader/           # Reader-specific widgets
+│           ├── reader_body.dart           # Main scrollable content
+│           ├── reader_popups.dart         # Vocabulary/word popups
+│           ├── chapter_completion_card.dart # Next chapter UI
+│           └── ...
 │
 └── l10n/                     # Localization
 ```

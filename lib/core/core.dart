@@ -16,8 +16,6 @@ export 'network/network_info.dart';
 
 // Services
 export 'services/audio_service.dart';
-export 'services/storage_service.dart';
-export 'services/sync_service.dart';
 
 // Utils
 export 'utils/extensions/context_extensions.dart';

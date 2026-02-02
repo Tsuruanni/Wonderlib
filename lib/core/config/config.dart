@@ -3,4 +3,3 @@
 library;
 
 export 'app_config.dart';
-export 'game_config.dart';
