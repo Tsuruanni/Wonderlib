@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/services/edge_function_service.dart';
 import '../../data/repositories/supabase/supabase_activity_repository.dart';
@@ -11,6 +12,7 @@ import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
 import '../../data/repositories/supabase/supabase_content_block_repository.dart';
+import '../../data/repositories/supabase/supabase_system_settings_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/content_block_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -21,6 +23,7 @@ import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
 import '../../domain/repositories/teacher_repository.dart';
 import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/repositories/system_settings_repository.dart';
 
 /// Repository providers
 /// All repositories now use Supabase implementations
@@ -72,4 +75,8 @@ final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
 
 final contentBlockRepositoryProvider = Provider<ContentBlockRepository>((ref) {
   return SupabaseContentBlockRepository();
+});
+
+final systemSettingsRepositoryProvider = Provider<SystemSettingsRepository>((ref) {
+  return SupabaseSystemSettingsRepository(Supabase.instance.client);
 });

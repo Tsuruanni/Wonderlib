@@ -81,6 +81,7 @@ import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
 import '../../domain/usecases/wordlist/update_word_list_progress_usecase.dart';
 import '../../domain/usecases/content/get_content_blocks_usecase.dart';
 import '../../domain/usecases/content/check_chapter_uses_content_blocks_usecase.dart';
+import '../../domain/usecases/settings/get_system_settings_usecase.dart';
 import 'repository_providers.dart';
 
 // ============================================
@@ -465,4 +466,12 @@ final getContentBlocksUseCaseProvider = Provider((ref) {
 
 final checkChapterUsesContentBlocksUseCaseProvider = Provider((ref) {
   return CheckChapterUsesContentBlocksUseCase(ref.watch(contentBlockRepositoryProvider));
+});
+
+// ============================================
+// SYSTEM SETTINGS USE CASES
+// ============================================
+
+final getSystemSettingsUseCaseProvider = Provider((ref) {
+  return GetSystemSettingsUseCase(ref.watch(systemSettingsRepositoryProvider));
 });

@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### System Settings Integration (2026-02-02)
+
+#### Added
+- **SystemSettings Entity** - Centralized configuration for XP rewards, progression, game settings, and app config
+  - 19 configurable values (xp_chapter_complete, daily_xp_cap, maintenance_mode, etc.)
+  - Equatable for value comparison
+  - Default values fallback when database unavailable
+- **SystemSettingsRepository Interface** - Domain layer abstraction for settings access
+- **SystemSettingsModel** - JSON/JSONB parsing with type conversion helpers
+- **SupabaseSystemSettingsRepository** - Fetches settings from `system_settings` table
+- **GetSystemSettingsUseCase** - Clean Architecture compliant usecase with NoParams
+- **systemSettingsProvider** - FutureProvider for screens to access settings
+
+#### Infrastructure
+- **New Migration** `20260202000001_create_system_settings.sql`
+  - `system_settings` table with key-value JSONB storage
+  - RLS policies: read for all, modify for admins only
+  - Seed data with 19 default settings across 4 categories (xp, progression, game, app)
+- **Provider Registration** - Added to `repository_providers.dart` and `usecase_providers.dart`
+
 ### Multi-Meaning Vocabulary & Word-Tap Popup (2026-02-02)
 
 #### Added

@@ -123,7 +123,8 @@ lib/
 │       ├── vocabulary/       # Vocabulary UseCases
 │       ├── teacher/          # Teacher UseCases
 │       ├── assignment/       # Assignment UseCases
-│       └── content/          # ContentBlock UseCases
+│       ├── content/          # ContentBlock UseCases
+│       └── settings/         # SystemSettings UseCases
 │
 ├── presentation/
 │   ├── providers/
