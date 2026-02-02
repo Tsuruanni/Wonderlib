@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Audio Sync & Word-Level Highlighting)
+Son güncelleme: 2026-02-02 (Reader Auto-Play & Clean Architecture Refactor)
 
 ## Current Phase
 
@@ -110,6 +110,8 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Reader Auto-Play | 2026-02-02 | Inline icon, auto-play on load, auto-continue after audio/activity |
+| Clean Architecture (Reader) | 2026-02-02 | ReaderAutoPlayController, moved business logic from widget to provider |
 | Audio Sync & Karaoke | 2026-02-02 | Word-level highlighting, Fal AI TTS, ContentBlock architecture |
 | Admin Panel | 2026-02-02 | Separate Flutter web app for content management |
 | Content Block System | 2026-02-02 | Replaces plain text chapters with structured blocks |

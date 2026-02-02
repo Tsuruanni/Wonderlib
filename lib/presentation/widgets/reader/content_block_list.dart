@@ -5,7 +5,9 @@ import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/content/content_block.dart';
 import '../../providers/activity_provider.dart';
+import '../../providers/audio_sync_provider.dart';
 import '../../providers/content_block_provider.dart';
+import '../../providers/reader_autoplay_provider.dart';
 import '../../providers/reader_provider.dart';
 import 'activity_block_widget.dart';
 import 'image_block_widget.dart';
@@ -13,6 +15,7 @@ import 'text_block_widget.dart';
 
 /// Displays a list of content blocks for a chapter.
 /// Handles progressive reveal - activities must be completed to unlock next content.
+/// Delegates auto-play orchestration to ReaderAutoPlayController.
 class ContentBlockList extends ConsumerStatefulWidget {
   const ContentBlockList({
     super.key,
@@ -32,13 +35,60 @@ class ContentBlockList extends ConsumerStatefulWidget {
 }
 
 class _ContentBlockListState extends ConsumerState<ContentBlockList> {
-  int _previousCompletedCount = 0;
+  Set<String> _previousCompletedIds = {};
+  final Map<String, GlobalKey> _blockKeys = {};
+
+  void _scrollToBlock(String blockId) {
+    final key = _blockKeys[blockId];
+    if (key?.currentContext == null) return;
+
+    Scrollable.ensureVisible(
+      key!.currentContext!,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      alignment: 0.2,
+    );
+  }
+
+  void _scrollToNewContent() {
+    if (widget.scrollController == null || !widget.scrollController!.hasClients) {
+      return;
+    }
+
+    final currentPosition = widget.scrollController!.position.pixels;
+    final maxScroll = widget.scrollController!.position.maxScrollExtent;
+    final targetPosition = (currentPosition + 200).clamp(0.0, maxScroll);
+
+    widget.scrollController!.animateTo(
+      targetPosition,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final blocksAsync = ref.watch(contentBlocksProvider(widget.chapter.id));
     final inlineActivitiesAsync = ref.watch(inlineActivitiesProvider(widget.chapter.id));
     final completedActivities = ref.watch(inlineActivityStateProvider);
+    final autoPlayController = ref.watch(readerAutoPlayControllerProvider.notifier);
+
+    // Listen for audio completion to trigger next block
+    ref.listen<String?>(audioCompletedBlockProvider, (previous, completedBlockId) {
+      if (completedBlockId != null && previous != completedBlockId) {
+        autoPlayController.onAudioCompleted(completedBlockId);
+        ref.read(audioCompletedBlockProvider.notifier).state = null;
+      }
+    });
+
+    // Listen for audio state changes to auto-scroll
+    ref.listen<AudioSyncState>(audioSyncControllerProvider, (previous, current) {
+      if (current.currentBlockId != null &&
+          previous?.currentBlockId != current.currentBlockId &&
+          current.isPlaying) {
+        _scrollToBlock(current.currentBlockId!);
+      }
+    });
 
     return blocksAsync.when(
       data: (blocks) {
@@ -53,17 +103,34 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           activityMap[activity.id] = activity;
         }
 
-        // Check for new completions to trigger scroll
-        final currentCompletedCount = completedActivities.length;
-        if (currentCompletedCount > _previousCompletedCount) {
-          _previousCompletedCount = currentCompletedCount;
+        // Build visible blocks (stop at first uncompleted activity)
+        final visibleBlocks = _getVisibleBlocks(blocks, activityMap, completedActivities);
+
+        // Initialize auto-play controller with blocks
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          autoPlayController.initialize(visibleBlocks);
+        });
+
+        // Check for new completions to trigger scroll and auto-play
+        final currentCompletedIds = completedActivities.keys.toSet();
+        final newlyCompletedIds = currentCompletedIds.difference(_previousCompletedIds);
+
+        if (newlyCompletedIds.isNotEmpty) {
+          _previousCompletedIds = currentCompletedIds;
+
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _scrollToNewContent();
+            // Notify controller of activity completions
+            for (final activityId in newlyCompletedIds) {
+              autoPlayController.onActivityCompleted(activityId, visibleBlocks);
+            }
           });
         }
 
-        // Build visible blocks (stop at first uncompleted activity)
-        final visibleBlocks = _getVisibleBlocks(blocks, activityMap, completedActivities);
+        // Initialize block keys
+        for (final block in visibleBlocks) {
+          _blockKeys.putIfAbsent(block.id, () => GlobalKey());
+        }
 
         return Center(
           child: ConstrainedBox(
@@ -71,7 +138,10 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: visibleBlocks.map((block) {
-                return _buildBlockWidget(block, activityMap);
+                return KeyedSubtree(
+                  key: _blockKeys[block.id],
+                  child: _buildBlockWidget(block, activityMap),
+                );
               }).toList(),
             ),
           ),
@@ -92,7 +162,6 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
     for (final block in blocks) {
       visibleBlocks.add(block);
 
-      // If this is an activity block and it's not completed, stop here
       if (block.isActivityBlock && block.activityId != null) {
         if (!completedActivities.containsKey(block.activityId)) {
           break;
@@ -123,7 +192,6 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
         );
 
       case ContentBlockType.audio:
-        // Standalone audio blocks (podcast-style) - render as text with audio
         return TextBlockWidget(
           block: block,
           settings: widget.settings,
@@ -139,29 +207,9 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           block: block,
           settings: widget.settings,
           activity: activity,
-          onActivityCompleted: (isCorrect, xpEarned) {
-            // Scroll handled by completion count check above
-          },
+          onActivityCompleted: (isCorrect, xpEarned) {},
         );
     }
-  }
-
-  void _scrollToNewContent() {
-    if (widget.scrollController == null || !widget.scrollController!.hasClients) {
-      return;
-    }
-
-    final currentPosition = widget.scrollController!.position.pixels;
-    final maxScroll = widget.scrollController!.position.maxScrollExtent;
-
-    // Scroll down by 200 pixels or to the end
-    final targetPosition = (currentPosition + 200).clamp(0.0, maxScroll);
-
-    widget.scrollController!.animateTo(
-      targetPosition,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-    );
   }
 
   Widget _buildLoadingState() {

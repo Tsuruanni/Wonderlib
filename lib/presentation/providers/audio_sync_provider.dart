@@ -75,11 +75,12 @@ class AudioSyncState {
 
 /// Controller for audio sync playback
 class AudioSyncController extends StateNotifier<AudioSyncState> {
-  AudioSyncController(this._audioService) : super(const AudioSyncState()) {
+  AudioSyncController(this._audioService, this._onComplete) : super(const AudioSyncState()) {
     _subscribeToStreams();
   }
 
   final AudioService _audioService;
+  final void Function(String blockId)? _onComplete;
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   List<WordTiming> _currentWordTimings = [];
@@ -107,13 +108,18 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
           playerState.processingState == ProcessingState.buffering,
     );
 
-    // When playback completes, reset to beginning
+    // When playback completes, reset to beginning and notify
     if (playerState.processingState == ProcessingState.completed) {
+      final completedBlockId = state.currentBlockId;
       state = state.copyWith(
         isPlaying: false,
         positionMs: 0,
         clearActiveWord: true,
       );
+      // Notify completion callback
+      if (completedBlockId != null && _onComplete != null) {
+        _onComplete!(completedBlockId);
+      }
     }
   }
 
@@ -256,7 +262,12 @@ final audioSyncControllerProvider =
     throw StateError('AudioService not initialized');
   }
 
-  final controller = AudioSyncController(audioService);
+  // Callback when audio playback completes
+  void onComplete(String blockId) {
+    ref.read(audioCompletedBlockProvider.notifier).state = blockId;
+  }
+
+  final controller = AudioSyncController(audioService, onComplete);
   ref.onDispose(() {
     controller.stop();
   });
@@ -277,3 +288,13 @@ final activeWordIndexProvider = Provider.family<int?, String>((ref, blockId) {
   if (state.currentBlockId != blockId) return null;
   return state.activeWordIndex;
 });
+
+/// Provider for checking if a specific block is currently loading
+final isBlockLoadingProvider = Provider.family<bool, String>((ref, blockId) {
+  final state = ref.watch(audioSyncControllerProvider);
+  return state.currentBlockId == blockId && state.isLoading;
+});
+
+/// Provider for audio completion events
+/// Returns the blockId of the block that just completed
+final audioCompletedBlockProvider = StateProvider<String?>((ref) => null);

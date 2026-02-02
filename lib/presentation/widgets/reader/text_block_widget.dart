@@ -8,7 +8,7 @@ import '../../providers/reader_provider.dart';
 import 'word_highlight_text.dart';
 
 /// Widget for rendering a text content block with audio sync support.
-/// Shows play button if block has audio, highlights words during playback.
+/// Shows inline play icon at the start of text, highlights words during playback.
 class TextBlockWidget extends ConsumerWidget {
   const TextBlockWidget({
     super.key,
@@ -31,31 +31,34 @@ class TextBlockWidget extends ConsumerWidget {
     // Watch audio state for this specific block
     final activeWordIndex = ref.watch(activeWordIndexProvider(block.id));
     final isPlaying = ref.watch(isBlockPlayingProvider(block.id));
+    final isLoading = ref.watch(isBlockLoadingProvider(block.id));
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Text content with word highlighting
-          WordHighlightText(
-            text: text,
-            wordTimings: block.wordTimings,
-            settings: settings,
-            activeWordIndex: activeWordIndex,
-            vocabulary: vocabulary,
-            onVocabularyTap: onVocabularyTap,
-          ),
-
-          // Inline play button for blocks with audio
+          // Inline play/pause icon at start of paragraph
           if (block.hasAudio) ...[
-            const SizedBox(height: 8),
-            _PlayButton(
-              blockId: block.id,
+            _InlinePlayIcon(
               isPlaying: isPlaying,
+              isLoading: isLoading,
               onPressed: () => _handlePlayPress(ref),
+              settings: settings,
             ),
+            const SizedBox(width: 8),
           ],
+          // Text content with word highlighting
+          Expanded(
+            child: WordHighlightText(
+              text: text,
+              wordTimings: block.wordTimings,
+              settings: settings,
+              activeWordIndex: activeWordIndex,
+              vocabulary: vocabulary,
+              onVocabularyTap: onVocabularyTap,
+            ),
+          ),
         ],
       ),
     );
@@ -75,50 +78,47 @@ class TextBlockWidget extends ConsumerWidget {
   }
 }
 
-class _PlayButton extends StatelessWidget {
-  const _PlayButton({
-    required this.blockId,
+/// Compact inline play/pause icon that sits at the start of a paragraph
+class _InlinePlayIcon extends StatelessWidget {
+  const _InlinePlayIcon({
     required this.isPlaying,
+    required this.isLoading,
     required this.onPressed,
+    required this.settings,
   });
 
-  final String blockId;
   final bool isPlaying;
+  final bool isLoading;
   final VoidCallback onPressed;
+  final ReaderSettings settings;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onPressed,
-      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        width: 24,
+        height: 24,
+        margin: EdgeInsets.only(top: settings.fontSize * 0.15),
         decoration: BoxDecoration(
-          color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: const Color(0xFF4F46E5).withValues(alpha: 0.3),
-          ),
+          color: isPlaying
+              ? const Color(0xFF4F46E5)
+              : const Color(0xFF4F46E5).withValues(alpha: 0.15),
+          shape: BoxShape.circle,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              size: 18,
-              color: const Color(0xFF4F46E5),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              isPlaying ? 'Pause' : 'Listen',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF4F46E5),
-                fontWeight: FontWeight.w500,
+        child: isLoading
+            ? Padding(
+                padding: const EdgeInsets.all(5),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: isPlaying ? Colors.white : const Color(0xFF4F46E5),
+                ),
+              )
+            : Icon(
+                isPlaying ? Icons.pause : Icons.play_arrow,
+                size: 16,
+                color: isPlaying ? Colors.white : const Color(0xFF4F46E5),
               ),
-            ),
-          ],
-        ),
       ),
     );
   }

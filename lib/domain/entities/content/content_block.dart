@@ -25,6 +25,16 @@ class ContentBlock extends Equatable {
     required this.updatedAt,
   });
 
+  /// Factory for creating an empty/placeholder block
+  factory ContentBlock.empty() => ContentBlock(
+        id: '',
+        chapterId: '',
+        orderIndex: 0,
+        type: ContentBlockType.text,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
   final String id;
   final String chapterId;
   final int orderIndex;

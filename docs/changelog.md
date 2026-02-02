@@ -8,6 +8,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Auto-Play & Clean Architecture Refactor (2026-02-02)
+
+#### Added
+- **Inline Play Icon** - Compact circular play/pause icon at the start of each paragraph
+  - Replaces full-width "Listen" button with 24x24 inline icon
+  - Loading state with spinner, active state with filled background
+- **Auto-Play on Chapter Load** - Audio begins automatically 3 seconds after entering a chapter
+- **Auto-Continue After Audio** - Next paragraph's audio plays 500ms after current one finishes
+- **Auto-Continue After Activity** - Next audio plays 1 second after activity completion
+- **Auto-Scroll** - Content scrolls to keep active audio block visible
+- **ReaderAutoPlayController** - New provider for auto-play orchestration
+  - Configurable timing via `AutoPlayConfig` (initialDelayMs, afterActivityDelayMs, afterAudioDelayMs)
+  - Centralized business logic for audio sequence management
+- **Audio Completion Tracking** - `audioCompletedBlockProvider` for block completion events
+- **Block Loading State** - `isBlockLoadingProvider` for showing loading indicators
+- **ContentBlock.empty()** - Factory method for placeholder blocks
+
+#### Changed
+- **TextBlockWidget Layout** - Changed from Column to Row layout for inline icon placement
+- **ContentBlockList** - Delegated auto-play logic to ReaderAutoPlayController (Clean Architecture)
+- **AudioSyncController** - Added completion callback for auto-continue feature
+- **ElevenLabs Voice** - Changed default voice from George to Michael
+
+#### Infrastructure
+- **Clean Architecture Compliance** - Moved business logic from widget to provider layer
+  - Widget (ContentBlockList) now only handles UI and event delegation
+  - Provider (ReaderAutoPlayController) handles timing, block selection, orchestration
+
 ### Audio Sync & Word-Level Highlighting (2026-02-02)
 
 #### Added

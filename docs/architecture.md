@@ -129,6 +129,8 @@ lib/
 │   ├── providers/
 │   │   ├── usecase_providers.dart  # All UseCase providers
 │   │   ├── repository_providers.dart
+│   │   ├── audio_sync_provider.dart  # Audio playback state
+│   │   ├── reader_autoplay_provider.dart  # Auto-play orchestration
 │   │   └── *_provider.dart   # Feature providers
 │   ├── screens/              # Page widgets
 │   └── widgets/

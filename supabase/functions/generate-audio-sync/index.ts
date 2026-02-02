@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           text: text,
-          voice: voiceId || "JBFqnCBsd6RMkjVDRZzb", // George voice
+          voice: voiceId || "QngvLQR8bsLR5bzoa6Vv", // Michael voice
           timestamps: true,
           model: "eleven_multilingual_v2",
         }),
