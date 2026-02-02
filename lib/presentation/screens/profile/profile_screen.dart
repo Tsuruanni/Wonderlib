@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/badge_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
 
@@ -84,6 +86,12 @@ class ProfileScreen extends ConsumerWidget {
                 else
                   const _TeacherStatsCard(),
                 const SizedBox(height: 24),
+
+                // Badges section (only for students)
+                if (user.role.isStudent) ...[
+                  const _BadgesSection(),
+                  const SizedBox(height: 24),
+                ],
 
                 // Logout button
                 OutlinedButton.icon(
@@ -235,5 +243,149 @@ class _StatRow extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _BadgesSection extends ConsumerWidget {
+  const _BadgesSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final badgesAsync = ref.watch(userBadgesProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Badges',
+              style: context.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            badgesAsync.whenData(
+              (badges) => Text(
+                '${badges.length} earned',
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.outline,
+                ),
+              ),
+            ).value ?? const SizedBox.shrink(),
+          ],
+        ),
+        const SizedBox(height: 12),
+        badgesAsync.when(
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, __) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Failed to load badges',
+                style: TextStyle(color: context.colorScheme.error),
+              ),
+            ),
+          ),
+          data: (badges) {
+            if (badges.isEmpty) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.emoji_events_outlined,
+                        size: 48,
+                        color: context.colorScheme.outline,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No badges yet',
+                        style: context.textTheme.titleSmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Complete activities to earn badges!',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: badges.map((userBadge) {
+                return _BadgeChip(userBadge: userBadge);
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _BadgeChip extends StatelessWidget {
+  const _BadgeChip({required this.userBadge});
+
+  final UserBadge userBadge;
+
+  @override
+  Widget build(BuildContext context) {
+    final badge = userBadge.badge;
+
+    return Tooltip(
+      message: badge.description ?? badge.name,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: _getCategoryColor(badge.category, context).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _getCategoryColor(badge.category, context).withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              badge.icon ?? '🏆',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              badge.name,
+              style: context.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getCategoryColor(String? category, BuildContext context) {
+    return switch (category) {
+      'achievement' => Colors.amber,
+      'streak' => Colors.orange,
+      'reading' => Colors.blue,
+      'vocabulary' => Colors.purple,
+      'special' => Colors.pink,
+      _ => context.colorScheme.primary,
+    };
   }
 }

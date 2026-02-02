@@ -229,6 +229,9 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
 
       // Persist XP to database AND update local state (no page reload)
       await ref.read(userControllerProvider.notifier).addXP(xpEarned);
+    } else if (isNewCompletion) {
+      // Update streak even without XP (wrong answer still counts as daily activity)
+      await ref.read(userControllerProvider.notifier).updateStreak();
     }
 
     // Add words to learned vocabulary (idempotent - safe to retry)

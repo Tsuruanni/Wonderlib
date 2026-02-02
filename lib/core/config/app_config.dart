@@ -52,9 +52,6 @@ class AppConfig {
   // Gamification
   // ============================================
 
-  /// XP required per level (multiplied by level number)
-  static const int xpPerLevel = 100;
-
   /// Maximum streak bonus multiplier
   static const double maxStreakMultiplier = 2.0;
 

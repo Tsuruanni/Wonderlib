@@ -11,7 +11,6 @@ class SystemSettingsModel {
     required this.xpBookComplete,
     required this.xpStreakBonusDay,
     required this.xpAssignmentComplete,
-    required this.xpPerLevel,
     required this.maxStreakMultiplier,
     required this.streakBonusIncrement,
     required this.dailyXpCap,
@@ -32,7 +31,6 @@ class SystemSettingsModel {
   final int xpBookComplete;
   final int xpStreakBonusDay;
   final int xpAssignmentComplete;
-  final int xpPerLevel;
   final double maxStreakMultiplier;
   final double streakBonusIncrement;
   final int dailyXpCap;
@@ -65,7 +63,6 @@ class SystemSettingsModel {
       xpBookComplete: _toInt(m['xp_book_complete'], 200),
       xpStreakBonusDay: _toInt(m['xp_streak_bonus_day'], 10),
       xpAssignmentComplete: _toInt(m['xp_assignment_complete'], 100),
-      xpPerLevel: _toInt(m['xp_per_level'], 100),
       maxStreakMultiplier: _toDouble(m['max_streak_multiplier'], 2.0),
       streakBonusIncrement: _toDouble(m['streak_bonus_increment'], 0.1),
       dailyXpCap: _toInt(m['daily_xp_cap'], 1000),
@@ -89,7 +86,6 @@ class SystemSettingsModel {
         xpBookComplete: 200,
         xpStreakBonusDay: 10,
         xpAssignmentComplete: 100,
-        xpPerLevel: 100,
         maxStreakMultiplier: 2.0,
         streakBonusIncrement: 0.1,
         dailyXpCap: 1000,
@@ -112,7 +108,6 @@ class SystemSettingsModel {
         xpBookComplete: xpBookComplete,
         xpStreakBonusDay: xpStreakBonusDay,
         xpAssignmentComplete: xpAssignmentComplete,
-        xpPerLevel: xpPerLevel,
         maxStreakMultiplier: maxStreakMultiplier,
         streakBonusIncrement: streakBonusIncrement,
         dailyXpCap: dailyXpCap,
@@ -136,7 +131,6 @@ class SystemSettingsModel {
         xpBookComplete: e.xpBookComplete,
         xpStreakBonusDay: e.xpStreakBonusDay,
         xpAssignmentComplete: e.xpAssignmentComplete,
-        xpPerLevel: e.xpPerLevel,
         maxStreakMultiplier: e.maxStreakMultiplier,
         streakBonusIncrement: e.streakBonusIncrement,
         dailyXpCap: e.dailyXpCap,

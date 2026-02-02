@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Teacher UX Improvements)
+Son güncelleme: 2026-02-02 (Gamification Features & Admin Fixes)
 
 ## Current Phase
 
@@ -110,6 +110,9 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Gamification Features | 2026-02-02 | Profile badges, level-up celebration, streak triggering |
+| Admin Panel Fixes | 2026-02-02 | Settings toggle fix, removed plain text content option |
+| Assignment Order Fix | 2026-02-02 | To Do → Completed → Overdue order |
 | Teacher UX Improvements | 2026-02-02 | Profile stats, book assignment from detail, wordlist fix |
 | Reader Screen Refactoring | 2026-02-02 | 613→215 lines, 4 new widgets, critical mounted bug fixed |
 | Dead Code Cleanup | 2026-02-02 | ~1450 lines removed (sync_service, storage_service, game_config, mock_data) |

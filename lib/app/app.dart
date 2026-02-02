@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import '../presentation/widgets/common/level_up_celebration.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -32,6 +33,11 @@ class ReadEngApp extends ConsumerWidget {
         Locale('tr'),
         Locale('en'),
       ],
+      builder: (context, child) {
+        return LevelUpCelebrationListener(
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

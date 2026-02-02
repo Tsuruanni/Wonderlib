@@ -8,6 +8,40 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Gamification Features & Admin Fixes (2026-02-02)
+
+#### Added
+- **Profile Badges Section** - Student profile now displays earned badges grouped by category (reading, vocabulary, achievement, special)
+  - Category-based color coding and icons
+  - Empty state message when no badges earned
+- **Level-Up Celebration System** - Tier-specific celebration dialogs when leveling up
+  - Tier changes (every 5 levels) get special celebration with gradient backgrounds
+  - Tier emojis: 🥉 Bronze, 🥈 Silver, 🥇 Gold, 💎 Diamond, 👑 Platinum
+  - `LevelUpEvent` class tracks old/new level and tier changes
+  - `LevelUpCelebrationListener` wrapper in app.dart
+- **Streak Triggering on Activity** - Daily streak now updates after any activity completion
+  - `updateStreak()` called in `addXP()` method
+  - Badge checking triggered via `check_and_award_badges` RPC
+
+#### Changed
+- **Assignment Order** - Student assignments screen now shows: To Do → Completed → Overdue (was wrong order)
+- **Admin Panel: Content Blocks Only** - Removed plain text content option when creating chapters
+  - Chapters always use content blocks (`use_content_blocks: true`)
+  - Simplified chapter creation flow
+
+#### Fixed
+- **Admin Settings Toggle** - Toggle switches now update UI immediately after save
+  - Added `ref.invalidate(settingsProvider)` after successful DB update
+  - Previously showed "saved" but switch position didn't change
+
+#### Removed
+- **xp_per_level Setting** - Removed unused setting from:
+  - `SystemSettings` entity
+  - `SystemSettingsModel`
+  - `AppConfig`
+  - Migration seed data
+  - (Level calculation uses progressive formula, not flat xp_per_level)
+
 ### Teacher UX Improvements (2026-02-02)
 
 #### Changed

@@ -55,7 +55,6 @@ INSERT INTO system_settings (key, value, category, description) VALUES
   ('xp_assignment_complete', '"100"', 'xp', 'XP awarded for completing an assignment'),
 
   -- Level & Progression
-  ('xp_per_level', '"100"', 'progression', 'XP required per level'),
   ('max_streak_multiplier', '"2.0"', 'progression', 'Maximum streak multiplier'),
   ('streak_bonus_increment', '"0.1"', 'progression', 'Streak bonus increment per day'),
   ('daily_xp_cap', '"1000"', 'progression', 'Maximum XP earnable per day'),

@@ -84,21 +84,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Overdue (urgent)
-                if (overdue.isNotEmpty) ...[
-                  _SectionHeader(
-                    title: 'Overdue',
-                    count: overdue.length,
-                    color: Colors.red,
-                  ),
-                  ...overdue.map((a) => _AssignmentCard(
-                    assignment: a,
-                    onTap: () => _navigateToAssignment(context, a),
-                  ),),
-                  const SizedBox(height: 16),
-                ],
-
-                // Active
+                // To Do (first - active tasks)
                 if (active.isNotEmpty) ...[
                   _SectionHeader(
                     title: 'To Do',
@@ -112,7 +98,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
 
-                // Completed
+                // Completed (middle)
                 if (completed.isNotEmpty) ...[
                   _SectionHeader(
                     title: 'Completed',
@@ -120,6 +106,20 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                     color: Colors.green,
                   ),
                   ...completed.map((a) => _AssignmentCard(
+                    assignment: a,
+                    onTap: () => _navigateToAssignment(context, a),
+                  ),),
+                  const SizedBox(height: 16),
+                ],
+
+                // Overdue (last)
+                if (overdue.isNotEmpty) ...[
+                  _SectionHeader(
+                    title: 'Overdue',
+                    count: overdue.length,
+                    color: Colors.red,
+                  ),
+                  ...overdue.map((a) => _AssignmentCard(
                     assignment: a,
                     onTap: () => _navigateToAssignment(context, a),
                   ),),

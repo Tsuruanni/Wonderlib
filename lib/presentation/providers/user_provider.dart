@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/get_classmates_usecase.dart';
@@ -9,6 +10,30 @@ import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+
+/// Level up event for celebration UI
+class LevelUpEvent {
+  const LevelUpEvent({
+    required this.oldLevel,
+    required this.newLevel,
+    required this.oldTier,
+    required this.newTier,
+  });
+
+  final int oldLevel;
+  final int newLevel;
+  final UserLevel oldTier;
+  final UserLevel newTier;
+
+  /// True if user advanced to a new tier (every 5 levels)
+  bool get isTierUp => oldTier != newTier;
+
+  /// True if this is a milestone level (5, 10, 15, 20, etc.)
+  bool get isMilestone => newLevel % 5 == 0;
+}
+
+/// Provider for level up events - UI can listen to this to show celebrations
+final levelUpEventProvider = StateProvider<LevelUpEvent?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -121,6 +146,11 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
+    // Capture old level/tier before XP update
+    final oldUser = state.valueOrNull;
+    final oldLevel = oldUser?.level ?? 1;
+    final oldTier = oldUser?.userLevel ?? UserLevel.bronze;
+
     final useCase = _ref.read(addXPUseCaseProvider);
     final result = await useCase(AddXPParams(userId: userId, amount: amount));
 
@@ -128,8 +158,23 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (failure) => null,
       (user) {
         state = AsyncValue.data(user);
+
+        // Check for level up
+        if (user.level > oldLevel) {
+          _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
+            oldLevel: oldLevel,
+            newLevel: user.level,
+            oldTier: oldTier,
+            newTier: user.userLevel,
+          );
+        }
       },
     );
+
+    // Update streak when XP is earned (activity completion)
+    // DB function handles "once per day" logic automatically
+    await updateStreak();
+
     // Note: Badge checking is handled by the check_and_award_badges RPC
     // called within SupabaseUserRepository.addXP()
   }

@@ -157,6 +157,9 @@ class ActivityBlockWidget extends ConsumerWidget {
     if (isNewCompletion && xpEarned > 0) {
       ref.read(sessionXPProvider.notifier).addXP(xpEarned);
       await ref.read(userControllerProvider.notifier).addXP(xpEarned);
+    } else if (isNewCompletion) {
+      // Update streak even without XP (wrong answer still counts as daily activity)
+      await ref.read(userControllerProvider.notifier).updateStreak();
     }
 
     // Add words to vocabulary

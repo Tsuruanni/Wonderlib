@@ -14,7 +14,6 @@ class SystemSettings extends Equatable {
     this.xpStreakBonusDay = 10,
     this.xpAssignmentComplete = 100,
     // Progression
-    this.xpPerLevel = 100,
     this.maxStreakMultiplier = 2.0,
     this.streakBonusIncrement = 0.1,
     this.dailyXpCap = 1000,
@@ -40,7 +39,6 @@ class SystemSettings extends Equatable {
   final int xpAssignmentComplete;
 
   // Progression
-  final int xpPerLevel;
   final double maxStreakMultiplier;
   final double streakBonusIncrement;
   final int dailyXpCap;
@@ -69,7 +67,6 @@ class SystemSettings extends Equatable {
         xpBookComplete,
         xpStreakBonusDay,
         xpAssignmentComplete,
-        xpPerLevel,
         maxStreakMultiplier,
         streakBonusIncrement,
         dailyXpCap,
