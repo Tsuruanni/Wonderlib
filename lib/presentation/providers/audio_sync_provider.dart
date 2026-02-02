@@ -85,20 +85,55 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
   StreamSubscription<PlayerState>? _playerStateSubscription;
   List<WordTiming> _currentWordTimings = [];
 
+  /// Segment boundaries for chapter-level audio
+  int? _segmentStartMs;
+  int? _segmentEndMs;
+  String? _currentAudioUrl;
+
   void _subscribeToStreams() {
     _positionSubscription = _audioService.positionStream.listen(_onPositionChanged);
     _playerStateSubscription = _audioService.playerStateStream.listen(_onPlayerStateChanged);
   }
 
   void _onPositionChanged(Duration position) {
-    final positionMs = position.inMilliseconds;
-    final activeWordIndex = _findActiveWordIndex(positionMs);
+    final globalPositionMs = position.inMilliseconds;
+
+    // Check if we've reached the end of the segment (chapter-level audio)
+    if (_segmentEndMs != null && globalPositionMs >= _segmentEndMs!) {
+      _handleSegmentComplete();
+      return;
+    }
+
+    // Calculate position relative to segment start for UI display
+    final relativePositionMs = _segmentStartMs != null
+        ? (globalPositionMs - _segmentStartMs!).clamp(0, state.durationMs)
+        : globalPositionMs;
+
+    // Find active word using global position (word timings have global timestamps)
+    final activeWordIndex = _findActiveWordIndex(globalPositionMs);
 
     state = state.copyWith(
-      positionMs: positionMs,
+      positionMs: relativePositionMs,
       activeWordIndex: activeWordIndex,
       clearActiveWord: activeWordIndex == null,
     );
+  }
+
+  void _handleSegmentComplete() {
+    final completedBlockId = state.currentBlockId;
+
+    // Pause and reset state
+    _audioService.pause();
+    state = state.copyWith(
+      isPlaying: false,
+      positionMs: state.durationMs,
+      clearActiveWord: true,
+    );
+
+    // Notify completion callback
+    if (completedBlockId != null) {
+      _onComplete?.call(completedBlockId);
+    }
   }
 
   void _onPlayerStateChanged(PlayerState playerState) {
@@ -108,8 +143,10 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
           playerState.processingState == ProcessingState.buffering,
     );
 
-    // When playback completes, reset to beginning and notify
-    if (playerState.processingState == ProcessingState.completed) {
+    // When playback completes (only for per-block audio, not segment-based)
+    // Segment-based completion is handled in _onPositionChanged
+    if (playerState.processingState == ProcessingState.completed &&
+        _segmentEndMs == null) {
       final completedBlockId = state.currentBlockId;
       state = state.copyWith(
         isPlaying: false,
@@ -117,8 +154,8 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
         clearActiveWord: true,
       );
       // Notify completion callback
-      if (completedBlockId != null && _onComplete != null) {
-        _onComplete!(completedBlockId);
+      if (completedBlockId != null) {
+        _onComplete?.call(completedBlockId);
       }
     }
   }
@@ -149,6 +186,7 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
   }
 
   /// Load audio for a content block
+  /// Supports both per-block audio and chapter-level audio segments
   Future<void> loadBlock(ContentBlock block) async {
     if (!block.hasAudio) return;
 
@@ -162,13 +200,35 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
 
     _currentWordTimings = block.wordTimings;
 
+    // Check if this is a segment of chapter-level audio
+    final hasSegmentBounds = block.audioStartMs != null && block.audioEndMs != null;
+    _segmentStartMs = block.audioStartMs;
+    _segmentEndMs = block.audioEndMs;
+
     try {
-      await _audioService.player.setUrl(block.audioUrl!);
-      final duration = _audioService.duration;
+      // Only reload audio if URL changed (optimization for chapter-level audio)
+      final needsReload = _currentAudioUrl != block.audioUrl;
+      if (needsReload) {
+        _currentAudioUrl = block.audioUrl;
+        await _audioService.player.setUrl(block.audioUrl!);
+      }
+
+      // Calculate duration for this block
+      int blockDurationMs;
+      if (hasSegmentBounds) {
+        // Segment-based: duration is segment length
+        blockDurationMs = block.audioEndMs! - block.audioStartMs!;
+        // Seek to segment start
+        await _audioService.seek(Duration(milliseconds: block.audioStartMs!));
+      } else {
+        // Per-block audio: use full audio duration
+        final audioDuration = _audioService.duration;
+        blockDurationMs = audioDuration?.inMilliseconds ?? block.audioDurationMs ?? 0;
+      }
 
       state = state.copyWith(
         isLoading: false,
-        durationMs: duration?.inMilliseconds ?? block.audioDurationMs ?? 0,
+        durationMs: blockDurationMs,
       );
     } catch (e) {
       state = state.copyWith(
@@ -198,9 +258,19 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
     }
   }
 
-  /// Seek to position (in milliseconds)
+  /// Seek to position (in milliseconds, relative to block start)
   Future<void> seekMs(int positionMs) async {
-    await _audioService.seek(Duration(milliseconds: positionMs));
+    // Add segment offset for chapter-level audio
+    final globalPositionMs = _segmentStartMs != null
+        ? (_segmentStartMs! + positionMs)
+        : positionMs;
+
+    // Clamp to segment bounds if applicable
+    final clampedMs = _segmentEndMs != null
+        ? globalPositionMs.clamp(_segmentStartMs ?? 0, _segmentEndMs!)
+        : globalPositionMs;
+
+    await _audioService.seek(Duration(milliseconds: clampedMs));
   }
 
   /// Seek to progress (0.0 to 1.0)
@@ -239,6 +309,9 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
   Future<void> stop() async {
     await _audioService.stop();
     _currentWordTimings = [];
+    _segmentStartMs = null;
+    _segmentEndMs = null;
+    _currentAudioUrl = null;
     state = const AudioSyncState();
   }
 

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Reader Auto-Play & Clean Architecture Refactor)
+Son güncelleme: 2026-02-02 (Chapter-Level Batch Audio & Word Auto-Scroll)
 
 ## Current Phase
 
@@ -110,6 +110,9 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Chapter-Level Batch Audio | 2026-02-02 | Single API call per chapter, consistent voice, cost reduction |
+| Word-Level Auto-Scroll | 2026-02-02 | Karaoke scroll follows active word with 200ms animation |
+| Smart Auto-Play | 2026-02-02 | Session tracking prevents repeat auto-play on re-entry |
 | Reader Auto-Play | 2026-02-02 | Inline icon, auto-play on load, auto-continue after audio/activity |
 | Clean Architecture (Reader) | 2026-02-02 | ReaderAutoPlayController, moved business logic from widget to provider |
 | Audio Sync & Karaoke | 2026-02-02 | Word-level highlighting, Fal AI TTS, ContentBlock architecture |

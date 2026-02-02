@@ -5,6 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/content/content_block.dart';
 import 'audio_sync_provider.dart';
 
+/// Tracks which chapters have had auto-play triggered this session.
+/// NOT autoDispose - persists for app lifetime to prevent re-triggering auto-play.
+final autoPlayedChaptersProvider = StateProvider<Set<String>>((ref) => {});
+
 /// Configuration for auto-play behavior
 class AutoPlayConfig {
   const AutoPlayConfig({
@@ -59,13 +63,23 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
   final Ref _ref;
   final AutoPlayConfig config;
   Timer? _initialAutoPlayTimer;
+  String? _currentChapterId;
 
-  /// Initialize with content blocks and start auto-play timer
-  void initialize(List<ContentBlock> blocks) {
+  /// Initialize with content blocks and chapter ID.
+  /// Auto-play only triggers on FIRST entry to a chapter in this session.
+  void initialize(List<ContentBlock> blocks, {String? chapterId}) {
     state = state.copyWith(blocks: blocks);
+    _currentChapterId = chapterId;
 
-    // Start auto-play timer if not already played
-    if (!state.hasAutoPlayedInitial && state.isAutoPlayEnabled) {
+    // Check if this chapter has already been auto-played this session
+    final autoPlayedChapters = _ref.read(autoPlayedChaptersProvider);
+    final alreadyAutoPlayed = chapterId != null && autoPlayedChapters.contains(chapterId);
+
+    // Start auto-play timer only if:
+    // 1. Not already played in this widget instance
+    // 2. Auto-play is enabled
+    // 3. This chapter hasn't been auto-played this session
+    if (!state.hasAutoPlayedInitial && state.isAutoPlayEnabled && !alreadyAutoPlayed) {
       _initialAutoPlayTimer?.cancel();
       _initialAutoPlayTimer = Timer(
         Duration(milliseconds: config.initialDelayMs),
@@ -83,6 +97,15 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
   void _autoPlayFirstBlock() {
     if (state.hasAutoPlayedInitial || !state.isAutoPlayEnabled) return;
     state = state.copyWith(hasAutoPlayedInitial: true);
+
+    // Mark this chapter as auto-played for the session
+    if (_currentChapterId != null) {
+      final currentSet = _ref.read(autoPlayedChaptersProvider);
+      _ref.read(autoPlayedChaptersProvider.notifier).state = {
+        ...currentSet,
+        _currentChapterId!,
+      };
+    }
 
     final firstAudioBlock = state.blocks.firstWhere(
       (b) => b.hasAudio,

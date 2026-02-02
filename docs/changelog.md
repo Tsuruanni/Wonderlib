@@ -8,6 +8,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Chapter-Level Batch Audio & Word Auto-Scroll (2026-02-02)
+
+#### Added
+- **Chapter-Level Batch Audio Generation** - Single API call for all text blocks in a chapter
+  - `generate-chapter-audio` Edge Function combines blocks with delimiter, calls Fal AI once
+  - Splits timestamps back to individual blocks with `audio_start_ms` / `audio_end_ms`
+  - Consistent voice tone across entire chapter (no per-block variations)
+  - Cost reduction: N blocks = 1 API call instead of N calls
+- **Segment-Based Audio Playback** - Reader plays correct segment from chapter audio file
+  - `AudioSyncController` tracks segment boundaries for each block
+  - Auto-stops when reaching block's `audio_end_ms`
+  - Seamless continuation to next block
+- **Word-Level Auto-Scroll** - Active word stays visible during karaoke playback
+  - `WordHighlightText` now StatefulWidget with GlobalKey per word
+  - `Scrollable.ensureVisible` called on word change with 200ms animation
+  - Word kept at 40% viewport height for comfortable reading
+- **Smart Auto-Play on Re-entry** - Prevents annoying repeat auto-play
+  - `autoPlayedChaptersProvider` tracks chapters auto-played this session
+  - First entry: 3-second delay then auto-play
+  - Re-entry: No auto-play (user can manually start)
+
+#### Changed
+- **ContentBlock Entity** - Added `audioStartMs`, `audioEndMs` fields for segment tracking
+- **ContentBlockModel** - JSON serialization for new segment fields
+- **Admin Panel** - "Generate Chapter Audio" button in ContentBlockEditor toolbar
+
+#### Infrastructure
+- **New Migration** `20260202000004_add_audio_segment_columns.sql`
+  - Adds `audio_start_ms INTEGER` and `audio_end_ms INTEGER` to content_blocks
+- **New Edge Function** `generate-chapter-audio/index.ts`
+  - Batch processing with " ||| " delimiter
+  - Character-to-word timestamp conversion per block
+
 ### Reader Auto-Play & Clean Architecture Refactor (2026-02-02)
 
 #### Added

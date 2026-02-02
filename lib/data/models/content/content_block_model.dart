@@ -10,6 +10,8 @@ class ContentBlockModel {
     this.text,
     this.audioUrl,
     this.wordTimings = const [],
+    this.audioStartMs,
+    this.audioEndMs,
     this.imageUrl,
     this.caption,
     this.activityId,
@@ -32,6 +34,8 @@ class ContentBlockModel {
       text: json['text'] as String?,
       audioUrl: json['audio_url'] as String?,
       wordTimings: wordTimings,
+      audioStartMs: json['audio_start_ms'] as int?,
+      audioEndMs: json['audio_end_ms'] as int?,
       imageUrl: json['image_url'] as String?,
       caption: json['caption'] as String?,
       activityId: json['activity_id'] as String?,
@@ -50,6 +54,8 @@ class ContentBlockModel {
       audioUrl: entity.audioUrl,
       wordTimings:
           entity.wordTimings.map((w) => WordTimingModel.fromEntity(w)).toList(),
+      audioStartMs: entity.audioStartMs,
+      audioEndMs: entity.audioEndMs,
       imageUrl: entity.imageUrl,
       caption: entity.caption,
       activityId: entity.activityId,
@@ -65,6 +71,8 @@ class ContentBlockModel {
   final String? text;
   final String? audioUrl;
   final List<WordTimingModel> wordTimings;
+  final int? audioStartMs;
+  final int? audioEndMs;
   final String? imageUrl;
   final String? caption;
   final String? activityId;
@@ -108,6 +116,8 @@ class ContentBlockModel {
       'text': text,
       'audio_url': audioUrl,
       'word_timings': wordTimings.map((w) => w.toJson()).toList(),
+      'audio_start_ms': audioStartMs,
+      'audio_end_ms': audioEndMs,
       'image_url': imageUrl,
       'caption': caption,
       'activity_id': activityId,
@@ -125,6 +135,8 @@ class ContentBlockModel {
       text: text,
       audioUrl: audioUrl,
       wordTimings: wordTimings.map((w) => w.toEntity()).toList(),
+      audioStartMs: audioStartMs,
+      audioEndMs: audioEndMs,
       imageUrl: imageUrl,
       caption: caption,
       activityId: activityId,

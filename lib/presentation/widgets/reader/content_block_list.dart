@@ -106,9 +106,9 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
         // Build visible blocks (stop at first uncompleted activity)
         final visibleBlocks = _getVisibleBlocks(blocks, activityMap, completedActivities);
 
-        // Initialize auto-play controller with blocks
+        // Initialize auto-play controller with blocks and chapter ID
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          autoPlayController.initialize(visibleBlocks);
+          autoPlayController.initialize(visibleBlocks, chapterId: widget.chapter.id);
         });
 
         // Check for new completions to trigger scroll and auto-play

@@ -18,6 +18,8 @@ class ContentBlock extends Equatable {
     this.text,
     this.audioUrl,
     this.wordTimings = const [],
+    this.audioStartMs,
+    this.audioEndMs,
     this.imageUrl,
     this.caption,
     this.activityId,
@@ -31,6 +33,8 @@ class ContentBlock extends Equatable {
         chapterId: '',
         orderIndex: 0,
         type: ContentBlockType.text,
+        audioStartMs: null,
+        audioEndMs: null,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -44,6 +48,12 @@ class ContentBlock extends Equatable {
   final String? text;
   final String? audioUrl;
   final List<WordTiming> wordTimings;
+
+  /// Start position of this block within chapter audio (milliseconds)
+  final int? audioStartMs;
+
+  /// End position of this block within chapter audio (milliseconds)
+  final int? audioEndMs;
 
   // Image block fields
   final String? imageUrl;
@@ -71,6 +81,12 @@ class ContentBlock extends Equatable {
     return wordTimings.last.endMs;
   }
 
+  /// Audio duration for this block within chapter audio (milliseconds)
+  int? get audioBlockDurationMs {
+    if (audioStartMs == null || audioEndMs == null) return null;
+    return audioEndMs! - audioStartMs!;
+  }
+
   @override
   List<Object?> get props => [
         id,
@@ -80,6 +96,8 @@ class ContentBlock extends Equatable {
         text,
         audioUrl,
         wordTimings,
+        audioStartMs,
+        audioEndMs,
         imageUrl,
         caption,
         activityId,
