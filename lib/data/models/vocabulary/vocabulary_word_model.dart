@@ -7,6 +7,7 @@ class VocabularyWordModel {
     required this.id,
     required this.word,
     this.phonetic,
+    this.partOfSpeech,
     required this.meaningTR,
     this.meaningEN,
     this.exampleSentences = const [],
@@ -17,13 +18,23 @@ class VocabularyWordModel {
     this.synonyms = const [],
     this.antonyms = const [],
     required this.createdAt,
+    this.sourceBookId,
+    this.sourceBookTitle,
   });
 
   factory VocabularyWordModel.fromJson(Map<String, dynamic> json) {
+    // Handle joined book data: books: { title: '...' }
+    String? bookTitle;
+    final booksData = json['books'];
+    if (booksData is Map<String, dynamic>) {
+      bookTitle = booksData['title'] as String?;
+    }
+
     return VocabularyWordModel(
       id: json['id'] as String,
       word: json['word'] as String,
       phonetic: json['phonetic'] as String?,
+      partOfSpeech: json['part_of_speech'] as String?,
       meaningTR: json['meaning_tr'] as String? ?? '',
       meaningEN: json['meaning_en'] as String?,
       exampleSentences: _parseStringList(json['example_sentences']),
@@ -34,6 +45,8 @@ class VocabularyWordModel {
       synonyms: _parseStringList(json['synonyms']),
       antonyms: _parseStringList(json['antonyms']),
       createdAt: DateTime.parse(json['created_at'] as String),
+      sourceBookId: json['source_book_id'] as String?,
+      sourceBookTitle: bookTitle,
     );
   }
 
@@ -42,6 +55,7 @@ class VocabularyWordModel {
       id: entity.id,
       word: entity.word,
       phonetic: entity.phonetic,
+      partOfSpeech: entity.partOfSpeech,
       meaningTR: entity.meaningTR,
       meaningEN: entity.meaningEN,
       exampleSentences: entity.exampleSentences,
@@ -52,11 +66,14 @@ class VocabularyWordModel {
       synonyms: entity.synonyms,
       antonyms: entity.antonyms,
       createdAt: entity.createdAt,
+      sourceBookId: entity.sourceBookId,
+      sourceBookTitle: entity.sourceBookTitle,
     );
   }
   final String id;
   final String word;
   final String? phonetic;
+  final String? partOfSpeech;
   final String meaningTR;
   final String? meaningEN;
   final List<String> exampleSentences;
@@ -67,12 +84,15 @@ class VocabularyWordModel {
   final List<String> synonyms;
   final List<String> antonyms;
   final DateTime createdAt;
+  final String? sourceBookId;
+  final String? sourceBookTitle;
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'word': word,
       'phonetic': phonetic,
+      'part_of_speech': partOfSpeech,
       'meaning_tr': meaningTR,
       'meaning_en': meaningEN,
       'example_sentences': exampleSentences,
@@ -83,6 +103,7 @@ class VocabularyWordModel {
       'synonyms': synonyms,
       'antonyms': antonyms,
       'created_at': createdAt.toIso8601String(),
+      'source_book_id': sourceBookId,
     };
   }
 
@@ -91,6 +112,7 @@ class VocabularyWordModel {
       id: id,
       word: word,
       phonetic: phonetic,
+      partOfSpeech: partOfSpeech,
       meaningTR: meaningTR,
       meaningEN: meaningEN,
       exampleSentences: exampleSentences,
@@ -101,6 +123,8 @@ class VocabularyWordModel {
       synonyms: synonyms,
       antonyms: antonyms,
       createdAt: createdAt,
+      sourceBookId: sourceBookId,
+      sourceBookTitle: sourceBookTitle,
     );
   }
 

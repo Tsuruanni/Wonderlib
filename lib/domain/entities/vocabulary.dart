@@ -6,6 +6,7 @@ class VocabularyWord extends Equatable {
     required this.id,
     required this.word,
     this.phonetic,
+    this.partOfSpeech,
     required this.meaningTR,
     this.meaningEN,
     this.exampleSentences = const [],
@@ -16,10 +17,13 @@ class VocabularyWord extends Equatable {
     this.synonyms = const [],
     this.antonyms = const [],
     required this.createdAt,
+    this.sourceBookId,
+    this.sourceBookTitle,
   });
   final String id;
   final String word;
   final String? phonetic;
+  final String? partOfSpeech; // noun, verb, adjective, adverb, etc.
   final String meaningTR;
   final String? meaningEN;
   final List<String> exampleSentences; // Up to 2 example sentences
@@ -30,6 +34,8 @@ class VocabularyWord extends Equatable {
   final List<String> synonyms;
   final List<String> antonyms;
   final DateTime createdAt;
+  final String? sourceBookId; // Book from which this meaning was extracted
+  final String? sourceBookTitle; // Joined from books table
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
@@ -45,6 +51,7 @@ class VocabularyWord extends Equatable {
         id,
         word,
         phonetic,
+        partOfSpeech,
         meaningTR,
         meaningEN,
         exampleSentences,
@@ -55,6 +62,8 @@ class VocabularyWord extends Equatable {
         synonyms,
         antonyms,
         createdAt,
+        sourceBookId,
+        sourceBookTitle,
       ];
 }
 

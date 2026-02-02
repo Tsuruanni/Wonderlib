@@ -16,12 +16,14 @@ class TextBlockWidget extends ConsumerWidget {
     required this.settings,
     this.vocabulary = const [],
     this.onVocabularyTap,
+    this.onWordTap,
   });
 
   final ContentBlock block;
   final ReaderSettings settings;
   final List<ChapterVocabulary> vocabulary;
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
+  final void Function(String word, Offset position)? onWordTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,6 +59,7 @@ class TextBlockWidget extends ConsumerWidget {
               activeWordIndex: activeWordIndex,
               vocabulary: vocabulary,
               onVocabularyTap: onVocabularyTap,
+              onWordTap: onWordTap,
             ),
           ),
         ],

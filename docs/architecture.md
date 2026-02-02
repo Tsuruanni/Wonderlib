@@ -245,7 +245,10 @@ Update UI, show notifications
 - `content_blocks` - Structured content (text, image, audio, activity types)
   - `word_timings` JSONB - Audio-text sync data for karaoke highlighting
 - `activities` - Comprehension exercises
-- `vocabulary_words` - Word definitions
+- `vocabulary_words` - Word definitions (supports multiple meanings per word)
+  - `source_book_id` - FK to books for meaning attribution
+  - `part_of_speech` - Grammatical classification
+  - UNIQUE constraint on `(word, meaning_tr)` for deduplication
 
 ### Progress
 - `reading_progress` - Book completion tracking

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Chapter-Level Batch Audio & Word Auto-Scroll)
+Son güncelleme: 2026-02-02 (Multi-Meaning Vocabulary & Word-Tap Popup)
 
 ## Current Phase
 
@@ -110,6 +110,7 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Multi-Meaning Vocabulary | 2026-02-02 | Word-tap popup, multiple meanings from different books, dev quick login |
 | Chapter-Level Batch Audio | 2026-02-02 | Single API call per chapter, consistent voice, cost reduction |
 | Word-Level Auto-Scroll | 2026-02-02 | Karaoke scroll follows active word with 200ms animation |
 | Smart Auto-Play | 2026-02-02 | Session tracking prevents repeat auto-play on re-entry |

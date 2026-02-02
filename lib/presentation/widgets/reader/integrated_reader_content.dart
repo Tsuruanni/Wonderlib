@@ -21,12 +21,14 @@ class IntegratedReaderContent extends ConsumerStatefulWidget {
     required this.chapter,
     required this.settings,
     required this.onVocabularyTap,
+    this.onWordTap,
     this.scrollController,
   });
 
   final Chapter chapter;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
+  final void Function(String word, Offset position)? onWordTap;
   final ScrollController? scrollController;
 
   @override
@@ -85,6 +87,7 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
                 vocabulary: widget.chapter.vocabulary,
                 settings: widget.settings,
                 onVocabularyTap: widget.onVocabularyTap,
+                onWordTap: widget.onWordTap,
               );
             } else if (item is _ActivityItem) {
               final activity = item.activity;

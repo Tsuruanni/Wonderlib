@@ -22,12 +22,14 @@ class ContentBlockList extends ConsumerStatefulWidget {
     required this.chapter,
     required this.settings,
     required this.onVocabularyTap,
+    this.onWordTap,
     this.scrollController,
   });
 
   final Chapter chapter;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
+  final void Function(String word, Offset position)? onWordTap;
   final ScrollController? scrollController;
 
   @override
@@ -183,6 +185,7 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           settings: widget.settings,
           vocabulary: widget.chapter.vocabulary,
           onVocabularyTap: widget.onVocabularyTap,
+          onWordTap: widget.onWordTap,
         );
 
       case ContentBlockType.image:
@@ -197,6 +200,7 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           settings: widget.settings,
           vocabulary: widget.chapter.vocabulary,
           onVocabularyTap: widget.onVocabularyTap,
+          onWordTap: widget.onWordTap,
         );
 
       case ContentBlockType.activity:

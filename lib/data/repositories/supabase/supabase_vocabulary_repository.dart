@@ -377,4 +377,51 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, VocabularyWord?>> getWordByWord(String word) async {
+    try {
+      final response = await _supabase
+          .from('vocabulary_words')
+          .select()
+          .ilike('word', word)
+          .maybeSingle();
+
+      if (response == null) {
+        return const Right(null);
+      }
+
+      return Right(VocabularyWordModel.fromJson(response).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<VocabularyWord>>> getWordsByWord(
+    String word,
+  ) async {
+    try {
+      // Query all rows matching this word, with joined book title
+      final response = await _supabase
+          .from('vocabulary_words')
+          .select('*, books:source_book_id(title)')
+          .ilike('word', word);
+
+      final words = (response as List)
+          .map(
+            (json) =>
+                VocabularyWordModel.fromJson(json as Map<String, dynamic>)
+                    .toEntity(),
+          )
+          .toList();
+
+      return Right(words);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

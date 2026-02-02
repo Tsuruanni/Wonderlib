@@ -8,6 +8,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Multi-Meaning Vocabulary & Word-Tap Popup (2026-02-02)
+
+#### Added
+- **Multi-Meaning Word Support** - Same word can have different meanings from different books (e.g., "bank" = river edge vs financial institution)
+  - `source_book_id` column links vocabulary words to source book
+  - `part_of_speech` column for grammatical classification
+  - UNIQUE constraint on `(word, meaning_tr)` prevents duplicate meanings
+- **Word-Tap Popup** - Dark-themed popup showing word definition when tapped in reader
+  - Multiple meanings displayed with book attribution (📖 Book Title)
+  - Part of speech badge, Turkish meaning, example sentence
+  - "I didn't know this" button adds word to vocabulary progress
+  - Speaker icon for audio pronunciation (when available)
+- **WordDefinition Entity** - New entity supporting multiple meanings
+  - `WordMeaning` class for individual meaning entries
+  - Backward-compatible getters (`meaningTR`, `meaningEN`, `partOfSpeech`)
+  - `hasMultipleMeanings` computed property
+- **LookupWordDefinitionUseCase** - Returns all meanings for a word from database
+- **Dev Quick Login Buttons** - Debug-only buttons for 4 test users (Fresh, Active, Advanced, Teacher)
+- **extract-vocabulary Edge Function** - Insert-if-not-exists logic (no longer overrides meanings)
+
+#### Changed
+- **VocabularyWord Entity** - Added `sourceBookId`, `sourceBookTitle`, `partOfSpeech` fields
+- **VocabularyRepository** - Added `getWordsByWord()` for multi-meaning queries with book join
+- **Word highlighting** - Vocabulary words now tappable in reader (shows popup)
+
+#### Infrastructure
+- **New Migration** `20260202000005_add_part_of_speech_to_vocabulary.sql`
+- **New Migration** `20260202000006_multi_meaning_vocabulary.sql`
+  - Drops `vocabulary_words_word_level_key` constraint
+  - Adds `vocabulary_words_word_meaning_unique` constraint
+  - Adds `source_book_id` foreign key to books table
+  - Creates `idx_vocabulary_words_source_book` index
+
 ### Chapter-Level Batch Audio & Word Auto-Scroll (2026-02-02)
 
 #### Added

@@ -17,6 +17,7 @@ class WordHighlightText extends StatefulWidget {
     this.activeWordIndex,
     this.vocabulary = const [],
     this.onVocabularyTap,
+    this.onWordTap,
   });
 
   final String text;
@@ -25,6 +26,10 @@ class WordHighlightText extends StatefulWidget {
   final int? activeWordIndex;
   final List<ChapterVocabulary> vocabulary;
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
+
+  /// Callback when any word (not just vocabulary) is tapped.
+  /// Used for word-tap popup feature.
+  final void Function(String word, Offset position)? onWordTap;
 
   @override
   State<WordHighlightText> createState() => _WordHighlightTextState();
@@ -68,7 +73,17 @@ class _WordHighlightTextState extends State<WordHighlightText> {
   @override
   Widget build(BuildContext context) {
     if (widget.wordTimings.isEmpty) {
-      // Fallback: no timings, render plain text
+      // No word timings - check if we need tappable words
+      if (widget.onWordTap != null) {
+        // Make words tappable even without audio sync
+        return RichText(
+          text: TextSpan(
+            style: _baseTextStyle,
+            children: _buildSimpleWordSpans(),
+          ),
+        );
+      }
+      // Fallback: no timings and no tap handler, render plain text
       return SelectableText(
         widget.text,
         style: _baseTextStyle,
@@ -81,6 +96,43 @@ class _WordHighlightTextState extends State<WordHighlightText> {
         children: _buildWordSpans(context),
       ),
     );
+  }
+
+  /// Build tappable word spans when no word timings available.
+  /// Splits text by whitespace and makes each word tappable.
+  List<InlineSpan> _buildSimpleWordSpans() {
+    final spans = <InlineSpan>[];
+    final pattern = RegExp(r'(\S+)(\s*)');
+    final matches = pattern.allMatches(widget.text);
+
+    for (final match in matches) {
+      final word = match.group(1) ?? '';
+      final space = match.group(2) ?? '';
+
+      if (word.isNotEmpty) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: GestureDetector(
+              onTapUp: (details) {
+                widget.onWordTap?.call(word, details.globalPosition);
+              },
+              child: Text(
+                word,
+                style: _baseTextStyle,
+              ),
+            ),
+          ),
+        );
+      }
+
+      if (space.isNotEmpty) {
+        spans.add(TextSpan(text: space));
+      }
+    }
+
+    return spans;
   }
 
   TextStyle get _baseTextStyle => TextStyle(
@@ -149,27 +201,43 @@ class _WordHighlightTextState extends State<WordHighlightText> {
   }
 
   WidgetSpan _buildRegularWordSpan(int index, String word, bool isActive) {
+    final container = Container(
+      key: _wordKeys[index],
+      decoration: isActive
+          ? BoxDecoration(
+              color: Colors.yellow.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(2),
+            )
+          : null,
+      child: Text(
+        word,
+        style: TextStyle(
+          fontSize: widget.settings.fontSize,
+          height: widget.settings.lineHeight,
+          color: widget.settings.theme.text,
+          fontWeight: isActive ? FontWeight.bold : null,
+        ),
+      ),
+    );
+
+    // Wrap in GestureDetector if onWordTap is provided
+    if (widget.onWordTap != null) {
+      return WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTapUp: (details) {
+            widget.onWordTap?.call(word, details.globalPosition);
+          },
+          child: container,
+        ),
+      );
+    }
+
     return WidgetSpan(
       alignment: PlaceholderAlignment.baseline,
       baseline: TextBaseline.alphabetic,
-      child: Container(
-        key: _wordKeys[index],
-        decoration: isActive
-            ? BoxDecoration(
-                color: Colors.yellow.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(2),
-              )
-            : null,
-        child: Text(
-          word,
-          style: TextStyle(
-            fontSize: widget.settings.fontSize,
-            height: widget.settings.lineHeight,
-            color: widget.settings.theme.text,
-            fontWeight: isActive ? FontWeight.bold : null,
-          ),
-        ),
-      ),
+      child: container,
     );
   }
 
@@ -190,7 +258,12 @@ class _WordHighlightTextState extends State<WordHighlightText> {
       child: GestureDetector(
         key: _wordKeys[index],
         onTapUp: (details) {
-          widget.onVocabularyTap?.call(vocab, details.globalPosition);
+          // Prefer onWordTap for new word-tap popup, fallback to onVocabularyTap
+          if (widget.onWordTap != null) {
+            widget.onWordTap?.call(word, details.globalPosition);
+          } else {
+            widget.onVocabularyTap?.call(vocab, details.globalPosition);
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 2),

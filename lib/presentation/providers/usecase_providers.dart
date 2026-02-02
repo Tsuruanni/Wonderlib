@@ -68,6 +68,7 @@ import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.da
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/lookup_word_definition_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
@@ -272,6 +273,10 @@ final getVocabularyStatsUseCaseProvider = Provider((ref) {
 
 final addWordToVocabularyUseCaseProvider = Provider((ref) {
   return AddWordToVocabularyUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final lookupWordDefinitionUseCaseProvider = Provider((ref) {
+  return LookupWordDefinitionUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 // ============================================

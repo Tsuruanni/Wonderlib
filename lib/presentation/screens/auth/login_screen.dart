@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -224,12 +225,157 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ],
+
+                    // Dev Quick Login (only in debug mode)
+                    if (kDebugMode) ...[
+                      const SizedBox(height: 32),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Dev Quick Login',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      // Students row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _DevLoginButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => _quickLogin(
+                                        email: 'fresh@demo.com',
+                                        password: 'Test1234',
+                                      ),
+                              icon: Icons.child_care,
+                              label: 'Fresh',
+                              subtitle: '0 XP',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _DevLoginButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => _quickLogin(
+                                        email: 'active@demo.com',
+                                        password: 'Test1234',
+                                      ),
+                              icon: Icons.school,
+                              label: 'Active',
+                              subtitle: '500 XP',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _DevLoginButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () => _quickLogin(
+                                        email: 'advanced@demo.com',
+                                        password: 'Test1234',
+                                      ),
+                              icon: Icons.star,
+                              label: 'Advanced',
+                              subtitle: '5000 XP',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Teacher button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: isLoading
+                              ? null
+                              : () => _quickLogin(
+                                    email: 'teacher@demo.com',
+                                    password: 'Test1234',
+                                  ),
+                          icon: const Icon(Icons.person, size: 18),
+                          label: const Text('Teacher'),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _quickLogin({
+    required String email,
+    required String password,
+  }) async {
+    // Set to email mode and fill credentials
+    setState(() {
+      _useStudentNumber = false;
+      _emailController.text = email;
+      _passwordController.text = password;
+    });
+
+    // Login directly
+    final authController = ref.read(authControllerProvider.notifier);
+    final success = await authController.signInWithEmail(
+      email: email,
+      password: password,
+    );
+
+    if (!success && mounted) {
+      final error = ref.read(authControllerProvider).error;
+      if (error != null) {
+        context.showErrorSnackBar(error);
+      }
+    }
+  }
+}
+
+/// Dev login button widget for quick testing
+class _DevLoginButton extends StatelessWidget {
+  const _DevLoginButton({
+    required this.onPressed,
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+  });
+
+  final VoidCallback? onPressed;
+  final IconData icon;
+  final String label;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 9,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
       ),
     );
   }

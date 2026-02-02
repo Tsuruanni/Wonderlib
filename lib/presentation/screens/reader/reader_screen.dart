@@ -20,6 +20,8 @@ import '../../widgets/reader/content_block_list.dart';
 import '../../widgets/reader/integrated_reader_content.dart';
 import '../../widgets/reader/reader_settings_sheet.dart';
 import '../../widgets/reader/vocabulary_popup.dart';
+import '../../widgets/reader/word_tap_popup.dart';
+import '../../providers/word_definition_provider.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
 
@@ -162,6 +164,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     ref.read(vocabularyPopupPositionProvider.notifier).state = null;
   }
 
+  void _onWordTap(String word, Offset position) {
+    ref.read(tappedWordProvider.notifier).state = word;
+    ref.read(tappedWordPositionProvider.notifier).state = position;
+  }
+
+  void _closeWordTapPopup() {
+    ref.read(tappedWordProvider.notifier).state = null;
+    ref.read(tappedWordPositionProvider.notifier).state = null;
+  }
+
   /// Builds the chapter content widget based on content type.
   /// Uses ContentBlockList for chapters with content blocks,
   /// falls back to IntegratedReaderContent for legacy plain text content.
@@ -181,6 +193,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             chapter: chapter,
             settings: settings,
             onVocabularyTap: _onVocabularyTap,
+            onWordTap: _onWordTap,
           );
         } else if (chapter.content != null) {
           // Legacy plain text content
@@ -189,6 +202,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             chapter: chapter,
             settings: settings,
             onVocabularyTap: _onVocabularyTap,
+            onWordTap: _onWordTap,
             scrollController: null,
           );
         } else {
@@ -215,6 +229,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
             chapter: chapter,
             settings: settings,
             onVocabularyTap: _onVocabularyTap,
+            onWordTap: _onWordTap,
             scrollController: null,
           );
         }
@@ -293,6 +308,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     final isChapterComplete = ref.watch(isChapterCompleteProvider);
     final selectedVocab = ref.watch(selectedVocabularyProvider);
     final popupPosition = ref.watch(vocabularyPopupPositionProvider);
+    final tappedWord = ref.watch(tappedWordProvider);
+    final tappedWordPosition = ref.watch(tappedWordPositionProvider);
     final sessionXP = ref.watch(sessionXPProvider);
     final readingTime = ref.watch(readingTimerProvider);
 
@@ -554,7 +571,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                 ),
               ),
 
-              // Vocabulary popup
+              // Vocabulary popup (legacy - for pre-highlighted vocab words)
               if (selectedVocab != null && popupPosition != null)
                 VocabularyPopup(
                   vocabulary: selectedVocab,
@@ -562,6 +579,18 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                   onClose: _closeVocabularyPopup,
                   onAddToVocabulary: () {
                     _addWordToVocabulary(selectedVocab.word);
+                  },
+                ),
+
+              // Word tap popup (new - for any word tap)
+              if (tappedWord != null && tappedWordPosition != null)
+                WordTapPopup(
+                  word: tappedWord,
+                  position: tappedWordPosition,
+                  onClose: _closeWordTapPopup,
+                  onPlayAudio: (audioUrl) {
+                    // TODO: Implement word pronunciation playback
+                    debugPrint('Play audio: $audioUrl');
                   },
                 ),
 

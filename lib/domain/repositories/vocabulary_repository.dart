@@ -42,4 +42,13 @@ abstract class VocabularyRepository {
     required String userId,
     required String wordId,
   });
+
+  /// Get a word by exact word string (case-insensitive)
+  /// Returns null if word not found in database
+  Future<Either<Failure, VocabularyWord?>> getWordByWord(String word);
+
+  /// Get ALL meanings for a word (multiple rows for words with different meanings)
+  /// Returns empty list if word not found
+  /// Includes joined book title for each meaning
+  Future<Either<Failure, List<VocabularyWord>>> getWordsByWord(String word);
 }

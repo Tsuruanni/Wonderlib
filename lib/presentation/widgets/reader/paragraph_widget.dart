@@ -11,17 +11,36 @@ class ParagraphWidget extends StatelessWidget {
     required this.vocabulary,
     required this.settings,
     required this.onVocabularyTap,
+    this.onWordTap,
   });
 
   final String content;
   final List<ChapterVocabulary> vocabulary;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
+  final void Function(String word, Offset position)? onWordTap;
 
   @override
   Widget build(BuildContext context) {
-    final spans = _buildContentSpans(context);
+    // If onWordTap is provided, make all words tappable
+    if (onWordTap != null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: settings.fontSize,
+              height: settings.lineHeight,
+              color: settings.theme.text,
+            ),
+            children: _buildTappableWordSpans(context),
+          ),
+        ),
+      );
+    }
 
+    // Legacy: use SelectableText.rich with vocabulary highlights only
+    final spans = _buildContentSpans(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: SelectableText.rich(
@@ -30,6 +49,61 @@ class ParagraphWidget extends StatelessWidget {
           fontSize: settings.fontSize,
           height: settings.lineHeight,
           color: settings.theme.text,
+        ),
+      ),
+    );
+  }
+
+  /// Build word spans where ALL words are tappable
+  List<InlineSpan> _buildTappableWordSpans(BuildContext context) {
+    final spans = <InlineSpan>[];
+    final vocabMap = <String, ChapterVocabulary>{};
+    for (final vocab in vocabulary) {
+      vocabMap[vocab.word.toLowerCase()] = vocab;
+    }
+
+    // Split content into words and whitespace
+    final pattern = RegExp(r'(\S+)(\s*)');
+    final matches = pattern.allMatches(content);
+
+    for (final match in matches) {
+      final word = match.group(1) ?? '';
+      final space = match.group(2) ?? '';
+
+      if (word.isNotEmpty) {
+        final vocab = vocabMap[word.toLowerCase()];
+        if (vocab != null && settings.showVocabularyHighlights) {
+          // Vocabulary word - special styling
+          spans.add(_buildVocabularySpan(context, vocab, word));
+        } else {
+          // Regular word - still tappable
+          spans.add(_buildTappableWordSpan(word));
+        }
+      }
+
+      if (space.isNotEmpty) {
+        spans.add(TextSpan(text: space));
+      }
+    }
+
+    return spans;
+  }
+
+  WidgetSpan _buildTappableWordSpan(String word) {
+    return WidgetSpan(
+      alignment: PlaceholderAlignment.baseline,
+      baseline: TextBaseline.alphabetic,
+      child: GestureDetector(
+        onTapUp: (details) {
+          onWordTap?.call(word, details.globalPosition);
+        },
+        child: Text(
+          word,
+          style: TextStyle(
+            fontSize: settings.fontSize,
+            height: settings.lineHeight,
+            color: settings.theme.text,
+          ),
         ),
       ),
     );
@@ -94,7 +168,12 @@ class ParagraphWidget extends StatelessWidget {
       baseline: TextBaseline.alphabetic,
       child: GestureDetector(
         onTapUp: (details) {
-          onVocabularyTap(vocab, details.globalPosition);
+          // Prefer onWordTap for new word-tap popup
+          if (onWordTap != null) {
+            onWordTap!(displayText, details.globalPosition);
+          } else {
+            onVocabularyTap(vocab, details.globalPosition);
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 2),

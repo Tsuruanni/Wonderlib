@@ -64,6 +64,49 @@ class EdgeFunctionService {
       throw EdgeFunctionException('Failed to call check-streak: $e');
     }
   }
+
+  /// Extract vocabulary words from text using Gemini AI
+  /// Returns list of extracted words with definitions
+  Future<ExtractVocabularyResult> extractVocabulary({
+    required String text,
+    String? chapterId,
+    String difficulty = 'b1',
+    int maxWords = 20,
+    bool saveToDb = false,
+  }) async {
+    // Input validation
+    if (text.trim().isEmpty) {
+      throw EdgeFunctionException('Text cannot be empty');
+    }
+    if (text.length > 50000) {
+      throw EdgeFunctionException('Text exceeds maximum length of 50000 characters');
+    }
+
+    try {
+      final response = await _supabase.functions.invoke(
+        'extract-vocabulary',
+        body: {
+          'text': text,
+          'chapterId': chapterId,
+          'difficulty': difficulty,
+          'maxWords': maxWords,
+          'saveToDb': saveToDb,
+        },
+      );
+
+      if (response.status != 200) {
+        throw EdgeFunctionException(
+          'Failed to extract vocabulary: ${response.data?['error'] ?? 'Unknown error'}',
+        );
+      }
+
+      final data = response.data as Map<String, dynamic>;
+      return ExtractVocabularyResult.fromJson(data);
+    } catch (e) {
+      if (e is EdgeFunctionException) rethrow;
+      throw EdgeFunctionException('Failed to call extract-vocabulary: $e');
+    }
+  }
 }
 
 /// Result of awarding XP
@@ -154,6 +197,57 @@ class StreakResult {
   final bool streakExtended;
   final int bonusXp;
   final String? error;
+}
+
+/// Result from vocabulary extraction
+class ExtractVocabularyResult {
+  const ExtractVocabularyResult({
+    required this.success,
+    required this.words,
+    this.savedCount = 0,
+  });
+
+  factory ExtractVocabularyResult.fromJson(Map<String, dynamic> json) {
+    return ExtractVocabularyResult(
+      success: json['success'] as bool? ?? false,
+      words: (json['words'] as List<dynamic>?)
+              ?.map((w) => ExtractedWord.fromJson(w as Map<String, dynamic>))
+              .toList() ??
+          [],
+      savedCount: json['savedCount'] as int? ?? 0,
+    );
+  }
+
+  final bool success;
+  final List<ExtractedWord> words;
+  final int savedCount;
+}
+
+/// Single extracted word from vocabulary extraction
+class ExtractedWord {
+  const ExtractedWord({
+    required this.word,
+    required this.partOfSpeech,
+    required this.meaningEN,
+    required this.meaningTR,
+    this.exampleSentence,
+  });
+
+  factory ExtractedWord.fromJson(Map<String, dynamic> json) {
+    return ExtractedWord(
+      word: json['word'] as String? ?? '',
+      partOfSpeech: json['partOfSpeech'] as String? ?? '',
+      meaningEN: json['meaningEn'] as String? ?? '',
+      meaningTR: json['meaningTr'] as String? ?? '',
+      exampleSentence: json['exampleSentence'] as String?,
+    );
+  }
+
+  final String word;
+  final String partOfSpeech;
+  final String meaningEN;
+  final String meaningTR;
+  final String? exampleSentence;
 }
 
 /// Exception for edge function errors
