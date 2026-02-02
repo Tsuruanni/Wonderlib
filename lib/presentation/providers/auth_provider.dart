@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/app_constants.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
@@ -36,6 +37,15 @@ final currentUserIdProvider = Provider<String?>((ref) {
   final userId = authState.valueOrNull?.id;
   debugPrint('🔐 currentUserIdProvider: $userId');
   return userId;
+});
+
+/// Provides whether current user is a teacher (or admin/head)
+final isTeacherProvider = Provider<bool>((ref) {
+  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  if (user == null) return false;
+  return user.role == UserRole.teacher ||
+      user.role == UserRole.head ||
+      user.role == UserRole.admin;
 });
 
 /// Auth controller state

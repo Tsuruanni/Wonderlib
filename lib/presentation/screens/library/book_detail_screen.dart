@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../widgets/book/level_badge.dart';
@@ -273,24 +275,13 @@ class BookDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              // Navigate to reader with first chapter or continue chapter
-              chaptersAsync.whenData((chapters) {
-                if (chapters.isEmpty) return;
-
-                String targetChapterId;
-                if (progress != null && progress.chapterId != null && progress.chapterId!.isNotEmpty) {
-                  targetChapterId = progress.chapterId!;
-                } else {
-                  targetChapterId = chapters.first.id;
-                }
-
-                context.go('/reader/$bookId/$targetChapterId');
-              });
-            },
-            icon: Icon(hasProgress ? Icons.play_arrow : Icons.book),
-            label: Text(hasProgress ? 'Continue Reading' : 'Start Reading'),
+          floatingActionButton: _BookDetailFAB(
+            bookId: bookId,
+            bookTitle: book.title,
+            chapterCount: book.chapterCount,
+            hasProgress: hasProgress,
+            chaptersAsync: chaptersAsync,
+            progress: progress,
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         );
@@ -328,6 +319,70 @@ class _StatItem extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _BookDetailFAB extends ConsumerWidget {
+  const _BookDetailFAB({
+    required this.bookId,
+    required this.bookTitle,
+    required this.chapterCount,
+    required this.hasProgress,
+    required this.chaptersAsync,
+    required this.progress,
+  });
+
+  final String bookId;
+  final String bookTitle;
+  final int chapterCount;
+  final bool hasProgress;
+  final AsyncValue<dynamic> chaptersAsync;
+  final dynamic progress;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isTeacher = ref.watch(isTeacherProvider);
+
+    if (isTeacher) {
+      // Teacher sees "Assign Book" button
+      return FloatingActionButton.extended(
+        onPressed: () {
+          // Navigate to create assignment with this book pre-selected
+          context.push(
+            AppRoutes.teacherCreateAssignment,
+            extra: {
+              'bookId': bookId,
+              'bookTitle': bookTitle,
+              'chapterCount': chapterCount,
+            },
+          );
+        },
+        icon: const Icon(Icons.assignment_add),
+        label: const Text('Assign Book'),
+      );
+    }
+
+    // Student sees "Start/Continue Reading" button
+    return FloatingActionButton.extended(
+      onPressed: () {
+        chaptersAsync.whenData((chapters) {
+          if (chapters.isEmpty) return;
+
+          String targetChapterId;
+          if (progress != null &&
+              progress.chapterId != null &&
+              progress.chapterId!.isNotEmpty) {
+            targetChapterId = progress.chapterId!;
+          } else {
+            targetChapterId = chapters.first.id;
+          }
+
+          context.go('/reader/$bookId/$targetChapterId');
+        });
+      },
+      icon: Icon(hasProgress ? Icons.play_arrow : Icons.book),
+      label: Text(hasProgress ? 'Continue Reading' : 'Start Reading'),
     );
   }
 }

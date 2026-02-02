@@ -272,22 +272,40 @@ class _QuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.add_circle_outline,
-            label: 'New Assignment',
-            onTap: () => context.push(AppRoutes.teacherCreateAssignment),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionButton(
+                icon: Icons.add_circle_outline,
+                label: 'New Assignment',
+                onTap: () => context.push(AppRoutes.teacherCreateAssignment),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickActionButton(
+                icon: Icons.bar_chart,
+                label: 'View Reports',
+                onTap: () => context.go(AppRoutes.teacherReports),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.bar_chart,
-            label: 'View Reports',
-            onTap: () => context.go(AppRoutes.teacherReports),
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionButton(
+                icon: Icons.library_books,
+                label: 'Browse Books',
+                onTap: () => context.push(AppRoutes.library),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(child: SizedBox()), // Placeholder for future action
+          ],
         ),
       ],
     );

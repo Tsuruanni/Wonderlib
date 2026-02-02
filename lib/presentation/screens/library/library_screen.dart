@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../widgets/book/book_grid_card.dart';
@@ -162,6 +163,10 @@ class _LockedLibraryBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Don't show banner to teachers
+    final isTeacher = ref.watch(isTeacherProvider);
+    if (isTeacher) return const SizedBox.shrink();
+
     final lockInfo = ref.watch(bookLockProvider);
 
     return lockInfo.when(

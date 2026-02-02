@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/book.dart';
+import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
@@ -14,7 +15,16 @@ import '../../providers/usecase_providers.dart';
 import '../../providers/vocabulary_provider.dart';
 
 class CreateAssignmentScreen extends ConsumerStatefulWidget {
-  const CreateAssignmentScreen({super.key});
+  const CreateAssignmentScreen({
+    super.key,
+    this.preSelectedBookId,
+    this.preSelectedBookTitle,
+    this.preSelectedBookChapterCount,
+  });
+
+  final String? preSelectedBookId;
+  final String? preSelectedBookTitle;
+  final int? preSelectedBookChapterCount;
 
   @override
   ConsumerState<CreateAssignmentScreen> createState() => _CreateAssignmentScreenState();
@@ -41,6 +51,18 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
   // For vocabulary assignments
   String? _selectedWordListId;
   String? _selectedWordListName;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-populate with book data if provided
+    if (widget.preSelectedBookId != null) {
+      _selectedBookId = widget.preSelectedBookId;
+      _selectedBookTitle = widget.preSelectedBookTitle;
+      _selectedBookChapterCount = widget.preSelectedBookChapterCount;
+      _selectedType = AssignmentType.book;
+    }
+  }
 
   @override
   void dispose() {
@@ -720,7 +742,7 @@ class _WordListSelectionSheet extends ConsumerWidget {
                     ),
                     title: Text(wordList.name),
                     subtitle: Text(
-                      '${wordList.wordCount} words • ${wordList.category}',
+                      '${wordList.wordCount} words • ${wordList.category.displayName}',
                       style: context.textTheme.bodySmall,
                     ),
                     trailing: isSelected

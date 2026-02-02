@@ -362,7 +362,14 @@ GoRouter _createRouter() {
       ),
       GoRoute(
         path: AppRoutes.teacherCreateAssignment,
-        builder: (context, state) => const CreateAssignmentScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return CreateAssignmentScreen(
+            preSelectedBookId: extra?['bookId'] as String?,
+            preSelectedBookTitle: extra?['bookTitle'] as String?,
+            preSelectedBookChapterCount: extra?['chapterCount'] as int?,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.teacherAssignmentDetail,

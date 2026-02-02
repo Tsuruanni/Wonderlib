@@ -8,6 +8,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Teacher UX Improvements (2026-02-02)
+
+#### Changed
+- **Teacher Profile Stats** - Teachers now see teaching stats (Total Students, My Classes, Active Assignments, Average Progress) instead of gamification stats (XP, Level, Streak)
+- **Teacher Dashboard** - Added "Browse Books" quick action button
+
+#### Added
+- **Teacher Book Assignment from Detail** - Teachers see "Assign Book" button in book detail screen instead of "Start Reading"
+  - Clicking navigates to create assignment with book pre-selected
+- **`isTeacherProvider`** - New provider to check if current user is teacher/admin
+- **Library for Teachers** - Teachers can browse library without lock restrictions
+
+#### Fixed
+- **Wordlist Category Display** - Fixed category showing enum name instead of human-readable text (e.g., "Common Words" instead of "WordListCategory.commonWords")
+- **Library Lock Banner** - Hidden for teachers who shouldn't see student lock messages
+
 ### Reader Screen Refactoring & Dead Code Cleanup (2026-02-02)
 
 #### Changed

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Reader Refactoring & Dead Code Cleanup)
+Son güncelleme: 2026-02-02 (Teacher UX Improvements)
 
 ## Current Phase
 
@@ -110,6 +110,7 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Teacher UX Improvements | 2026-02-02 | Profile stats, book assignment from detail, wordlist fix |
 | Reader Screen Refactoring | 2026-02-02 | 613→215 lines, 4 new widgets, critical mounted bug fixed |
 | Dead Code Cleanup | 2026-02-02 | ~1450 lines removed (sync_service, storage_service, game_config, mock_data) |
 | System Settings Integration | 2026-02-02 | Clean Architecture: Entity, Repository, Model, UseCase, Provider for admin-configurable settings |

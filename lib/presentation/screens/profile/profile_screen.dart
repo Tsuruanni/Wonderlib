@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -76,39 +78,11 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
 
-                // Stats
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        _StatRow(
-                          label: 'Total XP',
-                          value: user.xp.toString(),
-                          icon: Icons.star,
-                        ),
-                        const Divider(),
-                        _StatRow(
-                          label: 'Level',
-                          value: '${user.level} (${user.userLevel.title})',
-                          icon: Icons.trending_up,
-                        ),
-                        const Divider(),
-                        _StatRow(
-                          label: 'Current Streak',
-                          value: '${user.currentStreak} days',
-                          icon: Icons.local_fire_department,
-                        ),
-                        const Divider(),
-                        _StatRow(
-                          label: 'Longest Streak',
-                          value: '${user.longestStreak} days',
-                          icon: Icons.emoji_events,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                // Stats - different for student vs teacher
+                if (user.role.isStudent)
+                  _StudentStatsCard(user: user)
+                else
+                  const _TeacherStatsCard(),
                 const SizedBox(height: 24),
 
                 // Logout button
@@ -137,13 +111,108 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _StatRow extends StatelessWidget {
+class _StudentStatsCard extends StatelessWidget {
+  const _StudentStatsCard({required this.user});
 
+  final User user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _StatRow(
+              label: 'Total XP',
+              value: user.xp.toString(),
+              icon: Icons.star,
+            ),
+            const Divider(),
+            _StatRow(
+              label: 'Level',
+              value: '${user.level} (${user.userLevel.title})',
+              icon: Icons.trending_up,
+            ),
+            const Divider(),
+            _StatRow(
+              label: 'Current Streak',
+              value: '${user.currentStreak} days',
+              icon: Icons.local_fire_department,
+            ),
+            const Divider(),
+            _StatRow(
+              label: 'Longest Streak',
+              value: '${user.longestStreak} days',
+              icon: Icons.emoji_events,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TeacherStatsCard extends ConsumerWidget {
+  const _TeacherStatsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(teacherStatsProvider);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: statsAsync.when(
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+          error: (_, __) => const Center(
+            child: Text('Failed to load stats'),
+          ),
+          data: (stats) => Column(
+            children: [
+              _StatRow(
+                label: 'Total Students',
+                value: stats.totalStudents.toString(),
+                icon: Icons.people,
+              ),
+              const Divider(),
+              _StatRow(
+                label: 'My Classes',
+                value: stats.totalClasses.toString(),
+                icon: Icons.class_,
+              ),
+              const Divider(),
+              _StatRow(
+                label: 'Active Assignments',
+                value: stats.activeAssignments.toString(),
+                icon: Icons.assignment,
+              ),
+              const Divider(),
+              _StatRow(
+                label: 'Average Progress',
+                value: '${stats.avgProgress.toStringAsFixed(0)}%',
+                icon: Icons.trending_up,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatRow extends StatelessWidget {
   const _StatRow({
     required this.label,
     required this.value,
     required this.icon,
   });
+
   final String label;
   final String value;
   final IconData icon;
