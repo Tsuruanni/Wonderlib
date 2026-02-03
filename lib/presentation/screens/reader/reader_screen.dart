@@ -8,6 +8,7 @@ import '../../../core/constants/reader_constants.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
+import '../../providers/audio_sync_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/reader_provider.dart';
@@ -55,9 +56,19 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.chapterId != widget.chapterId) {
       Future.microtask(() async {
+        _stopCurrentAudio(); // Stop audio before changing chapter
         await _saveReadingTime();
         _initializeChapter();
       });
+    }
+  }
+
+  /// Stop current audio playback
+  void _stopCurrentAudio() {
+    try {
+      ref.read(audioSyncControllerProvider.notifier).stop();
+    } catch (_) {
+      // Provider might not be ready, ignore
     }
   }
 
@@ -130,6 +141,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _handleNextChapter(Chapter nextChapter) async {
+    _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
     await ref.read(chapterCompletionProvider.notifier).markComplete(
       bookId: widget.bookId,
@@ -141,6 +153,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _handleBackToBook() async {
+    _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
     await ref.read(chapterCompletionProvider.notifier).markComplete(
       bookId: widget.bookId,
@@ -152,6 +165,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _handleClose() async {
+    _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
     if (mounted) {
       context.go('/library/book/${widget.bookId}');

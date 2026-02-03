@@ -8,6 +8,45 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Screen Bug Fixes & TTS Audio Seed Data (2026-02-03)
+
+#### Fixed
+- **Chapter Navigation Blocked** - Fixed ChapterCompletionCard not appearing when chapter has no activity at the end
+  - Changed condition from `chapter.content != null && isChapterComplete` to just `isChapterComplete`
+  - Content blocks system doesn't use `chapter.content` field
+- **Auto-Listening on Resume** - Fixed audio auto-playing when returning to a chapter with existing progress
+  - Added `hasExistingProgress` parameter to `ReaderAutoPlayController.initialize()`
+  - Skips auto-play if user has completed activities
+- **Block-Based Scrolling** - Fixed arbitrary 200px scroll after activity completion
+  - New `_scrollToNextBlockAfterActivity()` scrolls to actual next content block
+  - New `_scrollToNextBlockAfterAudio()` scrolls after audio completion
+  - New `_scrollToEndMarker()` scrolls to ChapterCompletionCard area
+  - Uses `Scrollable.ensureVisible()` with GlobalKeys per block
+- **Audio Continues After Leaving** - Fixed audio continuing to play after navigating away
+  - Added `_stopCurrentAudio()` in `_handleNextChapter()`, `_handleBackToBook()`, `_handleClose()`
+  - Audio stops before navigation completes
+  - `AudioService.stop()` now resets position to prevent resume
+- **Word Timings Index Offset** - Fixed text displaying incorrectly (e.g., "IIammtheeWishhButterfly") in chapters 2+
+  - Root cause: `word_timings` indices didn't account for leading quotes in text blocks
+  - Fixed 12 content blocks with +1 offset for blocks starting with `"`
+  - Affects karaoke highlighting in WordHighlightText widget
+
+#### Added
+- **TTS Audio Data in Seed** - 47 text blocks now have complete audio data
+  - `audio_url` pointing to Fal AI generated audio files
+  - `audio_start_ms` / `audio_end_ms` segment boundaries
+  - `word_timings` JSONB for karaoke-style highlighting
+- **Vocabulary Seed Data** - Added vocabulary extraction for 12 chapters
+  - `chapters.vocabulary` JSONB field populated with ~10-15 words per chapter
+  - ~100 vocabulary words added to `vocabulary_words` table for word-tap popup
+  - Turkish translations included
+
+#### Changed
+- **ContentBlockList** - Major refactoring for block-based scrolling
+  - Added `_blockKeys` map with GlobalKey per block ID
+  - Added `_endMarkerKey` for scrolling to chapter end
+  - Removed unused `scrollController` parameter and `_scrollToNewContent()` method
+
 ### Widgetbook UI Catalog & Bug Fixes (2026-02-03)
 
 #### Added

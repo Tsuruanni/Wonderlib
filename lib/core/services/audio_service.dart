@@ -67,9 +67,10 @@ class AudioService {
     await player.play();
   }
 
-  /// Stop playback
+  /// Stop playback and reset position
   Future<void> stop() async {
     await player.stop();
+    await player.seek(Duration.zero); // Reset position to prevent resume
   }
 
   /// Seek to position

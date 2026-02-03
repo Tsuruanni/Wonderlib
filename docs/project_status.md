@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Widgetbook UI Catalog)
+Son güncelleme: 2026-02-03 (Reader Bug Fixes & TTS Audio)
 
 ## Current Phase
 
@@ -111,6 +111,10 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Reader Screen Bug Fixes | 2026-02-03 | Chapter navigation, auto-play skip, block-based scrolling, audio stop on leave |
+| TTS Audio Seed Data | 2026-02-03 | 47 text blocks with audio_url, word_timings for karaoke highlighting |
+| Word Timings Index Fix | 2026-02-03 | Fixed offset issue for blocks starting with quotes |
+| Vocabulary Seed Data | 2026-02-03 | ~100 words in vocabulary_words, chapter vocabulary JSONB populated |
 | Widgetbook UI Catalog | 2026-02-03 | 17 widgets, 50+ use cases, standalone project in widgetbook/ |
 | Homepage Image Fix | 2026-02-03 | Book covers now display correctly on student homepage |
 | Daily Review System | 2026-02-03 | Anki-style spaced repetition, SM-2 algorithm, VocabularyHub redesign |

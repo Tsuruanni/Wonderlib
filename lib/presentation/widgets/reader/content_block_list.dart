@@ -39,6 +39,8 @@ class ContentBlockList extends ConsumerStatefulWidget {
 class _ContentBlockListState extends ConsumerState<ContentBlockList> {
   Set<String> _previousCompletedIds = {};
   final Map<String, GlobalKey> _blockKeys = {};
+  final GlobalKey _endMarkerKey = GlobalKey();
+  List<ContentBlock> _currentVisibleBlocks = [];
 
   void _scrollToBlock(String blockId) {
     final key = _blockKeys[blockId];
@@ -52,20 +54,51 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
     );
   }
 
-  void _scrollToNewContent() {
-    if (widget.scrollController == null || !widget.scrollController!.hasClients) {
+  /// Scroll to end of content (for ChapterCompletionCard)
+  void _scrollToEndMarker() {
+    final context = _endMarkerKey.currentContext;
+    if (context == null) return;
+
+    Scrollable.ensureVisible(
+      context,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOut,
+      alignment: 0.2,
+    );
+  }
+
+  /// Scroll to the next block after a completed activity
+  void _scrollToNextBlockAfterActivity(String activityId, List<ContentBlock> visibleBlocks) {
+    // Find the activity block
+    final activityIndex = visibleBlocks.indexWhere(
+      (b) => b.isActivityBlock && b.activityId == activityId,
+    );
+
+    if (activityIndex == -1) return;
+
+    if (activityIndex >= visibleBlocks.length - 1) {
+      // Last block was an activity, scroll to end marker (ChapterCompletionCard area)
+      _scrollToEndMarker();
       return;
     }
 
-    final currentPosition = widget.scrollController!.position.pixels;
-    final maxScroll = widget.scrollController!.position.maxScrollExtent;
-    final targetPosition = (currentPosition + 200).clamp(0.0, maxScroll);
+    // Scroll to next block
+    final nextBlock = visibleBlocks[activityIndex + 1];
+    _scrollToBlock(nextBlock.id);
+  }
 
-    widget.scrollController!.animateTo(
-      targetPosition,
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-    );
+  /// Scroll to next block after audio completes
+  void _scrollToNextBlockAfterAudio(String completedBlockId, List<ContentBlock> visibleBlocks) {
+    final currentIndex = visibleBlocks.indexWhere((b) => b.id == completedBlockId);
+    if (currentIndex == -1) return;
+
+    if (currentIndex < visibleBlocks.length - 1) {
+      final nextBlock = visibleBlocks[currentIndex + 1];
+      _scrollToBlock(nextBlock.id);
+    } else {
+      // Last audio block, scroll to end
+      _scrollToEndMarker();
+    }
   }
 
   @override
@@ -75,9 +108,11 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
     final completedActivities = ref.watch(inlineActivityStateProvider);
     final autoPlayController = ref.watch(readerAutoPlayControllerProvider.notifier);
 
-    // Listen for audio completion to trigger next block
+    // Listen for audio completion to trigger next block and scroll
     ref.listen<String?>(audioCompletedBlockProvider, (previous, completedBlockId) {
       if (completedBlockId != null && previous != completedBlockId) {
+        // Scroll to next block after audio completes
+        _scrollToNextBlockAfterAudio(completedBlockId, _currentVisibleBlocks);
         autoPlayController.onAudioCompleted(completedBlockId);
         ref.read(audioCompletedBlockProvider.notifier).state = null;
       }
@@ -108,9 +143,19 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
         // Build visible blocks (stop at first uncompleted activity)
         final visibleBlocks = _getVisibleBlocks(blocks, activityMap, completedActivities);
 
+        // Store visible blocks for use in listeners
+        _currentVisibleBlocks = visibleBlocks;
+
+        // Check if user has existing progress (completed activities)
+        final hasExistingProgress = completedActivities.isNotEmpty;
+
         // Initialize auto-play controller with blocks and chapter ID
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          autoPlayController.initialize(visibleBlocks, chapterId: widget.chapter.id);
+          autoPlayController.initialize(
+            visibleBlocks,
+            chapterId: widget.chapter.id,
+            hasExistingProgress: hasExistingProgress,
+          );
         });
 
         // Check for new completions to trigger scroll and auto-play
@@ -121,9 +166,9 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           _previousCompletedIds = currentCompletedIds;
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollToNewContent();
-            // Notify controller of activity completions
+            // Scroll to next block after the completed activity
             for (final activityId in newlyCompletedIds) {
+              _scrollToNextBlockAfterActivity(activityId, visibleBlocks);
               autoPlayController.onActivityCompleted(activityId, visibleBlocks);
             }
           });
@@ -139,12 +184,16 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
             constraints: const BoxConstraints(maxWidth: 680),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: visibleBlocks.map((block) {
-                return KeyedSubtree(
-                  key: _blockKeys[block.id],
-                  child: _buildBlockWidget(block, activityMap),
-                );
-              }).toList(),
+              children: [
+                ...visibleBlocks.map((block) {
+                  return KeyedSubtree(
+                    key: _blockKeys[block.id],
+                    child: _buildBlockWidget(block, activityMap),
+                  );
+                }),
+                // End marker for scrolling to ChapterCompletionCard
+                SizedBox(key: _endMarkerKey, height: 1),
+              ],
             ),
           ),
         );

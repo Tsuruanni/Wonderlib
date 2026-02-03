@@ -115,7 +115,7 @@ class ReaderBody extends ConsumerWidget {
                   const SizedBox(height: ReaderConstants.sectionSpacing),
 
                   // Chapter completion actions (only visible when all activities done)
-                  if (chapter.content != null && isChapterComplete)
+                  if (isChapterComplete)
                     ChapterCompletionCard(
                       hasNextChapter: hasNextChapter,
                       nextChapter: nextChapter,

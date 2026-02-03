@@ -66,8 +66,13 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
   String? _currentChapterId;
 
   /// Initialize with content blocks and chapter ID.
-  /// Auto-play only triggers on FIRST entry to a chapter in this session.
-  void initialize(List<ContentBlock> blocks, {String? chapterId}) {
+  /// Auto-play only triggers on FIRST entry to a chapter in this session,
+  /// and only if user has no existing progress (no completed activities).
+  void initialize(
+    List<ContentBlock> blocks, {
+    String? chapterId,
+    bool hasExistingProgress = false,
+  }) {
     state = state.copyWith(blocks: blocks);
     _currentChapterId = chapterId;
 
@@ -79,7 +84,11 @@ class ReaderAutoPlayController extends StateNotifier<ReaderAutoPlayState> {
     // 1. Not already played in this widget instance
     // 2. Auto-play is enabled
     // 3. This chapter hasn't been auto-played this session
-    if (!state.hasAutoPlayedInitial && state.isAutoPlayEnabled && !alreadyAutoPlayed) {
+    // 4. User has no existing progress (no completed activities)
+    if (!state.hasAutoPlayedInitial &&
+        state.isAutoPlayEnabled &&
+        !alreadyAutoPlayed &&
+        !hasExistingProgress) {
       _initialAutoPlayTimer?.cancel();
       _initialAutoPlayTimer = Timer(
         Duration(milliseconds: config.initialDelayMs),
