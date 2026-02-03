@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Reader Bug Fixes & TTS Audio)
+Son güncelleme: 2026-02-03 (Audio System Refactoring)
 
 ## Current Phase
 
@@ -111,6 +111,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Audio System Refactoring | 2026-02-03 | Merged ReaderAutoPlayController into AudioSyncController, listening mode concept |
 | Reader Screen Bug Fixes | 2026-02-03 | Chapter navigation, auto-play skip, block-based scrolling, audio stop on leave |
 | TTS Audio Seed Data | 2026-02-03 | 47 text blocks with audio_url, word_timings for karaoke highlighting |
 | Word Timings Index Fix | 2026-02-03 | Fixed offset issue for blocks starting with quotes |

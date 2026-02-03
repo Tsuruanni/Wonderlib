@@ -8,6 +8,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Audio System Refactoring (2026-02-03)
+
+#### Changed
+- **Consolidated Audio Controller** - Merged `ReaderAutoPlayController` into `AudioSyncController`
+  - Single source of truth for audio state and auto-play logic
+  - Removed `reader_autoplay_provider.dart` (175 lines deleted)
+  - Auto-play now uses `Timer` instead of `Future.delayed` for proper cleanup
+  - Added `onBlockCompleted` stream (replaces `audioCompletedBlockProvider` pattern)
+- **Listening Mode Concept** - New `_isInListeningMode` flag for smarter auto-play
+  - Auto-play only triggers when user is in active listening session
+  - Prevents auto-play when user completes activity without ever starting audio
+  - Pause/Stop exits listening mode, audio completion keeps it active
+- **Encapsulated Word Resume** - Replaced 3 separate variables with `ChapterResumeInfo` class
+  - Cleaner state management for word playback resume logic
+- **Simplified ContentBlockList** - Removed orchestration responsibilities
+  - Uses `audioSyncController.setBlocks()` and `onActivityCompleted()` directly
+  - Reduced from 5 listeners to 2
+
+#### Fixed
+- **False Auto-Play on Activity** - Fixed audio auto-playing when user completes activity without ever pressing play
+  - Root cause: Auto-play didn't check if user was in listening mode
+  - Now requires `_isInListeningMode == true` for activity completion auto-play
+
 ### Reader Screen Bug Fixes & TTS Audio Seed Data (2026-02-03)
 
 #### Fixed

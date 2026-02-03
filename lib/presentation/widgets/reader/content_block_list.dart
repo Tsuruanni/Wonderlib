@@ -7,7 +7,6 @@ import '../../../domain/entities/content/content_block.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/content_block_provider.dart';
-import '../../providers/reader_autoplay_provider.dart';
 import '../../providers/reader_provider.dart';
 import 'activity_block_widget.dart';
 import 'image_block_widget.dart';
@@ -15,7 +14,7 @@ import 'text_block_widget.dart';
 
 /// Displays a list of content blocks for a chapter.
 /// Handles progressive reveal - activities must be completed to unlock next content.
-/// Delegates auto-play orchestration to ReaderAutoPlayController.
+/// Auto-play is handled by AudioSyncController internally.
 class ContentBlockList extends ConsumerStatefulWidget {
   const ContentBlockList({
     super.key,
@@ -29,7 +28,7 @@ class ContentBlockList extends ConsumerStatefulWidget {
   final Chapter chapter;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
-  final void Function(String word, Offset position)? onWordTap;
+  final void Function(String word, Offset position, int timingIndex, String blockId)? onWordTap;
   final ScrollController? scrollController;
 
   @override
@@ -41,6 +40,7 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
   final Map<String, GlobalKey> _blockKeys = {};
   final GlobalKey _endMarkerKey = GlobalKey();
   List<ContentBlock> _currentVisibleBlocks = [];
+  bool _hasInitializedCompletedIds = false;
 
   void _scrollToBlock(String blockId) {
     final key = _blockKeys[blockId];
@@ -106,14 +106,12 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
     final blocksAsync = ref.watch(contentBlocksProvider(widget.chapter.id));
     final inlineActivitiesAsync = ref.watch(inlineActivitiesProvider(widget.chapter.id));
     final completedActivities = ref.watch(inlineActivityStateProvider);
-    final autoPlayController = ref.watch(readerAutoPlayControllerProvider.notifier);
 
-    // Listen for audio completion to trigger next block and scroll
+    // Listen for audio completion to scroll (auto-play is handled internally by AudioSyncController)
     ref.listen<String?>(audioCompletedBlockProvider, (previous, completedBlockId) {
       if (completedBlockId != null && previous != completedBlockId) {
         // Scroll to next block after audio completes
         _scrollToNextBlockAfterAudio(completedBlockId, _currentVisibleBlocks);
-        autoPlayController.onAudioCompleted(completedBlockId);
         ref.read(audioCompletedBlockProvider.notifier).state = null;
       }
     });
@@ -124,6 +122,16 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           previous?.currentBlockId != current.currentBlockId &&
           current.isPlaying) {
         _scrollToBlock(current.currentBlockId!);
+      }
+    });
+
+    // Listen for chapter initialization to capture baseline completed activities
+    // This prevents auto-play for activities loaded from DB (vs completed this session)
+    ref.listen<bool>(chapterInitializedProvider, (previous, initialized) {
+      if (initialized && !_hasInitializedCompletedIds) {
+        // Chapter just finished loading - capture current completed activities as baseline
+        _previousCompletedIds = ref.read(inlineActivityStateProvider).keys.toSet();
+        _hasInitializedCompletedIds = true;
       }
     });
 
@@ -146,32 +154,46 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
         // Store visible blocks for use in listeners
         _currentVisibleBlocks = visibleBlocks;
 
-        // Check if user has existing progress (completed activities)
-        final hasExistingProgress = completedActivities.isNotEmpty;
-
-        // Initialize auto-play controller with blocks and chapter ID
+        // Set blocks for auto-play navigation
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          autoPlayController.initialize(
-            visibleBlocks,
-            chapterId: widget.chapter.id,
-            hasExistingProgress: hasExistingProgress,
-          );
+          try {
+            ref.read(audioSyncControllerProvider.notifier).setBlocks(visibleBlocks);
+          } catch (_) {
+            // Audio controller not ready yet
+          }
+
+          // Handle case where chapterInitializedProvider is already true
+          // Read CURRENT value (not captured) to handle proper timing
+          final currentlyInitialized = ref.read(chapterInitializedProvider);
+          if (currentlyInitialized && !_hasInitializedCompletedIds) {
+            _previousCompletedIds = ref.read(inlineActivityStateProvider).keys.toSet();
+            _hasInitializedCompletedIds = true;
+          }
         });
 
         // Check for new completions to trigger scroll and auto-play
-        final currentCompletedIds = completedActivities.keys.toSet();
-        final newlyCompletedIds = currentCompletedIds.difference(_previousCompletedIds);
+        // But ONLY for activities completed in THIS session, not loaded from DB
+        // (Initialization is handled by ref.listen on chapterInitializedProvider above)
+        if (_hasInitializedCompletedIds) {
+          final currentCompletedIds = completedActivities.keys.toSet();
+          final newlyCompletedIds = currentCompletedIds.difference(_previousCompletedIds);
 
-        if (newlyCompletedIds.isNotEmpty) {
-          _previousCompletedIds = currentCompletedIds;
+          if (newlyCompletedIds.isNotEmpty) {
+            _previousCompletedIds = currentCompletedIds;
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            // Scroll to next block after the completed activity
-            for (final activityId in newlyCompletedIds) {
-              _scrollToNextBlockAfterActivity(activityId, visibleBlocks);
-              autoPlayController.onActivityCompleted(activityId, visibleBlocks);
-            }
-          });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Scroll to next block after the completed activity
+              for (final activityId in newlyCompletedIds) {
+                _scrollToNextBlockAfterActivity(activityId, visibleBlocks);
+                try {
+                  ref.read(audioSyncControllerProvider.notifier)
+                      .onActivityCompleted(activityId, visibleBlocks);
+                } catch (_) {
+                  // Audio controller not ready
+                }
+              }
+            });
+          }
         }
 
         // Initialize block keys
