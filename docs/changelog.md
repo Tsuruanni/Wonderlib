@@ -8,6 +8,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Word-on-Tap TTS Refactoring (2026-02-03)
+
+#### Added
+- **WordPronunciationService** - New dedicated service for word pronunciation using Flutter TTS
+  - Device-based TTS (offline capable, uses device's built-in voice)
+  - Volume ducking: main audio ducks to 20% during word speech
+  - Web fallback timer (1500ms) for Chrome where completion handler may not fire
+  - Auto-initialization with language detection and error handling
+- **flutter_tts dependency** - Added `flutter_tts: ^4.0.2` for device TTS
+
+#### Changed
+- **Simplified word tap callbacks** - Removed unnecessary parameters from callback chain
+  - Before: `onWordTap(word, position, timingIndex, blockId)`
+  - After: `onWordTap(word, position)`
+  - Affected files: word_highlight_text.dart, text_block_widget.dart, paragraph_widget.dart, content_block_list.dart, reader_body.dart, integrated_reader_content.dart
+- **WordTapPopup speaker icon** - Always enabled now (uses TTS, no longer depends on block audio)
+
+#### Removed
+- **AudioSyncController.playWord()** - Removed ~60 lines of complex word playback logic
+- **ChapterResumeInfo** - Removed resume state management for word playback
+- **isPlayingWord state** - Removed from AudioSyncState (no longer needed)
+- **_resumeInfo and _resumeChapterPlayback()** - Removed chapter audio resume logic after word playback
+
+#### Fixed
+- **Word reads more than clicked word** - Now uses clean TTS pronunciation instead of segment-based audio
+- **TTS timing issues** - Flutter TTS handles timing internally, no WordTiming dependency for pronunciation
+- **Main audio interference** - Volume ducking (20%) instead of complex pause/resume logic
+- **Spaghetti callback chain** - Simplified from 5+ files with 3 state providers to clean architecture
+
+#### Infrastructure
+- **Net code reduction**: ~150+ lines deleted, ~80 lines added
+- **Files modified**: 12 files simplified, 1 new service created
+
 ### Audio System Refactoring (2026-02-03)
 
 #### Changed

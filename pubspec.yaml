@@ -39,6 +39,7 @@ dependencies:
   # Audio
   just_audio: ^0.9.40
   audio_session: ^0.1.25
+  flutter_tts: ^4.0.2
 
   # Utils
   intl: any

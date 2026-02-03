@@ -23,6 +23,7 @@ class TextBlockWidget extends ConsumerWidget {
   final ReaderSettings settings;
   final List<ChapterVocabulary> vocabulary;
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
+  /// Callback when a word is tapped. Used for word-tap popup (TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
 
   @override

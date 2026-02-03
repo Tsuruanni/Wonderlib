@@ -302,3 +302,14 @@ final isChapterCompleteProvider = Provider<bool>((ref) {
 
   return completedActivities.length >= totalActivities;
 });
+
+// ============================================
+// CURRENT CHAPTER TRACKING
+// ============================================
+
+/// Current chapter ID for word audio playback context
+final currentChapterIdProvider = StateProvider<String?>((ref) => null);
+
+/// Whether the current chapter has finished initial loading (activities loaded from DB)
+/// Used to prevent auto-play before we know if user has existing progress
+final chapterInitializedProvider = StateProvider<bool>((ref) => false);

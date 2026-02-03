@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Audio System Refactoring)
+Son güncelleme: 2026-02-03 (Word-on-Tap TTS Refactoring)
 
 ## Current Phase
 
@@ -111,6 +111,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Word-on-Tap TTS Refactoring | 2026-02-03 | Flutter TTS for word pronunciation, volume ducking, simplified callbacks |
 | Audio System Refactoring | 2026-02-03 | Merged ReaderAutoPlayController into AudioSyncController, listening mode concept |
 | Reader Screen Bug Fixes | 2026-02-03 | Chapter navigation, auto-play skip, block-based scrolling, audio stop on leave |
 | TTS Audio Seed Data | 2026-02-03 | 47 text blocks with audio_url, word_timings for karaoke highlighting |

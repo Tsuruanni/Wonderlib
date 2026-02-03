@@ -9,10 +9,24 @@ import 'usecase_providers.dart';
 // TAPPED WORD STATE
 // ============================================
 
-/// The currently tapped word in the reader
+/// Information about a tapped word for popup display
+class TappedWordInfo {
+  final String word;
+  final Offset position;
+
+  const TappedWordInfo({
+    required this.word,
+    required this.position,
+  });
+}
+
+/// Extended tapped word info with block ID and timing index for audio playback
+final tappedWordInfoProvider = StateProvider<TappedWordInfo?>((ref) => null);
+
+/// The currently tapped word in the reader (legacy, for backward compatibility)
 final tappedWordProvider = StateProvider<String?>((ref) => null);
 
-/// Position where the word was tapped (for popup positioning)
+/// Position where the word was tapped (for popup positioning) (legacy)
 final tappedWordPositionProvider = StateProvider<Offset?>((ref) => null);
 
 /// Loading state when adding word to vocabulary

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/word_pronunciation_service.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
@@ -44,10 +45,7 @@ class ReaderPopups extends ConsumerWidget {
             word: tappedWord,
             position: tappedWordPosition,
             onClose: () => _closeWordTapPopup(ref),
-            onPlayAudio: (audioUrl) {
-              // TODO: Implement word pronunciation playback
-              debugPrint('Play audio: $audioUrl');
-            },
+            onPlayAudio: () => _playWordAudio(ref, tappedWord),
           ),
       ],
     );
@@ -61,6 +59,16 @@ class ReaderPopups extends ConsumerWidget {
   void _closeWordTapPopup(WidgetRef ref) {
     ref.read(tappedWordProvider.notifier).state = null;
     ref.read(tappedWordPositionProvider.notifier).state = null;
+    ref.read(tappedWordInfoProvider.notifier).state = null;
+  }
+
+  Future<void> _playWordAudio(WidgetRef ref, String word) async {
+    try {
+      final service = await ref.read(wordPronunciationServiceProvider.future);
+      await service.speak(word);
+    } catch (_) {
+      // TTS service not ready, ignore
+    }
   }
 
   Future<void> _addWordToVocabulary(

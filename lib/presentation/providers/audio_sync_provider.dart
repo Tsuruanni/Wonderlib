@@ -20,31 +20,12 @@ class AutoPlayConfig {
   final int afterAudioDelayMs;
 }
 
-/// Info for resuming chapter playback after word audio completes
-class ChapterResumeInfo {
-  const ChapterResumeInfo({
-    required this.blockId,
-    required this.globalPositionMs,
-    required this.wasPlaying,
-  });
-
-  /// The block that was playing
-  final String blockId;
-
-  /// Global position in audio file (absolute, not relative to segment)
-  final int globalPositionMs;
-
-  /// Whether audio was playing when word tap occurred
-  final bool wasPlaying;
-}
-
 /// State for audio sync playback
 class AudioSyncState {
   const AudioSyncState({
     this.currentBlockId,
     this.isPlaying = false,
     this.isLoading = false,
-    this.isPlayingWord = false,
     this.positionMs = 0,
     this.durationMs = 0,
     this.activeWordIndex,
@@ -55,7 +36,6 @@ class AudioSyncState {
   final String? currentBlockId;
   final bool isPlaying;
   final bool isLoading;
-  final bool isPlayingWord;
   final int positionMs;
   final int durationMs;
   final int? activeWordIndex;
@@ -85,7 +65,6 @@ class AudioSyncState {
     String? currentBlockId,
     bool? isPlaying,
     bool? isLoading,
-    bool? isPlayingWord,
     int? positionMs,
     int? durationMs,
     int? activeWordIndex,
@@ -99,7 +78,6 @@ class AudioSyncState {
       currentBlockId: clearBlockId ? null : (currentBlockId ?? this.currentBlockId),
       isPlaying: isPlaying ?? this.isPlaying,
       isLoading: isLoading ?? this.isLoading,
-      isPlayingWord: isPlayingWord ?? this.isPlayingWord,
       positionMs: positionMs ?? this.positionMs,
       durationMs: durationMs ?? this.durationMs,
       activeWordIndex: clearActiveWord ? null : (activeWordIndex ?? this.activeWordIndex),
@@ -129,9 +107,6 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
   int? _segmentStartMs;
   int? _segmentEndMs;
   String? _currentAudioUrl;
-
-  /// Resume info for word playback (encapsulates all resume state)
-  ChapterResumeInfo? _resumeInfo;
 
   // ============ Auto-Play State ============
 
@@ -210,12 +185,6 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
   }
 
   void _handleSegmentComplete() {
-    // If playing a single word, handle word completion separately
-    if (state.isPlayingWord) {
-      _handleWordComplete();
-      return;
-    }
-
     final completedBlockId = state.currentBlockId;
 
     // Pause and reset state
@@ -293,37 +262,6 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
     if (nextBlock != null) {
       _scheduleAutoPlay(nextBlock, autoPlayConfig.afterActivityDelayMs);
     }
-  }
-
-  /// Handle word playback completion - resume chapter audio if it was playing
-  void _handleWordComplete() {
-    _audioService.pause();
-    state = state.copyWith(
-      isPlaying: false,
-      isPlayingWord: false,
-      clearActiveWord: true,
-    );
-
-    // Resume chapter audio if it was playing before word tap
-    if (_resumeInfo != null && _resumeInfo!.wasPlaying) {
-      _resumeChapterPlayback();
-    } else {
-      _resumeInfo = null;
-    }
-  }
-
-  /// Resume chapter playback from saved position
-  Future<void> _resumeChapterPlayback() async {
-    final resume = _resumeInfo;
-    if (resume == null) return;
-
-    await _audioService.seek(Duration(milliseconds: resume.globalPositionMs));
-
-    if (resume.wasPlaying) {
-      await _audioService.resume();
-    }
-
-    _resumeInfo = null;
   }
 
   void _onPlayerStateChanged(PlayerState playerState) {
@@ -505,66 +443,7 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
     _segmentStartMs = null;
     _segmentEndMs = null;
     _currentAudioUrl = null;
-    _resumeInfo = null;
     state = const AudioSyncState();
-  }
-
-  /// Play a single word's audio segment.
-  /// Saves current playback state to resume after word finishes.
-  Future<void> playWord({
-    required String audioUrl,
-    required int startMs,
-    required int endMs,
-    required String blockId,
-  }) async {
-    // Save current playback state for resume
-    if (state.isPlaying || state.currentBlockId != null) {
-      final globalPositionMs = _segmentStartMs != null
-          ? (_segmentStartMs! + state.positionMs)
-          : state.positionMs;
-      _resumeInfo = ChapterResumeInfo(
-        blockId: state.currentBlockId ?? blockId,
-        globalPositionMs: globalPositionMs,
-        wasPlaying: state.isPlaying,
-      );
-      await pause();
-    }
-
-    // Set word segment boundaries - exact start and end, no buffer
-    _segmentStartMs = startMs;
-    _segmentEndMs = endMs;
-
-    state = state.copyWith(
-      currentBlockId: blockId,
-      isPlayingWord: true,
-      isLoading: true,
-      positionMs: 0,
-      clearActiveWord: true,
-    );
-
-    try {
-      // Load audio if URL changed
-      if (_currentAudioUrl != audioUrl) {
-        _currentAudioUrl = audioUrl;
-        await _audioService.player.setUrl(audioUrl);
-      }
-
-      // Seek to word start and play
-      await _audioService.seek(Duration(milliseconds: startMs));
-
-      state = state.copyWith(
-        isLoading: false,
-        durationMs: endMs - startMs,
-      );
-
-      await _audioService.resume();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        isPlayingWord: false,
-        error: 'Failed to play word: $e',
-      );
-    }
   }
 
   @override

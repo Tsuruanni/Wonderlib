@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/reader_constants.dart';
+import '../../../core/services/word_pronunciation_service.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
@@ -44,6 +45,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     _startReadingTimer();
   }
 
+
   @override
   void dispose() {
     _readingTimer?.cancel();
@@ -73,20 +75,33 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   void _initializeChapter() {
+    // Mark chapter as not initialized until activities are loaded
+    ref.read(chapterInitializedProvider.notifier).state = false;
     _loadCompletedActivities();
     _updateCurrentChapter();
     ref.read(sessionXPProvider.notifier).reset();
     ref.read(readingTimerProvider.notifier).reset();
+    // Set current chapter ID for word audio playback
+    ref.read(currentChapterIdProvider.notifier).state = widget.chapterId;
   }
 
   Future<void> _loadCompletedActivities() async {
-    ref.read(inlineActivityStateProvider.notifier).reset();
-    ref.invalidate(completedInlineActivitiesProvider(widget.chapterId));
+    try {
+      ref.read(inlineActivityStateProvider.notifier).reset();
+      ref.invalidate(completedInlineActivitiesProvider(widget.chapterId));
 
-    final completedResult = await ref.read(
-      completedInlineActivitiesProvider(widget.chapterId).future,
-    );
-    ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
+      final completedResult = await ref.read(
+        completedInlineActivitiesProvider(widget.chapterId).future,
+      );
+
+      // Check if still mounted after async operation
+      if (!mounted) return;
+
+      ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
+      ref.read(chapterInitializedProvider.notifier).state = true;
+    } catch (_) {
+      // Widget might be disposed, ignore
+    }
   }
 
   Future<void> _updateCurrentChapter() async {
@@ -102,14 +117,26 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _saveReadingTime() async {
-    final readingTime = ref.read(readingTimerProvider);
-    if (readingTime <= 0) return;
+    // Capture all values synchronously before any async work
+    // This prevents "ref after dispose" errors
+    final int readingTime;
+    final String? userId;
+    final SaveReadingProgressUseCase saveReadingProgressUseCase;
 
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    try {
+      readingTime = ref.read(readingTimerProvider);
+      if (readingTime <= 0) return;
 
-    final useCase = ref.read(saveReadingProgressUseCaseProvider);
-    await useCase(SaveReadingProgressParams(
+      userId = ref.read(currentUserIdProvider);
+      if (userId == null) return;
+
+      saveReadingProgressUseCase = ref.read(saveReadingProgressUseCaseProvider);
+    } catch (_) {
+      // Widget might be disposed, ignore
+      return;
+    }
+
+    await saveReadingProgressUseCase(SaveReadingProgressParams(
       userId: userId,
       bookId: widget.bookId,
       chapterId: widget.chapterId,
@@ -136,8 +163,26 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   void _onWordTap(String word, Offset position) {
+    // Set word info for popup
+    ref.read(tappedWordInfoProvider.notifier).state = TappedWordInfo(
+      word: word,
+      position: position,
+    );
+    // Keep legacy providers for backward compatibility
     ref.read(tappedWordProvider.notifier).state = word;
     ref.read(tappedWordPositionProvider.notifier).state = position;
+
+    // Speak word using TTS (ducks main audio automatically)
+    _speakWord(word);
+  }
+
+  Future<void> _speakWord(String word) async {
+    try {
+      final service = await ref.read(wordPronunciationServiceProvider.future);
+      await service.speak(word);
+    } catch (_) {
+      // TTS service not ready, ignore
+    }
   }
 
   Future<void> _handleNextChapter(Chapter nextChapter) async {

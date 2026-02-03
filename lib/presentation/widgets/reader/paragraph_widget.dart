@@ -18,6 +18,7 @@ class ParagraphWidget extends StatelessWidget {
   final List<ChapterVocabulary> vocabulary;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
+  /// Callback when a word is tapped. Used for word-tap popup (TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
 
   @override

@@ -83,6 +83,11 @@ class AudioService {
     await player.setSpeed(speed);
   }
 
+  /// Set playback volume (0.0 to 1.0)
+  Future<void> setVolume(double volume) async {
+    await player.setVolume(volume.clamp(0.0, 1.0));
+  }
+
   /// Get current position stream
   Stream<Duration> get positionStream =>
       _player?.positionStream ?? const Stream.empty();

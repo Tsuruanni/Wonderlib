@@ -22,7 +22,8 @@ class WordTapPopup extends ConsumerStatefulWidget {
   final String word;
   final Offset position;
   final VoidCallback onClose;
-  final void Function(String audioUrl)? onPlayAudio;
+  /// Callback to play word pronunciation using TTS
+  final VoidCallback? onPlayAudio;
 
   @override
   ConsumerState<WordTapPopup> createState() => _WordTapPopupState();
@@ -144,16 +145,12 @@ class _WordTapPopupState extends ConsumerState<WordTapPopup> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Speaker icon
+                  // Speaker icon - always enabled (uses TTS)
                   GestureDetector(
-                    onTap: (definition?.hasAudio ?? false)
-                        ? () => widget.onPlayAudio?.call(definition!.audioUrl!)
-                        : null,
-                    child: Icon(
+                    onTap: widget.onPlayAudio,
+                    child: const Icon(
                       Icons.volume_up,
-                      color: (definition?.hasAudio ?? false)
-                          ? Colors.white
-                          : Colors.white38,
+                      color: Colors.white,
                       size: 22,
                     ),
                   ),

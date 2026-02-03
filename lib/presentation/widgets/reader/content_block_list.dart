@@ -28,7 +28,7 @@ class ContentBlockList extends ConsumerStatefulWidget {
   final Chapter chapter;
   final ReaderSettings settings;
   final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
-  final void Function(String word, Offset position, int timingIndex, String blockId)? onWordTap;
+  final void Function(String word, Offset position)? onWordTap;
   final ScrollController? scrollController;
 
   @override

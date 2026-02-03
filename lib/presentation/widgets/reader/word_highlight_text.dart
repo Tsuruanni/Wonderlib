@@ -28,7 +28,7 @@ class WordHighlightText extends StatefulWidget {
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
 
   /// Callback when any word (not just vocabulary) is tapped.
-  /// Used for word-tap popup feature.
+  /// Used for word-tap popup feature (shows definition and TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
 
   @override
@@ -149,11 +149,19 @@ class _WordHighlightTextState extends State<WordHighlightText> {
     for (int i = 0; i < widget.wordTimings.length; i++) {
       final timing = widget.wordTimings[i];
 
+      // Find the word in text starting from currentIndex
+      // This makes rendering robust to index errors in word_timings data
+      final wordStart = widget.text.indexOf(timing.word, currentIndex);
+      if (wordStart == -1) {
+        // Word not found at expected position, skip this timing
+        continue;
+      }
+
       // Add text before this word (spaces, punctuation)
-      if (timing.startIndex > currentIndex) {
+      if (wordStart > currentIndex) {
         spans.add(
           TextSpan(
-            text: widget.text.substring(currentIndex, timing.startIndex),
+            text: widget.text.substring(currentIndex, wordStart),
           ),
         );
       }
@@ -181,7 +189,8 @@ class _WordHighlightTextState extends State<WordHighlightText> {
         spans.add(_buildRegularWordSpan(i, timing.word, isActive));
       }
 
-      currentIndex = timing.endIndex;
+      // Use actual word position instead of potentially incorrect endIndex
+      currentIndex = wordStart + timing.word.length;
     }
 
     // Add remaining text after last word
