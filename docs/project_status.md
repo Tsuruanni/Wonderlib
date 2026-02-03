@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Word-on-Tap TTS Refactoring)
+Son güncelleme: 2026-02-03 (Book Completion UI & Assignment Sync)
 
 ## Current Phase
 
@@ -111,6 +111,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Book Completion UI & Assignment Sync | 2026-02-03 | Green checkmark on completed books, FAB hidden when complete, assignment auto-sync, async fold fix |
 | Word-on-Tap TTS Refactoring | 2026-02-03 | Flutter TTS for word pronunciation, volume ducking, simplified callbacks |
 | Audio System Refactoring | 2026-02-03 | Merged ReaderAutoPlayController into AudioSyncController, listening mode concept |
 | Reader Screen Bug Fixes | 2026-02-03 | Chapter navigation, auto-play skip, block-based scrolling, audio stop on leave |

@@ -11,11 +11,13 @@ class BookGridCard extends StatelessWidget {
     required this.book,
     required this.onTap,
     this.showLockIcon = false,
+    this.isCompleted = false,
   });
 
   final Book book;
   final VoidCallback onTap;
   final bool showLockIcon;
+  final bool isCompleted;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +115,32 @@ class BookGridCard extends StatelessWidget {
                     ),
                   ),
                 ],
+
+                // Completion checkmark (bottom-right)
+                if (isCompleted)
+                  Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

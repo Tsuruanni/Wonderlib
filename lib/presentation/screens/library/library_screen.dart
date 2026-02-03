@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
+import '../../providers/book_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../widgets/book/book_grid_card.dart';
 import '../../widgets/book/book_list_tile.dart';
@@ -268,6 +269,8 @@ class _BookGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
+
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -280,10 +283,12 @@ class _BookGrid extends ConsumerWidget {
       itemBuilder: (context, index) {
         final book = books[index];
         final canAccess = ref.watch(canAccessBookProvider(book.id));
+        final isCompleted = completedIds.contains(book.id);
 
         return BookGridCard(
           book: book,
           showLockIcon: !canAccess,
+          isCompleted: isCompleted,
           onTap: () {
             if (canAccess) {
               onBookTap(book.id);
@@ -310,16 +315,20 @@ class _BookList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: books.length,
       itemBuilder: (context, index) {
         final book = books[index];
         final canAccess = ref.watch(canAccessBookProvider(book.id));
+        final isCompleted = completedIds.contains(book.id);
 
         return BookListTile(
           book: book,
           showLockIcon: !canAccess,
+          isCompleted: isCompleted,
           onTap: () {
             if (canAccess) {
               onBookTap(book.id);

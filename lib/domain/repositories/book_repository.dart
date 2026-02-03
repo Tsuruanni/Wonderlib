@@ -70,4 +70,7 @@ abstract class BookRepository {
     required String bookId,
     required String chapterId,
   });
+
+  /// Gets set of completed book IDs for a user
+  Future<Either<Failure, Set<String>>> getCompletedBookIds(String userId);
 }

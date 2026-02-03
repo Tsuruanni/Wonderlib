@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/get_student_assignment_detail_usecase.dart';
 import '../../domain/usecases/student_assignment/get_student_assignments_usecase.dart';
@@ -70,4 +72,67 @@ final pendingAssignmentCountProvider = FutureProvider<int>((ref) async {
     a.status == StudentAssignmentStatus.inProgress ||
     a.status == StudentAssignmentStatus.overdue,
   ).length;
+});
+
+/// Provider that syncs assignment completion with book completion
+/// This fixes cases where book was completed but assignment wasn't updated
+final assignmentSyncProvider = FutureProvider<void>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return;
+
+  debugPrint('🔄 assignmentSyncProvider: Starting sync...');
+
+  // Get active assignments
+  final getActiveAssignmentsUseCase = ref.read(getActiveAssignmentsUseCaseProvider);
+  final assignmentsResult = await getActiveAssignmentsUseCase(
+    GetActiveAssignmentsParams(studentId: userId),
+  );
+
+  final assignments = assignmentsResult.fold(
+    (failure) => <StudentAssignment>[],
+    (assignments) => assignments,
+  );
+
+  debugPrint('🔄 assignmentSyncProvider: Found ${assignments.length} active assignments');
+
+  // Check each book assignment
+  final getReadingProgressUseCase = ref.read(getReadingProgressUseCaseProvider);
+  final completeAssignmentUseCase = ref.read(completeAssignmentUseCaseProvider);
+  var syncedCount = 0;
+
+  for (final assignment in assignments) {
+    // Only check book assignments that aren't already completed
+    if (assignment.bookId != null &&
+        assignment.status != StudentAssignmentStatus.completed) {
+      // Check if the book is completed
+      final progressResult = await getReadingProgressUseCase(
+        GetReadingProgressParams(userId: userId, bookId: assignment.bookId!),
+      );
+
+      final isBookCompleted = progressResult.fold(
+        (failure) => false,
+        (progress) => progress.isCompleted,
+      );
+
+      if (isBookCompleted) {
+        debugPrint('🔄 Syncing: Assignment "${assignment.title}" - book is completed but assignment not');
+        // Auto-complete the assignment
+        await completeAssignmentUseCase(CompleteAssignmentParams(
+          studentId: userId,
+          assignmentId: assignment.assignmentId,
+          score: null,
+        ));
+        syncedCount++;
+      }
+    }
+  }
+
+  if (syncedCount > 0) {
+    debugPrint('🔄 assignmentSyncProvider: Synced $syncedCount assignments');
+    // Invalidate assignment providers to reflect changes
+    ref.invalidate(studentAssignmentsProvider);
+    ref.invalidate(activeAssignmentsProvider);
+  } else {
+    debugPrint('🔄 assignmentSyncProvider: No sync needed');
+  }
 });

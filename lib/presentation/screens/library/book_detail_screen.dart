@@ -282,6 +282,7 @@ class BookDetailScreen extends ConsumerWidget {
             bookTitle: book.title,
             chapterCount: book.chapterCount,
             hasProgress: hasProgress,
+            isCompleted: progress?.isCompleted ?? false,
             chaptersAsync: chaptersAsync,
             progress: progress,
           ),
@@ -331,6 +332,7 @@ class _BookDetailFAB extends ConsumerWidget {
     required this.bookTitle,
     required this.chapterCount,
     required this.hasProgress,
+    required this.isCompleted,
     required this.chaptersAsync,
     required this.progress,
   });
@@ -339,6 +341,7 @@ class _BookDetailFAB extends ConsumerWidget {
   final String bookTitle;
   final int chapterCount;
   final bool hasProgress;
+  final bool isCompleted;
   final AsyncValue<dynamic> chaptersAsync;
   final dynamic progress;
 
@@ -363,6 +366,11 @@ class _BookDetailFAB extends ConsumerWidget {
         icon: const Icon(Icons.assignment_add),
         label: const Text('Assign Book'),
       );
+    }
+
+    // Hide FAB if book is completed
+    if (isCompleted) {
+      return const SizedBox.shrink();
     }
 
     // Student sees "Start/Continue Reading" button

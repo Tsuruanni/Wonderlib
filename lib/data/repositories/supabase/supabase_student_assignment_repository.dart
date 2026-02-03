@@ -69,10 +69,21 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     final result = await getStudentAssignments(studentId);
 
     return result.map((assignments) {
+      final now = DateTime.now();
       return assignments.where((a) {
-        // Active = not completed and within date range (or overdue)
-        return a.status != StudentAssignmentStatus.completed &&
-            DateTime.now().isAfter(a.startDate);
+        // Skip completed assignments
+        if (a.status == StudentAssignmentStatus.completed) return false;
+
+        // Skip assignments that haven't started yet
+        if (now.isBefore(a.startDate)) return false;
+
+        // Hide overdue assignments that are more than 3 days past due
+        if (a.status == StudentAssignmentStatus.overdue) {
+          final daysPastDue = now.difference(a.dueDate).inDays;
+          if (daysPastDue > 3) return false;
+        }
+
+        return true;
       }).toList();
     });
   }

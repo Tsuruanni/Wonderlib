@@ -487,6 +487,27 @@ class SupabaseBookRepository implements BookRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, Set<String>>> getCompletedBookIds(String userId) async {
+    try {
+      final response = await _supabase
+          .from('reading_progress')
+          .select('book_id')
+          .eq('user_id', userId)
+          .eq('is_completed', true);
+
+      final bookIds = (response as List)
+          .map((row) => row['book_id'] as String)
+          .toSet();
+
+      return Right(bookIds);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // MAPPING FUNCTIONS (using Model layer)
   // ============================================

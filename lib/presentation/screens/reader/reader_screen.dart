@@ -204,6 +204,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       bookId: widget.bookId,
       chapterId: widget.chapterId,
     );
+    // Invalidate providers to refresh home screen data
+    ref.invalidate(continueReadingProvider);
+    ref.invalidate(recommendedBooksProvider);
     if (mounted) {
       context.go('/library/book/${widget.bookId}');
     }
@@ -212,6 +215,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _handleClose() async {
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
+    // Invalidate providers to refresh home screen data
+    ref.invalidate(continueReadingProvider);
+    ref.invalidate(recommendedBooksProvider);
     if (mounted) {
       context.go('/library/book/${widget.bookId}');
     }

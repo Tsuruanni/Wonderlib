@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/book.dart';
@@ -8,6 +9,7 @@ import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
+import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
@@ -120,6 +122,19 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
   );
 });
 
+/// Provides set of completed book IDs for current user
+final completedBookIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return {};
+
+  final useCase = ref.watch(getCompletedBookIdsUseCaseProvider);
+  final result = await useCase(GetCompletedBookIdsParams(userId: userId));
+  return result.fold(
+    (failure) => {},
+    (bookIds) => bookIds,
+  );
+});
+
 /// Notifier for marking chapters as complete
 class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
@@ -142,23 +157,29 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       chapterId: chapterId,
     ),);
 
-    result.fold(
-      (failure) => state = AsyncValue.error(failure, StackTrace.current),
-      (progress) async {
-        state = const AsyncValue.data(null);
-        // Invalidate providers to refresh UI
-        _ref.invalidate(readingProgressProvider(bookId));
-        _ref.invalidate(continueReadingProvider); // Refresh continue reading list
-
-        // Update assignment progress if this book is part of an assignment
-        await _updateAssignmentProgress(
-          userId: userId,
-          bookId: bookId,
-          chapterId: chapterId,
-          completedChapterIds: progress.completedChapterIds,
-        );
+    // Extract progress from result (don't use async callback in fold)
+    final progress = result.fold(
+      (failure) {
+        state = AsyncValue.error(failure, StackTrace.current);
+        return null;
       },
+      (progress) => progress,
     );
+
+    if (progress != null) {
+      state = const AsyncValue.data(null);
+      // Invalidate providers to refresh UI
+      _ref.invalidate(readingProgressProvider(bookId));
+      _ref.invalidate(continueReadingProvider); // Refresh continue reading list
+
+      // Update assignment progress if this book is part of an assignment
+      await _updateAssignmentProgress(
+        userId: userId,
+        bookId: bookId,
+        chapterId: chapterId,
+        completedChapterIds: progress.completedChapterIds,
+      );
+    }
   }
 
   /// Check if book is part of an active assignment and update progress
@@ -168,6 +189,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
     required String chapterId,
     required List<String> completedChapterIds,
   }) async {
+    debugPrint('📋 _updateAssignmentProgress: bookId=$bookId, completedChapters=${completedChapterIds.length}');
     try {
       // Get active assignments using UseCase
       final getActiveAssignmentsUseCase = _ref.read(getActiveAssignmentsUseCaseProvider);
@@ -175,59 +197,80 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
         GetActiveAssignmentsParams(studentId: userId),
       );
 
-      assignmentsResult.fold(
-        (failure) {}, // Silently fail - don't break chapter completion
-        (assignments) async {
-          // Find assignments that include this book
-          for (final assignment in assignments) {
-            if (assignment.bookId == bookId &&
-                assignment.status != StudentAssignmentStatus.completed) {
-              // Get all chapters for the book (book-based assignments)
-              final getChaptersUseCase = _ref.read(getChaptersUseCaseProvider);
-              final chaptersResult = await getChaptersUseCase(
-                GetChaptersParams(bookId: bookId),
-              );
-
-              final totalChapters = chaptersResult.fold(
-                (failure) => 0,
-                (chapters) => chapters.length,
-              );
-
-              if (totalChapters == 0) {
-                continue;
-              }
-
-              // Calculate progress: completed chapters / total chapters in book
-              final progress = (completedChapterIds.length / totalChapters) * 100;
-
-              // Update assignment progress using UseCases
-              if (progress >= 100) {
-                // All chapters complete - mark assignment as complete
-                final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
-                await completeAssignmentUseCase(CompleteAssignmentParams(
-                  studentId: userId,
-                  assignmentId: assignment.assignmentId,
-                  score: null, // No score for reading completion
-                ),);
-              } else {
-                // Update progress
-                final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
-                await updateAssignmentProgressUseCase(UpdateAssignmentProgressParams(
-                  studentId: userId,
-                  assignmentId: assignment.assignmentId,
-                  progress: progress,
-                ),);
-              }
-
-              // Invalidate assignment providers to refresh UI
-              _ref.invalidate(studentAssignmentsProvider);
-              _ref.invalidate(activeAssignmentsProvider);
-              _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-            }
-          }
+      // Extract assignments from result (don't use async callback in fold)
+      final assignments = assignmentsResult.fold(
+        (failure) {
+          debugPrint('📋 _updateAssignmentProgress: Failed to get assignments: ${failure.message}');
+          return <StudentAssignment>[];
         },
+        (assignments) => assignments,
       );
+
+      debugPrint('📋 _updateAssignmentProgress: Found ${assignments.length} active assignments');
+
+      // Find assignments that include this book
+      for (final assignment in assignments) {
+        debugPrint('📋 Checking assignment: ${assignment.title}, bookId=${assignment.bookId}, status=${assignment.status}');
+        if (assignment.bookId == bookId &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          debugPrint('📋 Match! Processing assignment: ${assignment.title}');
+          // Get all chapters for the book (book-based assignments)
+          final getChaptersUseCase = _ref.read(getChaptersUseCaseProvider);
+          final chaptersResult = await getChaptersUseCase(
+            GetChaptersParams(bookId: bookId),
+          );
+
+          final totalChapters = chaptersResult.fold(
+            (failure) => 0,
+            (chapters) => chapters.length,
+          );
+
+          debugPrint('📋 Total chapters: $totalChapters, completed: ${completedChapterIds.length}');
+
+          if (totalChapters == 0) {
+            continue;
+          }
+
+          // Calculate progress: completed chapters / total chapters in book
+          final progress = (completedChapterIds.length / totalChapters) * 100;
+          debugPrint('📋 Calculated progress: $progress%');
+
+          // Update assignment progress using UseCases
+          if (progress >= 100) {
+            debugPrint('📋 Completing assignment: ${assignment.assignmentId}');
+            // All chapters complete - mark assignment as complete
+            final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
+            final result = await completeAssignmentUseCase(CompleteAssignmentParams(
+              studentId: userId,
+              assignmentId: assignment.assignmentId,
+              score: null, // No score for reading completion
+            ),);
+            debugPrint('📋 Complete assignment result: ${result.isRight() ? "success" : "failed"}');
+          } else {
+            debugPrint('📋 Updating progress: ${assignment.assignmentId} to $progress%');
+            // Update progress
+            final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
+            await updateAssignmentProgressUseCase(UpdateAssignmentProgressParams(
+              studentId: userId,
+              assignmentId: assignment.assignmentId,
+              progress: progress,
+            ),);
+          }
+
+          // Invalidate assignment providers to refresh UI
+          debugPrint('📋 Invalidating assignment providers');
+          _ref.invalidate(studentAssignmentsProvider);
+          _ref.invalidate(activeAssignmentsProvider);
+          _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+
+          // If book is completed, refresh completed books provider
+          if (progress >= 100) {
+            _ref.invalidate(completedBookIdsProvider);
+          }
+        }
+      }
     } catch (e) {
+      debugPrint('📋 _updateAssignmentProgress ERROR: $e');
       // Don't throw - assignment update failure shouldn't break chapter completion
     }
   }

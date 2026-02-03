@@ -113,6 +113,9 @@ class _PendingAssignmentsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // First, sync any assignments where book is completed but assignment is not
+    ref.watch(assignmentSyncProvider);
+
     final assignmentsAsync = ref.watch(activeAssignmentsProvider);
 
     return assignmentsAsync.when(
@@ -540,16 +543,16 @@ class _ContinueReadingSection extends ConsumerWidget {
 class _RecommendedBooksSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final booksAsync = ref.watch(booksProvider(null));
+    final booksAsync = ref.watch(recommendedBooksProvider);
 
     return booksAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (books) {
-        if (books.length <= 1) return const SizedBox.shrink();
+        if (books.isEmpty) return const SizedBox.shrink();
 
-        // Show books the user hasn't started yet (mock: just show last few books)
-        final recommended = books.reversed.take(4).toList();
+        // Limit to 4 books
+        final displayCount = books.length.clamp(0, 4);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,10 +575,10 @@ class _RecommendedBooksSection extends ConsumerWidget {
               height: 180,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: recommended.length,
+                itemCount: displayCount,
                 separatorBuilder: (_, __) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
-                  final book = recommended[index];
+                  final book = books[index];
                   return GestureDetector(
                     onTap: () => context.go('/library/book/${book.id}'),
                     child: SizedBox(

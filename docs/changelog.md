@@ -8,6 +8,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Book Completion UI & Assignment Sync (2026-02-03)
+
+#### Added
+- **Green Checkmark on Completed Books** - Library now shows checkmark indicator on completed books
+  - New `GetCompletedBookIdsUseCase` following Clean Architecture pattern
+  - New `completedBookIdsProvider` for efficient completed book ID fetching
+  - `BookGridCard` and `BookListTile` support `isCompleted` parameter
+  - Green circle with white check icon overlay on book covers
+- **Assignment Sync Provider** - Auto-fixes stale assignment data on homepage load
+  - `assignmentSyncProvider` detects completed books with incomplete assignments
+  - Automatically marks assignments as complete when book is finished
+  - Triggers on homepage load to ensure data consistency
+- **Overdue Assignment Filter** - Assignments >3 days past due hidden from active list
+  - `getActiveAssignments` now filters out overdue assignments older than 3 days
+  - Reduces clutter in student assignment view
+
+#### Changed
+- **Book Detail FAB** - "Continue Reading" button hidden when book is completed
+  - Added `isCompleted` parameter to `_BookDetailFAB`
+  - Students see no FAB for completed books (teachers still see "Assign Book")
+- **Books You Might Like** - Now uses `recommendedBooksProvider` instead of mock logic
+  - Properly excludes books user has started reading
+  - Limits to 4 books for clean display
+- **Provider Invalidation** - Reading progress changes now refresh home screen immediately
+  - Added `ref.invalidate(continueReadingProvider)` in reader navigation handlers
+  - Added `ref.invalidate(recommendedBooksProvider)` for recommendation updates
+  - No more hot reload required to see "Continue Reading" updates
+
+#### Fixed
+- **Async Fold Anti-Pattern** - Fixed critical bug where async callbacks in `fold()` weren't awaited
+  - `markComplete()` in `ChapterCompletionNotifier` now properly awaits assignment updates
+  - `_updateAssignmentProgress()` extracts values before async operations
+  - Root cause of assignments not updating when books were completed
+- **Continue Reading Not Updating** - Fixed stale provider cache issue
+  - `continueReadingProvider` now invalidated after saving reading time
+  - Changes visible immediately without hot reload
+
+#### Infrastructure
+- **New UseCase**: `lib/domain/usecases/book/get_completed_book_ids_usecase.dart`
+- **Repository Update**: Added `getCompletedBookIds()` to `BookRepository` interface and Supabase implementation
+
 ### Word-on-Tap TTS Refactoring (2026-02-03)
 
 #### Added
