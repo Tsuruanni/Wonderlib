@@ -4,6 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+# Related Projects
+
+| Project | Path | Description |
+|---------|------|-------------|
+| ReadEng Mobile | `/Users/wonderelt/Desktop/wonderlib` | Main Flutter app (student/teacher) |
+| ReadEng Admin | `/Users/wonderelt/Desktop/readeng_admin` | Admin panel (content management) |
+
+Both projects share the same Supabase backend.
+
+---
+
 # Project Overview
 
 - **Project:** ReadEng (Wonderlib)

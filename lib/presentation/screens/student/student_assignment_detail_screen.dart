@@ -406,7 +406,11 @@ class _AssignmentDetailContent extends ConsumerWidget {
   }
 
   void _startReading(BuildContext context, WidgetRef ref, StudentAssignment assignment) async {
-    if (assignment.bookId == null) return;
+    debugPrint('📚 _startReading: bookId=${assignment.bookId}, contentConfig=${assignment.contentConfig}');
+    if (assignment.bookId == null) {
+      debugPrint('📚 _startReading: bookId is null, returning');
+      return;
+    }
 
     // Start the assignment if not started
     if (assignment.status == StudentAssignmentStatus.pending) {

@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Widgetbook UI Catalog & Bug Fixes (2026-02-03)
+
+#### Added
+- **Widgetbook Project** - Standalone UI catalog for all custom widgets
+  - 17 widgets with 50+ use cases organized by category
+  - Book Widgets: LevelBadge, BookGridCard, BookListTile
+  - Common Widgets: StatItem, XPBadge
+  - Activity Widgets: ActivityWrapper, TrueFalseActivity, WordTranslationActivity, FindWordsActivity
+  - Reader Widgets: ChapterNavigationBar, ChapterCompletionCard, CollapsibleReaderHeader, ImageBlockWidget, ParagraphWidget, WordHighlightText, TranslateButton, VocabularyPopup
+  - Light/Dark theme support, interactive knobs for props
+  - `serve.command` for one-click local server startup
+
+#### Fixed
+- **Homepage Book Images** - Fixed book cover images not displaying on student homepage
+  - Changed from `DecorationImage(NetworkImage())` to `Image.network()` with error handling
+  - Library was working because it used different image loading pattern
+
+#### Changed
+- **CLAUDE.md** - Added Related Projects section with admin panel path reference
+
 ### Anki-Style Daily Review System (2026-02-03)
 
 #### Added

@@ -485,26 +485,35 @@ class _ContinueReadingSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: DecoratedBox(
+                            child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color: context.colorScheme.surfaceContainerHighest,
-                                image: book.coverUrl != null
-                                    ? DecorationImage(
-                                        image: NetworkImage(book.coverUrl!),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
                               ),
-                              child: book.coverUrl == null
-                                  ? Center(
+                              clipBehavior: Clip.antiAlias,
+                              child: book.coverUrl != null
+                                  ? Image.network(
+                                      book.coverUrl!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      errorBuilder: (ctx, error, stack) {
+                                        return Center(
+                                          child: Icon(
+                                            Icons.book,
+                                            size: 40,
+                                            color: context.colorScheme.onSurfaceVariant,
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Center(
                                       child: Icon(
                                         Icons.book,
                                         size: 40,
                                         color: context.colorScheme.onSurfaceVariant,
                                       ),
-                                    )
-                                  : null,
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -575,16 +584,10 @@ class _RecommendedBooksSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: DecoratedBox(
+                            child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 color: context.colorScheme.surfaceContainerHighest,
-                                image: book.coverUrl != null
-                                    ? DecorationImage(
-                                        image: NetworkImage(book.coverUrl!),
-                                        fit: BoxFit.cover,
-                                      )
-                                    : null,
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.1),
@@ -593,15 +596,30 @@ class _RecommendedBooksSection extends ConsumerWidget {
                                   ),
                                 ],
                               ),
-                              child: book.coverUrl == null
-                                  ? Center(
+                              clipBehavior: Clip.antiAlias,
+                              child: book.coverUrl != null
+                                  ? Image.network(
+                                      book.coverUrl!,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                      errorBuilder: (ctx, error, stack) {
+                                        return Center(
+                                          child: Icon(
+                                            Icons.book,
+                                            size: 36,
+                                            color: context.colorScheme.onSurfaceVariant,
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Center(
                                       child: Icon(
                                         Icons.book,
                                         size: 36,
                                         color: context.colorScheme.onSurfaceVariant,
                                       ),
-                                    )
-                                  : null,
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 8),

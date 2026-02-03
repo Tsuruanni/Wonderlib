@@ -1,0 +1,25 @@
+name: readeng_widgetbook
+description: Widget catalog for ReadEng app
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Reference main app for widgets
+  readeng:
+    path: ..
+
+  # Widgetbook
+  widgetbook: ^3.10.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

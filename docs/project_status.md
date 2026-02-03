@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Daily Review System)
+Son güncelleme: 2026-02-03 (Widgetbook UI Catalog)
 
 ## Current Phase
 
@@ -111,6 +111,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Widgetbook UI Catalog | 2026-02-03 | 17 widgets, 50+ use cases, standalone project in widgetbook/ |
+| Homepage Image Fix | 2026-02-03 | Book covers now display correctly on student homepage |
 | Daily Review System | 2026-02-03 | Anki-style spaced repetition, SM-2 algorithm, VocabularyHub redesign |
 | Seed Data Cleanup | 2026-02-03 | Removed old books, fixed FK ordering, UUID vocabulary_words |
 | Gamification Features | 2026-02-02 | Profile badges, level-up celebration, streak triggering |

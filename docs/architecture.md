@@ -142,7 +142,18 @@ lib/
 │           ├── chapter_completion_card.dart # Next chapter UI
 │           └── ...
 │
-└── l10n/                     # Localization
+├── l10n/                     # Localization
+│
+widgetbook/                   # Standalone UI catalog (separate Flutter project)
+├── lib/
+│   ├── main.dart             # Widgetbook app entry
+│   └── components/           # Widget use cases
+│       ├── book_widgets.dart
+│       ├── common_widgets.dart
+│       ├── activity_widgets.dart
+│       └── reader_widgets.dart
+├── pubspec.yaml              # Depends on main app via path: ..
+└── serve.command             # One-click local server startup
 ```
 
 ### UseCase Pattern

@@ -18,8 +18,10 @@ class BookDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    debugPrint('📖 BookDetailScreen: bookId=$bookId');
     final canAccess = ref.watch(canAccessBookProvider(bookId));
     final bookAsync = ref.watch(bookByIdProvider(bookId));
+    debugPrint('📖 BookDetailScreen: bookAsync=$bookAsync');
     final chaptersAsync = ref.watch(chaptersProvider(bookId));
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
