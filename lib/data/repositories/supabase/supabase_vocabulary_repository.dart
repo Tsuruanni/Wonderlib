@@ -2,8 +2,10 @@ import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/vocabulary_repository.dart';
+import '../../models/vocabulary/daily_review_session_model.dart';
 import '../../models/vocabulary/vocabulary_progress_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
 
@@ -418,6 +420,129 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .toList();
 
       return Right(words);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  // ============================================================
+  // Daily Review Methods
+  // ============================================================
+
+  @override
+  Future<Either<Failure, DailyReviewSession?>> getTodayReviewSession(
+    String userId,
+  ) async {
+    try {
+      final today = DateTime.now().toIso8601String().split('T').first;
+
+      final response = await _supabase
+          .from('daily_review_sessions')
+          .select()
+          .eq('user_id', userId)
+          .eq('session_date', today)
+          .maybeSingle();
+
+      if (response == null) {
+        return const Right(null);
+      }
+
+      return Right(DailyReviewSessionModel.fromJson(response).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, DailyReviewResult>> completeDailyReview({
+    required String userId,
+    required int wordsReviewed,
+    required int correctCount,
+    required int incorrectCount,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        'complete_daily_review',
+        params: {
+          'p_user_id': userId,
+          'p_words_reviewed': wordsReviewed,
+          'p_correct_count': correctCount,
+          'p_incorrect_count': incorrectCount,
+        },
+      );
+
+      // RPC returns array with single row
+      final data = (response as List).first as Map<String, dynamic>;
+      return Right(DailyReviewResultModel.fromJson(data).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<VocabularyProgress>>> addWordsToVocabularyBatch({
+    required String userId,
+    required List<String> wordIds,
+  }) async {
+    try {
+      if (wordIds.isEmpty) {
+        return const Right([]);
+      }
+
+      final now = DateTime.now();
+      final results = <VocabularyProgress>[];
+
+      // Get existing progress to avoid duplicates
+      final existingResponse = await _supabase
+          .from('vocabulary_progress')
+          .select('word_id')
+          .eq('user_id', userId)
+          .inFilter('word_id', wordIds);
+
+      final existingWordIds = (existingResponse as List)
+          .map((e) => e['word_id'] as String)
+          .toSet();
+
+      // Filter to only new words
+      final newWordIds =
+          wordIds.where((id) => !existingWordIds.contains(id)).toList();
+
+      if (newWordIds.isEmpty) {
+        return const Right([]);
+      }
+
+      // Batch insert new words
+      final insertData = newWordIds
+          .map((wordId) => {
+                'user_id': userId,
+                'word_id': wordId,
+                'status': 'learning',
+                'ease_factor': 2.5,
+                'interval_days': 1,
+                'repetitions': 0,
+                'next_review_at':
+                    now.add(const Duration(days: 1)).toIso8601String(),
+                'last_reviewed_at': now.toIso8601String(),
+                'created_at': now.toIso8601String(),
+              })
+          .toList();
+
+      final response = await _supabase
+          .from('vocabulary_progress')
+          .insert(insertData)
+          .select();
+
+      for (final json in response as List) {
+        results.add(VocabularyProgressModel.fromJson(json).toEntity());
+      }
+
+      return Right(results);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

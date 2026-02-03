@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-02 (Gamification Features & Admin Fixes)
+Son güncelleme: 2026-02-03 (Daily Review System)
 
 ## Current Phase
 
@@ -57,12 +57,13 @@ Son güncelleme: 2026-02-02 (Gamification Features & Admin Fixes)
 - [ ] Update all Providers to use UseCases
 - [ ] Remove repository imports from all Screens
 
-See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
+See: CLAUDE.md for architecture guidelines
 
 ### Faz 4+: İleri Özellikler (Deferred)
 - [x] Kelime egzersizi modülü (4-Phase Vocabulary Builder)
 - [x] Rozet sistemi (badge earning after XP/streak)
 - [x] Sesli okuma / karaoke (word-level highlighting with Fal AI TTS)
+- [x] Daily Review (Anki-style spaced repetition for vocabulary)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -110,6 +111,8 @@ See: `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
 
 | Task | Date | Notes |
 |------|------|-------|
+| Daily Review System | 2026-02-03 | Anki-style spaced repetition, SM-2 algorithm, VocabularyHub redesign |
+| Seed Data Cleanup | 2026-02-03 | Removed old books, fixed FK ordering, UUID vocabulary_words |
 | Gamification Features | 2026-02-02 | Profile badges, level-up celebration, streak triggering |
 | Admin Panel Fixes | 2026-02-02 | Settings toggle fix, removed plain text content option |
 | Assignment Order Fix | 2026-02-02 | To Do → Completed → Overdue order |

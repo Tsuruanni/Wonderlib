@@ -68,6 +68,9 @@ import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.da
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
+import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
+import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/lookup_word_definition_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
@@ -278,6 +281,18 @@ final addWordToVocabularyUseCaseProvider = Provider((ref) {
 
 final lookupWordDefinitionUseCaseProvider = Provider((ref) {
   return LookupWordDefinitionUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final getTodayReviewSessionUseCaseProvider = Provider((ref) {
+  return GetTodayReviewSessionUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final completeDailyReviewUseCaseProvider = Provider((ref) {
+  return CompleteDailyReviewUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final addWordsBatchUseCaseProvider = Provider((ref) {
+  return AddWordsBatchToVocabularyUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 // ============================================

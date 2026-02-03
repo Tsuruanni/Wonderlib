@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/entities/vocabulary.dart';
+import '../../../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/usecase_providers.dart';
 import '../../../providers/vocabulary_provider.dart';
 
 /// Phase 4: Review
@@ -129,7 +132,7 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
     }
   }
 
-  void _completePhase() {
+  Future<void> _completePhase() async {
     final total = _correctCount + _incorrectCount;
     final percentage = total > 0 ? (_correctCount / total * 100).round() : 0;
     final isPassed = percentage >= 70;
@@ -138,6 +141,15 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
     if (isPassed) {
       ref.read(wordListProgressControllerProvider.notifier)
           .completePhase(widget.listId, 4, score: _correctCount, total: total);
+
+      // Add all words to vocabulary_progress for daily review
+      final userId = ref.read(currentUserIdProvider);
+      if (userId != null && _words.isNotEmpty) {
+        final wordIds = _words.map((w) => w.id).toList();
+        await ref.read(addWordsBatchUseCaseProvider).call(
+              AddWordsBatchParams(userId: userId, wordIds: wordIds),
+            );
+      }
     }
 
     showDialog(

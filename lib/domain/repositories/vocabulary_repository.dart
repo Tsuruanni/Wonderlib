@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
+import '../entities/daily_review_session.dart';
 import '../entities/vocabulary.dart';
 
 abstract class VocabularyRepository {
@@ -51,4 +52,29 @@ abstract class VocabularyRepository {
   /// Returns empty list if word not found
   /// Includes joined book title for each meaning
   Future<Either<Failure, List<VocabularyWord>>> getWordsByWord(String word);
+
+  // ============================================================
+  // Daily Review Methods
+  // ============================================================
+
+  /// Get today's review session if exists
+  Future<Either<Failure, DailyReviewSession?>> getTodayReviewSession(
+    String userId,
+  );
+
+  /// Complete a daily review session with XP awards
+  /// Returns session result with XP earned
+  Future<Either<Failure, DailyReviewResult>> completeDailyReview({
+    required String userId,
+    required int wordsReviewed,
+    required int correctCount,
+    required int incorrectCount,
+  });
+
+  /// Add multiple words to vocabulary in batch (for book/list completion)
+  /// Skips words that already exist in vocabulary_progress
+  Future<Either<Failure, List<VocabularyProgress>>> addWordsToVocabularyBatch({
+    required String userId,
+    required List<String> wordIds,
+  });
 }

@@ -17,6 +17,7 @@ import '../presentation/screens/vocabulary/phases/phase1_learn_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase2_spelling_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase3_flashcards_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase4_review_screen.dart';
+import '../presentation/screens/vocabulary/daily_review_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
 import '../presentation/screens/student/student_assignment_detail_screen.dart';
@@ -259,6 +260,10 @@ GoRouter _createRouter() {
                         },
                       ),
                     ],
+                  ),
+                  GoRoute(
+                    path: 'daily-review',
+                    builder: (context, state) => const DailyReviewScreen(),
                   ),
                   GoRoute(
                     path: 'category/:categoryName',

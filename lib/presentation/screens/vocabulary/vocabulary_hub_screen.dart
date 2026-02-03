@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/word_list.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 
 /// Main vocabulary hub screen with word lists organized by sections
@@ -12,14 +13,12 @@ class VocabularyHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dueCountAsync = ref.watch(totalDueWordsCountProvider);
     final continueLearningAsync = ref.watch(continueWordListsProvider);
     final recommendedAsync = ref.watch(recommendedWordListsProvider);
     final storyListsAsync = ref.watch(storyWordListsProvider);
     final hubStatsAsync = ref.watch(vocabularyHubStatsProvider);
 
     // Extract values with defaults
-    final dueCount = dueCountAsync.valueOrNull ?? 0;
     final continueLeaning = continueLearningAsync.valueOrNull ?? [];
     final recommended = recommendedAsync.valueOrNull ?? [];
     final storyLists = storyListsAsync.valueOrNull ?? [];
@@ -43,8 +42,8 @@ class VocabularyHubScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 24),
         children: [
-          // Due words banner
-          if (dueCount > 0) _DueWordsBanner(dueCount: dueCount),
+          // Daily Review Section (always first and prominent)
+          const _DailyReviewSection(),
 
           // Continue Learning section
           if (continueLeaning.isNotEmpty) ...[
@@ -89,28 +88,203 @@ class VocabularyHubScreen extends ConsumerWidget {
   }
 }
 
-/// Banner showing due words count with review button
-class _DueWordsBanner extends StatelessWidget {
+/// Daily Review Section with 3 states: completed, no words, ready
+class _DailyReviewSection extends ConsumerWidget {
+  const _DailyReviewSection();
 
-  const _DueWordsBanner({required this.dueCount});
-  final int dueCount;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todaySessionAsync = ref.watch(todayReviewSessionProvider);
+    final dueWordsAsync = ref.watch(dailyReviewWordsProvider);
+
+    final todaySession = todaySessionAsync.valueOrNull;
+    final dueWords = dueWordsAsync.valueOrNull ?? [];
+
+    // State 1: Already completed today
+    if (todaySession != null) {
+      return _CompletedReviewCard(session: todaySession);
+    }
+
+    // State 2: No words due
+    if (dueWords.isEmpty) {
+      return const _AllCaughtUpCard();
+    }
+
+    // State 3: Words ready for review
+    return _ReadyToReviewCard(wordCount: dueWords.length);
+  }
+}
+
+/// Card showing completed review session
+class _CompletedReviewCard extends StatelessWidget {
+  const _CompletedReviewCard({required this.session});
+
+  final dynamic session; // DailyReviewSession
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            context.colorScheme.primary,
-            context.colorScheme.primary.withValues(alpha: 0.8),
+            Colors.green.shade400,
+            Colors.green.shade600,
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: context.colorScheme.primary.withValues(alpha: 0.3),
+            color: Colors.green.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.check_circle,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Today's Review Complete!",
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '+${session.xpEarned} XP earned',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (session.isPerfect)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.amber,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.star, color: Colors.white, size: 16),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Perfect',
+                    style: context.textTheme.labelMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card showing no words due
+class _AllCaughtUpCard extends StatelessWidget {
+  const _AllCaughtUpCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: context.colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.emoji_events,
+              color: Colors.blue.shade400,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'All Caught Up!',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'No words due for review. Keep learning!',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Card showing words ready for review
+class _ReadyToReviewCard extends StatelessWidget {
+  const _ReadyToReviewCard({required this.wordCount});
+
+  final int wordCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.orange.shade400,
+            Colors.orange.shade600,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -127,7 +301,7 @@ class _DueWordsBanner extends StatelessWidget {
             child: const Icon(
               Icons.flash_on,
               color: Colors.white,
-              size: 28,
+              size: 32,
             ),
           ),
           const SizedBox(width: 16),
@@ -136,7 +310,7 @@ class _DueWordsBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$dueCount words due for review',
+                  'Daily Review',
                   style: context.textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -144,23 +318,24 @@ class _DueWordsBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Keep your streak going!',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
+                  '$wordCount words ready for review',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ],
             ),
           ),
-          FilledButton(
+          FilledButton.icon(
             onPressed: () {
-              // TODO: Navigate to review screen
+              context.push('/vocabulary/daily-review');
             },
             style: FilledButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: context.colorScheme.primary,
+              foregroundColor: Colors.orange.shade700,
             ),
-            child: const Text('Review'),
+            icon: const Icon(Icons.play_arrow),
+            label: const Text('Start'),
           ),
         ],
       ),

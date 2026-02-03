@@ -259,7 +259,8 @@ Update UI, show notifications
 ### Progress
 - `reading_progress` - Book completion tracking
 - `activity_results` - Quiz answers and scores
-- `vocabulary_progress` - Spaced repetition state
+- `vocabulary_progress` - Spaced repetition state (SM-2 algorithm)
+- `daily_review_sessions` - Daily review session tracking (one per user per day)
 
 ### Gamification
 - `badges` - Badge definitions

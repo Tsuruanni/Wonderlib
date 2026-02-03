@@ -8,6 +8,47 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Anki-Style Daily Review System (2026-02-03)
+
+#### Added
+- **Daily Review Feature** - Spaced repetition review system for vocabulary words
+  - SM-2 algorithm with 3 responses: "I don't know!", "Got it!", "Very EASY!"
+  - Max 20 words per session from words due for review
+  - XP rewards: 5 XP per correct + 10 session bonus + 20 perfect bonus
+  - Session tracking prevents duplicate rewards same day
+- **DailyReviewScreen** - Flashcard-style UI adapted from Phase 3
+  - Card flip animation for word/definition reveal
+  - Progress indicator and session stats
+  - Completion dialog with XP summary
+- **VocabularyHubScreen Redesign** - New daily review section replaces due words banner
+  - State 1: Completed today → success card with XP earned
+  - State 2: No words due → "All caught up!" card
+  - State 3: Words ready → prominent review card with count
+- **Phase 4 Word Addition** - Completing Phase 4 adds words to vocabulary_progress for daily review
+- **New Domain Layer** - `DailyReviewSession` entity, 3 new UseCases (`CompleteDailyReview`, `GetTodayReviewSession`, `AddWordsBatch`)
+- **New Data Layer** - `DailyReviewSessionModel` with JSON serialization
+
+#### Infrastructure
+- **New Migration** `20260203000001_add_daily_review_sessions.sql`
+  - `daily_review_sessions` table with unique constraint on (user_id, session_date)
+  - `complete_daily_review` RPC function with atomic XP award and duplicate prevention
+  - RLS policies for user data isolation
+- **New Migration** `20260202000010_add_description_to_classes.sql` - Optional class description field
+
+#### Changed
+- **Seed Data Cleanup** - Removed 6 old books (The Little Prince, Charlotte's Web, etc.)
+  - Only 4 content block books remain (The Magic Garden, Space Adventure, The Brave Little Robot, Ocean Explorers)
+  - Fixed foreign key constraint violations by reordering INSERT statements
+  - Updated vocabulary_words to use proper UUIDs in inline_activities
+
+#### Removed
+- **Outdated Documentation** - Removed stale refactor planning docs:
+  - `docs/CLEAN_ARCHITECTURE_REFACTOR_PLAN.md`
+  - `docs/CODE_REVIEW_2026-02-01.md`
+  - `docs/REFACTOR_CHECKLIST.md`
+  - `docs/businesslogicrefactoring.md`
+  - `docs/features/reading-module.md`
+
 ### Gamification Features & Admin Fixes (2026-02-02)
 
 #### Added

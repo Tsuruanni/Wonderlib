@@ -64,6 +64,26 @@ INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level,
 ('11111111-0003-0001-0001-000000000004', 'surprised', '/sərˈpraɪzd/', 'şaşırmış', 'feeling amazed by something unexpected', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['amazed', 'astonished'], ARRAY['unsurprised'], ARRAY['I was surprised by the gift.', 'She looked surprised.']),
 ('11111111-0003-0001-0001-000000000005', 'grateful', '/ˈɡreɪtfəl/', 'minnettar', 'feeling thankful', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['thankful', 'appreciative'], ARRAY['ungrateful'], ARRAY['I am grateful for your help.', 'We should be grateful.']);
 
+-- Content Block Book Words (A1-A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0004-0001-0001-000000000001', 'garden', '/ˈɡɑːrdən/', 'bahçe', 'a piece of ground for growing plants', 'A1', ARRAY['nouns', 'nature'], ARRAY['yard', 'backyard'], ARRAY[]::TEXT[], ARRAY['I play in the garden.', 'The garden has many flowers.']),
+('11111111-0004-0001-0001-000000000002', 'secret', '/ˈsiːkrət/', 'gizli', 'something kept hidden from others', 'A1', ARRAY['adjectives', 'nouns'], ARRAY['hidden', 'private'], ARRAY['public', 'known'], ARRAY['This is a secret place.', 'Can you keep a secret?']),
+('11111111-0004-0001-0001-000000000003', 'flower', '/ˈflaʊər/', 'çiçek', 'the colorful part of a plant', 'A1', ARRAY['nouns', 'nature'], ARRAY['bloom', 'blossom'], ARRAY[]::TEXT[], ARRAY['The flower is red.', 'I picked a flower for my mom.']),
+('11111111-0004-0001-0001-000000000004', 'wish', '/wɪʃ/', 'dilek', 'a desire or hope for something', 'A1', ARRAY['nouns', 'verbs'], ARRAY['hope', 'desire'], ARRAY[]::TEXT[], ARRAY['I wish for a puppy.', 'Make a wish!']),
+('11111111-0004-0001-0001-000000000005', 'rocket', '/ˈrɒkɪt/', 'roket', 'a vehicle that travels into space', 'A1', ARRAY['nouns', 'space'], ARRAY['spacecraft'], ARRAY[]::TEXT[], ARRAY['The rocket goes to space.', 'I want to ride a rocket.']),
+('11111111-0004-0001-0001-000000000006', 'space', '/speɪs/', 'uzay', 'the area beyond Earth', 'A1', ARRAY['nouns', 'space'], ARRAY['cosmos', 'universe'], ARRAY[]::TEXT[], ARRAY['Stars are in space.', 'I dream of going to space.']),
+('11111111-0004-0001-0001-000000000007', 'planet', '/ˈplænɪt/', 'gezegen', 'a large round object in space', 'A1', ARRAY['nouns', 'space'], ARRAY['world'], ARRAY[]::TEXT[], ARRAY['Earth is a planet.', 'Mars is the red planet.']),
+('11111111-0004-0001-0001-000000000008', 'Earth', '/ɜːrθ/', 'Dünya', 'the planet we live on', 'A1', ARRAY['nouns', 'space'], ARRAY['world', 'globe'], ARRAY[]::TEXT[], ARRAY['We live on Earth.', 'Earth is beautiful from space.']),
+('11111111-0004-0001-0001-000000000009', 'star', '/stɑːr/', 'yıldız', 'a bright point of light in the sky', 'A1', ARRAY['nouns', 'space'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['The star is bright.', 'I see many stars at night.']),
+('11111111-0004-0001-0001-000000000010', 'robot', '/ˈroʊbɒt/', 'robot', 'a machine that can do tasks', 'A2', ARRAY['nouns', 'technology'], ARRAY['machine', 'android'], ARRAY[]::TEXT[], ARRAY['The robot can walk.', 'I have a toy robot.']),
+('11111111-0004-0001-0001-000000000011', 'factory', '/ˈfæktəri/', 'fabrika', 'a building where things are made', 'A2', ARRAY['nouns', 'places'], ARRAY['plant', 'workshop'], ARRAY[]::TEXT[], ARRAY['Cars are made in a factory.', 'The factory is very big.']),
+('11111111-0004-0001-0001-000000000012', 'problem', '/ˈprɒbləm/', 'sorun', 'something difficult to solve', 'A2', ARRAY['nouns'], ARRAY['issue', 'trouble'], ARRAY['solution'], ARRAY['This is a big problem.', 'Can you solve the problem?']),
+('11111111-0004-0001-0001-000000000013', 'hero', '/ˈhɪəroʊ/', 'kahraman', 'a brave person who helps others', 'A2', ARRAY['nouns'], ARRAY['champion'], ARRAY['villain'], ARRAY['He is a hero.', 'Heroes save people.']),
+('11111111-0004-0001-0001-000000000014', 'brave', '/breɪv/', 'cesur', 'not afraid of danger', 'A2', ARRAY['adjectives'], ARRAY['courageous', 'fearless'], ARRAY['scared', 'afraid'], ARRAY['Be brave!', 'The brave knight saved the princess.']),
+('11111111-0004-0001-0001-000000000015', 'ocean', '/ˈoʊʃən/', 'okyanus', 'a very large body of salt water', 'A1', ARRAY['nouns', 'nature', 'sea'], ARRAY['sea'], ARRAY[]::TEXT[], ARRAY['The ocean is blue.', 'Fish live in the ocean.']),
+('11111111-0004-0001-0001-000000000016', 'coral', '/ˈkɒrəl/', 'mercan', 'a hard underwater structure', 'A2', ARRAY['nouns', 'sea'], ARRAY['reef'], ARRAY[]::TEXT[], ARRAY['Coral is colorful.', 'Fish hide in the coral.']),
+('11111111-0004-0001-0001-000000000017', 'treasure', '/ˈtreʒər/', 'hazine', 'valuable things like gold', 'A2', ARRAY['nouns'], ARRAY['riches', 'wealth'], ARRAY[]::TEXT[], ARRAY['Pirates look for treasure.', 'We found a treasure chest!']);
+
 -- =============================================
 -- WORD LISTS
 -- =============================================
@@ -230,359 +250,489 @@ UPDATE profiles SET
   xp = 0, current_streak = 0, longest_streak = 0
 WHERE id = '88888888-0001-0001-0001-000000000004';
 
--- =============================================
--- BOOKS
--- =============================================
-INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
-('44444444-0001-0001-0001-000000000001', 'The Little Prince', 'the-little-prince', 'A young prince travels from planet to planet, learning about life, love, and friendship. A timeless classic that speaks to readers of all ages.', 'https://covers.openlibrary.org/b/id/8739161-L.jpg', 'A2', 'Fiction', 'elementary', 45, 3500, 3, 'published', '{"author": "Antoine de Saint-Exupéry", "year": 1943}', NOW()),
-('44444444-0001-0001-0001-000000000002', 'Charlotte''s Web', 'charlottes-web', 'The story of a pig named Wilbur and his friendship with a barn spider named Charlotte. A tale about friendship and the circle of life.', 'https://covers.openlibrary.org/b/id/8406786-L.jpg', 'A2', 'Fiction', 'elementary', 60, 5200, 3, 'published', '{"author": "E.B. White", "year": 1952}', NOW()),
-('44444444-0001-0001-0001-000000000003', 'The Secret Garden', 'the-secret-garden', 'A young orphan discovers a hidden garden and, with the help of new friends, brings it back to life while healing herself in the process.', 'https://covers.openlibrary.org/b/id/8231994-L.jpg', 'B1', 'Fiction', 'middle', 90, 8000, 3, 'published', '{"author": "Frances Hodgson Burnett", "year": 1911}', NOW()),
-('44444444-0001-0001-0001-000000000004', 'Animal Farm', 'animal-farm', 'A group of farm animals rebel against their human farmer, hoping to create a society where animals can be equal and free.', 'https://covers.openlibrary.org/b/id/7984916-L.jpg', 'B2', 'Fiction', 'high', 120, 12000, 3, 'published', '{"author": "George Orwell", "year": 1945}', NOW()),
-('44444444-0001-0001-0001-000000000005', 'The Cat in the Hat', 'the-cat-in-the-hat', 'Two children are visited by a mischievous cat who brings chaos and fun to their rainy day at home.', 'https://covers.openlibrary.org/b/id/8225261-L.jpg', 'A1', 'Fiction', 'elementary', 15, 800, 3, 'published', '{"author": "Dr. Seuss", "year": 1957}', NOW()),
-('44444444-0001-0001-0001-000000000006', 'Wonder', 'wonder', 'August Pullman was born with a facial difference. This is his story about starting school and finding true friendship.', 'https://covers.openlibrary.org/b/id/8107708-L.jpg', 'B1', 'Fiction', 'middle', 150, 15000, 3, 'published', '{"author": "R.J. Palacio", "year": 2012}', NOW());
+-- 5. ADMIN USER: For admin panel
+-- Email: admin@demo.com
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0001-0001-0001-000000000005',
+  '00000000-0000-0000-0000-000000000000',
+  'admin@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "System", "last_name": "Admin", "role": "admin"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+
+UPDATE profiles SET
+  first_name = 'System', last_name = 'Admin', role = 'admin',
+  email = 'admin@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  xp = 0, current_streak = 0, longest_streak = 0
+WHERE id = '88888888-0001-0001-0001-000000000005';
 
 -- =============================================
--- CHAPTERS (The Little Prince)
--- =============================================
-INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary) VALUES
-('55555555-0001-0001-0001-000000000001', '44444444-0001-0001-0001-000000000001', 'The Drawing', 1,
-'Once when I was six years old I saw a magnificent picture in a book about the jungle. It showed a boa constrictor swallowing an animal.
-
-I pondered deeply over the adventures of the jungle. And after some work with a colored pencil I succeeded in making my first drawing. My Drawing Number One. It looked like this: I showed my masterpiece to the grown-ups, and asked them whether the drawing frightened them.
-
-But they answered: "Frighten? Why should anyone be frightened by a hat?"
-
-My drawing was not a picture of a hat. It was a picture of a boa constrictor digesting an elephant. But since the grown-ups were not able to understand it, I made another drawing. My Drawing Number Two. The grown-ups'' response, this time, was to advise me to lay aside my drawings of boa constrictors, and devote myself instead to geography, history, arithmetic, and grammar.
-
-That is why, at the age of six, I gave up what might have been a magnificent career as a painter.',
-180, 5, '[{"word": "magnificent", "meaning": "muhteşem, görkemli", "phonetic": "/mæɡˈnɪfɪsənt/", "startIndex": 47, "endIndex": 58}, {"word": "boa constrictor", "meaning": "boa yılanı", "phonetic": "/ˈboʊə kənˈstrɪktər/", "startIndex": 102, "endIndex": 117}, {"word": "pondered", "meaning": "düşündü, kafa yordu", "phonetic": "/ˈpɒndərd/", "startIndex": 140, "endIndex": 148}, {"word": "masterpiece", "meaning": "başyapıt, şaheser", "phonetic": "/ˈmɑːstərpiːs/", "startIndex": 312, "endIndex": 323}]'),
-
-('55555555-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000001', 'The Pilot', 2,
-'So then I chose another profession, and learned to pilot airplanes. I have flown a little over all parts of the world; and it is true that geography has been very useful to me.
-
-At a glance I can distinguish China from Arizona. If one gets lost in the night, such knowledge is valuable.
-
-In the course of this life I have had a great many encounters with a great many people who have been concerned with matters of consequence. I have lived a great deal among grown-ups. I have seen them intimately, close at hand. And that hasn''t much improved my opinion of them.
-
-Whenever I met one of them who seemed to me at all clear-sighted, I tried the experiment of showing him my Drawing Number One, which I have always kept. I would try to find out if this was a person of true understanding. But, whoever it was, he or she would always say: "That is a hat."
-
-Then I would never talk to that person about boa constrictors, or primeval forests, or stars. I would bring myself down to his level.',
-200, 6, '[{"word": "profession", "meaning": "meslek", "phonetic": "/prəˈfeʃən/", "startIndex": 24, "endIndex": 34}, {"word": "distinguish", "meaning": "ayırt etmek", "phonetic": "/dɪˈstɪŋɡwɪʃ/", "startIndex": 197, "endIndex": 208}, {"word": "encounters", "meaning": "karşılaşmalar", "phonetic": "/ɪnˈkaʊntərz/", "startIndex": 320, "endIndex": 330}, {"word": "consequence", "meaning": "önem, sonuç", "phonetic": "/ˈkɒnsɪkwəns/", "startIndex": 392, "endIndex": 403}]'),
-
-('55555555-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000001', 'The Little Prince Arrives', 3,
-'I lived my life alone, without anyone that I could really talk to, until I had an accident with my plane in the Desert of Sahara, six years ago. Something was broken in my engine.
-
-And as I had with me neither a mechanic nor any passengers, I set myself to attempt the difficult repairs all alone. It was a question of life or death for me: I had scarcely enough drinking water to last a week.
-
-The first night, then, I went to sleep on the sand, a thousand miles from any human habitation. I was more isolated than a shipwrecked sailor on a raft in the middle of the ocean.
-
-Thus you can imagine my amazement, at sunrise, when I was awakened by an odd little voice. It said: "If you please, draw me a sheep!"
-
-"What!"
-
-"Draw me a sheep!"
-
-I jumped to my feet, completely thunderstruck. I blinked my eyes hard. I looked carefully all around me. And I saw a most extraordinary small person, who stood there examining me with great seriousness.',
-210, 7, '[{"word": "accident", "meaning": "kaza", "phonetic": "/ˈæksɪdənt/", "startIndex": 78, "endIndex": 86}, {"word": "scarcely", "meaning": "zar zor, güçlükle", "phonetic": "/ˈskeəsli/", "startIndex": 319, "endIndex": 327}, {"word": "habitation", "meaning": "yerleşim yeri", "phonetic": "/ˌhæbɪˈteɪʃən/", "startIndex": 467, "endIndex": 477}, {"word": "amazement", "meaning": "şaşkınlık, hayret", "phonetic": "/əˈmeɪzmənt/", "startIndex": 588, "endIndex": 597}, {"word": "thunderstruck", "meaning": "şaşkına dönmüş", "phonetic": "/ˈθʌndəstrʌk/", "startIndex": 756, "endIndex": 769}]');
-
--- =============================================
--- CHAPTERS (Charlotte's Web)
--- =============================================
-INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary) VALUES
-('55555555-0001-0002-0001-000000000001', '44444444-0001-0001-0001-000000000002', 'Before Breakfast', 1,
-'"Where''s Papa going with that ax?" said Fern to her mother as they were setting the table for breakfast.
-
-"Out to the hoghouse," replied Mrs. Arable. "Some pigs were born last night."
-
-"I don''t see why he needs an ax," continued Fern, who was only eight.
-
-"Well," said her mother, "one of the pigs is a runt. It''s very small and weak, and it will never amount to anything. So your father has decided to do away with it."
-
-"Do away with it?" shrieked Fern. "You mean kill it? Just because it''s smaller than the others?"
-
-Mrs. Arable put a pitcher of cream on the table. "Don''t yell, Fern!" she said. "Your father is right. The pig would probably die anyway."
-
-Fern pushed a chair out of the way and ran outdoors. The grass was wet and the earth smelled of springtime. Fern''s sneakers were sopping by the time she caught up with her father.',
-180, 5, '[{"word": "ax", "meaning": "balta", "phonetic": "/æks/", "startIndex": 32, "endIndex": 34}, {"word": "hoghouse", "meaning": "domuz ahırı", "phonetic": "/ˈhɒɡhaʊs/", "startIndex": 95, "endIndex": 103}, {"word": "runt", "meaning": "sürünün en küçüğü", "phonetic": "/rʌnt/", "startIndex": 272, "endIndex": 276}, {"word": "shrieked", "meaning": "çığlık attı", "phonetic": "/ʃriːkt/", "startIndex": 402, "endIndex": 410}]'),
-
-('55555555-0001-0002-0001-000000000002', '44444444-0001-0001-0001-000000000002', 'Wilbur', 2,
-'Fern loved Wilbur more than anything. She loved to stroke him, to feed him, to put him to bed. Every morning, as soon as she got up, she warmed his milk, tied his bib on, and held the bottle for him.
-
-Every afternoon, when the school bus stopped in front of her house, she jumped out and ran to the kitchen to fix another bottle for him. She fed him again at suppertime, and again just before going to bed.
-
-Mrs. Arable gave him a bath every day in the kitchen sink. Each morning she tied a fresh ribbon on his tail.
-
-Wilbur was what farmers call a spring pig, which simply means that he was born in springtime. When he was five weeks old, Mr. Arable said he was now big enough to sell, and would have to be sold.
-
-Fern broke down and cried. But her father was firm about it. Wilbur''s appetite had increased; he was beginning to eat scraps of food in addition to milk. Mr. Arable was not willing to provide for him any longer.',
-200, 6, '[{"word": "stroke", "meaning": "okşamak", "phonetic": "/stroʊk/", "startIndex": 55, "endIndex": 61}, {"word": "bib", "meaning": "önlük, mama önlüğü", "phonetic": "/bɪb/", "startIndex": 151, "endIndex": 154}, {"word": "ribbon", "meaning": "kurdele", "phonetic": "/ˈrɪbən/", "startIndex": 475, "endIndex": 481}, {"word": "appetite", "meaning": "iştah", "phonetic": "/ˈæpɪtaɪt/", "startIndex": 729, "endIndex": 737}]'),
-
-('55555555-0001-0002-0001-000000000003', '44444444-0001-0001-0001-000000000002', 'Escape', 3,
-'The barn was very large. It was very old. It smelled of hay and it smelled of manure. It smelled of the perspiration of tired horses and the wonderful sweet breath of patient cows.
-
-It often had a sort of peaceful smell, as though nothing bad could happen ever again in the world. It smelled of grain and of harness dressing and of axle grease and of rubber boots and of new rope.
-
-And whenever the cat was given a fish-head to eat, the barn would smell of fish. But mostly it smelled of hay, for there was always hay in the great loft up overhead. And there was always hay being pitched down to the cows and the horses and the sheep.
-
-The barn was pleasantly warm in winter when the animals spent most of their time indoors, and it was pleasantly cool in summer when the big doors stood wide open to the breeze.',
-180, 5, '[{"word": "barn", "meaning": "ahır, ambar", "phonetic": "/bɑːrn/", "startIndex": 4, "endIndex": 8}, {"word": "hay", "meaning": "saman", "phonetic": "/heɪ/", "startIndex": 54, "endIndex": 57}, {"word": "manure", "meaning": "gübre", "phonetic": "/məˈnjʊər/", "startIndex": 74, "endIndex": 80}, {"word": "perspiration", "meaning": "ter", "phonetic": "/ˌpɜːrspəˈreɪʃən/", "startIndex": 100, "endIndex": 112}]');
-
--- =============================================
--- CHAPTERS (The Secret Garden)
--- =============================================
-INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary) VALUES
-('55555555-0001-0003-0001-000000000001', '44444444-0001-0001-0001-000000000003', 'There Is No One Left', 1,
-'When Mary Lennox was sent to Misselthwaite Manor to live with her uncle everybody said she was the most disagreeable-looking child ever seen.
-
-It was true, too. She had a little thin face and a little thin body, thin light hair and a sour expression. Her hair was yellow, and her face was yellow because she had been born in India and had always been ill in one way or another.
-
-Her father had held a position under the English Government and had always been busy and ill himself, and her mother had been a great beauty who cared only to go to parties and amuse herself with gay people.
-
-She had not wanted a little girl at all, and when Mary was born she handed her over to the care of an Ayah, who was made to understand that if she wished to please the Mem Sahib she must keep the child out of sight as much as possible.',
-200, 7, '[{"word": "disagreeable", "meaning": "sevimsiz, nahoş", "phonetic": "/ˌdɪsəˈɡriːəbəl/", "startIndex": 89, "endIndex": 101}, {"word": "sour", "meaning": "ekşi, somurtkan", "phonetic": "/saʊər/", "startIndex": 209, "endIndex": 213}, {"word": "position", "meaning": "pozisyon, görev", "phonetic": "/pəˈzɪʃən/", "startIndex": 354, "endIndex": 362}, {"word": "amuse", "meaning": "eğlendirmek", "phonetic": "/əˈmjuːz/", "startIndex": 502, "endIndex": 507}]'),
-
-('55555555-0001-0003-0001-000000000002', '44444444-0001-0001-0001-000000000003', 'Mistress Mary Quite Contrary', 2,
-'Mary had liked to look at her mother from a distance and she had thought her very pretty, but as she knew very little of her she could scarcely have been expected to love her or to miss her very much when she was gone.
-
-She did not miss her at all, in fact, and as she was a self-absorbed child she gave her entire thought to herself, as she had always done.
-
-If she had been older she would no doubt have been very anxious at being left alone in the world, but she was very young, and as she had always been taken care of, she supposed she always would be.
-
-What she thought was that she would like to know if she was going to nice people, who would be polite to her and give her her own way as her Ayah and the other native servants had done.',
-180, 6, '[{"word": "distance", "meaning": "mesafe, uzaklık", "phonetic": "/ˈdɪstəns/", "startIndex": 40, "endIndex": 48}, {"word": "self-absorbed", "meaning": "bencil, kendine dönük", "phonetic": "/ˌselfəbˈzɔːrbd/", "startIndex": 273, "endIndex": 286}, {"word": "anxious", "meaning": "endişeli, kaygılı", "phonetic": "/ˈæŋkʃəs/", "startIndex": 411, "endIndex": 418}, {"word": "polite", "meaning": "kibar, nazik", "phonetic": "/pəˈlaɪt/", "startIndex": 621, "endIndex": 627}]'),
-
-('55555555-0001-0003-0001-000000000003', '44444444-0001-0001-0001-000000000003', 'Across the Moor', 3,
-'She slept a long time, and when she awakened Mrs. Medlock had bought a lunch-basket at one of the stations and they had some chicken and cold beef and bread and butter and some hot tea.
-
-The rain seemed to be streaming down more heavily than ever and everybody in the station wore wet and glistening waterproofs. The guard lighted the lamps in the carriage, and Mrs. Medlock cheered up very much over her tea and chicken and beef.
-
-She ate a great deal and afterward fell asleep herself, and Mary sat and stared at her and watched her fine bonnet slip on one side until she herself fell asleep once more in the corner of the carriage, lulled by the splashing of the rain against the windows.
-
-It was quite dark when she awakened again. The train had stopped at a station and Mrs. Medlock was shaking her.',
-190, 6, '[{"word": "awakened", "meaning": "uyandı", "phonetic": "/əˈweɪkənd/", "startIndex": 31, "endIndex": 39}, {"word": "glistening", "meaning": "parıldayan", "phonetic": "/ˈɡlɪsənɪŋ/", "startIndex": 262, "endIndex": 272}, {"word": "carriage", "meaning": "vagon, araba", "phonetic": "/ˈkærɪdʒ/", "startIndex": 329, "endIndex": 337}, {"word": "lulled", "meaning": "yatıştırılmış", "phonetic": "/lʌld/", "startIndex": 581, "endIndex": 587}]');
-
--- =============================================
--- INLINE ACTIVITIES (for all books)
--- =============================================
-
--- ========== THE LITTLE PRINCE ==========
--- Chapter 1: The Drawing
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0001-0001-0001-000000000001', '55555555-0001-0001-0001-000000000001', 'true_false', 0,
-'{"statement": "The narrator saw the picture in a newspaper.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
-('66666666-0001-0001-0001-000000000002', '55555555-0001-0001-0001-000000000001', 'word_translation', 1,
-'{"word": "magnificent", "correctAnswer": "muhteşem", "options": ["muhteşem", "korkunç", "sıradan"]}', 5, ARRAY['magnificent']),
-('66666666-0001-0001-0001-000000000003', '55555555-0001-0001-0001-000000000001', 'true_false', 2,
-'{"statement": "The grown-ups thought the drawing was a hat.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0001-0001-0001-000000000004', '55555555-0001-0001-0001-000000000001', 'find_words', 3,
-'{"instruction": "Find two subjects the grown-ups suggested.", "options": ["Geography", "Music", "Arithmetic"], "correctAnswers": ["Geography", "Arithmetic"]}', 5, ARRAY['geography', 'arithmetic']);
-
--- Chapter 2: The Pilot
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0001-0002-0001-000000000001', '55555555-0001-0001-0001-000000000002', 'true_false', 0,
-'{"statement": "The narrator chose to become a pilot.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0001-0002-0001-000000000002', '55555555-0001-0001-0001-000000000002', 'word_translation', 1,
-'{"word": "distinguish", "correctAnswer": "ayırt etmek", "options": ["ayırt etmek", "uçmak", "kaybolmak"]}', 5, ARRAY['distinguish']),
-('66666666-0001-0002-0001-000000000003', '55555555-0001-0001-0001-000000000002', 'true_false', 2,
-'{"statement": "The narrator improved his opinion of grown-ups over time.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
-('66666666-0001-0002-0001-000000000004', '55555555-0001-0001-0001-000000000002', 'word_translation', 3,
-'{"word": "consequence", "correctAnswer": "önem", "options": ["önem", "sonuç", "hata"]}', 5, ARRAY['consequence']);
-
--- Chapter 3: The Little Prince Arrives
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0001-0003-0001-000000000001', '55555555-0001-0001-0001-000000000003', 'true_false', 0,
-'{"statement": "The narrator''s plane crashed in the Sahara Desert.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0001-0003-0001-000000000002', '55555555-0001-0001-0001-000000000003', 'word_translation', 1,
-'{"word": "scarcely", "correctAnswer": "zar zor", "options": ["zar zor", "bolca", "hızlıca"]}', 5, ARRAY['scarcely']),
-('66666666-0001-0003-0001-000000000003', '55555555-0001-0001-0001-000000000003', 'word_translation', 2,
-'{"word": "habitation", "correctAnswer": "yerleşim yeri", "options": ["yerleşim yeri", "alışkanlık", "hayvan"]}', 5, ARRAY['habitation']),
-('66666666-0001-0003-0001-000000000004', '55555555-0001-0001-0001-000000000003', 'true_false', 3,
-'{"statement": "The little voice asked for a drawing of a sheep.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]);
-
--- ========== CHARLOTTE'S WEB ==========
--- Chapter 1: Before Breakfast
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0002-0001-0001-000000000001', '55555555-0001-0002-0001-000000000001', 'true_false', 0,
-'{"statement": "Fern''s father was going to the hoghouse with an ax.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0002-0001-0001-000000000002', '55555555-0001-0002-0001-000000000001', 'word_translation', 1,
-'{"word": "runt", "correctAnswer": "sürünün en küçüğü", "options": ["sürünün en küçüğü", "en büyüğü", "en hızlısı"]}', 5, ARRAY['runt']),
-('66666666-0002-0001-0001-000000000003', '55555555-0001-0002-0001-000000000001', 'true_false', 2,
-'{"statement": "Fern was happy about her father''s decision.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
-('66666666-0002-0001-0001-000000000004', '55555555-0001-0002-0001-000000000001', 'word_translation', 3,
-'{"word": "shrieked", "correctAnswer": "çığlık attı", "options": ["çığlık attı", "fısıldadı", "güldü"]}', 5, ARRAY['shrieked']);
-
--- Chapter 2: Wilbur
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0002-0002-0001-000000000001', '55555555-0001-0002-0001-000000000002', 'true_false', 0,
-'{"statement": "Fern fed Wilbur milk from a bottle.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0002-0002-0001-000000000002', '55555555-0001-0002-0001-000000000002', 'word_translation', 1,
-'{"word": "stroke", "correctAnswer": "okşamak", "options": ["okşamak", "vurmak", "itmek"]}', 5, ARRAY['stroke']),
-('66666666-0002-0002-0001-000000000003', '55555555-0001-0002-0001-000000000002', 'find_words', 2,
-'{"instruction": "What did Mrs. Arable do for Wilbur?", "options": ["Gave him a bath", "Tied a ribbon", "Read him stories"], "correctAnswers": ["Gave him a bath", "Tied a ribbon"]}', 5, ARRAY[]::TEXT[]),
-('66666666-0002-0002-0001-000000000004', '55555555-0001-0002-0001-000000000002', 'true_false', 3,
-'{"statement": "Wilbur was sold when he was five weeks old.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]);
-
--- Chapter 3: Escape
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0002-0003-0001-000000000001', '55555555-0001-0002-0001-000000000003', 'word_translation', 0,
-'{"word": "barn", "correctAnswer": "ahır", "options": ["ahır", "ev", "okul"]}', 5, ARRAY['barn']),
-('66666666-0002-0003-0001-000000000002', '55555555-0001-0002-0001-000000000003', 'true_false', 1,
-'{"statement": "The barn smelled of hay and manure.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0002-0003-0001-000000000003', '55555555-0001-0002-0001-000000000003', 'word_translation', 2,
-'{"word": "perspiration", "correctAnswer": "ter", "options": ["ter", "su", "yağmur"]}', 5, ARRAY['perspiration']),
-('66666666-0002-0003-0001-000000000004', '55555555-0001-0002-0001-000000000003', 'find_words', 3,
-'{"instruction": "What made the barn smell?", "options": ["Hay", "Fish", "Manure", "Flowers"], "correctAnswers": ["Hay", "Fish", "Manure"]}', 5, ARRAY[]::TEXT[]);
-
--- ========== THE SECRET GARDEN ==========
--- Chapter 1: There Is No One Left
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0003-0001-0001-000000000001', '55555555-0001-0003-0001-000000000001', 'true_false', 0,
-'{"statement": "Mary Lennox was a pleasant-looking child.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
-('66666666-0003-0001-0001-000000000002', '55555555-0001-0003-0001-000000000001', 'word_translation', 1,
-'{"word": "disagreeable", "correctAnswer": "sevimsiz", "options": ["sevimsiz", "güzel", "mutlu"]}', 5, ARRAY['disagreeable']),
-('66666666-0003-0001-0001-000000000003', '55555555-0001-0003-0001-000000000001', 'true_false', 2,
-'{"statement": "Mary was born in India.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0003-0001-0001-000000000004', '55555555-0001-0003-0001-000000000001', 'word_translation', 3,
-'{"word": "amuse", "correctAnswer": "eğlendirmek", "options": ["eğlendirmek", "üzmek", "korkutmak"]}', 5, ARRAY['amuse']);
-
--- Chapter 2: Mistress Mary Quite Contrary
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0003-0002-0001-000000000001', '55555555-0001-0003-0001-000000000002', 'true_false', 0,
-'{"statement": "Mary missed her mother very much.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]),
-('66666666-0003-0002-0001-000000000002', '55555555-0001-0003-0001-000000000002', 'word_translation', 1,
-'{"word": "self-absorbed", "correctAnswer": "bencil", "options": ["bencil", "cömert", "nazik"]}', 5, ARRAY['self-absorbed']),
-('66666666-0003-0002-0001-000000000003', '55555555-0001-0003-0001-000000000002', 'true_false', 2,
-'{"statement": "Mary was very young when she was left alone.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0003-0002-0001-000000000004', '55555555-0001-0003-0001-000000000002', 'word_translation', 3,
-'{"word": "polite", "correctAnswer": "kibar", "options": ["kibar", "kaba", "sessiz"]}', 5, ARRAY['polite']);
-
--- Chapter 3: Across the Moor
-INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
-('66666666-0003-0003-0001-000000000001', '55555555-0001-0003-0001-000000000003', 'word_translation', 0,
-'{"word": "awakened", "correctAnswer": "uyandı", "options": ["uyandı", "uyudu", "yürüdü"]}', 5, ARRAY['awakened']),
-('66666666-0003-0003-0001-000000000002', '55555555-0001-0003-0001-000000000003', 'true_false', 1,
-'{"statement": "Mrs. Medlock bought food at a station.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
-('66666666-0003-0003-0001-000000000003', '55555555-0001-0003-0001-000000000003', 'word_translation', 2,
-'{"word": "glistening", "correctAnswer": "parıldayan", "options": ["parıldayan", "karanlık", "kuru"]}', 5, ARRAY['glistening']),
-('66666666-0003-0003-0001-000000000004', '55555555-0001-0003-0001-000000000003', 'true_false', 3,
-'{"statement": "The rain stopped during the journey.", "correctAnswer": false}', 5, ARRAY[]::TEXT[]);
-
--- =============================================
--- READING PROGRESS (for test users)
--- =============================================
-
--- ACTIVE USER: Reading "The Little Prince", completed chapter 1
-INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
-('99999999-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000001',
-'55555555-0001-0001-0001-000000000002', 1, false, 33.33, 600,
-ARRAY['55555555-0001-0001-0001-000000000001']::UUID[], NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day');
-
--- ACTIVE USER: Started "Charlotte's Web"
-INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
-('99999999-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000002',
-'55555555-0001-0002-0001-000000000001', 1, false, 10.0, 180,
-ARRAY[]::UUID[], NOW() - INTERVAL '1 day', NOW());
-
--- ADVANCED USER: Completed "The Little Prince"
-INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, completed_at, updated_at) VALUES
-('99999999-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000001',
-'55555555-0001-0001-0001-000000000003', 1, true, 100.0, 2700,
-ARRAY['55555555-0001-0001-0001-000000000001', '55555555-0001-0001-0001-000000000002', '55555555-0001-0001-0001-000000000003']::UUID[],
-NOW() - INTERVAL '14 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days');
-
--- ADVANCED USER: Completed "Charlotte's Web"
-INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, completed_at, updated_at) VALUES
-('99999999-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000002',
-'55555555-0001-0002-0001-000000000003', 1, true, 100.0, 3600,
-ARRAY['55555555-0001-0002-0001-000000000001', '55555555-0001-0002-0001-000000000002', '55555555-0001-0002-0001-000000000003']::UUID[],
-NOW() - INTERVAL '10 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days');
-
--- ADVANCED USER: Reading "The Secret Garden"
-INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
-('99999999-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '44444444-0001-0001-0001-000000000003',
-'55555555-0001-0003-0001-000000000002', 1, false, 66.66, 1800,
-ARRAY['55555555-0001-0003-0001-000000000001', '55555555-0001-0003-0001-000000000002']::UUID[], NOW() - INTERVAL '3 days', NOW());
-
--- =============================================
--- COMPLETED INLINE ACTIVITIES (for ADVANCED user - to test duplicate XP prevention)
--- =============================================
-INSERT INTO inline_activity_results (id, user_id, inline_activity_id, is_correct, xp_earned, answered_at) VALUES
--- The Little Prince - All activities completed
-('aaaaaaaa-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000001', true, 5, NOW() - INTERVAL '10 days'),
-('aaaaaaaa-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000002', true, 5, NOW() - INTERVAL '10 days'),
-('aaaaaaaa-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000003', true, 5, NOW() - INTERVAL '10 days'),
-('aaaaaaaa-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '66666666-0001-0001-0001-000000000004', true, 5, NOW() - INTERVAL '10 days'),
-('aaaaaaaa-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000001', true, 5, NOW() - INTERVAL '9 days'),
-('aaaaaaaa-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000002', true, 5, NOW() - INTERVAL '9 days'),
-('aaaaaaaa-0001-0001-0001-000000000007', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000003', false, 0, NOW() - INTERVAL '9 days'),
-('aaaaaaaa-0001-0001-0001-000000000008', '88888888-0001-0001-0001-000000000003', '66666666-0001-0002-0001-000000000004', true, 5, NOW() - INTERVAL '9 days'),
-('aaaaaaaa-0001-0001-0001-000000000009', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000001', true, 5, NOW() - INTERVAL '8 days'),
-('aaaaaaaa-0001-0001-0001-000000000010', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000002', true, 5, NOW() - INTERVAL '8 days'),
-('aaaaaaaa-0001-0001-0001-000000000011', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000003', true, 5, NOW() - INTERVAL '8 days'),
-('aaaaaaaa-0001-0001-0001-000000000012', '88888888-0001-0001-0001-000000000003', '66666666-0001-0003-0001-000000000004', true, 5, NOW() - INTERVAL '8 days'),
--- Charlotte's Web - All activities completed
-('aaaaaaaa-0001-0001-0001-000000000013', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000001', true, 5, NOW() - INTERVAL '7 days'),
-('aaaaaaaa-0001-0001-0001-000000000014', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000002', true, 5, NOW() - INTERVAL '7 days'),
-('aaaaaaaa-0001-0001-0001-000000000015', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000003', true, 5, NOW() - INTERVAL '7 days'),
-('aaaaaaaa-0001-0001-0001-000000000016', '88888888-0001-0001-0001-000000000003', '66666666-0002-0001-0001-000000000004', true, 5, NOW() - INTERVAL '7 days'),
-('aaaaaaaa-0001-0001-0001-000000000017', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000001', true, 5, NOW() - INTERVAL '6 days'),
-('aaaaaaaa-0001-0001-0001-000000000018', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000002', true, 5, NOW() - INTERVAL '6 days'),
-('aaaaaaaa-0001-0001-0001-000000000019', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000003', true, 5, NOW() - INTERVAL '6 days'),
-('aaaaaaaa-0001-0001-0001-000000000020', '88888888-0001-0001-0001-000000000003', '66666666-0002-0002-0001-000000000004', true, 5, NOW() - INTERVAL '6 days'),
-('aaaaaaaa-0001-0001-0001-000000000021', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000001', true, 5, NOW() - INTERVAL '5 days'),
-('aaaaaaaa-0001-0001-0001-000000000022', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000002', true, 5, NOW() - INTERVAL '5 days'),
-('aaaaaaaa-0001-0001-0001-000000000023', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000003', true, 5, NOW() - INTERVAL '5 days'),
-('aaaaaaaa-0001-0001-0001-000000000024', '88888888-0001-0001-0001-000000000003', '66666666-0002-0003-0001-000000000004', true, 5, NOW() - INTERVAL '5 days'),
--- The Secret Garden - Chapter 1 & 2 activities completed (reading in progress)
-('aaaaaaaa-0001-0001-0001-000000000025', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000001', true, 5, NOW() - INTERVAL '3 days'),
-('aaaaaaaa-0001-0001-0001-000000000026', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000002', true, 5, NOW() - INTERVAL '3 days'),
-('aaaaaaaa-0001-0001-0001-000000000027', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000003', true, 5, NOW() - INTERVAL '3 days'),
-('aaaaaaaa-0001-0001-0001-000000000028', '88888888-0001-0001-0001-000000000003', '66666666-0003-0001-0001-000000000004', true, 5, NOW() - INTERVAL '3 days'),
-('aaaaaaaa-0001-0001-0001-000000000029', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000001', true, 5, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0001-0001-0001-000000000030', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000002', true, 5, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0001-0001-0001-000000000031', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000003', true, 5, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0001-0001-0001-000000000032', '88888888-0001-0001-0001-000000000003', '66666666-0003-0002-0001-000000000004', true, 5, NOW() - INTERVAL '2 days');
-
--- ACTIVE USER: Completed some activities (chapter 1 of Little Prince)
-INSERT INTO inline_activity_results (id, user_id, inline_activity_id, is_correct, xp_earned, answered_at) VALUES
-('aaaaaaaa-0002-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000001', true, 5, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0002-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000002', true, 5, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0002-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000003', false, 0, NOW() - INTERVAL '2 days'),
-('aaaaaaaa-0002-0001-0001-000000000004', '88888888-0001-0001-0001-000000000002', '66666666-0001-0001-0001-000000000004', true, 5, NOW() - INTERVAL '2 days');
-
--- =============================================
--- VOCABULARY PROGRESS (words learned by users)
+-- VOCABULARY PROGRESS (words learned by users - content block book words)
 -- Uses SM-2 spaced repetition: status, ease_factor, interval_days, repetitions
 -- =============================================
 INSERT INTO vocabulary_progress (id, user_id, word_id, status, ease_factor, interval_days, repetitions, next_review_at, last_reviewed_at) VALUES
--- ACTIVE USER: Learning some words
-('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000001', 'learning', 2.50, 1, 2, NOW() + INTERVAL '1 day', NOW() - INTERVAL '1 day'),
-('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000002', 'new_word', 2.50, 0, 1, NOW() + INTERVAL '4 hours', NOW() - INTERVAL '2 days'),
-('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '11111111-0001-0001-0001-000000000003', 'reviewing', 2.60, 3, 4, NOW() + INTERVAL '3 days', NOW() - INTERVAL '1 day'),
+-- ACTIVE USER: Learning some content block words
+('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '11111111-0004-0001-0001-000000000001', 'learning', 2.50, 1, 2, NOW() + INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '11111111-0004-0001-0001-000000000002', 'new_word', 2.50, 0, 1, NOW() + INTERVAL '4 hours', NOW() - INTERVAL '2 days'),
 
--- ADVANCED USER: Many words mastered
-('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
-('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000002', 'mastered', 2.70, 30, 8, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
-('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000003', 'mastered', 2.90, 30, 12, NOW() + INTERVAL '30 days', NOW() - INTERVAL '3 days'),
-('bbbbbbbb-0001-0001-0001-000000000007', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000004', 'reviewing', 2.60, 14, 7, NOW() + INTERVAL '14 days', NOW() - INTERVAL '2 days'),
-('bbbbbbbb-0001-0001-0001-000000000008', '88888888-0001-0001-0001-000000000003', '11111111-0001-0001-0001-000000000005', 'mastered', 2.75, 30, 9, NOW() + INTERVAL '30 days', NOW() - INTERVAL '7 days'),
-('bbbbbbbb-0001-0001-0001-000000000009', '88888888-0001-0001-0001-000000000003', '11111111-0001-0002-0001-000000000001', 'reviewing', 2.55, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '4 days'),
-('bbbbbbbb-0001-0001-0001-000000000010', '88888888-0001-0001-0001-000000000003', '11111111-0001-0002-0001-000000000002', 'learning', 2.50, 7, 4, NOW() + INTERVAL '7 days', NOW() - INTERVAL '2 days'),
-('bbbbbbbb-0001-0001-0001-000000000011', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '10 days'),
-('bbbbbbbb-0001-0001-0001-000000000012', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000002', 'reviewing', 2.60, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '6 days');
+-- ADVANCED USER: Many content block words mastered
+('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000001', 'mastered', 2.80, 30, 10, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
+('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000002', 'mastered', 2.70, 30, 8, NOW() + INTERVAL '30 days', NOW() - INTERVAL '5 days'),
+('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000003', 'mastered', 2.90, 30, 12, NOW() + INTERVAL '30 days', NOW() - INTERVAL '3 days'),
+('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000004', 'reviewing', 2.60, 14, 7, NOW() + INTERVAL '14 days', NOW() - INTERVAL '2 days'),
+('bbbbbbbb-0001-0001-0001-000000000007', '88888888-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000002', 'reviewing', 2.60, 14, 6, NOW() + INTERVAL '14 days', NOW() - INTERVAL '6 days'),
+('bbbbbbbb-0001-0001-0001-000000000008', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000005', 'learning', 2.50, 3, 3, NOW() - INTERVAL '1 day', NOW() - INTERVAL '4 days'),
+('bbbbbbbb-0001-0001-0001-000000000009', '88888888-0001-0001-0001-000000000003', '11111111-0004-0001-0001-000000000006', 'learning', 2.55, 3, 3, NOW() - INTERVAL '2 days', NOW() - INTERVAL '5 days');
 
 -- =============================================
--- ASSIGNMENTS (Teacher assignments for testing)
+-- CONTENT BLOCK BOOKS (New books with rich content)
+-- =============================================
+
+-- BOOK 1: The Magic Garden (A1 - Elementary)
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0001-0001-000000000001', 'The Magic Garden', 'the-magic-garden', 'Join Lily on a magical adventure through an enchanted garden where flowers can talk and butterflies grant wishes!', 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400', 'A1', 'Fiction', 'elementary', 20, 1200, 3, 'published', '{"author": "Emma Stories", "year": 2024}', NOW());
+
+-- Chapters for Magic Garden (with use_content_blocks = true)
+INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
+('55555555-0002-0001-0001-000000000001', '44444444-0002-0001-0001-000000000001', 'The Secret Gate', 1, NULL, 400, 5, '[]', true),
+('55555555-0002-0001-0001-000000000002', '44444444-0002-0001-0001-000000000001', 'The Talking Flowers', 2, NULL, 400, 5, '[]', true),
+('55555555-0002-0001-0001-000000000003', '44444444-0002-0001-0001-000000000001', 'The Wish Butterfly', 3, NULL, 400, 5, '[]', true);
+
+-- Inline Activities for Magic Garden
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+-- Chapter 1 activities
+('66666666-0004-0001-0001-000000000001', '55555555-0002-0001-0001-000000000001', 'word_translation', 0,
+'{"word": "garden", "correctAnswer": "bahce", "options": ["bahce", "ev", "okul"]}', 5, ARRAY['11111111-0004-0001-0001-000000000001']),
+('66666666-0004-0001-0001-000000000002', '55555555-0002-0001-0001-000000000001', 'true_false', 0,
+'{"statement": "Lily found a small gate behind the bushes.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0004-0001-0001-000000000003', '55555555-0002-0001-0001-000000000001', 'word_translation', 0,
+'{"word": "secret", "correctAnswer": "gizli", "options": ["gizli", "buyuk", "kucuk"]}', 5, ARRAY['11111111-0004-0001-0001-000000000002']),
+-- Chapter 2 activities
+('66666666-0004-0002-0001-000000000001', '55555555-0002-0001-0001-000000000002', 'word_translation', 0,
+'{"word": "flower", "correctAnswer": "cicek", "options": ["cicek", "agac", "yaprak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000003']),
+('66666666-0004-0002-0001-000000000002', '55555555-0002-0001-0001-000000000002', 'true_false', 0,
+'{"statement": "The roses could sing songs.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0004-0002-0001-000000000003', '55555555-0002-0001-0001-000000000002', 'find_words', 0,
+'{"instruction": "Which flowers did Lily meet?", "options": ["Rose", "Sunflower", "Cactus", "Daisy"], "correctAnswers": ["Rose", "Sunflower", "Daisy"]}', 5, ARRAY[]::TEXT[]),
+-- Chapter 3 activities
+('66666666-0004-0003-0001-000000000001', '55555555-0002-0001-0001-000000000003', 'word_translation', 0,
+'{"word": "butterfly", "correctAnswer": "kelebek", "options": ["kelebek", "kus", "bocek"]}', 5, ARRAY['11111111-0002-0001-0001-000000000002']),
+('66666666-0004-0003-0001-000000000002', '55555555-0002-0001-0001-000000000003', 'true_false', 0,
+'{"statement": "The butterfly had golden wings.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0004-0003-0001-000000000003', '55555555-0002-0001-0001-000000000003', 'word_translation', 0,
+'{"word": "wish", "correctAnswer": "dilek", "options": ["dilek", "ruya", "hediye"]}', 5, ARRAY['11111111-0004-0001-0001-000000000004']);
+
+-- Content Blocks for Magic Garden - Chapter 1
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000001-0001-0001-0001-000000000001', '55555555-0002-0001-0001-000000000001', 1, 'text',
+'One sunny morning, a little girl named Lily walked into her grandmother''s backyard. She loved playing there because it was full of beautiful flowers and tall trees.', NULL, NULL, NULL),
+('cb000001-0001-0001-0001-000000000002', '55555555-0002-0001-0001-000000000001', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600', 'A beautiful garden with colorful flowers', NULL),
+('cb000001-0001-0001-0001-000000000003', '55555555-0002-0001-0001-000000000001', 3, 'text',
+'Today, something was different. Behind the rose bushes, Lily saw something she had never noticed before - a small wooden gate covered in green vines.', NULL, NULL, NULL),
+('cb000001-0001-0001-0001-000000000004', '55555555-0002-0001-0001-000000000001', 4, 'activity',
+NULL, NULL, NULL, '66666666-0004-0001-0001-000000000001'),
+('cb000001-0001-0001-0001-000000000005', '55555555-0002-0001-0001-000000000001', 5, 'text',
+'"How strange!" Lily whispered. "I have never seen this gate before." She touched the old wood carefully. The gate was warm, like it had been sitting in the sunshine for hours.', NULL, NULL, NULL),
+('cb000001-0001-0001-0001-000000000006', '55555555-0002-0001-0001-000000000001', 6, 'image',
+NULL, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600', 'A mysterious wooden gate in the garden', NULL),
+('cb000001-0001-0001-0001-000000000007', '55555555-0002-0001-0001-000000000001', 7, 'activity',
+NULL, NULL, NULL, '66666666-0004-0001-0001-000000000002'),
+('cb000001-0001-0001-0001-000000000008', '55555555-0002-0001-0001-000000000001', 8, 'text',
+'Lily pushed the gate gently. To her surprise, it opened with a soft creak. On the other side, she saw the most beautiful garden she had ever seen!', NULL, NULL, NULL),
+('cb000001-0001-0001-0001-000000000009', '55555555-0002-0001-0001-000000000001', 9, 'activity',
+NULL, NULL, NULL, '66666666-0004-0001-0001-000000000003');
+
+-- Content Blocks for Magic Garden - Chapter 2
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000001-0002-0001-0001-000000000001', '55555555-0002-0001-0001-000000000002', 1, 'text',
+'The garden was magical! Flowers of every color grew everywhere - red roses, yellow sunflowers, purple violets, and white daisies. But these were not ordinary flowers.', NULL, NULL, NULL),
+('cb000001-0002-0001-0001-000000000002', '55555555-0002-0001-0001-000000000002', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=600', 'Colorful flowers in the magic garden', NULL),
+('cb000001-0002-0001-0001-000000000003', '55555555-0002-0001-0001-000000000002', 3, 'activity',
+NULL, NULL, NULL, '66666666-0004-0002-0001-000000000001'),
+('cb000001-0002-0001-0001-000000000004', '55555555-0002-0001-0001-000000000002', 4, 'text',
+'"Hello, little girl!" said a red rose in a sweet voice. Lily jumped back in surprise. "Did you... did you just talk?" she asked.', NULL, NULL, NULL),
+('cb000001-0002-0001-0001-000000000005', '55555555-0002-0001-0001-000000000002', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1455659817273-f96807779a8a?w=600', 'A beautiful red rose', NULL),
+('cb000001-0002-0001-0001-000000000006', '55555555-0002-0001-0001-000000000002', 6, 'text',
+'"Of course we can talk!" laughed the rose. "We can also sing!" Then all the flowers started singing a beautiful song together. The sunflowers hummed the melody while the daisies added harmony.', NULL, NULL, NULL),
+('cb000001-0002-0001-0001-000000000007', '55555555-0002-0001-0001-000000000002', 7, 'activity',
+NULL, NULL, NULL, '66666666-0004-0002-0001-000000000002'),
+('cb000001-0002-0001-0001-000000000008', '55555555-0002-0001-0001-000000000002', 8, 'text',
+'Lily listened with wonder. She had never heard anything so beautiful in her whole life. The flowers danced in the gentle breeze as they sang.', NULL, NULL, NULL),
+('cb000001-0002-0001-0001-000000000009', '55555555-0002-0001-0001-000000000002', 9, 'activity',
+NULL, NULL, NULL, '66666666-0004-0002-0001-000000000003');
+
+-- Content Blocks for Magic Garden - Chapter 3
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000001-0003-0001-0001-000000000001', '55555555-0002-0001-0001-000000000003', 1, 'text',
+'After the song ended, Lily noticed something flying toward her. It was the most beautiful butterfly she had ever seen. Its wings were golden and sparkled in the sunlight.', NULL, NULL, NULL),
+('cb000001-0003-0001-0001-000000000002', '55555555-0002-0001-0001-000000000003', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1559715521-1d3a14c23b65?w=600', 'A beautiful golden butterfly', NULL),
+('cb000001-0003-0001-0001-000000000003', '55555555-0002-0001-0001-000000000003', 3, 'activity',
+NULL, NULL, NULL, '66666666-0004-0003-0001-000000000001'),
+('cb000001-0003-0001-0001-000000000004', '55555555-0002-0001-0001-000000000003', 4, 'text',
+'"I am the Wish Butterfly," it said, landing softly on Lily''s finger. "I can grant one wish to anyone who finds the magic garden. What do you wish for?"', NULL, NULL, NULL),
+('cb000001-0003-0001-0001-000000000005', '55555555-0002-0001-0001-000000000003', 5, 'activity',
+NULL, NULL, NULL, '66666666-0004-0003-0001-000000000002'),
+('cb000001-0003-0001-0001-000000000006', '55555555-0002-0001-0001-000000000003', 6, 'text',
+'Lily thought carefully. She could wish for toys, or candy, or anything! But then she smiled. "I wish to come back and visit my new friends whenever I want," she said.', NULL, NULL, NULL),
+('cb000001-0003-0001-0001-000000000007', '55555555-0002-0001-0001-000000000003', 7, 'image',
+NULL, 'https://images.unsplash.com/photo-1518882605630-8992a0919e90?w=600', 'Lily smiling in the garden', NULL),
+('cb000001-0003-0001-0001-000000000008', '55555555-0002-0001-0001-000000000003', 8, 'activity',
+NULL, NULL, NULL, '66666666-0004-0003-0001-000000000003'),
+('cb000001-0003-0001-0001-000000000009', '55555555-0002-0001-0001-000000000003', 9, 'text',
+'The butterfly''s wings glowed brightly. "Your wish is granted!" it said. "The magic garden will always welcome you." And from that day on, Lily visited her flower friends every single day.', NULL, NULL, NULL);
+
+-- =============================================
+-- BOOK 2: Space Adventure (A1 - Elementary)
+-- =============================================
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0002-0001-000000000001', 'Space Adventure', 'space-adventure', 'Join astronaut Max on an exciting journey through the solar system! Visit planets, meet friendly aliens, and discover the wonders of space.', 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400', 'A1', 'Fiction', 'elementary', 25, 1500, 3, 'published', '{"author": "Star Writer", "year": 2024}', NOW());
+
+-- Chapters for Space Adventure
+INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
+('55555555-0002-0002-0001-000000000001', '44444444-0002-0002-0001-000000000001', 'Blast Off!', 1, NULL, 500, 6, '[]', true),
+('55555555-0002-0002-0001-000000000002', '44444444-0002-0002-0001-000000000001', 'The Red Planet', 2, NULL, 500, 6, '[]', true),
+('55555555-0002-0002-0001-000000000003', '44444444-0002-0002-0001-000000000001', 'Home Again', 3, NULL, 500, 6, '[]', true);
+
+-- Inline Activities for Space Adventure
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+-- Chapter 1 activities
+('66666666-0005-0001-0001-000000000001', '55555555-0002-0002-0001-000000000001', 'word_translation', 0,
+'{"word": "rocket", "correctAnswer": "roket", "options": ["roket", "araba", "ucak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000005']),
+('66666666-0005-0001-0001-000000000002', '55555555-0002-0002-0001-000000000001', 'true_false', 0,
+'{"statement": "Max is an astronaut.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0005-0001-0001-000000000003', '55555555-0002-0002-0001-000000000001', 'word_translation', 0,
+'{"word": "space", "correctAnswer": "uzay", "options": ["uzay", "deniz", "orman"]}', 5, ARRAY['11111111-0004-0001-0001-000000000006']),
+-- Chapter 2 activities
+('66666666-0005-0002-0001-000000000001', '55555555-0002-0002-0001-000000000002', 'word_translation', 0,
+'{"word": "planet", "correctAnswer": "gezegen", "options": ["gezegen", "yildiz", "ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000007']),
+('66666666-0005-0002-0001-000000000002', '55555555-0002-0002-0001-000000000002', 'true_false', 0,
+'{"statement": "Mars is called the Red Planet.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0005-0002-0001-000000000003', '55555555-0002-0002-0001-000000000002', 'find_words', 0,
+'{"instruction": "What did Max see on Mars?", "options": ["Mountains", "Rivers", "Red rocks", "Aliens"], "correctAnswers": ["Mountains", "Red rocks"]}', 5, ARRAY[]::TEXT[]),
+-- Chapter 3 activities
+('66666666-0005-0003-0001-000000000001', '55555555-0002-0002-0001-000000000003', 'word_translation', 0,
+'{"word": "Earth", "correctAnswer": "Dunya", "options": ["Dunya", "Mars", "Ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000008']),
+('66666666-0005-0003-0001-000000000002', '55555555-0002-0002-0001-000000000003', 'true_false', 0,
+'{"statement": "Max wanted to go on another adventure.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0005-0003-0001-000000000003', '55555555-0002-0002-0001-000000000003', 'word_translation', 0,
+'{"word": "star", "correctAnswer": "yildiz", "options": ["yildiz", "bulut", "gunes"]}', 5, ARRAY['11111111-0004-0001-0001-000000000009']);
+
+-- Content Blocks for Space Adventure - Chapter 1
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000002-0001-0001-0001-000000000001', '55555555-0002-0002-0001-000000000001', 1, 'text',
+'Max was the youngest astronaut in the world. He was only ten years old! Today was a very special day - his first mission to space.', NULL, NULL, NULL),
+('cb000002-0001-0001-0001-000000000002', '55555555-0002-0002-0001-000000000001', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1457364887197-9150188c107b?w=600', 'A young astronaut in a space suit', NULL),
+('cb000002-0001-0001-0001-000000000003', '55555555-0002-0002-0001-000000000001', 3, 'activity',
+NULL, NULL, NULL, '66666666-0005-0001-0001-000000000001'),
+('cb000002-0001-0001-0001-000000000004', '55555555-0002-0002-0001-000000000001', 4, 'text',
+'"Are you ready, Max?" asked Captain Luna. "Yes!" Max shouted excitedly. He put on his space helmet and climbed into the shiny silver rocket.', NULL, NULL, NULL),
+('cb000002-0001-0001-0001-000000000005', '55555555-0002-0002-0001-000000000001', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1516849841032-87cbac4d88f7?w=600', 'A rocket ready for launch', NULL),
+('cb000002-0001-0001-0001-000000000006', '55555555-0002-0002-0001-000000000001', 6, 'activity',
+NULL, NULL, NULL, '66666666-0005-0001-0001-000000000002'),
+('cb000002-0001-0001-0001-000000000007', '55555555-0002-0002-0001-000000000001', 7, 'text',
+'"10... 9... 8... 7... 6... 5... 4... 3... 2... 1... BLAST OFF!" The rocket shot up into the sky like a giant firework. Max felt himself being pushed back into his seat.', NULL, NULL, NULL),
+('cb000002-0001-0001-0001-000000000008', '55555555-0002-0002-0001-000000000001', 8, 'image',
+NULL, 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600', 'Rocket blasting off into space', NULL),
+('cb000002-0001-0001-0001-000000000009', '55555555-0002-0002-0001-000000000001', 9, 'activity',
+NULL, NULL, NULL, '66666666-0005-0001-0001-000000000003'),
+('cb000002-0001-0001-0001-000000000010', '55555555-0002-0002-0001-000000000001', 10, 'text',
+'Soon, the sky turned from blue to black. Max looked out the window and saw millions of twinkling stars. "Wow!" he whispered. "Space is so beautiful!"', NULL, NULL, NULL);
+
+-- Content Blocks for Space Adventure - Chapter 2
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000002-0002-0001-0001-000000000001', '55555555-0002-0002-0001-000000000002', 1, 'text',
+'After flying for three days, Max finally saw it - Mars, the Red Planet! It looked like a giant orange ball floating in space.', NULL, NULL, NULL),
+('cb000002-0002-0001-0001-000000000002', '55555555-0002-0002-0001-000000000002', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=600', 'The planet Mars', NULL),
+('cb000002-0002-0001-0001-000000000003', '55555555-0002-0002-0001-000000000002', 3, 'activity',
+NULL, NULL, NULL, '66666666-0005-0002-0001-000000000001'),
+('cb000002-0002-0001-0001-000000000004', '55555555-0002-0002-0001-000000000002', 4, 'text',
+'The rocket landed gently on the red surface. Max put on his special boots and stepped outside. The ground was covered in red rocks and red dust.', NULL, NULL, NULL),
+('cb000002-0002-0001-0001-000000000005', '55555555-0002-0002-0001-000000000002', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1545156521-77bd85671d30?w=600', 'Red rocky surface of Mars', NULL),
+('cb000002-0002-0001-0001-000000000006', '55555555-0002-0002-0001-000000000002', 6, 'activity',
+NULL, NULL, NULL, '66666666-0005-0002-0001-000000000002'),
+('cb000002-0002-0001-0001-000000000007', '55555555-0002-0002-0001-000000000002', 7, 'text',
+'"Look at those mountains!" Max pointed at the huge red mountains in the distance. They were much bigger than any mountains on Earth. Mars was amazing!', NULL, NULL, NULL),
+('cb000002-0002-0001-0001-000000000008', '55555555-0002-0002-0001-000000000002', 8, 'activity',
+NULL, NULL, NULL, '66666666-0005-0002-0001-000000000003'),
+('cb000002-0002-0001-0001-000000000009', '55555555-0002-0002-0001-000000000002', 9, 'text',
+'Max collected some rocks to bring back home. Scientists would study them to learn more about Mars. He felt like the luckiest boy in the universe!', NULL, NULL, NULL);
+
+-- Content Blocks for Space Adventure - Chapter 3
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000002-0003-0001-0001-000000000001', '55555555-0002-0002-0001-000000000003', 1, 'text',
+'It was time to go home. Max waved goodbye to Mars and climbed back into the rocket. "Earth, here we come!" said Captain Luna.', NULL, NULL, NULL),
+('cb000002-0003-0001-0001-000000000002', '55555555-0002-0002-0001-000000000003', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600', 'Earth from space', NULL),
+('cb000002-0003-0001-0001-000000000003', '55555555-0002-0002-0001-000000000003', 3, 'activity',
+NULL, NULL, NULL, '66666666-0005-0003-0001-000000000001'),
+('cb000002-0003-0001-0001-000000000004', '55555555-0002-0002-0001-000000000003', 4, 'text',
+'Three days later, Max saw the most beautiful sight - Earth! It was blue and green and white. It looked like a precious marble floating in the darkness.', NULL, NULL, NULL),
+('cb000002-0003-0001-0001-000000000005', '55555555-0002-0002-0001-000000000003', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=600', 'Beautiful view of Earth', NULL),
+('cb000002-0003-0001-0001-000000000006', '55555555-0002-0002-0001-000000000003', 6, 'text',
+'The rocket landed safely. Max''s family was waiting for him. "Welcome home, Space Explorer!" they cheered. Max hugged everyone tight.', NULL, NULL, NULL),
+('cb000002-0003-0001-0001-000000000007', '55555555-0002-0002-0001-000000000003', 7, 'activity',
+NULL, NULL, NULL, '66666666-0005-0003-0001-000000000002'),
+('cb000002-0003-0001-0001-000000000008', '55555555-0002-0002-0001-000000000003', 8, 'text',
+'That night, Max looked up at the stars. "One day," he said, "I will visit every planet in the solar system!" And he knew that his space adventures were just beginning.', NULL, NULL, NULL),
+('cb000002-0003-0001-0001-000000000009', '55555555-0002-0002-0001-000000000003', 9, 'image',
+NULL, 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=600', 'Beautiful night sky with stars', NULL),
+('cb000002-0003-0001-0001-000000000010', '55555555-0002-0002-0001-000000000003', 10, 'activity',
+NULL, NULL, NULL, '66666666-0005-0003-0001-000000000003');
+
+-- =============================================
+-- BOOK 3: The Brave Little Robot (A2 - Elementary)
+-- =============================================
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0003-0001-000000000001', 'The Brave Little Robot', 'the-brave-little-robot', 'Beep is a small robot who dreams of doing big things. When the city needs help, can this little robot save the day?', 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400', 'A2', 'Fiction', 'elementary', 30, 1800, 3, 'published', '{"author": "Tech Tales", "year": 2024}', NOW());
+
+-- Chapters for Brave Little Robot
+INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
+('55555555-0002-0003-0001-000000000001', '44444444-0002-0003-0001-000000000001', 'The Robot Factory', 1, NULL, 600, 8, '[]', true),
+('55555555-0002-0003-0001-000000000002', '44444444-0002-0003-0001-000000000001', 'The Big Problem', 2, NULL, 600, 8, '[]', true),
+('55555555-0002-0003-0001-000000000003', '44444444-0002-0003-0001-000000000001', 'A Hero is Born', 3, NULL, 600, 8, '[]', true);
+
+-- Inline Activities for Brave Little Robot
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+-- Chapter 1 activities
+('66666666-0006-0001-0001-000000000001', '55555555-0002-0003-0001-000000000001', 'word_translation', 0,
+'{"word": "robot", "correctAnswer": "robot", "options": ["robot", "insan", "hayvan"]}', 5, ARRAY['11111111-0004-0001-0001-000000000010']),
+('66666666-0006-0001-0001-000000000002', '55555555-0002-0003-0001-000000000001', 'true_false', 0,
+'{"statement": "Beep was the smallest robot in the factory.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0006-0001-0001-000000000003', '55555555-0002-0003-0001-000000000001', 'word_translation', 0,
+'{"word": "factory", "correctAnswer": "fabrika", "options": ["fabrika", "okul", "hastane"]}', 5, ARRAY['11111111-0004-0001-0001-000000000011']),
+-- Chapter 2 activities
+('66666666-0006-0002-0001-000000000001', '55555555-0002-0003-0001-000000000002', 'word_translation', 0,
+'{"word": "problem", "correctAnswer": "sorun", "options": ["sorun", "cozum", "oyun"]}', 5, ARRAY['11111111-0004-0001-0001-000000000012']),
+('66666666-0006-0002-0001-000000000002', '55555555-0002-0003-0001-000000000002', 'true_false', 0,
+'{"statement": "The power station was broken.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0006-0002-0001-000000000003', '55555555-0002-0003-0001-000000000002', 'find_words', 0,
+'{"instruction": "Why couldn''t the big robots help?", "options": ["Too big", "Too tired", "Scared", "Broken"], "correctAnswers": ["Too big"]}', 5, ARRAY[]::TEXT[]),
+-- Chapter 3 activities
+('66666666-0006-0003-0001-000000000001', '55555555-0002-0003-0001-000000000003', 'word_translation', 0,
+'{"word": "hero", "correctAnswer": "kahraman", "options": ["kahraman", "kotu", "korkak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000013']),
+('66666666-0006-0003-0001-000000000002', '55555555-0002-0003-0001-000000000003', 'true_false', 0,
+'{"statement": "The city celebrated Beep as a hero.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0006-0003-0001-000000000003', '55555555-0002-0003-0001-000000000003', 'word_translation', 0,
+'{"word": "brave", "correctAnswer": "cesur", "options": ["cesur", "korkak", "yalniz"]}', 5, ARRAY['11111111-0004-0001-0001-000000000014']);
+
+-- Content Blocks for Brave Little Robot - Chapter 1
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000003-0001-0001-0001-000000000001', '55555555-0002-0003-0001-000000000001', 1, 'text',
+'In the middle of Robot City, there was a big factory where robots were made. The factory was busy all day and all night, building robots of all shapes and sizes.', NULL, NULL, NULL),
+('cb000003-0001-0001-0001-000000000002', '55555555-0002-0003-0001-000000000001', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1565098772267-60af42b81ef2?w=600', 'A futuristic robot factory', NULL),
+('cb000003-0001-0001-0001-000000000003', '55555555-0002-0003-0001-000000000001', 3, 'activity',
+NULL, NULL, NULL, '66666666-0006-0001-0001-000000000001'),
+('cb000003-0001-0001-0001-000000000004', '55555555-0002-0003-0001-000000000001', 4, 'text',
+'One day, a very special robot was created. His name was Beep, and he was the smallest robot in the whole factory. He was only as tall as a water bottle!', NULL, NULL, NULL),
+('cb000003-0001-0001-0001-000000000005', '55555555-0002-0003-0001-000000000001', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1546776310-eef45dd6d63c?w=600', 'A cute small robot', NULL),
+('cb000003-0001-0001-0001-000000000006', '55555555-0002-0003-0001-000000000001', 6, 'activity',
+NULL, NULL, NULL, '66666666-0006-0001-0001-000000000002'),
+('cb000003-0001-0001-0001-000000000007', '55555555-0002-0003-0001-000000000001', 7, 'text',
+'"You are too small," said the big robots. "What can you do?" Beep felt sad. He wanted to help, but nobody gave him a chance.', NULL, NULL, NULL),
+('cb000003-0001-0001-0001-000000000008', '55555555-0002-0003-0001-000000000001', 8, 'activity',
+NULL, NULL, NULL, '66666666-0006-0001-0001-000000000003'),
+('cb000003-0001-0001-0001-000000000009', '55555555-0002-0003-0001-000000000001', 9, 'text',
+'But Beep never gave up. He practiced and practiced. He learned to climb, to jump, and to squeeze through tiny spaces. "One day," he thought, "I will show everyone what I can do!"', NULL, NULL, NULL);
+
+-- Content Blocks for Brave Little Robot - Chapter 2
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000003-0002-0001-0001-000000000001', '55555555-0002-0003-0001-000000000002', 1, 'text',
+'One dark night, something terrible happened. The city''s power station broke down! All the lights went out. All the machines stopped working. Robot City was in trouble!', NULL, NULL, NULL),
+('cb000003-0002-0001-0001-000000000002', '55555555-0002-0003-0001-000000000002', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1579547621113-e4bb2a19bdd6?w=600', 'A city in darkness', NULL),
+('cb000003-0002-0001-0001-000000000003', '55555555-0002-0003-0001-000000000002', 3, 'activity',
+NULL, NULL, NULL, '66666666-0006-0002-0001-000000000001'),
+('cb000003-0002-0001-0001-000000000004', '55555555-0002-0003-0001-000000000002', 4, 'text',
+'"We need to fix the power station!" shouted the Mayor. But there was a big problem. The broken part was deep inside a tiny tunnel. None of the big robots could fit inside!', NULL, NULL, NULL),
+('cb000003-0002-0001-0001-000000000005', '55555555-0002-0003-0001-000000000002', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600', 'A narrow tunnel entrance', NULL),
+('cb000003-0002-0001-0001-000000000006', '55555555-0002-0003-0001-000000000002', 6, 'activity',
+NULL, NULL, NULL, '66666666-0006-0002-0001-000000000002'),
+('cb000003-0002-0001-0001-000000000007', '55555555-0002-0003-0001-000000000002', 7, 'text',
+'"I can help!" said a small voice. Everyone turned around. It was Beep! The big robots laughed. "You? You are too small!"', NULL, NULL, NULL),
+('cb000003-0002-0001-0001-000000000008', '55555555-0002-0003-0001-000000000002', 8, 'activity',
+NULL, NULL, NULL, '66666666-0006-0002-0001-000000000003'),
+('cb000003-0002-0001-0001-000000000009', '55555555-0002-0003-0001-000000000002', 9, 'text',
+'But the Mayor said, "Wait. Being small might be exactly what we need!" She gave Beep the repair tools and said, "We believe in you, Beep. Go save our city!"', NULL, NULL, NULL);
+
+-- Content Blocks for Brave Little Robot - Chapter 3
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000003-0003-0001-0001-000000000001', '55555555-0002-0003-0001-000000000003', 1, 'text',
+'Beep squeezed into the tiny tunnel. It was dark and scary, but Beep kept going. He crawled through pipes and climbed over wires until he found the broken part.', NULL, NULL, NULL),
+('cb000003-0003-0001-0001-000000000002', '55555555-0002-0003-0001-000000000003', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600', 'Inside machinery with wires', NULL),
+('cb000003-0003-0001-0001-000000000003', '55555555-0002-0003-0001-000000000003', 3, 'activity',
+NULL, NULL, NULL, '66666666-0006-0003-0001-000000000001'),
+('cb000003-0003-0001-0001-000000000004', '55555555-0002-0003-0001-000000000003', 4, 'text',
+'Beep worked quickly. He connected the wires, tightened the bolts, and pressed the restart button. Suddenly, the lights came back on all over the city! Beep had done it!', NULL, NULL, NULL),
+('cb000003-0003-0001-0001-000000000005', '55555555-0002-0003-0001-000000000003', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600', 'A city with lights on at night', NULL),
+('cb000003-0003-0001-0001-000000000006', '55555555-0002-0003-0001-000000000003', 6, 'activity',
+NULL, NULL, NULL, '66666666-0006-0003-0001-000000000002'),
+('cb000003-0003-0001-0001-000000000007', '55555555-0002-0003-0001-000000000003', 7, 'text',
+'When Beep came out of the tunnel, everyone was cheering! "Beep! Beep! Beep!" they shouted. The Mayor gave Beep a golden medal. "You are a hero!" she said.', NULL, NULL, NULL),
+('cb000003-0003-0001-0001-000000000008', '55555555-0002-0003-0001-000000000003', 8, 'image',
+NULL, 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=600', 'A celebration with colorful lights', NULL),
+('cb000003-0003-0001-0001-000000000009', '55555555-0002-0003-0001-000000000003', 9, 'activity',
+NULL, NULL, NULL, '66666666-0006-0003-0001-000000000003'),
+('cb000003-0003-0001-0001-000000000010', '55555555-0002-0003-0001-000000000003', 10, 'text',
+'From that day on, nobody laughed at Beep anymore. They learned an important lesson: it does not matter how big or small you are. What matters is how brave and kind you are inside!', NULL, NULL, NULL);
+
+-- =============================================
+-- BOOK 4: Ocean Explorers (A1 - Elementary)
+-- =============================================
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0004-0001-000000000001', 'Ocean Explorers', 'ocean-explorers', 'Dive deep into the ocean with Maya and her dolphin friend Splash! Discover colorful coral reefs, mysterious caves, and amazing sea creatures.', 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=400', 'A1', 'Fiction', 'elementary', 25, 1400, 3, 'published', '{"author": "Sea Stories", "year": 2024}', NOW());
+
+-- Chapters for Ocean Explorers
+INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
+('55555555-0002-0004-0001-000000000001', '44444444-0002-0004-0001-000000000001', 'Meeting Splash', 1, NULL, 450, 6, '[]', true),
+('55555555-0002-0004-0001-000000000002', '44444444-0002-0004-0001-000000000001', 'The Coral Kingdom', 2, NULL, 450, 6, '[]', true),
+('55555555-0002-0004-0001-000000000003', '44444444-0002-0004-0001-000000000001', 'The Lost Treasure', 3, NULL, 500, 7, '[]', true);
+
+-- Inline Activities for Ocean Explorers
+INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
+-- Chapter 1 activities
+('66666666-0007-0001-0001-000000000001', '55555555-0002-0004-0001-000000000001', 'word_translation', 0,
+'{"word": "ocean", "correctAnswer": "okyanus", "options": ["okyanus", "gol", "nehir"]}', 5, ARRAY['11111111-0004-0001-0001-000000000015']),
+('66666666-0007-0001-0001-000000000002', '55555555-0002-0004-0001-000000000001', 'true_false', 0,
+'{"statement": "Maya lived near the ocean.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0007-0001-0001-000000000003', '55555555-0002-0004-0001-000000000001', 'word_translation', 0,
+'{"word": "dolphin", "correctAnswer": "yunus", "options": ["yunus", "kopekbaligi", "balina"]}', 5, ARRAY['11111111-0002-0001-0001-000000000004']),
+-- Chapter 2 activities
+('66666666-0007-0002-0001-000000000001', '55555555-0002-0004-0001-000000000002', 'word_translation', 0,
+'{"word": "coral", "correctAnswer": "mercan", "options": ["mercan", "tas", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000016']),
+('66666666-0007-0002-0001-000000000002', '55555555-0002-0004-0001-000000000002', 'find_words', 0,
+'{"instruction": "Which sea creatures did Maya see?", "options": ["Fish", "Turtle", "Octopus", "Bird"], "correctAnswers": ["Fish", "Turtle", "Octopus"]}', 5, ARRAY[]::TEXT[]),
+('66666666-0007-0002-0001-000000000003', '55555555-0002-0004-0001-000000000002', 'true_false', 0,
+'{"statement": "The coral reef was very colorful.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+-- Chapter 3 activities
+('66666666-0007-0003-0001-000000000001', '55555555-0002-0004-0001-000000000003', 'word_translation', 0,
+'{"word": "treasure", "correctAnswer": "hazine", "options": ["hazine", "canta", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000017']),
+('66666666-0007-0003-0001-000000000002', '55555555-0002-0004-0001-000000000003', 'true_false', 0,
+'{"statement": "Maya found an old treasure chest.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+('66666666-0007-0003-0001-000000000003', '55555555-0002-0004-0001-000000000003', 'word_translation', 0,
+'{"word": "friend", "correctAnswer": "arkadas", "options": ["arkadas", "dusman", "yabanc"]}', 5, ARRAY['11111111-0001-0001-0001-000000000007']);
+
+-- Content Blocks for Ocean Explorers - Chapter 1
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000004-0001-0001-0001-000000000001', '55555555-0002-0004-0001-000000000001', 1, 'text',
+'Maya loved the ocean more than anything in the world. She lived in a small house by the beach and spent every day playing in the waves.', NULL, NULL, NULL),
+('cb000004-0001-0001-0001-000000000002', '55555555-0002-0004-0001-000000000001', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600', 'A beautiful beach with blue ocean', NULL),
+('cb000004-0001-0001-0001-000000000003', '55555555-0002-0004-0001-000000000001', 3, 'activity',
+NULL, NULL, NULL, '66666666-0007-0001-0001-000000000001'),
+('cb000004-0001-0001-0001-000000000004', '55555555-0002-0004-0001-000000000001', 4, 'text',
+'One sunny morning, Maya saw something splashing in the water. She swam closer and could not believe her eyes - it was a baby dolphin!', NULL, NULL, NULL),
+('cb000004-0001-0001-0001-000000000005', '55555555-0002-0004-0001-000000000001', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1570481662006-a3a1374699e8?w=600', 'A friendly dolphin swimming', NULL),
+('cb000004-0001-0001-0001-000000000006', '55555555-0002-0004-0001-000000000001', 6, 'activity',
+NULL, NULL, NULL, '66666666-0007-0001-0001-000000000002'),
+('cb000004-0001-0001-0001-000000000007', '55555555-0002-0004-0001-000000000001', 7, 'text',
+'The dolphin clicked and whistled happily. "Hello, little one!" said Maya. "I will call you Splash!" The dolphin seemed to like the name.', NULL, NULL, NULL),
+('cb000004-0001-0001-0001-000000000008', '55555555-0002-0004-0001-000000000001', 8, 'activity',
+NULL, NULL, NULL, '66666666-0007-0001-0001-000000000003'),
+('cb000004-0001-0001-0001-000000000009', '55555555-0002-0004-0001-000000000001', 9, 'text',
+'From that day on, Maya and Splash became best friends. They swam together every day, and Splash showed Maya all the secret places in the ocean.', NULL, NULL, NULL);
+
+-- Content Blocks for Ocean Explorers - Chapter 2
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000004-0002-0001-0001-000000000001', '55555555-0002-0004-0001-000000000002', 1, 'text',
+'"Follow me!" clicked Splash one day. Maya put on her goggles and dove under the water. Splash led her to the most amazing place she had ever seen.', NULL, NULL, NULL),
+('cb000004-0002-0001-0001-000000000002', '55555555-0002-0004-0001-000000000002', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=600', 'A beautiful underwater coral reef', NULL),
+('cb000004-0002-0001-0001-000000000003', '55555555-0002-0004-0001-000000000002', 3, 'activity',
+NULL, NULL, NULL, '66666666-0007-0002-0001-000000000001'),
+('cb000004-0002-0001-0001-000000000004', '55555555-0002-0004-0001-000000000002', 4, 'text',
+'It was a coral reef! There were corals of every color - pink, purple, orange, and blue. Beautiful fish swam all around them.', NULL, NULL, NULL),
+('cb000004-0002-0001-0001-000000000005', '55555555-0002-0004-0001-000000000002', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600', 'Colorful tropical fish', NULL),
+('cb000004-0002-0001-0001-000000000006', '55555555-0002-0004-0001-000000000002', 6, 'activity',
+NULL, NULL, NULL, '66666666-0007-0002-0001-000000000002'),
+('cb000004-0002-0001-0001-000000000007', '55555555-0002-0004-0001-000000000002', 7, 'text',
+'Maya saw a green turtle swimming slowly by. An octopus waved at her with all eight arms. A school of tiny silver fish sparkled like glitter.', NULL, NULL, NULL),
+('cb000004-0002-0001-0001-000000000008', '55555555-0002-0004-0001-000000000002', 8, 'image',
+NULL, 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=600', 'A sea turtle swimming', NULL),
+('cb000004-0002-0001-0001-000000000009', '55555555-0002-0004-0001-000000000002', 9, 'activity',
+NULL, NULL, NULL, '66666666-0007-0002-0001-000000000003');
+
+-- Content Blocks for Ocean Explorers - Chapter 3
+INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
+('cb000004-0003-0001-0001-000000000001', '55555555-0002-0004-0001-000000000003', 1, 'text',
+'Behind the coral reef, there was a dark cave. Splash clicked excitedly and swam inside. Maya followed her friend into the mysterious cave.', NULL, NULL, NULL),
+('cb000004-0003-0001-0001-000000000002', '55555555-0002-0004-0001-000000000003', 2, 'image',
+NULL, 'https://images.unsplash.com/photo-1544552866-d3ed42536cfd?w=600', 'An underwater cave', NULL),
+('cb000004-0003-0001-0001-000000000003', '55555555-0002-0004-0001-000000000003', 3, 'activity',
+NULL, NULL, NULL, '66666666-0007-0003-0001-000000000001'),
+('cb000004-0003-0001-0001-000000000004', '55555555-0002-0004-0001-000000000003', 4, 'text',
+'Inside the cave, Maya saw something shining on the sandy floor. It was an old treasure chest covered in seashells and seaweed!', NULL, NULL, NULL),
+('cb000004-0003-0001-0001-000000000005', '55555555-0002-0004-0001-000000000003', 5, 'image',
+NULL, 'https://images.unsplash.com/photo-1516117172878-fd2c41f4a759?w=600', 'An old treasure chest', NULL),
+('cb000004-0003-0001-0001-000000000006', '55555555-0002-0004-0001-000000000003', 6, 'activity',
+NULL, NULL, NULL, '66666666-0007-0003-0001-000000000002'),
+('cb000004-0003-0001-0001-000000000007', '55555555-0002-0004-0001-000000000003', 7, 'text',
+'Maya opened the chest carefully. Inside, there were no gold coins or jewels. Instead, there was something even better - a beautiful pearl necklace and an old map!', NULL, NULL, NULL),
+('cb000004-0003-0001-0001-000000000008', '55555555-0002-0004-0001-000000000003', 8, 'image',
+NULL, 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=600', 'A beautiful pearl', NULL),
+('cb000004-0003-0001-0001-000000000009', '55555555-0002-0004-0001-000000000003', 9, 'activity',
+NULL, NULL, NULL, '66666666-0007-0003-0001-000000000003'),
+('cb000004-0003-0001-0001-000000000010', '55555555-0002-0004-0001-000000000003', 10, 'text',
+'"More adventures await us, Splash!" Maya said happily. She hugged her dolphin friend. Together, they would explore every corner of the ocean!', NULL, NULL, NULL);
+
+-- =============================================
+-- READING PROGRESS (for new content block books)
+-- =============================================
+
+-- ACTIVE USER: Reading "The Magic Garden", completed chapter 1
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '44444444-0002-0001-0001-000000000001',
+'55555555-0002-0001-0001-000000000002', 1, false, 33.33, 600,
+ARRAY['55555555-0002-0001-0001-000000000001']::UUID[], NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day');
+
+-- ADVANCED USER: Completed "The Magic Garden"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, completed_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000003', '44444444-0002-0001-0001-000000000001',
+'55555555-0002-0001-0001-000000000003', 1, true, 100.0, 1200,
+ARRAY['55555555-0002-0001-0001-000000000001', '55555555-0002-0001-0001-000000000002', '55555555-0002-0001-0001-000000000003']::UUID[],
+NOW() - INTERVAL '7 days', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days');
+
+-- ADVANCED USER: Reading "Space Adventure"
+INSERT INTO reading_progress (id, user_id, book_id, chapter_id, current_page, is_completed, completion_percentage, total_reading_time, completed_chapter_ids, started_at, updated_at) VALUES
+('99999999-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000003', '44444444-0002-0002-0001-000000000001',
+'55555555-0002-0002-0001-000000000002', 1, false, 33.33, 900,
+ARRAY['55555555-0002-0002-0001-000000000001']::UUID[], NOW() - INTERVAL '3 days', NOW());
+
+-- =============================================
+-- ASSIGNMENTS (Teacher assignments for new books)
 -- =============================================
 INSERT INTO assignments (id, teacher_id, class_id, type, title, description, content_config, start_date, due_date, created_at) VALUES
--- Active assignment: Read Little Prince chapters 1-2
-('cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'Read The Little Prince - Chapters 1-2', 'Read and complete all activities for chapters 1 and 2 of The Little Prince.', '{"bookId": "22222222-0001-0001-0001-000000000001", "chapterIds": ["44444444-0001-0001-0001-000000000001", "44444444-0001-0001-0001-000000000002"]}', NOW() - INTERVAL '3 days', NOW() + INTERVAL '4 days', NOW() - INTERVAL '3 days'),
+-- Active assignment: Read Magic Garden
+('cccccccc-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'Read The Magic Garden', 'Read and complete all activities for The Magic Garden.', '{"bookId": "44444444-0002-0001-0001-000000000001", "chapterIds": ["55555555-0002-0001-0001-000000000001", "55555555-0002-0001-0001-000000000002", "55555555-0002-0001-0001-000000000003"]}', NOW() - INTERVAL '3 days', NOW() + INTERVAL '4 days', NOW() - INTERVAL '3 days'),
 
 -- Upcoming assignment: Vocabulary practice
 ('cccccccc-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'vocabulary', 'A1 Vocabulary Practice', 'Master the first 10 A1 level vocabulary words.', '{"wordListId": null}', NOW() + INTERVAL '2 days', NOW() + INTERVAL '9 days', NOW()),
 
 -- Overdue assignment
-('cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'Animal Farm - Chapter 1', 'Complete the first chapter of Animal Farm.', '{"bookId": "22222222-0001-0001-0001-000000000002", "chapterIds": ["44444444-0002-0001-0001-000000000001"]}', NOW() - INTERVAL '14 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '14 days');
+('cccccccc-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000004', '77777777-0001-0001-0001-000000000001', 'book', 'The Magic Garden - Chapter 1', 'Complete the first chapter of The Magic Garden.', '{"bookId": "44444444-0002-0001-0001-000000000001", "chapterIds": ["55555555-0002-0001-0001-000000000001"]}', NOW() - INTERVAL '14 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '14 days');
 
 -- =============================================
 -- ASSIGNMENT STUDENTS (Student progress on assignments)

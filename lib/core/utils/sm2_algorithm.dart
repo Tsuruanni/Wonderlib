@@ -133,6 +133,18 @@ extension SM2ResponseExtension on SM2Response {
         return '🚀';
     }
   }
+
+  /// Convert SM2Response to quality score (0-5) for VocabularyProgress.calculateNextReview
+  int toQuality() {
+    switch (this) {
+      case SM2Response.dontKnow:
+        return 1; // Failed
+      case SM2Response.gotIt:
+        return 4; // Correct with some difficulty
+      case SM2Response.veryEasy:
+        return 5; // Perfect recall
+    }
+  }
 }
 
 /// Result of SM-2 calculation
