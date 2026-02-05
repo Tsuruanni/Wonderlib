@@ -10,6 +10,8 @@ import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
@@ -573,3 +575,51 @@ final wordListProgressProvider = Provider.family<UserWordListProgress?, String>(
   final progressMap = ref.watch(wordListProgressControllerProvider);
   return progressMap[listId];
 });
+
+/// Words learned today count (for daily task)
+final wordsLearnedTodayProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return 0;
+
+  final useCase = ref.watch(getWordsLearnedTodayUseCaseProvider);
+  final result = await useCase(GetWordsLearnedTodayParams(userId: userId));
+  return result.fold(
+    (failure) => 0,
+    (count) => count,
+  );
+});
+
+// ============================================
+// VOCABULARY ACTIONS
+// ============================================
+
+/// Result type for vocabulary actions
+class VocabularyActionResult {
+  const VocabularyActionResult({required this.success, this.errorMessage});
+  final bool success;
+  final String? errorMessage;
+}
+
+/// Add a word to user's vocabulary
+Future<VocabularyActionResult> addWordToVocabulary(WidgetRef ref, String wordId) async {
+  final userId = ref.read(currentUserIdProvider);
+  if (userId == null) {
+    return const VocabularyActionResult(
+      success: false,
+      errorMessage: 'User not logged in',
+    );
+  }
+
+  final useCase = ref.read(addWordToVocabularyUseCaseProvider);
+  final result = await useCase(
+    AddWordToVocabularyParams(userId: userId, wordId: wordId),
+  );
+
+  return result.fold(
+    (failure) => VocabularyActionResult(
+      success: false,
+      errorMessage: failure.message,
+    ),
+    (_) => const VocabularyActionResult(success: true),
+  );
+}

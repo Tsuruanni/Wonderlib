@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/chapter.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
+import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
+import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 /// Reader theme options
 enum ReaderTheme {
@@ -313,3 +316,72 @@ final currentChapterIdProvider = StateProvider<String?>((ref) => null);
 /// Whether the current chapter has finished initial loading (activities loaded from DB)
 /// Used to prevent auto-play before we know if user has existing progress
 final chapterInitializedProvider = StateProvider<bool>((ref) => false);
+
+// ============================================
+// INLINE ACTIVITY COMPLETION HANDLER
+// ============================================
+
+/// Handles inline activity completion - saves to DB, awards XP, adds words to vocabulary
+Future<void> handleInlineActivityCompletion(
+  WidgetRef ref, {
+  required String activityId,
+  required bool isCorrect,
+  required int xpEarned,
+  required List<String> wordsLearned,
+  void Function(bool isCorrect, int xpEarned)? onComplete,
+}) async {
+  // Check if already completed locally
+  final completedActivities = ref.read(inlineActivityStateProvider);
+  if (completedActivities.containsKey(activityId)) {
+    return;
+  }
+
+  // Mark as completed locally
+  ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);
+
+  final userId = ref.read(currentUserIdProvider);
+  if (userId == null) return;
+
+  // Save to database
+  final useCase = ref.read(saveInlineActivityResultUseCaseProvider);
+  final result = await useCase(
+    SaveInlineActivityResultParams(
+      userId: userId,
+      activityId: activityId,
+      isCorrect: isCorrect,
+      xpEarned: xpEarned,
+    ),
+  );
+
+  final isNewCompletion = result.fold(
+    (failure) => false,
+    (isNew) => isNew,
+  );
+
+  // Award XP for new completions
+  if (isNewCompletion && xpEarned > 0) {
+    ref.read(sessionXPProvider.notifier).addXP(xpEarned);
+    await ref.read(userControllerProvider.notifier).addXP(xpEarned);
+  } else if (isNewCompletion) {
+    // Update streak even without XP (wrong answer still counts as daily activity)
+    await ref.read(userControllerProvider.notifier).updateStreak();
+  }
+
+  // Add words to vocabulary
+  if (wordsLearned.isNotEmpty) {
+    ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
+
+    final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
+    for (final wordId in wordsLearned) {
+      await addWordUseCase(
+        AddWordToVocabularyParams(
+          userId: userId,
+          wordId: wordId,
+        ),
+      );
+    }
+  }
+
+  // Notify caller
+  onComplete?.call(isCorrect, xpEarned);
+}

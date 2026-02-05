@@ -33,7 +33,10 @@ import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
+import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
+import '../../domain/usecases/reading/get_words_read_today_usecase.dart';
+import '../../domain/usecases/activity/get_correct_answers_today_usecase.dart';
 import '../../domain/usecases/reading/get_user_reading_history_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
@@ -69,6 +72,7 @@ import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.da
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
@@ -196,9 +200,21 @@ final updateReadingProgressUseCaseProvider = Provider((ref) {
   return UpdateReadingProgressUseCase(ref.watch(bookRepositoryProvider));
 });
 
+final checkReadTodayUseCaseProvider = Provider((ref) {
+  return CheckReadTodayUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final getWordsReadTodayUseCaseProvider = Provider((ref) {
+  return GetWordsReadTodayUseCase(ref.watch(bookRepositoryProvider));
+});
+
 // ============================================
 // ACTIVITY USE CASES
 // ============================================
+
+final getCorrectAnswersTodayUseCaseProvider = Provider((ref) {
+  return GetCorrectAnswersTodayUseCase(ref.watch(bookRepositoryProvider));
+});
 
 final getActivitiesByChapterUseCaseProvider = Provider((ref) {
   return GetActivitiesByChapterUseCase(ref.watch(activityRepositoryProvider));
@@ -298,6 +314,10 @@ final completeDailyReviewUseCaseProvider = Provider((ref) {
 
 final addWordsBatchUseCaseProvider = Provider((ref) {
   return AddWordsBatchToVocabularyUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final getWordsLearnedTodayUseCaseProvider = Provider((ref) {
+  return GetWordsLearnedTodayUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 // ============================================

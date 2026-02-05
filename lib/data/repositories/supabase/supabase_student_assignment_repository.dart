@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/repositories/student_assignment_repository.dart';
 import '../../models/assignment/student_assignment_model.dart';
 

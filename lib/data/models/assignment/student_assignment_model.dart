@@ -1,4 +1,4 @@
-import '../../../domain/repositories/student_assignment_repository.dart';
+import '../../../domain/entities/student_assignment.dart';
 
 /// Model for StudentAssignment - handles JSON serialization
 class StudentAssignmentModel {

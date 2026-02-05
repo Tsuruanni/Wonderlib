@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../../app/theme.dart';
 import '../../providers/reader_provider.dart';
 
 /// Wrapper widget for inline activities
@@ -20,51 +23,77 @@ class ActivityWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Determine header color based on correctness
+    Color headerColor;
+    if (isCompleted) {
+      if (isCorrect == true) {
+        headerColor = AppColors.primary;
+      } else {
+        headerColor = AppColors.danger;
+      }
+    } else {
+      headerColor = AppColors.secondary;
+    }
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: _getBackgroundColor(),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _getBorderColor(),
-          width: isCompleted ? 2 : 1,
+          color: AppColors.neutral,
+          width: 2,
         ),
+        boxShadow: [
+          const BoxShadow(
+            color: AppColors.neutral,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
-      child: child,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Activity Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: headerColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isCompleted 
+                      ? (isCorrect == true ? Icons.check_circle : Icons.cancel)
+                      : Icons.extension_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isCompleted 
+                      ? (isCorrect == true ? 'COMPLETED!' : 'NICE TRY!')
+                      : 'ACTIVITY',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: child,
+          ),
+        ],
+      ),
     );
-  }
-
-  Color _getBackgroundColor() {
-    if (!isCompleted) {
-      return settings.theme == ReaderTheme.dark
-          ? const Color(0xFF2D3748)
-          : const Color(0xFFF7FAFC);
-    }
-
-    if (isCorrect ?? false) {
-      return settings.theme == ReaderTheme.dark
-          ? const Color(0xFF1C4532)
-          : const Color(0xFFC6F6D5);
-    } else {
-      return settings.theme == ReaderTheme.dark
-          ? const Color(0xFF742A2A)
-          : const Color(0xFFFED7D7);
-    }
-  }
-
-  Color _getBorderColor() {
-    if (!isCompleted) {
-      return settings.theme == ReaderTheme.dark
-          ? const Color(0xFF4A5568)
-          : const Color(0xFFE2E8F0);
-    }
-
-    if (isCorrect ?? false) {
-      return const Color(0xFF38A169);
-    } else {
-      return const Color(0xFFE53E3E);
-    }
   }
 }
 
@@ -183,7 +212,7 @@ class AnswerFeedback extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          isCorrect ? 'Doğru!' : 'Yanlış',
+          isCorrect ? 'Correct!' : 'Wrong!',
           style: TextStyle(
             color: isCorrect ? const Color(0xFF38A169) : const Color(0xFFE53E3E),
             fontWeight: FontWeight.bold,

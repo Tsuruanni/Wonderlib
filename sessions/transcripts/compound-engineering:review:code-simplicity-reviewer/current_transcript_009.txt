@@ -1,0 +1,131 @@
+          "content": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\nimport 'package:go_router/go_router.dart';\nimport 'package:uuid/uuid.dart';\n\nimport '../../../core/supabase_client.dart';\nimport 'school_list_screen.dart';\n\n/// Provider for loading a single school\nfinal schoolDetailProvider =\n    FutureProvider.family<Map<String, dynamic>?, String>((ref, schoolId) async {\n  final supabase = ref.watch(supabaseClientProvider);\n  final response = await supabase\n      .from('schools')\n      .select()\n      .eq('id', schoolId)\n      .maybeSingle();\n\n  return response;\n});\n\nclass SchoolEditScreen extends ConsumerStatefulWidget {\n  const SchoolEditScreen({super.key, this.schoolId});\n\n  final String? schoolId;\n\n  @override\n  ConsumerState<SchoolEditScreen> createState() => _SchoolEditScreenState();\n}\n\nclass _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {\n  final _formKey = GlobalKey<FormState>();\n  final _nameController = TextEditingController();\n  final _codeController = TextEditingController();\n  final _logoUrlController = TextEditingController();\n\n  static const _validStatuses = ['active', 'trial', 'suspended'];\n\n  String _status = 'active';\n  bool _isLoading = false;\n  bool _isSaving = false;\n\n  bool get isNewSchool => widget.schoolId == null;\n\n  @override\n  void initState() {\n    super.initState();\n    if (!isNewSchool) {\n      _loadSchool();\n    } else {\n      // Generate code for new school\n      _generateCode();\n    }\n  }\n\n  void _generateCode() {\n    // Generate a random 6-character code\n    final uuid = const Uuid().v4();\n    _codeController.text = uuid.substring(0, 6).toUpperCase();\n  }\n\n  Future<void> _loadSchool() async {\n    setState(() => _isLoading = true);\n\n    final school = await ref.read(schoolDetailProvider(widget.schoolId!).future);\n    if (school != null && mounted) {\n      _nameController.text = school['name'] ?? '';\n      _codeController.text = school['code'] ?? '';\n      _logoUrlController.text = school['logo_url'] ?? '';\n      final dbStatus = school['status'] as String? ?? 'active';\n      setState(() {\n        _status = _validStatuses.contains(dbStatus) ? dbStatus : 'active';\n        _isLoading = false;\n      });\n    } else {\n      setState(() => _isLoading = false);\n    }\n  }\n\n  @override\n  void dispose() {\n    _nameController.dispose();\n    _codeController.dispose();\n    _logoUrlController.dispose();\n    super.dispose();\n  }\n\n  Future<void> _handleSave() async {\n    if (!_formKey.currentState!.validate()) return;\n\n    setState(() => _isSaving = true);\n\n    try {\n      final supabase = ref.read(supabaseClientProvider);\n\n      final data = {\n        'name': _nameController.text.trim(),\n        'code': _codeController.text.trim().toUpperCase(),\n        'logo_url': _logoUrlController.text.trim(),\n        'status': _status,\n      };\n\n      if (isNewSchool) {\n        data['id'] = const Uuid().v4();\n        await supabase.from('schools').insert(data);\n\n        if (mounted) {\n          ScaffoldMessenger.of(context).showSnackBar(\n            const SnackBar(content: Text('School created successfully')),\n          );\n          ref.invalidate(schoolsProvider);\n          context.go('/schools/${data['id']}');\n        }\n      } else {\n        await supabase.from('schools').update(data).eq('id', widget.schoolId!);\n\n        if (mounted) {\n          ScaffoldMessenger.of(context).showSnackBar(\n            const SnackBar(content: Text('School saved successfully')),\n          );\n          ref.invalidate(schoolDetailProvider(widget.schoolId!));\n          ref.invalidate(schoolsProvider);\n        }\n      }\n    } catch (e) {\n      if (mounted) {\n        ScaffoldMessenger.of(context).showSnackBar(\n          SnackBar(\n            content: Text('Error: $e'),\n            backgroundColor: Colors.red,\n          ),\n        );\n      }\n    } finally {\n      if (mounted) {\n        setState(() => _isSaving = false);\n      }\n    }\n  }\n\n  Future<void> _handleDelete() async {\n    final confirmed = await showDialog<bool>(\n      context: context,\n      builder: (context) => AlertDialog(\n        title: const Text('Delete School'),\n        content: const Text(\n          'Are you sure you want to delete this school? '\n          'This will also delete all associated classes and remove school assignments from users. '\n          'This action cannot be undone.',\n        ),\n        actions: [\n          TextButton(\n            onPressed: () => Navigator.pop(context, false),\n            child: const Text('Cancel'),\n          ),\n          FilledButton(\n            onPressed: () => Navigator.pop(context, true),\n            style: FilledButton.styleFrom(backgroundColor: Colors.red),\n            child: const Text('Delete'),\n          ),\n        ],\n      ),\n    );\n\n    if (confirmed != true) return;\n\n    try {\n      final supabase = ref.read(supabaseClientProvider);\n      await supabase.from('schools').delete().eq('id', widget.schoolId!);\n\n      if (mounted) {\n        ScaffoldMessenger.of(context).showSnackBar(\n          const SnackBar(content: Text('School deleted')),\n        );\n        ref.invalidate(schoolsProvider);\n        context.go('/schools');\n      }\n    } catch (e) {\n      if (mounted) {\n        ScaffoldMessenger.of(context).showSnackBar(\n          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),\n        );\n      }\n    }\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return Scaffold(\n      appBar: AppBar(\n        title: Text(isNewSchool ? 'New School' : 'Edit School'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/schools'),\n        ),\n        actions: [\n          if (!isNewSchool)\n            IconButton(\n              icon: const Icon(Icons.delete_outline),\n              color: Colors.red,\n              onPressed: _handleDelete,\n            ),\n          const SizedBox(width: 8),\n          FilledButton(\n            onPressed: _isSaving ? null : _handleSave,\n            child: _isSaving\n                ? const SizedBox(\n                    width: 16,\n                    height: 16,\n                    child: CircularProgressIndicator(\n                      strokeWidth: 2,\n                      color: Colors.white,\n                    ),\n                  )\n                : Text(isNewSchool ? 'Create' : 'Save'),\n          ),\n          const SizedBox(width: 16),\n        ],\n      ),\n      body: _isLoading\n          ? const Center(child: CircularProgressIndicator())\n          : SingleChildScrollView(\n              padding: const EdgeInsets.all(24),\n              child: Form(\n                key: _formKey,\n                child: Column(\n                  crossAxisAlignment: CrossAxisAlignment.start,\n                  children: [\n                    Text(\n                      'School Details',\n                      style: Theme.of(context).textTheme.titleLarge,\n                    ),\n                    const SizedBox(height: 24),\n\n                    // Name\n                    TextFormField(\n                      controller: _nameController,\n                      decoration: const InputDecoration(\n                        labelText: 'School Name',\n                        hintText: 'Enter school name',\n                      ),\n                      validator: (value) {\n                        if (value == null || value.trim().isEmpty) {\n                          return 'School name is required';\n                        }\n                        return null;\n                      },\n                    ),\n                    const SizedBox(height: 16),\n\n                    // Code\n                    Row(\n                      children: [\n                        Expanded(\n                          child: TextFormField(\n                            controller: _codeController,\n                            decoration: const InputDecoration(\n                              labelText: 'School Code',\n                              hintText: 'Unique join code',\n                              helperText: 'Students and teachers use this code to join',\n                            ),\n                            textCapitalization: TextCapitalization.characters,\n                            validator: (value) {\n                              if (value == null || value.trim().isEmpty) {\n                                return 'School code is required';\n                              }\n                              if (value.trim().length < 4) {\n                                return 'Code must be at least 4 characters';\n                              }\n                              return null;\n                            },\n                          ),\n                        ),\n                        const SizedBox(width: 8),\n                        IconButton(\n                          onPressed: _generateCode,\n                          icon: const Icon(Icons.refresh),\n                          tooltip: 'Generate new code',\n                        ),\n                      ],\n                    ),\n                    const SizedBox(height: 16),\n\n                    // Logo URL\n                    TextFormField(\n                      controller: _logoUrlController,\n                      decoration: const InputDecoration(\n                        labelText: 'Logo URL',\n                        hintText: 'https://...',\n                      ),\n                    ),\n                    const SizedBox(height: 16),\n\n                    // Status dropdown\n                    DropdownButtonFormField<String>(\n                      value: _status,\n                      decoration: const InputDecoration(\n                        labelText: 'Status',\n                      ),\n                      items: _validStatuses.map((status) {\n                        return DropdownMenuItem(\n                          value: status,\n                          child: Row(\n                            children: [\n                              Container(\n                                width: 12,\n                                height: 12,\n                                decoration: BoxDecoration(\n                                  color: _getStatusColor(status),\n                                  shape: BoxShape.circle,\n                                ),\n                              ),\n                              const SizedBox(width: 8),\n                              Text(_getStatusLabel(status)),\n                            ],\n                          ),\n                        );\n                      }).toList(),\n                      onChanged: (value) {\n                        if (value != null) {\n                          setState(() => _status = value);\n                        }\n                      },\n                    ),\n                  ],\n                ),\n              ),\n            ),\n    );\n  }\n\n  Color _getStatusColor(String status) {\n    switch (status) {\n      case 'active':\n        return Colors.green;\n      case 'trial':\n        return Colors.orange;\n      case 'suspended':\n        return Colors.red;\n      default:\n        return Colors.grey;\n    }\n  }\n\n  String _getStatusLabel(String status) {\n    switch (status) {\n      case 'active':\n        return 'Active';\n      case 'trial':\n        return 'Trial';\n      case 'suspended':\n        return 'Suspended';\n      default:\n        return status;\n    }\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01YUWjiz7AYN3yNAdL4BXvew",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/readeng_admin/lib/features/schools/screens/school_edit_screen.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi router'ı güncelleyeceğim ve ardından Users ve Classes modüllerini oluşturacağım."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01HyFtNVgd9uvuUWQif3SkUL",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "import '../features/auth/screens/login_screen.dart';\nimport '../features/books/screens/book_edit_screen.dart';\nimport '../features/books/screens/book_list_screen.dart';\nimport '../features/books/screens/chapter_edit_screen.dart';\nimport '../features/dashboard/screens/dashboard_screen.dart';\nimport 'supabase_client.dart';",
+          "new_string": "import '../features/auth/screens/login_screen.dart';\nimport '../features/books/screens/book_edit_screen.dart';\nimport '../features/books/screens/book_list_screen.dart';\nimport '../features/books/screens/chapter_edit_screen.dart';\nimport '../features/dashboard/screens/dashboard_screen.dart';\nimport '../features/schools/screens/school_edit_screen.dart';\nimport '../features/schools/screens/school_list_screen.dart';\nimport 'supabase_client.dart';"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01HyFtNVgd9uvuUWQif3SkUL",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01KmWZK7541hREz1NBSv8R7i",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "      GoRoute(\n        path: '/books/:bookId/chapters/:chapterId',\n        builder: (context, state) => ChapterEditScreen(\n          bookId: state.pathParameters['bookId']!,\n          chapterId: state.pathParameters['chapterId'],\n        ),\n      ),\n    ],",
+          "new_string": "      GoRoute(\n        path: '/books/:bookId/chapters/:chapterId',\n        builder: (context, state) => ChapterEditScreen(\n          bookId: state.pathParameters['bookId']!,\n          chapterId: state.pathParameters['chapterId'],\n        ),\n      ),\n      // Schools\n      GoRoute(\n        path: '/schools',\n        builder: (context, state) => const SchoolListScreen(),\n      ),\n      GoRoute(\n        path: '/schools/new',\n        builder: (context, state) => const SchoolEditScreen(),\n      ),\n      GoRoute(\n        path: '/schools/:schoolId',\n        builder: (context, state) => SchoolEditScreen(\n          schoolId: state.pathParameters['schoolId'],\n        ),\n      ),\n    ],"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01KmWZK7541hREz1NBSv8R7i",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi Users modülünü oluşturuyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_015QJJJzDKXk8L7jdVqfzyoS",
+        "name": "Bash",
+        "input": {
+          "command": "mkdir -p /Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens",
+          "description": "Create users feature directory"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_015QJJJzDKXk8L7jdVqfzyoS",
+        "type": "tool_result",
+        "content": "",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_018qcBSJpn9USxJZ2PNnnQ7A",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_list_screen.dart",

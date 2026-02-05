@@ -276,6 +276,14 @@ GoRouter _createRouter() {
               ),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -321,10 +329,6 @@ GoRouter _createRouter() {
       ),
 
       // Standalone routes
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
       GoRoute(
         path: AppRoutes.studentAssignments,
         builder: (context, state) => const StudentAssignmentsScreen(),

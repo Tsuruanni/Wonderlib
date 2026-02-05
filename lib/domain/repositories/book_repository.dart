@@ -73,4 +73,13 @@ abstract class BookRepository {
 
   /// Gets set of completed book IDs for a user
   Future<Either<Failure, Set<String>>> getCompletedBookIds(String userId);
+
+  /// Check if user has read today (any reading_progress updated today)
+  Future<Either<Failure, bool>> hasReadToday(String userId);
+
+  /// Count correct answers today (inline_activity_results)
+  Future<Either<Failure, int>> getCorrectAnswersTodayCount(String userId);
+
+  /// Count words read today (from completed chapters)
+  Future<Either<Failure, int>> getWordsReadTodayCount(String userId);
 }

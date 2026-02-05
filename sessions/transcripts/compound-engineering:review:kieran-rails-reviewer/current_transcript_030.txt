@@ -1,0 +1,163 @@
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→import 'package:go_router/go_router.dart';\n     4→\n     5→import '../../../core/supabase_client.dart';\n     6→\n     7→/// Provider for school filter\n     8→final schoolFilterProvider = StateProvider<String?>((ref) => null);\n     9→\n    10→/// Provider for role filter\n    11→final roleFilterProvider = StateProvider<String?>((ref) => null);\n    12→\n    13→/// Provider for loading all users with filters\n    14→final usersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {\n    15→  final supabase = ref.watch(supabaseClientProvider);\n    16→  final schoolFilter = ref.watch(schoolFilterProvider);\n    17→  final roleFilter = ref.watch(roleFilterProvider);\n    18→\n    19→  var query = supabase.from('profiles').select('*, schools(name)');\n    20→\n    21→  if (schoolFilter != null) {\n    22→    query = query.eq('school_id', schoolFilter);\n    23→  }\n    24→  if (roleFilter != null) {\n    25→    query = query.eq('role', roleFilter);\n    26→  }\n    27→\n    28→  final response = await query.order('created_at', ascending: false);\n    29→  return List<Map<String, dynamic>>.from(response);\n    30→});\n    31→\n    32→/// Provider for loading all schools (for filter dropdown)\n    33→final allSchoolsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {\n    34→  final supabase = ref.watch(supabaseClientProvider);\n    35→  final response = await supabase\n    36→      .from('schools')\n    37→      .select('id, name')\n    38→      .order('name');\n    39→  return List<Map<String, dynamic>>.from(response);\n    40→});\n    41→\n    42→class UserListScreen extends ConsumerWidget {\n    43→  const UserListScreen({super.key});\n    44→\n    45→  @override\n    46→  Widget build(BuildContext context, WidgetRef ref) {\n    47→    final usersAsync = ref.watch(usersProvider);\n    48→    final schoolsAsync = ref.watch(allSchoolsProvider);\n    49→    final selectedSchool = ref.watch(schoolFilterProvider);\n    50→    final selectedRole = ref.watch(roleFilterProvider);\n    51→\n    52→    return Scaffold(\n    53→      appBar: AppBar(\n    54→        title: const Text('Users'),\n    55→        leading: IconButton(\n    56→          icon: const Icon(Icons.arrow_back),\n    57→          onPressed: () => context.go('/'),\n    58→        ),\n    59→      ),\n    60→      body: Column(\n    61→        children: [\n    62→          // Filters\n    63→          Container(\n    64→            padding: const EdgeInsets.all(16),\n    65→            decoration: BoxDecoration(\n    66→              color: Colors.grey.shade50,\n    67→              border: Border(\n    68→                bottom: BorderSide(color: Colors.grey.shade200),\n    69→              ),\n    70→            ),\n    71→            child: Row(\n    72→              children: [\n    73→                // School filter\n    74→                Expanded(\n    75→                  child: schoolsAsync.when(\n    76→                    data: (schools) => DropdownButtonFormField<String?>(\n    77→                      value: selectedSchool,\n    78→                      decoration: const InputDecoration(\n    79→                        labelText: 'School',\n    80→                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),\n    81→                        border: OutlineInputBorder(),\n    82→                      ),\n    83→                      items: [\n    84→                        const DropdownMenuItem(\n    85→                          value: null,\n    86→                          child: Text('All Schools'),\n    87→                        ),\n    88→                        ...schools.map((school) => DropdownMenuItem(\n    89→                              value: school['id'] as String,\n    90→                              child: Text(school['name'] as String),\n    91→                            )),\n    92→                      ],\n    93→                      onChanged: (value) {\n    94→                        ref.read(schoolFilterProvider.notifier).state = value;\n    95→                      },\n    96→                    ),\n    97→                    loading: () => const SizedBox.shrink(),\n    98→                    error: (_, __) => const SizedBox.shrink(),\n    99→                  ),\n   100→                ),\n   101→                const SizedBox(width: 16),\n   102→\n   103→                // Role filter\n   104→                Expanded(\n   105→                  child: DropdownButtonFormField<String?>(\n   106→                    value: selectedRole,\n   107→                    decoration: const InputDecoration(\n   108→                      labelText: 'Role',\n   109→                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),\n   110→                      border: OutlineInputBorder(),\n   111→                    ),\n   112→                    items: const [\n   113→                      DropdownMenuItem(value: null, child: Text('All Roles')),\n   114→                      DropdownMenuItem(value: 'student', child: Text('Student')),\n   115→                      DropdownMenuItem(value: 'teacher', child: Text('Teacher')),\n   116→                      DropdownMenuItem(value: 'head', child: Text('Head Teacher')),\n   117→                      DropdownMenuItem(value: 'admin', child: Text('Admin')),\n   118→                    ],\n   119→                    onChanged: (value) {\n   120→                      ref.read(roleFilterProvider.notifier).state = value;\n   121→                    },\n   122→                  ),\n   123→                ),\n   124→                const SizedBox(width: 16),\n   125→\n   126→                // Clear filters\n   127→                if (selectedSchool != null || selectedRole != null)\n   128→                  TextButton.icon(\n   129→                    onPressed: () {\n   130→                      ref.read(schoolFilterProvider.notifier).state = null;\n   131→                      ref.read(roleFilterProvider.notifier).state = null;\n   132→                    },\n   133→                    icon: const Icon(Icons.clear, size: 18),\n   134→                    label: const Text('Clear'),\n   135→                  ),\n   136→              ],\n   137→            ),\n   138→          ),\n   139→\n   140→          // Users list\n   141→          Expanded(\n   142→            child: usersAsync.when(\n   143→              data: (users) {\n   144→                if (users.isEmpty) {\n   145→                  return Center(\n   146→                    child: Column(\n   147→                      mainAxisAlignment: MainAxisAlignment.center,\n   148→                      children: [\n   149→                        Icon(\n   150→                          Icons.people_outline,\n   151→                          size: 64,\n   152→                          color: Colors.grey.shade400,\n   153→                        ),\n   154→                        const SizedBox(height: 16),\n   155→                        Text(\n   156→                          'No users found',\n   157→                          style: TextStyle(\n   158→                            fontSize: 18,\n   159→                            color: Colors.grey.shade600,\n   160→                          ),\n   161→                        ),\n   162→                        const SizedBox(height: 8),\n   163→                        Text(\n   164→                          'Create users via Supabase Dashboard',\n   165→                          style: TextStyle(\n   166→                            fontSize: 14,\n   167→                            color: Colors.grey.shade500,\n   168→                          ),\n   169→                        ),\n   170→                      ],\n   171→                    ),\n   172→                  );\n   173→                }\n   174→\n   175→                return ListView.builder(\n   176→                  padding: const EdgeInsets.all(24),\n   177→                  itemCount: users.length,\n   178→                  itemBuilder: (context, index) {\n   179→                    final user = users[index];\n   180→                    return _UserCard(\n   181→                      user: user,\n   182→                      onTap: () => context.go('/users/${user['id']}'),\n   183→                    );\n   184→                  },\n   185→                );\n   186→              },\n   187→              loading: () => const Center(child: CircularProgressIndicator()),\n   188→              error: (error, _) => Center(\n   189→                child: Column(\n   190→                  mainAxisAlignment: MainAxisAlignment.center,\n   191→                  children: [\n   192→                    Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),\n   193→                    const SizedBox(height: 16),\n   194→                    Text('Error: $error'),\n   195→                    const SizedBox(height: 16),\n   196→                    FilledButton(\n   197→                      onPressed: () => ref.invalidate(usersProvider),\n   198→                      child: const Text('Retry'),\n   199→                    ),\n   200→                  ],\n   201→                ),\n   202→              ),\n   203→            ),\n   204→          ),\n   205→        ],\n   206→      ),\n   207→    );\n   208→  }\n   209→}\n   210→\n   211→class _UserCard extends StatelessWidget {\n   212→  const _UserCard({\n   213→    required this.user,\n   214→    required this.onTap,\n   215→  });\n   216→\n   217→  final Map<String, dynamic> user;\n   218→  final VoidCallback onTap;\n   219→\n   220→  @override\n   221→  Widget build(BuildContext context) {\n   222→    final firstName = user['first_name'] as String? ?? '';\n   223→    final lastName = user['last_name'] as String? ?? '';\n   224→    final email = user['email'] as String? ?? '';\n   225→    final role = user['role'] as String? ?? 'student';\n   226→    final schoolName = user['schools']?['name'] as String?;\n   227→    final xp = user['xp'] as int? ?? 0;\n   228→    final level = user['level'] as int? ?? 1;\n   229→\n   230→    final fullName = '$firstName $lastName'.trim();\n   231→    final displayName = fullName.isNotEmpty ? fullName : email;\n   232→\n   233→    return Card(\n   234→      margin: const EdgeInsets.only(bottom: 12),\n   235→      clipBehavior: Clip.antiAlias,\n   236→      child: InkWell(\n   237→        onTap: onTap,\n   238→        child: Padding(\n   239→          padding: const EdgeInsets.all(16),\n   240→          child: Row(\n   241→            children: [\n   242→              // Avatar\n   243→              CircleAvatar(\n   244→                radius: 24,\n   245→                backgroundColor: _getRoleColor(role).withValues(alpha: 0.1),\n   246→                child: Text(\n   247→                  _getInitials(firstName, lastName, email),\n   248→                  style: TextStyle(\n   249→                    color: _getRoleColor(role),\n   250→                    fontWeight: FontWeight.bold,\n   251→                  ),\n   252→                ),\n   253→              ),\n   254→              const SizedBox(width: 16),\n   255→\n   256→              // User info\n   257→              Expanded(\n   258→                child: Column(\n   259→                  crossAxisAlignment: CrossAxisAlignment.start,\n   260→                  children: [\n   261→                    // Name\n   262→                    Text(\n   263→                      displayName,\n   264→                      style: const TextStyle(\n   265→                        fontSize: 16,\n   266→                        fontWeight: FontWeight.bold,\n   267→                      ),\n   268→                      maxLines: 1,\n   269→                      overflow: TextOverflow.ellipsis,\n   270→                    ),\n   271→                    const SizedBox(height: 4),\n   272→\n   273→                    // Email\n   274→                    if (fullName.isNotEmpty)\n   275→                      Text(\n   276→                        email,\n   277→                        style: TextStyle(\n   278→                          fontSize: 14,\n   279→                          color: Colors.grey.shade600,\n   280→                        ),\n   281→                      ),\n   282→                    const SizedBox(height: 8),\n   283→\n   284→                    // Chips\n   285→                    Wrap(\n   286→                      spacing: 8,\n   287→                      runSpacing: 4,\n   288→                      children: [\n   289→                        _Chip(\n   290→                          label: _getRoleLabel(role),\n   291→                          color: _getRoleColor(role),\n   292→                        ),\n   293→                        if (schoolName != null)\n   294→                          _Chip(\n   295→                            label: schoolName,\n   296→                            color: Colors.grey,\n   297→                          ),\n   298→                        _Chip(\n   299→                          label: 'Lv.$level ($xp XP)',\n   300→                          color: Colors.purple,\n   301→                        ),\n   302→                      ],\n   303→                    ),\n   304→                  ],\n   305→                ),\n   306→              ),\n   307→\n   308→              // Arrow\n   309→              Icon(\n   310→                Icons.chevron_right,\n   311→                color: Colors.grey.shade400,\n   312→              ),\n   313→            ],\n   314→          ),\n   315→        ),\n   316→      ),\n   317→    );\n   318→  }\n   319→\n   320→  String _getInitials(String firstName, String lastName, String email) {\n   321→    if (firstName.isNotEmpty && lastName.isNotEmpty) {\n   322→      return '${firstName[0]}${lastName[0]}'.toUpperCase();\n   323→    }\n   324→    if (firstName.isNotEmpty) {\n   325→      return firstName[0].toUpperCase();\n   326→    }\n   327→    if (email.isNotEmpty) {\n   328→      return email[0].toUpperCase();\n   329→    }\n   330→    return '?';\n   331→  }\n   332→\n   333→  Color _getRoleColor(String role) {\n   334→    switch (role.toLowerCase()) {\n   335→      case 'admin':\n   336→        return Colors.red;\n   337→      case 'head':\n   338→        return Colors.purple;\n   339→      case 'teacher':\n   340→        return Colors.blue;\n   341→      case 'student':\n   342→        return Colors.green;\n   343→      default:\n   344→        return Colors.grey;\n   345→    }\n   346→  }\n   347→\n   348→  String _getRoleLabel(String role) {\n   349→    switch (role.toLowerCase()) {\n   350→      case 'admin':\n   351→        return 'Admin';\n   352→      case 'head':\n   353→        return 'Head Teacher';\n   354→      case 'teacher':\n   355→        return 'Teacher';\n   356→      case 'student':\n   357→        return 'Student';\n   358→      default:\n   359→        return role;\n   360→    }\n   361→  }\n   362→}\n   363→\n   364→class _Chip extends StatelessWidget {\n   365→  const _Chip({\n   366→    required this.label,\n   367→    required this.color,\n   368→  });\n   369→\n   370→  final String label;\n   371→  final Color color;\n   372→\n   373→  @override\n   374→  Widget build(BuildContext context) {\n   375→    return Container(\n   376→      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),\n   377→      decoration: BoxDecoration(\n   378→        color: color.withValues(alpha: 0.1),\n   379→        borderRadius: BorderRadius.circular(4),\n   380→      ),\n   381→      child: Text(\n   382→        label,\n   383→        style: TextStyle(\n   384→          fontSize: 12,\n   385→          color: color,\n   386→          fontWeight: FontWeight.w500,\n   387→        ),\n   388→      ),\n   389→    );\n   390→  }\n   391→}\n   392→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_018qQM9yUmep7oeUfUfyFLbi",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_list_screen.dart",
+          "old_string": "      appBar: AppBar(\n        title: const Text('Users'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/'),\n        ),\n      ),",
+          "new_string": "      appBar: AppBar(\n        title: const Text('Users'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/'),\n        ),\n        actions: [\n          OutlinedButton.icon(\n            onPressed: () => context.go('/users/import'),\n            icon: const Icon(Icons.upload, size: 18),\n            label: const Text('Import CSV'),\n          ),\n          const SizedBox(width: 16),\n        ],\n      ),"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_018qQM9yUmep7oeUfUfyFLbi",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_list_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Now let me update the router to add the import routes:"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01X3A2bZini2cwUfXJVxTHua",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "import '../features/users/screens/user_edit_screen.dart';\nimport '../features/users/screens/user_list_screen.dart';",
+          "new_string": "import '../features/users/screens/user_edit_screen.dart';\nimport '../features/users/screens/user_import_screen.dart';\nimport '../features/users/screens/user_list_screen.dart';"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01X3A2bZini2cwUfXJVxTHua",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01MGWuSUczPWsjRfLq1qtEYo",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "      // Users (edit only - create via Supabase Dashboard)\n      GoRoute(\n        path: '/users',\n        builder: (context, state) => const UserListScreen(),\n      ),\n      GoRoute(\n        path: '/users/:userId',\n        builder: (context, state) => UserEditScreen(\n          userId: state.pathParameters['userId']!,\n        ),\n      ),",
+          "new_string": "      // Users (edit only - create via Supabase Dashboard)\n      GoRoute(\n        path: '/users',\n        builder: (context, state) => const UserListScreen(),\n      ),\n      GoRoute(\n        path: '/users/import',\n        builder: (context, state) => const UserImportScreen(),\n      ),\n      GoRoute(\n        path: '/users/:userId',\n        builder: (context, state) => UserEditScreen(\n          userId: state.pathParameters['userId']!,\n        ),\n      ),"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01MGWuSUczPWsjRfLq1qtEYo",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_016razdUfF3TCG7VzdQfbpnS",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "9",
+          "status": "completed"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_016pHT52pQ96t2qrXhro86f5",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "10",
+          "status": "in_progress"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_016razdUfF3TCG7VzdQfbpnS",
+        "type": "tool_result",
+        "content": "Updated task #9 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_016pHT52pQ96t2qrXhro86f5",
+        "type": "tool_result",
+        "content": "Updated task #10 status"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01LD3uGHYup6KtK35brHxNKv",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/vocabulary/screens/vocabulary_import_screen.dart",

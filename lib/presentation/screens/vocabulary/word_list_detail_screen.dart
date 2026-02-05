@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../widgets/common/game_button.dart';
 
 /// Detail screen for a word list showing phases and progress
 class WordListDetailScreen extends ConsumerWidget {
@@ -21,7 +24,8 @@ class WordListDetailScreen extends ConsumerWidget {
     // Handle loading state
     if (wordListAsync.isLoading) {
       return Scaffold(
-        appBar: AppBar(),
+        backgroundColor: AppColors.background,
+        appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -31,12 +35,14 @@ class WordListDetailScreen extends ConsumerWidget {
 
     if (wordList == null) {
       return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text('Word list not found')),
+        backgroundColor: AppColors.background,
+        appBar: AppBar(iconTheme: IconThemeData(color: AppColors.black)),
+        body: Center(child: Text('Word list not found', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold))),
       );
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Header with cover
@@ -45,41 +51,45 @@ class WordListDetailScreen extends ConsumerWidget {
           // Content
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Description
                   Text(
                     wordList.description,
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      color: context.colorScheme.onSurfaceVariant,
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      color: AppColors.neutralText,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
                   // Stats row
                   Row(
                     children: [
                       _StatChip(
-                        icon: Icons.library_books,
+                        icon: Icons.menu_book_rounded,
                         label: '${words.length} words',
                       ),
                       const SizedBox(width: 8),
                       if (wordList.level != null)
                         _StatChip(
-                          icon: Icons.signal_cellular_alt,
+                          icon: Icons.signal_cellular_alt_rounded,
                           label: wordList.level!,
                         ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // Learning Phases section
                   Text(
-                    'Learning Phases',
-                    style: context.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    'Learning Levels',
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.black,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -89,8 +99,8 @@ class WordListDetailScreen extends ConsumerWidget {
                     phase: 1,
                     title: 'Learn Vocab',
                     description: 'See all words with meanings and images',
-                    icon: Icons.visibility,
-                    color: Colors.blue,
+                    icon: Icons.visibility_rounded,
+                    color: AppColors.gemBlue,
                     isComplete: progress?.phase1Complete ?? false,
                     isRecommended: progress == null || (!progress.phase1Complete),
                     onTap: () => _navigateToPhase(context, 1),
@@ -99,7 +109,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     phase: 2,
                     title: 'Spelling',
                     description: 'Practice spelling by listening',
-                    icon: Icons.keyboard,
+                    icon: Icons.keyboard_rounded,
                     color: Colors.purple,
                     isComplete: progress?.phase2Complete ?? false,
                     isRecommended: (progress?.phase1Complete ?? false) &&
@@ -110,8 +120,8 @@ class WordListDetailScreen extends ConsumerWidget {
                     phase: 3,
                     title: 'Flashcards',
                     description: 'Test yourself with flip cards',
-                    icon: Icons.flip,
-                    color: Colors.orange,
+                    icon: Icons.flip_rounded,
+                    color: AppColors.streakOrange,
                     isComplete: progress?.phase3Complete ?? false,
                     isRecommended: (progress?.phase2Complete ?? false) &&
                                    progress?.phase3Complete != true,
@@ -121,8 +131,8 @@ class WordListDetailScreen extends ConsumerWidget {
                     phase: 4,
                     title: 'Review',
                     description: 'Quiz to check your knowledge',
-                    icon: Icons.quiz,
-                    color: Colors.green,
+                    icon: Icons.quiz_rounded,
+                    color: AppColors.primary,
                     isComplete: progress?.phase4Complete ?? false,
                     isRecommended: (progress?.phase3Complete ?? false) &&
                                    progress?.phase4Complete != true,
@@ -148,19 +158,30 @@ class WordListDetailScreen extends ConsumerWidget {
     final isComplete = progress?.isFullyComplete ?? false;
 
     if (isComplete) {
-      return FloatingActionButton.extended(
-        onPressed: () => _navigateToPhase(context, 1),
-        icon: const Icon(Icons.replay),
-        label: const Text('Practice Again'),
-        backgroundColor: Colors.green,
+      return Container(
+         width: 200,
+         height: 56,
+         margin: const EdgeInsets.only(bottom: 20),
+         child: GameButton(
+            label: 'Practice Again',
+            icon: const Icon(Icons.replay_rounded),
+            variant: GameButtonVariant.primary,
+            onPressed: () => _navigateToPhase(context, 1),
+         ),
       );
     }
 
     final phaseNames = ['', 'Learn Vocab', 'Spelling', 'Flashcards', 'Review'];
-    return FloatingActionButton.extended(
-      onPressed: () => _navigateToPhase(context, nextPhase),
-      icon: Icon(progress == null ? Icons.play_arrow : Icons.play_circle),
-      label: Text(progress == null ? 'Start Learning' : 'Continue: ${phaseNames[nextPhase]}'),
+    return Container(
+        width: 280,
+        height: 64,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: GameButton(
+          label: progress == null ? 'Start Learning' : 'Continue: ${phaseNames[nextPhase]}',
+          icon: Icon(progress == null ? Icons.play_arrow_rounded : Icons.play_circle_fill_rounded),
+          variant: GameButtonVariant.primary,
+          onPressed: () => _navigateToPhase(context, nextPhase),
+        ),
     );
   }
 
@@ -181,77 +202,94 @@ class _ListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = _getCategoryColor(wordList.category);
+    
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 220,
       pinned: true,
+      backgroundColor: color,
+      leading: IconButton(
+         icon: Container(
+           padding: const EdgeInsets.all(8),
+           decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+           child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+         ),
+         onPressed: () => context.pop(),
+      ),
       flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.only(left: 48, right: 16, bottom: 16),
+        titlePadding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
+        centerTitle: false,
         title: Text(
           wordList.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            shadows: [Shadow(blurRadius: 4, color: Colors.black26)],
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Colors.white,
+            shadows: [Shadow(blurRadius: 2, color: Colors.black26, offset: Offset(0, 1))],
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        background: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _getCategoryColor(wordList.category),
-                _getCategoryColor(wordList.category).withValues(alpha: 0.7),
-              ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Category emoji background
-              Positioned(
-                right: -20,
-                bottom: -20,
+        background: Stack(
+          children: [
+             Container(color: color),
+             // Gradient overlay
+             Container(
+               decoration: BoxDecoration(
+                 gradient: LinearGradient(
+                   begin: Alignment.topCenter,
+                   end: Alignment.bottomCenter,
+                   colors: [Colors.transparent, Colors.black.withValues(alpha: 0.3)],
+                 )
+               ),
+             ),
+            // Category icon huge
+            Positioned(
+              right: -20,
+              bottom: 20,
+              child: Transform.rotate(
+                angle: -0.2,
                 child: Text(
                   wordList.category.icon,
                   style: TextStyle(
-                    fontSize: 150,
-                    color: Colors.white.withValues(alpha: 0.2),
+                    fontSize: 140,
+                    color: Colors.white.withValues(alpha: 0.15),
                   ),
                 ),
               ),
+            ),
 
-              // Progress indicator at top area (safe from title collision)
-              if (progress != null)
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  top: kToolbarHeight + MediaQuery.of(context).padding.top + 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: progress!.progressPercentage,
-                          minHeight: 8,
-                          backgroundColor: Colors.white.withValues(alpha: 0.3),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
+            // Progress indicator
+            if (progress != null)
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 60,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: progress!.progressPercentage,
+                        minHeight: 12,
+                        backgroundColor: Colors.white.withValues(alpha: 0.3),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${(progress!.progressPercentage * 100).toInt()}% complete • ${progress!.completedPhases}/4 phases',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${(progress!.progressPercentage * 100).toInt()}% complete',
+                      style: GoogleFonts.nunito(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
       ),
     );
@@ -260,13 +298,13 @@ class _ListHeader extends StatelessWidget {
   Color _getCategoryColor(WordListCategory category) {
     switch (category) {
       case WordListCategory.commonWords:
-        return Colors.blue;
+        return AppColors.gemBlue;
       case WordListCategory.gradeLevel:
-        return Colors.purple;
+        return AppColors.primary;
       case WordListCategory.testPrep:
-        return Colors.orange;
+        return AppColors.streakOrange;
       case WordListCategory.thematic:
-        return Colors.teal;
+        return AppColors.secondary;
       case WordListCategory.storyVocab:
         return Colors.pink;
     }
@@ -286,19 +324,23 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.neutral, width: 2),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: context.colorScheme.outline),
-          const SizedBox(width: 4),
+          Icon(icon, size: 18, color: AppColors.neutralText),
+          const SizedBox(width: 8),
           Text(
             label,
-            style: context.textTheme.bodySmall,
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.bold,
+              color: AppColors.neutralText,
+            ),
           ),
         ],
       ),
@@ -334,105 +376,91 @@ class _PhaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: isRecommended
-            ? BorderSide(color: color, width: 2)
-            : BorderSide.none,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Phase number with icon
-              Container(
-                width: 50,
-                height: 50,
+    final borderColor = isRecommended ? color : AppColors.neutral;
+    final bgColor = isRecommended ? AppColors.white : AppColors.white.withValues(alpha: 0.8);
+    final shadowColor = isRecommended ? color.withValues(alpha: 0.3) : AppColors.neutral;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+           color: bgColor,
+           borderRadius: BorderRadius.circular(20),
+           border: Border.all(color: borderColor, width: isRecommended ? 3 : 2),
+           boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                offset: Offset(0, 4),
+                blurRadius: 0,
+              )
+           ]
+        ),
+        child: Row(
+           children: [
+             // Icon Box
+             Container(
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  color: isComplete
-                      ? Colors.green.withValues(alpha: 0.2)
-                      : color.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
+                   color: isComplete ? AppColors.primary : color.withValues(alpha: 0.1),
+                   borderRadius: BorderRadius.circular(16),
+                   border: Border.all(
+                     color: isComplete ? AppColors.primaryShadow : color.withValues(alpha: 0.5),
+                     width: 2,
+                   )
                 ),
-                child: isComplete
-                    ? const Icon(Icons.check, color: Colors.green, size: 28)
-                    : Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(width: 16),
-
-              // Title and description
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            '$phase. $title',
-                            style: context.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (isRecommended && !isComplete) ...[
-                          const SizedBox(width: 8),
+                child: Center(
+                  child: Icon(
+                    isComplete ? Icons.check_rounded : icon,
+                    color: isComplete ? Colors.white : color,
+                    size: 32,
+                  ),
+                ),
+             ),
+             const SizedBox(width: 16),
+             Expanded(
+               child: Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   Row(
+                     children: [
+                       Text(
+                         title,
+                         style: GoogleFonts.nunito(
+                           fontSize: 18,
+                           fontWeight: FontWeight.w900,
+                           color: isRecommended ? AppColors.black : AppColors.neutralText,
+                         ),
+                       ),
+                       if (isRecommended && !isComplete)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: color,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              'Next',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: context.textTheme.bodySmall?.copyWith(
-                        color: context.colorScheme.outline,
+                             margin: const EdgeInsets.only(left: 8),
+                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                             decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                             child: Text('NEXT', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+                          )
+                     ],
+                   ),
+                   const SizedBox(height: 4),
+                   Text(
+                     description,
+                     style: GoogleFonts.nunito(
+                        color: AppColors.neutralText,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                     ),
+                   ),
+                   if (score != null)
+                      Text(
+                         'High Score: $score/$total',
+                         style: GoogleFonts.nunito(color: AppColors.primary, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    // Show score for Review phase
-                    if (score != null && total != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          'Score: $score/$total',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-
-              // Arrow
-              Icon(
-                Icons.chevron_right,
-                color: context.colorScheme.outline,
-              ),
-            ],
-          ),
+                 ],
+               ),
+             ),
+           ],
         ),
       ),
     );

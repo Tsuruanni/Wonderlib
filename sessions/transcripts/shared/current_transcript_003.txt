@@ -1,8 +1,9 @@
-          "content": "# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n"
-        },
-        "caller": {
-          "type": "direct"
-        }
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01P9PeZPWzMbtKKg7wAHpwxt",
+        "type": "tool_result",
+        "content": "   165→// =============================================\n   166→// ASSIGNMENT ENTITIES\n   167→// =============================================\n   168→\n   169→/// Assignment type enum\n   170→enum AssignmentType {\n   171→  book,\n   172→  vocabulary,\n   173→  mixed;\n   174→\n   175→  String get displayName {\n   176→    switch (this) {\n   177→      case AssignmentType.book:\n   178→        return 'Book Reading';\n   179→      case AssignmentType.vocabulary:\n   180→        return 'Vocabulary';\n   181→      case AssignmentType.mixed:\n   182→        return 'Mixed';\n   183→    }\n   184→  }\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
       }
     ]
   },
@@ -10,9 +11,9 @@
     "role": "user",
     "content": [
       {
-        "tool_use_id": "toolu_013FYbK5skpsGzReYLibJAWC",
+        "tool_use_id": "toolu_01GH4NTU17HLjTeBbvUvyqjg",
         "type": "tool_result",
-        "content": "The file /Users/wonderelt/.claude/plans/stateless-swimming-creek.md has been overwritten successfully."
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:google_fonts/google_fonts.dart';\n     3→\n     4→abstract class AppColors {\n     5→  // Primary Action (Green)\n     6→  static const primary = Color(0xFF58CC02);\n     7→  static const primaryDark = Color(0xFF46A302); // For 3D shade\n     8→  static const primaryShadow = primaryDark;\n     9→  static const primaryBackground = Color(0xFFD7FFB8); // Very light green for backgrounds\n    10→\n    11→  // Secondary Action (Blue)\n    12→  static const secondary = Color(0xFF1CB0F6);\n    13→  static const secondaryDark = Color(0xFF1899D6);\n    14→  static const secondaryBackground = Color(0xFFDDF4FF);\n    15→\n    16→  // Danger / Error (Red)\n    17→  static const danger = Color(0xFFFF4B4B);\n    18→  static const dangerDark = Color(0xFFEA2B2B);\n    19→  static const dangerBackground = Color(0xFFFFDFDF);\n    20→\n    21→  // Warning / Gold (Yellow)\n    22→  static const wasp = Color(0xFFFFC800);\n    23→  static const waspDark = Color(0xFFDFA600);\n    24→  static const waspBackground = Color(0xFFFFF7D1);\n    25→\n    26→  // Neutral (Grey)\n    27→  static const neutral = Color(0xFFE5E5E5);\n    28→  static const neutralDark = Color(0xFFAFAFAF);\n    29→  static const neutralText = Color(0xFF777777);\n    30→\n    31→  // Base\n    32→  static const white = Color(0xFFFFFFFF);\n    33→  static const black = Color(0xFF3C3C3C); // Soft black\n    34→  static const background = Color(0xFFFFFFFF);\n    35→  static const backgroundDark = Color(0xFF131F24);\n    36→\n    37→  // Gamification\n    38→  static const xpGold = wasp;\n    39→  static const streakOrange = Color(0xFFFF9600);\n    40→  static const gemBlue = Color(0xFF1CB0F6);\n    41→}\n    42→\n    43→abstract class AppTheme {\n    44→  // Shared border radius for the \"bubbly\" look\n    45→  static final borderRadius = BorderRadius.circular(16);\n    46→\n    47→  static ThemeData get lightTheme {\n    48→    return ThemeData(\n    49→      useMaterial3: true,\n    50→      brightness: Brightness.light,\n    51→      primaryColor: AppColors.primary,\n    52→      scaffoldBackgroundColor: AppColors.background,\n    53→      \n    54→      // Typography\n    55→      textTheme: GoogleFonts.nunitoTextTheme().apply(\n    56→        bodyColor: AppColors.black,\n    57→        displayColor: AppColors.black,\n    58→      ).copyWith(\n    59→        headlineLarge: GoogleFonts.nunito(\n    60→          fontSize: 32,\n    61→          fontWeight: FontWeight.w800, // Extra Bold\n    62→          color: AppColors.black,\n    63→        ),\n    64→        headlineMedium: GoogleFonts.nunito(\n    65→          fontSize: 24,\n    66→          fontWeight: FontWeight.w800,\n    67→          color: AppColors.black,\n    68→        ),\n    69→        titleLarge: GoogleFonts.nunito(\n    70→          fontSize: 20,\n    71→          fontWeight: FontWeight.w700, // Bold\n    72→          color: AppColors.black,\n    73→        ),\n    74→        bodyLarge: GoogleFonts.nunito(\n    75→          fontSize: 17,\n    76→          fontWeight: FontWeight.w500, // Medium\n    77→          color: AppColors.black,\n    78→        ),\n    79→        bodyMedium: GoogleFonts.nunito(\n    80→          fontSize: 15,\n    81→          fontWeight: FontWeight.w500,\n    82→          color: AppColors.neutralText,\n    83→        ),\n    84→        labelLarge: GoogleFonts.nunito(\n    85→          fontSize: 15,\n    86→          fontWeight: FontWeight.w700,\n    87→          letterSpacing: 0.8, // Slightly spaced for button text\n    88→          color: AppColors.black, \n    89→        ),\n    90→      ),\n    91→\n    92→      // Color Scheme\n    93→      colorScheme: ColorScheme.fromSeed(\n    94→        seedColor: AppColors.primary,\n    95→        brightness: Brightness.light,\n    96→        primary: AppColors.primary,\n    97→        secondary: AppColors.secondary,\n    98→        surface: AppColors.white,\n    99→        error: AppColors.danger,\n   100→      ),\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
       }
     ]
   },
@@ -21,8 +22,8 @@
     "content": [
       {
         "type": "thinking",
-        "thinking": "Plan is ready. Now I should call ExitPlanMode to get user approval.",
-        "signature": "EusBCkYICxgCKkA4+04uUxSwxFIRnStWCAdaNQrOcSbXhz58zev7jXUxSHe/3X1OJdHievV4tV05XjO5fh1PgWf4qzmPkBpJ4FznEgx9iElshra+JWYUQUAaDHOI1TeDx8Pcvpt+ASIwVgLJMuDaFsYSJb/BKOOa+ETdDQEQugE9sfPh3BjymqCB9pUA4yKAF7EmMivrFkVlKlOUH5CLeaFmYeKQCHYuKpY9s9jdXsdIWPWhxnxXKHddvjZ3MeHc6KH6idnI90ea6dsy+yN4z8UytJR1UdzEvp7och2Ud+tobU3vHIl0vuSUbB6MwBgB"
+        "thinking": "Artık yeterli bilgim var. UI helpers dosyasını oluşturabilirim:1. AssignmentColors - teacher tarafı için (AssignmentType)\n2. StudentAssignmentColors - student tarafı için (StudentAssignmentType, StudentAssignmentStatus)\n3. VocabularyColors - WordListCategory için\n4. ScoreColors - score renkleri için\n5. TimeFormatter - reading time formatı için\n6. GreetingHelper - zaman bazlı selam için\n\nAppColors'dan renkleri kullanacağım.",
+        "signature": "Et4ECkYICxgCKkCipXapulqlDmThmfizLeOkKAfLrQRbza5ZVWfXeoQAUCsIPmo6t+M3anUeD3tatFQS4FVEV22rTIALJRA8EbbfEgzlkjEO6FKbEz/cIoQaDPVNBYVWjwrHrKOnVCIw99gZpJDAEFbnlzBa8JbglNkFwMKo/4eV5fmGhCyJn82dAe3SUgC2VrJZGs4tZTZlKsUDjBvlwsWPP8wwHtnO056gXubF/Gd2hGCbcvh8yF3tjBMmAWaJ/QMSGOtvD2lGv4GPuJ9lIfDgtop9jEbzsgcIz/Lwm+/tivSop/oZlmqhvsJHZuByHJcd1gORzIqSOzLF7gVhqzC8/mxvcxHrfpYrtCpCom1rQC9tMeLYta7lTN1xWnVA5MW4zs38bUKAcYKsaZnv20Q3oYZo94mr1Tpe6Mfkqg6Ha6yuiM32tU//nLOEMXVKSLecXaAmEsP3xH320MjYiZS5DJ4JF7cIEhCgV8CJ6fHe1hKM/PglDLx2GlJbPe0PFLt1kpbhsJ8g1VfQz6DnMQ+lnAjzz65/o1kR593WyWZbMlfplCg5YL86KJhoywUi96/LxfB7jnNqWeU33NUPAOg0CIR9u3TRKm4S5NCRwoeC91xfDqwIWF2prKr/vhIwKmJmkE7Knx+dAcgpOq0ymiNxs9m2sItRAbVfRJjJOgMPyw+aYMouvkVv4QxsIAj6/chLsYlSofIz7yvT8naY67e3uX0pavzm0xI3QfNU7cDheEfEDXd2tRJv+agy1AYo7RBa5wtecqpXzi+EFfaY3OyqZny0npgVfrRQtkWIIx2TGAE="
       }
     ]
   },
@@ -31,7 +32,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Plan hazır. 9 kritik provider'a autoDispose eklenecek.\n\n**Özet:**\n- 4 dosya değişecek\n- 9 provider düzeltilecek\n- En büyük risk: `reader_provider.dart` (4 provider)"
+        "text": "Yeterli bilgim var. Şimdi ui_helpers.dart dosyasını oluşturuyorum."
       }
     ]
   },
@@ -40,13 +41,11 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "toolu_01WiteGYoXYs6fqEmqbkuSiP",
-        "name": "ExitPlanMode",
+        "id": "toolu_0129Da6MvPQYYbBTxFXoDjML",
+        "name": "Write",
         "input": {
-          "plan": "# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n"
-        },
-        "caller": {
-          "type": "direct"
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/utils/ui_helpers.dart",
+          "content": "import 'package:flutter/material.dart';\n\nimport '../../app/theme.dart';\nimport '../../domain/entities/student_assignment.dart';\nimport '../../domain/entities/word_list.dart';\nimport '../../domain/repositories/teacher_repository.dart';\n\n/// Centralized color helpers for assignment UI elements (Teacher side)\nabstract class AssignmentColors {\n  static Color getTypeColor(AssignmentType type) {\n    switch (type) {\n      case AssignmentType.book:\n        return Colors.blue;\n      case AssignmentType.vocabulary:\n        return Colors.purple;\n      case AssignmentType.mixed:\n        return Colors.teal;\n    }\n  }\n\n  static IconData getTypeIcon(AssignmentType type) {\n    switch (type) {\n      case AssignmentType.book:\n        return Icons.menu_book;\n      case AssignmentType.vocabulary:\n        return Icons.abc;\n      case AssignmentType.mixed:\n        return Icons.library_books;\n    }\n  }\n}\n\n/// Centralized color helpers for student assignment UI elements\nabstract class StudentAssignmentColors {\n  static Color getTypeColor(StudentAssignmentType type) {\n    switch (type) {\n      case StudentAssignmentType.book:\n        return Colors.blue;\n      case StudentAssignmentType.vocabulary:\n        return Colors.purple;\n      case StudentAssignmentType.mixed:\n        return Colors.teal;\n    }\n  }\n\n  static IconData getTypeIcon(StudentAssignmentType type) {\n    switch (type) {\n      case StudentAssignmentType.book:\n        return Icons.menu_book;\n      case StudentAssignmentType.vocabulary:\n        return Icons.abc;\n      case StudentAssignmentType.mixed:\n        return Icons.library_books;\n    }\n  }\n\n  static Color getStatusColor(StudentAssignmentStatus status) {\n    switch (status) {\n      case StudentAssignmentStatus.pending:\n        return Colors.grey;\n      case StudentAssignmentStatus.inProgress:\n        return Colors.blue;\n      case StudentAssignmentStatus.completed:\n        return Colors.green;\n      case StudentAssignmentStatus.overdue:\n        return Colors.red;\n    }\n  }\n\n  static IconData getStatusIcon(StudentAssignmentStatus status) {\n    switch (status) {\n      case StudentAssignmentStatus.pending:\n        return Icons.schedule;\n      case StudentAssignmentStatus.inProgress:\n        return Icons.play_circle;\n      case StudentAssignmentStatus.completed:\n        return Icons.check_circle;\n      case StudentAssignmentStatus.overdue:\n        return Icons.warning;\n    }\n  }\n}\n\n/// Centralized color helpers for vocabulary UI elements\nabstract class VocabularyColors {\n  static Color getCategoryColor(WordListCategory category) {\n    switch (category) {\n      case WordListCategory.commonWords:\n        return AppColors.gemBlue;\n      case WordListCategory.gradeLevel:\n        return AppColors.primary;\n      case WordListCategory.testPrep:\n        return AppColors.streakOrange;\n      case WordListCategory.thematic:\n        return AppColors.secondary;\n      case WordListCategory.storyVocab:\n        return Colors.pink;\n    }\n  }\n}\n\n/// Centralized color helpers for score display\nabstract class ScoreColors {\n  static Color getScoreColor(double score) {\n    if (score >= 80) return Colors.green;\n    if (score >= 60) return Colors.orange;\n    return Colors.red;\n  }\n\n  static Color getProgressColor(double progress) {\n    if (progress >= 100) return Colors.green;\n    if (progress >= 50) return Colors.orange;\n    return Colors.blue;\n  }\n}\n\n/// Time formatting utilities\nabstract class TimeFormatter {\n  static String formatReadingTime(int seconds) {\n    if (seconds < 60) return '${seconds}s';\n    final minutes = seconds ~/ 60;\n    final remainingSeconds = seconds % 60;\n    if (remainingSeconds == 0) return '${minutes}m';\n    return '${minutes}m ${remainingSeconds}s';\n  }\n\n  static String formatDuration(Duration duration) {\n    final hours = duration.inHours;\n    final minutes = duration.inMinutes % 60;\n    if (hours > 0) return '${hours}h ${minutes}m';\n    return '${minutes}m';\n  }\n}\n\n/// Time-based greeting helper\nabstract class GreetingHelper {\n  static String getGreeting([DateTime? time]) {\n    final hour = (time ?? DateTime.now()).hour;\n    if (hour < 12) return 'Good morning';\n    if (hour < 17) return 'Good afternoon';\n    return 'Good evening';\n  }\n}\n"
         }
       }
     ]
@@ -55,9 +54,9 @@
     "role": "user",
     "content": [
       {
+        "tool_use_id": "toolu_0129Da6MvPQYYbBTxFXoDjML",
         "type": "tool_result",
-        "content": "User has approved your plan. You can now start coding. Start with updating your todo list if applicable\n\nYour plan has been saved to: /Users/wonderelt/.claude/plans/stateless-swimming-creek.md\nYou can refer back to it if needed during implementation.\n\n## Approved Plan:\n# Faz 2: autoDispose Eklemeleri - Memory Leak Düzeltmeleri\n\n## Özet\n97 provider var, 0'ında autoDispose kullanılıyor. 9 kritik provider memory leak riski taşıyor.\n\n---\n\n## Tier 1: Kritik (Hemen Düzelt)\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `activity_provider.dart` | 209 | `activitySessionControllerProvider` | Her aktivite için ayrı controller kalıyor |\n| `book_provider.dart` | 314 | `readingControllerProvider` | Her kitap için okuma state'i kalıyor |\n| `reader_provider.dart` | 168 | `readingTimerProvider` | Timer asla sıfırlanmıyor |\n| `reader_provider.dart` | 247 | `sessionXPProvider` | XP session'lar arası sızıyor |\n| `reader_provider.dart` | 210 | `inlineActivityStateProvider` | Map sürekli büyüyor |\n| `reader_provider.dart` | 269 | `learnedWordsProvider` | Liste sürekli büyüyor |\n\n---\n\n## Tier 2: Yüksek Öncelik\n\n| Dosya | Satır | Provider | Risk |\n|-------|-------|----------|------|\n| `book_provider.dart` | 218 | `chapterCompletionProvider` | Operation state kalıyor |\n| `vocabulary_provider.dart` | 326 | `vocabularyReviewControllerProvider` | Quiz state kalıyor |\n| `vocabulary_provider.dart` | 549 | `wordListProgressControllerProvider` | Progress map büyüyor |\n\n---\n\n## Değişiklik Patternleri\n\n### StateNotifierProvider (family olmayan):\n```dart\n// ÖNCE:\nfinal readingTimerProvider = StateNotifierProvider<ReadingTimerNotifier, int>((ref) {\n\n// SONRA:\nfinal readingTimerProvider = StateNotifierProvider.autoDispose<ReadingTimerNotifier, int>((ref) {\n```\n\n### StateNotifierProvider.family:\n```dart\n// ÖNCE:\nfinal activitySessionControllerProvider = StateNotifierProvider.family<...>((ref, id) {\n\n// SONRA:\nfinal activitySessionControllerProvider = StateNotifierProvider.autoDispose.family<...>((ref, id) {\n```\n\n---\n\n## Dosya Listesi\n\n| Dosya | Değişiklik Sayısı |\n|-------|-------------------|\n| `lib/presentation/providers/reader_provider.dart` | 4 |\n| `lib/presentation/providers/book_provider.dart` | 2 |\n| `lib/presentation/providers/activity_provider.dart` | 1 |\n| `lib/presentation/providers/vocabulary_provider.dart` | 2 |\n\n**Toplam:** 9 provider düzeltmesi\n\n---\n\n## Doğrulama\n\n1. **Dart analiz:**\n   ```bash\n   dart analyze lib/presentation/providers/\n   ```\n\n2. **Uygulama testi:**\n   - Birden fazla aktivite tamamla\n   - Birden fazla kitap oku\n   - Vocabulary quiz yap\n   - Her işlem sonrası memory profiler kontrol et\n\n---\n\n## Tier 3 (Opsiyonel - Sonraki Faz)\n\n~25 adet `FutureProvider.family` var (teacher_provider, vocabulary_provider, book_provider). Bunlar da autoDispose olmalı ama kritik değil.\n",
-        "tool_use_id": "toolu_01WiteGYoXYs6fqEmqbkuSiP"
+        "content": "File created successfully at: /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/utils/ui_helpers.dart"
       }
     ]
   },
@@ -66,8 +65,8 @@
     "content": [
       {
         "type": "thinking",
-        "thinking": "Plan approved. Now I need to read the files and make the edits. Let me start with reading all 4 provider files to understand the exact syntax.",
-        "signature": "ErcCCkYICxgCKkAGFI1ISLceEPiESAw/bg8u5g2sopHtohUf1YlZUe8/SJbm64plEvuQEoM2lQz8ksgQMYphCpHWTp6xquakDZXEEgx/3+OHFrQDkIlPlSgaDAnXEvUGC5gFoYt+diIwex36X6DH5Wl9rO9LZI5jN5LTFsOyM/7OT9EdzE7W/ljs5EJjVkj39qW4fVTQF4wrKp4BirMoJiK/FmS3IxAA7ZN8E9AkciljCfJ/RW2b51PjKvnGgupuJoGesv3FyzrgwdoWadFXkqsqR6uG7hk/dXNTiPEeIkncyOMrRpUh2alyhNs8BEIOC6Iqm9v1IuZyniAyprQp3o6Z5y7xxrKhLAlbYbqFUxmxj3Gmo691VHNQvgaGU6tHX1TPnObeLJnFIy84jPlMOz7M2xLEhu4npu8YAQ=="
+        "thinking": "Task #1 tamamlandı. Şimdi Task #2'ye geçip ekranları güncelleyeceğim. Birçok dosyayı güncellemem gerekecek, ama hepsini paralel yapabilirim. Önce dosyaları okuyup tam olarak neyi değiştireceğimi görmem lazım.",
+        "signature": "EokDCkYICxgCKkBXmZf6cYxJybue2BUNTAfO3L80h3EtkGViqqjBXkeKaRZRt7VAXci9q3r+Td1QmZhU4R7ccsYuHILIRXmyv8FmEgy0u/MnPRVp5sgmRO4aDDd2CydhJETGyJuDMiIwhZgXRPTuTgZGosNXlCq+dAKMbMONrPh02NBwx8GC7roEDyn2FXQHnRU/751HdBcSKvABUOF53vviJz76wmPozkADaA9zDqUi0rk85RFoveVp2wjDKRFv2Cyj2HuKyJnUKrw8xrZalXLriu1905Xne74YQQIg/8fJzDYqyWz8eTvPyPZiaFQ5mCJcubyafKXHwd5csioxLNaSjv/yT7JssbOe5Hm8iQq0jSOH0gJ6xvIVg+yUXgWz5L3A8RrzyLCzYXegkskK1dCwteL5lK3U6kKqlN7u4C9WNjyQn3Ki0+r376BruAaqJrZE/hV8W3I2RtvF5nBrBPMv8Ru606SvuRq8bvY3DhFT1F7ZsrYbRuTBRXvwtvt70lmgHDos+myvYC6eGAE="
       }
     ]
   },
@@ -76,7 +75,7 @@
     "content": [
       {
         "type": "text",
-        "text": "Başlıyorum. Önce dosyaları okuyorum."
+        "text": "Task #1 tamamlandı. Şimdi Task #2'ye geçiyorum - dosyaları güncelleyeceğim."
       }
     ]
   },
@@ -85,13 +84,11 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "toolu_019vnm7TuxBRZDaf9tC1NGWc",
-        "name": "Read",
+        "id": "toolu_01AgbXvqiE8W5CcdvCWW2Q7u",
+        "name": "TaskUpdate",
         "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/reader_provider.dart"
-        },
-        "caller": {
-          "type": "direct"
+          "taskId": "1",
+          "status": "completed"
         }
       }
     ]
@@ -101,45 +98,11 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "toolu_01FBoTaHWUUSyhp3uWBbtu7M",
-        "name": "Read",
+        "id": "toolu_01T9K32HLDRrXBoBjDAyLzBH",
+        "name": "TaskUpdate",
         "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/activity_provider.dart"
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_01NM5pYod4Sqq7zD9AaLBUMT",
-        "name": "Read",
-        "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/book_provider.dart"
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_01SfNHnTqjUAyPTdjfqTDq99",
-        "name": "Read",
-        "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/providers/vocabulary_provider.dart"
-        },
-        "caller": {
-          "type": "direct"
+          "taskId": "2",
+          "status": "in_progress"
         }
       }
     ]
@@ -148,5 +111,130 @@
     "role": "user",
     "content": [
       {
-        "tool_use_id": "toolu_019vnm7TuxBRZDaf9tC1NGWc",
+        "tool_use_id": "toolu_01AgbXvqiE8W5CcdvCWW2Q7u",
+        "type": "tool_result",
+        "content": "Updated task #1 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01T9K32HLDRrXBoBjDAyLzBH",
+        "type": "tool_result",
+        "content": "Updated task #2 status"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Şimdi dosyaları güncelleyeceğim. Birden fazla dosyayı paralel olarak okuyup değiştireceğim. Önce tam dosya listesini görmem ve her birindeki değişikliği anlamam lazım.\n\nÖnce vocabulary_hub_screen'i düzeltelim - içinde _getCategoryColor 2 kere var:\n- Line 547-560\n- Line 751-764\n\nAyrıca student_assignment_detail_screen.dart'ı da düzeltelim.",
+        "signature": "EowECkYICxgCKkD3wJFFdEZzs8Zo5nHCmkiALjNBApY3ZlL3bn7+lQTKQfRhjWPDkWG+VeQG3jZVVB8SlDp5UNutx/0hB/sWR2AeEgwrHKcLLK1+2lbVRwQaDAmfjJzf+XazXgL2syIwgNXKI7LM+quof2yZSyYkxX6b8bJH1XSI70CSamjaTD/4GSNFN5qK0zpw4PtgaxyLKvMCxl/7HviFA/x9UsjE6XKrKLTfgYyfpDS91d+lvNAVorXRbIjcNSca5T3hlo/kcf9mIKrLNCSoez5dP5fa7uk5NuNbmP5U4TEByppT1Ly5xLePv3yQqfkWXvukDx263CS+M6S3vH19/mQrdS6EKfXVb4T7DMEZSCWj/LA20/VqoX4I3r/aNVYpL50UIK4hnJlwRwXlof+ARdahVWP+nWlo38eKeZdq1lORNRPxjS2yo+XnM602gIsm7cRdyb7WZv4iUz0FxurLp7Wr64Cwrelo6K8MSye6MLW7EhJ2IOC3ZFPywYwN1NdSNrx6zmTdP7TrL/0dibNUtCVCt3gQBjouAuOOBN+1w6xEaF2NB03ew/6CgqQJWABJ8NFUezWPb3vzwHRimFgTSG2hSmg5r247YgXGEfu2eTFUioXGp+VK+YEECP415yD7o4ye403ke1kxjaeIAD7aNX/zwCqfxcJ8Nai+SqDUQ8Lg3FZQThES/KbrOKcYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi dosyaları paralel olarak okuyup güncelleme yapacağım."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_013dEjmtf3Ed3RhvW4XEApue",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/vocabulary/vocabulary_hub_screen.dart",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01NWBrMCUSJfc5i5Xf7Tpm9J",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01XCLU3PodXS2v13Lj9JXcRs",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignments_screen.dart",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Y71pQMbxt95YHS9THmayDj",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignment_detail_screen.dart",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_013dEjmtf3Ed3RhvW4XEApue",
+        "type": "tool_result",
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→import 'package:go_router/go_router.dart';\n     4→import 'package:google_fonts/google_fonts.dart';\n     5→\n     6→import '../../../app/theme.dart';\n     7→import '../../../domain/entities/word_list.dart';\n     8→import '../../providers/daily_review_provider.dart';\n     9→import '../../providers/vocabulary_provider.dart';\n    10→\n    11→/// Main vocabulary hub screen with word lists organized by sections\n    12→class VocabularyHubScreen extends ConsumerWidget {\n    13→  const VocabularyHubScreen({super.key});\n    14→\n    15→  @override\n    16→  Widget build(BuildContext context, WidgetRef ref) {\n    17→    final continueLearningAsync = ref.watch(continueWordListsProvider);\n    18→    final recommendedAsync = ref.watch(recommendedWordListsProvider);\n    19→    final storyListsAsync = ref.watch(storyWordListsProvider);\n    20→    final hubStatsAsync = ref.watch(vocabularyHubStatsProvider);\n    21→\n    22→    // Extract values with defaults\n    23→    final continueLeaning = continueLearningAsync.valueOrNull ?? [];\n    24→    final recommended = recommendedAsync.valueOrNull ?? [];\n    25→    final storyLists = storyListsAsync.valueOrNull ?? [];\n    26→    final hubStats = hubStatsAsync.valueOrNull;\n    27→\n    28→    return Scaffold(\n    29→      backgroundColor: AppColors.background,\n    30→      body: SafeArea(\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01NWBrMCUSJfc5i5Xf7Tpm9J",
+        "type": "tool_result",
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→import 'package:go_router/go_router.dart';\n     4→import 'package:intl/intl.dart';\n     5→\n     6→import '../../../core/utils/extensions/context_extensions.dart';\n     7→import '../../../domain/repositories/student_assignment_repository.dart';\n     8→import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';\n     9→import '../../providers/auth_provider.dart';\n    10→import '../../../domain/entities/student_assignment.dart';\n    11→import '../../providers/student_assignment_provider.dart';\n    12→import '../../providers/usecase_providers.dart';\n    13→\n    14→class StudentAssignmentDetailScreen extends ConsumerWidget {\n    15→  const StudentAssignmentDetailScreen({\n    16→    super.key,\n    17→    required this.assignmentId,\n    18→  });\n    19→\n    20→  final String assignmentId;\n    21→\n    22→  @override\n    23→  Widget build(BuildContext context, WidgetRef ref) {\n    24→    final assignmentAsync = ref.watch(studentAssignmentDetailProvider(assignmentId));\n    25→\n    26→    return Scaffold(\n    27→      body: assignmentAsync.when(\n    28→        loading: () => const Center(child: CircularProgressIndicator()),\n    29→        error: (error, _) => Center(\n    30→          child: Column(\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01XCLU3PodXS2v13Lj9JXcRs",
+        "type": "tool_result",
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→import 'package:go_router/go_router.dart';\n     4→import 'package:intl/intl.dart';\n     5→\n     6→import '../../../core/utils/extensions/context_extensions.dart';\n     7→import '../../../domain/repositories/teacher_repository.dart';\n     8→import '../../providers/teacher_provider.dart';\n     9→\n    10→class AssignmentsScreen extends ConsumerWidget {\n    11→  const AssignmentsScreen({super.key});\n    12→\n    13→  @override\n    14→  Widget build(BuildContext context, WidgetRef ref) {\n    15→    final assignmentsAsync = ref.watch(teacherAssignmentsProvider);\n    16→\n    17→    return Scaffold(\n    18→      appBar: AppBar(\n    19→        title: const Text('Assignments'),\n    20→        actions: [\n    21→          IconButton(\n    22→            icon: const Icon(Icons.add),\n    23→            onPressed: () {\n    24→              context.push('/teacher/assignments/create');\n    25→            },\n    26→            tooltip: 'Create Assignment',\n    27→          ),\n    28→        ],\n    29→      ),\n    30→      body: RefreshIndicator(\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Y71pQMbxt95YHS9THmayDj",
         "type": "tool_result",

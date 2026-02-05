@@ -76,37 +76,33 @@ Deno.serve(async (req) => {
       // EXTRACT ALL MODE: Get all unique words with context-aware definitions
       console.log("Extract All mode: analyzing all unique words...");
 
-      const uniqueWords = extractUniqueWords(body.text);
-      console.log(`Found ${uniqueWords.length} unique words (stopwords filtered)`);
+      // In extractAll mode, include ALL words (no stopword filtering)
+      const uniqueWords = extractUniqueWords(body.text, true);
+      console.log(`Found ${uniqueWords.length} unique words (ALL words included)`);
 
       if (uniqueWords.length === 0) {
         words = [];
       } else {
-        // Process in batches of 25 words
+        // Process in batches of 25 words with parallel processing (5 concurrent)
         const batches = chunkArray(uniqueWords, 25);
-        console.log(`Processing ${batches.length} batches...`);
+        console.log(`Processing ${batches.length} batches with parallel execution (5 concurrent)...`);
 
-        const allResults: ExtractedWord[] = [];
+        const startTime = Date.now();
 
-        for (let i = 0; i < batches.length; i++) {
-          const batch = batches[i];
-          console.log(`Processing batch ${i + 1}/${batches.length} (${batch.length} words)...`);
+        // Use parallel processing with retry logic
+        words = await processInParallel(batches, body.text, GEMINI_API_KEY, 5);
 
-          const prompt = buildContextAwarePrompt(batch, body.text);
-          const result = await callGemini(GEMINI_API_KEY, prompt);
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`Total extracted: ${words.length}/${uniqueWords.length} words in ${duration}s`);
 
-          if (result && result.length > 0) {
-            allResults.push(...result);
-          }
-
-          // Small delay between batches to avoid rate limiting
-          if (i < batches.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+        // Report any missing words
+        if (words.length < uniqueWords.length) {
+          const extractedSet = new Set(words.map(w => w.word.toLowerCase()));
+          const missing = uniqueWords.filter(w => !extractedSet.has(w));
+          if (missing.length > 0) {
+            console.warn(`Missing words (${missing.length}): ${missing.slice(0, 20).join(', ')}${missing.length > 20 ? '...' : ''}`);
           }
         }
-
-        words = allResults;
-        console.log(`Total extracted: ${words.length} words`);
       }
     } else {
       // STANDARD MODE: Extract top N important words
@@ -120,23 +116,42 @@ Deno.serve(async (req) => {
     // Optional: Save to DB
     let savedCount = 0;
     let skippedCount = 0;
+    let globalCount = 0;
     if (saveToDb && words.length > 0) {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
       // Multi-meaning support: Insert each word-meaning pair as separate row
-      // UNIQUE(word, meaning_tr) constraint prevents exact duplicates
-      // Same word with different meaning = new row (merge, not override)
+      // Global stopwords (articles, prepositions, etc.) are saved with source_book_id = null
+      // This prevents duplicate entries across books for common words
       for (const word of words) {
         try {
-          // Check if exact same word+meaning combo already exists
-          const { data: existing } = await supabase
-            .from("vocabulary_words")
-            .select("id")
-            .eq("word", word.word.toLowerCase())
-            .eq("meaning_tr", word.meaningTr)
-            .maybeSingle();
+          const wordLower = word.word.toLowerCase();
+          const isGlobalStopword = GLOBAL_STOPWORDS.has(wordLower);
+          const sourceBookId = isGlobalStopword ? null : (body.bookId || null);
+
+          // For global stopwords, check if exists with source_book_id = null
+          // For book-specific words, check if exists with same book
+          let existing;
+          if (isGlobalStopword) {
+            const { data } = await supabase
+              .from("vocabulary_words")
+              .select("id")
+              .eq("word", wordLower)
+              .eq("meaning_tr", word.meaningTr)
+              .is("source_book_id", null)
+              .maybeSingle();
+            existing = data;
+          } else {
+            const { data } = await supabase
+              .from("vocabulary_words")
+              .select("id")
+              .eq("word", wordLower)
+              .eq("meaning_tr", word.meaningTr)
+              .maybeSingle();
+            existing = data;
+          }
 
           if (existing) {
             // Same word with same meaning already exists - skip
@@ -144,26 +159,30 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          // Insert new word-meaning row (allows same word with different meanings)
+          // Insert new word-meaning row
           const { error } = await supabase
             .from("vocabulary_words")
             .insert({
-              word: word.word.toLowerCase(),
+              word: wordLower,
               part_of_speech: word.partOfSpeech,
               meaning_tr: word.meaningTr,
               meaning_en: word.meaningEn,
-              source_book_id: body.bookId || null,
+              source_book_id: sourceBookId,  // null for global stopwords
               example_sentences: word.exampleSentence ? [word.exampleSentence] : [],
             });
 
-          if (!error) savedCount++;
-          else console.warn(`Insert failed for "${word.word}":`, error.message);
+          if (!error) {
+            savedCount++;
+            if (isGlobalStopword) globalCount++;
+          } else {
+            console.warn(`Insert failed for "${word.word}":`, error.message);
+          }
         } catch (e) {
           console.warn(`Error processing "${word.word}":`, e);
         }
       }
 
-      console.log(`Saved ${savedCount}/${words.length} words to DB (${skippedCount} duplicates skipped)`);
+      console.log(`Saved ${savedCount}/${words.length} words to DB (${skippedCount} duplicates skipped, ${globalCount} global stopwords)`);
     }
 
     return new Response(
@@ -182,7 +201,73 @@ Deno.serve(async (req) => {
   }
 });
 
-// Common English stopwords to filter out
+// Global stopwords - these should be saved with source_book_id = null (not book-specific)
+// They have universal meanings that don't change based on context
+// These words ARE tappable and will show definitions - they're just stored globally (once) instead of per-book
+const GLOBAL_STOPWORDS = new Set([
+  // Articles
+  "a", "an", "the",
+
+  // Pronouns (basic)
+  "i", "you", "he", "she", "it", "we", "they", "me", "him", "her", "us", "them",
+  "my", "your", "his", "its", "our", "their", "mine", "yours", "hers", "ours", "theirs",
+  "this", "that", "these", "those",
+
+  // Pronouns and related words
+  "any", "all", "each", "few", "more", "most", "other", "some", "such", "own", "both",
+  "either", "neither", "someone", "anyone", "everyone", "nobody", "something", "anything",
+  "everything", "nothing", "myself", "yourself", "himself", "herself", "itself",
+  "ourselves", "themselves", "whose", "which", "who", "whom",
+
+  // Be verbs
+  "be", "is", "am", "are", "was", "were", "been", "being",
+
+  // Have verbs
+  "have", "has", "had", "having",
+
+  // Do verbs
+  "do", "does", "did", "doing", "done",
+
+  // Modals and auxiliary verbs
+  "will", "would", "shall", "should", "may", "might", "must", "can", "could",
+  "ought", "dare", "need", "used",
+
+  // Prepositions (basic)
+  "in", "on", "at", "to", "for", "of", "with", "by", "from", "up", "down",
+  "into", "onto", "out", "over", "under", "about",
+
+  // Prepositions (extended)
+  "above", "below", "between", "among", "through", "during", "before", "after",
+  "since", "until", "against", "off", "within", "without", "across", "along",
+  "behind", "near", "toward", "underneath",
+
+  // Conjunctions
+  "and", "but", "or", "if", "when", "while", "because", "nor", "yet", "so",
+  "than", "whether",
+
+  // Question words
+  "what", "where", "why", "how", "whenever", "wherever",
+
+  // Quantity and time adverbs
+  "much", "many", "less", "least", "again", "further", "once", "twice",
+  "ever", "never", "always", "sometimes", "often", "seldom", "early", "late",
+  "soon", "already", "still", "even",
+
+  // Basic adverbs
+  "not", "no", "yes", "very", "just", "only", "also", "too", "then", "now",
+
+  // Negations and contractions (base forms)
+  "none", "cannot",
+
+  // Other common words
+  "re", "vs", "etc", "ex", "via", "per", "well", "way", "quite", "rather",
+  "really", "maybe", "perhaps", "actually",
+
+  // Numbers
+  "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+]);
+
+// Common English stopwords to filter out (used in standard mode only)
 const STOPWORDS = new Set([
   // Articles
   "a", "an", "the",
@@ -218,18 +303,20 @@ const STOPWORDS = new Set([
 ]);
 
 /**
- * Extract unique words from text, filtering stopwords
+ * Extract unique words from text
+ * @param skipFiltering - If true, include all words (no stopword filtering)
  */
-function extractUniqueWords(text: string): string[] {
-  // Extract words (letters only, at least 3 chars)
-  const wordPattern = /\b[a-zA-Z]{3,}\b/g;
+function extractUniqueWords(text: string, skipFiltering: boolean = false): string[] {
+  // Extract words (letters only, at least 2 chars to include "an", "on", "is", etc.)
+  const wordPattern = /\b[a-zA-Z]{2,}\b/g;
   const matches = text.match(wordPattern) || [];
 
-  // Lowercase and filter stopwords
+  // Lowercase and optionally filter stopwords
   const uniqueWords = new Set<string>();
   for (const word of matches) {
     const lower = word.toLowerCase();
-    if (!STOPWORDS.has(lower)) {
+    // In extractAll mode (skipFiltering=true), include ALL words
+    if (skipFiltering || !STOPWORDS.has(lower)) {
       uniqueWords.add(lower);
     }
   }
@@ -270,9 +357,9 @@ For each word provide:
 2. partOfSpeech: noun, verb, adjective, adverb, etc.
 3. meaningEn: Clear English definition (as used in this context)
 4. meaningTr: Turkish translation (as used in this context)
-5. exampleSentence: The sentence from the text where this word appears
+5. exampleSentence: Create a SIMPLE, INDEPENDENT sentence (NOT from the text) that clearly demonstrates this word's meaning. Keep it short (max 10 words), easy for beginners.
 
-TEXT (for context):
+TEXT (for context - use ONLY to understand the meaning, NOT for example sentences):
 ${contextText}
 
 WORDS TO DEFINE (provide definition for ALL of these):
@@ -327,6 +414,81 @@ async function callGemini(apiKey: string, prompt: string): Promise<ExtractedWord
   }
 }
 
+/**
+ * Process batches in parallel with controlled concurrency
+ */
+async function processInParallel(
+  batches: string[][],
+  contextText: string,
+  apiKey: string,
+  concurrency: number = 5
+): Promise<ExtractedWord[]> {
+  const allResults: ExtractedWord[] = [];
+
+  for (let i = 0; i < batches.length; i += concurrency) {
+    const chunk = batches.slice(i, i + concurrency);
+
+    console.log(`Processing parallel chunk ${Math.floor(i / concurrency) + 1}/${Math.ceil(batches.length / concurrency)} (${chunk.length} batches in parallel)...`);
+
+    // Process chunk in parallel
+    const promises = chunk.map(batch =>
+      processBatchWithRetry(batch, contextText, apiKey)
+    );
+
+    const results = await Promise.all(promises);
+    allResults.push(...results.flat());
+
+    // Small delay between parallel chunks to avoid rate limiting
+    if (i + concurrency < batches.length) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+
+  return allResults;
+}
+
+/**
+ * Process a batch of words with retry logic for missing words
+ */
+async function processBatchWithRetry(
+  words: string[],
+  contextText: string,
+  apiKey: string,
+  maxRetries: number = 2
+): Promise<ExtractedWord[]> {
+  let remainingWords = [...words];
+  const allResults: ExtractedWord[] = [];
+  let attempt = 0;
+
+  while (remainingWords.length > 0 && attempt < maxRetries) {
+    const prompt = buildContextAwarePrompt(remainingWords, contextText);
+    const result = await callGemini(apiKey, prompt);
+
+    if (result && result.length > 0) {
+      allResults.push(...result);
+
+      // Find missing words
+      const returnedWords = new Set(result.map(r => r.word.toLowerCase()));
+      remainingWords = remainingWords.filter(w => !returnedWords.has(w.toLowerCase()));
+    }
+
+    attempt++;
+
+    if (remainingWords.length > 0 && attempt < maxRetries) {
+      console.log(`Retry ${attempt}: ${remainingWords.length} words missing, retrying...`);
+      // Small delay before retry
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  }
+
+  // Log any still-missing words
+  if (remainingWords.length > 0) {
+    console.warn(`Could not extract definitions for: ${remainingWords.join(', ')}`);
+  }
+
+  return allResults;
+}
+
 function buildPrompt(
   text: string,
   difficulty: string,
@@ -341,7 +503,7 @@ For each word, provide:
 2. partOfSpeech: noun, verb, adjective, adverb, preposition, conjunction, pronoun, interjection
 3. meaningEn: Clear, simple English definition
 4. meaningTr: Turkish translation
-5. exampleSentence: A sentence from the text containing this word
+5. exampleSentence: Create a SIMPLE, INDEPENDENT sentence (NOT from the text) that clearly demonstrates this word's meaning. Keep it short (max 10 words), easy for beginners.
 
 Rules:
 - Extract exactly ${maxWords} words (or fewer if text is short)

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+import 'package:just_audio/just_audio.dart';
+
+import '../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
+import '../common/game_button.dart';
 import '../common/xp_badge.dart';
 
 /// Word translation activity widget - compact version
@@ -34,6 +39,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
 
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  late AudioPlayer _audioPlayer;
 
   WordTranslationContent get content =>
       widget.activity.content as WordTranslationContent;
@@ -41,6 +47,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
   @override
   void initState() {
     super.initState();
+    _audioPlayer = AudioPlayer();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -64,27 +71,58 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
   @override
   void dispose() {
     _animationController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  Future<void> _playSound(bool isCorrect) async {
+    try {
+      if (isCorrect) {
+        await _audioPlayer.setAsset('assets/audio/correct.mp3');
+      } else {
+        await _audioPlayer.setAsset('assets/audio/wrong.mp3');
+      }
+      await _audioPlayer.play();
+    } catch (e) {
+      debugPrint('Error playing sound: $e');
+    }
   }
 
   void _handleAnswer(String answer) {
     if (_isAnswered || widget.isCompleted) return;
 
+    final isCorrect = answer == content.correctAnswer;
+
     setState(() {
       _selectedAnswer = answer;
       _isAnswered = true;
-      _isCorrect = answer == content.correctAnswer;
+      _isCorrect = isCorrect;
       if (_isCorrect!) {
         _showXPAnimation = true;
         _animationController.forward();
       }
     });
 
-    widget.onAnswer(
-      _isCorrect!,
-      _isCorrect! ? widget.activity.xpReward : 0,
-      widget.activity.vocabularyWords,
-    );
+    _playSound(isCorrect);
+
+    if (isCorrect) {
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          widget.onAnswer(
+            true,
+            widget.activity.xpReward,
+            widget.activity.vocabularyWords,
+          );
+        }
+      });
+    } else {
+      // Wrong answer - still call onAnswer to mark activity complete and allow progression
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        if (mounted) {
+          widget.onAnswer(false, 0, []);
+        }
+      });
+    }
   }
 
   @override
@@ -97,16 +135,29 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
 
     if (answered && correct != null) {
       if (correct) {
-        cardColor = const Color(0xFF38A169).withValues(alpha: 0.1);
-        borderColor = const Color(0xFF38A169).withValues(alpha: 0.5);
+        // Soft Green for success
+        cardColor = const Color(0xFFF0FFF4); 
+        borderColor = const Color(0xFF38A169);
       } else {
-        cardColor = const Color(0xFFE53E3E).withValues(alpha: 0.1);
-        borderColor = const Color(0xFFE53E3E).withValues(alpha: 0.5);
+        // Soft Red for error
+        cardColor = const Color(0xFFFFF5F5);
+        borderColor = const Color(0xFFE53E3E); 
+      }
+      
+      // Dark mode adjustments if needed
+      if (widget.settings.theme == ReaderTheme.dark) {
+         if (correct) {
+            cardColor = const Color(0xFF064E3B);
+            borderColor = const Color(0xFF34D399);
+         } else {
+            cardColor = const Color(0xFF450A0A);
+            borderColor = const Color(0xFFF87171);
+         }
       }
     } else {
       cardColor = widget.settings.theme == ReaderTheme.dark
           ? const Color(0xFF1F2937)
-          : const Color(0xFFF8FAFC);
+          : Colors.white;
       borderColor = widget.settings.theme == ReaderTheme.dark
           ? const Color(0xFF374151)
           : const Color(0xFFE2E8F0);
@@ -119,43 +170,53 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
         child: child,
       ),
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 12),
+        margin: const EdgeInsets.symmetric(vertical: 24),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1.5),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: borderColor,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Word highlight
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF6366F1).withValues(alpha: 0.15),
-                          const Color(0xFF8B5CF6).withValues(alpha: 0.15),
-                        ],
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: AppColors.primary,
+                        width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '«${content.word}»',
-                      style: TextStyle(
-                        fontSize: widget.settings.fontSize + 2,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF6366F1),
+                      content.word,
+                      style: GoogleFonts.nunito(
+                        fontSize: widget.settings.fontSize + 4,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
 
                   // Options
                   ...content.options.asMap().entries.map((entry) {
@@ -163,10 +224,47 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
                     final option = entry.value;
                     return Padding(
                       padding: EdgeInsets.only(
-                          bottom: index < content.options.length - 1 ? 8 : 0,),
+                          bottom: index < content.options.length - 1 ? 12 : 0,),
                       child: _buildOption(option),
                     );
                   }),
+                  
+                  // Feedback Section
+                  if (answered && correct != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: correct 
+                            ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF065F46) : const Color(0xFFC6F6D5))
+                            : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF7F1D1D) : const Color(0xFFFED7D7)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            correct ? Icons.check_circle : Icons.cancel,
+                            color: correct 
+                                ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF34D399) : const Color(0xFF2F855A))
+                                : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFF87171) : const Color(0xFFC53030)),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            correct ? 'Correct!' : 'Wrong!',
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: correct 
+                                  ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFD1FAE5) : const Color(0xFF22543D))
+                                  : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFFEE2E2) : const Color(0xFF742A2A)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -174,8 +272,8 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
             // XP Animation
             if (_showXPAnimation)
               Positioned(
-                top: -8,
-                right: 12,
+                top: -10, // Adjusted
+                right: 0,
                 child: XPBadge(
                   xp: widget.activity.xpReward,
                   onComplete: () {
@@ -196,64 +294,29 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
     final isSelected = _selectedAnswer == option;
     final isCorrectOption = content.correctAnswer == option;
 
-    Color backgroundColor;
-    Color borderColor;
-    Color textColor;
+    GameButtonVariant variant = GameButtonVariant.secondary;
 
     if (answered) {
       if (isCorrectOption) {
-        backgroundColor = const Color(0xFF38A169).withValues(alpha: 0.2);
-        borderColor = const Color(0xFF38A169);
-        textColor = const Color(0xFF38A169);
+        variant = GameButtonVariant.primary; // Green
       } else if (isSelected && !isCorrectOption) {
-        backgroundColor = const Color(0xFFE53E3E).withValues(alpha: 0.2);
-        borderColor = const Color(0xFFE53E3E);
-        textColor = const Color(0xFFE53E3E);
+        variant = GameButtonVariant.danger; // Red
       } else {
-        backgroundColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF374151).withValues(alpha: 0.5)
-            : const Color(0xFFF1F5F9);
-        borderColor = Colors.transparent;
-        textColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF6B7280)
-            : const Color(0xFF94A3B8);
+        variant = GameButtonVariant.neutral; // Greyed out
       }
     } else {
-      backgroundColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF374151)
-          : Colors.white;
-      borderColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF4B5563)
-          : const Color(0xFFE2E8F0);
-      textColor = widget.settings.theme.text;
+      if (isSelected) {
+         variant = GameButtonVariant.primary;
+      } else {
+         variant = GameButtonVariant.secondary;
+      }
     }
 
-    return GestureDetector(
-      onTap: () => _handleAnswer(option),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: borderColor,
-            width: isSelected || (answered && isCorrectOption) ? 2 : 1.5,
-          ),
-        ),
-        child: Text(
-          option,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            color: textColor,
-            fontWeight: isSelected || (answered && isCorrectOption)
-                ? FontWeight.w600
-                : FontWeight.normal,
-          ),
-        ),
-      ),
+    return GameButton(
+      label: option,
+      onPressed: answered ? null : () => _handleAnswer(option),
+      variant: variant,
+      fullWidth: true,
     );
   }
 }

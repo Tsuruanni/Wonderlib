@@ -152,6 +152,8 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
       }
     }
 
+    if (!mounted) return;
+
     showDialog(
       context: context,
       barrierDismissible: false,

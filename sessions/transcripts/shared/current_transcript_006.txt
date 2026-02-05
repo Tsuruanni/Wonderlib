@@ -1,4 +1,379 @@
-        "content": "     1→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     2→\n     3→import '../../domain/entities/vocabulary.dart';\n     4→import '../../domain/entities/word_list.dart';\n     5→import 'auth_provider.dart';\n     6→import 'repository_providers.dart';\n     7→\n     8→// ============================================\n     9→// VOCABULARY WORD PROVIDERS\n    10→// ============================================\n    11→\n    12→/// Provides all vocabulary words with optional filters\n    13→final vocabularyWordsProvider =\n    14→    FutureProvider.family<List<VocabularyWord>, VocabularyFilters?>((ref, filters) async {\n    15→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n    16→  final result = await vocabRepo.getAllWords(\n    17→    level: filters?.level,\n    18→    categories: filters?.categories,\n    19→    page: filters?.page ?? 1,\n    20→    pageSize: filters?.pageSize ?? 50,\n    21→  );\n    22→  return result.fold(\n    23→    (failure) => [],\n    24→    (words) => words,\n    25→  );\n    26→});\n    27→\n    28→/// Provides vocabulary search results\n    29→final vocabularySearchProvider =\n    30→    FutureProvider.family<List<VocabularyWord>, String>((ref, query) async {\n    31→  if (query.isEmpty) return [];\n    32→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n    33→  final result = await vocabRepo.searchWords(query);\n    34→  return result.fold(\n    35→    (failure) => [],\n    36→    (words) => words,\n    37→  );\n    38→});\n    39→\n    40→/// Provides words due for review\n    41→final dueForReviewProvider = FutureProvider<List<VocabularyWord>>((ref) async {\n    42→  final userId = ref.watch(currentUserIdProvider);\n    43→  if (userId == null) return [];\n    44→\n    45→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n    46→  final result = await vocabRepo.getDueForReview(userId);\n    47→  return result.fold(\n    48→    (failure) => [],\n    49→    (words) => words,\n    50→  );\n    51→});\n    52→\n    53→/// Provides new words to learn\n    54→final newWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {\n    55→  final userId = ref.watch(currentUserIdProvider);\n    56→  if (userId == null) return [];\n    57→\n    58→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n    59→  final result = await vocabRepo.getNewWords(userId: userId, limit: 10);\n    60→  return result.fold(\n    61→    (failure) => [],\n    62→    (words) => words,\n    63→  );\n    64→});\n    65→\n    66→/// Provides vocabulary stats\n    67→final vocabularyStatsProvider = FutureProvider<Map<String, int>>((ref) async {\n    68→  final userId = ref.watch(currentUserIdProvider);\n    69→  if (userId == null) return {};\n    70→\n    71→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n    72→  final result = await vocabRepo.getVocabularyStats(userId);\n    73→  return result.fold(\n    74→    (failure) => {},\n    75→    (stats) => stats,\n    76→  );\n    77→});\n    78→\n    79→/// Vocabulary filters\n    80→class VocabularyFilters {\n    81→  final String? level;\n    82→  final List<String>? categories;\n    83→  final int page;\n    84→  final int pageSize;\n    85→\n    86→  const VocabularyFilters({\n    87→    this.level,\n    88→    this.categories,\n    89→    this.page = 1,\n    90→    this.pageSize = 50,\n    91→  });\n    92→}\n    93→\n    94→// ============================================\n    95→// USER VOCABULARY PROVIDERS (using repository)\n    96→// ============================================\n    97→\n    98→/// All vocabulary words (sync provider for UI)\n    99→final allVocabularyWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {\n   100→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n   101→  final result = await vocabRepo.getAllWords();\n   102→  return result.fold((f) => [], (words) => words);\n   103→});\n   104→\n   105→/// User's vocabulary progress\n   106→final userVocabularyProgressProvider = FutureProvider<List<VocabularyProgress>>((ref) async {\n   107→  final userId = ref.watch(currentUserIdProvider);\n   108→  if (userId == null) return [];\n   109→\n   110→  final vocabRepo = ref.watch(vocabularyRepositoryProvider);\n   111→  final result = await vocabRepo.getUserProgress(userId);\n   112→  return result.fold((f) => [], (progress) => progress);\n   113→});\n   114→\n   115→/// User's learned words with progress (combined)\n   116→final userVocabularyProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {\n   117→  final words = await ref.watch(allVocabularyWordsProvider.future);\n   118→  final progress = await ref.watch(userVocabularyProgressProvider.future);\n   119→\n   120→  final progressMap = {for (var p in progress) p.wordId: p};\n   121→\n   122→  return words.map((word) {\n   123→    final wordProgress = progressMap[word.id];\n   124→    return UserVocabularyItem(\n   125→      word: word,\n   126→      progress: wordProgress,\n   127→    );\n   128→  }).toList();\n   129→});\n   130→\n   131→/// Words due for review today\n   132→final wordsDueForReviewProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {\n   133→  final items = await ref.watch(userVocabularyProvider.future);\n   134→  return items.where((item) {\n   135→    if (item.progress == null) return false;\n   136→    return item.progress!.isDueForReview;\n   137→  }).toList();\n   138→});\n   139→\n   140→/// New words (not started yet)\n   141→final newWordsToLearnProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {\n   142→  final items = await ref.watch(userVocabularyProvider.future);\n   143→  return items.where((item) => item.progress == null || item.progress!.isNew).toList();\n   144→});\n   145→\n   146→/// Vocabulary stats (simple)\n   147→final vocabularyStatsSimpleProvider = FutureProvider<VocabularyStats>((ref) async {\n   148→  final items = await ref.watch(userVocabularyProvider.future);\n   149→\n   150→  int totalWords = items.length;\n   151→  int newCount = 0;\n   152→  int learningCount = 0;\n   153→  int reviewingCount = 0;\n   154→  int masteredCount = 0;\n   155→\n   156→  for (final item in items) {\n   157→    if (item.progress == null) {\n   158→      newCount++;\n   159→    } else {\n   160→      switch (item.progress!.status) {\n   161→        case VocabularyStatus.newWord:\n   162→          newCount++;\n   163→        case VocabularyStatus.learning:\n   164→          learningCount++;\n   165→        case VocabularyStatus.reviewing:\n   166→          reviewingCount++;\n   167→        case VocabularyStatus.mastered:\n   168→          masteredCount++;\n   169→      }\n   170→    }\n   171→  }\n   172→\n   173→  return VocabularyStats(\n   174→    totalWords: totalWords,\n   175→    newCount: newCount,\n   176→    learningCount: learningCount,\n   177→    reviewingCount: reviewingCount,\n   178→    masteredCount: masteredCount,\n   179→  );\n   180→});\n   181→\n   182→/// User vocabulary item combining word and progress\n   183→class UserVocabularyItem {\n   184→  final VocabularyWord word;\n   185→  final VocabularyProgress? progress;\n   186→\n   187→  const UserVocabularyItem({required this.word, this.progress});\n   188→\n   189→  VocabularyStatus get status => progress?.status ?? VocabularyStatus.newWord;\n   190→  bool get isMastered => progress?.isMastered ?? false;\n   191→}\n   192→\n   193→/// Simple vocabulary stats\n   194→class VocabularyStats {\n   195→  final int totalWords;\n   196→  final int newCount;\n   197→  final int learningCount;\n   198→  final int reviewingCount;\n   199→  final int masteredCount;\n   200→\n   201→  const VocabularyStats({\n   202→    required this.totalWords,\n   203→    required this.newCount,\n   204→    required this.learningCount,\n   205→    required this.reviewingCount,\n   206→    required this.masteredCount,\n   207→  });\n   208→\n   209→  int get inProgressCount => learningCount + reviewingCount;\n   210→}\n   211→\n   212→// ============================================\n   213→// VOCABULARY REVIEW CONTROLLER\n   214→// ============================================\n   215→\n   216→/// Vocabulary review controller\n   217→class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {\n   218→  final Ref _ref;\n   219→\n   220→  VocabularyReviewController(this._ref)\n   221→      : super(const VocabularyReviewState());\n   222→\n   223→  Future<void> loadReviewSession() async {\n   224→    state = state.copyWith(isLoading: true);\n   225→\n   226→    final userId = _ref.read(currentUserIdProvider);\n   227→    if (userId == null) {\n   228→      state = state.copyWith(isLoading: false);\n   229→      return;\n   230→    }\n   231→\n   232→    final vocabRepo = _ref.read(vocabularyRepositoryProvider);\n   233→\n   234→    // Get due words and new words\n   235→    final dueResult = await vocabRepo.getDueForReview(userId);\n   236→    final newResult = await vocabRepo.getNewWords(userId: userId, limit: 5);\n   237→\n   238→    final dueWords = dueResult.fold((f) => <VocabularyWord>[], (w) => w);\n   239→    final newWords = newResult.fold((f) => <VocabularyWord>[], (w) => w);\n   240→\n   241→    final allWords = [...dueWords, ...newWords];\n   242→\n   243→    state = state.copyWith(\n   244→      isLoading: false,\n   245→      words: allWords,\n   246→      currentIndex: 0,\n   247→      correctCount: 0,\n   248→      incorrectCount: 0,\n   249→    );\n   250→  }\n   251→\n   252→  Future<void> answerWord(int quality) async {\n   253→    final userId = _ref.read(currentUserIdProvider);\n   254→    if (userId == null || state.currentWord == null) return;\n   255→\n   256→    final vocabRepo = _ref.read(vocabularyRepositoryProvider);\n   257→\n   258→    // Get current progress\n   259→    final progressResult = await vocabRepo.getWordProgress(\n   260→      userId: userId,\n   261→      wordId: state.currentWord!.id,\n   262→    );\n   263→\n   264→    final progress = progressResult.fold((f) => null, (p) => p);\n   265→    if (progress == null) return;\n   266→\n   267→    // Calculate next review\n   268→    final updatedProgress = progress.calculateNextReview(quality);\n   269→    await vocabRepo.updateWordProgress(updatedProgress);\n   270→\n   271→    // Update state\n   272→    state = state.copyWith(\n   273→      correctCount: quality >= 3 ? state.correctCount + 1 : state.correctCount,\n   274→      incorrectCount: quality < 3 ? state.incorrectCount + 1 : state.incorrectCount,\n   275→      currentIndex: state.currentIndex + 1,\n   276→    );\n   277→  }\n   278→\n   279→  void reset() {\n   280→    state = const VocabularyReviewState();\n   281→  }\n   282→}\n   283→\n   284→class VocabularyReviewState {\n   285→  final bool isLoading;\n   286→  final List<VocabularyWord> words;\n   287→  final int currentIndex;\n   288→  final int correctCount;\n   289→  final int incorrectCount;\n   290→\n   291→  const VocabularyReviewState({\n   292→    this.isLoading = false,\n   293→    this.words = const [],\n   294→    this.currentIndex = 0,\n   295→    this.correctCount = 0,\n   296→    this.incorrectCount = 0,\n   297→  });\n   298→\n   299→  VocabularyWord? get currentWord =>\n   300→      currentIndex < words.length ? words[currentIndex] : null;\n   301→\n   302→  bool get isComplete => currentIndex >= words.length && words.isNotEmpty;\n   303→\n   304→  double get accuracy =>\n   305→      (correctCount + incorrectCount) > 0\n   306→          ? correctCount / (correctCount + incorrectCount)\n   307→          : 0;\n   308→\n   309→  VocabularyReviewState copyWith({\n   310→    bool? isLoading,\n   311→    List<VocabularyWord>? words,\n   312→    int? currentIndex,\n   313→    int? correctCount,\n   314→    int? incorrectCount,\n   315→  }) {\n   316→    return VocabularyReviewState(\n   317→      isLoading: isLoading ?? this.isLoading,\n   318→      words: words ?? this.words,\n   319→      currentIndex: currentIndex ?? this.currentIndex,\n   320→      correctCount: correctCount ?? this.correctCount,\n   321→      incorrectCount: incorrectCount ?? this.incorrectCount,\n   322→    );\n   323→  }\n   324→}\n   325→\n   326→final vocabularyReviewControllerProvider =\n   327→    StateNotifierProvider<VocabularyReviewController, VocabularyReviewState>((ref) {\n   328→  return VocabularyReviewController(ref);\n   329→});\n   330→\n   331→// ============================================\n   332→// WORD LIST PROVIDERS (using repository)\n   333→// ============================================\n   334→\n   335→/// All word lists\n   336→final allWordListsProvider = FutureProvider<List<WordList>>((ref) async {\n   337→  final repo = ref.watch(wordListRepositoryProvider);\n   338→  final result = await repo.getAllWordLists();\n   339→  return result.fold((f) => [], (lists) => lists);\n   340→});\n   341→\n   342→/// System word lists (admin-created)\n   343→final systemWordListsProvider = FutureProvider<List<WordList>>((ref) async {\n   344→  final repo = ref.watch(wordListRepositoryProvider);\n   345→  final result = await repo.getAllWordLists(isSystem: true);\n   346→  return result.fold((f) => [], (lists) => lists);\n   347→});\n   348→\n   349→/// Story vocabulary lists (from books user has read)\n   350→final storyWordListsProvider = FutureProvider<List<WordList>>((ref) async {\n   351→  final repo = ref.watch(wordListRepositoryProvider);\n   352→  final result = await repo.getAllWordLists(category: WordListCategory.storyVocab);\n   353→  return result.fold((f) => [], (lists) => lists);\n   354→});\n   355→\n   356→/// Word lists by category\n   357→final wordListsByCategoryProvider = FutureProvider.family<List<WordList>, WordListCategory>((ref, category) async {\n   358→  final repo = ref.watch(wordListRepositoryProvider);\n   359→  final result = await repo.getAllWordLists(category: category);\n   360→  return result.fold((f) => [], (lists) => lists);\n   361→});\n   362→\n   363→/// Single word list by ID\n   364→final wordListByIdProvider = FutureProvider.family<WordList?, String>((ref, id) async {\n   365→  final repo = ref.watch(wordListRepositoryProvider);\n   366→  final result = await repo.getWordListById(id);\n   367→  return result.fold((f) => null, (list) => list);\n   368→});\n   369→\n   370→/// Words for a specific list\n   371→final wordsForListProvider = FutureProvider.family<List<VocabularyWord>, String>((ref, listId) async {\n   372→  final repo = ref.watch(wordListRepositoryProvider);\n   373→  final result = await repo.getWordsForList(listId);\n   374→  return result.fold((f) => [], (words) => words);\n   375→});\n   376→\n   377→/// User's progress for all word lists\n   378→final userWordListProgressProvider = FutureProvider<List<UserWordListProgress>>((ref) async {\n   379→  final userId = ref.watch(currentUserIdProvider);\n   380→  if (userId == null) return [];\n   381→\n   382→  final repo = ref.watch(wordListRepositoryProvider);\n   383→  final result = await repo.getUserWordListProgress(userId);\n   384→  return result.fold((f) => [], (progress) => progress);\n   385→});\n   386→\n   387→/// User's progress for a specific word list\n   388→final progressForListProvider = FutureProvider.family<UserWordListProgress?, String>((ref, listId) async {\n   389→  final userId = ref.watch(currentUserIdProvider);\n   390→  if (userId == null) return null;\n   391→\n   392→  final repo = ref.watch(wordListRepositoryProvider);\n   393→  final result = await repo.getProgressForList(userId: userId, listId: listId);\n   394→  return result.fold((f) => null, (progress) => progress);\n   395→});\n   396→\n   397→/// Word lists with progress (for display in hub)\n   398→final wordListsWithProgressProvider = FutureProvider<List<WordListWithProgress>>((ref) async {\n   399→  final lists = await ref.watch(allWordListsProvider.future);\n   400→  final progressList = await ref.watch(userWordListProgressProvider.future);\n   401→\n   402→  final progressMap = {for (var p in progressList) p.wordListId: p};\n   403→\n   404→  return lists.map((list) {\n   405→    return WordListWithProgress(\n   406→      wordList: list,\n   407→      progress: progressMap[list.id],\n   408→    );\n   409→  }).toList();\n   410→});\n   411→\n   412→/// Word lists user has started (for \"Continue Learning\" section)\n   413→final continueWordListsProvider = FutureProvider<List<WordListWithProgress>>((ref) async {\n   414→  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);\n   415→  final filtered = listsWithProgress\n   416→      .where((lwp) => lwp.progress != null && !lwp.progress!.isFullyComplete)\n   417→      .toList()\n   418→    ..sort((a, b) => (b.progress?.updatedAt ?? DateTime(0))\n   419→        .compareTo(a.progress?.updatedAt ?? DateTime(0)));\n   420→  return filtered;\n   421→});\n   422→\n   423→/// Recommended word lists (system lists user hasn't started)\n   424→final recommendedWordListsProvider = FutureProvider<List<WordListWithProgress>>((ref) async {\n   425→  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);\n   426→  return listsWithProgress\n   427→      .where((lwp) => lwp.wordList.isSystem && lwp.progress == null)\n   428→      .toList();\n   429→});\n   430→\n   431→/// Total words due for review across all lists (SM-2)\n   432→final totalDueWordsCountProvider = FutureProvider<int>((ref) async {\n   433→  final dueWords = await ref.watch(wordsDueForReviewProvider.future);\n   434→  return dueWords.length;\n   435→});\n   436→\n   437→/// Combined class for word list with its progress\n   438→class WordListWithProgress {\n   439→  final WordList wordList;\n   440→  final UserWordListProgress? progress;\n   441→\n   442→  const WordListWithProgress({\n   443→    required this.wordList,\n   444→    this.progress,\n   445→  });\n   446→\n   447→  double get progressPercentage => progress?.progressPercentage ?? 0.0;\n   448→  bool get isStarted => progress != null;\n   449→  bool get isComplete => progress?.isFullyComplete ?? false;\n   450→  int? get nextPhase => progress?.nextPhase;\n   451→}\n   452→\n   453→/// Vocabulary hub stats\n   454→final vocabularyHubStatsProvider = FutureProvider<VocabularyHubStats>((ref) async {\n   455→  final allWords = await ref.watch(userVocabularyProvider.future);\n   456→  final dueCount = await ref.watch(totalDueWordsCountProvider.future);\n   457→  final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);\n   458→\n   459→  final masteredCount = allWords.where((w) => w.isMastered).length;\n   460→  final completedLists = listsWithProgress.where((l) => l.isComplete).length;\n   461→\n   462→  return VocabularyHubStats(\n   463→    totalWords: allWords.length,\n   464→    masteredWords: masteredCount,\n   465→    dueForReview: dueCount,\n   466→    completedLists: completedLists,\n   467→  );\n   468→});\n   469→\n   470→class VocabularyHubStats {\n   471→  final int totalWords;\n   472→  final int masteredWords;\n   473→  final int dueForReview;\n   474→  final int completedLists;\n   475→\n   476→  const VocabularyHubStats({\n   477→    required this.totalWords,\n   478→    required this.masteredWords,\n   479→    required this.dueForReview,\n   480→    required this.completedLists,\n   481→  });\n   482→}\n   483→\n   484→// ============================================\n   485→// WORD LIST PROGRESS CONTROLLER\n   486→// ============================================\n   487→\n   488→/// Controller for managing word list progress state\n   489→class WordListProgressController extends StateNotifier<Map<String, UserWordListProgress>> {\n   490→  final Ref _ref;\n   491→\n   492→  WordListProgressController(this._ref) : super({}) {\n   493→    _loadProgress();\n   494→  }\n   495→\n   496→  Future<void> _loadProgress() async {\n   497→    final userId = _ref.read(currentUserIdProvider);\n   498→    if (userId == null) return;\n   499→\n   500→    final repo = _ref.read(wordListRepositoryProvider);\n   501→    final result = await repo.getUserWordListProgress(userId);\n   502→    result.fold(\n   503→      (f) => null,\n   504→      (progress) {\n   505→        state = {for (var p in progress) p.wordListId: p};\n   506→      },\n   507→    );\n   508→  }\n   509→\n   510→  /// Get progress for a specific list\n   511→  UserWordListProgress? getProgress(String listId) {\n   512→    return state[listId];\n   513→  }\n   514→\n   515→  /// Complete a phase for a word list\n   516→  Future<void> completePhase(String listId, int phase, {int? score, int? total}) async {\n   517→    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';\n   518→    final repo = _ref.read(wordListRepositoryProvider);\n   519→\n   520→    final result = await repo.completePhase(\n   521→      userId: userId,\n   522→      listId: listId,\n   523→      phase: phase,\n   524→      score: score,\n   525→      total: total,\n   526→    );\n   527→\n   528→    result.fold(\n   529→      (f) => null,\n   530→      (updated) {\n   531→        state = {...state, listId: updated};\n   532→      },\n   533→    );\n   534→  }\n   535→\n   536→  /// Reset progress for a word list\n   537→  Future<void> resetProgress(String listId) async {\n   538→    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';\n   539→    final repo = _ref.read(wordListRepositoryProvider);\n   540→\n   541→    await repo.resetProgress(userId: userId, listId: listId);\n   542→\n   543→    final newState = Map<String, UserWordListProgress>.from(state);\n   544→    newState.remove(listId);\n   545→    state = newState;\n   546→  }\n   547→}\n   548→\n   549→final wordListProgressControllerProvider =\n   550→    StateNotifierProvider<WordListProgressController, Map<String, UserWordListProgress>>((ref) {\n   551→  return WordListProgressController(ref);\n   552→});\n   553→\n   554→/// Get progress for a specific list (reactive)\n   555→final wordListProgressProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {\n   556→  final progressMap = ref.watch(wordListProgressControllerProvider);\n   557→  return progressMap[listId];\n   558→});\n   559→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+        "signature": "Eu8CCkYICxgCKkApQWMr+uq47Jgt53bX7bFokhAanIKfkh1nh9hbXBEUvNUYFDVZXp7cXbMcTqswNdVbGAHTF63Q69VrByubP9g1EgzTUwQ54ahC8yr4lOwaDMQ6FINe3ZosGXhsYiIwNYdWSSJuSZucJSWlT70HI6iHozSyEeIB0JB/NdUNiJMv5qyZ4UUsSMPZeEZVb3kcKtYBPgD2rsrRrF//ZwuSZaeHVMjH1r852f7X5PemTR/rDuZa5i7T/LDk67essF8GIBv8TzFx6smfIL2zB/mirEBoXcZtGdlwXFR2d//9YEXpLbFkrK6SnG4a/SIWKB/x6yxgbpkPr8dHai+Ip1bVrf1Cc9zmz1uI0Kvweqsb4vwNgsDO4hJ1nFasOTUgdvzMYiJVyCDhCJK97wAJ6h5igx1W1uxhcUpa9eKnpeJxkeIJPlKJBhoTbktRNCOL++1PuuDyIGepTegPwS4O/wKLArP4QaCabFUqtBgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi dosyaları paralel olarak güncelliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01VmgGNngNovzvi7ujCR8gJb",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "old_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/repositories/student_assignment_repository.dart';\nimport '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';\nimport '../../providers/auth_provider.dart';\nimport '../../../domain/entities/student_assignment.dart';\nimport '../../providers/student_assignment_provider.dart';\nimport '../../providers/usecase_providers.dart';",
+          "new_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';\nimport '../../providers/auth_provider.dart';\nimport '../../../domain/entities/student_assignment.dart';\nimport '../../providers/student_assignment_provider.dart';\nimport '../../providers/usecase_providers.dart';\nimport '../../utils/ui_helpers.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01MoW5WuTZLthJo7bHiW664F",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignments_screen.dart",
+          "old_string": "import '../../../core/utils/extensions/context_extensions.dart';",
+          "new_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../utils/ui_helpers.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_012EE7ABEsY2LiqCwEWzTstf",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignments_screen.dart",
+          "old_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/repositories/teacher_repository.dart';\nimport '../../providers/teacher_provider.dart';",
+          "new_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/repositories/teacher_repository.dart';\nimport '../../providers/teacher_provider.dart';\nimport '../../utils/ui_helpers.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01VmgGNngNovzvi7ujCR8gJb",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01T7beiBacrpxWMEL71SiYsW",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignment_detail_screen.dart",
+          "old_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/repositories/teacher_repository.dart';\nimport '../../../domain/usecases/assignment/delete_assignment_usecase.dart';\nimport '../../providers/teacher_provider.dart';\nimport '../../providers/usecase_providers.dart';\nimport '../../widgets/common/stat_item.dart';",
+          "new_string": "import '../../../core/utils/extensions/context_extensions.dart';\nimport '../../../domain/repositories/teacher_repository.dart';\nimport '../../../domain/usecases/assignment/delete_assignment_usecase.dart';\nimport '../../providers/teacher_provider.dart';\nimport '../../providers/usecase_providers.dart';\nimport '../../utils/ui_helpers.dart';\nimport '../../widgets/common/stat_item.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01MoW5WuTZLthJo7bHiW664F",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignments_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_012EE7ABEsY2LiqCwEWzTstf",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignments_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01T7beiBacrpxWMEL71SiYsW",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignment_detail_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Import'lar eklendi. Şimdi duplicate metodları kaldırmam ve kullanımları değiştirmem lazım. Dosyaları tekrar okuyup tam metod bloklarını bulacağım.",
+        "signature": "EsgCCkYICxgCKkBJY7fzoTPHvYG8k6EPx5AjJ/1/iTxIxzalV5ZsFEoYzkxlJ7afrOD0ozra5X8vHu4N3QemJqxqd04pivOc6kzfEgxaMfK8QwhCUVfejmwaDMHr9VimHwcbsCd3LiIwMhEQmIRQhojzA8gj3J92yrr/v8/Fu5uo/RSwTIb8KnyTRjh+R26p8rx4I7g5SmPDKq8BRtKRd4zRhqplMq5Qb1sIvmEYMnLKQ5CZ8na04BbumSo4Jw3k58vwcsvHo1uzTTHzVJaO/nHULC0penmCA+9acGCBIKVFsR5Zei2bvLMzHqogAANVDo8KnqvkktsrVvd2QxoeYF1Ql6NWLfdaCykPRE9QUHFlGqaPMbte7HnSSfKNhIplSAK2gCF+akzAhkZkW0ft9+Ak4vAonNzFBPSI6iJcgiebBu6G1kAJxm9QVxgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Import'lar eklendi. Şimdi duplicate metodları kaldırıyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01QXRv5vCLJ11HGKA9NyXVWa",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "offset": 430,
+          "limit": 65
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01QXRv5vCLJ11HGKA9NyXVWa",
+        "type": "tool_result",
+        "content": "   430→    // Navigate to book detail - use go() not push() to avoid shell navigation conflicts\n   431→    if (context.mounted) {\n   432→      context.go('/library/book/${assignment.bookId}');\n   433→    }\n   434→  }\n   435→\n   436→  IconData _getTypeIcon(StudentAssignmentType type) {\n   437→    switch (type) {\n   438→      case StudentAssignmentType.book:\n   439→        return Icons.menu_book;\n   440→      case StudentAssignmentType.vocabulary:\n   441→        return Icons.abc;\n   442→      case StudentAssignmentType.mixed:\n   443→        return Icons.library_books;\n   444→    }\n   445→  }\n   446→\n   447→  Color _getTypeColor(StudentAssignmentType type) {\n   448→    switch (type) {\n   449→      case StudentAssignmentType.book:\n   450→        return Colors.blue;\n   451→      case StudentAssignmentType.vocabulary:\n   452→        return Colors.purple;\n   453→      case StudentAssignmentType.mixed:\n   454→        return Colors.teal;\n   455→    }\n   456→  }\n   457→\n   458→  IconData _getStatusIcon(StudentAssignmentStatus status) {\n   459→    switch (status) {\n   460→      case StudentAssignmentStatus.pending:\n   461→        return Icons.schedule;\n   462→      case StudentAssignmentStatus.inProgress:\n   463→        return Icons.play_circle;\n   464→      case StudentAssignmentStatus.completed:\n   465→        return Icons.check_circle;\n   466→      case StudentAssignmentStatus.overdue:\n   467→        return Icons.warning;\n   468→    }\n   469→  }\n   470→\n   471→  Color _getStatusColor(StudentAssignmentStatus status) {\n   472→    switch (status) {\n   473→      case StudentAssignmentStatus.pending:\n   474→        return Colors.grey;\n   475→      case StudentAssignmentStatus.inProgress:\n   476→        return Colors.blue;\n   477→      case StudentAssignmentStatus.completed:\n   478→        return Colors.green;\n   479→      case StudentAssignmentStatus.overdue:\n   480→        return Colors.red;\n   481→    }\n   482→  }\n   483→\n   484→  Color _getScoreColor(double score) {\n   485→    if (score >= 80) return Colors.green;\n   486→    if (score >= 60) return Colors.orange;\n   487→    return Colors.red;\n   488→  }\n   489→}\n   490→\n   491→class _ContentCard extends StatelessWidget {\n   492→  const _ContentCard({\n   493→    required this.icon,\n   494→    required this.title,\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Metodları silip kullanımları güncelleyeceğim. student_assignment_detail_screen.dart'da 4 tane helper metod var (line 436-488). Bunları sileceğim ve kullanımları güncelleyeceğim.",
+        "signature": "EuUCCkYICxgCKkDnDvN1D2GALv979W06m37PUnva4oINaxMhTBoJQByYO1JnLHO7sM8KTLGyv1XDEbOdrtOjSu8fcwR89WknNUMcEgyjI6hG14Npcex6BEwaDMKRXIVhO7GStSy6sCIwU67qB8SqtfuhXGUsm+AdlPm0R3Yu19DHXp7YdH+Z1TfSzxTLafkUnPz2Wq1gTkvqKswBCdS8ZdMVocS6mSaxYC/La2q7mIfYFwcnafIoQRnhuyxOsC2hfxasLy/mNgKELEEgGiYt6qlw8mtMh3YzjYknwJuvB7TIKrCQhC5y6+10bY1N/4eV5amPGkh4IqweL61mg0/G9tkr9qRveyC6jYCvQ6rv0rtC5M3aCvSEy0wS4Gvn39uhoFnoKtFavciXA3KH1jGAYd+yhglDr1LYhu7+lh89R/wM9fLQu5YvBXcN5OrNBC2yEY718cvw1kn8pkr54ez+voM4ckGbAPe3GAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01A2niPkmi8JetLvSsg8YtjR",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "old_string": "  IconData _getTypeIcon(StudentAssignmentType type) {\n    switch (type) {\n      case StudentAssignmentType.book:\n        return Icons.menu_book;\n      case StudentAssignmentType.vocabulary:\n        return Icons.abc;\n      case StudentAssignmentType.mixed:\n        return Icons.library_books;\n    }\n  }\n\n  Color _getTypeColor(StudentAssignmentType type) {\n    switch (type) {\n      case StudentAssignmentType.book:\n        return Colors.blue;\n      case StudentAssignmentType.vocabulary:\n        return Colors.purple;\n      case StudentAssignmentType.mixed:\n        return Colors.teal;\n    }\n  }\n\n  IconData _getStatusIcon(StudentAssignmentStatus status) {\n    switch (status) {\n      case StudentAssignmentStatus.pending:\n        return Icons.schedule;\n      case StudentAssignmentStatus.inProgress:\n        return Icons.play_circle;\n      case StudentAssignmentStatus.completed:\n        return Icons.check_circle;\n      case StudentAssignmentStatus.overdue:\n        return Icons.warning;\n    }\n  }\n\n  Color _getStatusColor(StudentAssignmentStatus status) {\n    switch (status) {\n      case StudentAssignmentStatus.pending:\n        return Colors.grey;\n      case StudentAssignmentStatus.inProgress:\n        return Colors.blue;\n      case StudentAssignmentStatus.completed:\n        return Colors.green;\n      case StudentAssignmentStatus.overdue:\n        return Colors.red;\n    }\n  }\n\n  Color _getScoreColor(double score) {\n    if (score >= 80) return Colors.green;\n    if (score >= 60) return Colors.orange;\n    return Colors.red;\n  }\n}",
+          "new_string": "}"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01A2niPkmi8JetLvSsg8YtjR",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Metodlar silindi. Şimdi kullanımları güncellemem lazım:\n- _getTypeColor -> StudentAssignmentColors.getTypeColor\n- _getTypeIcon -> StudentAssignmentColors.getTypeIcon\n- _getStatusColor -> StudentAssignmentColors.getStatusColor\n- _getStatusIcon -> StudentAssignmentColors.getStatusIcon- _getScoreColor -> ScoreColors.getScoreColor",
+        "signature": "EvMDCkYICxgCKkDnEfke4A+xJdMkjTc1ddYacaOuid0DoXg9dXJX7q/8U02oXvHYMMgxa6szvJyOQ2XZKOhbTuFNksFSLpuyZQVrEgxMa73x24qCAs8rWUgaDLG7qB9Wlxg0d0LKWCIwEPbFPETFDpVAdFejXrt/xmlKfYKIX4JlkkmkXqQAYl7XG8WRyb8JQg0pLEEhebbcKtoCHz+mj43uAGgEc4zHCQ8h1sJGc4NoXGBrIGEUOAEpMJkePv0LbybDMh/XL/MYtaMOiaXF+lcjl7CTeOrSzhCDq1Stq7Z/fBQu41Am0i5GYj5JFYenZONyEm1FBYV7eJ2vwiJ8x4TYps9z+4ZsCmMxHO32PmcF6Cu3EOwWrxXdTWLz8aByF8tWnNxEd9maXACpqmcsSrHDpRLSlvjL4FyPBsQUkEU4Ac1FywamB3q5KPtlRTwYIG16s5EwCb/tRJrRp7/fLPhiz+cCBSVWfjM8hJ4PF5M4htMd7oMnWmvtNVnBWipD6kFkXeIGSA/dqbK5gDeJuSj6Nvy1Mw2aQAeV1QQPrXQ7eXwM5GqnGDF+xd3f0qxQVLUqXhTNLBgo1IyPiLGeKIX0h7cwBIpk9Ve3yIYR2Q6J6D2YSSgGwF6F0f9/WlE8I5i6w4Uc9Ae4CIe0UzxodrxwjNq/WhgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01XFVwK5jS5PcVwWmdb2Hezf",
+        "name": "Edit",
+        "input": {
+          "replace_all": true,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "old_string": "_getTypeColor(",
+          "new_string": "StudentAssignmentColors.getTypeColor("
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_013FabYMRRAdpq7zVhtecXBV",
+        "name": "Edit",
+        "input": {
+          "replace_all": true,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "old_string": "_getStatusColor(",
+          "new_string": "StudentAssignmentColors.getStatusColor("
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_016dy3gjACgZ3mKzATdSyacj",
+        "name": "Edit",
+        "input": {
+          "replace_all": true,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart",
+          "old_string": "_getScoreColor(",
+          "new_string": "ScoreColors.getScoreColor("
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01XFVwK5jS5PcVwWmdb2Hezf",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart has been updated. All occurrences of '_getTypeColor(' were successfully replaced with 'StudentAssignmentColors.getTypeColor('."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_013FabYMRRAdpq7zVhtecXBV",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart has been updated. All occurrences of '_getStatusColor(' were successfully replaced with 'StudentAssignmentColors.getStatusColor('."
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_016dy3gjACgZ3mKzATdSyacj",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignment_detail_screen.dart has been updated. All occurrences of '_getScoreColor(' were successfully replaced with 'ScoreColors.getScoreColor('."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "student_assignment_detail_screen.dart tamamlandı. Şimdi diğer dosyaları paralel olarak güncelleyeceğim.",
+        "signature": "EpUCCkYICxgCKkBwkLHidOiqS2byTNsvdIMJ+yeB1ZqBBtlQ6H6GpUGkMsJoEfwMKG1d561hkxMEajpf64CNFh8GSK1IMgxLlaYeEgxTng7GQXutAdWL/AUaDBCqs/0vdbo0kM5aOiIw/jjJtIIMWtCZHH2uiFwasu4Zrz03+pkjsOUXti3r+S2iKK4o9QpVFHvFQ/GhgAYsKn0TlkpiidyYyshAOgWRNJno5FShVReH/ImQFjioTebL4quqaL73814Pp2fCYgkQOXtcjkQ7pTAky5scVBvNhOyvJPg8C6TCNEknDUtwuNFHCbPZ1u5jWxXqToBZnDAZ+t3Q+ltAaBI9P40MUH4wKVI6l58iWHYI1VOC4oyepRgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "student_assignment_detail_screen.dart tamamlandı. Diğer dosyaları paralel güncelliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01YDk2YFP1HixAsvQWckrHUc",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/student/student_assignments_screen.dart",
+          "offset": 360,
+          "limit": 40
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Rye3wwCiwNX9WSdhwx4wyi",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignments_screen.dart",
+          "offset": 300,
+          "limit": 35
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_012v4eZWFbwrAt4VBkd3JGFJ",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/screens/teacher/assignment_detail_screen.dart",
+          "offset": 345,
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01YDk2YFP1HixAsvQWckrHUc",
+        "type": "tool_result",
+        "content": "   360→          ),\n   361→        ),\n   362→      ),\n   363→    );\n   364→  }\n   365→\n   366→  IconData _getTypeIcon(StudentAssignmentType type) {\n   367→    switch (type) {\n   368→      case StudentAssignmentType.book:\n   369→        return Icons.menu_book;\n   370→      case StudentAssignmentType.vocabulary:\n   371→        return Icons.abc;\n   372→      case StudentAssignmentType.mixed:\n   373→        return Icons.library_books;\n   374→    }\n   375→  }\n   376→\n   377→  Color _getTypeColor(StudentAssignmentType type) {\n   378→    switch (type) {\n   379→      case StudentAssignmentType.book:\n   380→        return Colors.blue;\n   381→      case StudentAssignmentType.vocabulary:\n   382→        return Colors.purple;\n   383→      case StudentAssignmentType.mixed:\n   384→        return Colors.teal;\n   385→    }\n   386→  }\n   387→\n   388→  Color _getScoreColor(double score) {\n   389→    if (score >= 80) return Colors.green;\n   390→    if (score >= 60) return Colors.orange;\n   391→    return Colors.red;\n   392→  }\n   393→}\n   394→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Rye3wwCiwNX9WSdhwx4wyi",
+        "type": "tool_result",
+        "content": "   300→            ],\n   301→          ),\n   302→        ),\n   303→      ),\n   304→    );\n   305→  }\n   306→\n   307→  IconData _getTypeIcon(AssignmentType type) {\n   308→    switch (type) {\n   309→      case AssignmentType.book:\n   310→        return Icons.menu_book;\n   311→      case AssignmentType.vocabulary:\n   312→        return Icons.abc;\n   313→      case AssignmentType.mixed:\n   314→        return Icons.library_books;\n   315→    }\n   316→  }\n   317→\n   318→  Color _getTypeColor(AssignmentType type) {\n   319→    switch (type) {\n   320→      case AssignmentType.book:\n   321→        return Colors.blue;\n   322→      case AssignmentType.vocabulary:\n   323→        return Colors.purple;\n   324→      case AssignmentType.mixed:\n   325→        return Colors.teal;\n   326→    }\n   327→  }\n   328→}\n   329→\n   330→class _StatusBadge extends StatelessWidget {\n   331→  const _StatusBadge({required this.assignment});\n   332→\n   333→  final Assignment assignment;\n   334→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_012v4eZWFbwrAt4VBkd3JGFJ",
+        "type": "tool_result",
+        "content": "   345→  }\n   346→\n   347→  IconData _getTypeIcon(AssignmentType type) {\n   348→    switch (type) {\n   349→      case AssignmentType.book:\n   350→        return Icons.menu_book;\n   351→      case AssignmentType.vocabulary:\n   352→        return Icons.abc;\n   353→      case AssignmentType.mixed:\n   354→        return Icons.library_books;\n   355→    }\n   356→  }\n   357→\n   358→  Color _getTypeColor(AssignmentType type) {\n   359→    switch (type) {\n   360→      case AssignmentType.book:\n   361→        return Colors.blue;\n   362→      case AssignmentType.vocabulary:\n   363→        return Colors.purple;\n   364→      case AssignmentType.mixed:\n   365→        return Colors.teal;\n   366→    }\n   367→  }\n   368→}\n   369→\n   370→class _StatsBar extends StatelessWidget {\n   371→  const _StatsBar({required this.assignment});\n   372→\n   373→  final Assignment assignment;\n   374→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
       }
     ]
   },

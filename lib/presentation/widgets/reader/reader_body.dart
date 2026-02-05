@@ -5,6 +5,7 @@ import '../../../core/constants/reader_constants.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/activity_provider.dart';
+import '../../providers/audio_sync_provider.dart';
 import '../../providers/content_block_provider.dart';
 import '../../providers/reader_provider.dart';
 import 'chapter_completion_card.dart';
@@ -63,6 +64,19 @@ class ReaderBody extends ConsumerWidget {
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
+        // User scroll detection - disable follow mode when user drags
+        if (notification is ScrollStartNotification) {
+          if (notification.dragDetails != null) {
+            // User initiated scroll (finger drag) - not programmatic
+            try {
+              ref.read(audioSyncControllerProvider.notifier).disableFollowScroll();
+            } catch (_) {
+              // Audio controller not ready
+            }
+          }
+        }
+
+        // Scroll progress tracking for header collapse
         if (notification is ScrollUpdateNotification) {
           final maxScroll = notification.metrics.maxScrollExtent;
           final currentScroll = notification.metrics.pixels;
@@ -128,6 +142,9 @@ class ReaderBody extends ConsumerWidget {
                       },
                       onBackToBook: onBackToBook,
                     ),
+
+                  // Extra padding at bottom to account for floating audio controls
+                  const SizedBox(height: 120),
                 ],
               ),
             ),

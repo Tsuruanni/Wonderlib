@@ -186,29 +186,61 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _handleNextChapter(Chapter nextChapter) async {
+    debugPrint('>>> _handleNextChapter called for: ${nextChapter.title}');
+
+    // Capture values before async operations to avoid dispose issues
+    final bookId = widget.bookId;
+    final chapterId = widget.chapterId;
+    final completionNotifier = ref.read(chapterCompletionProvider.notifier);
+
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
-    await ref.read(chapterCompletionProvider.notifier).markComplete(
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-    );
+
+    // Check if still mounted after async operation
+    if (!mounted) return;
+
+    try {
+      await completionNotifier.markComplete(
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+    } catch (e) {
+      // Notifier might be disposed, log and continue navigation
+      debugPrint('ChapterCompletionNotifier error (may be disposed): $e');
+    }
+
     if (mounted) {
-      context.go('/reader/${widget.bookId}/${nextChapter.id}');
+      context.go('/reader/$bookId/${nextChapter.id}');
     }
   }
 
   Future<void> _handleBackToBook() async {
+    // Capture values before async operations to avoid dispose issues
+    final bookId = widget.bookId;
+    final chapterId = widget.chapterId;
+    final completionNotifier = ref.read(chapterCompletionProvider.notifier);
+
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
-    await ref.read(chapterCompletionProvider.notifier).markComplete(
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-    );
-    // Invalidate providers to refresh home screen data
-    ref.invalidate(continueReadingProvider);
-    ref.invalidate(recommendedBooksProvider);
+
+    // Check if still mounted after async operation
+    if (!mounted) return;
+
+    try {
+      await completionNotifier.markComplete(
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+    } catch (e) {
+      // Notifier might be disposed, log and continue navigation
+      debugPrint('ChapterCompletionNotifier error (may be disposed): $e');
+    }
+
     if (mounted) {
-      context.go('/library/book/${widget.bookId}');
+      // Invalidate providers to refresh home screen data
+      ref.invalidate(continueReadingProvider);
+      ref.invalidate(recommendedBooksProvider);
+      context.go('/library/book/$bookId');
     }
   }
 

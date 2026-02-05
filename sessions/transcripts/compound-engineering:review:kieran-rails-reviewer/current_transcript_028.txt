@@ -1,0 +1,233 @@
+        "type": "tool_use",
+        "id": "toolu_01N94Ki3mgLa13riyJdP74qA",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/pubspec.yaml"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Cmk611Nqyn6JFSHt39PcMc",
+        "type": "tool_result",
+        "content": "Updated task #7 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01N94Ki3mgLa13riyJdP74qA",
+        "type": "tool_result",
+        "content": "     1→name: readeng_admin\n     2→description: Admin panel for ReadEng content management\n     3→publish_to: 'none'\n     4→version: 1.0.0+1\n     5→\n     6→environment:\n     7→  sdk: ^3.7.0\n     8→\n     9→dependencies:\n    10→  flutter:\n    11→    sdk: flutter\n    12→\n    13→  # Supabase\n    14→  supabase_flutter: ^2.8.4\n    15→\n    16→  # State Management\n    17→  flutter_riverpod: ^2.6.1\n    18→  riverpod_annotation: ^2.6.1\n    19→\n    20→  # Routing\n    21→  go_router: ^14.8.1\n    22→\n    23→  # Utilities\n    24→  dartz: ^0.10.1\n    25→  equatable: ^2.0.7\n    26→  uuid: ^4.5.1\n    27→\n    28→  # UI\n    29→  cached_network_image: ^3.4.1\n    30→  file_picker: ^8.3.7\n    31→\n    32→  # HTTP client for ElevenLabs API\n    33→  http: ^1.3.0\n    34→\n    35→  # Environment variables\n    36→  flutter_dotenv: ^5.2.1\n    37→\n    38→  # Audio preview\n    39→  just_audio: ^0.9.40\n    40→\n    41→  # URL launcher\n    42→  url_launcher: ^6.2.5\n    43→\n    44→dev_dependencies:\n    45→  flutter_test:\n    46→    sdk: flutter\n    47→  flutter_lints: ^5.0.0\n    48→  riverpod_generator: ^2.6.3\n    49→  build_runner: ^2.4.15\n    50→\n    51→flutter:\n    52→  uses-material-design: true\n    53→  assets:\n    54→    - .env\n    55→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Jg59hNrxd7saYegtCjHk8Z",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/pubspec.yaml",
+          "old_string": "  # Utilities\n  dartz: ^0.10.1\n  equatable: ^2.0.7\n  uuid: ^4.5.1",
+          "new_string": "  # Utilities\n  dartz: ^0.10.1\n  equatable: ^2.0.7\n  uuid: ^4.5.1\n  csv: ^6.0.0"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Jg59hNrxd7saYegtCjHk8Z",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/pubspec.yaml has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01LdknLc4Dmv8L719dc82jES",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "7",
+          "status": "completed"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_011qaXCpPpMiCpsRLFQ2tWYD",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "8",
+          "status": "in_progress"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01LdknLc4Dmv8L719dc82jES",
+        "type": "tool_result",
+        "content": "Updated task #7 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_011qaXCpPpMiCpsRLFQ2tWYD",
+        "type": "tool_result",
+        "content": "Updated task #8 status"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01UbZPKKf1t5avBfS5DQCay3",
+        "name": "Bash",
+        "input": {
+          "command": "mkdir -p /Users/wonderelt/Desktop/readeng_admin/lib/core/widgets",
+          "description": "Create widgets directory"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01UbZPKKf1t5avBfS5DQCay3",
+        "type": "tool_result",
+        "content": "",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_014NuNjLpXhPdHSEttzbyUr5",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/widgets/csv_import_dialog.dart",
+          "content": "import 'dart:convert';\n\nimport 'package:csv/csv.dart';\nimport 'package:file_picker/file_picker.dart';\nimport 'package:flutter/material.dart';\n\n/// Result of a CSV import operation\nclass CsvImportResult {\n  const CsvImportResult({\n    required this.imported,\n    required this.updated,\n    required this.errors,\n  });\n\n  final int imported;\n  final int updated;\n  final List<String> errors;\n\n  int get total => imported + updated;\n  bool get hasErrors => errors.isNotEmpty;\n}\n\n/// Reusable CSV import dialog for Users and Vocabulary\nclass CsvImportDialog extends StatefulWidget {\n  const CsvImportDialog({\n    super.key,\n    required this.title,\n    required this.expectedHeaders,\n    required this.requiredHeaders,\n    required this.processRow,\n    required this.onComplete,\n  });\n\n  final String title;\n  final List<String> expectedHeaders;\n  final List<String> requiredHeaders;\n\n  /// Process a single row. Returns null on success, or an error message.\n  final Future<String?> Function(Map<String, String> row) processRow;\n  final VoidCallback onComplete;\n\n  @override\n  State<CsvImportDialog> createState() => _CsvImportDialogState();\n}\n\nclass _CsvImportDialogState extends State<CsvImportDialog> {\n  List<List<dynamic>>? _csvData;\n  List<String>? _headers;\n  String? _fileName;\n  String? _validationError;\n  bool _isImporting = false;\n  CsvImportResult? _result;\n  double _progress = 0;\n\n  Future<void> _pickFile() async {\n    final result = await FilePicker.platform.pickFiles(\n      type: FileType.custom,\n      allowedExtensions: ['csv'],\n      withData: true,\n    );\n\n    if (result == null || result.files.isEmpty) return;\n\n    final file = result.files.first;\n    if (file.bytes == null) {\n      setState(() => _validationError = 'Could not read file');\n      return;\n    }\n\n    try {\n      final content = utf8.decode(file.bytes!);\n      final csvData = const CsvToListConverter().convert(content);\n\n      if (csvData.isEmpty) {\n        setState(() => _validationError = 'CSV file is empty');\n        return;\n      }\n\n      final headers = csvData.first.map((e) => e.toString().toLowerCase().trim()).toList();\n\n      // Validate required headers\n      final missingHeaders = widget.requiredHeaders\n          .where((h) => !headers.contains(h.toLowerCase()))\n          .toList();\n\n      if (missingHeaders.isNotEmpty) {\n        setState(() {\n          _validationError = 'Missing required columns: ${missingHeaders.join(', ')}\\n\\n'\n              'Expected format: ${widget.expectedHeaders.join(',')}';\n          _csvData = null;\n          _headers = null;\n          _fileName = null;\n        });\n        return;\n      }\n\n      setState(() {\n        _csvData = csvData;\n        _headers = headers.cast<String>();\n        _fileName = file.name;\n        _validationError = null;\n        _result = null;\n      });\n    } catch (e) {\n      setState(() => _validationError = 'Error parsing CSV: $e');\n    }\n  }\n\n  Future<void> _import() async {\n    if (_csvData == null || _headers == null) return;\n\n    setState(() {\n      _isImporting = true;\n      _progress = 0;\n    });\n\n    int imported = 0;\n    int updated = 0;\n    final errors = <String>[];\n\n    // Skip header row\n    final dataRows = _csvData!.skip(1).toList();\n    final total = dataRows.length;\n\n    for (var i = 0; i < dataRows.length; i++) {\n      final row = dataRows[i];\n      final rowMap = <String, String>{};\n\n      for (var j = 0; j < _headers!.length && j < row.length; j++) {\n        rowMap[_headers![j]] = row[j]?.toString().trim() ?? '';\n      }\n\n      try {\n        final error = await widget.processRow(rowMap);\n        if (error != null) {\n          errors.add('Row ${i + 2}: $error');\n        } else {\n          // Check if it was an update or insert based on error message\n          // For simplicity, count all as imported\n          imported++;\n        }\n      } catch (e) {\n        errors.add('Row ${i + 2}: $e');\n      }\n\n      setState(() => _progress = (i + 1) / total);\n    }\n\n    setState(() {\n      _isImporting = false;\n      _result = CsvImportResult(\n        imported: imported,\n        updated: updated,\n        errors: errors,\n      );\n    });\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return Dialog(\n      child: Container(\n        width: 500,\n        padding: const EdgeInsets.all(24),\n        child: Column(\n          mainAxisSize: MainAxisSize.min,\n          crossAxisAlignment: CrossAxisAlignment.start,\n          children: [\n            // Title\n            Row(\n              children: [\n                const Icon(Icons.upload_file, size: 28),\n                const SizedBox(width: 12),\n                Text(\n                  widget.title,\n                  style: Theme.of(context).textTheme.titleLarge,\n                ),\n              ],\n            ),\n            const SizedBox(height: 24),\n\n            // File picker or result\n            if (_result != null) ...[\n              _buildResult(),\n            ] else if (_isImporting) ...[\n              _buildProgress(),\n            ] else ...[\n              _buildFilePicker(),\n            ],\n\n            const SizedBox(height: 24),\n\n            // Actions\n            Row(\n              mainAxisAlignment: MainAxisAlignment.end,\n              children: [\n                TextButton(\n                  onPressed: () {\n                    if (_result != null) {\n                      widget.onComplete();\n                    }\n                    Navigator.of(context).pop();\n                  },\n                  child: Text(_result != null ? 'Close' : 'Cancel'),\n                ),\n                if (_csvData != null && _result == null && !_isImporting) ...[\n                  const SizedBox(width: 8),\n                  FilledButton(\n                    onPressed: _import,\n                    child: const Text('Import'),\n                  ),\n                ],\n              ],\n            ),\n          ],\n        ),\n      ),\n    );\n  }\n\n  Widget _buildFilePicker() {\n    return Column(\n      crossAxisAlignment: CrossAxisAlignment.start,\n      children: [\n        // Expected format\n        Container(\n          padding: const EdgeInsets.all(12),\n          decoration: BoxDecoration(\n            color: Colors.grey.shade100,\n            borderRadius: BorderRadius.circular(8),\n          ),\n          child: Column(\n            crossAxisAlignment: CrossAxisAlignment.start,\n            children: [\n              const Text(\n                'Expected CSV format:',\n                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),\n              ),\n              const SizedBox(height: 4),\n              Text(\n                widget.expectedHeaders.join(','),\n                style: TextStyle(\n                  fontFamily: 'monospace',\n                  fontSize: 12,\n                  color: Colors.grey.shade700,\n                ),\n              ),\n              const SizedBox(height: 8),\n              Text(\n                'Required: ${widget.requiredHeaders.join(', ')}',\n                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),\n              ),\n            ],\n          ),\n        ),\n        const SizedBox(height: 16),\n\n        // File picker button\n        InkWell(\n          onTap: _pickFile,\n          borderRadius: BorderRadius.circular(8),\n          child: Container(\n            padding: const EdgeInsets.all(24),\n            decoration: BoxDecoration(\n              border: Border.all(color: Colors.grey.shade300),\n              borderRadius: BorderRadius.circular(8),\n            ),\n            child: Center(\n              child: Column(\n                children: [\n                  Icon(\n                    _fileName != null ? Icons.check_circle : Icons.cloud_upload,\n                    size: 40,\n                    color: _fileName != null ? Colors.green : Colors.grey.shade400,\n                  ),\n                  const SizedBox(height: 8),\n                  Text(\n                    _fileName ?? 'Click to select CSV file',\n                    style: TextStyle(\n                      color: _fileName != null ? Colors.black : Colors.grey.shade600,\n                    ),\n                  ),\n                  if (_csvData != null) ...[\n                    const SizedBox(height: 4),\n                    Text(\n                      '${_csvData!.length - 1} rows',\n                      style: TextStyle(color: Colors.grey.shade600, fontSize: 13),\n                    ),\n                  ],\n                ],\n              ),\n            ),\n          ),\n        ),\n\n        // Validation error\n        if (_validationError != null) ...[\n          const SizedBox(height: 16),\n          Container(\n            padding: const EdgeInsets.all(12),\n            decoration: BoxDecoration(\n              color: Colors.red.shade50,\n              borderRadius: BorderRadius.circular(8),\n              border: Border.all(color: Colors.red.shade200),\n            ),\n            child: Row(\n              crossAxisAlignment: CrossAxisAlignment.start,\n              children: [\n                Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),\n                const SizedBox(width: 8),\n                Expanded(\n                  child: Text(\n                    _validationError!,\n                    style: TextStyle(color: Colors.red.shade700, fontSize: 13),\n                  ),\n                ),\n              ],\n            ),\n          ),\n        ],\n      ],\n    );\n  }\n\n  Widget _buildProgress() {\n    return Column(\n      children: [\n        const SizedBox(height: 20),\n        LinearProgressIndicator(value: _progress),\n        const SizedBox(height: 16),\n        Text(\n          'Importing... ${(_progress * 100).toInt()}%',\n          style: TextStyle(color: Colors.grey.shade600),\n        ),\n        const SizedBox(height: 20),\n      ],\n    );\n  }\n\n  Widget _buildResult() {\n    final result = _result!;\n\n    return Column(\n      crossAxisAlignment: CrossAxisAlignment.start,\n      children: [\n        // Success summary\n        Container(\n          padding: const EdgeInsets.all(16),\n          decoration: BoxDecoration(\n            color: result.hasErrors ? Colors.orange.shade50 : Colors.green.shade50,\n            borderRadius: BorderRadius.circular(8),\n          ),\n          child: Row(\n            children: [\n              Icon(\n                result.hasErrors ? Icons.warning_amber : Icons.check_circle,\n                color: result.hasErrors ? Colors.orange.shade700 : Colors.green.shade700,\n                size: 32,\n              ),\n              const SizedBox(width: 16),\n              Expanded(\n                child: Column(\n                  crossAxisAlignment: CrossAxisAlignment.start,\n                  children: [\n                    Text(\n                      'Import Complete',\n                      style: TextStyle(\n                        fontWeight: FontWeight.bold,\n                        color: result.hasErrors\n                            ? Colors.orange.shade900\n                            : Colors.green.shade900,\n                      ),\n                    ),\n                    const SizedBox(height: 4),\n                    Text(\n                      '${result.imported} imported successfully',\n                      style: TextStyle(\n                        color: result.hasErrors\n                            ? Colors.orange.shade700\n                            : Colors.green.shade700,\n                      ),\n                    ),\n                    if (result.hasErrors)\n                      Text(\n                        '${result.errors.length} errors',\n                        style: TextStyle(color: Colors.orange.shade700),\n                      ),\n                  ],\n                ),\n              ),\n            ],\n          ),\n        ),\n\n        // Error list\n        if (result.hasErrors) ...[\n          const SizedBox(height: 16),\n          Text(\n            'Errors:',\n            style: TextStyle(\n              fontWeight: FontWeight.bold,\n              color: Colors.red.shade700,\n            ),\n          ),\n          const SizedBox(height: 8),\n          Container(\n            constraints: const BoxConstraints(maxHeight: 200),\n            child: SingleChildScrollView(\n              child: Column(\n                crossAxisAlignment: CrossAxisAlignment.start,\n                children: result.errors\n                    .map((e) => Padding(\n                          padding: const EdgeInsets.only(bottom: 4),\n                          child: Text(\n                            e,\n                            style: TextStyle(\n                              fontSize: 13,\n                              color: Colors.red.shade700,\n                            ),\n                          ),\n                        ))\n                    .toList(),\n              ),\n            ),\n          ),\n        ],\n      ],\n    );\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_014NuNjLpXhPdHSEttzbyUr5",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/readeng_admin/lib/core/widgets/csv_import_dialog.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01SxkJUkEneq5p9gx9F9jJbm",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "8",
+          "status": "completed"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_0198azWdLdVtDbhCr8z187nx",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "9",
+          "status": "in_progress"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01SxkJUkEneq5p9gx9F9jJbm",
+        "type": "tool_result",
+        "content": "Updated task #8 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_0198azWdLdVtDbhCr8z187nx",
+        "type": "tool_result",
+        "content": "Updated task #9 status"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_019DkEi8RNfqw5DNq7R9Pf4H",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_import_screen.dart",

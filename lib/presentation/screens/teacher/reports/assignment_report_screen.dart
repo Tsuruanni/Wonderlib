@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/stat_item.dart';
 
 class AssignmentReportScreen extends ConsumerWidget {
@@ -182,12 +183,12 @@ class _AssignmentReportCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getTypeColor(assignment.type).withValues(alpha: 0.1),
+                      color: AssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      _getTypeIcon(assignment.type),
-                      color: _getTypeColor(assignment.type),
+                      AssignmentColors.getTypeIcon(assignment.type),
+                      color: AssignmentColors.getTypeColor(assignment.type),
                       size: 20,
                     ),
                   ),
@@ -262,7 +263,7 @@ class _AssignmentReportCard extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: assignment.completionRate / 100,
                             backgroundColor: context.colorScheme.surfaceContainerHighest,
-                            color: _getCompletionColor(assignment.completionRate),
+                            color: ScoreColors.getCompletionColor(assignment.completionRate),
                             minHeight: 8,
                           ),
                         ),
@@ -276,14 +277,14 @@ class _AssignmentReportCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _getCompletionColor(assignment.completionRate).withValues(alpha: 0.1),
+                      color: ScoreColors.getCompletionColor(assignment.completionRate).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       '${assignment.completionRate.toStringAsFixed(0)}%',
                       style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: _getCompletionColor(assignment.completionRate),
+                        color: ScoreColors.getCompletionColor(assignment.completionRate),
                       ),
                     ),
                   ),
@@ -318,33 +319,6 @@ class _AssignmentReportCard extends StatelessWidget {
     );
   }
 
-  IconData _getTypeIcon(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Icons.menu_book;
-      case AssignmentType.vocabulary:
-        return Icons.abc;
-      case AssignmentType.mixed:
-        return Icons.library_books;
-    }
-  }
-
-  Color _getTypeColor(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Colors.blue;
-      case AssignmentType.vocabulary:
-        return Colors.purple;
-      case AssignmentType.mixed:
-        return Colors.teal;
-    }
-  }
-
-  Color _getCompletionColor(double rate) {
-    if (rate >= 80) return Colors.green;
-    if (rate >= 50) return Colors.orange;
-    return Colors.red;
-  }
 }
 
 class _StatusBadge extends StatelessWidget {

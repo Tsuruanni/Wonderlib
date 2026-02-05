@@ -1,0 +1,196 @@
+          "content": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\nimport 'package:go_router/go_router.dart';\nimport 'package:uuid/uuid.dart';\n\nimport '../../../core/supabase_client.dart';\nimport '../../../core/widgets/csv_import_dialog.dart';\nimport 'vocabulary_list_screen.dart';\n\nclass VocabularyImportScreen extends ConsumerWidget {\n  const VocabularyImportScreen({super.key});\n\n  static const expectedHeaders = [\n    'word',\n    'phonetic',\n    'part_of_speech',\n    'meaning_tr',\n    'meaning_en',\n    'level',\n  ];\n\n  static const requiredHeaders = ['word', 'meaning_tr'];\n\n  static const validLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];\n\n  static const validPartsOfSpeech = [\n    'noun',\n    'verb',\n    'adjective',\n    'adverb',\n    'pronoun',\n    'preposition',\n    'conjunction',\n    'interjection',\n    'article',\n    'determiner',\n  ];\n\n  @override\n  Widget build(BuildContext context, WidgetRef ref) {\n    return Scaffold(\n      appBar: AppBar(\n        title: const Text('Import Vocabulary'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/vocabulary'),\n        ),\n      ),\n      body: Center(\n        child: Padding(\n          padding: const EdgeInsets.all(24),\n          child: Column(\n            mainAxisAlignment: MainAxisAlignment.center,\n            children: [\n              Icon(\n                Icons.upload_file,\n                size: 64,\n                color: Colors.grey.shade400,\n              ),\n              const SizedBox(height: 16),\n              Text(\n                'Import Vocabulary from CSV',\n                style: Theme.of(context).textTheme.headlineSmall,\n              ),\n              const SizedBox(height: 8),\n              Text(\n                'Upload a CSV file to bulk import or update vocabulary words.',\n                style: TextStyle(color: Colors.grey.shade600),\n              ),\n              const SizedBox(height: 24),\n              FilledButton.icon(\n                onPressed: () => _showImportDialog(context, ref),\n                icon: const Icon(Icons.upload),\n                label: const Text('Select CSV File'),\n              ),\n              const SizedBox(height: 32),\n\n              // Format info\n              Container(\n                constraints: const BoxConstraints(maxWidth: 600),\n                padding: const EdgeInsets.all(16),\n                decoration: BoxDecoration(\n                  color: Colors.green.shade50,\n                  borderRadius: BorderRadius.circular(8),\n                ),\n                child: Column(\n                  crossAxisAlignment: CrossAxisAlignment.start,\n                  children: [\n                    Row(\n                      children: [\n                        Icon(Icons.info_outline, color: Colors.green.shade700),\n                        const SizedBox(width: 8),\n                        Text(\n                          'CSV Format',\n                          style: TextStyle(\n                            fontWeight: FontWeight.bold,\n                            color: Colors.green.shade900,\n                          ),\n                        ),\n                      ],\n                    ),\n                    const SizedBox(height: 12),\n                    Text(\n                      'Required columns: word, meaning_tr',\n                      style: TextStyle(color: Colors.green.shade900),\n                    ),\n                    Text(\n                      'Optional columns: phonetic, part_of_speech, meaning_en, level',\n                      style: TextStyle(color: Colors.green.shade700),\n                    ),\n                    const SizedBox(height: 12),\n                    Container(\n                      padding: const EdgeInsets.all(8),\n                      decoration: BoxDecoration(\n                        color: Colors.white,\n                        borderRadius: BorderRadius.circular(4),\n                      ),\n                      child: Text(\n                        'word,phonetic,part_of_speech,meaning_tr,meaning_en,level\\n'\n                        'apple,/ˈæp.əl/,noun,elma,a round fruit,A1\\n'\n                        'run,/rʌn/,verb,koşmak,to move fast,A1',\n                        style: TextStyle(\n                          fontFamily: 'monospace',\n                          fontSize: 12,\n                          color: Colors.grey.shade800,\n                        ),\n                      ),\n                    ),\n                    const SizedBox(height: 12),\n                    Text(\n                      'Valid levels: ${validLevels.join(', ')}',\n                      style: TextStyle(\n                        fontSize: 13,\n                        color: Colors.green.shade700,\n                      ),\n                    ),\n                    const SizedBox(height: 4),\n                    Text(\n                      'Valid parts of speech: ${validPartsOfSpeech.join(', ')}',\n                      style: TextStyle(\n                        fontSize: 13,\n                        color: Colors.green.shade700,\n                      ),\n                    ),\n                  ],\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n\n  void _showImportDialog(BuildContext context, WidgetRef ref) {\n    showDialog(\n      context: context,\n      barrierDismissible: false,\n      builder: (context) => CsvImportDialog(\n        title: 'Import Vocabulary',\n        expectedHeaders: expectedHeaders,\n        requiredHeaders: requiredHeaders,\n        processRow: (row) => _processRow(row, ref),\n        onComplete: () {\n          ref.invalidate(vocabularyProvider);\n        },\n      ),\n    );\n  }\n\n  Future<String?> _processRow(Map<String, String> row, WidgetRef ref) async {\n    final supabase = ref.read(supabaseClientProvider);\n\n    final word = row['word']?.trim().toLowerCase();\n    final meaningTr = row['meaning_tr']?.trim();\n    final phonetic = row['phonetic']?.trim();\n    final partOfSpeech = row['part_of_speech']?.trim().toLowerCase();\n    final meaningEn = row['meaning_en']?.trim();\n    final level = row['level']?.trim().toUpperCase();\n\n    // Validate word\n    if (word == null || word.isEmpty) {\n      return 'Word is required';\n    }\n\n    // Validate meaning_tr\n    if (meaningTr == null || meaningTr.isEmpty) {\n      return 'Turkish meaning is required';\n    }\n\n    // Validate level if provided\n    if (level != null && level.isNotEmpty && !validLevels.contains(level)) {\n      return 'Invalid level: $level (must be one of ${validLevels.join(', ')})';\n    }\n\n    // Validate part_of_speech if provided\n    if (partOfSpeech != null &&\n        partOfSpeech.isNotEmpty &&\n        !validPartsOfSpeech.contains(partOfSpeech)) {\n      return 'Invalid part of speech: $partOfSpeech';\n    }\n\n    // Check if word already exists\n    final existing = await supabase\n        .from('vocabulary_words')\n        .select('id')\n        .eq('word', word)\n        .maybeSingle();\n\n    final data = <String, dynamic>{\n      'word': word,\n      'meaning_tr': meaningTr,\n      if (phonetic != null && phonetic.isNotEmpty) 'phonetic': phonetic,\n      if (partOfSpeech != null && partOfSpeech.isNotEmpty)\n        'part_of_speech': partOfSpeech,\n      if (meaningEn != null && meaningEn.isNotEmpty) 'meaning_en': meaningEn,\n      if (level != null && level.isNotEmpty) 'level': level,\n    };\n\n    if (existing != null) {\n      // Update existing word\n      await supabase.from('vocabulary_words').update(data).eq('id', existing['id']);\n    } else {\n      // Insert new word\n      data['id'] = const Uuid().v4();\n      await supabase.from('vocabulary_words').insert(data);\n    }\n\n    return null; // Success\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01LD3uGHYup6KtK35brHxNKv",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/readeng_admin/lib/features/vocabulary/screens/vocabulary_import_screen.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_015sJ6jm75rR3LELkLGCmGJW",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/vocabulary/screens/vocabulary_list_screen.dart",
+          "old_string": "      appBar: AppBar(\n        title: const Text('Vocabulary'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/'),\n        ),\n        actions: [\n          FilledButton.icon(\n            onPressed: () => context.go('/vocabulary/new'),\n            icon: const Icon(Icons.add, size: 18),\n            label: const Text('New Word'),\n          ),\n          const SizedBox(width: 16),\n        ],\n      ),",
+          "new_string": "      appBar: AppBar(\n        title: const Text('Vocabulary'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/'),\n        ),\n        actions: [\n          OutlinedButton.icon(\n            onPressed: () => context.go('/vocabulary/import'),\n            icon: const Icon(Icons.upload, size: 18),\n            label: const Text('Import CSV'),\n          ),\n          const SizedBox(width: 8),\n          FilledButton.icon(\n            onPressed: () => context.go('/vocabulary/new'),\n            icon: const Icon(Icons.add, size: 18),\n            label: const Text('New Word'),\n          ),\n          const SizedBox(width: 16),\n        ],\n      ),"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_015sJ6jm75rR3LELkLGCmGJW",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/features/vocabulary/screens/vocabulary_list_screen.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01KoNTopzNSVmDcHa6JgFycG",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "import '../features/vocabulary/screens/vocabulary_edit_screen.dart';\nimport '../features/vocabulary/screens/vocabulary_list_screen.dart';",
+          "new_string": "import '../features/vocabulary/screens/vocabulary_edit_screen.dart';\nimport '../features/vocabulary/screens/vocabulary_import_screen.dart';\nimport '../features/vocabulary/screens/vocabulary_list_screen.dart';"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01KoNTopzNSVmDcHa6JgFycG",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_016W5nLwkQkt4Ej735NptpUj",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart",
+          "old_string": "      // Vocabulary\n      GoRoute(\n        path: '/vocabulary',\n        builder: (context, state) => const VocabularyListScreen(),\n      ),\n      GoRoute(\n        path: '/vocabulary/new',\n        builder: (context, state) => const VocabularyEditScreen(),\n      ),\n      GoRoute(\n        path: '/vocabulary/:wordId',\n        builder: (context, state) => VocabularyEditScreen(\n          wordId: state.pathParameters['wordId'],\n        ),\n      ),",
+          "new_string": "      // Vocabulary\n      GoRoute(\n        path: '/vocabulary',\n        builder: (context, state) => const VocabularyListScreen(),\n      ),\n      GoRoute(\n        path: '/vocabulary/import',\n        builder: (context, state) => const VocabularyImportScreen(),\n      ),\n      GoRoute(\n        path: '/vocabulary/new',\n        builder: (context, state) => const VocabularyEditScreen(),\n      ),\n      GoRoute(\n        path: '/vocabulary/:wordId',\n        builder: (context, state) => VocabularyEditScreen(\n          wordId: state.pathParameters['wordId'],\n        ),\n      ),"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_016W5nLwkQkt4Ej735NptpUj",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/readeng_admin/lib/core/router.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_011vrJ3rptL6V78q1eRRvkG2",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "10",
+          "status": "completed"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Xhm29WBhMAtQi64d5M1BWx",
+        "name": "TaskUpdate",
+        "input": {
+          "taskId": "11",
+          "status": "in_progress"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_011vrJ3rptL6V78q1eRRvkG2",
+        "type": "tool_result",
+        "content": "Updated task #10 status"
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Xhm29WBhMAtQi64d5M1BWx",
+        "type": "tool_result",
+        "content": "Updated task #11 status"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01BUT6RpLaAaYBaW4iG2ny8Z",
+        "name": "Bash",
+        "input": {
+          "command": "mkdir -p /Users/wonderelt/Desktop/readeng_admin/lib/features/wordlists/screens",
+          "description": "Create wordlists directory"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01BUT6RpLaAaYBaW4iG2ny8Z",
+        "type": "tool_result",
+        "content": "",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01RZHZufz1X96TJQdwyQm3uf",
+        "name": "Write",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/wordlists/screens/wordlist_list_screen.dart",

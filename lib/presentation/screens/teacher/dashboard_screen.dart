@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 class TeacherDashboardScreen extends ConsumerWidget {
   const TeacherDashboardScreen({super.key});
@@ -79,15 +80,7 @@ class _WelcomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hour = DateTime.now().hour;
-    String greeting;
-    if (hour < 12) {
-      greeting = 'Good morning';
-    } else if (hour < 17) {
-      greeting = 'Good afternoon';
-    } else {
-      greeting = 'Good evening';
-    }
+    final greeting = GreetingHelper.getGreeting();
 
     return Container(
       padding: const EdgeInsets.all(20),

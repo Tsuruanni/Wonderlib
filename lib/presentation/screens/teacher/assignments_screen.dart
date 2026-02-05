@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/teacher_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 class AssignmentsScreen extends ConsumerWidget {
   const AssignmentsScreen({super.key});
@@ -202,12 +203,12 @@ class _AssignmentCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getTypeColor(assignment.type).withValues(alpha: 0.1),
+                      color: AssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
-                      _getTypeIcon(assignment.type),
-                      color: _getTypeColor(assignment.type),
+                      AssignmentColors.getTypeIcon(assignment.type),
+                      color: AssignmentColors.getTypeColor(assignment.type),
                       size: 20,
                     ),
                   ),
@@ -303,27 +304,6 @@ class _AssignmentCard extends StatelessWidget {
     );
   }
 
-  IconData _getTypeIcon(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Icons.menu_book;
-      case AssignmentType.vocabulary:
-        return Icons.abc;
-      case AssignmentType.mixed:
-        return Icons.library_books;
-    }
-  }
-
-  Color _getTypeColor(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Colors.blue;
-      case AssignmentType.vocabulary:
-        return Colors.purple;
-      case AssignmentType.mixed:
-        return Colors.teal;
-    }
-  }
 }
 
 class _StatusBadge extends StatelessWidget {

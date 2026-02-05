@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/word_definition.dart';
-import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/usecase_providers.dart';
+import '../../providers/vocabulary_provider.dart';
 import '../../providers/word_definition_provider.dart';
 
 /// Dark-themed popup for word-tap feature.
@@ -412,32 +410,21 @@ class _WordTapPopupState extends ConsumerState<WordTapPopup> {
     setState(() => _isAdding = true);
 
     try {
-      final userId = ref.read(currentUserProvider).value?.id;
-      if (userId == null) return;
+      final result = await addWordToVocabulary(ref, definition.id!);
 
-      final useCase = ref.read(addWordToVocabularyUseCaseProvider);
-      final result = await useCase.call(
-        AddWordToVocabularyParams(userId: userId, wordId: definition.id!),
-      );
+      if (!mounted) return;
 
-      result.fold(
-        (failure) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to add: ${failure.message}')),
-            );
-          }
-        },
-        (_) {
-          if (mounted) {
-            setState(() => _wasAdded = true);
-            // Auto close after showing success
-            Future.delayed(const Duration(milliseconds: 800), () {
-              if (mounted) widget.onClose();
-            });
-          }
-        },
-      );
+      if (result.success) {
+        setState(() => _wasAdded = true);
+        // Auto close after showing success
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) widget.onClose();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add: ${result.errorMessage}')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isAdding = false);

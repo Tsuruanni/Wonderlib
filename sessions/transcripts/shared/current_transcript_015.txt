@@ -1,27 +1,10 @@
-          "old_string": "}\n\nclass _XPBadge extends StatefulWidget {\n  const _XPBadge({required this.xp, required this.onComplete});\n  final int xp;\n  final VoidCallback onComplete;\n\n  @override\n  State<_XPBadge> createState() => _XPBadgeState();\n}\n\nclass _XPBadgeState extends State<_XPBadge> with SingleTickerProviderStateMixin {\n  late AnimationController _controller;\n  late Animation<double> _scaleAnimation;\n  late Animation<double> _fadeAnimation;\n\n  @override\n  void initState() {\n    super.initState();\n    _controller = AnimationController(\n      duration: const Duration(milliseconds: 1200),\n      vsync: this,\n    );\n\n    _scaleAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),\n      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),\n    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));\n\n    _fadeAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),\n    ]).animate(_controller);\n\n    _controller.forward().then((_) => widget.onComplete());\n  }\n\n  @override\n  void dispose() {\n    _controller.dispose();\n    super.dispose();\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return FadeTransition(\n      opacity: _fadeAnimation,\n      child: ScaleTransition(\n        scale: _scaleAnimation,\n        child: Container(\n          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),\n          decoration: BoxDecoration(\n            gradient: const LinearGradient(\n              colors: [Color(0xFF38A169), Color(0xFF48BB78)],\n            ),\n            borderRadius: BorderRadius.circular(12),\n          ),\n          child: Row(\n            mainAxisSize: MainAxisSize.min,\n            children: [\n              const Icon(Icons.bolt, color: Colors.white, size: 14),\n              const SizedBox(width: 3),\n              Text(\n                '+${widget.xp}',\n                style: const TextStyle(\n                  color: Colors.white,\n                  fontWeight: FontWeight.bold,\n                  fontSize: 12,\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n}",
-          "new_string": "}"
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
         "type": "tool_use",
-        "id": "toolu_011JcBBaRZJmMdQv2V4vFzE2",
-        "name": "Edit",
+        "id": "toolu_011chRvw8C1XNvVBXLWWBnj8",
+        "name": "Read",
         "input": {
-          "replace_all": false,
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart",
-          "old_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';",
-          "new_string": "import 'package:flutter/material.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../providers/reader_provider.dart';\nimport '../common/xp_badge.dart';"
-        },
-        "caller": {
-          "type": "direct"
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "offset": 205,
+          "limit": 50
         }
       }
     ]
@@ -30,77 +13,9 @@
     "role": "user",
     "content": [
       {
-        "tool_use_id": "toolu_01MdhRcFdRTbbST6cgaEEjZ9",
+        "tool_use_id": "toolu_011chRvw8C1XNvVBXLWWBnj8",
         "type": "tool_result",
-        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/find_words_activity.dart has been updated successfully."
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_01RnjUKc2ckpiCweQ4LvgQEs",
-        "name": "Edit",
-        "input": {
-          "replace_all": false,
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart",
-          "old_string": "                child: _XPBadge(",
-          "new_string": "                child: XPBadge("
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "user",
-    "content": [
-      {
-        "tool_use_id": "toolu_011JcBBaRZJmMdQv2V4vFzE2",
-        "type": "tool_result",
-        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart has been updated successfully."
-      }
-    ]
-  },
-  {
-    "role": "user",
-    "content": [
-      {
-        "tool_use_id": "toolu_01RnjUKc2ckpiCweQ4LvgQEs",
-        "type": "tool_result",
-        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart has been updated successfully."
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_011zPb3y9ub6rtCxZzmLDexz",
-        "name": "Edit",
-        "input": {
-          "replace_all": false,
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart",
-          "old_string": "}\n\nclass _XPBadge extends StatefulWidget {\n  const _XPBadge({required this.xp, required this.onComplete});\n  final int xp;\n  final VoidCallback onComplete;\n\n  @override\n  State<_XPBadge> createState() => _XPBadgeState();\n}\n\nclass _XPBadgeState extends State<_XPBadge> with SingleTickerProviderStateMixin {\n  late AnimationController _controller;\n  late Animation<double> _scaleAnimation;\n  late Animation<double> _fadeAnimation;\n\n  @override\n  void initState() {\n    super.initState();\n    _controller = AnimationController(\n      duration: const Duration(milliseconds: 1200),\n      vsync: this,\n    );\n\n    _scaleAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),\n      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),\n    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));\n\n    _fadeAnimation = TweenSequence<double>([\n      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),\n      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),\n    ]).animate(_controller);\n\n    _controller.forward().then((_) => widget.onComplete());\n  }\n\n  @override\n  void dispose() {\n    _controller.dispose();\n    super.dispose();\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return FadeTransition(\n      opacity: _fadeAnimation,\n      child: ScaleTransition(\n        scale: _scaleAnimation,\n        child: Container(\n          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),\n          decoration: BoxDecoration(\n            gradient: const LinearGradient(\n              colors: [Color(0xFF38A169), Color(0xFF48BB78)],\n            ),\n            borderRadius: BorderRadius.circular(12),\n          ),\n          child: Row(\n            mainAxisSize: MainAxisSize.min,\n            children: [\n              const Icon(Icons.bolt, color: Colors.white, size: 14),\n              const SizedBox(width: 3),\n              Text(\n                '+${widget.xp}',\n                style: const TextStyle(\n                  color: Colors.white,\n                  fontWeight: FontWeight.bold,\n                  fontSize: 12,\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n}",
-          "new_string": "}"
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "user",
-    "content": [
-      {
-        "tool_use_id": "toolu_011zPb3y9ub6rtCxZzmLDexz",
-        "type": "tool_result",
-        "content": "The file /Users/wonderelt/Desktop/wonderlib/lib/presentation/widgets/activities/true_false_activity.dart has been updated successfully."
+        "content": "   205→\n   206→  void reset() {\n   207→    state = {};\n   208→  }\n   209→}\n   210→\n   211→/// Provider for tracking completed inline activities\n   212→final inlineActivityStateProvider =\n   213→    StateNotifierProvider.autoDispose<InlineActivityStateNotifier, Map<String, bool>>((ref) {\n   214→  return InlineActivityStateNotifier();\n   215→});\n   216→\n   217→/// Loads completed inline activities for a chapter from database\n   218→final completedInlineActivitiesProvider =\n   219→    FutureProvider.family<List<String>, String>((ref, chapterId) async {\n   220→  final userId = ref.watch(currentUserIdProvider);\n   221→  if (userId == null) return [];\n   222→\n   223→  final useCase = ref.watch(getCompletedInlineActivitiesUseCaseProvider);\n   224→  final result = await useCase(GetCompletedInlineActivitiesParams(\n   225→    userId: userId,\n   226→    chapterId: chapterId,\n   227→  ),);\n   228→\n   229→  return result.fold(\n   230→    (failure) => [],\n   231→    (ids) => ids,\n   232→  );\n   233→});\n   234→\n   235→/// Total XP earned in current reading session\n   236→class SessionXPNotifier extends StateNotifier<int> {\n   237→  SessionXPNotifier() : super(0);\n   238→\n   239→  void addXP(int amount) {\n   240→    state = state + amount;\n   241→  }\n   242→\n   243→  void reset() {\n   244→    state = 0;\n   245→  }\n   246→}\n   247→\n   248→/// Provider for session XP\n   249→final sessionXPProvider =\n   250→    StateNotifierProvider.autoDispose<SessionXPNotifier, int>((ref) {\n   251→  return SessionXPNotifier();\n   252→});\n   253→\n   254→/// Words learned in current session (to add to vocabulary)\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
       }
     ]
   },
@@ -109,17 +24,8 @@
     "content": [
       {
         "type": "thinking",
-        "thinking": "XPBadge is done. Now I need to update the 4 files for StatItem. Let me read the other 3 files to see the exact _StatItem implementations, then update all 4.",
-        "signature": "EsUCCkYICxgCKkCF8G7cbtdXQo98EJz21LHLyMVCvynsqdq87uwVdmdikFePcg+b0v48zT0iKzn02Gdj/dM3QVNsnFfskQ1eK5/BEgxLXvZjl3aH3MX40XAaDBGNn6QnXVebgkynTyIwDOdfYG/47LEAgJoD9GMFCI4OoBtxwaPIMzy16zJ2CUk8wurdwKuNiiEVuCF5YSPOKqwBxARnKHUGy5EDtvQVTufFqtn8e/dRu4qSlczYLlZ+Tw11YEDIowjRH1gXJmWIqWIyvCxOSo8n2cntng1pUu0V9MbMftzmNcr90vQfQ9wGTFedUDK/RDj07cQY4QbiktGTUCiOOBlt78hcsLO+q5/OQPcF9fXdzxf9oA64fXgm2CCzkE/DOOOW9ZO1n0hMm758bxuyVvs56pxxSrwnlNp3c78cLSN4wwjcsKoHzRgB"
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "text",
-        "text": "XPBadge tamamlandı. Şimdi StatItem için 4 dosyayı okuyorum."
+        "thinking": "reader_provider.dart'ta InlineActivityStateNotifier, SessionXPNotifier, LearnedWordsNotifier vs var. Burada handleInlineActivityCompletion fonksiyonu ekleyeceğim.Önce dosyanın sonunu bulayım.",
+        "signature": "EuwCCkYICxgCKkDF23fp6RcxmbvDez9eht8G4ZshZ/qlBMkyjoQs2LcX9gxAGtZh2+USfnl1EqKrM77ms0RMclb8VWANNt5KERbKEgw12xb4m8bWncQQK+4aDGhKY9Pw2C44bMEvciIwgLrYBifRZi6MdZHQeVoOQFe+FOZfA78AILHpgsBvoj7TrZ4CSnjFuQ3cCrEJlocpKtMBR1OqZFMhAzsMNLgowacwH6PKxyD5F6UneZpN6F2oO3qbhuxW7zkZ467Ly3tDWyai8NI4EpafdeBy30SMM6QFc0z1Zv8wl23MoMrscSYz6uRxcjaoLBTTKEnN8xwvbSom+vHeudO9EJVgXdhK6c/2pvuqI+DzANmO568y3VCHgozA2/KJAJ9fDuyzxq8IDe08uWQp+/zrsByDseChW+O7oJRX+ABm7eTTwfvCp+2bUdYqP3X/17rEt8cLzi1t852hnO+vahlsdqtf5ECTQZ3EBjyPNxgB"
       }
     ]
   },
@@ -128,46 +34,11 @@
     "content": [
       {
         "type": "tool_use",
-        "id": "toolu_01UVP9oFmJjANEu9UFDnMGu8",
-        "name": "Read",
+        "id": "toolu_01SHijdCWDChNxfFsxZd1Pgi",
+        "name": "Bash",
         "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/screens/teacher/reports/assignment_report_screen.dart"
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_01L5Cb7FdA1bZFGRRtVXCqMJ",
-        "name": "Read",
-        "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/screens/vocabulary/vocabulary_screen.dart",
-          "limit": 250
-        },
-        "caller": {
-          "type": "direct"
-        }
-      }
-    ]
-  },
-  {
-    "role": "assistant",
-    "content": [
-      {
-        "type": "tool_use",
-        "id": "toolu_01MeCheTrNPdmJArGyAze78F",
-        "name": "Read",
-        "input": {
-          "file_path": "/Users/wonderelt/Desktop/wonderlib/lib/presentation/screens/teacher/reports_screen.dart"
-        },
-        "caller": {
-          "type": "direct"
+          "command": "wc -l /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "description": "Get file line count"
         }
       }
     ]
@@ -176,5 +47,261 @@
     "role": "user",
     "content": [
       {
-        "tool_use_id": "toolu_01UVP9oFmJjANEu9UFDnMGu8",
+        "tool_use_id": "toolu_01SHijdCWDChNxfFsxZd1Pgi",
+        "type": "tool_result",
+        "content": "     315 /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+        "is_error": false
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "315 satır. Dosyanın sonuna ekleyeceğim. Önce dosyanın sonunu okuyup import'ları da kontrol edeyim.",
+        "signature": "EpACCkYICxgCKkCW6G2lPzSZ124FcgbIpwMo5CuOS0al67xc4QQEfSMyVMIRsCbfpgmqv1IpBiCIozdZ1I+kcMriCkPb1zPuTlsmEgwHRacp9lijSP/lVtUaDIYHqF0rBk98BOYRVCIwJvbEv2PAkH8SoU/3hSIN1CI/Lykfvb4Kk96ekPq+GfZgWjPqWvC5hYgkldrdWYnqKnhS5XdSoJZAeUjjn51vEB8kwRoke1K6Hfd2RkWAUynjwu/DU754mG8BstS14Mz3W304nN6e1Ge5ydR6wQpw4FTLtOP65Rslr6kiuD5KorxuMnKDZ5MKPVxjcHLXp5uDDglFtq+l3EcgzGYRqew3BJZrVzxTSosPnDsYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01Mf8EhPGkRUQQXeFJzr7Cd9",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "offset": 295,
+          "limit": 25
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01Mf8EhPGkRUQQXeFJzr7Cd9",
+        "type": "tool_result",
+        "content": "   295→/// Note: If there are no activities, chapter is considered complete\n   296→final isChapterCompleteProvider = Provider<bool>((ref) {\n   297→  final completedActivities = ref.watch(inlineActivityStateProvider);\n   298→  final totalActivities = ref.watch(totalActivitiesProvider);\n   299→\n   300→  // If no activities, chapter is complete (can proceed to next)\n   301→  if (totalActivities == 0) return true;\n   302→\n   303→  return completedActivities.length >= totalActivities;\n   304→});\n   305→\n   306→// ============================================\n   307→// CURRENT CHAPTER TRACKING\n   308→// ============================================\n   309→\n   310→/// Current chapter ID for word audio playback context\n   311→final currentChapterIdProvider = StateProvider<String?>((ref) => null);\n   312→\n   313→/// Whether the current chapter has finished initial loading (activities loaded from DB)\n   314→/// Used to prevent auto-play before we know if user has existing progress\n   315→final chapterInitializedProvider = StateProvider<bool>((ref) => false);\n   316→\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Dosyanın sonunu gördüm. Şimdi reader_provider.dart'ın import'larını kontrol edip handleInlineActivityCompletion fonksiyonunu ekleyeceğim.",
+        "signature": "EroCCkYICxgCKkAPlEqH573lSAZDGXGPebexS8mb2LYbLUTbLdzyB7WQ3brg42u0OWRkUFT4Lu1VbRCBCAJU+t4+dC5ldQ4RD46vEgwUqnEUNeA7rjPxF6AaDK6SSfhfTsAYIfaKGSIw9945gRXVSGexC+N758Hbp609ZCE8EOHeBof5BD4KBzYG0BMqoYv9npfdlmSChvraKqEBo7HfKdPG7b5soXs9jfnGqSIz0+s7XKCh0wp0/kDwLninrB5/tgwF/bwYd+ktscCLsLyfDjiVbxwfzUxynwc2DfjQ6r4yC0nXljNFrMcTo6ojT+em7JeE5Q7Su55rvW1pJ8zq5c/SOcjcJqWGgLJe9KR3TdbKFa4zgshqCRHNDRF51LvDbmyM59w2SZaLn0V6t6ZdypMmx8g1Yne7JKcbyGgYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_012dmroj7cMbvZsX4xubnPUo",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "limit": 25
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_012dmroj7cMbvZsX4xubnPUo",
+        "type": "tool_result",
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→\n     4→import '../../domain/entities/chapter.dart';\n     5→import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';\n     6→import '../../domain/usecases/user/update_user_usecase.dart';\n     7→import 'auth_provider.dart';\n     8→import 'usecase_providers.dart';\n     9→\n    10→/// Reader theme options\n    11→enum ReaderTheme {\n    12→  light(\n    13→    background: Color(0xFFFFFFFF),\n    14→    text: Color(0xFF1E293B),\n    15→    name: 'Light',\n    16→  ),\n    17→  sepia(\n    18→    background: Color(0xFFF5E6D3),\n    19→    text: Color(0xFF5C4033),\n    20→    name: 'Sepia',\n    21→  ),\n    22→  dark(\n    23→    background: Color(0xFF1E293B),\n    24→    text: Color(0xFFF1F5F9),\n    25→    name: 'Dark',\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "reader_provider.dart'a import'lar eklemem ve dosyanın sonuna handleInlineActivityCompletion fonksiyonu eklemem gerekiyor.Gerekli import'lar:- add_word_to_vocabulary_usecase- save_inline_activity_result_usecase\n- user_providerShimdi bunları ekleyip fonksiyonu oluşturayım.",
+        "signature": "ErsDCkYICxgCKkB+PpNivQe5Bzkd4UQh4jOMcY++Zr4EaaPZ5GL50K8Y/VjvLeKfLFiggS4g70jDWeZRly0wz8FcCAKkG+fQfZkyEgy/ZFf+YclzXRJG/xEaDDNTOwTTDUfZIUyvdSIwwrEmdL035bwG8yg5Y2MqBToHIGuwqPpAhtjL0O84EwMsYpvaAv49p3UhVJUKM4dIKqICORBPCLWVxThuaWUFEmFV0Bwh/M+4NGLT+d8hwrM24Pc0COfuntVzHSThUd9KaqMXcw71MZT380ycYueREP8uXYyJ6b2U+BFACdAZr29pzKqyPNmlPHQK+npjBQ6ja6HSH0ul50DB3UR5rwcRYgZNRVSe5H6a1sToRgFURUl6RrHWv4xIXxroyhDYqdUB83ahk6FKJjrp5cUQnn8FUMQZlbOMjA/PhRosIR6tRJrlRStYVK0TrwEmOmJy9IHlvwyyttuNe5SnH7N6AtdZB8IvFNwdDIO5Wr1MWO1GQom11fMyUl0S4vBMhUKqMHY9du61FV+TYeWPiAIwdUe/0GIvPAlKs++xs41MrMQ0WeSbt2HvM+aHFZJgeQx+NfGDtWkhhkUYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_015ttSrv48aa8dVfC2NgVbYm",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\n\nimport '../../domain/entities/chapter.dart';\nimport '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';\nimport '../../domain/usecases/user/update_user_usecase.dart';\nimport 'auth_provider.dart';\nimport 'usecase_providers.dart';",
+          "new_string": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\n\nimport '../../domain/entities/chapter.dart';\nimport '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';\nimport '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';\nimport '../../domain/usecases/user/update_user_usecase.dart';\nimport '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';\nimport 'auth_provider.dart';\nimport 'usecase_providers.dart';\nimport 'user_provider.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_015ttSrv48aa8dVfC2NgVbYm",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Şimdi dosyanın sonuna handleInlineActivityCompletion fonksiyonunu ekleyeceğim.",
+        "signature": "EvkBCkYICxgCKkBPQIYjhlIv6YlA4Qtgj+D+xEsMPpnvOzEgLKvDG/umgn01V9GvyB9M1yBhrbjGf5s6yeNK3ap2HkElFEY2EpzTEgxXQBRzlXi20ATefWEaDC26S3R20eRQZqxO3SIw9/C/oMELemmH5rw9rPGQ4B9uYDag1r54yJBN67UOjG0rO86D/1qWNdXnCFzR1P35KmErlxks2mAeHVWa7zFhQNqWZITlOR78aRi8K+4FXpVR8m1F0e/TPor1IhG4pS9ymzerkUc47oZVRtWvYHFCuhxs2SLizIO/bF/Pw5WhVhE5kBWuVaFT2IUdANtnLRShqNlKGAE="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01X5Zc6cxgEpcHjeYmWx4VUt",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart",
+          "old_string": "/// Whether the current chapter has finished initial loading (activities loaded from DB)\n/// Used to prevent auto-play before we know if user has existing progress\nfinal chapterInitializedProvider = StateProvider<bool>((ref) => false);",
+          "new_string": "/// Whether the current chapter has finished initial loading (activities loaded from DB)\n/// Used to prevent auto-play before we know if user has existing progress\nfinal chapterInitializedProvider = StateProvider<bool>((ref) => false);\n\n// ============================================\n// INLINE ACTIVITY COMPLETION HANDLER\n// ============================================\n\n/// Handles inline activity completion - saves to DB, awards XP, adds words to vocabulary\nFuture<void> handleInlineActivityCompletion(\n  Ref ref, {\n  required String activityId,\n  required bool isCorrect,\n  required int xpEarned,\n  required List<String> wordsLearned,\n  void Function(bool isCorrect, int xpEarned)? onComplete,\n}) async {\n  // Check if already completed locally\n  final completedActivities = ref.read(inlineActivityStateProvider);\n  if (completedActivities.containsKey(activityId)) {\n    return;\n  }\n\n  // Mark as completed locally\n  ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);\n\n  final userId = ref.read(currentUserIdProvider);\n  if (userId == null) return;\n\n  // Save to database\n  final useCase = ref.read(saveInlineActivityResultUseCaseProvider);\n  final result = await useCase(\n    SaveInlineActivityResultParams(\n      userId: userId,\n      activityId: activityId,\n      isCorrect: isCorrect,\n      xpEarned: xpEarned,\n    ),\n  );\n\n  final isNewCompletion = result.fold(\n    (failure) => false,\n    (isNew) => isNew,\n  );\n\n  // Award XP for new completions\n  if (isNewCompletion && xpEarned > 0) {\n    ref.read(sessionXPProvider.notifier).addXP(xpEarned);\n    await ref.read(userControllerProvider.notifier).addXP(xpEarned);\n  } else if (isNewCompletion) {\n    // Update streak even without XP (wrong answer still counts as daily activity)\n    await ref.read(userControllerProvider.notifier).updateStreak();\n  }\n\n  // Add words to vocabulary\n  if (wordsLearned.isNotEmpty) {\n    ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);\n\n    final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);\n    for (final wordId in wordsLearned) {\n      await addWordUseCase(\n        AddWordToVocabularyParams(\n          userId: userId,\n          wordId: wordId,\n        ),\n      );\n    }\n  }\n\n  // Notify caller\n  onComplete?.call(isCorrect, xpEarned);\n}"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01X5Zc6cxgEpcHjeYmWx4VUt",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/providers/reader_provider.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Şimdi activity_block_widget.dart'ı güncelleyeceğim - _handleActivityAnswer metodunu yeni provider fonksiyonuna yönlendireceğim.",
+        "signature": "Eq4CCkYICxgCKkD3Y7m928cNpmfba+ZUx+SW8+9XJZ//4Aj0mo1EUvDUHsnvebr2304OfxEpRc/0sUHunESGtIcxXD8Q1A0eGxeKEgxIK8qlrBqwbvV0pakaDCl0CPjZ5wTCSwZzbiIw6uhnyE5VjmQC52Teop8whmPDNFvyJCMe7qoYS5Qrb77FQOleZ7Sw26AXSJc8UhHnKpUBjv7MsvUog2LhPzoyqvM2yPPiG9KM++3aZfrJCfNeYxSatQD4Zuo1pXwzjV1mcBAorUIvvPG73aKi/Uw+jShbGY40lPmpztVOK070JYXxtH0cRtUYfrLjUibl/h2VHqYrsyACBIH3f7ErtSMvQLd2ayDaIQX3Huv5qYsYUmeVzkBDZ2wGcWGF/wTQNOLDrwpIksICW0EYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Şimdi activity_block_widget.dart'ı güncelliyorum."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01RUT8i22JFfNWXe73Poyu97",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/widgets/reader/activity_block_widget.dart",
+          "limit": 30
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01RUT8i22JFfNWXe73Poyu97",
+        "type": "tool_result",
+        "content": "     1→import 'package:flutter/material.dart';\n     2→import 'package:flutter_riverpod/flutter_riverpod.dart';\n     3→\n     4→import '../../../domain/entities/activity.dart';\n     5→import '../../../domain/entities/content/content_block.dart';\n     6→import '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';\n     7→import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';\n     8→import '../../providers/auth_provider.dart';\n     9→import '../../providers/reader_provider.dart';\n    10→import '../../providers/usecase_providers.dart';\n    11→import '../../providers/user_provider.dart';\n    12→import '../activities/activities.dart';\n    13→\n    14→/// Widget for rendering an activity content block.\n    15→/// Activity is passed directly from parent (loaded with chapter context).\n    16→class ActivityBlockWidget extends ConsumerWidget {\n    17→  const ActivityBlockWidget({\n    18→    super.key,\n    19→    required this.block,\n    20→    required this.settings,\n    21→    this.activity,\n    22→    this.onActivityCompleted,\n    23→  });\n    24→\n    25→  final ContentBlock block;\n    26→  final ReaderSettings settings;\n    27→  final InlineActivity? activity;\n    28→  final void Function(bool isCorrect, int xpEarned)? onActivityCompleted;\n    29→\n    30→  @override\n\n<system-reminder>\nWhenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.\n</system-reminder>\n"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Import'ları güncelleyip _handleActivityAnswer metodunu yeni fonksiyona yönlendireceğim.",
+        "signature": "EoMCCkYICxgCKkCMO5iir2U9cWmTxtMQY6Fy10Bmcp1R5rxLzfeQBniZfzW1518g7Dg5LkDhbtN9kTyWgykPBD+8R6TOMIWd48A+EgwFQZldc8U4rqDcCwwaDA1wnnYE5KG/wgaWdyIw8Yq7Wa1LluFixC2dU8HFc3jfql955ehcfatswfFnxBnrfBMkl48FeU9suWxM9SABKmtAKlmXaU7/brHlW/OtZbylIhVQ3znigXOhbSL1riTlkDL2G2GMiDmuoUlwszoTK/d4BqlsPM7pajyY/sbqH7g/eQF3jnvjj6mvipRxJZ8Z50IcyZLxO54aym1mPKdPvE4CyIZe9byPbxHjkRgB"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01VsnuikaUPXhuL1Ufb6pdyo",
+        "name": "Edit",
+        "input": {
+          "replace_all": false,
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/widgets/reader/activity_block_widget.dart",
+          "old_string": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../../domain/entities/content/content_block.dart';\nimport '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';\nimport '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';\nimport '../../providers/auth_provider.dart';\nimport '../../providers/reader_provider.dart';\nimport '../../providers/usecase_providers.dart';\nimport '../../providers/user_provider.dart';\nimport '../activities/activities.dart';",
+          "new_string": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\n\nimport '../../../domain/entities/activity.dart';\nimport '../../../domain/entities/content/content_block.dart';\nimport '../../providers/reader_provider.dart';\nimport '../activities/activities.dart';"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01VsnuikaUPXhuL1Ufb6pdyo",
+        "type": "tool_result",
+        "content": "The file /Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/widgets/reader/activity_block_widget.dart has been updated successfully."
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "thinking",
+        "thinking": "Şimdi _handleActivityAnswer metodunu güncelleyeceğim - yeni handleInlineActivityCompletion fonksiyonunu kullanacak.",
+        "signature": "Ep8CCkYICxgCKkD56m+XM+dp68TUvBPxYHUeEqeYqesLgX0x9CG0T2jJQpcSu7nZ+LeyjWIK6bbEQpi2ZcAzFZ6H1daLXAiMq2+uEgy4XvsmtwaecenQr2kaDGipHOzwDobNnlMiriIwEIm4nwSBoXBZpnjzk0Plm7IPPhqUfUeXqh4oaQYR+LVCbSKTxLkkxHj9u2qppFS0KoYBs1CzJpenHd196+tJbcSIX1y3pEXhbAYYlXTqPuhvnTGkY0pXO/rH+/3PQCzDM+JIJO9UxMhqi/VbP7cF/Jj7SyaGepfWZHuGNXiNb9JAuifoUtvFLJ1cAaXheJHPAmppoi2Xpcn1J6omuMxItIhYAspYF4eHfPsf09/L8F5x6yP0AvMQz9kYAQ=="
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_01JnXPe1FyEYxpwqn3BiJ8gs",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/w2/wonderlib/lib/presentation/widgets/reader/activity_block_widget.dart",
+          "offset": 100,
+          "limit": 90
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_01JnXPe1FyEYxpwqn3BiJ8gs",
         "type": "tool_result",

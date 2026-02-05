@@ -1,14 +1,33 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Environment variable access with validation.
 /// Required variables throw exceptions if missing.
 abstract class EnvConstants {
+  /// Local development host IP (for mobile devices to reach Mac's Docker)
+  static const String _localHostIp = '192.168.1.103';
+
   /// Required: Supabase project URL
+  /// Returns localhost for web, Mac IP for mobile devices
   static String get supabaseUrl {
     final value = dotenv.env['SUPABASE_URL'];
     if (value == null || value.isEmpty) {
       throw StateError('SUPABASE_URL is not configured in .env file');
     }
+
+    // In development, swap localhost for Mac IP on mobile platforms
+    if (!isProduction && !kIsWeb) {
+      return value
+          .replaceAll('127.0.0.1', _localHostIp)
+          .replaceAll('localhost', _localHostIp);
+    }
+
+    // For web or production, use the configured URL as-is
+    // (but swap Mac IP back to localhost for web)
+    if (kIsWeb && value.contains(_localHostIp)) {
+      return value.replaceAll(_localHostIp, '127.0.0.1');
+    }
+
     return value;
   }
 

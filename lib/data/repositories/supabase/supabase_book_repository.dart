@@ -508,6 +508,89 @@ class SupabaseBookRepository implements BookRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, bool>> hasReadToday(String userId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+
+      final response = await _supabase
+          .from('reading_progress')
+          .select('id')
+          .eq('user_id', userId)
+          .gte('updated_at', todayStart)
+          .limit(1);
+
+      return Right((response as List).isNotEmpty);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getCorrectAnswersTodayCount(String userId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+
+      final response = await _supabase
+          .from('inline_activity_results')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('is_correct', true)
+          .gte('answered_at', todayStart);
+
+      return Right((response as List).length);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getWordsReadTodayCount(String userId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+
+      // Get reading progress updated today
+      final progressResponse = await _supabase
+          .from('reading_progress')
+          .select('completed_chapter_ids')
+          .eq('user_id', userId)
+          .gte('updated_at', todayStart);
+
+      // Collect all chapter IDs from today's progress
+      final chapterIds = <String>[];
+      for (final row in progressResponse as List) {
+        final ids = (row['completed_chapter_ids'] as List?)?.cast<String>() ?? [];
+        chapterIds.addAll(ids);
+      }
+
+      if (chapterIds.isEmpty) return const Right(0);
+
+      // Get word counts from chapters
+      final chaptersResponse = await _supabase
+          .from('chapters')
+          .select('word_count')
+          .inFilter('id', chapterIds);
+
+      int totalWords = 0;
+      for (final row in chaptersResponse as List) {
+        totalWords += (row['word_count'] as int?) ?? 0;
+      }
+
+      return Right(totalWords);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // MAPPING FUNCTIONS (using Model layer)
   // ============================================

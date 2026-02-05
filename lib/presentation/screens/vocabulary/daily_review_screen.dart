@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../widgets/common/game_button.dart';
+import '../../widgets/common/pro_progress_bar.dart';
 
 /// Daily Review Screen - Anki-style spaced repetition flashcards
 class DailyReviewScreen extends ConsumerStatefulWidget {
@@ -60,7 +64,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
   }
 
   void _handleResponse(SM2Response response) async {
-    HapticFeedback.mediumImpact();
+     HapticFeedback.mediumImpact();
 
     // Answer and advance
     await ref.read(dailyReviewControllerProvider.notifier).answerWord(response);
@@ -92,42 +96,45 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         icon: Icon(
-          result.isPerfect ? Icons.celebration : Icons.check_circle,
-          color: result.isPerfect ? Colors.orange : Colors.green,
-          size: 48,
+          result.isPerfect ? Icons.celebration_rounded : Icons.check_circle_rounded,
+          color: result.isPerfect ? AppColors.streakOrange : AppColors.primary,
+          size: 64,
         ),
-        title: Text(result.isPerfect ? 'Perfect Session!' : 'Review Complete!'),
+        title: Text(
+          result.isPerfect ? 'Perfect Session!' : 'Review Complete!',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // XP earned
             if (result.isNewSession) ...[
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.bolt, color: Colors.amber, size: 28),
-                      const SizedBox(width: 8),
-                      Text(
-                        '+${result.xpEarned} XP',
-                        style: context.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber.shade700,
-                        ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.streakOrange.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.streakOrange, width: 2),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.bolt_rounded, color: AppColors.streakOrange, size: 32),
+                    const SizedBox(width: 8),
+                    Text(
+                      '+${result.xpEarned} XP',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 24,
+                        color: AppColors.streakOrange,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -136,60 +143,35 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
             // Stats
             Text(
               'Accuracy: $accuracyPercent%',
-              style: context.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.neutralText,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            _StatRow(
-              emoji: '✅',
-              label: 'Correct',
-              count: state.correctCount,
-              color: Colors.green,
-            ),
-            _StatRow(
-              emoji: '❌',
-              label: 'Incorrect',
-              count: state.incorrectCount,
-              color: Colors.red,
-            ),
-            _StatRow(
-              emoji: '📚',
-              label: 'Total Reviewed',
-              count: state.totalReviewed,
-              color: Colors.blue,
-            ),
-
-            const SizedBox(height: 16),
-
-            if (!result.isNewSession)
-              Text(
-                'You already completed today\'s review.',
-                style: context.textTheme.bodyMedium?.copyWith(
-                  color: context.colorScheme.outline,
-                ),
-              )
-            else
-              Text(
-                result.isPerfect
-                    ? 'Amazing! You nailed every word!'
-                    : 'Great job! Keep practicing to improve.',
-                style: context.textTheme.bodyMedium,
-              ),
+            _StatRow(emoji: '✅', label: 'Correct', count: state.correctCount, color: AppColors.primary),
+            _StatRow(emoji: '❌', label: 'Incorrect', count: state.incorrectCount, color: AppColors.danger),
+            _StatRow(emoji: '📚', label: 'Total', count: state.totalReviewed, color: AppColors.secondary),
           ],
         ),
         actions: [
-          FilledButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              context.pop();
-              // Invalidate providers to refresh hub
-              ref.invalidate(todayReviewSessionProvider);
-              ref.invalidate(dailyReviewWordsProvider);
-            },
-            child: const Text('Back to Vocabulary'),
-          ),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: GameButton(
+              label: 'Continue',
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                context.pop();
+                ref.invalidate(todayReviewSessionProvider);
+                ref.invalidate(dailyReviewWordsProvider);
+              },
+              variant: GameButtonVariant.primary,
+            ),
+          )
         ],
       ),
     );
@@ -201,42 +183,39 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     if (state.isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Daily Review')),
+        backgroundColor: AppColors.background,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (state.words.isEmpty) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Daily Review')),
+        backgroundColor: AppColors.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.check_circle_outline,
-                size: 80,
-                color: Colors.green,
-              ),
+              const Icon(Icons.check_circle_rounded, size: 80, color: AppColors.primary),
               const SizedBox(height: 24),
               Text(
                 'All caught up!',
-                style: context.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.black),
               ),
               const SizedBox(height: 8),
               Text(
                 'No words due for review right now.',
-                style: context.textTheme.bodyLarge?.copyWith(
-                  color: context.colorScheme.outline,
-                ),
+                style: GoogleFonts.nunito(fontSize: 18, color: AppColors.neutralText, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 32),
-              FilledButton.icon(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back),
-                label: const Text('Back to Vocabulary'),
+              SizedBox(
+                width: 200,
+                height: 50,
+                child: GameButton(
+                  label: 'Back',
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop(),
+                  variant: GameButtonVariant.secondary,
+                ),
               ),
             ],
           ),
@@ -247,7 +226,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     final currentWord = state.currentWord;
     if (currentWord == null || state.isComplete) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Daily Review')),
+        backgroundColor: AppColors.background,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -255,144 +234,98 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     final progress = (state.currentIndex + 1) / state.words.length;
 
     return Scaffold(
-      backgroundColor: context.colorScheme.surface,
-      appBar: AppBar(
-        title: const Text('Daily Review'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Text(
-                '${state.currentIndex + 1}/${state.words.length}',
-                style: context.textTheme.titleMedium,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Progress bar
-          LinearProgressIndicator(
-            value: progress,
-            minHeight: 4,
-            backgroundColor: context.colorScheme.surfaceContainerHighest,
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
-          ),
-
-          // Stats row
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _MiniStat(
-                  emoji: '✅',
-                  count: state.correctCount,
-                  color: Colors.green,
-                ),
-                const SizedBox(width: 24),
-                _MiniStat(
-                  emoji: '❌',
-                  count: state.incorrectCount,
-                  color: Colors.red,
-                ),
-              ],
-            ),
-          ),
-
-          // Flashcard
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: GestureDetector(
-                onTap: _flipCard,
-                child: AnimatedBuilder(
-                  animation: _flipAnimation,
-                  builder: (context, child) {
-                    final angle = _flipAnimation.value * math.pi;
-                    final isFront = angle < math.pi / 2;
-
-                    return Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..setEntry(3, 2, 0.001)
-                        ..rotateY(angle),
-                      child: isFront
-                          ? _CardFront(word: currentWord)
-                          : Transform(
-                              alignment: Alignment.center,
-                              transform: Matrix4.identity()..rotateY(math.pi),
-                              child: _CardBack(word: currentWord),
-                            ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-
-          // Tap to flip hint
-          if (!_isFlipped)
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
             Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text(
-                'Tap card to reveal answer',
-                style: context.textTheme.bodyMedium?.copyWith(
-                  color: context.colorScheme.outline,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                   GestureDetector(
+                     onTap: () => Navigator.of(context).pop(),
+                     child: Icon(Icons.close_rounded, color: AppColors.neutralText, size: 32),
+                   ),
+                   const SizedBox(width: 16),
+                   Expanded(
+                     child: ProProgressBar(progress: progress, height: 20, color: AppColors.streakOrange),
+                   ),
+                ],
+              ),
+            ),
+            
+            // Stats (optional, hidden or small)
+            
+            // Flashcard Area
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: GestureDetector(
+                  onTap: _flipCard,
+                  child: AnimatedBuilder(
+                    animation: _flipAnimation,
+                    builder: (context, child) {
+                      final angle = _flipAnimation.value * math.pi;
+                      final isFront = angle < math.pi / 2;
+  
+                      return Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..rotateY(angle),
+                        child: isFront
+                            ? _CardFront(word: currentWord)
+                            : Transform(
+                                alignment: Alignment.center,
+                                transform: Matrix4.identity()..rotateY(math.pi),
+                                child: _CardBack(word: currentWord),
+                              ),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-
-          // Response buttons (only show when flipped)
-          AnimatedOpacity(
-            opacity: _isFlipped ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 200),
-            child: AnimatedSlide(
-              offset: _isFlipped ? Offset.zero : const Offset(0, 0.5),
-              duration: const Duration(milliseconds: 200),
-              child: _ResponseButtons(
-                onResponse: _isFlipped ? _handleResponse : null,
+  
+            // Hint text
+            if (!_isFlipped)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text(
+                  'Tap card to reveal answer',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.emoji,
-    required this.count,
-    required this.color,
-  });
-
-  final String emoji;
-  final int count;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(emoji, style: const TextStyle(fontSize: 24)),
-        const SizedBox(height: 4),
-        Text(
-          '$count',
-          style: context.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+  
+            // Response buttons
+             Container(
+               height: 100, // Fixed height for buttons area
+               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+               child: AnimatedOpacity(
+                  opacity: _isFlipped ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: IgnorePointer(
+                    ignoring: !_isFlipped,
+                    child: Row(
+                      children: [
+                        Expanded(child: GameButton(label: '😕 Hard', variant: GameButtonVariant.danger, onPressed: () => _handleResponse(SM2Response.dontKnow))),
+                        const SizedBox(width: 12),
+                        Expanded(child: GameButton(label: '😊 Good', variant: GameButtonVariant.secondary, onPressed: () => _handleResponse(SM2Response.gotIt))),
+                        const SizedBox(width: 12),
+                        Expanded(child: GameButton(label: '🚀 Easy', variant: GameButtonVariant.primary, onPressed: () => _handleResponse(SM2Response.veryEasy))),
+                      ],
+                    ),
+                  ),
+               ),
+             ),
+             const SizedBox(height: 20),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -404,109 +337,63 @@ class _CardFront extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: [
+           BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
+        ]
       ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade400,
-              Colors.blue.shade600,
-            ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            word.word,
+            style: GoogleFonts.nunito(
+              fontSize: 40,
+              fontWeight: FontWeight.w900,
+              color: AppColors.black,
+            ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Word
+          if (word.phonetic != null) ...[
+            const SizedBox(height: 8),
             Text(
-              word.word,
-              style: context.textTheme.displaySmall?.copyWith(
-                color: Colors.white,
+              word.phonetic!,
+              style: GoogleFonts.nunito(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
+                color: AppColors.neutralText,
+                fontStyle: FontStyle.italic,
               ),
-              textAlign: TextAlign.center,
-            ),
-
-            // Phonetic
-            if (word.phonetic != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                word.phonetic!,
-                style: context.textTheme.titleLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 16),
-
-            // Part of speech or level
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                word.partOfSpeech ?? word.level ?? 'Word',
-                style: context.textTheme.labelLarge?.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Audio button
-            IconButton.filled(
-              onPressed: () {
-                HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('🔊 "${word.word}"'),
-                    duration: const Duration(seconds: 1),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.volume_up),
-              iconSize: 32,
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
-                foregroundColor: Colors.white,
-              ),
-            ),
-
-            const Spacer(),
-
-            // Flip hint
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.touch_app,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Tap to flip',
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
             ),
           ],
-        ),
+          const SizedBox(height: 24),
+          Container(
+             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+             decoration: BoxDecoration(color: AppColors.gemBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+             child: Text(
+               word.partOfSpeech ?? word.level ?? 'Word',
+               style: GoogleFonts.nunito(color: AppColors.gemBlue, fontWeight: FontWeight.bold),
+             ),
+          ),
+          const SizedBox(height: 48),
+          IconButton(
+             onPressed: () {
+                HapticFeedback.lightImpact();
+                // Audio logic would go here
+             },
+             icon: Icon(Icons.volume_up_rounded, size: 40, color: AppColors.secondary),
+             style: IconButton.styleFrom(
+               backgroundColor: AppColors.secondary.withValues(alpha: 0.1),
+               padding: EdgeInsets.all(16),
+             ),
+          ),
+        ],
       ),
     );
   }
@@ -519,105 +406,31 @@ class _CardBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(32),
+         border: Border.all(color: AppColors.neutral, width: 2),
+         boxShadow: [
+            BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
+         ]
       ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: SingleChildScrollView(
+        child: Column(
             children: [
-              // Word header
-              Center(
-                child: Text(
-                  word.word,
-                  style: context.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Definition
-              _InfoSection(
-                label: 'Definition',
-                content: word.meaningEN ?? word.meaningTR,
-                icon: Icons.menu_book,
-              ),
-
-              // Turkish meaning
-              _InfoSection(
-                label: 'Türkçe',
-                content: word.meaningTR,
-                icon: Icons.translate,
-              ),
-
-              // Example sentences
-              if (word.exampleSentences.isNotEmpty)
-                _InfoSection(
-                  label: 'Examples',
-                  content: word.exampleSentences.join('\n'),
-                  icon: Icons.format_quote,
-                ),
-
-              // Synonyms
-              if (word.synonyms.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Synonyms',
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: word.synonyms
-                      .map(
-                        (s) => Chip(
-                          label: Text(s),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: Colors.green.withValues(alpha: 0.1),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
-
-              // Antonyms
-              if (word.antonyms.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Antonyms',
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: word.antonyms
-                      .map(
-                        (a) => Chip(
-                          label: Text(a),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: Colors.red.withValues(alpha: 0.1),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
+               Text(
+                 word.word,
+                 style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.secondary),
+               ),
+               Divider(height: 32, thickness: 2, color: AppColors.neutral),
+               _InfoSection(label: 'Definition', content: word.meaningEN ?? word.meaningTR, icon: Icons.menu_book_rounded, color: AppColors.primary),
+               if (word.meaningTR != word.meaningEN)
+                 _InfoSection(label: 'Türkçe', content: word.meaningTR, icon: Icons.translate_rounded, color: AppColors.streakOrange),
+               if (word.exampleSentences.isNotEmpty)
+                 _InfoSection(label: 'Example', content: word.exampleSentences.first, icon: Icons.format_quote_rounded, color: AppColors.gemBlue),
             ],
-          ),
         ),
       ),
     );
@@ -629,28 +442,31 @@ class _InfoSection extends StatelessWidget {
     required this.label,
     required this.content,
     required this.icon,
+    required this.color,
   });
 
   final String label;
   final String content;
   final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: context.colorScheme.primary),
+              Icon(icon, size: 20, color: color),
               const SizedBox(width: 8),
               Text(
                 label,
-                style: context.textTheme.labelLarge?.copyWith(
-                  color: context.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.nunito(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
                 ),
               ),
             ],
@@ -658,109 +474,9 @@ class _InfoSection extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             content,
-            style: context.textTheme.bodyLarge,
+            style: GoogleFonts.nunito(fontSize: 18, color: AppColors.black, fontWeight: FontWeight.bold),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ResponseButtons extends StatelessWidget {
-  const _ResponseButtons({this.onResponse});
-
-  final void Function(SM2Response)? onResponse;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Don't know
-          Expanded(
-            child: _ResponseButton(
-              emoji: '😕',
-              label: "I don't know!",
-              color: Colors.red,
-              onPressed: onResponse != null
-                  ? () => onResponse!(SM2Response.dontKnow)
-                  : null,
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Got it
-          Expanded(
-            child: _ResponseButton(
-              emoji: '😊',
-              label: 'Got it!',
-              color: Colors.blue,
-              onPressed:
-                  onResponse != null ? () => onResponse!(SM2Response.gotIt) : null,
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Very easy
-          Expanded(
-            child: _ResponseButton(
-              emoji: '🚀',
-              label: 'Very EASY!',
-              color: Colors.green,
-              onPressed: onResponse != null
-                  ? () => onResponse!(SM2Response.veryEasy)
-                  : null,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ResponseButton extends StatelessWidget {
-  const _ResponseButton({
-    required this.emoji,
-    required this.label,
-    required this.color,
-    this.onPressed,
-  });
-
-  final String emoji;
-  final String label;
-  final Color color;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: color, width: 2),
-          ),
-          child: Column(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: context.textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -782,18 +498,19 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 12),
-          Text(label),
+          Text(emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 16),
+          Text(label, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.black)),
           const Spacer(),
           Text(
             '$count',
-            style: context.textTheme.titleMedium?.copyWith(
+            style: GoogleFonts.nunito(
               color: color,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
             ),
           ),
         ],

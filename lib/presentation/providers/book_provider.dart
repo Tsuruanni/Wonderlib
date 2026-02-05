@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/student_assignment.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/reading_progress.dart';
@@ -13,7 +14,10 @@ import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
+import '../../domain/usecases/reading/check_read_today_usecase.dart';
+import '../../domain/usecases/reading/get_words_read_today_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
+import '../../domain/usecases/activity/get_correct_answers_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
@@ -376,4 +380,43 @@ class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
 final readingControllerProvider = StateNotifierProvider.autoDispose.family<
     ReadingController, AsyncValue<ReadingProgress?>, String>((ref, bookId) {
   return ReadingController(ref, bookId);
+});
+
+/// Whether user has read today (for daily task)
+final hasReadTodayProvider = FutureProvider<bool>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return false;
+
+  final useCase = ref.watch(checkReadTodayUseCaseProvider);
+  final result = await useCase(CheckReadTodayParams(userId: userId));
+  return result.fold(
+    (failure) => false,
+    (hasRead) => hasRead,
+  );
+});
+
+/// Words read today (for daily task)
+final wordsReadTodayProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return 0;
+
+  final useCase = ref.watch(getWordsReadTodayUseCaseProvider);
+  final result = await useCase(GetWordsReadTodayParams(userId: userId));
+  return result.fold(
+    (failure) => 0,
+    (count) => count,
+  );
+});
+
+/// Correct answers today (for daily task)
+final correctAnswersTodayProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return 0;
+
+  final useCase = ref.watch(getCorrectAnswersTodayUseCaseProvider);
+  final result = await useCase(GetCorrectAnswersTodayParams(userId: userId));
+  return result.fold(
+    (failure) => 0,
+    (count) => count,
+  );
 });

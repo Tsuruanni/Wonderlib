@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/user.dart';
@@ -8,21 +11,32 @@ import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../widgets/common/game_button.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Use userControllerProvider for profile data (XP, streak, level)
     final userAsync = ref.watch(userControllerProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(
+          'PROFILE', 
+          style: GoogleFonts.nunito(
+             fontWeight: FontWeight.bold,
+             color: AppColors.neutralText,
+             letterSpacing: 1.0,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: AppColors.background,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_rounded, color: AppColors.primary),
             onPressed: () {
               // TODO: Navigate to settings
             },
@@ -38,63 +52,119 @@ class ProfileScreen extends ConsumerWidget {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                // Avatar
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: context.colorScheme.primaryContainer,
-                  child: Text(
-                    user.initials,
-                    style: context.textTheme.headlineLarge?.copyWith(
-                      color: context.colorScheme.onPrimaryContainer,
+                // Start with entrance animation for the profile header
+                Column(
+                  children: [
+                    // Avatar with Level Badge
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.neutral, width: 4),
+                          ),
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                            child: Text(
+                              user.initials,
+                              style: GoogleFonts.nunito(
+                                fontSize: 48,
+                                fontWeight: FontWeight.w900,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.white, width: 2),
+                          ),
+                          child: Text(
+                            'LVL ${user.level}',
+                            style: GoogleFonts.nunito(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Name
-                Text(
-                  user.fullName,
-                  style: context.textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 4),
-
-                // Role badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    user.role.name.toUpperCase(),
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: context.colorScheme.onSecondaryContainer,
+                    const SizedBox(height: 16),
+                    
+                    // Name and Username
+                    Text(
+                      user.fullName,
+                      style: GoogleFonts.nunito(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.black,
+                      ),
                     ),
-                  ),
-                ),
+                    Text(
+                      '@${(user.email ?? '').split('@')[0]}', // Mock handle
+                      style: GoogleFonts.nunito(
+                        fontSize: 16,
+                        color: AppColors.neutralText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    
+                    Text(
+                      'Joined ${DateTime.now().year}', // Mock join date
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        color: AppColors.neutralText,
+                      ),
+                    ),
+                  ],
+                ).animate().fadeIn().moveY(begin: 10, end: 0),
+
+                const SizedBox(height: 32),
+                const Divider(thickness: 2, color: AppColors.neutral),
                 const SizedBox(height: 32),
 
-                // Stats - different for student vs teacher
+                // Stats Section
                 if (user.role.isStudent)
-                  _StudentStatsCard(user: user)
+                  _StudentStatsGrid(user: user).animate().fadeIn(delay: 200.ms)
                 else
                   const _TeacherStatsCard(),
-                const SizedBox(height: 24),
+                
+                const SizedBox(height: 32),
 
-                // Badges section (only for students)
-                if (user.role.isStudent) ...[
-                  const _BadgesSection(),
-                  const SizedBox(height: 24),
-                ],
+                // Badges Section
+                if (user.role.isStudent)
+                   Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     children: [
+                       Text(
+                         'Achievements',
+                         style: GoogleFonts.nunito(
+                           fontSize: 20,
+                           fontWeight: FontWeight.w800,
+                           color: AppColors.black,
+                         ),
+                       ),
+                       const SizedBox(height: 16),
+                       const _BadgesSection(),
+                     ],
+                   ).animate().fadeIn(delay: 400.ms),
 
-                // Logout button
-                OutlinedButton.icon(
+                const SizedBox(height: 48),
+
+                // Sign Out
+                GameButton(
+                  label: 'SIGN OUT', 
                   onPressed: () async {
                     final confirmed = await context.showConfirmDialog(
                       title: 'Sign Out',
@@ -102,13 +172,12 @@ class ProfileScreen extends ConsumerWidget {
                       confirmText: 'Sign Out',
                       isDestructive: true,
                     );
-
                     if (confirmed ?? false) {
                       await ref.read(authControllerProvider.notifier).signOut();
                     }
                   },
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign Out'),
+                  variant: GameButtonVariant.outline,
+                  fullWidth: true,
                 ),
               ],
             ),
@@ -119,43 +188,122 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _StudentStatsCard extends StatelessWidget {
-  const _StudentStatsCard({required this.user});
-
+class _StudentStatsGrid extends StatelessWidget {
   final User user;
+  const _StudentStatsGrid({required this.user});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+           'Statistics',
+           style: GoogleFonts.nunito(
+             fontSize: 20,
+             fontWeight: FontWeight.w800,
+             color: AppColors.black,
+           ),
+        ),
+        const SizedBox(height: 16),
+        Row(
           children: [
-            _StatRow(
-              label: 'Total XP',
-              value: user.xp.toString(),
-              icon: Icons.star,
+            Expanded(
+              child: _StatBox(
+                icon: Icons.local_fire_department_rounded,
+                value: '${user.currentStreak}',
+                label: 'Day Streak',
+                color: AppColors.streakOrange,
+              ),
             ),
-            const Divider(),
-            _StatRow(
-              label: 'Level',
-              value: '${user.level} (${user.userLevel.title})',
-              icon: Icons.trending_up,
-            ),
-            const Divider(),
-            _StatRow(
-              label: 'Current Streak',
-              value: '${user.currentStreak} days',
-              icon: Icons.local_fire_department,
-            ),
-            const Divider(),
-            _StatRow(
-              label: 'Longest Streak',
-              value: '${user.longestStreak} days',
-              icon: Icons.emoji_events,
+            const SizedBox(width: 16),
+            Expanded(
+              child: _StatBox(
+                icon: Icons.electric_bolt_rounded, 
+                value: '${user.xp}',
+                label: 'Total XP',
+                color: AppColors.wasp,
+              ),
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _StatBox(
+                icon: Icons.stars_rounded, // Use a filled icon
+                value: user.userLevel.title,
+                label: 'Current League',
+                color: AppColors.secondary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _StatBox(
+                icon: Icons.emoji_events_rounded,
+                value: '0', 
+                label: 'Top 3 Finishes',
+                color: AppColors.primary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const _StatBox({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: AppColors.black,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -166,83 +314,8 @@ class _TeacherStatsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(teacherStatsProvider);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: statsAsync.when(
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          error: (_, __) => const Center(
-            child: Text('Failed to load stats'),
-          ),
-          data: (stats) => Column(
-            children: [
-              _StatRow(
-                label: 'Total Students',
-                value: stats.totalStudents.toString(),
-                icon: Icons.people,
-              ),
-              const Divider(),
-              _StatRow(
-                label: 'My Classes',
-                value: stats.totalClasses.toString(),
-                icon: Icons.class_,
-              ),
-              const Divider(),
-              _StatRow(
-                label: 'Active Assignments',
-                value: stats.activeAssignments.toString(),
-                icon: Icons.assignment,
-              ),
-              const Divider(),
-              _StatRow(
-                label: 'Average Progress',
-                value: '${stats.avgProgress.toStringAsFixed(0)}%',
-                icon: Icons.trending_up,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatRow extends StatelessWidget {
-  const _StatRow({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: context.colorScheme.outline),
-          const SizedBox(width: 12),
-          Expanded(child: Text(label)),
-          Text(
-            value,
-            style: context.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
+    // Teacher stats layout (could be improved later)
+    return const Card(child: Padding(padding: EdgeInsets.all(16), child: Text("Teacher Stats Placeholder")));
   }
 }
 
@@ -253,139 +326,79 @@ class _BadgesSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final badgesAsync = ref.watch(userBadgesProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Badges',
-              style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return badgesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const Text('Failed to load badges'),
+      data: (badges) {
+        if (badges.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border(
+                bottom: BorderSide(color: AppColors.neutral, width: 4), 
+                top: BorderSide(color: AppColors.neutral, width: 2), 
+                left: BorderSide(color: AppColors.neutral, width: 2), 
+                right: BorderSide(color: AppColors.neutral, width: 2),
+              ), 
+              // ^ Manual box border to match game button style roughly
             ),
-            badgesAsync.whenData(
-              (badges) => Text(
-                '${badges.length} earned',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.outline,
-                ),
-              ),
-            ).value ?? const SizedBox.shrink(),
-          ],
-        ),
-        const SizedBox(height: 12),
-        badgesAsync.when(
-          loading: () => const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: CircularProgressIndicator(),
+            child: Column(
+              children: [
+                Icon(Icons.emoji_events_outlined, size: 48, color: AppColors.neutralText),
+                 Text(
+                   'No badges yet',
+                   style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16),
+                 ),
+                 Text('Complete lessons to earn them!', style: GoogleFonts.nunito(color: AppColors.neutralText)),
+              ],
             ),
-          ),
-          error: (_, __) => Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'Failed to load badges',
-                style: TextStyle(color: context.colorScheme.error),
-              ),
-            ),
-          ),
-          data: (badges) {
-            if (badges.isEmpty) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.emoji_events_outlined,
-                        size: 48,
-                        color: context.colorScheme.outline,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No badges yet',
-                        style: context.textTheme.titleSmall?.copyWith(
-                          color: context.colorScheme.outline,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Complete activities to earn badges!',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.colorScheme.outline,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: badges.map((userBadge) {
-                return _BadgeChip(userBadge: userBadge);
-              }).toList(),
-            );
-          },
-        ),
-      ],
+          );
+        }
+        
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: badges.map((b) => _BadgeItem(badge: b)).toList(),
+        );
+      },
     );
   }
 }
 
-class _BadgeChip extends StatelessWidget {
-  const _BadgeChip({required this.userBadge});
-
-  final UserBadge userBadge;
+class _BadgeItem extends StatelessWidget {
+  final UserBadge badge;
+  const _BadgeItem({required this.badge});
 
   @override
   Widget build(BuildContext context) {
-    final badge = userBadge.badge;
-
-    return Tooltip(
-      message: badge.description ?? badge.name,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      // Mocking badge visual
+      return Container(
+        width: 100,
+        height: 120,
         decoration: BoxDecoration(
-          color: _getCategoryColor(badge.category, context).withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _getCategoryColor(badge.category, context).withValues(alpha: 0.3),
-          ),
+           color: AppColors.white,
+           borderRadius: BorderRadius.circular(16),
+           border: Border.all(color: AppColors.neutral, width: 2),
+           boxShadow: [
+             BoxShadow(color: AppColors.neutral, offset: Offset(0, 4))
+           ]
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              badge.icon ?? '🏆',
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              badge.name,
-              style: context.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+             Text(badge.badge.icon ?? '🏆', style: const TextStyle(fontSize: 40)),
+             const SizedBox(height: 8),
+             Text(
+               badge.badge.name,
+               textAlign: TextAlign.center,
+               style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 12),
+               maxLines: 2,
+             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Color _getCategoryColor(String? category, BuildContext context) {
-    return switch (category) {
-      'achievement' => Colors.amber,
-      'streak' => Colors.orange,
-      'reading' => Colors.blue,
-      'vocabulary' => Colors.purple,
-      'special' => Colors.pink,
-      _ => context.colorScheme.primary,
-    };
+      );
   }
 }

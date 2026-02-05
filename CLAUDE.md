@@ -107,6 +107,7 @@ lib/
 ├── presentation/
 │   ├── providers/       # Riverpod state management
 │   ├── screens/         # UI screens
+│   ├── utils/           # UI helpers (colors, formatters)
 │   └── widgets/         # Reusable components
 └── l10n/                # Localization (TR/EN)
 ```
@@ -203,6 +204,9 @@ flutter test
 | `import 'package:flutter'` in UseCase | Domain layer must be framework-agnostic |
 | `fromJson`/`toJson` in Entity | JSON handling belongs in Model layer |
 | Hard-coded values in games | Use GameConfig for configurability |
+| Business logic in Widget | Move to provider (e.g., `handleActivityCompletion`) |
+| Duplicate helper methods in screens | Use centralized `ui_helpers.dart` |
+| UseCase calls directly in Widget | Widget calls Provider, Provider calls UseCase |
 
 ## ALWAYS Do This
 
@@ -248,6 +252,28 @@ class StartGameUseCase {
     // Game uses config, not hard-coded values
   }
 }
+```
+
+---
+
+# UI Helpers (`lib/presentation/utils/ui_helpers.dart`)
+
+Centralized helpers for colors, icons, and formatters. **Never duplicate these in screens/widgets.**
+
+| Helper | Methods |
+|--------|---------|
+| `AssignmentColors` | `getTypeColor()`, `getTypeIcon()`, `getStatusColor()`, `getStatusIcon()` |
+| `StudentAssignmentColors` | `getTypeColor()`, `getTypeIcon()`, `getStatusColor()`, `getStatusIcon()` |
+| `VocabularyColors` | `getCategoryColor()` |
+| `ScoreColors` | `getScoreColor()`, `getProgressColor()`, `getCompletionColor()` |
+| `TimeFormatter` | `formatReadingTime()`, `formatDuration()` |
+| `GreetingHelper` | `getGreeting()` |
+
+```dart
+// Usage in screen/widget:
+color: AssignmentColors.getTypeColor(assignment.type)
+color: ScoreColors.getScoreColor(score)
+final greeting = GreetingHelper.getGreeting();
 ```
 
 ---
@@ -301,13 +327,15 @@ flutter test --coverage
 
 ---
 
-# Current Status (2026-02-01)
+# Current Status (2026-02-05)
 
 ## ✅ Completed
 - Clean Architecture refactor (7 modules)
 - 21 Models, 81 UseCases
 - 9 Supabase repository implementations
 - All screens use UseCases (not repositories)
+- UI helpers centralized (`ui_helpers.dart`)
+- Business logic moved from widgets to providers
 
 ## ⚠️ Pending
 - [ ] `supabase db push` to remote (production)

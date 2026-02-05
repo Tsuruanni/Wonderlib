@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
-import '../../../domain/repositories/student_assignment_repository.dart';
+import '../../../domain/entities/student_assignment.dart';
+import '../../providers/student_assignment_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../providers/student_assignment_provider.dart';
 
 class StudentAssignmentsScreen extends ConsumerWidget {
@@ -219,12 +221,12 @@ class _AssignmentCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _getTypeColor(assignment.type).withValues(alpha: 0.1),
+                      color: StudentAssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
-                      _getTypeIcon(assignment.type),
-                      color: _getTypeColor(assignment.type),
+                      StudentAssignmentColors.getTypeIcon(assignment.type),
+                      color: StudentAssignmentColors.getTypeColor(assignment.type),
                       size: 24,
                     ),
                   ),
@@ -337,13 +339,13 @@ class _AssignmentCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _getScoreColor(assignment.score!).withValues(alpha: 0.1),
+                    color: ScoreColors.getScoreColor(assignment.score!).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     '${assignment.score!.toStringAsFixed(0)}%',
                     style: context.textTheme.titleSmall?.copyWith(
-                      color: _getScoreColor(assignment.score!),
+                      color: ScoreColors.getScoreColor(assignment.score!),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -361,31 +363,4 @@ class _AssignmentCard extends StatelessWidget {
     );
   }
 
-  IconData _getTypeIcon(StudentAssignmentType type) {
-    switch (type) {
-      case StudentAssignmentType.book:
-        return Icons.menu_book;
-      case StudentAssignmentType.vocabulary:
-        return Icons.abc;
-      case StudentAssignmentType.mixed:
-        return Icons.library_books;
-    }
-  }
-
-  Color _getTypeColor(StudentAssignmentType type) {
-    switch (type) {
-      case StudentAssignmentType.book:
-        return Colors.blue;
-      case StudentAssignmentType.vocabulary:
-        return Colors.purple;
-      case StudentAssignmentType.mixed:
-        return Colors.teal;
-    }
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.orange;
-    return Colors.red;
-  }
 }

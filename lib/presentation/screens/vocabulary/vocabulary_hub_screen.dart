@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../providers/vocabulary_provider.dart';
 
 /// Main vocabulary hub screen with word lists organized by sections
@@ -25,64 +27,111 @@ class VocabularyHubScreen extends ConsumerWidget {
     final hubStats = hubStatsAsync.valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Vocabulary'),
-        actions: [
-          // Stats chip
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Chip(
-              avatar: const Icon(Icons.star, size: 18),
-              label: Text('${hubStats?.masteredWords ?? 0} mastered'),
-              backgroundColor: Colors.amber.withValues(alpha: 0.2),
-            ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+               // --- Header ---
+               Padding(
+                 padding: const EdgeInsets.all(20),
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
+                     Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
+                         Text(
+                           'VOCABULARY',
+                           style: GoogleFonts.nunito(
+                             fontSize: 28,
+                             fontWeight: FontWeight.w900,
+                             color: AppColors.secondary,
+                             letterSpacing: 1.2,
+                           ),
+                         ),
+                         Text(
+                           'Master new words',
+                           style: GoogleFonts.nunito(
+                             fontSize: 16,
+                             fontWeight: FontWeight.bold,
+                             color: AppColors.neutralText,
+                           ),
+                         ),
+                       ],
+                     ),
+                     Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppColors.neutral, width: 2),
+                          boxShadow: [BoxShadow(color: AppColors.neutral, offset: Offset(0, 3))],
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${hubStats?.masteredWords ?? 0}',
+                              style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                     ),
+                   ],
+                 ),
+               ),
+
+              // Daily Review Section (always first and prominent)
+              const _DailyReviewSection(),
+
+              // Continue Learning section
+              if (continueLeaning.isNotEmpty) ...[
+                const _SectionHeader(
+                  title: 'Continue Learning',
+                  icon: Icons.play_circle_fill,
+                  color: AppColors.primary,
+                ),
+                _HorizontalListSection(lists: continueLeaning),
+              ],
+
+              // Recommended section
+              if (recommended.isNotEmpty) ...[
+                const _SectionHeader(
+                  title: 'Recommended for You',
+                  icon: Icons.star_rounded,
+                  color: Colors.amber,
+                ),
+                _HorizontalListSection(lists: recommended),
+              ],
+
+              // My Word Lists (story vocabulary)
+              if (storyLists.isNotEmpty) ...[
+                const _SectionHeader(
+                  title: 'My Word Lists',
+                  icon: Icons.bookmark_rounded,
+                   color: AppColors.secondary,
+                ),
+                _VerticalListSection(lists: storyLists, ref: ref),
+              ],
+
+              // Explore Categories
+              _SectionHeader(
+                title: 'Explore Categories',
+                icon: Icons.category_rounded,
+                color: AppColors.gemBlue,
+              ),
+              const _CategoriesGrid(),
+
+              // Empty state if nothing to show
+              if (continueLeaning.isEmpty && recommended.isEmpty && storyLists.isEmpty)
+                _EmptyState(),
+            ],
           ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          // Daily Review Section (always first and prominent)
-          const _DailyReviewSection(),
-
-          // Continue Learning section
-          if (continueLeaning.isNotEmpty) ...[
-            const _SectionHeader(
-              title: 'Continue Learning',
-              icon: Icons.play_circle_outline,
-            ),
-            _HorizontalListSection(lists: continueLeaning),
-          ],
-
-          // Recommended section
-          if (recommended.isNotEmpty) ...[
-            const _SectionHeader(
-              title: 'Recommended for You',
-              icon: Icons.star_outline,
-            ),
-            _HorizontalListSection(lists: recommended),
-          ],
-
-          // My Word Lists (story vocabulary)
-          if (storyLists.isNotEmpty) ...[
-            const _SectionHeader(
-              title: 'My Word Lists',
-              icon: Icons.bookmark_outline,
-            ),
-            _VerticalListSection(lists: storyLists, ref: ref),
-          ],
-
-          // Explore Categories
-          const _SectionHeader(
-            title: 'Explore Categories',
-            icon: Icons.category_outlined,
-          ),
-          const _CategoriesGrid(),
-
-          // Empty state if nothing to show
-          if (continueLeaning.isEmpty && recommended.isEmpty && storyLists.isEmpty)
-            _EmptyState(),
-        ],
+        ),
       ),
     );
   }
@@ -124,21 +173,16 @@ class _CompletedReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.green.shade400,
-            Colors.green.shade600,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withValues(alpha: 0.3),
-            blurRadius: 8,
+            color: AppColors.primaryShadow,
             offset: const Offset(0, 4),
+            blurRadius: 0,
           ),
         ],
       ),
@@ -148,10 +192,10 @@ class _CompletedReviewCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
-              Icons.check_circle,
+              Icons.check_rounded,
               color: Colors.white,
               size: 32,
             ),
@@ -162,44 +206,23 @@ class _CompletedReviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Today's Review Complete!",
-                  style: context.textTheme.titleMedium?.copyWith(
+                  "Review Complete!",
+                  style: GoogleFonts.nunito(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
                   '+${session.xpEarned} XP earned',
-                  style: context.textTheme.bodyMedium?.copyWith(
+                  style: GoogleFonts.nunito(
                     color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
           ),
-          if (session.isPerfect)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.amber,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.star, color: Colors.white, size: 16),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Perfect',
-                    style: context.textTheme.labelMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -213,26 +236,31 @@ class _AllCaughtUpCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.colorScheme.outline.withValues(alpha: 0.2),
-        ),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neutral,
+            offset: const Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.gemBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(
-              Icons.emoji_events,
-              color: Colors.blue.shade400,
+              Icons.emoji_events_rounded,
+              color: AppColors.gemBlue,
               size: 32,
             ),
           ),
@@ -243,15 +271,17 @@ class _AllCaughtUpCard extends StatelessWidget {
               children: [
                 Text(
                   'All Caught Up!',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: AppColors.black,
                   ),
                 ),
-                const SizedBox(height: 4),
                 Text(
-                  'No words due for review. Keep learning!',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.outline,
+                  'No words due for review.',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -271,73 +301,66 @@ class _ReadyToReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.orange.shade400,
-            Colors.orange.shade600,
+    return GestureDetector(
+      onTap: () => context.push('/vocabulary/daily-review'),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.streakOrange,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+             BoxShadow(color: Color(0xFFC76A00), offset: Offset(0, 4)),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.bolt_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
             ),
-            child: const Icon(
-              Icons.flash_on,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Daily Review',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily Review',
+                    style: GoogleFonts.nunito(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 20,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$wordCount words ready for review',
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
+                  Text(
+                    '$wordCount words ready!',
+                    style: GoogleFonts.nunito(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          FilledButton.icon(
-            onPressed: () {
-              context.push('/vocabulary/daily-review');
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.orange.shade700,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.play_arrow_rounded, color: AppColors.streakOrange, size: 24),
             ),
-            icon: const Icon(Icons.play_arrow),
-            label: const Text('Start'),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -349,22 +372,26 @@ class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
     required this.title,
     required this.icon,
+    required this.color,
   });
   final String title;
   final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: context.colorScheme.primary),
-          const SizedBox(width: 8),
+          Icon(icon, size: 24, color: color),
+          const SizedBox(width: 12),
           Text(
             title,
-            style: context.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w800,
+              fontSize: 20,
+              color: AppColors.black,
             ),
           ),
         ],
@@ -385,9 +412,9 @@ class _HorizontalListSection extends StatelessWidget {
       height: 180,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: lists.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           return _WordListCard(listWithProgress: lists[index]);
         },
@@ -406,7 +433,7 @@ class _VerticalListSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: lists.map((list) {
           final progressAsync = ref.watch(progressForListProvider(list.id));
@@ -436,14 +463,19 @@ class _WordListCard extends StatelessWidget {
         context.push('/vocabulary/list/${list.id}');
       },
       child: Container(
-        width: 180,
+        width: 160,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: context.colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: context.colorScheme.outline.withValues(alpha: 0.1),
-          ),
+          color: AppColors.white,
+           borderRadius: BorderRadius.circular(20),
+           border: Border.all(color: AppColors.neutral, width: 2),
+           boxShadow: [
+              BoxShadow(
+                 color: AppColors.neutral,
+                 offset: const Offset(0, 4),
+                 blurRadius: 0,
+              ),
+           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,62 +484,59 @@ class _WordListCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _getCategoryColor(list.category).withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                color: VocabularyColors.getCategoryColor(list.category).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 list.category.icon,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 24),
               ),
             ),
             const SizedBox(height: 12),
 
             // Title
-            Text(
-              list.name,
-              style: context.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-
-            // Word count and level
-            Text(
-              '${list.wordCount} words${list.level != null ? ' • ${list.level}' : ''}',
-              style: context.textTheme.bodySmall?.copyWith(
-                color: context.colorScheme.outline,
+            Expanded(
+              child: Text(
+                list.name,
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: AppColors.black,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-
-            const Spacer(),
-
+            
             // Progress bar
             if (progress != null) ...[
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(8),
                 child: LinearProgressIndicator(
                   value: progress.progressPercentage,
-                  minHeight: 6,
-                  backgroundColor: context.colorScheme.outline.withValues(alpha: 0.2),
+                  minHeight: 8,
+                  backgroundColor: AppColors.neutral,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    _getCategoryColor(list.category),
+                    VocabularyColors.getCategoryColor(list.category),
                   ),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                '${(progress.progressPercentage * 100).toInt()}% complete',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.outline,
+                '${(progress.progressPercentage * 100).toInt()}%',
+                style: GoogleFonts.nunito(
+                  color: AppColors.neutralText,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
             ] else
               Text(
                 'Not started',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.outline,
+                style: GoogleFonts.nunito(
+                  color: AppColors.neutralText,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
           ],
@@ -516,20 +545,6 @@ class _WordListCard extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(WordListCategory category) {
-    switch (category) {
-      case WordListCategory.commonWords:
-        return Colors.blue;
-      case WordListCategory.gradeLevel:
-        return Colors.purple;
-      case WordListCategory.testPrep:
-        return Colors.orange;
-      case WordListCategory.thematic:
-        return Colors.teal;
-      case WordListCategory.storyVocab:
-        return Colors.pink;
-    }
-  }
 }
 
 /// Tile widget for word list (used in vertical list)
@@ -544,57 +559,74 @@ class _WordListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        onTap: () {
-          context.push('/vocabulary/list/${wordList.id}');
-        },
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: context.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            wordList.category.icon,
-            style: const TextStyle(fontSize: 20),
-          ),
+    return GestureDetector(
+      onTap: () => context.push('/vocabulary/list/${wordList.id}'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+           color: AppColors.white,
+           borderRadius: BorderRadius.circular(16),
+           border: Border.all(color: AppColors.neutral, width: 2),
+           boxShadow: [BoxShadow(color: AppColors.neutral, offset: Offset(0, 3))],
         ),
-        title: Text(
-          wordList.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+        child: Row(
+          children: [
+            Container(
+               width: 50,
+               height: 50,
+               alignment: Alignment.center,
+               decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+               ),
+               child: Text(wordList.category.icon, style: const TextStyle(fontSize: 24)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                   Text(
+                     wordList.name,
+                     style: GoogleFonts.nunito(
+                       fontWeight: FontWeight.bold,
+                       fontSize: 16,
+                     ),
+                   ),
+                   Text(
+                     '${wordList.wordCount} words',
+                     style: GoogleFonts.nunito(
+                       color: AppColors.neutralText,
+                       fontWeight: FontWeight.bold,
+                       fontSize: 12,
+                     ),
+                   ),
+                ],
+              ),
+            ),
+            if (progress != null)
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Stack(
+                   alignment: Alignment.center,
+                   children: [
+                      CircularProgressIndicator(
+                         value: progress!.progressPercentage,
+                         color: AppColors.primary,
+                         backgroundColor: AppColors.neutral,
+                         strokeWidth: 5,
+                      ),
+                      if (progress!.isFullyComplete)
+                         Icon(Icons.check, size: 16, color: AppColors.primary),
+                   ],
+                ),
+              )
+            else
+               Icon(Icons.chevron_right_rounded, color: AppColors.neutralText),
+          ],
         ),
-        subtitle: Text('${wordList.wordCount} words'),
-        trailing: progress != null
-            ? _buildProgressIndicator(context, progress!)
-            : const Icon(Icons.chevron_right),
-      ),
-    );
-  }
-
-  Widget _buildProgressIndicator(BuildContext context, UserWordListProgress progress) {
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: progress.progressPercentage,
-            strokeWidth: 4,
-            backgroundColor: context.colorScheme.outline.withValues(alpha: 0.2),
-            valueColor: AlwaysStoppedAnimation<Color>(
-              progress.isFullyComplete ? Colors.green : context.colorScheme.primary,
-            ),
-          ),
-          Text(
-            '${(progress.progressPercentage * 100).toInt()}%',
-            style: context.textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -617,9 +649,9 @@ class _CategoriesGrid extends ConsumerWidget {
       height: 180,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
         itemBuilder: (context, index) {
           final category = categories[index];
           final listsAsync = ref.watch(wordListsByCategoryProvider(category));
@@ -645,23 +677,24 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = VocabularyColors.getCategoryColor(category);
+
     return GestureDetector(
       onTap: () {
         context.push('/vocabulary/category/${category.name}');
       },
       child: Container(
-        width: 180,
+        width: 160,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              _getCategoryColor(category),
-              _getCategoryColor(category).withValues(alpha: 0.7),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(16),
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+             BoxShadow(
+                color: color.withValues(alpha: 0.6), // Darker shadow
+                offset: const Offset(0, 4),
+             ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,19 +703,20 @@ class _CategoryCard extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 category.icon,
-                style: const TextStyle(fontSize: 20),
+                style: const TextStyle(fontSize: 24),
               ),
             ),
             const Spacer(),
             Text(
               category.displayName,
-              style: context.textTheme.titleSmall?.copyWith(
+              style: GoogleFonts.nunito(
                 color: Colors.white,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -690,8 +724,9 @@ class _CategoryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '$listCount lists',
-              style: context.textTheme.bodySmall?.copyWith(
+              style: GoogleFonts.nunito(
                 color: Colors.white.withValues(alpha: 0.8),
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -700,20 +735,6 @@ class _CategoryCard extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(WordListCategory category) {
-    switch (category) {
-      case WordListCategory.commonWords:
-        return Colors.blue;
-      case WordListCategory.gradeLevel:
-        return Colors.purple;
-      case WordListCategory.testPrep:
-        return Colors.orange;
-      case WordListCategory.thematic:
-        return Colors.teal;
-      case WordListCategory.storyVocab:
-        return Colors.pink;
-    }
-  }
 }
 
 /// Empty state when no lists available
@@ -725,32 +746,25 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.library_books_outlined,
-            size: 64,
-            color: context.colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No word lists yet',
-            style: context.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start reading stories to build your vocabulary!',
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colorScheme.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () {
-              context.go('/library');
-            },
-            icon: const Icon(Icons.menu_book),
-            label: const Text('Browse Library'),
-          ),
+           Icon(Icons.library_books_rounded, size: 80, color: AppColors.neutral),
+           const SizedBox(height: 16),
+           Text(
+             'No word lists yet',
+             style: GoogleFonts.nunito(
+               fontSize: 20,
+               fontWeight: FontWeight.w800,
+               color: AppColors.neutralText,
+             ),
+           ),
+           const SizedBox(height: 8),
+           Text(
+             'Start reading stories to build your vocabulary!',
+             style: GoogleFonts.nunito(
+               color: AppColors.neutralText,
+               fontWeight: FontWeight.w600,
+             ),
+             textAlign: TextAlign.center,
+           ),
         ],
       ),
     );

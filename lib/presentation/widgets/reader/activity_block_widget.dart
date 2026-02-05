@@ -3,12 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/content/content_block.dart';
-import '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
-import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../providers/usecase_providers.dart';
-import '../../providers/user_provider.dart';
 import '../activities/activities.dart';
 
 /// Widget for rendering an activity content block.
@@ -125,59 +120,13 @@ class ActivityBlockWidget extends ConsumerWidget {
     int xpEarned,
     List<String> wordsLearned,
   ) async {
-    // Check if already completed locally
-    final completedActivities = ref.read(inlineActivityStateProvider);
-    if (completedActivities.containsKey(activityId)) {
-      return;
-    }
-
-    // Mark as completed locally
-    ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);
-
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
-
-    // Save to database
-    final useCase = ref.read(saveInlineActivityResultUseCaseProvider);
-    final result = await useCase(
-      SaveInlineActivityResultParams(
-        userId: userId,
-        activityId: activityId,
-        isCorrect: isCorrect,
-        xpEarned: xpEarned,
-      ),
+    await handleInlineActivityCompletion(
+      ref,
+      activityId: activityId,
+      isCorrect: isCorrect,
+      xpEarned: xpEarned,
+      wordsLearned: wordsLearned,
+      onComplete: onActivityCompleted,
     );
-
-    final isNewCompletion = result.fold(
-      (failure) => false,
-      (isNew) => isNew,
-    );
-
-    // Award XP for new completions
-    if (isNewCompletion && xpEarned > 0) {
-      ref.read(sessionXPProvider.notifier).addXP(xpEarned);
-      await ref.read(userControllerProvider.notifier).addXP(xpEarned);
-    } else if (isNewCompletion) {
-      // Update streak even without XP (wrong answer still counts as daily activity)
-      await ref.read(userControllerProvider.notifier).updateStreak();
-    }
-
-    // Add words to vocabulary
-    if (wordsLearned.isNotEmpty) {
-      ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
-
-      final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
-      for (final wordId in wordsLearned) {
-        await addWordUseCase(
-          AddWordToVocabularyParams(
-            userId: userId,
-            wordId: wordId,
-          ),
-        );
-      }
-    }
-
-    // Notify parent
-    onActivityCompleted?.call(isCorrect, xpEarned);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/student_assignment.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../domain/repositories/student_assignment_repository.dart';

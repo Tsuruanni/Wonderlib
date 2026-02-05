@@ -1,10 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/extensions/string_extensions.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/common/game_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -50,7 +54,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!success && mounted) {
       final error = ref.read(authControllerProvider).error;
       if (error != null) {
-        context.showErrorSnackBar(error);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error,
+              style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+        );
       }
     }
   }
@@ -61,10 +75,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 400),
               child: Form(
@@ -73,93 +88,124 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo
-                    Icon(
-                      Icons.menu_book_rounded,
-                      size: 80,
-                      color: context.colorScheme.primary,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // App name
-                    Text(
-                      'ReadEng',
-                      style: context.textTheme.headlineLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-
-                    Text(
-                      'Sign in to continue reading',
-                      style: context.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Toggle between email and student number
-                    SegmentedButton<bool>(
-                      segments: const [
-                        ButtonSegment(
-                          value: false,
-                          label: Text('Email'),
-                          icon: Icon(Icons.email_outlined),
+                    // --- Animated Header ---
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
                         ),
-                        ButtonSegment(
-                          value: true,
-                          label: Text('Student #'),
-                          icon: Icon(Icons.badge_outlined),
+                        child: Icon(
+                          Icons.menu_book_rounded,
+                          size: 80,
+                          color: AppColors.primary,
                         ),
-                      ],
-                      selected: {_useStudentNumber},
-                      onSelectionChanged: (value) {
-                        setState(() {
-                          _useStudentNumber = value.first;
-                          _emailController.clear();
-                        });
+                      )
+                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                          .scale(
+                            duration: 2000.ms,
+                            begin: const Offset(0.95, 0.95),
+                            end: const Offset(1.05, 1.05),
+                            curve: Curves.easeInOut,
+                          ),
+                    ).animate().fadeIn().scale(delay: 200.ms),
+
+                    const SizedBox(height: 24),
+                    Text(
+                      'Wonderlib',
+                      style: GoogleFonts.nunito(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.primary,
+                        letterSpacing: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).animate().fadeIn(delay: 300.ms).moveY(begin: 10, end: 0),
+                    
+                    Text(
+                      'Learn English the fun way!',
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        color: AppColors.neutralText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ).animate().fadeIn(delay: 400.ms).moveY(begin: 10, end: 0),
+                    
+                    const SizedBox(height: 48),
+
+                    // --- Form Fields ---
+                    // Toggle
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.neutral.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.neutral, width: 2),
+                          ),
+                          child: Row(
+                            children: [
+                              _buildToggleOption(
+                                'Email', 
+                                Icons.email_rounded, 
+                                !_useStudentNumber,
+                              ),
+                              _buildToggleOption(
+                                'Student #', 
+                                Icons.badge_rounded, 
+                                _useStudentNumber,
+                              ),
+                            ],
+                          ),
+                        );
                       },
-                    ),
+                    ).animate().fadeIn(delay: 500.ms),
                     const SizedBox(height: 24),
 
-                    // Email/Student number input
+                    // Inputs
                     TextFormField(
                       controller: _emailController,
                       keyboardType: _useStudentNumber
-                          ? TextInputType.text
+                          ? TextInputType.number
                           : TextInputType.emailAddress,
                       decoration: InputDecoration(
                         labelText: _useStudentNumber ? 'Student Number' : 'Email',
                         prefixIcon: Icon(
                           _useStudentNumber
-                              ? Icons.badge_outlined
-                              : Icons.email_outlined,
+                              ? Icons.badge_rounded
+                              : Icons.email_rounded,
+                          color: AppColors.neutralText,
                         ),
                       ),
                       validator: (value) {
                         if (value.isNullOrEmpty) {
                           return _useStudentNumber
-                              ? 'Please enter your student number'
-                              : 'Please enter your email';
+                              ? 'Enter your number'
+                              : 'Enter your email';
                         }
                         if (!_useStudentNumber && !value!.isValidEmail) {
-                          return 'Please enter a valid email';
+                          return 'Invalid email address';
                         }
                         return null;
                       },
-                    ),
+                    ).animate().fadeIn(delay: 600.ms),
                     const SizedBox(height: 16),
 
-                    // Password input
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outlined),
+                        prefixIcon: const Icon(Icons.lock_rounded, color: AppColors.neutralText),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
+                                ? Icons.visibility_rounded
+                                : Icons.visibility_off_rounded,
+                            color: AppColors.neutralText,
                           ),
                           onPressed: () {
                             setState(() => _obscurePassword = !_obscurePassword);
@@ -167,138 +213,67 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value.isNullOrEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value!.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
+                        if (value.isNullOrEmpty) return 'Enter password';
+                        if (value!.length < 6) return 'Too short (min 6)';
                         return null;
                       },
                       onFieldSubmitted: (_) => _login(),
-                    ),
-                    const SizedBox(height: 8),
+                    ).animate().fadeIn(delay: 700.ms),
+                    
+                    const SizedBox(height: 32),
 
-                    // Forgot password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () {
-                                // TODO: Implement forgot password
-                              },
-                        child: const Text('Forgot password?'),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Login button
-                    FilledButton(
+                    // --- Action Buttons ---
+                    GameButton(
+                      label: isLoading ? 'LOADING...' : 'GET STARTED',
                       onPressed: isLoading ? null : _login,
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Sign In'),
-                    ),
+                      variant: GameButtonVariant.primary,
+                      fullWidth: true,
+                    ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.2, end: 0),
 
-                    // Error display
-                    if (authState.error != null) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.errorContainer,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          authState.error!,
-                          style: TextStyle(
-                            color: context.colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    
+                    GameButton(
+                      label: 'I FORGOT MY PASSWORD',
+                      onPressed: () {
+                         // TODO: Implement forgot password
+                         ScaffoldMessenger.of(context).showSnackBar(
+                           const SnackBar(content: Text('Working on it!')),
+                         );
+                      },
+                      variant: GameButtonVariant.neutral,
+                      fullWidth: true,
+                    ).animate().fadeIn(delay: 900.ms).slideY(begin: 0.2, end: 0),
 
-                    // Dev Quick Login (only in debug mode)
-                    if (kDebugMode) ...[
-                      const SizedBox(height: 32),
+                    // --- Dev Options ---
+                    if (kDebugMode && !isLoading) ...[
+                      const SizedBox(height: 48),
                       const Divider(),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Dev Quick Login',
-                        style: context.textTheme.labelSmall?.copyWith(
-                          color: Colors.grey,
+                      Center(
+                        child: Text(
+                          'DEVELOPER SHORTCUTS',
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neutralText,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
-                      // Students row
-                      Row(
+                      const SizedBox(height: 16),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
                         children: [
-                          Expanded(
-                            child: _DevLoginButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => _quickLogin(
-                                        email: 'fresh@demo.com',
-                                        password: 'Test1234',
-                                      ),
-                              icon: Icons.child_care,
-                              label: 'Fresh',
-                              subtitle: '0 XP',
-                            ),
+                          _DevChip(
+                            label: 'Student 1',
+                            onTap: () => _quickLogin('fresh@demo.com', 'Test1234'),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _DevLoginButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => _quickLogin(
-                                        email: 'active@demo.com',
-                                        password: 'Test1234',
-                                      ),
-                              icon: Icons.school,
-                              label: 'Active',
-                              subtitle: '500 XP',
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _DevLoginButton(
-                              onPressed: isLoading
-                                  ? null
-                                  : () => _quickLogin(
-                                        email: 'advanced@demo.com',
-                                        password: 'Test1234',
-                                      ),
-                              icon: Icons.star,
-                              label: 'Advanced',
-                              subtitle: '5000 XP',
-                            ),
+                          _DevChip(
+                            label: 'Teacher',
+                            onTap: () => _quickLogin('teacher@demo.com', 'Test1234'),
+                            color: AppColors.secondary,
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Teacher button
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: isLoading
-                              ? null
-                              : () => _quickLogin(
-                                    email: 'teacher@demo.com',
-                                    password: 'Test1234',
-                                  ),
-                          icon: const Icon(Icons.person, size: 18),
-                          label: const Text('Teacher'),
-                        ),
                       ),
                     ],
                   ],
@@ -311,72 +286,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Future<void> _quickLogin({
-    required String email,
-    required String password,
-  }) async {
-    // Set to email mode and fill credentials
+  Widget _buildToggleOption(String label, IconData icon, bool isSelected) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _useStudentNumber = label == 'Student #';
+            _emailController.clear();
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(14), // Slightly less than outer
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? AppColors.primary : AppColors.neutralText,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label.toUpperCase(),
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? AppColors.primary : AppColors.neutralText,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _quickLogin(String email, String password) async {
     setState(() {
       _useStudentNumber = false;
       _emailController.text = email;
       _passwordController.text = password;
     });
-
-    // Login directly
-    final authController = ref.read(authControllerProvider.notifier);
-    final success = await authController.signInWithEmail(
-      email: email,
-      password: password,
-    );
-
-    if (!success && mounted) {
-      final error = ref.read(authControllerProvider).error;
-      if (error != null) {
-        context.showErrorSnackBar(error);
-      }
-    }
+    // Add small delay to visualize the autofill
+    await Future.delayed(const Duration(milliseconds: 200));
+    await _login();
   }
 }
 
-/// Dev login button widget for quick testing
-class _DevLoginButton extends StatelessWidget {
-  const _DevLoginButton({
-    required this.onPressed,
-    required this.icon,
-    required this.label,
-    required this.subtitle,
-  });
-
-  final VoidCallback? onPressed;
-  final IconData icon;
+class _DevChip extends StatelessWidget {
   final String label;
-  final String subtitle;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _DevChip({required this.label, required this.onTap, this.color});
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+    return ActionChip(
+      label: Text(label),
+      onPressed: onTap,
+      backgroundColor: (color ?? AppColors.primary).withValues(alpha: 0.1),
+      labelStyle: TextStyle(
+        color: color ?? AppColors.primary,
+        fontWeight: FontWeight.bold,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 9,
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
+      side: BorderSide.none,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }

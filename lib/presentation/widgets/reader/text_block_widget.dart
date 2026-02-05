@@ -32,9 +32,11 @@ class TextBlockWidget extends ConsumerWidget {
     if (text.isEmpty) return const SizedBox.shrink();
 
     // Watch audio state for this specific block
+    final audioState = ref.watch(audioSyncControllerProvider);
     final activeWordIndex = ref.watch(activeWordIndexProvider(block.id));
     final isPlaying = ref.watch(isBlockPlayingProvider(block.id));
     final isLoading = ref.watch(isBlockLoadingProvider(block.id));
+    final isFollowingScroll = audioState.isFollowingScroll;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -61,6 +63,7 @@ class TextBlockWidget extends ConsumerWidget {
               vocabulary: vocabulary,
               onVocabularyTap: onVocabularyTap,
               onWordTap: onWordTap,
+              isFollowingScroll: isFollowingScroll,
             ),
           ),
         ],

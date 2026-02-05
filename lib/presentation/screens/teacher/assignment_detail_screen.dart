@@ -8,6 +8,7 @@ import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/common/stat_item.dart';
 
 class AssignmentDetailScreen extends ConsumerWidget {
@@ -227,8 +228,8 @@ class _AssignmentAppBar extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                _getTypeColor(assignment.type),
-                _getTypeColor(assignment.type).withValues(alpha: 0.7),
+                AssignmentColors.getTypeColor(assignment.type),
+                AssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.7),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -252,7 +253,7 @@ class _AssignmentAppBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _getTypeIcon(assignment.type),
+                          AssignmentColors.getTypeIcon(assignment.type),
                           size: 14,
                           color: Colors.white,
                         ),
@@ -343,27 +344,6 @@ class _AssignmentAppBar extends StatelessWidget {
     );
   }
 
-  IconData _getTypeIcon(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Icons.menu_book;
-      case AssignmentType.vocabulary:
-        return Icons.abc;
-      case AssignmentType.mixed:
-        return Icons.library_books;
-    }
-  }
-
-  Color _getTypeColor(AssignmentType type) {
-    switch (type) {
-      case AssignmentType.book:
-        return Colors.blue;
-      case AssignmentType.vocabulary:
-        return Colors.purple;
-      case AssignmentType.mixed:
-        return Colors.teal;
-    }
-  }
 }
 
 class _StatsBar extends StatelessWidget {
@@ -452,15 +432,15 @@ class _StudentProgressCard extends StatelessWidget {
                   Row(
                     children: [
                       Icon(
-                        _getStatusIcon(student.status),
+                        AssignmentColors.getStatusIcon(student.status),
                         size: 14,
-                        color: _getStatusColor(student.status),
+                        color: AssignmentColors.getStatusColor(student.status),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         student.status.displayName,
                         style: context.textTheme.bodySmall?.copyWith(
-                          color: _getStatusColor(student.status),
+                          color: AssignmentColors.getStatusColor(student.status),
                         ),
                       ),
                     ],
@@ -480,7 +460,7 @@ class _StudentProgressCard extends StatelessWidget {
                     value: student.progress / 100,
                     strokeWidth: 4,
                     backgroundColor: context.colorScheme.surfaceContainerHighest,
-                    color: _getStatusColor(student.status),
+                    color: AssignmentColors.getStatusColor(student.status),
                   ),
                   Text(
                     '${student.progress.toStringAsFixed(0)}%',
@@ -498,13 +478,13 @@ class _StudentProgressCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: _getScoreColor(student.score!).withValues(alpha: 0.1),
+                  color: ScoreColors.getScoreColor(student.score!).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   '${student.score!.toStringAsFixed(0)}%',
                   style: context.textTheme.labelMedium?.copyWith(
-                    color: _getScoreColor(student.score!),
+                    color: ScoreColors.getScoreColor(student.score!),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -516,35 +496,4 @@ class _StudentProgressCard extends StatelessWidget {
     );
   }
 
-  IconData _getStatusIcon(AssignmentStatus status) {
-    switch (status) {
-      case AssignmentStatus.pending:
-        return Icons.schedule;
-      case AssignmentStatus.inProgress:
-        return Icons.play_circle_outline;
-      case AssignmentStatus.completed:
-        return Icons.check_circle;
-      case AssignmentStatus.overdue:
-        return Icons.warning;
-    }
-  }
-
-  Color _getStatusColor(AssignmentStatus status) {
-    switch (status) {
-      case AssignmentStatus.pending:
-        return Colors.grey;
-      case AssignmentStatus.inProgress:
-        return Colors.blue;
-      case AssignmentStatus.completed:
-        return Colors.green;
-      case AssignmentStatus.overdue:
-        return Colors.red;
-    }
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.orange;
-    return Colors.red;
-  }
 }

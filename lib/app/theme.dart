@@ -1,219 +1,196 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 abstract class AppColors {
-  // Primary colors
-  static const primary = Color(0xFF4F46E5);
-  static const primaryLight = Color(0xFF818CF8);
-  static const primaryDark = Color(0xFF3730A3);
+  // Primary Action (Green)
+  static const primary = Color(0xFF58CC02);
+  static const primaryDark = Color(0xFF46A302); // For 3D shade
+  static const primaryShadow = primaryDark;
+  static const primaryBackground = Color(0xFFD7FFB8); // Very light green for backgrounds
 
-  // Secondary colors
-  static const secondary = Color(0xFF10B981);
-  static const secondaryLight = Color(0xFF34D399);
-  static const secondaryDark = Color(0xFF059669);
+  // Secondary Action (Blue)
+  static const secondary = Color(0xFF1CB0F6);
+  static const secondaryDark = Color(0xFF1899D6);
+  static const secondaryBackground = Color(0xFFDDF4FF);
 
-  // Gamification colors
-  static const xpGold = Color(0xFFFBBF24);
-  static const streakOrange = Color(0xFFF97316);
-  static const badgePurple = Color(0xFF8B5CF6);
+  // Danger / Error (Red)
+  static const danger = Color(0xFFFF4B4B);
+  static const dangerDark = Color(0xFFEA2B2B);
+  static const dangerBackground = Color(0xFFFFDFDF);
 
-  // Level colors
-  static const levelBronze = Color(0xFFCD7F32);
-  static const levelSilver = Color(0xFFC0C0C0);
-  static const levelGold = Color(0xFFFFD700);
-  static const levelPlatinum = Color(0xFFE5E4E2);
-  static const levelDiamond = Color(0xFFB9F2FF);
+  // Warning / Gold (Yellow)
+  static const wasp = Color(0xFFFFC800);
+  static const waspDark = Color(0xFFDFA600);
+  static const waspBackground = Color(0xFFFFF7D1);
 
-  // Semantic colors
-  static const success = Color(0xFF22C55E);
-  static const warning = Color(0xFFF59E0B);
-  static const error = Color(0xFFEF4444);
-  static const info = Color(0xFF3B82F6);
+  // Neutral (Grey)
+  static const neutral = Color(0xFFE5E5E5);
+  static const neutralDark = Color(0xFFAFAFAF);
+  static const neutralText = Color(0xFF777777);
 
-  // Neutral colors
-  static const background = Color(0xFFF8FAFC);
-  static const surface = Color(0xFFFFFFFF);
-  static const textPrimary = Color(0xFF1E293B);
-  static const textSecondary = Color(0xFF64748B);
-  static const textDisabled = Color(0xFFCBD5E1);
-  static const border = Color(0xFFE2E8F0);
+  // Base
+  static const white = Color(0xFFFFFFFF);
+  static const black = Color(0xFF3C3C3C); // Soft black
+  static const background = Color(0xFFFFFFFF);
+  static const backgroundDark = Color(0xFF131F24);
 
-  // Dark mode colors
-  static const backgroundDark = Color(0xFF0F172A);
-  static const surfaceDark = Color(0xFF1E293B);
-  static const textPrimaryDark = Color(0xFFF1F5F9);
-  static const textSecondaryDark = Color(0xFF94A3B8);
+  // Gamification
+  static const xpGold = wasp;
+  static const streakOrange = Color(0xFFFF9600);
+  static const gemBlue = Color(0xFF1CB0F6);
 }
 
 abstract class AppTheme {
+  // Shared border radius for the "bubbly" look
+  static final borderRadius = BorderRadius.circular(16);
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      primaryColor: AppColors.primary,
+      scaffoldBackgroundColor: AppColors.background,
+      
+      // Typography
+      textTheme: GoogleFonts.nunitoTextTheme().apply(
+        bodyColor: AppColors.black,
+        displayColor: AppColors.black,
+      ).copyWith(
+        headlineLarge: GoogleFonts.nunito(
+          fontSize: 32,
+          fontWeight: FontWeight.w800, // Extra Bold
+          color: AppColors.black,
+        ),
+        headlineMedium: GoogleFonts.nunito(
+          fontSize: 24,
+          fontWeight: FontWeight.w800,
+          color: AppColors.black,
+        ),
+        titleLarge: GoogleFonts.nunito(
+          fontSize: 20,
+          fontWeight: FontWeight.w700, // Bold
+          color: AppColors.black,
+        ),
+        bodyLarge: GoogleFonts.nunito(
+          fontSize: 17,
+          fontWeight: FontWeight.w500, // Medium
+          color: AppColors.black,
+        ),
+        bodyMedium: GoogleFonts.nunito(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: AppColors.neutralText,
+        ),
+        labelLarge: GoogleFonts.nunito(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8, // Slightly spaced for button text
+          color: AppColors.black, 
+        ),
+      ),
+
+      // Color Scheme
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.light,
         primary: AppColors.primary,
         secondary: AppColors.secondary,
-        surface: AppColors.surface,
-        error: AppColors.error,
+        surface: AppColors.white,
+        error: AppColors.danger,
       ),
-      scaffoldBackgroundColor: AppColors.background,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
+
+      // AppBar
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.neutralText,
         elevation: 0,
         centerTitle: true,
-      ),
-      cardTheme: CardThemeData(
-        color: AppColors.surface,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+        titleTextStyle: GoogleFonts.nunito(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: AppColors.neutralText,
+          letterSpacing: 0.5,
         ),
       ),
+
+      // Input Decoration (Rounded, Thick Borders)
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.neutral.withValues(alpha: 0.2),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.neutral, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.neutral, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.secondary, width: 3),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: const BorderSide(color: AppColors.danger, width: 2),
+        ),
+        hintStyle: GoogleFonts.nunito(
+          color: AppColors.neutralText,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+
+      // Standard Buttons (Will use custom widgets mostly, but safe fallback)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: borderRadius,
           ),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
+          textStyle: GoogleFonts.nunito(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            letterSpacing: 0.5,
           ),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.error),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
-        headlineSmall: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 16,
-          color: AppColors.textPrimary,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          color: AppColors.textSecondary,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
         ),
       ),
     );
   }
 
+  // Dark Theme (Quick Pass - can be refined)
   static ThemeData get darkTheme {
+    const darkBg = AppColors.backgroundDark;
+    const darkSurface = Color(0xFF202F36);
+
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      primaryColor: AppColors.primary,
+      scaffoldBackgroundColor: darkBg,
+      
+      textTheme: GoogleFonts.nunitoTextTheme().apply(
+        bodyColor: AppColors.white,
+        displayColor: AppColors.white,
+      ),
+      
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         brightness: Brightness.dark,
-        primary: AppColors.primaryLight,
-        secondary: AppColors.secondaryLight,
-        surface: AppColors.surfaceDark,
-        error: AppColors.error,
+        surface: darkSurface,
       ),
-      scaffoldBackgroundColor: AppColors.backgroundDark,
+      
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surfaceDark,
-        foregroundColor: AppColors.textPrimaryDark,
+        backgroundColor: darkBg,
         elevation: 0,
         centerTitle: true,
       ),
+
       cardTheme: CardThemeData(
-        color: AppColors.surfaceDark,
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryLight,
-          foregroundColor: AppColors.backgroundDark,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.surfaceDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: AppColors.textSecondaryDark.withValues(alpha: 0.3)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.primaryLight, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        color: darkSurface,
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
       ),
     );
   }

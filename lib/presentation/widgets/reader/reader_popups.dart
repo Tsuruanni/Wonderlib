@@ -24,10 +24,18 @@ class ReaderPopups extends ConsumerWidget {
     final tappedWord = ref.watch(tappedWordProvider);
     final tappedWordPosition = ref.watch(tappedWordPositionProvider);
 
+    final hasVocabPopup = selectedVocab != null && popupPosition != null;
+    final hasWordPopup = tappedWord != null && tappedWordPosition != null;
+
+    // If no popups are active, don't block any taps
+    if (!hasVocabPopup && !hasWordPopup) {
+      return const SizedBox.shrink();
+    }
+
     return Stack(
       children: [
         // Vocabulary popup (legacy - for pre-highlighted vocab words)
-        if (selectedVocab != null && popupPosition != null)
+        if (hasVocabPopup)
           VocabularyPopup(
             vocabulary: selectedVocab,
             position: popupPosition,
@@ -40,7 +48,7 @@ class ReaderPopups extends ConsumerWidget {
           ),
 
         // Word tap popup (new - for any word tap)
-        if (tappedWord != null && tappedWordPosition != null)
+        if (hasWordPopup)
           WordTapPopup(
             word: tappedWord,
             position: tappedWordPosition,

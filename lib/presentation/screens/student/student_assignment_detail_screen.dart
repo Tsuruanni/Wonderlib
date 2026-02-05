@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
-import '../../../domain/repositories/student_assignment_repository.dart';
 import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
+import '../../../domain/entities/student_assignment.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/ui_helpers.dart';
 
 class StudentAssignmentDetailScreen extends ConsumerWidget {
   const StudentAssignmentDetailScreen({
@@ -76,8 +77,8 @@ class _AssignmentDetailContent extends ConsumerWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    _getTypeColor(assignment.type),
-                    _getTypeColor(assignment.type).withValues(alpha: 0.7),
+                    StudentAssignmentColors.getTypeColor(assignment.type),
+                    StudentAssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.7),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -101,7 +102,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _getTypeIcon(assignment.type),
+                              StudentAssignmentColors.getTypeIcon(assignment.type),
                               size: 14,
                               color: Colors.white,
                             ),
@@ -170,15 +171,15 @@ class _AssignmentDetailContent extends ConsumerWidget {
                       Row(
                         children: [
                           Icon(
-                            _getStatusIcon(assignment.status),
+                            StudentAssignmentColors.getStatusIcon(assignment.status),
                             size: 18,
-                            color: _getStatusColor(assignment.status),
+                            color: StudentAssignmentColors.getStatusColor(assignment.status),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             assignment.status.displayName,
                             style: context.textTheme.titleSmall?.copyWith(
-                              color: _getStatusColor(assignment.status),
+                              color: StudentAssignmentColors.getStatusColor(assignment.status),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -231,7 +232,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: _getScoreColor(assignment.score!).withValues(alpha: 0.1),
+                      color: ScoreColors.getScoreColor(assignment.score!).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -239,14 +240,14 @@ class _AssignmentDetailContent extends ConsumerWidget {
                         Text(
                           '${assignment.score!.toStringAsFixed(0)}%',
                           style: context.textTheme.titleLarge?.copyWith(
-                            color: _getScoreColor(assignment.score!),
+                            color: ScoreColors.getScoreColor(assignment.score!),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           'Score',
                           style: context.textTheme.labelSmall?.copyWith(
-                            color: _getScoreColor(assignment.score!),
+                            color: ScoreColors.getScoreColor(assignment.score!),
                           ),
                         ),
                       ],
@@ -432,59 +433,6 @@ class _AssignmentDetailContent extends ConsumerWidget {
     }
   }
 
-  IconData _getTypeIcon(StudentAssignmentType type) {
-    switch (type) {
-      case StudentAssignmentType.book:
-        return Icons.menu_book;
-      case StudentAssignmentType.vocabulary:
-        return Icons.abc;
-      case StudentAssignmentType.mixed:
-        return Icons.library_books;
-    }
-  }
-
-  Color _getTypeColor(StudentAssignmentType type) {
-    switch (type) {
-      case StudentAssignmentType.book:
-        return Colors.blue;
-      case StudentAssignmentType.vocabulary:
-        return Colors.purple;
-      case StudentAssignmentType.mixed:
-        return Colors.teal;
-    }
-  }
-
-  IconData _getStatusIcon(StudentAssignmentStatus status) {
-    switch (status) {
-      case StudentAssignmentStatus.pending:
-        return Icons.schedule;
-      case StudentAssignmentStatus.inProgress:
-        return Icons.play_circle;
-      case StudentAssignmentStatus.completed:
-        return Icons.check_circle;
-      case StudentAssignmentStatus.overdue:
-        return Icons.warning;
-    }
-  }
-
-  Color _getStatusColor(StudentAssignmentStatus status) {
-    switch (status) {
-      case StudentAssignmentStatus.pending:
-        return Colors.grey;
-      case StudentAssignmentStatus.inProgress:
-        return Colors.blue;
-      case StudentAssignmentStatus.completed:
-        return Colors.green;
-      case StudentAssignmentStatus.overdue:
-        return Colors.red;
-    }
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.orange;
-    return Colors.red;
-  }
 }
 
 class _ContentCard extends StatelessWidget {

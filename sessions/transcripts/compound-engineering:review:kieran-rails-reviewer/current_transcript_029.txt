@@ -1,0 +1,49 @@
+          "content": "import 'package:flutter/material.dart';\nimport 'package:flutter_riverpod/flutter_riverpod.dart';\nimport 'package:go_router/go_router.dart';\n\nimport '../../../core/supabase_client.dart';\nimport '../../../core/widgets/csv_import_dialog.dart';\nimport 'user_list_screen.dart';\n\nclass UserImportScreen extends ConsumerWidget {\n  const UserImportScreen({super.key});\n\n  static const expectedHeaders = [\n    'email',\n    'first_name',\n    'last_name',\n    'role',\n    'school_code',\n    'student_number',\n  ];\n\n  static const requiredHeaders = ['email', 'role'];\n\n  @override\n  Widget build(BuildContext context, WidgetRef ref) {\n    return Scaffold(\n      appBar: AppBar(\n        title: const Text('Import Users'),\n        leading: IconButton(\n          icon: const Icon(Icons.arrow_back),\n          onPressed: () => context.go('/users'),\n        ),\n      ),\n      body: Center(\n        child: Padding(\n          padding: const EdgeInsets.all(24),\n          child: Column(\n            mainAxisAlignment: MainAxisAlignment.center,\n            children: [\n              Icon(\n                Icons.upload_file,\n                size: 64,\n                color: Colors.grey.shade400,\n              ),\n              const SizedBox(height: 16),\n              Text(\n                'Import Users from CSV',\n                style: Theme.of(context).textTheme.headlineSmall,\n              ),\n              const SizedBox(height: 8),\n              Text(\n                'Upload a CSV file to bulk import or update user profiles.',\n                style: TextStyle(color: Colors.grey.shade600),\n              ),\n              const SizedBox(height: 24),\n              FilledButton.icon(\n                onPressed: () => _showImportDialog(context, ref),\n                icon: const Icon(Icons.upload),\n                label: const Text('Select CSV File'),\n              ),\n              const SizedBox(height: 32),\n\n              // Format info\n              Container(\n                constraints: const BoxConstraints(maxWidth: 600),\n                padding: const EdgeInsets.all(16),\n                decoration: BoxDecoration(\n                  color: Colors.blue.shade50,\n                  borderRadius: BorderRadius.circular(8),\n                ),\n                child: Column(\n                  crossAxisAlignment: CrossAxisAlignment.start,\n                  children: [\n                    Row(\n                      children: [\n                        Icon(Icons.info_outline, color: Colors.blue.shade700),\n                        const SizedBox(width: 8),\n                        Text(\n                          'CSV Format',\n                          style: TextStyle(\n                            fontWeight: FontWeight.bold,\n                            color: Colors.blue.shade900,\n                          ),\n                        ),\n                      ],\n                    ),\n                    const SizedBox(height: 12),\n                    Text(\n                      'Required columns: email, role',\n                      style: TextStyle(color: Colors.blue.shade900),\n                    ),\n                    Text(\n                      'Optional columns: first_name, last_name, school_code, student_number',\n                      style: TextStyle(color: Colors.blue.shade700),\n                    ),\n                    const SizedBox(height: 12),\n                    Container(\n                      padding: const EdgeInsets.all(8),\n                      decoration: BoxDecoration(\n                        color: Colors.white,\n                        borderRadius: BorderRadius.circular(4),\n                      ),\n                      child: Text(\n                        'email,first_name,last_name,role,school_code,student_number\\n'\n                        'john@example.com,John,Doe,student,DEMO123,2024001\\n'\n                        'jane@example.com,Jane,Smith,teacher,DEMO123,',\n                        style: TextStyle(\n                          fontFamily: 'monospace',\n                          fontSize: 12,\n                          color: Colors.grey.shade800,\n                        ),\n                      ),\n                    ),\n                    const SizedBox(height: 12),\n                    Text(\n                      'Valid roles: student, teacher, admin',\n                      style: TextStyle(\n                        fontSize: 13,\n                        color: Colors.blue.shade700,\n                      ),\n                    ),\n                  ],\n                ),\n              ),\n            ],\n          ),\n        ),\n      ),\n    );\n  }\n\n  void _showImportDialog(BuildContext context, WidgetRef ref) {\n    showDialog(\n      context: context,\n      barrierDismissible: false,\n      builder: (context) => CsvImportDialog(\n        title: 'Import Users',\n        expectedHeaders: expectedHeaders,\n        requiredHeaders: requiredHeaders,\n        processRow: (row) => _processRow(row, ref),\n        onComplete: () {\n          ref.invalidate(usersProvider);\n        },\n      ),\n    );\n  }\n\n  Future<String?> _processRow(Map<String, String> row, WidgetRef ref) async {\n    final supabase = ref.read(supabaseClientProvider);\n\n    final email = row['email']?.trim();\n    final role = row['role']?.trim().toLowerCase();\n    final firstName = row['first_name']?.trim();\n    final lastName = row['last_name']?.trim();\n    final schoolCode = row['school_code']?.trim();\n    final studentNumber = row['student_number']?.trim();\n\n    // Validate email\n    if (email == null || email.isEmpty) {\n      return 'Email is required';\n    }\n    if (!RegExp(r'^[^@]+@[^@]+\\.[^@]+$').hasMatch(email)) {\n      return 'Invalid email format: $email';\n    }\n\n    // Validate role\n    if (role == null || role.isEmpty) {\n      return 'Role is required';\n    }\n    if (!['student', 'teacher', 'admin'].contains(role)) {\n      return 'Invalid role: $role (must be student, teacher, or admin)';\n    }\n\n    // Look up school_id if school_code provided\n    String? schoolId;\n    if (schoolCode != null && schoolCode.isNotEmpty) {\n      final school = await supabase\n          .from('schools')\n          .select('id')\n          .eq('code', schoolCode)\n          .maybeSingle();\n\n      if (school == null) {\n        return 'School not found: $schoolCode';\n      }\n      schoolId = school['id'] as String;\n    }\n\n    // Check if profile exists\n    final existing = await supabase\n        .from('profiles')\n        .select('id')\n        .eq('email', email)\n        .maybeSingle();\n\n    final data = <String, dynamic>{\n      'email': email,\n      'role': role,\n      if (firstName != null && firstName.isNotEmpty) 'first_name': firstName,\n      if (lastName != null && lastName.isNotEmpty) 'last_name': lastName,\n      if (schoolId != null) 'school_id': schoolId,\n      if (studentNumber != null && studentNumber.isNotEmpty)\n        'student_number': studentNumber,\n    };\n\n    if (existing != null) {\n      // Update existing profile\n      await supabase.from('profiles').update(data).eq('id', existing['id']);\n    } else {\n      // Cannot create auth user from admin panel\n      // Just create the profile record - user will need to register\n      return 'User must register first. Profile with email $email not found.';\n    }\n\n    return null; // Success\n  }\n}\n"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_019DkEi8RNfqw5DNq7R9Pf4H",
+        "type": "tool_result",
+        "content": "File created successfully at: /Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_import_screen.dart"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "text",
+        "text": "Now let me read and update the user_list_screen to add the Import button:"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      {
+        "type": "tool_use",
+        "id": "toolu_017kmfTPm2xjgzTEr5YvBkTR",
+        "name": "Read",
+        "input": {
+          "file_path": "/Users/wonderelt/Desktop/readeng_admin/lib/features/users/screens/user_list_screen.dart"
+        },
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "tool_use_id": "toolu_017kmfTPm2xjgzTEr5YvBkTR",
+        "type": "tool_result",

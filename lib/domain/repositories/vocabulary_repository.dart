@@ -77,4 +77,7 @@ abstract class VocabularyRepository {
     required String userId,
     required List<String> wordIds,
   });
+
+  /// Get count of words learned today (vocabulary_progress created today)
+  Future<Either<Failure, int>> getWordsLearnedTodayCount(String userId);
 }

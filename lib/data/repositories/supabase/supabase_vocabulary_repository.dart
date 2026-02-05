@@ -549,4 +549,24 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, int>> getWordsLearnedTodayCount(String userId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+
+      final response = await _supabase
+          .from('vocabulary_progress')
+          .select('id')
+          .eq('user_id', userId)
+          .gte('created_at', todayStart);
+
+      return Right((response as List).length);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

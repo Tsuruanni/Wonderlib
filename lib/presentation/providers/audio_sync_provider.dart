@@ -31,6 +31,7 @@ class AudioSyncState {
     this.activeWordIndex,
     this.playbackSpeed = 1.0,
     this.error,
+    this.isFollowingScroll = false,
   });
 
   final String? currentBlockId;
@@ -41,6 +42,9 @@ class AudioSyncState {
   final int? activeWordIndex;
   final double playbackSpeed;
   final String? error;
+  /// Whether auto-scroll should follow the active word.
+  /// Enabled when user presses play, disabled on activity completion.
+  final bool isFollowingScroll;
 
   /// Progress as 0.0 to 1.0
   double get progress {
@@ -70,6 +74,7 @@ class AudioSyncState {
     int? activeWordIndex,
     double? playbackSpeed,
     String? error,
+    bool? isFollowingScroll,
     bool clearBlockId = false,
     bool clearActiveWord = false,
     bool clearError = false,
@@ -83,6 +88,7 @@ class AudioSyncState {
       activeWordIndex: clearActiveWord ? null : (activeWordIndex ?? this.activeWordIndex),
       playbackSpeed: playbackSpeed ?? this.playbackSpeed,
       error: clearError ? null : (error ?? this.error),
+      isFollowingScroll: isFollowingScroll ?? this.isFollowingScroll,
     );
   }
 }
@@ -366,11 +372,17 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
     }
   }
 
-  /// Play/resume audio - enters listening mode
+  /// Play/resume audio - enters listening mode and enables scroll following
   Future<void> play() async {
     if (state.currentBlockId == null) return;
     _isInListeningMode = true;
+    state = state.copyWith(isFollowingScroll: true);
     await _audioService.resume();
+  }
+
+  /// Disable scroll following (called on activity completion)
+  void disableFollowScroll() {
+    state = state.copyWith(isFollowingScroll: false);
   }
 
   /// Pause audio - exits listening mode (user chose to stop)

@@ -18,6 +18,7 @@ class WordHighlightText extends StatefulWidget {
     this.vocabulary = const [],
     this.onVocabularyTap,
     this.onWordTap,
+    this.isFollowingScroll = false,
   });
 
   final String text;
@@ -31,6 +32,10 @@ class WordHighlightText extends StatefulWidget {
   /// Used for word-tap popup feature (shows definition and TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
 
+  /// Whether to auto-scroll to the active word.
+  /// Enabled when user presses play, disabled on activity completion.
+  final bool isFollowingScroll;
+
   @override
   State<WordHighlightText> createState() => _WordHighlightTextState();
 }
@@ -43,8 +48,9 @@ class _WordHighlightTextState extends State<WordHighlightText> {
   void didUpdateWidget(covariant WordHighlightText oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Auto-scroll when active word changes
-    if (widget.activeWordIndex != _previousActiveIndex &&
+    // Auto-scroll when active word changes (only if follow mode is enabled)
+    if (widget.isFollowingScroll &&
+        widget.activeWordIndex != _previousActiveIndex &&
         widget.activeWordIndex != null) {
       _previousActiveIndex = widget.activeWordIndex;
       _scrollToActiveWord();
