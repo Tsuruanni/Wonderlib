@@ -31,21 +31,23 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
 
   @override
   Widget build(BuildContext context) {
-    final statsAsync = ref.watch(vocabularyStatsSimpleProvider);
-    final allWordsAsync = ref.watch(userVocabularyProvider);
-    final dueWordsAsync = ref.watch(wordsDueForReviewProvider);
-    final newWordsAsync = ref.watch(newWordsToLearnProvider);
+    final learnedWordsAsync = ref.watch(learnedWordsWithDetailsProvider);
 
-    // Extract values from AsyncValue, using empty lists/defaults while loading
-    final allWords = allWordsAsync.valueOrNull ?? [];
-    final dueWords = dueWordsAsync.valueOrNull ?? [];
-    final newWords = newWordsAsync.valueOrNull ?? [];
-    final stats = statsAsync.valueOrNull;
+    // Extract learned words (starts from progress, not dictionary)
+    final allWords = learnedWordsAsync.valueOrNull ?? [];
 
-    final isLoading = allWordsAsync.isLoading ||
-        dueWordsAsync.isLoading ||
-        newWordsAsync.isLoading ||
-        statsAsync.isLoading;
+    // Derived lists from learned words
+    final dueWords = allWords.where((item) {
+      return item.progress != null && item.progress!.isDueForReview;
+    }).toList();
+
+    // Schedule tab: words with next_review_at, sorted by date (earliest first)
+    final scheduledWords = allWords
+        .where((item) => item.progress?.nextReviewAt != null)
+        .toList()
+      ..sort((a, b) => a.progress!.nextReviewAt!.compareTo(b.progress!.nextReviewAt!));
+
+    final isLoading = learnedWordsAsync.isLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -54,17 +56,17 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
           controller: _tabController,
           tabs: [
             Tab(text: 'All (${allWords.length})'),
-            Tab(text: 'Review (${dueWords.length})'),
-            Tab(text: 'New (${newWords.length})'),
+            Tab(text: 'Due (${dueWords.length})'),
+            Tab(text: 'Schedule (${scheduledWords.length})'),
           ],
         ),
       ),
-      body: isLoading && stats == null
+      body: isLoading && allWords.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 // Stats Card
-                if (stats != null) _StatsCard(stats: stats),
+                _LearnedStatsCard(words: allWords),
 
                 // Word Lists
                 Expanded(
@@ -72,16 +74,16 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
                     controller: _tabController,
                     children: [
                       _WordListView(words: allWords),
-                      _WordListView(words: dueWords, emptyMessage: 'No words to review'),
-                      _WordListView(words: newWords, emptyMessage: 'No new words'),
+                      _WordListView(words: dueWords, emptyMessage: 'No words due for review'),
+                      _WordListView(words: scheduledWords, emptyMessage: 'No scheduled reviews'),
                     ],
                   ),
                 ),
               ],
             ),
-      floatingActionButton: dueWords.isNotEmpty || newWords.isNotEmpty
+      floatingActionButton: dueWords.isNotEmpty
           ? FloatingActionButton.extended(
-              onPressed: () => _startPractice(context, [...dueWords, ...newWords.take(5)]),
+              onPressed: () => _startPractice(context, dueWords),
               icon: const Icon(Icons.play_arrow),
               label: const Text('Practice'),
             )
@@ -100,13 +102,21 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
   }
 }
 
-class _StatsCard extends StatelessWidget {
+class _LearnedStatsCard extends StatelessWidget {
 
-  const _StatsCard({required this.stats});
-  final VocabularyStats stats;
+  const _LearnedStatsCard({required this.words});
+  final List<UserVocabularyItem> words;
 
   @override
   Widget build(BuildContext context) {
+    final total = words.length;
+    final mastered = words.where((w) => w.progress?.isMastered ?? false).length;
+    final learning = words.where((w) {
+      final s = w.progress?.status;
+      return s == VocabularyStatus.learning || s == VocabularyStatus.reviewing;
+    }).length;
+    final dueNow = words.where((w) => w.progress?.isDueForReview ?? false).length;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -119,48 +129,35 @@ class _StatsCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              StatItem(
-                value: stats.totalWords.toString(),
-                label: 'Total',
-                icon: Icons.library_books,
-                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              StatItem(
-                value: stats.masteredCount.toString(),
-                label: 'Mastered',
-                icon: Icons.star,
-                color: Colors.amber,
-                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              StatItem(
-                value: stats.inProgressCount.toString(),
-                label: 'Learning',
-                icon: Icons.trending_up,
-                color: Colors.blue,
-                valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-            ],
+          StatItem(
+            value: total.toString(),
+            label: 'Total',
+            icon: Icons.library_books,
+            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: stats.totalWords > 0 ? stats.masteredCount / stats.totalWords : 0,
-              minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.3),
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-            ),
+          StatItem(
+            value: learning.toString(),
+            label: 'Learning',
+            icon: Icons.trending_up,
+            color: Colors.blue,
+            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 4),
-          Text(
-            '${((stats.masteredCount / stats.totalWords) * 100).toStringAsFixed(0)}% mastered',
-            style: context.textTheme.bodySmall,
+          StatItem(
+            value: mastered.toString(),
+            label: 'Mastered',
+            icon: Icons.star,
+            color: Colors.amber,
+            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          StatItem(
+            value: dueNow.toString(),
+            label: 'Due',
+            icon: Icons.schedule,
+            color: Colors.orange,
+            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -217,7 +214,24 @@ class _WordCard extends StatelessWidget {
           item.word.word,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(item.word.meaningTR),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.word.meaningTR),
+            if (item.progress?.nextReviewAt != null)
+              Text(
+                _formatNextReview(item.progress!.nextReviewAt!),
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: item.progress!.isDueForReview
+                      ? Colors.orange.shade700
+                      : context.colorScheme.outline,
+                  fontWeight: item.progress!.isDueForReview
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+          ],
+        ),
         trailing: item.word.phonetic != null
             ? Text(
                 item.word.phonetic!,
@@ -229,6 +243,18 @@ class _WordCard extends StatelessWidget {
         onTap: () => _showWordDetail(context, item.word),
       ),
     );
+  }
+
+  String _formatNextReview(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final reviewDay = DateTime(date.year, date.month, date.day);
+    final diff = reviewDay.difference(today).inDays;
+
+    if (diff < 0) return 'Overdue (${-diff}d ago)';
+    if (diff == 0) return 'Due today';
+    if (diff == 1) return 'Due tomorrow';
+    return 'Review in $diff days (${date.month}/${date.day})';
   }
 
   void _showWordDetail(BuildContext context, VocabularyWord word) {

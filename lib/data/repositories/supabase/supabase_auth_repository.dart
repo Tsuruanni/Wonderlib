@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/auth_repository.dart';
-import '../../models/auth/user_model.dart';
+import '../../models/user/user_model.dart';
 
 class SupabaseAuthRepository implements AuthRepository {
   SupabaseAuthRepository({SupabaseClient? supabase})

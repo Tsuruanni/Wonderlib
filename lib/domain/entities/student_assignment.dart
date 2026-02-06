@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 /// Assignment status for students
 enum StudentAssignmentStatus {
   pending,
@@ -66,7 +68,7 @@ enum StudentAssignmentType {
 }
 
 /// Assignment as seen by a student
-class StudentAssignment {
+class StudentAssignment extends Equatable {
 
   const StudentAssignment({
     required this.id,
@@ -100,6 +102,25 @@ class StudentAssignment {
   final DateTime? startedAt;
   final DateTime? completedAt;
   final Map<String, dynamic> contentConfig;
+
+  @override
+  List<Object?> get props => [
+        id,
+        assignmentId,
+        title,
+        description,
+        type,
+        status,
+        progress,
+        score,
+        teacherName,
+        className,
+        startDate,
+        dueDate,
+        startedAt,
+        completedAt,
+        contentConfig,
+      ];
 
   bool get isOverdue =>
       status != StudentAssignmentStatus.completed &&

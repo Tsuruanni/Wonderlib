@@ -11,6 +11,7 @@ import '../presentation/screens/library/book_detail_screen.dart';
 import '../presentation/screens/reader/reader_screen.dart';
 import '../presentation/screens/reader/activity_screen.dart';
 import '../presentation/screens/vocabulary/vocabulary_hub_screen.dart';
+import '../presentation/screens/vocabulary/vocabulary_screen.dart';
 import '../presentation/screens/vocabulary/word_list_detail_screen.dart';
 import '../presentation/screens/vocabulary/category_browse_screen.dart';
 import '../presentation/screens/vocabulary/phases/phase1_learn_screen.dart';
@@ -47,9 +48,11 @@ abstract class AppRoutes {
   static const activity = '/activity/:chapterId';
   static const vocabulary = '/vocabulary';
   static const profile = '/profile';
+  static const wordBank = '/word-bank';
   static const studentAssignments = '/assignments';
   static const studentAssignmentDetail = '/assignments/:assignmentId';
-  static const teacherDashboard = '/teacher';
+  // Teacher routes — dashboard now at /teacher/dashboard
+  static const teacherDashboard = '/teacher/dashboard';
   static const teacherClasses = '/teacher/classes';
   static const teacherClassDetail = '/teacher/classes/:classId';
   static const teacherStudentDetail = '/teacher/classes/:classId/student/:studentId';
@@ -125,8 +128,19 @@ class _AuthNotifier extends ChangeNotifier {
 
 final _authNotifier = _AuthNotifier();
 
+// Navigator keys — one root, unique keys per shell branch
+final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final _studentHomeKey = GlobalKey<NavigatorState>(debugLabel: 'studentHome');
+final _studentLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'studentLibrary');
+final _studentVocabKey = GlobalKey<NavigatorState>(debugLabel: 'studentVocab');
+final _teacherDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'teacherDashboard');
+final _teacherClassesKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses');
+final _teacherAssignmentsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
+final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports');
+
 GoRouter _createRouter() {
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.splash,
     debugLogDiagnostics: true,
     refreshListenable: _authNotifier,
@@ -177,23 +191,27 @@ GoRouter _createRouter() {
     routes: [
       // Splash route - handles initial auth check
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.splash,
         builder: (context, state) => const _SplashScreen(),
       ),
 
       // Auth route
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
       ),
 
-      // Student Shell
+      // Student Shell — only StatefulShellRoute at top level
       StatefulShellRoute.indexedStack(
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state, navigationShell) {
           return MainShellScaffold(navigationShell: navigationShell);
         },
         branches: [
           StatefulShellBranch(
+            navigatorKey: _studentHomeKey,
             routes: [
               GoRoute(
                 path: AppRoutes.home,
@@ -202,6 +220,7 @@ GoRouter _createRouter() {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _studentLibraryKey,
             routes: [
               GoRoute(
                 path: AppRoutes.library,
@@ -219,6 +238,7 @@ GoRouter _createRouter() {
             ],
           ),
           StatefulShellBranch(
+            navigatorKey: _studentVocabKey,
             routes: [
               GoRoute(
                 path: AppRoutes.vocabulary,
@@ -266,6 +286,10 @@ GoRouter _createRouter() {
                     builder: (context, state) => const DailyReviewScreen(),
                   ),
                   GoRoute(
+                    path: 'word-bank',
+                    builder: (context, state) => const VocabularyScreen(),
+                  ),
+                  GoRoute(
                     path: 'category/:categoryName',
                     builder: (context, state) {
                       final categoryName = state.pathParameters['categoryName']!;
@@ -276,52 +300,69 @@ GoRouter _createRouter() {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.profile,
-                builder: (context, state) => const ProfileScreen(),
-              ),
-            ],
-          ),
         ],
       ),
 
-      // Teacher Shell
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return TeacherShellScaffold(navigationShell: navigationShell);
+      // Profile (standalone, accessed from home avatar)
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.profile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+
+      // Teacher Shell — nested under /teacher GoRoute to avoid
+      // dual StatefulShellRoute at top level (causes key collision on Android)
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/teacher',
+        redirect: (context, state) {
+          // Redirect bare /teacher to /teacher/dashboard
+          if (state.matchedLocation == '/teacher') {
+            return AppRoutes.teacherDashboard;
+          }
+          return null;
         },
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.teacherDashboard,
-                builder: (context, state) => const TeacherDashboardScreen(),
+        routes: [
+          StatefulShellRoute.indexedStack(
+            builder: (context, state, navigationShell) {
+              return TeacherShellScaffold(navigationShell: navigationShell);
+            },
+            branches: [
+              StatefulShellBranch(
+                navigatorKey: _teacherDashboardKey,
+                routes: [
+                  GoRoute(
+                    path: 'dashboard',
+                    builder: (context, state) => const TeacherDashboardScreen(),
+                  ),
+                ],
               ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.teacherClasses,
-                builder: (context, state) => const ClassesScreen(),
+              StatefulShellBranch(
+                navigatorKey: _teacherClassesKey,
+                routes: [
+                  GoRoute(
+                    path: 'classes',
+                    builder: (context, state) => const ClassesScreen(),
+                  ),
+                ],
               ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.teacherAssignments,
-                builder: (context, state) => const AssignmentsScreen(),
+              StatefulShellBranch(
+                navigatorKey: _teacherAssignmentsKey,
+                routes: [
+                  GoRoute(
+                    path: 'assignments',
+                    builder: (context, state) => const AssignmentsScreen(),
+                  ),
+                ],
               ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.teacherReports,
-                builder: (context, state) => const ReportsScreen(),
+              StatefulShellBranch(
+                navigatorKey: _teacherReportsKey,
+                routes: [
+                  GoRoute(
+                    path: 'reports',
+                    builder: (context, state) => const ReportsScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -330,10 +371,17 @@ GoRouter _createRouter() {
 
       // Standalone routes
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: AppRoutes.wordBank,
+        builder: (context, state) => const VocabularyScreen(),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.studentAssignments,
         builder: (context, state) => const StudentAssignmentsScreen(),
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.studentAssignmentDetail,
         builder: (context, state) {
           final assignmentId = state.pathParameters['assignmentId']!;
@@ -341,6 +389,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.reader,
         builder: (context, state) {
           final bookId = state.pathParameters['bookId']!;
@@ -349,6 +398,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.activity,
         builder: (context, state) {
           final chapterId = state.pathParameters['chapterId']!;
@@ -356,6 +406,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherClassDetail,
         builder: (context, state) {
           final classId = state.pathParameters['classId']!;
@@ -363,6 +414,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherStudentDetail,
         builder: (context, state) {
           final studentId = state.pathParameters['studentId']!;
@@ -370,6 +422,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherCreateAssignment,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
@@ -381,6 +434,7 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherAssignmentDetail,
         builder: (context, state) {
           final assignmentId = state.pathParameters['assignmentId']!;
@@ -388,18 +442,22 @@ GoRouter _createRouter() {
         },
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherReportClassOverview,
         builder: (context, state) => const ClassOverviewReportScreen(),
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherReportReadingProgress,
         builder: (context, state) => const ReadingProgressReportScreen(),
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherReportAssignments,
         builder: (context, state) => const AssignmentReportScreen(),
       ),
       GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
         path: AppRoutes.teacherReportLeaderboard,
         builder: (context, state) => const LeaderboardReportScreen(),
       ),

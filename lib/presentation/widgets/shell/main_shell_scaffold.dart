@@ -50,13 +50,6 @@ class MainShellScaffold extends StatelessWidget {
                   onTap: () => _onTap(context, 2),
                   color: AppColors.wasp,
                 ),
-                _NavButton(
-                  icon: Icons.person_rounded,
-                  label: 'PROFILE',
-                  isSelected: navigationShell.currentIndex == 3,
-                  onTap: () => _onTap(context, 3),
-                  color: AppColors.neutral,
-                ),
               ],
             ),
           ),

@@ -13,6 +13,8 @@ class WordListModel {
     this.coverImageUrl,
     this.isSystem = true,
     this.sourceBookId,
+    this.unitId,
+    this.orderInUnit,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -28,6 +30,8 @@ class WordListModel {
       coverImageUrl: json['cover_image_url'] as String?,
       isSystem: json['is_system'] as bool? ?? true,
       sourceBookId: json['source_book_id'] as String?,
+      unitId: json['unit_id'] as String?,
+      orderInUnit: json['order_in_unit'] as int?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -44,6 +48,8 @@ class WordListModel {
       coverImageUrl: entity.coverImageUrl,
       isSystem: entity.isSystem,
       sourceBookId: entity.sourceBookId,
+      unitId: entity.unitId,
+      orderInUnit: entity.orderInUnit,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -57,6 +63,8 @@ class WordListModel {
   final String? coverImageUrl;
   final bool isSystem;
   final String? sourceBookId;
+  final String? unitId;
+  final int? orderInUnit;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -71,6 +79,8 @@ class WordListModel {
       'cover_image_url': coverImageUrl,
       'is_system': isSystem,
       'source_book_id': sourceBookId,
+      'unit_id': unitId,
+      'order_in_unit': orderInUnit,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -87,6 +97,8 @@ class WordListModel {
       coverImageUrl: coverImageUrl,
       isSystem: isSystem,
       sourceBookId: sourceBookId,
+      unitId: unitId,
+      orderInUnit: orderInUnit,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

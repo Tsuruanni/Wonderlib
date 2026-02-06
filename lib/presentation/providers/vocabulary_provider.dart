@@ -1,16 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/vocabulary.dart';
+import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
+import '../../domain/usecases/usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
+import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
@@ -143,6 +147,29 @@ final userVocabularyProvider = FutureProvider<List<UserVocabularyItem>>((ref) as
       progress: wordProgress,
     );
   }).toList();
+});
+
+/// User's learned words (starts from progress, loads word details)
+/// Unlike userVocabularyProvider which starts from all words (paginated),
+/// this starts from user's progress entries so it shows ALL learned words.
+final learnedWordsWithDetailsProvider = FutureProvider<List<UserVocabularyItem>>((ref) async {
+  final progressList = await ref.watch(userVocabularyProgressProvider.future);
+  if (progressList.isEmpty) return [];
+
+  final getWordUseCase = ref.watch(getWordByIdUseCaseProvider);
+  final items = <UserVocabularyItem>[];
+
+  for (final progress in progressList) {
+    final result = await getWordUseCase(
+      GetWordByIdParams(wordId: progress.wordId),
+    );
+    result.fold(
+      (_) {}, // skip words not found in vocabulary_words table
+      (word) => items.add(UserVocabularyItem(word: word, progress: progress)),
+    );
+  }
+
+  return items;
 });
 
 /// Words due for review today
@@ -501,6 +528,80 @@ class VocabularyHubStats {
 }
 
 // ============================================
+// LEARNING PATH PROVIDERS
+// ============================================
+
+/// One row in the learning path (1-3 word lists at the same order_in_unit)
+class PathRowData {
+  const PathRowData({required this.orderInUnit, required this.items});
+  final int orderInUnit;
+  final List<WordListWithProgress> items;
+}
+
+/// One unit in the learning path (header + rows of word lists)
+class PathUnitData {
+  const PathUnitData({required this.unit, required this.rows});
+  final VocabularyUnit unit;
+  final List<PathRowData> rows;
+}
+
+/// All active vocabulary units (ordered by sort_order)
+final vocabularyUnitsProvider = FutureProvider<List<VocabularyUnit>>((ref) async {
+  final useCase = ref.watch(getVocabularyUnitsUseCaseProvider);
+  final result = await useCase(const NoParams());
+  return result.fold((f) => [], (units) => units);
+});
+
+/// Complete learning path: units + word lists + progress combined
+final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
+  final units = await ref.watch(vocabularyUnitsProvider.future);
+  final allLists = await ref.watch(allWordListsProvider.future);
+  final progressList = await ref.watch(userWordListProgressProvider.future);
+
+  if (units.isEmpty) return [];
+
+  // Build progress lookup
+  final progressMap = {for (final p in progressList) p.wordListId: p};
+
+  // Filter to path lists only (unitId != null) and group by unit
+  final listsByUnit = <String, List<WordList>>{};
+  for (final list in allLists) {
+    if (list.unitId != null) {
+      listsByUnit.putIfAbsent(list.unitId!, () => []).add(list);
+    }
+  }
+
+  // Build path structure
+  final result = <PathUnitData>[];
+  for (final unit in units) {
+    final unitLists = listsByUnit[unit.id] ?? [];
+    if (unitLists.isEmpty) continue;
+
+    // Group by order_in_unit to create rows
+    final rowMap = <int, List<WordListWithProgress>>{};
+    for (final list in unitLists) {
+      final order = list.orderInUnit ?? 0;
+      rowMap.putIfAbsent(order, () => []).add(
+        WordListWithProgress(
+          wordList: list,
+          progress: progressMap[list.id],
+        ),
+      );
+    }
+
+    // Sort rows by order_in_unit
+    final sortedOrders = rowMap.keys.toList()..sort();
+    final rows = sortedOrders
+        .map((order) => PathRowData(orderInUnit: order, items: rowMap[order]!))
+        .toList();
+
+    result.add(PathUnitData(unit: unit, rows: rows));
+  }
+
+  return result;
+});
+
+// ============================================
 // WORD LIST PROGRESS CONTROLLER
 // ============================================
 
@@ -550,6 +651,9 @@ class WordListProgressController extends StateNotifier<Map<String, UserWordListP
         state = {...state, listId: updated};
       },
     );
+
+    // Invalidate so daily limit providers recompute
+    _ref.invalidate(userWordListProgressProvider);
   }
 
   /// Reset progress for a word list
@@ -574,6 +678,47 @@ final wordListProgressControllerProvider =
 final wordListProgressProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {
   final progressMap = ref.watch(wordListProgressControllerProvider);
   return progressMap[listId];
+});
+
+// ============================================
+// DAILY WORD LIST LIMIT
+// ============================================
+
+/// Daily new word limit for word lists (like Anki's daily new card limit)
+const int dailyWordListLimit = 15;
+
+/// Count of words learned today from word lists only.
+/// Uses vocabulary_progress + word_list_items join server-side.
+final wordsStartedTodayFromListsProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return 0;
+
+  final useCase = ref.watch(getWordsFromListsLearnedTodayUseCaseProvider);
+  final result = await useCase(GetWordsFromListsLearnedTodayParams(userId: userId));
+
+  return result.fold(
+    (failure) => 0,
+    (count) => count,
+  );
+});
+
+/// Whether a specific word list can be started (not locked by daily limit).
+/// Always returns true for already-started lists.
+/// Locks only when the user has already reached the daily limit.
+final canStartWordListProvider = Provider.family<bool, String>((ref, listId) {
+  // Already started → always allowed (exempt from limit)
+  final progress = ref.watch(wordListProgressProvider(listId));
+  if (progress != null) return true;
+
+  // Check daily limit — lock only when limit is fully reached
+  final wordsToday = ref.watch(wordsStartedTodayFromListsProvider).valueOrNull ?? 0;
+  return wordsToday < dailyWordListLimit;
+});
+
+/// Remaining daily word allowance
+final remainingDailyWordAllowanceProvider = FutureProvider<int>((ref) async {
+  final used = await ref.watch(wordsStartedTodayFromListsProvider.future);
+  return (dailyWordListLimit - used).clamp(0, dailyWordListLimit);
 });
 
 /// Words learned today count (for daily task)
@@ -601,7 +746,12 @@ class VocabularyActionResult {
 }
 
 /// Add a word to user's vocabulary
-Future<VocabularyActionResult> addWordToVocabulary(WidgetRef ref, String wordId) async {
+/// When [immediate] is true, the word appears in today's daily review
+Future<VocabularyActionResult> addWordToVocabulary(
+  WidgetRef ref,
+  String wordId, {
+  bool immediate = false,
+}) async {
   final userId = ref.read(currentUserIdProvider);
   if (userId == null) {
     return const VocabularyActionResult(
@@ -612,7 +762,7 @@ Future<VocabularyActionResult> addWordToVocabulary(WidgetRef ref, String wordId)
 
   final useCase = ref.read(addWordToVocabularyUseCaseProvider);
   final result = await useCase(
-    AddWordToVocabularyParams(userId: userId, wordId: wordId),
+    AddWordToVocabularyParams(userId: userId, wordId: wordId, immediate: immediate),
   );
 
   return result.fold(
@@ -620,6 +770,10 @@ Future<VocabularyActionResult> addWordToVocabulary(WidgetRef ref, String wordId)
       success: false,
       errorMessage: failure.message,
     ),
-    (_) => const VocabularyActionResult(success: true),
+    (_) {
+      // Invalidate so Word Bank and Daily Review see the new word
+      ref.invalidate(userVocabularyProgressProvider);
+      return const VocabularyActionResult(success: true);
+    },
   );
 }

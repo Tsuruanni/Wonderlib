@@ -3,8 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/vocabulary.dart';
+import '../../../domain/entities/vocabulary_unit.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/word_list_repository.dart';
+import '../../models/vocabulary/vocabulary_unit_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
 import '../../models/vocabulary/word_list_model.dart';
 import '../../models/vocabulary/word_list_progress_model.dart';
@@ -14,6 +16,27 @@ class SupabaseWordListRepository implements WordListRepository {
       : _supabase = supabase ?? Supabase.instance.client;
 
   final SupabaseClient _supabase;
+
+  @override
+  Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits() async {
+    try {
+      final response = await _supabase
+          .from('vocabulary_units')
+          .select()
+          .eq('is_active', true)
+          .order('sort_order', ascending: true);
+
+      final units = (response as List)
+          .map((json) => VocabularyUnitModel.fromJson(json).toEntity())
+          .toList();
+
+      return Right(units);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, List<WordList>>> getAllWordLists({

@@ -10,9 +10,11 @@ class AddWordToVocabularyParams {
   const AddWordToVocabularyParams({
     required this.userId,
     required this.wordId,
+    this.immediate = false,
   });
   final String userId;
   final String wordId;
+  final bool immediate;
 }
 
 class AddWordToVocabularyUseCase
@@ -26,6 +28,7 @@ class AddWordToVocabularyUseCase
     return _repository.addWordToVocabulary(
       userId: params.userId,
       wordId: params.wordId,
+      immediate: params.immediate,
     );
   }
 }

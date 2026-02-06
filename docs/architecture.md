@@ -136,6 +136,9 @@ lib/
 │   ├── screens/              # Page widgets
 │   └── widgets/
 │       ├── common/           # Shared widgets (XPBadge, StatItem)
+│       ├── vocabulary/       # Vocabulary path widgets
+│       │   ├── learning_path.dart    # Duolingo-style zigzag path
+│       │   └── path_node.dart        # Circle node with progress ring
 │       └── reader/           # Reader-specific widgets
 │           ├── reader_body.dart           # Main scrollable content
 │           ├── reader_popups.dart         # Vocabulary/word popups
@@ -266,6 +269,12 @@ Update UI, show notifications
   - `source_book_id` - FK to books for meaning attribution
   - `part_of_speech` - Grammatical classification
   - UNIQUE constraint on `(word, meaning_tr)` for deduplication
+- `vocabulary_units` - Admin-created unit groupings for learning path
+  - `sort_order` - Display order in path
+  - `color` (hex), `icon` (emoji) - Visual theming
+  - `is_active` - Soft delete flag
+- `word_lists` - Extended with `unit_id` FK + `order_in_unit` for path positioning
+  - Same `order_in_unit` within a unit = side-by-side nodes in learning path
 
 ### Progress
 - `reading_progress` - Book completion tracking

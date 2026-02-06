@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
@@ -12,6 +13,7 @@ import '../../providers/badge_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/common/pressable_scale.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -159,6 +161,69 @@ class ProfileScreen extends ConsumerWidget {
                        const _BadgesSection(),
                      ],
                    ).animate().fadeIn(delay: 400.ms),
+
+                const SizedBox(height: 32),
+
+                // My Word Bank
+                if (user.role.isStudent)
+                  PressableScale(
+                    onTap: () => context.push('/word-bank'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.neutral, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.neutral,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.gemBlue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.library_books_rounded,
+                              color: AppColors.gemBlue,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'My Word Bank',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    color: AppColors.black,
+                                  ),
+                                ),
+                                Text(
+                                  'All learned words & review schedule',
+                                  style: GoogleFonts.nunito(
+                                    color: AppColors.neutralText,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.chevron_right_rounded, color: AppColors.neutralText),
+                        ],
+                      ),
+                    ),
+                  ),
 
                 const SizedBox(height: 48),
 

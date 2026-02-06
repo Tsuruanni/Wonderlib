@@ -29,7 +29,7 @@ class UserModel {
       id: json['id'] as String,
       schoolId: json['school_id'] as String? ?? '',
       classId: json['class_id'] as String?,
-      role: json['role'] as String? ?? 'student',
+      role: parseRole(json['role'] as String? ?? 'student'),
       studentNumber: json['student_number'] as String?,
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
@@ -53,7 +53,7 @@ class UserModel {
       id: entity.id,
       schoolId: entity.schoolId,
       classId: entity.classId,
-      role: roleToString(entity.role),
+      role: entity.role,
       studentNumber: entity.studentNumber,
       firstName: entity.firstName,
       lastName: entity.lastName,
@@ -72,7 +72,7 @@ class UserModel {
   final String id;
   final String schoolId;
   final String? classId;
-  final String role;
+  final UserRole role;
   final String? studentNumber;
   final String firstName;
   final String lastName;
@@ -92,7 +92,7 @@ class UserModel {
       'id': id,
       'school_id': schoolId,
       'class_id': classId,
-      'role': role,
+      'role': role.name,
       'student_number': studentNumber,
       'first_name': firstName,
       'last_name': lastName,
@@ -124,7 +124,7 @@ class UserModel {
       id: id,
       schoolId: schoolId,
       classId: classId,
-      role: parseRole(role),
+      role: role,
       studentNumber: studentNumber,
       firstName: firstName,
       lastName: lastName,

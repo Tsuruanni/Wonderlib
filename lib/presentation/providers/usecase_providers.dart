@@ -72,6 +72,7 @@ import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.da
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
@@ -81,6 +82,7 @@ import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
+import '../../domain/usecases/wordlist/get_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
@@ -320,9 +322,17 @@ final getWordsLearnedTodayUseCaseProvider = Provider((ref) {
   return GetWordsLearnedTodayUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
+final getWordsFromListsLearnedTodayUseCaseProvider = Provider((ref) {
+  return GetWordsFromListsLearnedTodayUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
 // ============================================
 // WORD LIST USE CASES
 // ============================================
+
+final getVocabularyUnitsUseCaseProvider = Provider((ref) {
+  return GetVocabularyUnitsUseCase(ref.watch(wordListRepositoryProvider));
+});
 
 final getAllWordListsUseCaseProvider = Provider((ref) {
   return GetAllWordListsUseCase(ref.watch(wordListRepositoryProvider));

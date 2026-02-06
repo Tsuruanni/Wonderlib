@@ -8,6 +8,7 @@ part 'audio_service.g.dart';
 class AudioService {
   AudioPlayer? _player;
   AudioSession? _session;
+  bool _wasPlayingBeforeInterruption = false;
 
   Future<void> initialize() async {
     _player = AudioPlayer();
@@ -23,6 +24,7 @@ class AudioService {
             _player?.setVolume(0.5);
           case AudioInterruptionType.pause:
           case AudioInterruptionType.unknown:
+            _wasPlayingBeforeInterruption = _player?.playing ?? false;
             _player?.pause();
         }
       } else {
@@ -30,7 +32,9 @@ class AudioService {
           case AudioInterruptionType.duck:
             _player?.setVolume(1.0);
           case AudioInterruptionType.pause:
-            _player?.play();
+            if (_wasPlayingBeforeInterruption) {
+              _player?.play();
+            }
           case AudioInterruptionType.unknown:
             break;
         }

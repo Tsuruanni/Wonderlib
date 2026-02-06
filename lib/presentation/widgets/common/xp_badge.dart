@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Animated XP badge that appears when user earns XP
-class XPBadge extends StatefulWidget {
+class XPBadge extends StatelessWidget {
   const XPBadge({
     super.key,
     required this.xp,
@@ -12,74 +13,68 @@ class XPBadge extends StatefulWidget {
   final VoidCallback onComplete;
 
   @override
-  State<XPBadge> createState() => _XPBadgeState();
-}
-
-class _XPBadgeState extends State<XPBadge> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.2), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.2, end: 1.0), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
-
-    _fadeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 60),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 20),
-    ]).animate(_controller);
-
-    _controller.forward().then((_) => widget.onComplete());
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF38A169), Color(0xFF48BB78)],
-            ),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.bolt, color: Colors.white, size: 14),
-              const SizedBox(width: 3),
-              Text(
-                '+${widget.xp}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFC800), // Gold/Yellow
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFE5A100), // Darker Gold
+          width: 2,
         ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66E5A100),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.bolt_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '+$xp XP',
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: Colors.white, // Dark Brown text on Gold
+              shadows: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  offset: const Offset(0, 1),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    )
+    .animate(onComplete: (controller) => onComplete())
+    .scale(
+      duration: 400.ms,
+      curve: Curves.elasticOut,
+      begin: const Offset(0.5, 0.5),
+      end: const Offset(1, 1),
+    )
+    .moveY(
+      delay: 500.ms,
+      duration: 600.ms,
+      begin: 0,
+      end: -40, // Float up
+      curve: Curves.easeOut,
+    )
+    .fadeOut(
+      delay: 800.ms,
+      duration: 300.ms,
     );
   }
 }

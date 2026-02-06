@@ -109,10 +109,11 @@ class ReaderPopups extends ConsumerWidget {
       return;
     }
 
-    // Add to user's vocabulary
+    // Add to user's vocabulary (immediate: appears in today's review)
     final result = await addWordUseCase(AddWordToVocabularyParams(
       userId: userId,
       wordId: wordData.id,
+      immediate: true,
     ));
 
     if (context.mounted) {

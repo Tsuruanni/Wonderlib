@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/daily_review_provider.dart';
-import '../../utils/ui_helpers.dart';
+import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../widgets/vocabulary/learning_path.dart';
 
 /// Main vocabulary hub screen with word lists organized by sections
 class VocabularyHubScreen extends ConsumerWidget {
@@ -15,129 +17,182 @@ class VocabularyHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final continueLearningAsync = ref.watch(continueWordListsProvider);
-    final recommendedAsync = ref.watch(recommendedWordListsProvider);
+    final userAsync = ref.watch(userControllerProvider);
+    final user = userAsync.valueOrNull;
     final storyListsAsync = ref.watch(storyWordListsProvider);
-    final hubStatsAsync = ref.watch(vocabularyHubStatsProvider);
-
-    // Extract values with defaults
-    final continueLeaning = continueLearningAsync.valueOrNull ?? [];
-    final recommended = recommendedAsync.valueOrNull ?? [];
     final storyLists = storyListsAsync.valueOrNull ?? [];
-    final hubStats = hubStatsAsync.valueOrNull;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-               // --- Header ---
-               Padding(
-                 padding: const EdgeInsets.all(20),
-                 child: Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                   children: [
-                     Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         Text(
-                           'VOCABULARY',
-                           style: GoogleFonts.nunito(
-                             fontSize: 28,
-                             fontWeight: FontWeight.w900,
-                             color: AppColors.secondary,
-                             letterSpacing: 1.2,
-                           ),
-                         ),
-                         Text(
-                           'Master new words',
-                           style: GoogleFonts.nunito(
-                             fontSize: 16,
-                             fontWeight: FontWeight.bold,
-                             color: AppColors.neutralText,
-                           ),
-                         ),
-                       ],
-                     ),
-                     Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppColors.neutral, width: 2),
-                          boxShadow: [BoxShadow(color: AppColors.neutral, offset: Offset(0, 3))],
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${hubStats?.masteredWords ?? 0}',
-                              style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 16),
-                            ),
-                          ],
-                        ),
-                     ),
-                   ],
-                 ),
-               ),
-
-              // Daily Review Section (always first and prominent)
-              const _DailyReviewSection(),
-
-              // Continue Learning section
-              if (continueLeaning.isNotEmpty) ...[
-                const _SectionHeader(
-                  title: 'Continue Learning',
-                  icon: Icons.play_circle_fill,
-                  color: AppColors.primary,
-                ),
-                _HorizontalListSection(lists: continueLeaning),
-              ],
-
-              // Recommended section
-              if (recommended.isNotEmpty) ...[
-                const _SectionHeader(
-                  title: 'Recommended for You',
-                  icon: Icons.star_rounded,
-                  color: Colors.amber,
-                ),
-                _HorizontalListSection(lists: recommended),
-              ],
-
-              // My Word Lists (story vocabulary)
-              if (storyLists.isNotEmpty) ...[
-                const _SectionHeader(
-                  title: 'My Word Lists',
-                  icon: Icons.bookmark_rounded,
-                   color: AppColors.secondary,
-                ),
-                _VerticalListSection(lists: storyLists, ref: ref),
-              ],
-
-              // Explore Categories
-              _SectionHeader(
-                title: 'Explore Categories',
-                icon: Icons.category_rounded,
-                color: AppColors.gemBlue,
-              ),
-              const _CategoriesGrid(),
-
-              // Empty state if nothing to show
-              if (continueLeaning.isEmpty && recommended.isEmpty && storyLists.isEmpty)
-                _EmptyState(),
-            ],
+      body: Column(
+        children: [
+          // --- Top Navbar (fixed) ---
+          SafeArea(
+            bottom: false,
+            child: _buildNavbar(context, user),
           ),
+
+          // --- Scrollable Content ---
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Daily Review Section
+                  const _SectionHeader(title: 'Daily Vocabulary Review'),
+                  const _DailyReviewSection(),
+
+                  // Daily limit indicator
+                  const _DailyLimitIndicator(),
+
+                  // Learning Path (Duolingo-style vertical path)
+                  const LearningPath(),
+
+                  // My Word Lists (story vocabulary)
+                  if (storyLists.isNotEmpty) ...[
+                    const _SectionHeader(title: 'My Word Lists'),
+                    _VerticalListSection(lists: storyLists, ref: ref),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavbar(BuildContext context, dynamic user) {
+    final streak = user?.currentStreak ?? 0;
+    final xp = user?.xp ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      color: AppColors.primary,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Left: UK Flag
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 8, height: 16, color: const Color(0xFF012169)),
+                Container(width: 8, height: 16, color: Colors.white),
+                Container(width: 8, height: 16, color: const Color(0xFFC8102E)),
+              ],
+            ),
+          ),
+
+          _buildNavDivider(),
+
+          // Streak
+          _buildNavStat(
+            icon: Icons.local_fire_department,
+            value: streak,
+            iconColor: AppColors.streakOrange,
+          ),
+
+          _buildNavDivider(),
+
+          // XP (coins)
+          _buildNavStat(
+            icon: Icons.monetization_on,
+            value: xp,
+            iconColor: AppColors.wasp,
+          ),
+
+          _buildNavDivider(),
+
+          // Right: Profile Button
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.profile),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
+                  ),
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    child: Text(
+                      user?.initials ?? '?',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: Container(
+        height: 24,
+        width: 2,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(1),
         ),
       ),
     );
   }
+
+  Widget _buildNavStat({
+    required IconData icon,
+    required int value,
+    required Color iconColor,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 28),
+            Icon(icon, color: iconColor, size: 24),
+          ],
+        ),
+        const SizedBox(width: 4),
+        Text(
+          value.toString(),
+          style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-/// Daily Review Section with 3 states: completed, no words, ready
+/// Daily Review Section with 4 states: completed, no words, building up, ready
 class _DailyReviewSection extends ConsumerWidget {
   const _DailyReviewSection();
 
@@ -159,7 +214,12 @@ class _DailyReviewSection extends ConsumerWidget {
       return const _AllCaughtUpCard();
     }
 
-    // State 3: Words ready for review
+    // State 3: Not enough words yet (building up)
+    if (dueWords.length < minDailyReviewCount) {
+      return _BuildingUpCard(currentCount: dueWords.length);
+    }
+
+    // State 4: Words ready for review
     return _ReadyToReviewCard(wordCount: dueWords.length);
   }
 }
@@ -293,6 +353,86 @@ class _AllCaughtUpCard extends StatelessWidget {
   }
 }
 
+/// Card showing words building up (below minimum threshold)
+class _BuildingUpCard extends StatelessWidget {
+  const _BuildingUpCard({required this.currentCount});
+
+  final int currentCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = currentCount / minDailyReviewCount;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gemBlue.withValues(alpha: 0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gemBlue.withValues(alpha: 0.15),
+            offset: const Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.gemBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              Icons.hourglass_top_rounded,
+              color: AppColors.gemBlue,
+              size: 32,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Words Building Up',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$currentCount/$minDailyReviewCount words — keep learning to unlock review!',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: AppColors.gemBlue.withValues(alpha: 0.1),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.gemBlue),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Card showing words ready for review
 class _ReadyToReviewCard extends StatelessWidget {
   const _ReadyToReviewCard({required this.wordCount});
@@ -366,17 +506,11 @@ class _ReadyToReviewCard extends StatelessWidget {
   }
 }
 
-/// Section header with icon and title
+/// Section header with centered text and gradient lines
 class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
 
-  const _SectionHeader({
-    required this.title,
-    required this.icon,
-    required this.color,
-  });
   final String title;
-  final IconData icon;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -384,40 +518,45 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Row(
         children: [
-          Icon(icon, size: 24, color: color),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w800,
-              fontSize: 20,
-              color: AppColors.black,
+          Expanded(
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.neutral.withValues(alpha: 0),
+                    AppColors.neutral,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              title,
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.neutralText,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.neutral,
+                    AppColors.neutral.withValues(alpha: 0),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Horizontal scrolling list of word list cards
-class _HorizontalListSection extends StatelessWidget {
-
-  const _HorizontalListSection({required this.lists});
-  final List<WordListWithProgress> lists;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: lists.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, index) {
-          return _WordListCard(listWithProgress: lists[index]);
-        },
       ),
     );
   }
@@ -445,106 +584,6 @@ class _VerticalListSection extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Card widget for a word list (used in horizontal scroll)
-class _WordListCard extends StatelessWidget {
-
-  const _WordListCard({required this.listWithProgress});
-  final WordListWithProgress listWithProgress;
-
-  @override
-  Widget build(BuildContext context) {
-    final list = listWithProgress.wordList;
-    final progress = listWithProgress.progress;
-
-    return GestureDetector(
-      onTap: () {
-        context.push('/vocabulary/list/${list.id}');
-      },
-      child: Container(
-        width: 160,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-           borderRadius: BorderRadius.circular(20),
-           border: Border.all(color: AppColors.neutral, width: 2),
-           boxShadow: [
-              BoxShadow(
-                 color: AppColors.neutral,
-                 offset: const Offset(0, 4),
-                 blurRadius: 0,
-              ),
-           ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Category icon
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: VocabularyColors.getCategoryColor(list.category).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                list.category.icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Title
-            Expanded(
-              child: Text(
-                list.name,
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                  color: AppColors.black,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            
-            // Progress bar
-            if (progress != null) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: LinearProgressIndicator(
-                  value: progress.progressPercentage,
-                  minHeight: 8,
-                  backgroundColor: AppColors.neutral,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    VocabularyColors.getCategoryColor(list.category),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${(progress.progressPercentage * 100).toInt()}%',
-                style: GoogleFonts.nunito(
-                  color: AppColors.neutralText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ] else
-              Text(
-                'Not started',
-                style: GoogleFonts.nunito(
-                  color: AppColors.neutralText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
 }
 
 /// Tile widget for word list (used in vertical list)
@@ -632,141 +671,44 @@ class _WordListTile extends StatelessWidget {
   }
 }
 
-/// Horizontal scrolling category cards (same size as word list cards)
-class _CategoriesGrid extends ConsumerWidget {
-  const _CategoriesGrid();
+/// Small indicator showing daily word learning allowance
+class _DailyLimitIndicator extends ConsumerWidget {
+  const _DailyLimitIndicator();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categories = [
-      WordListCategory.commonWords,
-      WordListCategory.gradeLevel,
-      WordListCategory.testPrep,
-      WordListCategory.thematic,
-    ];
+    final remainingAsync = ref.watch(remainingDailyWordAllowanceProvider);
+    final remaining = remainingAsync.valueOrNull;
 
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: categories.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          final listsAsync = ref.watch(wordListsByCategoryProvider(category));
-          return _CategoryCard(
-            category: category,
-            listCount: listsAsync.valueOrNull?.length ?? 0,
-          );
-        },
-      ),
-    );
-  }
-}
+    // Don't show if loading or full allowance remaining
+    if (remaining == null || remaining >= dailyWordListLimit) return const SizedBox.shrink();
 
-/// Card for a category (fixed width like word list cards)
-class _CategoryCard extends StatelessWidget {
+    final used = dailyWordListLimit - remaining;
+    final isExhausted = remaining <= 0;
 
-  const _CategoryCard({
-    required this.category,
-    required this.listCount,
-  });
-  final WordListCategory category;
-  final int listCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = VocabularyColors.getCategoryColor(category);
-
-    return GestureDetector(
-      onTap: () {
-        context.push('/vocabulary/category/${category.name}');
-      },
-      child: Container(
-        width: 160,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-             BoxShadow(
-                color: color.withValues(alpha: 0.6), // Darker shadow
-                offset: const Offset(0, 4),
-             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                category.icon,
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-            const Spacer(),
-            Text(
-              category.displayName,
-              style: GoogleFonts.nunito(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-                fontSize: 16,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '$listCount lists',
-              style: GoogleFonts.nunito(
-                color: Colors.white.withValues(alpha: 0.8),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-}
-
-/// Empty state when no lists available
-class _EmptyState extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
         children: [
-           Icon(Icons.library_books_rounded, size: 80, color: AppColors.neutral),
-           const SizedBox(height: 16),
-           Text(
-             'No word lists yet',
-             style: GoogleFonts.nunito(
-               fontSize: 20,
-               fontWeight: FontWeight.w800,
-               color: AppColors.neutralText,
-             ),
-           ),
-           const SizedBox(height: 8),
-           Text(
-             'Start reading stories to build your vocabulary!',
-             style: GoogleFonts.nunito(
-               color: AppColors.neutralText,
-               fontWeight: FontWeight.w600,
-             ),
-             textAlign: TextAlign.center,
-           ),
+          Icon(
+            isExhausted ? Icons.lock_rounded : Icons.bolt_rounded,
+            size: 14,
+            color: isExhausted ? AppColors.neutralText : AppColors.streakOrange,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isExhausted
+                ? 'Daily limit reached ($used/$dailyWordListLimit words)'
+                : '$used/$dailyWordListLimit new words today',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: isExhausted ? AppColors.neutralText : AppColors.streakOrange,
+            ),
+          ),
         ],
       ),
     );
   }
 }
+

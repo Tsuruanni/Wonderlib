@@ -20,6 +20,12 @@ class WordListDetailScreen extends ConsumerWidget {
     final wordListAsync = ref.watch(wordListByIdProvider(listId));
     final progress = ref.watch(wordListProgressProvider(listId));
     final wordsAsync = ref.watch(wordsForListProvider(listId));
+    final canStart = ref.watch(canStartWordListProvider(listId));
+    final wordsStartedTodayAsync = ref.watch(wordsStartedTodayFromListsProvider);
+    final wordsStartedToday = wordsStartedTodayAsync.valueOrNull ?? 0;
+
+    // Lock applies only to un-started lists that exceed daily limit
+    final isLocked = !canStart && progress == null;
 
     // Handle loading state
     if (wordListAsync.isLoading) {
@@ -55,6 +61,10 @@ class WordListDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Daily limit banner
+                  if (isLocked)
+                    _DailyLimitBanner(wordsToday: wordsStartedToday),
+
                   // Description
                   Text(
                     wordList.description,
@@ -103,6 +113,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     color: AppColors.gemBlue,
                     isComplete: progress?.phase1Complete ?? false,
                     isRecommended: progress == null || (!progress.phase1Complete),
+                    isLocked: isLocked,
                     onTap: () => _navigateToPhase(context, 1),
                   ),
                   _PhaseCard(
@@ -114,6 +125,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     isComplete: progress?.phase2Complete ?? false,
                     isRecommended: (progress?.phase1Complete ?? false) &&
                                    progress?.phase2Complete != true,
+                    isLocked: isLocked,
                     onTap: () => _navigateToPhase(context, 2),
                   ),
                   _PhaseCard(
@@ -125,6 +137,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     isComplete: progress?.phase3Complete ?? false,
                     isRecommended: (progress?.phase2Complete ?? false) &&
                                    progress?.phase3Complete != true,
+                    isLocked: isLocked,
                     onTap: () => _navigateToPhase(context, 3),
                   ),
                   _PhaseCard(
@@ -136,6 +149,7 @@ class WordListDetailScreen extends ConsumerWidget {
                     isComplete: progress?.phase4Complete ?? false,
                     isRecommended: (progress?.phase3Complete ?? false) &&
                                    progress?.phase4Complete != true,
+                    isLocked: isLocked,
                     onTap: () => _navigateToPhase(context, 4),
                     score: progress?.phase4Score,
                     total: progress?.phase4Total,
@@ -148,40 +162,57 @@ class WordListDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: _buildFAB(context, progress),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      bottomNavigationBar: _buildBottomButton(context, progress, isLocked: isLocked),
     );
   }
 
-  Widget _buildFAB(BuildContext context, UserWordListProgress? progress) {
+  Widget _buildBottomButton(BuildContext context, UserWordListProgress? progress, {required bool isLocked}) {
     final nextPhase = progress?.nextPhase ?? 1;
     final isComplete = progress?.isFullyComplete ?? false;
 
-    if (isComplete) {
-      return Container(
-         width: 200,
-         height: 56,
-         margin: const EdgeInsets.only(bottom: 20),
-         child: GameButton(
-            label: 'Practice Again',
-            icon: const Icon(Icons.replay_rounded),
-            variant: GameButtonVariant.primary,
-            onPressed: () => _navigateToPhase(context, 1),
-         ),
-      );
-    }
+    final Widget button;
 
-    final phaseNames = ['', 'Learn Vocab', 'Spelling', 'Flashcards', 'Review'];
-    return Container(
+    if (isLocked) {
+      button = SizedBox(
         width: 280,
-        height: 64,
-        margin: const EdgeInsets.only(bottom: 20),
+        height: 54,
+        child: GameButton(
+          label: 'Daily Limit Reached',
+          icon: const Icon(Icons.lock_rounded),
+          variant: GameButtonVariant.primary,
+          onPressed: null,
+        ),
+      );
+    } else if (isComplete) {
+      button = SizedBox(
+        width: 280,
+        height: 54,
+        child: GameButton(
+          label: 'Practice Again',
+          icon: const Icon(Icons.replay_rounded),
+          variant: GameButtonVariant.primary,
+          onPressed: () => _navigateToPhase(context, 1),
+        ),
+      );
+    } else {
+      final phaseNames = ['', 'Learn Vocab', 'Spelling', 'Flashcards', 'Review'];
+      button = SizedBox(
+        width: 280,
+        height: 54,
         child: GameButton(
           label: progress == null ? 'Start Learning' : 'Continue: ${phaseNames[nextPhase]}',
           icon: Icon(progress == null ? Icons.play_arrow_rounded : Icons.play_circle_fill_rounded),
           variant: GameButtonVariant.primary,
           onPressed: () => _navigateToPhase(context, nextPhase),
         ),
+      );
+    }
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20, top: 8),
+        child: Center(heightFactor: 1.0, child: button),
+      ),
     );
   }
 
@@ -359,6 +390,7 @@ class _PhaseCard extends StatelessWidget {
     required this.color,
     required this.isComplete,
     required this.isRecommended,
+    this.isLocked = false,
     required this.onTap,
     this.score,
     this.total,
@@ -370,98 +402,201 @@ class _PhaseCard extends StatelessWidget {
   final Color color;
   final bool isComplete;
   final bool isRecommended;
+  final bool isLocked;
   final VoidCallback onTap;
   final int? score;
   final int? total;
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = isRecommended ? color : AppColors.neutral;
-    final bgColor = isRecommended ? AppColors.white : AppColors.white.withValues(alpha: 0.8);
-    final shadowColor = isRecommended ? color.withValues(alpha: 0.3) : AppColors.neutral;
+    final effectiveColor = isLocked ? AppColors.neutralText : color;
+    final borderColor = isLocked
+        ? AppColors.neutral
+        : isRecommended
+            ? color
+            : AppColors.neutral;
+    final bgColor = isLocked
+        ? AppColors.white.withValues(alpha: 0.6)
+        : isRecommended
+            ? AppColors.white
+            : AppColors.white.withValues(alpha: 0.8);
+    final shadowColor = isLocked
+        ? AppColors.neutral
+        : isRecommended
+            ? color.withValues(alpha: 0.3)
+            : AppColors.neutral;
 
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-           color: bgColor,
-           borderRadius: BorderRadius.circular(20),
-           border: Border.all(color: borderColor, width: isRecommended ? 3 : 2),
-           boxShadow: [
-              BoxShadow(
-                color: shadowColor,
-                offset: Offset(0, 4),
-                blurRadius: 0,
-              )
-           ]
-        ),
-        child: Row(
-           children: [
-             // Icon Box
-             Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                   color: isComplete ? AppColors.primary : color.withValues(alpha: 0.1),
-                   borderRadius: BorderRadius.circular(16),
-                   border: Border.all(
-                     color: isComplete ? AppColors.primaryShadow : color.withValues(alpha: 0.5),
-                     width: 2,
-                   )
-                ),
-                child: Center(
-                  child: Icon(
-                    isComplete ? Icons.check_rounded : icon,
-                    color: isComplete ? Colors.white : color,
-                    size: 32,
+      onTap: isLocked ? null : onTap,
+      child: Opacity(
+        opacity: isLocked ? 0.6 : 1.0,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+             color: bgColor,
+             borderRadius: BorderRadius.circular(20),
+             border: Border.all(color: borderColor, width: isRecommended && !isLocked ? 3 : 2),
+             boxShadow: [
+                BoxShadow(
+                  color: shadowColor,
+                  offset: Offset(0, 4),
+                  blurRadius: 0,
+                )
+             ]
+          ),
+          child: Row(
+             children: [
+               // Icon Box
+               Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                     color: isLocked
+                         ? AppColors.neutral
+                         : isComplete
+                             ? AppColors.primary
+                             : effectiveColor.withValues(alpha: 0.1),
+                     borderRadius: BorderRadius.circular(16),
+                     border: Border.all(
+                       color: isLocked
+                           ? AppColors.neutral
+                           : isComplete
+                               ? AppColors.primaryShadow
+                               : effectiveColor.withValues(alpha: 0.5),
+                       width: 2,
+                     )
                   ),
-                ),
-             ),
-             const SizedBox(width: 16),
-             Expanded(
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Row(
-                     children: [
-                       Text(
-                         title,
-                         style: GoogleFonts.nunito(
-                           fontSize: 18,
-                           fontWeight: FontWeight.w900,
-                           color: isRecommended ? AppColors.black : AppColors.neutralText,
+                  child: Center(
+                    child: Icon(
+                      isLocked
+                          ? Icons.lock_rounded
+                          : isComplete
+                              ? Icons.check_rounded
+                              : icon,
+                      color: isLocked
+                          ? AppColors.neutralText
+                          : isComplete
+                              ? Colors.white
+                              : effectiveColor,
+                      size: 32,
+                    ),
+                  ),
+               ),
+               const SizedBox(width: 16),
+               Expanded(
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Row(
+                       children: [
+                         Text(
+                           title,
+                           style: GoogleFonts.nunito(
+                             fontSize: 18,
+                             fontWeight: FontWeight.w900,
+                             color: isLocked
+                                 ? AppColors.neutralText
+                                 : isRecommended
+                                     ? AppColors.black
+                                     : AppColors.neutralText,
+                           ),
                          ),
-                       ),
-                       if (isRecommended && !isComplete)
-                          Container(
+                         if (isLocked)
+                           Container(
                              margin: const EdgeInsets.only(left: 8),
                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                             decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
-                             child: Text('NEXT', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
-                          )
-                     ],
-                   ),
-                   const SizedBox(height: 4),
-                   Text(
-                     description,
-                     style: GoogleFonts.nunito(
-                        color: AppColors.neutralText,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                             decoration: BoxDecoration(
+                               color: AppColors.neutral,
+                               borderRadius: BorderRadius.circular(8),
+                             ),
+                             child: Row(
+                               mainAxisSize: MainAxisSize.min,
+                               children: [
+                                 Icon(Icons.lock_rounded, size: 10, color: AppColors.neutralText),
+                                 const SizedBox(width: 2),
+                                 Text('LOCKED', style: GoogleFonts.nunito(color: AppColors.neutralText, fontWeight: FontWeight.bold, fontSize: 10)),
+                               ],
+                             ),
+                           )
+                         else if (isRecommended && !isComplete)
+                            Container(
+                               margin: const EdgeInsets.only(left: 8),
+                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                               decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(8)),
+                               child: Text('NEXT', style: GoogleFonts.nunito(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+                            )
+                       ],
                      ),
-                   ),
-                   if (score != null)
-                      Text(
-                         'High Score: $score/$total',
-                         style: GoogleFonts.nunito(color: AppColors.primary, fontWeight: FontWeight.bold),
-                      ),
-                 ],
+                     const SizedBox(height: 4),
+                     Text(
+                       description,
+                       style: GoogleFonts.nunito(
+                          color: AppColors.neutralText,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                       ),
+                     ),
+                     if (score != null)
+                        Text(
+                           'High Score: $score/$total',
+                           style: GoogleFonts.nunito(color: AppColors.primary, fontWeight: FontWeight.bold),
+                        ),
+                   ],
+                 ),
                ),
-             ),
-           ],
+             ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// Banner shown when daily word limit is reached
+class _DailyLimitBanner extends StatelessWidget {
+  const _DailyLimitBanner({required this.wordsToday});
+
+  final int wordsToday;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.streakOrange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.streakOrange.withValues(alpha: 0.3), width: 2),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.timer_rounded, color: AppColors.streakOrange, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Daily Limit Reached',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: AppColors.black,
+                  ),
+                ),
+                Text(
+                  "You've learned $wordsToday/$dailyWordListLimit words today. Come back tomorrow for more!",
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

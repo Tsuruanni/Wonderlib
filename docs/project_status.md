@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-06 (Reader & Library UI Improvements)
+Son güncelleme: 2026-02-06 (Duolingo-Style Vocabulary Learning Path)
 
 ## Current Phase
 
@@ -64,6 +64,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Rozet sistemi (badge earning after XP/streak)
 - [x] Sesli okuma / karaoke (word-level highlighting with Fal AI TTS)
 - [x] Daily Review (Anki-style spaced repetition for vocabulary)
+- [x] Vocabulary Learning Path (Duolingo-style zigzag skill tree with units)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -111,6 +112,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Vocabulary Learning Path | 2026-02-06 | Duolingo-style zigzag skill tree, vocabulary_units table, unit grouping with sinusoidal layout |
 | Reader & Library UI Improvements | 2026-02-06 | Duolingo navbar on library, 3-column grid, compact reader header (44px), chapter badge overlay, audio player repositioned |
 | Book Completion UI & Assignment Sync | 2026-02-03 | Green checkmark on completed books, FAB hidden when complete, assignment auto-sync, async fold fix |
 | Word-on-Tap TTS Refactoring | 2026-02-03 | Flutter TTS for word pronunciation, volume ducking, simplified callbacks |

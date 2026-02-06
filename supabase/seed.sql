@@ -310,25 +310,25 @@ INSERT INTO chapters (id, book_id, title, order_index, content, word_count, esti
 INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 -- Chapter 1 activities
 ('66666666-0004-0001-0001-000000000001', '55555555-0002-0001-0001-000000000001', 'word_translation', 0,
-'{"word": "garden", "correctAnswer": "bahce", "options": ["bahce", "ev", "okul"]}', 5, ARRAY['11111111-0004-0001-0001-000000000001']),
+'{"word": "garden", "correct_answer": "bahce", "options": ["bahce", "ev", "okul"]}', 5, ARRAY['11111111-0004-0001-0001-000000000001']),
 ('66666666-0004-0001-0001-000000000002', '55555555-0002-0001-0001-000000000001', 'true_false', 0,
-'{"statement": "Lily found a small gate behind the bushes.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Lily found a small gate behind the bushes.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0004-0001-0001-000000000003', '55555555-0002-0001-0001-000000000001', 'word_translation', 0,
-'{"word": "secret", "correctAnswer": "gizli", "options": ["gizli", "buyuk", "kucuk"]}', 5, ARRAY['11111111-0004-0001-0001-000000000002']),
+'{"word": "secret", "correct_answer": "gizli", "options": ["gizli", "buyuk", "kucuk"]}', 5, ARRAY['11111111-0004-0001-0001-000000000002']),
 -- Chapter 2 activities
 ('66666666-0004-0002-0001-000000000001', '55555555-0002-0001-0001-000000000002', 'word_translation', 0,
-'{"word": "flower", "correctAnswer": "cicek", "options": ["cicek", "agac", "yaprak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000003']),
+'{"word": "flower", "correct_answer": "cicek", "options": ["cicek", "agac", "yaprak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000003']),
 ('66666666-0004-0002-0001-000000000002', '55555555-0002-0001-0001-000000000002', 'true_false', 0,
-'{"statement": "The roses could sing songs.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "The roses could sing songs.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0004-0002-0001-000000000003', '55555555-0002-0001-0001-000000000002', 'find_words', 0,
-'{"instruction": "Which flowers did Lily meet?", "options": ["Rose", "Sunflower", "Cactus", "Daisy"], "correctAnswers": ["Rose", "Sunflower", "Daisy"]}', 5, ARRAY[]::TEXT[]),
+'{"instruction": "Which flowers did Lily meet?", "options": ["Rose", "Sunflower", "Cactus", "Daisy"], "correct_answers": ["Rose", "Sunflower", "Daisy"]}', 5, ARRAY[]::TEXT[]),
 -- Chapter 3 activities
 ('66666666-0004-0003-0001-000000000001', '55555555-0002-0001-0001-000000000003', 'word_translation', 0,
-'{"word": "butterfly", "correctAnswer": "kelebek", "options": ["kelebek", "kus", "bocek"]}', 5, ARRAY['11111111-0002-0001-0001-000000000002']),
+'{"word": "butterfly", "correct_answer": "kelebek", "options": ["kelebek", "kus", "bocek"]}', 5, ARRAY['11111111-0002-0001-0001-000000000002']),
 ('66666666-0004-0003-0001-000000000002', '55555555-0002-0001-0001-000000000003', 'true_false', 0,
-'{"statement": "The butterfly had golden wings.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "The butterfly had golden wings.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0004-0003-0001-000000000003', '55555555-0002-0001-0001-000000000003', 'word_translation', 0,
-'{"word": "wish", "correctAnswer": "dilek", "options": ["dilek", "ruya", "hediye"]}', 5, ARRAY['11111111-0004-0001-0001-000000000004']);
+'{"word": "wish", "correct_answer": "dilek", "options": ["dilek", "ruya", "hediye"]}', 5, ARRAY['11111111-0004-0001-0001-000000000004']);
 
 -- Content Blocks for Magic Garden - Chapter 1
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -409,25 +409,25 @@ INSERT INTO chapters (id, book_id, title, order_index, content, word_count, esti
 INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 -- Chapter 1 activities
 ('66666666-0005-0001-0001-000000000001', '55555555-0002-0002-0001-000000000001', 'word_translation', 0,
-'{"word": "rocket", "correctAnswer": "roket", "options": ["roket", "araba", "ucak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000005']),
+'{"word": "rocket", "correct_answer": "roket", "options": ["roket", "araba", "ucak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000005']),
 ('66666666-0005-0001-0001-000000000002', '55555555-0002-0002-0001-000000000001', 'true_false', 0,
-'{"statement": "Max is an astronaut.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Max is an astronaut.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0005-0001-0001-000000000003', '55555555-0002-0002-0001-000000000001', 'word_translation', 0,
-'{"word": "space", "correctAnswer": "uzay", "options": ["uzay", "deniz", "orman"]}', 5, ARRAY['11111111-0004-0001-0001-000000000006']),
+'{"word": "space", "correct_answer": "uzay", "options": ["uzay", "deniz", "orman"]}', 5, ARRAY['11111111-0004-0001-0001-000000000006']),
 -- Chapter 2 activities
 ('66666666-0005-0002-0001-000000000001', '55555555-0002-0002-0001-000000000002', 'word_translation', 0,
-'{"word": "planet", "correctAnswer": "gezegen", "options": ["gezegen", "yildiz", "ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000007']),
+'{"word": "planet", "correct_answer": "gezegen", "options": ["gezegen", "yildiz", "ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000007']),
 ('66666666-0005-0002-0001-000000000002', '55555555-0002-0002-0001-000000000002', 'true_false', 0,
-'{"statement": "Mars is called the Red Planet.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Mars is called the Red Planet.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0005-0002-0001-000000000003', '55555555-0002-0002-0001-000000000002', 'find_words', 0,
-'{"instruction": "What did Max see on Mars?", "options": ["Mountains", "Rivers", "Red rocks", "Aliens"], "correctAnswers": ["Mountains", "Red rocks"]}', 5, ARRAY[]::TEXT[]),
+'{"instruction": "What did Max see on Mars?", "options": ["Mountains", "Rivers", "Red rocks", "Aliens"], "correct_answers": ["Mountains", "Red rocks"]}', 5, ARRAY[]::TEXT[]),
 -- Chapter 3 activities
 ('66666666-0005-0003-0001-000000000001', '55555555-0002-0002-0001-000000000003', 'word_translation', 0,
-'{"word": "Earth", "correctAnswer": "Dunya", "options": ["Dunya", "Mars", "Ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000008']),
+'{"word": "Earth", "correct_answer": "Dunya", "options": ["Dunya", "Mars", "Ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000008']),
 ('66666666-0005-0003-0001-000000000002', '55555555-0002-0002-0001-000000000003', 'true_false', 0,
-'{"statement": "Max wanted to go on another adventure.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Max wanted to go on another adventure.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0005-0003-0001-000000000003', '55555555-0002-0002-0001-000000000003', 'word_translation', 0,
-'{"word": "star", "correctAnswer": "yildiz", "options": ["yildiz", "bulut", "gunes"]}', 5, ARRAY['11111111-0004-0001-0001-000000000009']);
+'{"word": "star", "correct_answer": "yildiz", "options": ["yildiz", "bulut", "gunes"]}', 5, ARRAY['11111111-0004-0001-0001-000000000009']);
 
 -- Content Blocks for Space Adventure - Chapter 1
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -512,25 +512,25 @@ INSERT INTO chapters (id, book_id, title, order_index, content, word_count, esti
 INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 -- Chapter 1 activities
 ('66666666-0006-0001-0001-000000000001', '55555555-0002-0003-0001-000000000001', 'word_translation', 0,
-'{"word": "robot", "correctAnswer": "robot", "options": ["robot", "insan", "hayvan"]}', 5, ARRAY['11111111-0004-0001-0001-000000000010']),
+'{"word": "robot", "correct_answer": "robot", "options": ["robot", "insan", "hayvan"]}', 5, ARRAY['11111111-0004-0001-0001-000000000010']),
 ('66666666-0006-0001-0001-000000000002', '55555555-0002-0003-0001-000000000001', 'true_false', 0,
-'{"statement": "Beep was the smallest robot in the factory.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Beep was the smallest robot in the factory.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0006-0001-0001-000000000003', '55555555-0002-0003-0001-000000000001', 'word_translation', 0,
-'{"word": "factory", "correctAnswer": "fabrika", "options": ["fabrika", "okul", "hastane"]}', 5, ARRAY['11111111-0004-0001-0001-000000000011']),
+'{"word": "factory", "correct_answer": "fabrika", "options": ["fabrika", "okul", "hastane"]}', 5, ARRAY['11111111-0004-0001-0001-000000000011']),
 -- Chapter 2 activities
 ('66666666-0006-0002-0001-000000000001', '55555555-0002-0003-0001-000000000002', 'word_translation', 0,
-'{"word": "problem", "correctAnswer": "sorun", "options": ["sorun", "cozum", "oyun"]}', 5, ARRAY['11111111-0004-0001-0001-000000000012']),
+'{"word": "problem", "correct_answer": "sorun", "options": ["sorun", "cozum", "oyun"]}', 5, ARRAY['11111111-0004-0001-0001-000000000012']),
 ('66666666-0006-0002-0001-000000000002', '55555555-0002-0003-0001-000000000002', 'true_false', 0,
-'{"statement": "The power station was broken.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "The power station was broken.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0006-0002-0001-000000000003', '55555555-0002-0003-0001-000000000002', 'find_words', 0,
-'{"instruction": "Why couldn''t the big robots help?", "options": ["Too big", "Too tired", "Scared", "Broken"], "correctAnswers": ["Too big"]}', 5, ARRAY[]::TEXT[]),
+'{"instruction": "Why couldn''t the big robots help?", "options": ["Too big", "Too tired", "Scared", "Broken"], "correct_answers": ["Too big"]}', 5, ARRAY[]::TEXT[]),
 -- Chapter 3 activities
 ('66666666-0006-0003-0001-000000000001', '55555555-0002-0003-0001-000000000003', 'word_translation', 0,
-'{"word": "hero", "correctAnswer": "kahraman", "options": ["kahraman", "kotu", "korkak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000013']),
+'{"word": "hero", "correct_answer": "kahraman", "options": ["kahraman", "kotu", "korkak"]}', 5, ARRAY['11111111-0004-0001-0001-000000000013']),
 ('66666666-0006-0003-0001-000000000002', '55555555-0002-0003-0001-000000000003', 'true_false', 0,
-'{"statement": "The city celebrated Beep as a hero.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "The city celebrated Beep as a hero.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0006-0003-0001-000000000003', '55555555-0002-0003-0001-000000000003', 'word_translation', 0,
-'{"word": "brave", "correctAnswer": "cesur", "options": ["cesur", "korkak", "yalniz"]}', 5, ARRAY['11111111-0004-0001-0001-000000000014']);
+'{"word": "brave", "correct_answer": "cesur", "options": ["cesur", "korkak", "yalniz"]}', 5, ARRAY['11111111-0004-0001-0001-000000000014']);
 
 -- Content Blocks for Brave Little Robot - Chapter 1
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -613,25 +613,25 @@ INSERT INTO chapters (id, book_id, title, order_index, content, word_count, esti
 INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, content, xp_reward, vocabulary_words) VALUES
 -- Chapter 1 activities
 ('66666666-0007-0001-0001-000000000001', '55555555-0002-0004-0001-000000000001', 'word_translation', 0,
-'{"word": "ocean", "correctAnswer": "okyanus", "options": ["okyanus", "gol", "nehir"]}', 5, ARRAY['11111111-0004-0001-0001-000000000015']),
+'{"word": "ocean", "correct_answer": "okyanus", "options": ["okyanus", "gol", "nehir"]}', 5, ARRAY['11111111-0004-0001-0001-000000000015']),
 ('66666666-0007-0001-0001-000000000002', '55555555-0002-0004-0001-000000000001', 'true_false', 0,
-'{"statement": "Maya lived near the ocean.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Maya lived near the ocean.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0007-0001-0001-000000000003', '55555555-0002-0004-0001-000000000001', 'word_translation', 0,
-'{"word": "dolphin", "correctAnswer": "yunus", "options": ["yunus", "kopekbaligi", "balina"]}', 5, ARRAY['11111111-0002-0001-0001-000000000004']),
+'{"word": "dolphin", "correct_answer": "yunus", "options": ["yunus", "kopekbaligi", "balina"]}', 5, ARRAY['11111111-0002-0001-0001-000000000004']),
 -- Chapter 2 activities
 ('66666666-0007-0002-0001-000000000001', '55555555-0002-0004-0001-000000000002', 'word_translation', 0,
-'{"word": "coral", "correctAnswer": "mercan", "options": ["mercan", "tas", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000016']),
+'{"word": "coral", "correct_answer": "mercan", "options": ["mercan", "tas", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000016']),
 ('66666666-0007-0002-0001-000000000002', '55555555-0002-0004-0001-000000000002', 'find_words', 0,
-'{"instruction": "Which sea creatures did Maya see?", "options": ["Fish", "Turtle", "Octopus", "Bird"], "correctAnswers": ["Fish", "Turtle", "Octopus"]}', 5, ARRAY[]::TEXT[]),
+'{"instruction": "Which sea creatures did Maya see?", "options": ["Fish", "Turtle", "Octopus", "Bird"], "correct_answers": ["Fish", "Turtle", "Octopus"]}', 5, ARRAY[]::TEXT[]),
 ('66666666-0007-0002-0001-000000000003', '55555555-0002-0004-0001-000000000002', 'true_false', 0,
-'{"statement": "The coral reef was very colorful.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "The coral reef was very colorful.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 -- Chapter 3 activities
 ('66666666-0007-0003-0001-000000000001', '55555555-0002-0004-0001-000000000003', 'word_translation', 0,
-'{"word": "treasure", "correctAnswer": "hazine", "options": ["hazine", "canta", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000017']),
+'{"word": "treasure", "correct_answer": "hazine", "options": ["hazine", "canta", "kum"]}', 5, ARRAY['11111111-0004-0001-0001-000000000017']),
 ('66666666-0007-0003-0001-000000000002', '55555555-0002-0004-0001-000000000003', 'true_false', 0,
-'{"statement": "Maya found an old treasure chest.", "correctAnswer": true}', 5, ARRAY[]::TEXT[]),
+'{"statement": "Maya found an old treasure chest.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0007-0003-0001-000000000003', '55555555-0002-0004-0001-000000000003', 'word_translation', 0,
-'{"word": "friend", "correctAnswer": "arkadas", "options": ["arkadas", "dusman", "yabanc"]}', 5, ARRAY['11111111-0001-0001-0001-000000000007']);
+'{"word": "friend", "correct_answer": "arkadas", "options": ["arkadas", "dusman", "yabanc"]}', 5, ARRAY['11111111-0001-0001-0001-000000000007']);
 
 -- Content Blocks for Ocean Explorers - Chapter 1
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -1267,4 +1267,26 @@ VALUES
 ('11111111-0005-0004-0001-000000000023', 'map', '/mæp/', 'harita', 'a picture of an area', 'A1', ARRAY['nouns'], ARRAY['There was also an old map!']),
 ('11111111-0005-0004-0001-000000000024', 'explore', '/ɪkˈsplɔːr/', 'keşfetmek', 'to discover new places', 'A2', ARRAY['verbs'], ARRAY['They would explore every corner of the ocean!'])
 ON CONFLICT (word, meaning_tr) DO NOTHING;
+
+-- =============================================
+-- VOCABULARY UNITS (Learning Path)
+-- =============================================
+INSERT INTO vocabulary_units (id, name, description, sort_order, color, icon) VALUES
+('aaaaaaaa-0001-0001-0001-000000000001', 'Unit 1: First Words', 'Your very first English words', 0, '#58CC02', '🌟'),
+('aaaaaaaa-0001-0001-0001-000000000002', 'Unit 2: The World Around You', 'Animals, nature, and everyday things', 1, '#1CB0F6', '🐾'),
+('aaaaaaaa-0001-0001-0001-000000000003', 'Unit 3: Express Yourself', 'Feelings, emotions, and communication', 2, '#FF9600', '💭')
+ON CONFLICT (id) DO NOTHING;
+
+-- Assign existing word lists to units
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000001', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000001'; -- Common Words Level 1 (Unit 1, row 0)
+
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000001', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000002'; -- Common Words Level 2 (Unit 1, row 1)
+
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000002', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000003'; -- Animals (Unit 2, row 0)
+
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000003', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000004'; -- Feelings & Emotions (Unit 3, row 0)
 

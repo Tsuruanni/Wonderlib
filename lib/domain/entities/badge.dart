@@ -57,17 +57,17 @@ class UserBadge extends Equatable {
 
   const UserBadge({
     required this.id,
-    required this.odId,
+    required this.userId,
     required this.badgeId,
     required this.badge,
     required this.earnedAt,
   });
   final String id;
-  final String odId;
+  final String userId;
   final String badgeId;
   final Badge badge;
   final DateTime earnedAt;
 
   @override
-  List<Object?> get props => [id, odId, badgeId, badge, earnedAt];
+  List<Object?> get props => [id, userId, badgeId, badge, earnedAt];
 }

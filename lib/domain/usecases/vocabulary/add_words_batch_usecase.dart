@@ -9,10 +9,12 @@ class AddWordsBatchParams {
   const AddWordsBatchParams({
     required this.userId,
     required this.wordIds,
+    this.immediate = false,
   });
 
   final String userId;
   final List<String> wordIds;
+  final bool immediate;
 }
 
 /// Add multiple words to vocabulary in batch
@@ -30,6 +32,7 @@ class AddWordsBatchToVocabularyUseCase
     return _repository.addWordsToVocabularyBatch(
       userId: params.userId,
       wordIds: params.wordIds,
+      immediate: params.immediate,
     );
   }
 }

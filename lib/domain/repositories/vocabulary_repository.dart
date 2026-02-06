@@ -39,9 +39,11 @@ abstract class VocabularyRepository {
   Future<Either<Failure, Map<String, int>>> getVocabularyStats(String userId);
 
   /// Adds a word to user's vocabulary (creates initial progress)
+  /// When [immediate] is true, next_review_at = now (appears in today's review)
   Future<Either<Failure, VocabularyProgress>> addWordToVocabulary({
     required String userId,
     required String wordId,
+    bool immediate = false,
   });
 
   /// Get a word by exact word string (case-insensitive)
@@ -73,11 +75,17 @@ abstract class VocabularyRepository {
 
   /// Add multiple words to vocabulary in batch (for book/list completion)
   /// Skips words that already exist in vocabulary_progress
+  /// When [immediate] is true, next_review_at = now (appears in today's review)
   Future<Either<Failure, List<VocabularyProgress>>> addWordsToVocabularyBatch({
     required String userId,
     required List<String> wordIds,
+    bool immediate = false,
   });
 
   /// Get count of words learned today (vocabulary_progress created today)
   Future<Either<Failure, int>> getWordsLearnedTodayCount(String userId);
+
+  /// Count words learned today that belong to word lists only
+  /// (excludes words learned from reader or other sources)
+  Future<Either<Failure, int>> getWordsLearnedFromListsTodayCount(String userId);
 }

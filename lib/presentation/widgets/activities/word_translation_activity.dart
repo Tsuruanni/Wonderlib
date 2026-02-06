@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-
 import 'package:google_fonts/google_fonts.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
-import '../common/game_button.dart';
 import '../common/xp_badge.dart';
+import 'common/activity_card.dart';
+import 'common/animated_game_button.dart';
 
-/// Word translation activity widget - compact version
+/// Word translation activity widget - gamified version
 class WordTranslationActivity extends StatefulWidget {
   const WordTranslationActivity({
     super.key,
@@ -30,15 +29,12 @@ class WordTranslationActivity extends StatefulWidget {
   State<WordTranslationActivity> createState() => _WordTranslationActivityState();
 }
 
-class _WordTranslationActivityState extends State<WordTranslationActivity>
-    with SingleTickerProviderStateMixin {
+class _WordTranslationActivityState extends State<WordTranslationActivity> {
   String? _selectedAnswer;
   bool _isAnswered = false;
   bool? _isCorrect;
   bool _showXPAnimation = false;
 
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
   late AudioPlayer _audioPlayer;
 
   WordTranslationContent get content =>
@@ -48,13 +44,6 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
   void initState() {
     super.initState();
     _audioPlayer = AudioPlayer();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
 
     if (widget.isCompleted) {
       _isAnswered = true;
@@ -70,7 +59,6 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
 
   @override
   void dispose() {
-    _animationController.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -99,7 +87,6 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
       _isCorrect = isCorrect;
       if (_isCorrect!) {
         _showXPAnimation = true;
-        _animationController.forward();
       }
     });
 
@@ -119,7 +106,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
       // Wrong answer - still call onAnswer to mark activity complete and allow progression
       Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
-          widget.onAnswer(false, 0, []);
+          widget.onAnswer(false, 0, widget.activity.vocabularyWords);
         }
       });
     }
@@ -130,162 +117,117 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
     final bool answered = _isAnswered || widget.isCompleted;
     final bool? correct = _isCorrect ?? widget.wasCorrect;
 
-    Color cardColor;
-    Color borderColor;
-
+    // Determine card variant
+    ActivityCardVariant cardVariant = ActivityCardVariant.neutral;
     if (answered && correct != null) {
-      if (correct) {
-        // Soft Green for success
-        cardColor = const Color(0xFFF0FFF4); 
-        borderColor = const Color(0xFF38A169);
-      } else {
-        // Soft Red for error
-        cardColor = const Color(0xFFFFF5F5);
-        borderColor = const Color(0xFFE53E3E); 
-      }
-      
-      // Dark mode adjustments if needed
-      if (widget.settings.theme == ReaderTheme.dark) {
-         if (correct) {
-            cardColor = const Color(0xFF064E3B);
-            borderColor = const Color(0xFF34D399);
-         } else {
-            cardColor = const Color(0xFF450A0A);
-            borderColor = const Color(0xFFF87171);
-         }
-      }
-    } else {
-      cardColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF1F2937)
-          : Colors.white;
-      borderColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF374151)
-          : const Color(0xFFE2E8F0);
+      cardVariant = correct ? ActivityCardVariant.correct : ActivityCardVariant.wrong;
     }
 
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 24),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: borderColor,
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Word highlight
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                        color: AppColors.primary,
-                        width: 2,
-                      ),
-                    ),
-                    child: Text(
-                      content.word,
-                      style: GoogleFonts.nunito(
-                        fontSize: widget.settings.fontSize + 4,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary,
-                      ),
-                    ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ActivityCard(
+          variant: cardVariant,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Word highlight - 3D Style
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB), // Neutral 200
+                    width: 2,
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Options
-                  ...content.options.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final option = entry.value;
-                    return Padding(
-                      padding: EdgeInsets.only(
-                          bottom: index < content.options.length - 1 ? 12 : 0,),
-                      child: _buildOption(option),
-                    );
-                  }),
-                  
-                  // Feedback Section
-                  if (answered && correct != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: correct 
-                            ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF065F46) : const Color(0xFFC6F6D5))
-                            : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF7F1D1D) : const Color(0xFFFED7D7)),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            correct ? Icons.check_circle : Icons.cancel,
-                            color: correct 
-                                ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFF34D399) : const Color(0xFF2F855A))
-                                : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFF87171) : const Color(0xFFC53030)),
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            correct ? 'Correct!' : 'Wrong!',
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: correct 
-                                  ? (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFD1FAE5) : const Color(0xFF22543D))
-                                  : (widget.settings.theme == ReaderTheme.dark ? const Color(0xFFFEE2E2) : const Color(0xFF742A2A)),
-                            ),
-                          ),
-                        ],
-                      ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0xFFD1D5DB), // Neutral 300
+                      offset: Offset(0, 4),
+                      blurRadius: 0,
                     ),
                   ],
-                ],
+                ),
+                child: Text(
+                  content.word,
+                  style: GoogleFonts.nunito(
+                    fontSize: widget.settings.fontSize + 4,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF374151), // Neutral 700
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Options
+              ...content.options.asMap().entries.map((entry) {
+                final index = entry.key;
+                final option = entry.value;
+                return Padding(
+                  padding: EdgeInsets.only(
+                      bottom: index < content.options.length - 1 ? 12 : 0,),
+                  child: _buildOption(option),
+                );
+              }),
+            ],
+          ),
+        ),
+
+        // Feedback Overlay
+         if (answered && correct != null)
+          Positioned.fill(
+            child: Center(
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: child,
+                  );
+                },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: correct ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.1), // More transparent
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      correct ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                      size: 80,
+                      color: correct ? const Color(0xFF2F855A).withValues(alpha: 0.8) : const Color(0xFFC53030).withValues(alpha: 0.8), // Slightly transparent icon
+                      shadows: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
 
-            // XP Animation
-            if (_showXPAnimation)
-              Positioned(
-                top: -10, // Adjusted
-                right: 0,
-                child: XPBadge(
-                  xp: widget.activity.xpReward,
-                  onComplete: () {
-                    if (mounted) {
-                      setState(() => _showXPAnimation = false);
-                    }
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
+
+        // XP Animation
+        if (_showXPAnimation)
+          Positioned(
+            top: 10,
+            right: 0,
+            child: XPBadge(
+              xp: widget.activity.xpReward,
+              onComplete: () {
+                if (mounted) {
+                  setState(() => _showXPAnimation = false);
+                }
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -298,11 +240,11 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
 
     if (answered) {
       if (isCorrectOption) {
-        variant = GameButtonVariant.primary; // Green
+        variant = GameButtonVariant.success; // Always Green if answered
       } else if (isSelected && !isCorrectOption) {
-        variant = GameButtonVariant.danger; // Red
+        variant = GameButtonVariant.danger; // Red if selected and wrong
       } else {
-        variant = GameButtonVariant.neutral; // Greyed out
+        variant = GameButtonVariant.neutral; // Greyed out otherwise
       }
     } else {
       if (isSelected) {
@@ -312,7 +254,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity>
       }
     }
 
-    return GameButton(
+    return AnimatedGameButton(
       label: option,
       onPressed: answered ? null : () => _handleAnswer(option),
       variant: variant,

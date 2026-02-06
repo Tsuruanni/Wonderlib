@@ -13,6 +13,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../widgets/book/book_grid_card.dart';
 import '../../widgets/book/book_list_tile.dart';
+import '../../widgets/common/pressable_scale.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -504,7 +505,7 @@ class _BookGrid extends ConsumerWidget {
            final canAccess = ref.watch(canAccessBookProvider(book.id));
            final isCompleted = completedIds.contains(book.id);
 
-           return GestureDetector(
+           return PressableScale(
              onTap: () => canAccess ? onBookTap(book.id) : onLockedBookTap(book.title),
              child: Container(
                 decoration: BoxDecoration(
@@ -525,7 +526,7 @@ class _BookGrid extends ConsumerWidget {
                            ClipRRect(
                              borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
                              child: Image.network(
-                               book.coverUrl ?? '', 
+                               book.coverUrl ?? '',
                                fit: BoxFit.cover,
                                errorBuilder: (_,__,___) => Container(color: AppColors.primary.withValues(alpha: 0.1), child: Icon(Icons.book, size: 40, color: AppColors.primary)),
                              ),
@@ -595,7 +596,7 @@ class _BookList extends ConsumerWidget {
          final book = books[index];
          final canAccess = ref.watch(canAccessBookProvider(book.id));
          
-         return GestureDetector(
+         return PressableScale(
            onTap: () => canAccess ? onBookTap(book.id) : onLockedBookTap(book.title),
            child: Container(
              padding: const EdgeInsets.all(12),

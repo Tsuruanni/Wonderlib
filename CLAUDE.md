@@ -29,10 +29,12 @@ Both projects share the same Supabase backend.
 | Layer | Technology |
 |-------|------------|
 | Frontend | Flutter (Android, iOS, Web, Desktop) |
-| State Management | Riverpod |
-| Local Database | Isar (offline-first) |
+| State Management | Riverpod (flutter_riverpod + riverpod_annotation) |
+| Navigation | GoRouter |
+| Local Storage | sqflite, SharedPreferences, FlutterSecureStorage |
 | Backend | Supabase (PostgreSQL + Auth + Storage + Edge Functions) |
-| Media Storage | Cloudflare R2 |
+| Audio | just_audio + audio_session + flutter_tts |
+| Functional | dartz (Either pattern) + equatable |
 | Analytics | PostHog |
 | Error Tracking | Sentry |
 
@@ -47,6 +49,7 @@ Both projects share the same Supabase backend.
 │                    PRESENTATION LAYER                        │
 │  ┌─────────┐    ┌──────────┐    ┌─────────────────────┐    │
 │  │ Screens │───▶│ Providers │───▶│ UseCase Providers  │    │
+│  │  (29)   │    │   (19)   │    │      (87)          │    │
 │  └─────────┘    └──────────┘    └─────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -54,16 +57,17 @@ Both projects share the same Supabase backend.
 ┌─────────────────────────────────────────────────────────────┐
 │                      DOMAIN LAYER                            │
 │  ┌──────────┐    ┌────────────────────┐    ┌───────────┐   │
-│  │ Entities │    │ UseCase (81 total) │    │ Repo Intf │   │
-│  └──────────┘    └────────────────────┘    └───────────┘   │
+│  │ Entities │    │ UseCase (85 total) │    │ Repo Intf │   │
+│  │  (14)    │    └────────────────────┘    │   (11)    │   │
+│  └──────────┘                              └───────────┘   │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       DATA LAYER                             │
 │  ┌──────────────────┐    ┌────────────────────────────┐    │
-│  │ Models (21 total)│    │ Repository Implementations │    │
-│  │ (JSON ↔ Entity)  │    │ (9 Supabase repositories)  │    │
+│  │ Models (25 total)│    │ Repository Implementations │    │
+│  │ (JSON ↔ Entity)  │    │ (11 Supabase repositories) │    │
 │  └──────────────────┘    └────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -73,42 +77,48 @@ Both projects share the same Supabase backend.
 ```
 lib/
 ├── core/
-│   ├── config/          # Game configs, app constants
-│   ├── errors/          # Failure types
-│   ├── network/         # Network utilities
-│   └── services/        # Edge function service, etc.
+│   ├── config/          # App config, constants
+│   ├── constants/       # AppConstants, CEFRLevels, UserRole, UserLevel
+│   ├── errors/          # 8 Failure types, 6 Exception types
+│   ├── network/         # ApiClient, interceptors, connectivity
+│   ├── services/        # AudioService, WordPronunciationService, EdgeFunctionService
+│   └── utils/           # SM2 algorithm, extensions (context, string, datetime)
 ├── data/
-│   ├── models/          # JSON serialization (21 models)
-│   │   ├── auth/
-│   │   ├── book/
-│   │   ├── activity/
-│   │   ├── vocabulary/
-│   │   ├── badge/
-│   │   ├── user/
-│   │   ├── teacher/
-│   │   └── assignment/
+│   ├── models/          # JSON serialization (25 models)
+│   │   ├── activity/    # 3 models (activity, result, inline)
+│   │   ├── assignment/  # 3 models (assignment, student, student_assignment)
+│   │   │   # (auth/ removed - consolidated into user/)
+│   │   ├── badge/       # 2 models (badge, user_badge)
+│   │   ├── book/        # 3 models (book, chapter, reading_progress)
+│   │   ├── content/     # 1 model (content_block)
+│   │   ├── settings/    # 1 model (system_settings)
+│   │   ├── teacher/     # 4 models (stats, class, student_summary, progress)
+│   │   ├── user/        # 1 model (user)
+│   │   └── vocabulary/  # 5 models (word, progress, word_list, list_progress, daily_review)
 │   └── repositories/
-│       └── supabase/    # 9 repository implementations
+│       └── supabase/    # 11 repository implementations
 ├── domain/
-│   ├── entities/        # Pure business objects
-│   ├── repositories/    # 9 repository interfaces
-│   └── usecases/        # 81 use cases
+│   ├── entities/        # 14 entity files (pure business objects)
+│   ├── repositories/    # 11 repository interfaces
+│   └── usecases/        # 85 use cases + 1 base class
 │       ├── auth/        # 5 usecases
-│       ├── book/        # 7 usecases
-│       ├── reading/     # 6 usecases
+│       ├── book/        # 8 usecases
+│       ├── reading/     # 8 usecases
 │       ├── activity/    # 9 usecases
-│       ├── vocabulary/  # 10 usecases
+│       ├── vocabulary/  # 11 usecases
 │       ├── wordlist/    # 8 usecases
 │       ├── badge/       # 6 usecases
 │       ├── user/        # 7 usecases
 │       ├── teacher/     # 9 usecases
-│       ├── assignment/  # 5 usecases
-│       └── student_assignment/  # 6 usecases
+│       ├── assignment/  # 5 usecases (teacher-side)
+│       ├── student_assignment/ # 6 usecases (student-side)
+│       ├── content/     # 2 usecases
+│       └── settings/    # 1 usecase
 ├── presentation/
-│   ├── providers/       # Riverpod state management
-│   ├── screens/         # UI screens
+│   ├── providers/       # 19 provider files (87 UseCase + 11 Repository providers)
+│   ├── screens/         # 29 active screens (auth, home, library, reader, vocabulary, profile, student, teacher)
 │   ├── utils/           # UI helpers (colors, formatters)
-│   └── widgets/         # Reusable components
+│   └── widgets/         # Reusable components (activities, book, common, home, reader, shell)
 └── l10n/                # Localization (TR/EN)
 ```
 
@@ -219,38 +229,17 @@ flutter test
 
 ---
 
-# Game Configuration Pattern
+# Game Configuration Pattern (NOT YET IMPLEMENTED)
 
-For word games and activities, use configurable configs:
+> **Status:** This pattern is aspirational. Activities currently use values from `AppConfig` and `AppConstants` directly. Implement this when adding new game modes or difficulty levels.
 
 ```dart
-// lib/core/config/game_config.dart
+// lib/core/config/game_config.dart (future)
 abstract class GameConfig {
   Duration get timeLimit;
   Color get themeColor;
   int get difficultyMultiplier;
   List<String> get wordList;
-}
-
-class VocabularyGameConfig implements GameConfig {
-  final Duration timeLimit;
-  final Color themeColor;
-  final int difficultyMultiplier;
-  final List<String> wordList;
-
-  const VocabularyGameConfig({
-    this.timeLimit = const Duration(seconds: 60),
-    this.themeColor = Colors.blue,
-    this.difficultyMultiplier = 1,
-    required this.wordList,
-  });
-}
-
-// Usage in UseCase
-class StartGameUseCase {
-  Future<Either<Failure, Game>> call(GameConfig config) {
-    // Game uses config, not hard-coded values
-  }
 }
 ```
 
@@ -327,22 +316,38 @@ flutter test --coverage
 
 ---
 
-# Current Status (2026-02-05)
+# Current Status (2026-02-06)
 
 ## ✅ Completed
-- Clean Architecture refactor (7 modules)
-- 21 Models, 81 UseCases
-- 9 Supabase repository implementations
-- All screens use UseCases (not repositories)
+- Clean Architecture refactor (13 modules)
+- 25 Models, 85 UseCases, 11 Repositories
+- 29 screens, 34 routes, 19 provider files
+- All screens use UseCases via Providers (not repositories)
 - UI helpers centralized (`ui_helpers.dart`)
 - Business logic moved from widgets to providers
+- 27 DB migrations, properly versioned
+- 8 Failure types, 6 Exception types - all used
+- Audio system with word-level karaoke + listening mode
+- Spaced repetition (SM2 algorithm)
 
-## ⚠️ Pending
+## 🐛 Known Issues (To Fix)
+
+### Medium Priority
+- [ ] `vocabulary_screen.dart` router'da yok - ileride eklenecek (önemli sayfa, SİLME)
+- [ ] Constants overlap between `AppConfig.xpRewards` and `AppConstants` XP values
+
+### Resolved (2026-02-06)
+- [x] `UserBadge.odId` → `userId` renamed
+- [x] `_sqrt()` bug fixed (Newton's method)
+- [x] Duplicate `UserModel` consolidated (auth/ deleted, user/ kept with UserRole enum)
+- [x] `StudentAssignment` → Equatable added
+- [x] Teacher entity extraction (9 types → `entities/teacher.dart` + `entities/assignment.dart`)
+- [x] `inlineActivityByIdProvider` stub removed
+
+## ⚠️ Pending (Deployment)
 - [ ] `supabase db push` to remote (production)
 - [ ] Full manual testing
 - [ ] Sentry integration
-- [ ] flutter_gen asset management
-- [ ] Entity files separation (from repository interfaces)
 
 ## 🚨 Remote DB is EMPTY!
 ```bash
@@ -352,12 +357,11 @@ supabase db push
 
 ---
 
-# Future Refactors (Tracked)
+# Remaining Technical Debt
 
-1. **Entity Separation**: Move entity types from repository interfaces to `domain/entities/`
-2. **Asset Generation**: Add flutter_gen for type-safe asset paths
-3. **Game Config System**: Implement configurable game modes
-4. **Offline Sync**: Complete Isar integration for offline-first
+1. **Constants Consolidation**: Merge `AppConfig.xpRewards` and `AppConstants` XP values into single source of truth
+2. **vocabulary_screen.dart**: Eklenmeyi bekliyor (router'da route yok, ileride bağlanacak)
+3. **GameConfig pattern**: Documented in CLAUDE.md but not implemented - activities use AppConfig directly
 
 ---
 
@@ -470,6 +474,49 @@ This prevents auto-play when user completes activity without ever starting audio
 | `reader_screen.dart` | Initializes chapter state, stops audio on navigation |
 
 **Note:** Auto-play logic is integrated into `AudioSyncController` (no separate auto-play provider).
+
+## Auto-Scroll Follow Mode
+
+Word-level karaoke scroll, kullanıcı manuel scroll yapınca durur:
+
+| Action | `isFollowingScroll` | Behavior |
+|--------|---------------------|----------|
+| User presses play | `true` | Scroll follows active word |
+| Audio plays, word changes | `true` | Scroll updates |
+| User scrolls manually | `false` | Scroll stops, audio continues |
+| User presses play again | `true` | Scroll resumes from current word |
+
+### User Scroll Detection
+
+```dart
+// reader_body.dart - NotificationListener içinde
+if (notification is ScrollStartNotification) {
+  if (notification.dragDetails != null) {
+    // User initiated scroll (finger drag) - not programmatic
+    ref.read(audioSyncControllerProvider.notifier).disableFollowScroll();
+  }
+}
+```
+
+**Key insight:** `dragDetails != null` sadece parmak sürüklemesinde dolu. `Scrollable.ensureVisible()` (programmatic scroll) için `null` olur.
+
+### State Location
+
+- `AudioSyncState.isFollowingScroll` - scroll takip durumu
+- `AudioSyncController.disableFollowScroll()` - takibi kapat
+- `AudioSyncController.play()` - takibi aç (`isFollowingScroll = true`)
+
+### Guard in WordHighlightText
+
+```dart
+// word_highlight_text.dart
+void didUpdateWidget(...) {
+  if (widget.isFollowingScroll &&  // ← Guard
+      widget.activeWordIndex != _previousActiveIndex) {
+    _scrollToActiveWord();
+  }
+}
+```
 
 ---
 

@@ -2,10 +2,14 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/vocabulary.dart';
+import '../entities/vocabulary_unit.dart';
 import '../entities/word_list.dart';
 
 /// Repository interface for word list operations
 abstract class WordListRepository {
+  /// Get all active vocabulary units ordered by sort_order
+  Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits();
+
   /// Get all word lists with optional filtering
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,

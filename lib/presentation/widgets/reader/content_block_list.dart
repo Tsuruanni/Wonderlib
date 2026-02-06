@@ -201,6 +201,12 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           _blockKeys.putIfAbsent(block.id, () => GlobalKey());
         }
 
+        // Find first text/audio block for drop cap
+        final firstTextBlockId = visibleBlocks
+            .where((b) => b.type == ContentBlockType.text || b.type == ContentBlockType.audio)
+            .map((b) => b.id)
+            .firstOrNull;
+
         return Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
@@ -208,9 +214,14 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 ...visibleBlocks.map((block) {
+                  final isFirstText = block.id == firstTextBlockId;
                   return KeyedSubtree(
                     key: _blockKeys[block.id],
-                    child: _buildBlockWidget(block, activityMap),
+                    child: _buildBlockWidget(
+                      block,
+                      activityMap,
+                      isFirstTextBlock: isFirstText,
+                    ),
                   );
                 }),
                 // End marker for scrolling to ChapterCompletionCard
@@ -247,8 +258,9 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
 
   Widget _buildBlockWidget(
     ContentBlock block,
-    Map<String, InlineActivity> activityMap,
-  ) {
+    Map<String, InlineActivity> activityMap, {
+    bool isFirstTextBlock = false,
+  }) {
     switch (block.type) {
       case ContentBlockType.text:
         return TextBlockWidget(
@@ -257,6 +269,7 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           vocabulary: widget.chapter.vocabulary,
           onVocabularyTap: widget.onVocabularyTap,
           onWordTap: widget.onWordTap,
+          showDropCap: isFirstTextBlock,
         );
 
       case ContentBlockType.image:
@@ -272,6 +285,7 @@ class _ContentBlockListState extends ConsumerState<ContentBlockList> {
           vocabulary: widget.chapter.vocabulary,
           onVocabularyTap: widget.onVocabularyTap,
           onWordTap: widget.onWordTap,
+          showDropCap: isFirstTextBlock,
         );
 
       case ContentBlockType.activity:

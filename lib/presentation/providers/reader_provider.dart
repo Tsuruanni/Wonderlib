@@ -7,8 +7,11 @@ import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart'
 import '../../domain/usecases/user/update_user_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import 'auth_provider.dart';
+import 'book_provider.dart';
+import 'daily_review_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
+import 'vocabulary_provider.dart';
 
 /// Reader theme options
 enum ReaderTheme {
@@ -358,6 +361,11 @@ Future<void> handleInlineActivityCompletion(
     (isNew) => isNew,
   );
 
+  // Refresh daily goal (correct answers count)
+  if (isNewCompletion) {
+    ref.invalidate(correctAnswersTodayProvider);
+  }
+
   // Award XP for new completions
   if (isNewCompletion && xpEarned > 0) {
     ref.read(sessionXPProvider.notifier).addXP(xpEarned);
@@ -377,9 +385,14 @@ Future<void> handleInlineActivityCompletion(
         AddWordToVocabularyParams(
           userId: userId,
           wordId: wordId,
+          immediate: !isCorrect,
         ),
       );
     }
+
+    // Invalidate providers so new words appear in Word Bank and Daily Review
+    ref.invalidate(dailyReviewWordsProvider);
+    ref.invalidate(userVocabularyProgressProvider);
   }
 
   // Notify caller

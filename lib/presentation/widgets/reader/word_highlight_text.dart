@@ -19,6 +19,7 @@ class WordHighlightText extends StatefulWidget {
     this.onVocabularyTap,
     this.onWordTap,
     this.isFollowingScroll = false,
+    this.prefixWidgets = const [],
   });
 
   final String text;
@@ -35,6 +36,9 @@ class WordHighlightText extends StatefulWidget {
   /// Whether to auto-scroll to the active word.
   /// Enabled when user presses play, disabled on activity completion.
   final bool isFollowingScroll;
+
+  /// Widgets to show inline at the start of the text (e.g., play button, drop cap)
+  final List<Widget> prefixWidgets;
 
   @override
   State<WordHighlightText> createState() => _WordHighlightTextState();
@@ -78,6 +82,9 @@ class _WordHighlightTextState extends State<WordHighlightText> {
 
   @override
   Widget build(BuildContext context) {
+    // Build prefix widget spans
+    final prefixSpans = _buildPrefixSpans();
+
     if (widget.wordTimings.isEmpty) {
       // No word timings - check if we need tappable words
       if (widget.onWordTap != null) {
@@ -85,11 +92,19 @@ class _WordHighlightTextState extends State<WordHighlightText> {
         return RichText(
           text: TextSpan(
             style: _baseTextStyle,
-            children: _buildSimpleWordSpans(),
+            children: [...prefixSpans, ..._buildSimpleWordSpans()],
           ),
         );
       }
-      // Fallback: no timings and no tap handler, render plain text
+      // Fallback: no timings and no tap handler, render plain text with prefix
+      if (prefixSpans.isNotEmpty) {
+        return RichText(
+          text: TextSpan(
+            style: _baseTextStyle,
+            children: [...prefixSpans, TextSpan(text: widget.text)],
+          ),
+        );
+      }
       return SelectableText(
         widget.text,
         style: _baseTextStyle,
@@ -99,9 +114,26 @@ class _WordHighlightTextState extends State<WordHighlightText> {
     return RichText(
       text: TextSpan(
         style: _baseTextStyle,
-        children: _buildWordSpans(context),
+        children: [...prefixSpans, ..._buildWordSpans(context)],
       ),
     );
+  }
+
+  /// Build WidgetSpans for prefix widgets (play button, drop cap, etc.)
+  List<InlineSpan> _buildPrefixSpans() {
+    final spans = <InlineSpan>[];
+    for (final prefixWidget in widget.prefixWidgets) {
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: prefixWidget,
+          ),
+        ),
+      );
+    }
+    return spans;
   }
 
   /// Build tappable word spans when no word timings available.

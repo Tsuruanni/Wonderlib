@@ -223,6 +223,42 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       );
     }
 
+    // Guard: not enough words for a meaningful review session
+    if (state.words.length < minDailyReviewCount) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.hourglass_top_rounded, size: 80, color: AppColors.gemBlue),
+              const SizedBox(height: 24),
+              Text(
+                'Not enough words yet',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.black),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${state.words.length}/$minDailyReviewCount words due — keep learning!',
+                style: GoogleFonts.nunito(fontSize: 18, color: AppColors.neutralText, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: 200,
+                height: 50,
+                child: GameButton(
+                  label: 'Go Back',
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => context.pop(),
+                  variant: GameButtonVariant.secondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final currentWord = state.currentWord;
     if (currentWord == null || state.isComplete) {
       return Scaffold(
@@ -231,7 +267,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       );
     }
 
-    final progress = (state.currentIndex + 1) / state.words.length;
+    final progress = state.originalWordCount > 0
+        ? state.uniqueWordsReviewed / state.originalWordCount
+        : 0.0;
 
     return Scaffold(
       backgroundColor: AppColors.background,

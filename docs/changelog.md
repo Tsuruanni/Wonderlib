@@ -8,6 +8,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Duolingo-Style Vocabulary Learning Path (2026-02-06)
+
+#### Added
+- **Vocabulary Learning Path** - Duolingo-style vertical skill tree replacing horizontal card sections
+  - Word lists organized into admin-created **units** with colored banners (icon, name, description)
+  - Zigzag node layout using sinusoidal positioning (`sin(rowIndex * pi/3) * amplitude`)
+  - 1-3 nodes per row: same `order_in_unit` value = side-by-side nodes
+  - Three visual states: completed (gold/check), in-progress (unit color/progress arc), not-started (grey outline)
+  - Progress rings using Flutter's `CircularProgressIndicator` with rounded stroke caps
+  - Dashed vertical connectors between rows
+- **VocabularyUnit Entity** - New domain entity with `parsedColor` getter (hex string to Flutter Color)
+- **vocabulary_units DB Table** - Admin-managed units with sort_order, color (hex), icon (emoji), is_active flag
+  - RLS policy: SELECT for all authenticated users
+  - `word_lists` table extended with `unit_id` FK and `order_in_unit` column
+- **GetVocabularyUnitsUseCase** - Clean Architecture usecase for fetching active units
+- **Learning Path Providers** - `vocabularyUnitsProvider` + `learningPathProvider` (combines units, word lists, progress)
+  - `PathUnitData` and `PathRowData` data classes for structured path representation
+
+#### Changed
+- **VocabularyHubScreen** - Replaced `_HorizontalListSection` + `_CategoriesGrid` with `LearningPath` widget
+  - Kept: navbar, daily review section, daily limit indicator, story vocabulary section
+- **WordList Entity** - Added `unitId` and `orderInUnit` fields
+- **WordListModel** - Added `unit_id` and `order_in_unit` JSON serialization
+
+#### Removed
+- **Unused Hub Widgets** - `_HorizontalListSection`, `_WordListCard`, `_CategoriesGrid`, `_CategoryCard`, `_EmptyState`, `_WordBankButton`
+
+#### Infrastructure
+- **New Migration** `20260207000001_create_vocabulary_units.sql` - vocabulary_units table + word_lists ALTER
+- **Seed Data** - 3 sample units (Basics, Everyday English, Reading Level Up) with 4 word lists assigned
+- **New Files**: `vocabulary_unit.dart` (entity), `vocabulary_unit_model.dart` (model), `get_vocabulary_units_usecase.dart`, `learning_path.dart`, `path_node.dart`
+- **Modified Files**: `word_list.dart`, `word_list_model.dart`, `word_list_repository.dart`, `supabase_word_list_repository.dart`, `usecase_providers.dart`, `vocabulary_provider.dart`, `vocabulary_hub_screen.dart`
+
 ### Reader & Library UI Improvements (2026-02-06)
 
 #### Changed

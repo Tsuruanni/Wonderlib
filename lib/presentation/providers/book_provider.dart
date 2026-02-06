@@ -175,6 +175,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       // Invalidate providers to refresh UI
       _ref.invalidate(readingProgressProvider(bookId));
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
+      _ref.invalidate(wordsReadTodayProvider); // Refresh daily goal
 
       // Update assignment progress if this book is part of an assignment
       await _updateAssignmentProgress(

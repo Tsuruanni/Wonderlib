@@ -25,7 +25,7 @@ class UserBadgeModel {
   factory UserBadgeModel.fromEntity(UserBadge entity) {
     return UserBadgeModel(
       id: entity.id,
-      userId: entity.odId,
+      userId: entity.userId,
       badgeId: entity.badgeId,
       earnedAt: entity.earnedAt,
     );
@@ -67,7 +67,7 @@ class UserBadgeModel {
 
     return UserBadge(
       id: id,
-      odId: userId,
+      userId: userId,
       badgeId: badgeId,
       badge: badge,
       earnedAt: earnedAt,

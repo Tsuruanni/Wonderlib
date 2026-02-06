@@ -7,9 +7,12 @@ import '../../../domain/usecases/activity/save_inline_activity_result_usecase.da
 import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/book_provider.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/vocabulary_provider.dart';
 import '../activities/activities.dart';
 import 'paragraph_widget.dart';
 
@@ -222,6 +225,11 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
       (isNew) => isNew,
     );
 
+    // Refresh daily goal (correct answers count)
+    if (isNewCompletion) {
+      ref.invalidate(correctAnswersTodayProvider);
+    }
+
     // Only award XP for NEW completions
     if (isNewCompletion && xpEarned > 0) {
       // Update local session XP counter
@@ -244,8 +252,13 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
         await addWordUseCase(AddWordToVocabularyParams(
           userId: userId,
           wordId: wordId,
+          immediate: !isCorrect,
         ),);
       }
+
+      // Invalidate providers so new words appear in Word Bank and Daily Review
+      ref.invalidate(dailyReviewWordsProvider);
+      ref.invalidate(userVocabularyProgressProvider);
     }
   }
 }

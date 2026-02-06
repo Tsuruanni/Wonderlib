@@ -297,14 +297,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               // Popup overlays
               const ReaderPopups(),
 
-              // Floating audio player controls
+              // Floating audio player controls (top center, below collapsed header)
               Positioned(
                 left: 0,
                 right: 0,
-                bottom: 0,
-                child: SafeArea(
-                  child: AudioPlayerControls(settings: settings),
-                ),
+                top: MediaQuery.of(context).padding.top + 44,
+                child: AudioPlayerControls(settings: settings),
               ),
             ],
           ),

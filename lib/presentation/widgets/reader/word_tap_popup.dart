@@ -410,7 +410,7 @@ class _WordTapPopupState extends ConsumerState<WordTapPopup> {
     setState(() => _isAdding = true);
 
     try {
-      final result = await addWordToVocabulary(ref, definition.id!);
+      final result = await addWordToVocabulary(ref, definition.id!, immediate: true);
 
       if (!mounted) return;
 

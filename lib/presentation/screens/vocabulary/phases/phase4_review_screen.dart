@@ -34,6 +34,7 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
   bool _initialized = false;
   final Random _random = Random();
   final TextEditingController _fillInController = TextEditingController();
+  final Set<String> _wrongWordIds = {};
 
   @override
   void initState() {
@@ -114,6 +115,7 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
         _correctCount++;
       } else {
         _incorrectCount++;
+        _wrongWordIds.add(currentQuestion.word.id);
       }
     });
   }
@@ -142,13 +144,24 @@ class _Phase4ReviewScreenState extends ConsumerState<Phase4ReviewScreen> {
       ref.read(wordListProgressControllerProvider.notifier)
           .completePhase(widget.listId, 4, score: _correctCount, total: total);
 
-      // Add all words to vocabulary_progress for daily review
+      // Add words to vocabulary_progress for daily review
+      // Wrong words → immediate (today's review), correct → tomorrow
       final userId = ref.read(currentUserIdProvider);
       if (userId != null && _words.isNotEmpty) {
-        final wordIds = _words.map((w) => w.id).toList();
-        await ref.read(addWordsBatchUseCaseProvider).call(
-              AddWordsBatchParams(userId: userId, wordIds: wordIds),
-            );
+        final allWordIds = _words.map((w) => w.id).toList();
+        final wrongIds = allWordIds.where((id) => _wrongWordIds.contains(id)).toList();
+        final correctIds = allWordIds.where((id) => !_wrongWordIds.contains(id)).toList();
+
+        if (correctIds.isNotEmpty) {
+          await ref.read(addWordsBatchUseCaseProvider).call(
+                AddWordsBatchParams(userId: userId, wordIds: correctIds),
+              );
+        }
+        if (wrongIds.isNotEmpty) {
+          await ref.read(addWordsBatchUseCaseProvider).call(
+                AddWordsBatchParams(userId: userId, wordIds: wrongIds, immediate: true),
+              );
+        }
       }
     }
 

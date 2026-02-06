@@ -116,6 +116,12 @@ enum UserLevel {
   }
 
   static double _sqrt(double value) {
-    return value > 0 ? value.toDouble() : 0;
+    if (value <= 0) return 0;
+    // Newton's method for square root
+    double guess = value / 2;
+    for (int i = 0; i < 20; i++) {
+      guess = (guess + value / guess) / 2;
+    }
+    return guess;
   }
 }

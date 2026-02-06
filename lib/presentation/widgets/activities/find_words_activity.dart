@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
 import '../common/xp_badge.dart';
+import 'common/activity_card.dart';
+import 'common/animated_game_button.dart';
 
-/// Find words activity widget (multi-select) - compact version
+/// Find words activity widget (multi-select) - gamified version
 class FindWordsActivity extends StatefulWidget {
   const FindWordsActivity({
     super.key,
@@ -32,22 +34,12 @@ class _FindWordsActivityState extends State<FindWordsActivity>
   bool? _isCorrect;
   bool _showXPAnimation = false;
 
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-
   FindWordsContent get content => widget.activity.content as FindWordsContent;
   int get requiredSelections => content.correctAnswers.length;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
 
     if (widget.isCompleted) {
       _isAnswered = true;
@@ -61,12 +53,6 @@ class _FindWordsActivityState extends State<FindWordsActivity>
         ),);
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   void _toggleOption(String option) {
@@ -99,7 +85,6 @@ class _FindWordsActivityState extends State<FindWordsActivity>
       _isCorrect = isCorrect;
       if (_isCorrect!) {
         _showXPAnimation = true;
-        _animationController.forward();
       }
     });
 
@@ -115,171 +100,156 @@ class _FindWordsActivityState extends State<FindWordsActivity>
     final bool answered = _isAnswered || widget.isCompleted;
     final bool? correct = _isCorrect ?? widget.wasCorrect;
 
-    Color cardColor;
-    Color borderColor;
-
+    // Determine card variant
+    ActivityCardVariant cardVariant = ActivityCardVariant.neutral;
     if (answered && correct != null) {
-      if (correct) {
-        cardColor = const Color(0xFF38A169).withValues(alpha: 0.1);
-        borderColor = const Color(0xFF38A169).withValues(alpha: 0.5);
-      } else {
-        cardColor = const Color(0xFFE53E3E).withValues(alpha: 0.1);
-        borderColor = const Color(0xFFE53E3E).withValues(alpha: 0.5);
-      }
-    } else {
-      cardColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF1F2937)
-          : const Color(0xFFF8FAFC);
-      borderColor = widget.settings.theme == ReaderTheme.dark
-          ? const Color(0xFF374151)
-          : const Color(0xFFE2E8F0);
+      cardVariant = correct ? ActivityCardVariant.correct : ActivityCardVariant.wrong;
     }
 
-    return AnimatedBuilder(
-      animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor, width: 1.5),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Instruction
-                  Text(
-                    content.instruction,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: widget.settings.fontSize,
-                      fontWeight: FontWeight.w500,
-                      color: widget.settings.theme.text,
-                      height: 1.4,
-                    ),
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  // Chips
-                  Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: content.options.map((option) {
-                      return _buildChip(option);
-                    }).toList(),
-                  ),
-
-                  // Selection hint
-                  if (!answered) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      '${_selectedAnswers.length}/$requiredSelections',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: widget.settings.theme.text.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // XP Animation
-            if (_showXPAnimation)
-              Positioned(
-                top: -8,
-                right: 12,
-                child: XPBadge(
-                  xp: widget.activity.xpReward,
-                  onComplete: () {
-                    if (mounted) {
-                      setState(() => _showXPAnimation = false);
-                    }
-                  },
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        ActivityCard(
+          variant: cardVariant,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Instruction
+              Text(
+                content.instruction,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: widget.settings.fontSize + 2,
+                  fontWeight: FontWeight.bold,
+                  color: widget.settings.theme == ReaderTheme.dark
+                      ? Colors.black // Card background is white/light in this design
+                      : Colors.black87,
+                  height: 1.4,
+                  fontFamily: 'Nunito',
                 ),
               ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Chips / Buttons
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 12,
+                children: content.options.map((option) {
+                  return _buildOptionButton(option);
+                }).toList(),
+              ),
+
+              // Selection hint
+              if (!answered) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Select ${requiredSelections - _selectedAnswers.length} more',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[500],
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-      ),
+
+        // Feedback Overlay
+         if (answered && correct != null)
+          Positioned.fill(
+            child: Center(
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.scale(
+                    scale: value,
+                    child: child,
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: correct ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.1), // More transparent
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    correct ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                    size: 80,
+                    color: correct ? const Color(0xFF2F855A).withValues(alpha: 0.8) : const Color(0xFFC53030).withValues(alpha: 0.8), // Slightly transparent icon
+                    shadows: [
+                      BoxShadow(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+        // XP Animation
+        if (_showXPAnimation)
+          Positioned(
+            top: 10,
+            right: 0,
+            child: XPBadge(
+              xp: widget.activity.xpReward,
+              onComplete: () {
+                if (mounted) {
+                  setState(() => _showXPAnimation = false);
+                }
+              },
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildChip(String option) {
+  Widget _buildOptionButton(String option) {
     final bool answered = _isAnswered || widget.isCompleted;
     final isSelected = _selectedAnswers.contains(option);
     final isCorrectOption = content.correctAnswers.contains(option);
 
-    Color backgroundColor;
-    Color borderColor;
-    Color textColor;
-
+    GameButtonVariant variant = GameButtonVariant.neutral;
+    
     if (answered) {
       if (isCorrectOption) {
-        backgroundColor = const Color(0xFF38A169);
-        borderColor = const Color(0xFF38A169);
-        textColor = Colors.white;
+        variant = GameButtonVariant.success; // All correct answers turn Green
       } else if (isSelected && !isCorrectOption) {
-        backgroundColor = const Color(0xFFE53E3E);
-        borderColor = const Color(0xFFE53E3E);
-        textColor = Colors.white;
+        variant = GameButtonVariant.danger; // Selected wrong answers turn Red
       } else {
-        backgroundColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF374151).withValues(alpha: 0.5)
-            : const Color(0xFFF1F5F9);
-        borderColor = Colors.transparent;
-        textColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF6B7280)
-            : const Color(0xFF94A3B8);
+        variant = GameButtonVariant.neutral; // Non-selected wrong answers stay Neutral
       }
     } else {
       if (isSelected) {
-        backgroundColor = const Color(0xFF6366F1);
-        borderColor = const Color(0xFF6366F1);
-        textColor = Colors.white;
+        variant = GameButtonVariant.secondary;
       } else {
-        backgroundColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF374151)
-            : Colors.white;
-        borderColor = widget.settings.theme == ReaderTheme.dark
-            ? const Color(0xFF4B5563)
-            : const Color(0xFFE2E8F0);
-        textColor = widget.settings.theme.text;
+        variant = GameButtonVariant.neutral;
       }
     }
 
-    return GestureDetector(
-      onTap: () => _toggleOption(option),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: borderColor,
-            width: isSelected || (answered && isCorrectOption) ? 2 : 1.5,
-          ),
-        ),
-        child: Text(
-          option,
-          style: TextStyle(
-            fontSize: 14,
-            color: textColor,
-            fontWeight: isSelected || (answered && isCorrectOption)
-                ? FontWeight.w600
-                : FontWeight.normal,
-          ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 80),
+      child: AnimatedGameButton(
+        label: option,
+        onPressed: answered ? null : () => _toggleOption(option),
+        variant: variant,
+        height: 48, // Smaller than default
+        borderRadius: 12, // Compact
+        textStyle: TextStyle(
+          color: (variant == GameButtonVariant.neutral || variant == GameButtonVariant.outline)
+             ? Colors.black87 
+             : Colors.white,
+           fontWeight: FontWeight.bold,
+           fontSize: 14,
         ),
       ),
     );

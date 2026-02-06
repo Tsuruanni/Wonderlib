@@ -205,14 +205,15 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     try {
       final now = DateTime.now().toIso8601String();
 
-      // Get word IDs that are due for review
+      // Get word IDs due for review, ordered by most overdue first
+      // Includes mastered words (they appear at long intervals via SM-2)
       final progressResponse = await _supabase
           .from('vocabulary_progress')
           .select('word_id')
           .eq('user_id', userId)
           .lte('next_review_at', now)
-          .neq('status', 'mastered')
-          .limit(20);
+          .order('next_review_at', ascending: true)
+          .limit(30);
 
       final wordIds = (progressResponse as List)
           .map((p) => p['word_id'] as String)
@@ -228,8 +229,15 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .select()
           .inFilter('id', wordIds);
 
-      final words = (wordsResponse as List)
-          .map((json) => VocabularyWordModel.fromJson(json).toEntity())
+      // Build lookup map and preserve overdue order from first query
+      final wordMap = <String, VocabularyWord>{};
+      for (final json in wordsResponse as List) {
+        final word = VocabularyWordModel.fromJson(json).toEntity();
+        wordMap[word.id] = word;
+      }
+      final words = wordIds
+          .where((id) => wordMap.containsKey(id))
+          .map((id) => wordMap[id]!)
           .toList();
 
       return Right(words);
@@ -309,14 +317,13 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         }
       }
 
-      // Get due for review count
+      // Get due for review count (includes mastered words)
       final now = DateTime.now().toIso8601String();
       final dueResponse = await _supabase
           .from('vocabulary_progress')
           .select('id')
           .eq('user_id', userId)
-          .lte('next_review_at', now)
-          .neq('status', 'mastered');
+          .lte('next_review_at', now);
 
       return Right({
         'total': progressList.length,
@@ -337,6 +344,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, VocabularyProgress>> addWordToVocabulary({
     required String userId,
     required String wordId,
+    bool immediate = false,
   }) async {
     try {
       // Check if progress already exists
@@ -348,6 +356,18 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .maybeSingle();
 
       if (existing != null) {
+        // If immediate requested and word exists, update next_review_at to now
+        if (immediate) {
+          final now = DateTime.now();
+          final updated = await _supabase
+              .from('vocabulary_progress')
+              .update({'next_review_at': now.toIso8601String()})
+              .eq('user_id', userId)
+              .eq('word_id', wordId)
+              .select()
+              .single();
+          return Right(VocabularyProgressModel.fromJson(updated).toEntity());
+        }
         return Right(VocabularyProgressModel.fromJson(existing).toEntity());
       }
 
@@ -360,7 +380,9 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         'ease_factor': 2.5,
         'interval_days': 1,
         'repetitions': 0,
-        'next_review_at': now.add(const Duration(days: 1)).toIso8601String(),
+        'next_review_at': immediate
+            ? now.toIso8601String()
+            : now.add(const Duration(days: 1)).toIso8601String(),
         'last_reviewed_at': now.toIso8601String(),
         'created_at': now.toIso8601String(),
       };
@@ -489,6 +511,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, List<VocabularyProgress>>> addWordsToVocabularyBatch({
     required String userId,
     required List<String> wordIds,
+    bool immediate = false,
   }) async {
     try {
       if (wordIds.isEmpty) {
@@ -509,7 +532,16 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .map((e) => e['word_id'] as String)
           .toSet();
 
-      // Filter to only new words
+      // If immediate, update existing words' next_review_at to now
+      if (immediate && existingWordIds.isNotEmpty) {
+        await _supabase
+            .from('vocabulary_progress')
+            .update({'next_review_at': now.toIso8601String()})
+            .eq('user_id', userId)
+            .inFilter('word_id', existingWordIds.toList());
+      }
+
+      // Filter to only new words for insertion
       final newWordIds =
           wordIds.where((id) => !existingWordIds.contains(id)).toList();
 
@@ -526,8 +558,9 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
                 'ease_factor': 2.5,
                 'interval_days': 1,
                 'repetitions': 0,
-                'next_review_at':
-                    now.add(const Duration(days: 1)).toIso8601String(),
+                'next_review_at': immediate
+                    ? now.toIso8601String()
+                    : now.add(const Duration(days: 1)).toIso8601String(),
                 'last_reviewed_at': now.toIso8601String(),
                 'created_at': now.toIso8601String(),
               })
@@ -561,6 +594,39 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .select('id')
           .eq('user_id', userId)
           .gte('created_at', todayStart);
+
+      return Right((response as List).length);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> getWordsLearnedFromListsTodayCount(String userId) async {
+    try {
+      final now = DateTime.now();
+      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+
+      // 1. Get all word IDs that belong to any word list
+      final listWordIds = await _supabase
+          .from('word_list_items')
+          .select('word_id');
+      final wordIdSet = (listWordIds as List)
+          .map((r) => r['word_id'] as String)
+          .toSet()
+          .toList();
+
+      if (wordIdSet.isEmpty) return const Right(0);
+
+      // 2. Count vocabulary_progress created today, filtered to list words
+      final response = await _supabase
+          .from('vocabulary_progress')
+          .select('id')
+          .eq('user_id', userId)
+          .gte('created_at', todayStart)
+          .inFilter('word_id', wordIdSet);
 
       return Right((response as List).length);
     } on PostgrestException catch (e) {

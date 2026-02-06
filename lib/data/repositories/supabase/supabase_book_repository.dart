@@ -354,7 +354,12 @@ class SupabaseBookRepository implements BookRepository {
                 updatedAt: DateTime.now(),
               );
 
-              return updateReadingProgress(updatedProgress);
+              final result = await updateReadingProgress(updatedProgress);
+
+              // Log for daily tracking (fire-and-forget)
+              _logDailyChapterRead(userId, chapterId);
+
+              return result;
             },
           );
         },
@@ -553,34 +558,19 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, int>> getWordsReadTodayCount(String userId) async {
     try {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
 
-      // Get reading progress updated today
-      final progressResponse = await _supabase
-          .from('reading_progress')
-          .select('completed_chapter_ids')
+      // Get chapters read today with their word counts via join
+      final response = await _supabase
+          .from('daily_chapter_reads')
+          .select('chapters(word_count)')
           .eq('user_id', userId)
-          .gte('updated_at', todayStart);
-
-      // Collect all chapter IDs from today's progress
-      final chapterIds = <String>[];
-      for (final row in progressResponse as List) {
-        final ids = (row['completed_chapter_ids'] as List?)?.cast<String>() ?? [];
-        chapterIds.addAll(ids);
-      }
-
-      if (chapterIds.isEmpty) return const Right(0);
-
-      // Get word counts from chapters
-      final chaptersResponse = await _supabase
-          .from('chapters')
-          .select('word_count')
-          .inFilter('id', chapterIds);
+          .eq('read_date', today);
 
       int totalWords = 0;
-      for (final row in chaptersResponse as List) {
-        totalWords += (row['word_count'] as int?) ?? 0;
+      for (final row in response as List) {
+        final chapterData = row['chapters'] as Map<String, dynamic>?;
+        totalWords += (chapterData?['word_count'] as int?) ?? 0;
       }
 
       return Right(totalWords);
@@ -588,6 +578,23 @@ class SupabaseBookRepository implements BookRepository {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  /// Logs chapter read for daily tracking. Fire-and-forget - failures are swallowed.
+  Future<void> _logDailyChapterRead(String userId, String chapterId) async {
+    try {
+      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      await _supabase.from('daily_chapter_reads').upsert(
+        {
+          'user_id': userId,
+          'chapter_id': chapterId,
+          'read_date': today,
+        },
+        onConflict: 'user_id,chapter_id,read_date',
+      );
+    } catch (_) {
+      // Non-critical - swallow errors. Don't block chapter completion.
     }
   }
 

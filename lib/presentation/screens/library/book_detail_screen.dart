@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../widgets/book/level_badge.dart';
+import '../../widgets/common/game_button.dart';
 
 class BookDetailScreen extends ConsumerWidget {
 
@@ -280,7 +281,7 @@ class BookDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          floatingActionButton: _BookDetailFAB(
+          bottomNavigationBar: _BookDetailFAB(
             bookId: bookId,
             bookTitle: book.title,
             chapterCount: book.chapterCount,
@@ -289,7 +290,6 @@ class BookDetailScreen extends ConsumerWidget {
             chaptersAsync: chaptersAsync,
             progress: progress,
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         );
       },
     );
@@ -354,48 +354,73 @@ class _BookDetailFAB extends ConsumerWidget {
 
     if (isTeacher) {
       // Teacher sees "Assign Book" button
-      return FloatingActionButton.extended(
-        onPressed: () {
-          // Navigate to create assignment with this book pre-selected
-          context.push(
-            AppRoutes.teacherCreateAssignment,
-            extra: {
-              'bookId': bookId,
-              'bookTitle': bookTitle,
-              'chapterCount': chapterCount,
-            },
-          );
-        },
-        icon: const Icon(Icons.assignment_add),
-        label: const Text('Assign Book'),
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 20, top: 8),
+          child: Center(
+            heightFactor: 1.0,
+            child: SizedBox(
+              width: 280,
+              height: 54,
+              child: GameButton(
+                label: 'Assign Book',
+                icon: const Icon(Icons.assignment_add),
+                variant: GameButtonVariant.secondary,
+                onPressed: () {
+                  context.push(
+                    AppRoutes.teacherCreateAssignment,
+                    extra: {
+                      'bookId': bookId,
+                      'bookTitle': bookTitle,
+                      'chapterCount': chapterCount,
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
       );
     }
 
-    // Hide FAB if book is completed
+    // Hide button if book is completed
     if (isCompleted) {
       return const SizedBox.shrink();
     }
 
-    // Student sees "Start/Continue Reading" button
-    return FloatingActionButton.extended(
-      onPressed: () {
-        chaptersAsync.whenData((chapters) {
-          if (chapters.isEmpty) return;
+    // Student sees "Start/Continue Reading" button (GameButton island style)
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20, top: 8),
+        child: Center(
+          heightFactor: 1.0,
+          child: SizedBox(
+            width: 280,
+            height: 54,
+            child: GameButton(
+              label: hasProgress ? 'Continue Reading' : 'Start Reading',
+              icon: Icon(hasProgress ? Icons.play_arrow_rounded : Icons.book_rounded),
+              variant: GameButtonVariant.primary,
+              onPressed: () {
+                chaptersAsync.whenData((chapters) {
+                  if (chapters.isEmpty) return;
 
-          String targetChapterId;
-          if (progress != null &&
-              progress.chapterId != null &&
-              progress.chapterId!.isNotEmpty) {
-            targetChapterId = progress.chapterId!;
-          } else {
-            targetChapterId = chapters.first.id;
-          }
+                  String targetChapterId;
+                  if (progress != null &&
+                      progress.chapterId != null &&
+                      progress.chapterId!.isNotEmpty) {
+                    targetChapterId = progress.chapterId!;
+                  } else {
+                    targetChapterId = chapters.first.id;
+                  }
 
-          context.go('/reader/$bookId/$targetChapterId');
-        });
-      },
-      icon: Icon(hasProgress ? Icons.play_arrow : Icons.book),
-      label: Text(hasProgress ? 'Continue Reading' : 'Start Reading'),
+                  context.go('/reader/$bookId/$targetChapterId');
+                });
+              },
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

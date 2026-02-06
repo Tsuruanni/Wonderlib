@@ -13,6 +13,8 @@ class WordList extends Equatable {
     this.coverImageUrl,
     this.isSystem = true,
     this.sourceBookId,
+    this.unitId,
+    this.orderInUnit,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -25,6 +27,8 @@ class WordList extends Equatable {
   final String? coverImageUrl;
   final bool isSystem; // true = admin created, false = user created (story vocab)
   final String? sourceBookId; // for story vocabulary lists
+  final String? unitId; // FK to vocabulary_units (null = not in learning path)
+  final int? orderInUnit; // Row position within unit (same value = same row)
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -39,6 +43,8 @@ class WordList extends Equatable {
         coverImageUrl,
         isSystem,
         sourceBookId,
+        unitId,
+        orderInUnit,
         createdAt,
         updatedAt,
       ];
