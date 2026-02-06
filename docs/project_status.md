@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-03 (Book Completion UI & Assignment Sync)
+Son güncelleme: 2026-02-06 (Reader & Library UI Improvements)
 
 ## Current Phase
 
@@ -111,6 +111,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Reader & Library UI Improvements | 2026-02-06 | Duolingo navbar on library, 3-column grid, compact reader header (44px), chapter badge overlay, audio player repositioned |
 | Book Completion UI & Assignment Sync | 2026-02-03 | Green checkmark on completed books, FAB hidden when complete, assignment auto-sync, async fold fix |
 | Word-on-Tap TTS Refactoring | 2026-02-03 | Flutter TTS for word pronunciation, volume ducking, simplified callbacks |
 | Audio System Refactoring | 2026-02-03 | Merged ReaderAutoPlayController into AudioSyncController, listening mode concept |

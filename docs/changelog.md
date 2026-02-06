@@ -8,6 +8,43 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader & Library UI Improvements (2026-02-06)
+
+#### Changed
+- **Library Screen Navbar** - Added Duolingo-style navbar identical to home screen
+  - UK flag, streak counter, XP indicator, profile button
+  - Filter/search row moved below navbar
+- **Library Grid Layout** - Changed from 2 columns to 3 columns per row
+  - Adjusted card aspect ratio (0.6) for compact display
+  - Book titles now allow 2 lines with ellipsis overflow
+- **Reader Collapsed Header** - Reduced height from 100px to 44px
+  - Removed empty space below collapsed header
+  - Added chapter badge with "CHAPTER X" label and title
+  - Progress bar and session stats (reading time, XP) in collapsed view
+- **Reader Header Chapter Card** - Redesigned from full card to compact badge overlay
+  - Chapter badge now overlays book cover image (top-left)
+  - Removed redundant progress info from expanded header
+- **Audio Player Position** - Moved from bottom to top center (below collapsed header)
+  - Animation slides from top instead of bottom
+- **Inline Audio Icon** - Changed from play_circle_filled to headphones_rounded
+- **Image Block Padding** - Reduced vertical padding for tighter content spacing
+- **Content Top Padding** - Reduced from 24px to 8px in ReaderConstants
+
+#### Added
+- **Section Headers** - Library screen now has gradient line section headers
+  - "Filter by Level" section header
+  - "Library" section header before book grid
+- **Chapter Badge Component** - `_ChapterBadge` widget for book cover overlay
+  - Compact white card with subtle shadow
+  - Purple "CHAPTER X" label + chapter title
+
+#### Fixed
+- **Header Collapse Animation** - Fixed overflow errors during scroll
+  - Added ClipRect wrapper with Clip.hardEdge
+  - Linear opacity transition (no more abrupt disappearance)
+- **Book Detail Progress Section** - Hidden when progress is 0%
+  - Checks `completionPercentage > 0` before showing "Your Progress"
+
 ### Book Completion UI & Assignment Sync (2026-02-03)
 
 #### Added

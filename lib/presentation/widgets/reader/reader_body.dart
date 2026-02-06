@@ -92,7 +92,7 @@ class ReaderBody extends ConsumerWidget {
           // Collapsible header
           SliverAppBar(
             expandedHeight: ReaderConstants.expandedHeaderHeight,
-            collapsedHeight: ReaderConstants.collapsedHeaderHeight,
+            toolbarHeight: ReaderConstants.collapsedHeaderHeight,
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: settings.theme.background,
@@ -143,8 +143,8 @@ class ReaderBody extends ConsumerWidget {
                       onBackToBook: onBackToBook,
                     ),
 
-                  // Extra padding at bottom to account for floating audio controls
-                  const SizedBox(height: 120),
+                  // Extra padding at bottom
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

@@ -43,34 +43,40 @@ class CollapsibleReaderHeader extends StatelessWidget {
       builder: (context, constraints) {
         // Calculate collapse progress (0 = fully expanded, 1 = fully collapsed)
         const expandedHeight = 400.0;
-        const collapsedHeight = 100.0;
+        const collapsedHeight = 44.0;
         final currentHeight = constraints.maxHeight;
 
         final collapseProgress = ((expandedHeight - currentHeight) /
             (expandedHeight - collapsedHeight)).clamp(0.0, 1.0);
 
-        final isCollapsed = collapseProgress > 0.7;
+        final isCollapsed = collapseProgress > 0.4;
 
-        return ColoredBox(
-          color: backgroundColor,
-          child: SafeArea(
-            bottom: false,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
+        return ClipRect(
+          child: ColoredBox(
+            color: backgroundColor,
+            child: SafeArea(
+              bottom: false,
+              child: Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.hardEdge,
+                children: [
                 // Expanded content (fades out as we scroll)
-                if (!isCollapsed)
-                  Opacity(
-                    opacity: (1 - collapseProgress * 1.5).clamp(0.0, 1.0),
-                    child: _ExpandedContent(
-                      book: book,
-                      chapter: chapter,
-                      chapterNumber: chapterNumber,
-                      scrollProgress: scrollProgress,
-                      textColor: textColor,
-                      backgroundColor: backgroundColor,
+                Positioned.fill(
+                  child: IgnorePointer(
+                    ignoring: collapseProgress > 0.9,
+                    child: Opacity(
+                      opacity: (1 - collapseProgress).clamp(0.0, 1.0),
+                      child: _ExpandedContent(
+                        book: book,
+                        chapter: chapter,
+                        chapterNumber: chapterNumber,
+                        scrollProgress: scrollProgress,
+                        textColor: textColor,
+                        backgroundColor: backgroundColor,
+                      ),
                     ),
                   ),
+                ),
 
                 // Collapsed content (always visible, positioned at top)
                 Positioned(
@@ -119,6 +125,7 @@ class CollapsibleReaderHeader extends StatelessWidget {
                     ),
                   ),
               ],
+              ),
             ),
           ),
         );
@@ -148,7 +155,7 @@ class _ExpandedContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 44, 16, 8),
+      padding: const EdgeInsets.fromLTRB(16, 44, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -164,42 +171,46 @@ class _ExpandedContent extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // Book cover (flexible to take available space)
+          // Book cover with chapter badge overlay
           Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: backgroundColor,
-                image: book.coverUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(book.coverUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: book.coverUrl == null
-                  ? Center(
-                      child: Icon(
-                        Icons.book,
-                        size: 48,
-                        color: textColor.withValues(alpha: 0.3),
-                      ),
-                    )
-                  : null,
+            child: Stack(
+              children: [
+                // Book cover
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: backgroundColor,
+                      image: book.coverUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(book.coverUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                    ),
+                    child: book.coverUrl == null
+                        ? Center(
+                            child: Icon(
+                              Icons.book,
+                              size: 48,
+                              color: textColor.withValues(alpha: 0.3),
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+
+                // Chapter badge (top-left overlay)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: _ChapterBadge(
+                    chapter: chapter,
+                    chapterNumber: chapterNumber,
+                  ),
+                ),
+              ],
             ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Chapter card
-          _ChapterCard(
-            chapter: chapter,
-            chapterNumber: chapterNumber,
-            scrollProgress: scrollProgress,
-            textColor: textColor,
-            backgroundColor: backgroundColor,
-            isCompact: false,
           ),
         ],
       ),
@@ -233,9 +244,6 @@ class _CollapsedContent extends StatelessWidget {
   final VoidCallback? onClose;
   final VoidCallback? onSettingsTap;
 
-  String? get _chapterImageUrl =>
-      chapter.imageUrls.isNotEmpty ? chapter.imageUrls.first : null;
-
   @override
   Widget build(BuildContext context) {
     // Only show when collapsed
@@ -244,7 +252,7 @@ class _CollapsedContent extends StatelessWidget {
     return Opacity(
       opacity: opacity,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 8, 16, 12),
+        padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
         decoration: BoxDecoration(
           color: backgroundColor,
           border: Border(
@@ -255,17 +263,14 @@ class _CollapsedContent extends StatelessWidget {
           ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Close button
-            IconButton(
-              icon: Icon(Icons.close, color: textColor, size: 22),
-              onPressed: onClose,
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(),
+            GestureDetector(
+              onTap: onClose,
+              child: Icon(Icons.close, color: textColor.withValues(alpha: 0.6), size: 20),
             ),
 
-            const SizedBox(width: 4),
+            const SizedBox(width: 12),
 
             // Chapter info
             Expanded(
@@ -273,119 +278,104 @@ class _CollapsedContent extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Top row: Chapter label + XP + Time
+                  // Chapter badge + title row
                   Row(
                     children: [
-                      Text(
-                        'CHAPTER $chapterNumber',
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.6),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.5,
+                      // Chapter badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E7FF),
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                      ),
-                      const Spacer(),
-                      // XP indicator
-                      if (sessionXP > 0) ...[
-                        const Icon(
-                          Icons.bolt,
-                          color: Color(0xFF38A169),
-                          size: 14,
-                        ),
-                        const SizedBox(width: 2),
-                        Text(
-                          '+$sessionXP',
+                        child: Text(
+                          'CHAPTER $chapterNumber',
                           style: const TextStyle(
-                            color: Color(0xFF38A169),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF4F46E5),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                      ],
-                      // Reading time
-                      Icon(
-                        Icons.timer_outlined,
-                        color: textColor.withValues(alpha: 0.5),
-                        size: 14,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        readingTime,
-                        style: TextStyle(
-                          color: textColor.withValues(alpha: 0.6),
-                          fontSize: 12,
+
+                      const SizedBox(width: 8),
+
+                      // Chapter title
+                      Expanded(
+                        child: Text(
+                          chapter.title,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 2),
-
-                  // Chapter title
-                  Text(
-                    chapter.title,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
 
                   // Progress bar
                   ClipRRect(
                     borderRadius: BorderRadius.circular(2),
                     child: LinearProgressIndicator(
                       value: scrollProgress,
-                      minHeight: 4,
+                      minHeight: 3,
                       backgroundColor: textColor.withValues(alpha: 0.1),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFFE53935)),
+                      valueColor: const AlwaysStoppedAnimation(Color(0xFF6366F1)),
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
 
-            // Chapter thumbnail
-            Container(
-              width: 44,
-              height: 56,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                color: textColor.withValues(alpha: 0.1),
-                image: _chapterImageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(_chapterImageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: _chapterImageUrl == null
-                  ? Center(
-                      child: Icon(
-                        Icons.auto_stories,
-                        size: 20,
-                        color: textColor.withValues(alpha: 0.3),
-                      ),
-                    )
-                  : null,
+            // Stats row: Time + Gold
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Reading time (just minutes)
+                Text(
+                  readingTime,
+                  style: TextStyle(
+                    color: textColor.withValues(alpha: 0.5),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+
+                if (sessionXP > 0) ...[
+                  const SizedBox(width: 12),
+                  // Gold/XP indicator
+                  const Icon(
+                    Icons.monetization_on,
+                    color: Color(0xFFEAB308),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 3),
+                  Text(
+                    '+$sessionXP',
+                    style: const TextStyle(
+                      color: Color(0xFFEAB308),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
             ),
 
-            const SizedBox(width: 4),
+            const SizedBox(width: 12),
 
             // Settings button
-            IconButton(
-              icon: Icon(Icons.settings, color: textColor, size: 22),
-              onPressed: onSettingsTap,
-              padding: const EdgeInsets.all(8),
-              constraints: const BoxConstraints(),
+            GestureDetector(
+              onTap: onSettingsTap,
+              child: Icon(Icons.tune_rounded, color: textColor.withValues(alpha: 0.6), size: 20),
             ),
           ],
         ),
@@ -394,100 +384,63 @@ class _CollapsedContent extends StatelessWidget {
   }
 }
 
-/// Chapter card widget used in expanded state
-class _ChapterCard extends StatelessWidget {
-  const _ChapterCard({
+/// Compact chapter badge - overlays on book cover
+class _ChapterBadge extends StatelessWidget {
+  const _ChapterBadge({
     required this.chapter,
     required this.chapterNumber,
-    required this.scrollProgress,
-    required this.textColor,
-    required this.backgroundColor,
-    required this.isCompact,
   });
 
   final Chapter chapter;
   final int chapterNumber;
-  final double scrollProgress;
-  final Color textColor;
-  final Color backgroundColor;
-  final bool isCompact;
-
-  String? get _chapterImageUrl =>
-      chapter.imageUrls.isNotEmpty ? chapter.imageUrls.first : null;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: textColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Chapter info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'CHAPTER $chapterNumber',
-                  style: TextStyle(
-                    color: textColor.withValues(alpha: 0.6),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  chapter.title,
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Progress bar
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
-                  child: LinearProgressIndicator(
-                    value: scrollProgress,
-                    minHeight: 4,
-                    backgroundColor: textColor.withValues(alpha: 0.1),
-                    valueColor: const AlwaysStoppedAnimation(Color(0xFFE53935)),
-                  ),
-                ),
-              ],
+          // Chapter label
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE0E7FF),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'CHAPTER $chapterNumber',
+              style: const TextStyle(
+                color: Color(0xFF4F46E5),
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(height: 4),
 
-          // Chapter thumbnail
-          Container(
-            width: 56,
-            height: 70,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: textColor.withValues(alpha: 0.1),
-              image: _chapterImageUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(_chapterImageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+          // Chapter title
+          Text(
+            chapter.title,
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
             ),
-            child: _chapterImageUrl == null
-                ? Center(
-                    child: Icon(
-                      Icons.auto_stories,
-                      size: 24,
-                      color: textColor.withValues(alpha: 0.3),
-                    ),
-                  )
-                : null,
           ),
         ],
       ),

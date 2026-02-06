@@ -6,10 +6,10 @@ class ReaderConstants {
 
   // Header dimensions
   static const double expandedHeaderHeight = 400;
-  static const double collapsedHeaderHeight = 100;
+  static const double collapsedHeaderHeight = 44;
 
   // Content padding
-  static const EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, 24, 24, 100);
+  static const EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, 8, 24, 100);
 
   // Colors
   static const Color nextChapterButtonColor = Color(0xFFE53935);

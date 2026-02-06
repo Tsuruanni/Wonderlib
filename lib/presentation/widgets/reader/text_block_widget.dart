@@ -17,6 +17,7 @@ class TextBlockWidget extends ConsumerWidget {
     this.vocabulary = const [],
     this.onVocabularyTap,
     this.onWordTap,
+    this.showDropCap = false,
   });
 
   final ContentBlock block;
@@ -25,6 +26,8 @@ class TextBlockWidget extends ConsumerWidget {
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
   /// Callback when a word is tapped. Used for word-tap popup (TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
+  /// Unused - kept for API compatibility
+  final bool showDropCap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,32 +43,24 @@ class TextBlockWidget extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Inline play/pause icon at start of paragraph
-          if (block.hasAudio) ...[
+      child: WordHighlightText(
+        text: text,
+        wordTimings: block.wordTimings,
+        settings: settings,
+        activeWordIndex: activeWordIndex,
+        vocabulary: vocabulary,
+        onVocabularyTap: onVocabularyTap,
+        onWordTap: onWordTap,
+        isFollowingScroll: isFollowingScroll,
+        // Inline audio icon (scales with font)
+        prefixWidgets: [
+          if (block.hasAudio)
             _InlinePlayIcon(
               isPlaying: isPlaying,
               isLoading: isLoading,
               onPressed: () => _handlePlayPress(ref),
               settings: settings,
             ),
-            const SizedBox(width: 8),
-          ],
-          // Text content with word highlighting
-          Expanded(
-            child: WordHighlightText(
-              text: text,
-              wordTimings: block.wordTimings,
-              settings: settings,
-              activeWordIndex: activeWordIndex,
-              vocabulary: vocabulary,
-              onVocabularyTap: onVocabularyTap,
-              onWordTap: onWordTap,
-              isFollowingScroll: isFollowingScroll,
-            ),
-          ),
         ],
       ),
     );
@@ -85,7 +80,7 @@ class TextBlockWidget extends ConsumerWidget {
   }
 }
 
-/// Compact inline play/pause icon that sits at the start of a paragraph
+/// Inline play icon that scales with font size - looks like part of the text
 class _InlinePlayIcon extends StatelessWidget {
   const _InlinePlayIcon({
     required this.isPlaying,
@@ -101,30 +96,28 @@ class _InlinePlayIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const accentColor = Color(0xFF6366F1);
+    // Scale with font size - icon is roughly same height as text
+    final iconSize = settings.fontSize * 1.1;
+
     return GestureDetector(
       onTap: onPressed,
-      child: Container(
-        width: 24,
-        height: 24,
-        margin: EdgeInsets.only(top: settings.fontSize * 0.15),
-        decoration: BoxDecoration(
-          color: isPlaying
-              ? const Color(0xFF4F46E5)
-              : const Color(0xFF4F46E5).withValues(alpha: 0.15),
-          shape: BoxShape.circle,
-        ),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 2),
         child: isLoading
-            ? Padding(
-                padding: const EdgeInsets.all(5),
+            ? SizedBox(
+                width: iconSize,
+                height: iconSize,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: isPlaying ? Colors.white : const Color(0xFF4F46E5),
+                  color: accentColor,
                 ),
               )
             : Icon(
-                isPlaying ? Icons.pause : Icons.play_arrow,
-                size: 16,
-                color: isPlaying ? Colors.white : const Color(0xFF4F46E5),
+                isPlaying ? Icons.pause_rounded : Icons.headphones_rounded,
+                size: iconSize,
+                color: accentColor,
               ),
       ),
     );

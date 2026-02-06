@@ -50,7 +50,10 @@ class BookDetailScreen extends ConsumerWidget {
         final progress = progressAsync.valueOrNull;
         // Check if user has actual progress (not fake in-memory progress)
         // A reading_progress record from DB has a UUID id, fake ones have 'new-' prefix
-        final hasProgress = progress != null && !progress.id.startsWith('new-');
+        // Also hide if progress is 0%
+        final hasProgress = progress != null &&
+            !progress.id.startsWith('new-') &&
+            progress.completionPercentage > 0;
 
         return Scaffold(
           body: CustomScrollView(
