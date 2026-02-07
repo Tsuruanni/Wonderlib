@@ -130,15 +130,16 @@ lib/
 │   ├── providers/
 │   │   ├── usecase_providers.dart  # All UseCase providers
 │   │   ├── repository_providers.dart
-│   │   ├── audio_sync_provider.dart  # Audio playback state
-│   │   ├── reader_autoplay_provider.dart  # Auto-play orchestration
+│   │   ├── audio_sync_provider.dart  # Audio playback + auto-play orchestration
+│   │   ├── vocabulary_session_provider.dart  # Vocabulary quiz session state
 │   │   └── *_provider.dart   # Feature providers
 │   ├── screens/              # Page widgets
 │   └── widgets/
-│       ├── common/           # Shared widgets (XPBadge, StatItem)
+│       ├── common/           # Shared widgets (XPBadge, StatItem, TopNavbar, StreakStatusDialog)
 │       ├── vocabulary/       # Vocabulary path widgets
 │       │   ├── learning_path.dart    # Duolingo-style zigzag path
-│       │   └── path_node.dart        # Circle node with progress ring
+│       │   ├── path_node.dart        # Circle node with progress ring
+│       │   └── session/              # Quiz session widgets (7 question types + feedback)
 │       └── reader/           # Reader-specific widgets
 │           ├── reader_body.dart           # Main scrollable content
 │           ├── reader_popups.dart         # Vocabulary/word popups

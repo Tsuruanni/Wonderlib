@@ -14,10 +14,8 @@ import '../presentation/screens/vocabulary/vocabulary_hub_screen.dart';
 import '../presentation/screens/vocabulary/vocabulary_screen.dart';
 import '../presentation/screens/vocabulary/word_list_detail_screen.dart';
 import '../presentation/screens/vocabulary/category_browse_screen.dart';
-import '../presentation/screens/vocabulary/phases/phase1_learn_screen.dart';
-import '../presentation/screens/vocabulary/phases/phase2_spelling_screen.dart';
-import '../presentation/screens/vocabulary/phases/phase3_flashcards_screen.dart';
-import '../presentation/screens/vocabulary/phases/phase4_review_screen.dart';
+import '../presentation/screens/vocabulary/vocabulary_session_screen.dart';
+import '../presentation/screens/vocabulary/session_summary_screen.dart';
 import '../presentation/screens/vocabulary/daily_review_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
@@ -252,31 +250,21 @@ GoRouter _createRouter() {
                     },
                     routes: [
                       GoRoute(
-                        path: 'phase/1',
+                        path: 'session',
                         builder: (context, state) {
                           final listId = state.pathParameters['listId']!;
-                          return Phase1LearnScreen(listId: listId);
+                          final retryWordIds = state.extra as List<String>?;
+                          return VocabularySessionScreen(
+                            listId: listId,
+                            retryWordIds: retryWordIds,
+                          );
                         },
                       ),
                       GoRoute(
-                        path: 'phase/2',
+                        path: 'session/summary',
                         builder: (context, state) {
                           final listId = state.pathParameters['listId']!;
-                          return Phase2SpellingScreen(listId: listId);
-                        },
-                      ),
-                      GoRoute(
-                        path: 'phase/3',
-                        builder: (context, state) {
-                          final listId = state.pathParameters['listId']!;
-                          return Phase3FlashcardsScreen(listId: listId);
-                        },
-                      ),
-                      GoRoute(
-                        path: 'phase/4',
-                        builder: (context, state) {
-                          final listId = state.pathParameters['listId']!;
-                          return Phase4ReviewScreen(listId: listId);
+                          return SessionSummaryScreen(listId: listId);
                         },
                       ),
                     ],

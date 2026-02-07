@@ -1,0 +1,410 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../domain/entities/vocabulary.dart';
+import '../../../domain/entities/vocabulary_session.dart';
+import '../../providers/vocabulary_provider.dart';
+import '../../providers/vocabulary_session_provider.dart';
+import '../../widgets/vocabulary/session/combo_indicator.dart';
+import '../../widgets/vocabulary/session/listening_question.dart';
+import '../../widgets/vocabulary/session/matching_question.dart';
+import '../../widgets/vocabulary/session/multiple_choice_question.dart';
+import '../../widgets/vocabulary/session/question_feedback.dart';
+import '../../widgets/vocabulary/session/scrambled_letters_question.dart';
+import '../../widgets/vocabulary/session/sentence_gap_question.dart';
+import '../../widgets/vocabulary/session/session_progress_bar.dart';
+import '../../widgets/vocabulary/session/spelling_question.dart';
+import '../../widgets/vocabulary/session/word_introduction_card.dart';
+
+class VocabularySessionScreen extends ConsumerStatefulWidget {
+  const VocabularySessionScreen({
+    super.key,
+    required this.listId,
+    this.retryWordIds,
+  });
+
+  final String listId;
+  final List<String>? retryWordIds; // If set, only these words (for "Tekrar Calis")
+
+  @override
+  ConsumerState<VocabularySessionScreen> createState() =>
+      _VocabularySessionScreenState();
+}
+
+class _VocabularySessionScreenState
+    extends ConsumerState<VocabularySessionScreen> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAndStart();
+  }
+
+  Future<void> _loadAndStart() async {
+    final wordsResult = await ref.read(wordsForListProvider(widget.listId).future);
+    if (!mounted) return;
+
+    List<VocabularyWord> words = wordsResult;
+
+    // Filter to retry words if specified
+    if (widget.retryWordIds != null && widget.retryWordIds!.isNotEmpty) {
+      words = words
+          .where((w) => widget.retryWordIds!.contains(w.id))
+          .toList();
+    }
+
+    if (words.length < 2) {
+      if (mounted) {
+        if (words.isEmpty) {
+          context.pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Need at least 2 words for a session')),
+          );
+          context.pop();
+        }
+      }
+      return;
+    }
+
+    ref.read(vocabularySessionControllerProvider.notifier).startSession(words);
+    setState(() => _initialized = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Watch the session provider early to keep it alive during async _loadAndStart.
+    // Without this, autoDispose disposes the provider before the first real build.
+    final sessionState = ref.watch(vocabularySessionControllerProvider);
+    final controller = ref.read(vocabularySessionControllerProvider.notifier);
+    final theme = Theme.of(context);
+
+    if (!_initialized) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Session complete → navigate to summary
+    if (sessionState.isSessionComplete) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.go(
+            '/vocabulary/list/${widget.listId}/session/summary',
+          );
+        }
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Estimate total questions for progress bar
+    final estimatedTotal = sessionState.words.length * 2 + 4; // rough estimate
+    final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface, // Base background
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+
+                  // Top Bar: Progress + Close
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close, size: 28),
+                          onPressed: () => _showExitDialog(context),
+                          style: IconButton.styleFrom(
+                            foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SessionProgressBar(
+                            progress: progress,
+                            xpEarned: sessionState.xpEarned,
+                            comboActive: sessionState.combo >= 2,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // XP Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.amber.withValues(alpha: 0.5),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.monetization_on, color: Colors.amber, size: 18),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${sessionState.xpEarned}',
+                                style: theme.textTheme.labelLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber.shade900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+
+                  // Main content area
+                  Expanded(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      switchInCurve: Curves.easeOutQuad,
+                      switchOutCurve: Curves.easeInQuad,
+                      transitionBuilder: (child, animation) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.2, 0.0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildContent(sessionState, controller),
+                    ),
+                  ),
+                  
+                  // Spacer for feedback area height to prevent content being hidden behind it
+                  // Only if we want content to scroll above? 
+                  // For now, let's leave it full height, but maybe add bottom padding equal to expected feedback height?
+                  // Actually, just letting it be is fine for now as feedback is an overlay.
+                ],
+              ),
+            ),
+          ),
+          
+          // Feedback Overlay
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildFooter(sessionState, controller, theme),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleAnswer(VocabularySessionController controller, String answer) {
+    FocusScope.of(context).unfocus(); // Dismiss keyboard
+    controller.answerQuestion(answer);
+  }
+
+  Widget _buildFooter(
+    VocabularySessionState sessionState,
+    VocabularySessionController controller,
+    ThemeData theme,
+  ) {
+    // Placeholder for new footer logic
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeOutQuart,
+      switchOutCurve: Curves.easeInQuart,
+      transitionBuilder: (child, animation) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
+      child: sessionState.isShowingFeedback
+          ? QuestionFeedback(
+              key: const ValueKey('feedback'),
+              isCorrect: sessionState.lastAnswerCorrect,
+              correctAnswer: sessionState.lastCorrectAnswer,
+              targetWord: sessionState.currentQuestion?.targetWord,
+              // For feedback display, use the last gained XP
+              xpGained: sessionState.lastXPGained, 
+              combo: sessionState.combo,
+              onDismiss: controller.dismissFeedback,
+            )
+          : const SizedBox.shrink(),
+    ); 
+  }
+
+  void _showExitDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Quit session?'),
+        content: const Text(
+          'Your progress will be lost. Are you sure you want to quit?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Continue'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              'Quit',
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    VocabularySessionState sessionState,
+    VocabularySessionController controller,
+  ) {
+    // Faz 1: Introduction cards or easy question
+    if (sessionState.phase == SessionPhase.explore) {
+      if (sessionState.isShowingIntroduction) {
+        return _buildIntroductionCards(sessionState, controller);
+      }
+    }
+
+    // Question display
+    final question = sessionState.currentQuestion;
+    if (question == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return _buildQuestion(question, controller);
+  }
+
+  Widget _buildIntroductionCards(
+    VocabularySessionState sessionState,
+    VocabularySessionController controller,
+  ) {
+    final pair = sessionState.currentPair;
+    if (pair.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      key: ValueKey('intro_${sessionState.introductionPairIndex}'),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Text(
+            'Learn these words (${sessionState.introductionPairIndex + 1}/${sessionState.totalPairs})',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        ...pair.map((word) => WordIntroductionCard(word: word)),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: controller.finishIntroduction,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: const Text('Continue', style: TextStyle(fontSize: 16)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildQuestion(
+    SessionQuestion question,
+    VocabularySessionController controller,
+  ) {
+    // Use a key to force rebuild when question changes
+    final key = ValueKey('${question.type}_${question.targetWordId}_${question.hashCode}');
+
+    switch (question.type) {
+      case QuestionType.multipleChoice:
+      case QuestionType.reverseMultipleChoice:
+        return MultipleChoiceQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.listeningSelect:
+      case QuestionType.listeningWrite:
+        return ListeningQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.matching:
+        return MatchingQuestion(
+          key: key,
+          question: question,
+          onComplete: ({
+            required correctMatches,
+            required totalMatches,
+            required correctWordIds,
+            required incorrectWordIds,
+          }) {
+            // Matching doesn't use keyboard, but good to unfocus anyway
+            FocusScope.of(context).unfocus();
+            controller.answerMatchingQuestion(
+              correctMatches: correctMatches,
+              totalMatches: totalMatches,
+              correctWordIds: correctWordIds,
+              incorrectWordIds: incorrectWordIds,
+            );
+          },
+        );
+
+      case QuestionType.scrambledLetters:
+        return ScrambledLettersQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.spelling:
+        return SpellingQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.sentenceGap:
+        return SentenceGapQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+    }
+  }
+}
+

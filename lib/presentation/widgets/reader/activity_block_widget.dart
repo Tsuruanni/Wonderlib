@@ -32,12 +32,17 @@ class ActivityBlockWidget extends ConsumerWidget {
     final isCompleted = completedActivities.containsKey(activity!.id);
     final wasCorrect = completedActivities[activity!.id];
 
-    return _buildActivity(
-      context,
-      ref,
-      activity!,
-      isCompleted,
-      wasCorrect,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 500), // Enforce compact width (was effectively 680)
+        child: _buildActivity(
+          context,
+          ref,
+          activity!,
+          isCompleted,
+          wasCorrect,
+        ),
+      ),
     );
   }
 

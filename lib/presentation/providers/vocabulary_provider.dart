@@ -16,7 +16,6 @@ import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
-import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
@@ -459,10 +458,10 @@ final wordListsWithProgressProvider = FutureProvider<List<WordListWithProgress>>
 final continueWordListsProvider = FutureProvider<List<WordListWithProgress>>((ref) async {
   final listsWithProgress = await ref.watch(wordListsWithProgressProvider.future);
   final filtered = listsWithProgress
-      .where((lwp) => lwp.progress != null && !lwp.progress!.isFullyComplete)
+      .where((lwp) => lwp.progress != null && !lwp.progress!.isComplete)
       .toList()
-    ..sort((a, b) => (b.progress?.updatedAt ?? DateTime(0))
-        .compareTo(a.progress?.updatedAt ?? DateTime(0)),);
+    ..sort((a, b) => (b.progress?.lastSessionAt ?? DateTime(0))
+        .compareTo(a.progress?.lastSessionAt ?? DateTime(0)),);
   return filtered;
 });
 
@@ -492,8 +491,8 @@ class WordListWithProgress {
 
   double get progressPercentage => progress?.progressPercentage ?? 0.0;
   bool get isStarted => progress != null;
-  bool get isComplete => progress?.isFullyComplete ?? false;
-  int? get nextPhase => progress?.nextPhase;
+  bool get isComplete => progress?.isComplete ?? false;
+  int get starCount => progress?.starCount ?? 0;
 }
 
 /// Vocabulary hub stats
@@ -598,90 +597,11 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
 });
 
 // ============================================
-// WORD LIST PROGRESS CONTROLLER
-// ============================================
-
-/// Controller for managing word list progress state
-class WordListProgressController extends StateNotifier<Map<String, UserWordListProgress>> {
-
-  WordListProgressController(this._ref) : super({}) {
-    _loadProgress();
-  }
-  final Ref _ref;
-
-  Future<void> _loadProgress() async {
-    final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) return;
-
-    final useCase = _ref.read(getUserWordListProgressUseCaseProvider);
-    final result = await useCase(GetUserWordListProgressParams(userId: userId));
-    result.fold(
-      (f) => null,
-      (progress) {
-        state = {for (final p in progress) p.wordListId: p};
-      },
-    );
-  }
-
-  /// Get progress for a specific list
-  UserWordListProgress? getProgress(String listId) {
-    return state[listId];
-  }
-
-  /// Complete a phase for a word list
-  Future<void> completePhase(String listId, int phase, {int? score, int? total}) async {
-    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
-    final useCase = _ref.read(completePhaseUseCaseProvider);
-
-    final result = await useCase(CompletePhaseParams(
-      userId: userId,
-      listId: listId,
-      phase: phase,
-      score: score,
-      total: total,
-    ),);
-
-    result.fold(
-      (f) => null,
-      (updated) {
-        state = {...state, listId: updated};
-      },
-    );
-
-    // Invalidate so daily limit providers recompute
-    _ref.invalidate(userWordListProgressProvider);
-  }
-
-  /// Reset progress for a word list
-  Future<void> resetProgress(String listId) async {
-    final userId = _ref.read(currentUserIdProvider) ?? 'user-1';
-    final useCase = _ref.read(resetProgressUseCaseProvider);
-
-    await useCase(ResetProgressParams(userId: userId, listId: listId));
-
-    final newState = Map<String, UserWordListProgress>.from(state);
-    newState.remove(listId);
-    state = newState;
-  }
-}
-
-final wordListProgressControllerProvider =
-    StateNotifierProvider.autoDispose<WordListProgressController, Map<String, UserWordListProgress>>((ref) {
-  return WordListProgressController(ref);
-});
-
-/// Get progress for a specific list (reactive)
-final wordListProgressProvider = Provider.family<UserWordListProgress?, String>((ref, listId) {
-  final progressMap = ref.watch(wordListProgressControllerProvider);
-  return progressMap[listId];
-});
-
-// ============================================
 // DAILY WORD LIST LIMIT
 // ============================================
 
 /// Daily new word limit for word lists (like Anki's daily new card limit)
-const int dailyWordListLimit = 15;
+const int dailyWordListLimit = 30;
 
 /// Count of words learned today from word lists only.
 /// Uses vocabulary_progress + word_list_items join server-side.
@@ -703,7 +623,7 @@ final wordsStartedTodayFromListsProvider = FutureProvider<int>((ref) async {
 /// Locks only when the user has already reached the daily limit.
 final canStartWordListProvider = Provider.family<bool, String>((ref, listId) {
   // Already started → always allowed (exempt from limit)
-  final progress = ref.watch(wordListProgressProvider(listId));
+  final progress = ref.watch(progressForListProvider(listId)).valueOrNull;
   if (progress != null) return true;
 
   // Check daily limit — lock only when limit is fully reached

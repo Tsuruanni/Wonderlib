@@ -119,7 +119,7 @@ class _FindWordsActivityState extends State<FindWordsActivity>
                 content.instruction,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: widget.settings.fontSize + 2,
+                  fontSize: widget.settings.fontSize,
                   fontWeight: FontWeight.bold,
                   color: widget.settings.theme == ReaderTheme.dark
                       ? Colors.black // Card background is white/light in this design
@@ -129,13 +129,13 @@ class _FindWordsActivityState extends State<FindWordsActivity>
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
 
               // Chips / Buttons
               Wrap(
                 alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 12,
+                spacing: 6,
+                runSpacing: 8,
                 children: content.options.map((option) {
                   return _buildOptionButton(option);
                 }).toList(),
@@ -174,8 +174,8 @@ class _FindWordsActivityState extends State<FindWordsActivity>
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: correct ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.1), // More transparent
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -242,14 +242,14 @@ class _FindWordsActivityState extends State<FindWordsActivity>
         label: option,
         onPressed: answered ? null : () => _toggleOption(option),
         variant: variant,
-        height: 48, // Smaller than default
+        height: 40, // Smaller than default
         borderRadius: 12, // Compact
         textStyle: TextStyle(
           color: (variant == GameButtonVariant.neutral || variant == GameButtonVariant.outline)
              ? Colors.black87 
              : Colors.white,
            fontWeight: FontWeight.bold,
-           fontSize: 14,
+           fontSize: 13,
         ),
       ),
     );

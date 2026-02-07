@@ -18,7 +18,7 @@ class AddWordsBatchParams {
 }
 
 /// Add multiple words to vocabulary in batch
-/// Used for adding words after book completion or word list Phase 4 completion
+/// Used for adding words after book completion or vocabulary session completion
 class AddWordsBatchToVocabularyUseCase
     implements UseCase<List<VocabularyProgress>, AddWordsBatchParams> {
   const AddWordsBatchToVocabularyUseCase(this._repository);

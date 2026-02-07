@@ -7,12 +7,10 @@ class WordListProgressModel {
     required this.id,
     required this.userId,
     required this.wordListId,
-    this.phase1Complete = false,
-    this.phase2Complete = false,
-    this.phase3Complete = false,
-    this.phase4Complete = false,
-    this.phase4Score,
-    this.phase4Total,
+    this.bestScore,
+    this.bestAccuracy,
+    this.totalSessions = 0,
+    this.lastSessionAt,
     this.startedAt,
     this.completedAt,
     required this.updatedAt,
@@ -23,12 +21,14 @@ class WordListProgressModel {
       id: json['id'] as String,
       userId: json['user_id'] as String,
       wordListId: json['word_list_id'] as String,
-      phase1Complete: json['phase1_complete'] as bool? ?? false,
-      phase2Complete: json['phase2_complete'] as bool? ?? false,
-      phase3Complete: json['phase3_complete'] as bool? ?? false,
-      phase4Complete: json['phase4_complete'] as bool? ?? false,
-      phase4Score: json['phase4_score'] as int?,
-      phase4Total: json['phase4_total'] as int?,
+      bestScore: json['best_score'] as int?,
+      bestAccuracy: json['best_accuracy'] != null
+          ? (json['best_accuracy'] as num).toDouble()
+          : null,
+      totalSessions: json['total_sessions'] as int? ?? 0,
+      lastSessionAt: json['last_session_at'] != null
+          ? DateTime.parse(json['last_session_at'] as String)
+          : null,
       startedAt: json['started_at'] != null
           ? DateTime.parse(json['started_at'] as String)
           : null,
@@ -44,26 +44,23 @@ class WordListProgressModel {
       id: entity.id,
       userId: entity.userId,
       wordListId: entity.wordListId,
-      phase1Complete: entity.phase1Complete,
-      phase2Complete: entity.phase2Complete,
-      phase3Complete: entity.phase3Complete,
-      phase4Complete: entity.phase4Complete,
-      phase4Score: entity.phase4Score,
-      phase4Total: entity.phase4Total,
+      bestScore: entity.bestScore,
+      bestAccuracy: entity.bestAccuracy,
+      totalSessions: entity.totalSessions,
+      lastSessionAt: entity.lastSessionAt,
       startedAt: entity.startedAt,
       completedAt: entity.completedAt,
       updatedAt: entity.updatedAt,
     );
   }
+
   final String id;
   final String userId;
   final String wordListId;
-  final bool phase1Complete;
-  final bool phase2Complete;
-  final bool phase3Complete;
-  final bool phase4Complete;
-  final int? phase4Score;
-  final int? phase4Total;
+  final int? bestScore;
+  final double? bestAccuracy;
+  final int totalSessions;
+  final DateTime? lastSessionAt;
   final DateTime? startedAt;
   final DateTime? completedAt;
   final DateTime updatedAt;
@@ -73,29 +70,10 @@ class WordListProgressModel {
       'id': id,
       'user_id': userId,
       'word_list_id': wordListId,
-      'phase1_complete': phase1Complete,
-      'phase2_complete': phase2Complete,
-      'phase3_complete': phase3Complete,
-      'phase4_complete': phase4Complete,
-      'phase4_score': phase4Score,
-      'phase4_total': phase4Total,
-      'started_at': startedAt?.toIso8601String(),
-      'completed_at': completedAt?.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-    };
-  }
-
-  /// Converts to JSON for upsert (without ID)
-  Map<String, dynamic> toUpsertJson() {
-    return {
-      'user_id': userId,
-      'word_list_id': wordListId,
-      'phase1_complete': phase1Complete,
-      'phase2_complete': phase2Complete,
-      'phase3_complete': phase3Complete,
-      'phase4_complete': phase4Complete,
-      'phase4_score': phase4Score,
-      'phase4_total': phase4Total,
+      'best_score': bestScore,
+      'best_accuracy': bestAccuracy,
+      'total_sessions': totalSessions,
+      'last_session_at': lastSessionAt?.toIso8601String(),
       'started_at': startedAt?.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -107,12 +85,10 @@ class WordListProgressModel {
       id: id,
       userId: userId,
       wordListId: wordListId,
-      phase1Complete: phase1Complete,
-      phase2Complete: phase2Complete,
-      phase3Complete: phase3Complete,
-      phase4Complete: phase4Complete,
-      phase4Score: phase4Score,
-      phase4Total: phase4Total,
+      bestScore: bestScore,
+      bestAccuracy: bestAccuracy,
+      totalSessions: totalSessions,
+      lastSessionAt: lastSessionAt,
       startedAt: startedAt,
       completedAt: completedAt,
       updatedAt: updatedAt,

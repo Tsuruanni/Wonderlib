@@ -36,7 +36,7 @@ class ActivityWrapper extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 24),
+      margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -88,7 +88,7 @@ class ActivityWrapper extends StatelessWidget {
           ),
           // Content
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: child,
           ),
         ],
@@ -175,13 +175,20 @@ class _XPEarnedAnimationState extends State<XPEarnedAnimation>
                   ),
                 ],
               ),
-              child: Text(
-                '+${widget.xp} XP',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.monetization_on, color: Colors.white, size: 18),
+                  const SizedBox(width: 4),
+                  Text(
+                    '+${widget.xp}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -130,7 +130,7 @@ class _TrueFalseActivityState extends State<TrueFalseActivity> {
                 content.statement,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
-                  fontSize: widget.settings.fontSize + 2,
+                  fontSize: widget.settings.fontSize,
                   fontWeight: FontWeight.w700,
                   color: widget.settings.theme == ReaderTheme.dark
                       ? Colors.black
@@ -139,7 +139,7 @@ class _TrueFalseActivityState extends State<TrueFalseActivity> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Options - side by side
               Row(
@@ -169,10 +169,10 @@ class _TrueFalseActivityState extends State<TrueFalseActivity> {
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: correct ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.1), // More transparent
-                    shape: BoxShape.circle,
-                  ),
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
                   child: Icon(
                     correct ? Icons.check_circle_rounded : Icons.cancel_rounded,
                     size: 80,

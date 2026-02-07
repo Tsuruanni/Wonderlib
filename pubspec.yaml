@@ -1,10 +1,10 @@
 name: readeng
 description: K12 English Reading Platform - Interactive reading and vocabulary learning for students
-publish_to: 'none'
+publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
+  sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -91,4 +91,3 @@ flutter_gen:
       package_parameter_enabled: false
     exclude:
       - "*.env"
-

@@ -188,10 +188,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _handleNextChapter(Chapter nextChapter) async {
     debugPrint('>>> _handleNextChapter called for: ${nextChapter.title}');
 
-    // Capture values before async operations to avoid dispose issues
+    // Capture widget values before async operations
     final bookId = widget.bookId;
     final chapterId = widget.chapterId;
-    final completionNotifier = ref.read(chapterCompletionProvider.notifier);
 
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
@@ -199,14 +198,17 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     // Check if still mounted after async operation
     if (!mounted) return;
 
+    // Read notifier AFTER async gap — autoDispose provider may have been
+    // disposed during _saveReadingTime(). Reading here creates a fresh
+    // instance with a valid ref.
     try {
+      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
       await completionNotifier.markComplete(
         bookId: bookId,
         chapterId: chapterId,
       );
     } catch (e) {
-      // Notifier might be disposed, log and continue navigation
-      debugPrint('ChapterCompletionNotifier error (may be disposed): $e');
+      debugPrint('ChapterCompletionNotifier error: $e');
     }
 
     if (mounted) {
@@ -215,10 +217,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _handleBackToBook() async {
-    // Capture values before async operations to avoid dispose issues
+    // Capture widget values before async operations
     final bookId = widget.bookId;
     final chapterId = widget.chapterId;
-    final completionNotifier = ref.read(chapterCompletionProvider.notifier);
 
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
@@ -226,18 +227,22 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     // Check if still mounted after async operation
     if (!mounted) return;
 
+    // Read notifier AFTER async gap — autoDispose provider may have been
+    // disposed during _saveReadingTime(). Reading here creates a fresh
+    // instance with a valid ref.
     try {
+      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
       await completionNotifier.markComplete(
         bookId: bookId,
         chapterId: chapterId,
       );
     } catch (e) {
-      // Notifier might be disposed, log and continue navigation
-      debugPrint('ChapterCompletionNotifier error (may be disposed): $e');
+      debugPrint('ChapterCompletionNotifier error: $e');
     }
 
     if (mounted) {
-      // Invalidate providers to refresh home screen data
+      // Invalidate providers to refresh home screen + book detail data
+      ref.invalidate(readingProgressProvider(bookId));
       ref.invalidate(continueReadingProvider);
       ref.invalidate(recommendedBooksProvider);
       context.go('/library/book/$bookId');
@@ -247,7 +252,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _handleClose() async {
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
-    // Invalidate providers to refresh home screen data
+    // Invalidate providers to refresh home screen + book detail data
+    ref.invalidate(readingProgressProvider(widget.bookId));
     ref.invalidate(continueReadingProvider);
     ref.invalidate(recommendedBooksProvider);
     if (mounted) {

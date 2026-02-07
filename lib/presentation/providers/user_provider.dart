@@ -7,6 +7,7 @@ import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/get_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
+import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -45,6 +46,20 @@ final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   return result.fold(
     (failure) => {},
     (stats) => stats,
+  );
+});
+
+/// Provides activity history for last 7 days
+final activityHistoryProvider = FutureProvider<List<DateTime>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final useCase = ref.watch(getWeeklyActivityUseCaseProvider);
+  final result = await useCase(GetWeeklyActivityParams(userId: userId));
+
+  return result.fold(
+    (failure) => [],
+    (dates) => dates,
   );
 });
 
@@ -158,6 +173,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (failure) => null,
       (user) {
         state = AsyncValue.data(user);
+        _ref.invalidate(activityHistoryProvider);
 
         // Check for level up
         if (user.level > oldLevel) {
@@ -190,6 +206,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (failure) => null,
       (user) {
         state = AsyncValue.data(user);
+        _ref.invalidate(activityHistoryProvider);
       },
     );
   }

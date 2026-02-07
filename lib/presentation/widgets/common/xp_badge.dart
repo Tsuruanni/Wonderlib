@@ -35,13 +35,13 @@ class XPBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(
-            Icons.bolt_rounded,
+            Icons.monetization_on,
             color: Colors.white,
             size: 20,
           ),
           const SizedBox(width: 4),
           Text(
-            '+$xp XP',
+            '+$xp',
             style: GoogleFonts.nunito(
               fontSize: 16,
               fontWeight: FontWeight.w900,

@@ -8,6 +8,73 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reading Progress & Chapter Completion Fixes (2026-02-07)
+
+#### Fixed
+- **Chapter completion not persisting** (CRITICAL) - `chapterCompletionProvider` is `autoDispose`, but the notifier was captured via `ref.read()` BEFORE `await _saveReadingTime()`. During the async gap, Riverpod disposed the provider, making `_ref` invalid inside `markComplete()`. The catch block silently swallowed the error, so chapters were **never** marked complete.
+  - Fix: Moved `ref.read(chapterCompletionProvider.notifier)` to AFTER the async gap in both `_handleNextChapter` and `_handleBackToBook`
+- **Book detail showing stale data after close** - `_handleClose()` (X button) navigated to book detail WITHOUT invalidating `readingProgressProvider`, so cached stale data from before the chapter was completed was shown
+  - Fix: Added `ref.invalidate(readingProgressProvider(bookId))` in `_handleClose()` and `_handleBackToBook()`
+- **Missing UPDATE RLS policy on `daily_chapter_reads`** - `.upsert()` requires both INSERT and UPDATE RLS policies; only INSERT existed, causing silent failures when re-reading the same chapter on the same day
+
+#### Infrastructure
+- **New Migration** `20260207000003_fix_daily_chapter_reads_rls.sql` - UPDATE RLS policy for `daily_chapter_reads`
+- **Modified**: `reader_screen.dart` (autoDispose timing fix + provider invalidation)
+
+### Vocabulary Session v2 — Duolingo-Style Quiz System (2026-02-07)
+
+#### Added
+- **VocabularySessionScreen** - New quiz session replacing the old 4-phase vocabulary builder
+  - 7 question types: multipleChoice, reverseMultipleChoice, listeningSelect, listeningWrite, matching, scrambledLetters, spelling, sentenceGap
+  - Two-phase learning: Explore (word introduction pairs) → Practice (adaptive questions)
+  - Combo system with XP multiplier, streak tracking, max combo recording
+  - Progress bar with animated XP badge and combo indicator
+  - Exit confirmation dialog to prevent accidental session loss
+- **SessionSummaryScreen** - Post-session results with stats grid (coins, accuracy, max combo, time), per-word status report, and "Practice Mistakes" retry button
+- **VocabularySessionState** entity - Immutable state with `WordSessionState` per word, `SessionQuestion` model, `QuestionType` enum, phase tracking
+- **VocabularySessionController** - Riverpod `StateNotifier` managing session lifecycle: word introduction pairs, adaptive question generation, answer validation, XP calculation, combo tracking
+- **7 Question Widgets**: `MultipleChoiceQuestion`, `ListeningQuestion`, `MatchingQuestion`, `ScrambledLettersQuestion`, `SpellingQuestion`, `SentenceGapQuestion`, `WordIntroductionCard`
+- **Session Support Widgets**: `SessionProgressBar`, `ComboIndicator`, `QuestionFeedback` (Duolingo-style bottom sheet with auto-dismiss for correct, "GOT IT" for incorrect)
+- **CompleteSessionUseCase** - Saves session results to DB (total questions, accuracy, max combo, XP, word-level results)
+- **GetSessionHistoryUseCase** - Retrieves past session results for a word list
+- **GetWeeklyActivityUseCase** - Fetches 7-day activity data for profile heatmap
+- **TopNavbar** widget - Reusable Duolingo-style navbar with UK flag, streak counter, coin display, profile button
+- **StreakStatusDialog** - Streak details popup from navbar
+
+#### Changed
+- **WordListDetailScreen** - Completely redesigned: session history list, word grid with mastery indicators, "Start Session" button replacing old phase-based navigation
+- **WordList entity** - Simplified: removed `phase1-4Completed` fields, added `totalSessions`, `bestAccuracy`, `lastSessionDate`, `averageAccuracy`
+- **WordListProgressModel** - Updated JSON serialization for new fields
+- **Home/Library screens** - Now use shared `TopNavbar` widget instead of inline navbar code
+- **Activity widgets** - Updated theming: Duolingo-style card borders, shadows, button styles across all inline activities
+- **Path node** - Updated styling with Duolingo-inspired visual language
+
+#### Removed
+- **4-Phase Vocabulary System** - Deleted 4 screen files (~2,673 lines total):
+  - `phase1_learn_screen.dart` (517 lines)
+  - `phase2_spelling_screen.dart` (639 lines)
+  - `phase3_flashcards_screen.dart` (749 lines)
+  - `phase4_review_screen.dart` (768 lines)
+- **CompletePhaseUseCase** - No longer needed (replaced by CompleteSessionUseCase)
+- **Phase routes** - Removed `/vocabulary/list/:id/phase/:phase` routes from router
+
+#### Infrastructure
+- **New Migration** `20260207000002_vocabulary_session_v2.sql` - `vocabulary_sessions` table + `complete_vocabulary_session` RPC function
+- **New Entity**: `vocabulary_session.dart` (VocabularySessionState, WordSessionState, SessionQuestion, QuestionType, SessionPhase)
+- **New Model**: `vocabulary_session_model.dart`
+- **New Provider**: `vocabulary_session_provider.dart` (VocabularySessionController)
+- **Modified**: `router.dart`, `usecase_providers.dart`, `vocabulary_provider.dart`, `seed.sql`, `pubspec.yaml` (+confetti)
+
+### XP → Coins UI Consistency (2026-02-07)
+
+#### Changed
+- **All XP displays now use coin icon** (`Icons.monetization_on`) consistently across the app:
+  - `vocabulary_session_screen.dart`: XP badge in session header
+  - `question_feedback.dart`: Correct answer reward display
+  - `xp_badge.dart`: Floating XP earned animation (removed "XP" text suffix)
+  - `activity_wrapper.dart`: Inline activity reward display
+  - `session_summary_screen.dart`: "XP Earned" → "Coins Earned" stat card
+
 ### Home Screen Redesign — Duolingo-Style Daily Quest Cards (2026-02-07)
 
 #### Changed

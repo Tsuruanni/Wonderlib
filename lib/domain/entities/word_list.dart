@@ -91,19 +91,17 @@ extension WordListCategoryExtension on WordListCategory {
   }
 }
 
-/// Tracks user progress for a specific word list
+/// Tracks user progress for a specific word list (session-based)
 class UserWordListProgress extends Equatable {
 
   const UserWordListProgress({
     required this.id,
     required this.userId,
     required this.wordListId,
-    this.phase1Complete = false,
-    this.phase2Complete = false,
-    this.phase3Complete = false,
-    this.phase4Complete = false,
-    this.phase4Score,
-    this.phase4Total,
+    this.bestScore,
+    this.bestAccuracy,
+    this.totalSessions = 0,
+    this.lastSessionAt,
     this.startedAt,
     this.completedAt,
     required this.updatedAt,
@@ -111,58 +109,39 @@ class UserWordListProgress extends Equatable {
   final String id;
   final String userId;
   final String wordListId;
-  final bool phase1Complete; // Learn Vocab
-  final bool phase2Complete; // Spelling
-  final bool phase3Complete; // Flashcards
-  final bool phase4Complete; // Review
-  final int? phase4Score;    // Review score (e.g., 18/20)
-  final int? phase4Total;    // Total questions in review
+  final int? bestScore;          // Highest XP in a single session
+  final double? bestAccuracy;    // Highest accuracy % achieved
+  final int totalSessions;       // Number of completed sessions
+  final DateTime? lastSessionAt; // When the last session was completed
   final DateTime? startedAt;
   final DateTime? completedAt;
   final DateTime updatedAt;
 
-  /// Overall progress percentage (0.0 - 1.0)
+  /// Whether the user has completed at least one session
+  bool get isComplete => totalSessions > 0;
+
+  /// Star rating based on best accuracy (0-3)
+  int get starCount {
+    if (!isComplete || bestAccuracy == null) return 0;
+    if (bestAccuracy! >= 95) return 3;
+    if (bestAccuracy! >= 80) return 2;
+    return 1;
+  }
+
+  /// Progress percentage for display (0.0 - 1.0)
   double get progressPercentage {
-    int completed = 0;
-    if (phase1Complete) completed++;
-    if (phase2Complete) completed++;
-    if (phase3Complete) completed++;
-    if (phase4Complete) completed++;
-    return completed / 4;
-  }
-
-  /// Number of completed phases
-  int get completedPhases {
-    int count = 0;
-    if (phase1Complete) count++;
-    if (phase2Complete) count++;
-    if (phase3Complete) count++;
-    if (phase4Complete) count++;
-    return count;
-  }
-
-  /// Check if all phases are complete
-  bool get isFullyComplete => phase1Complete && phase2Complete && phase3Complete && phase4Complete;
-
-  /// Get the next recommended phase (1-4), or null if all complete
-  int? get nextPhase {
-    if (!phase1Complete) return 1;
-    if (!phase2Complete) return 2;
-    if (!phase3Complete) return 3;
-    if (!phase4Complete) return 4;
-    return null;
+    if (!isComplete) return 0.0;
+    return (bestAccuracy ?? 0) / 100.0;
   }
 
   UserWordListProgress copyWith({
     String? id,
     String? userId,
     String? wordListId,
-    bool? phase1Complete,
-    bool? phase2Complete,
-    bool? phase3Complete,
-    bool? phase4Complete,
-    int? phase4Score,
-    int? phase4Total,
+    int? bestScore,
+    double? bestAccuracy,
+    int? totalSessions,
+    DateTime? lastSessionAt,
     DateTime? startedAt,
     DateTime? completedAt,
     DateTime? updatedAt,
@@ -171,12 +150,10 @@ class UserWordListProgress extends Equatable {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       wordListId: wordListId ?? this.wordListId,
-      phase1Complete: phase1Complete ?? this.phase1Complete,
-      phase2Complete: phase2Complete ?? this.phase2Complete,
-      phase3Complete: phase3Complete ?? this.phase3Complete,
-      phase4Complete: phase4Complete ?? this.phase4Complete,
-      phase4Score: phase4Score ?? this.phase4Score,
-      phase4Total: phase4Total ?? this.phase4Total,
+      bestScore: bestScore ?? this.bestScore,
+      bestAccuracy: bestAccuracy ?? this.bestAccuracy,
+      totalSessions: totalSessions ?? this.totalSessions,
+      lastSessionAt: lastSessionAt ?? this.lastSessionAt,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -185,17 +162,7 @@ class UserWordListProgress extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        userId,
-        wordListId,
-        phase1Complete,
-        phase2Complete,
-        phase3Complete,
-        phase4Complete,
-        phase4Score,
-        phase4Total,
-        startedAt,
-        completedAt,
-        updatedAt,
+        id, userId, wordListId, bestScore, bestAccuracy,
+        totalSessions, lastSessionAt, startedAt, completedAt, updatedAt,
       ];
 }

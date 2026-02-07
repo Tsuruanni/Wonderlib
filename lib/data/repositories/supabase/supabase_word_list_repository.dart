@@ -3,9 +3,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/vocabulary.dart';
+import '../../../domain/entities/vocabulary_session.dart';
 import '../../../domain/entities/vocabulary_unit.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/word_list_repository.dart';
+import '../../models/vocabulary/vocabulary_session_model.dart';
 import '../../models/vocabulary/vocabulary_unit_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
 import '../../models/vocabulary/word_list_model.dart';
@@ -188,12 +190,10 @@ class SupabaseWordListRepository implements WordListRepository {
       final data = {
         'user_id': progress.userId,
         'word_list_id': progress.wordListId,
-        'phase1_complete': progress.phase1Complete,
-        'phase2_complete': progress.phase2Complete,
-        'phase3_complete': progress.phase3Complete,
-        'phase4_complete': progress.phase4Complete,
-        'phase4_score': progress.phase4Score,
-        'phase4_total': progress.phase4Total,
+        'best_score': progress.bestScore,
+        'best_accuracy': progress.bestAccuracy,
+        'total_sessions': progress.totalSessions,
+        'last_session_at': progress.lastSessionAt?.toIso8601String(),
         'started_at': progress.startedAt?.toIso8601String(),
         'completed_at': progress.completedAt?.toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
@@ -210,7 +210,6 @@ class SupabaseWordListRepository implements WordListRepository {
       Map<String, dynamic> response;
 
       if (existing != null) {
-        // Update existing
         response = await _supabase
             .from('user_word_list_progress')
             .update(data)
@@ -218,7 +217,6 @@ class SupabaseWordListRepository implements WordListRepository {
             .select()
             .single();
       } else {
-        // Insert new
         response = await _supabase
             .from('user_word_list_progress')
             .insert(data)
@@ -235,68 +233,93 @@ class SupabaseWordListRepository implements WordListRepository {
   }
 
   @override
-  Future<Either<Failure, UserWordListProgress>> completePhase({
+  Future<Either<Failure, VocabularySessionResult>> completeSession({
     required String userId,
-    required String listId,
-    required int phase,
-    int? score,
-    int? total,
+    required String wordListId,
+    required int totalQuestions,
+    required int correctCount,
+    required int incorrectCount,
+    required double accuracy,
+    required int maxCombo,
+    required int xpEarned,
+    required int durationSeconds,
+    required int wordsStrong,
+    required int wordsWeak,
+    required int firstTryPerfectCount,
+    required List<SessionWordResult> wordResults,
   }) async {
     try {
-      // Get current progress or create new
-      final existingResult = await getProgressForList(
-        userId: userId,
-        listId: listId,
-      );
+      final wordResultsJson = wordResults
+          .map((r) => SessionWordResultModel.toRpcJson(r))
+          .toList();
 
-      return existingResult.fold(
-        (failure) => Left(failure),
-        (existingProgress) async {
-          final now = DateTime.now();
-
-          UserWordListProgress progress;
-          if (existingProgress == null) {
-            progress = UserWordListProgress(
-              id: 'new-${now.millisecondsSinceEpoch}',
-              userId: userId,
-              wordListId: listId,
-              startedAt: now,
-              updatedAt: now,
-            );
-          } else {
-            progress = existingProgress;
-          }
-
-          // Update the appropriate phase
-          switch (phase) {
-            case 1:
-              progress = progress.copyWith(
-                phase1Complete: true,
-                updatedAt: now,
-              );
-            case 2:
-              progress = progress.copyWith(
-                phase2Complete: true,
-                updatedAt: now,
-              );
-            case 3:
-              progress = progress.copyWith(
-                phase3Complete: true,
-                updatedAt: now,
-              );
-            case 4:
-              progress = progress.copyWith(
-                phase4Complete: true,
-                phase4Score: score,
-                phase4Total: total,
-                completedAt: now,
-                updatedAt: now,
-              );
-          }
-
-          return updateWordListProgress(progress);
+      final response = await _supabase.rpc(
+        'complete_vocabulary_session',
+        params: {
+          'p_user_id': userId,
+          'p_word_list_id': wordListId,
+          'p_total_questions': totalQuestions,
+          'p_correct_count': correctCount,
+          'p_incorrect_count': incorrectCount,
+          'p_accuracy': accuracy,
+          'p_max_combo': maxCombo,
+          'p_xp_earned': xpEarned,
+          'p_duration_seconds': durationSeconds,
+          'p_words_strong': wordsStrong,
+          'p_words_weak': wordsWeak,
+          'p_first_try_perfect_count': firstTryPerfectCount,
+          'p_word_results': wordResultsJson,
         },
       );
+
+      // RPC returns [{session_id, total_xp}]
+      final rpcResult = (response as List).first as Map<String, dynamic>;
+
+      final model = VocabularySessionModel.fromRpcResponse(
+        rpcResult: rpcResult,
+        userId: userId,
+        wordListId: wordListId,
+        totalQuestions: totalQuestions,
+        correctCount: correctCount,
+        incorrectCount: incorrectCount,
+        accuracy: accuracy,
+        maxCombo: maxCombo,
+        durationSeconds: durationSeconds,
+        wordsStrong: wordsStrong,
+        wordsWeak: wordsWeak,
+        firstTryPerfectCount: firstTryPerfectCount,
+        wordResults: wordResults,
+      );
+
+      return Right(model.toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<VocabularySessionResult>>> getSessionHistory({
+    required String userId,
+    required String wordListId,
+  }) async {
+    try {
+      final response = await _supabase
+          .from('vocabulary_sessions')
+          .select()
+          .eq('user_id', userId)
+          .eq('word_list_id', wordListId)
+          .order('completed_at', ascending: false)
+          .limit(10);
+
+      final sessions = (response as List)
+          .map((json) => VocabularySessionModel.fromJson(json).toEntity())
+          .toList();
+
+      return Right(sessions);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -321,5 +344,4 @@ class SupabaseWordListRepository implements WordListRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
-
 }

@@ -62,6 +62,7 @@ import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/get_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
+import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
@@ -80,7 +81,7 @@ import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/lookup_word_definition_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
-import '../../domain/usecases/wordlist/complete_phase_usecase.dart';
+import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
@@ -204,6 +205,9 @@ final updateReadingProgressUseCaseProvider = Provider((ref) {
 
 final checkReadTodayUseCaseProvider = Provider((ref) {
   return CheckReadTodayUseCase(ref.watch(bookRepositoryProvider));
+});
+final getWeeklyActivityUseCaseProvider = Provider<GetWeeklyActivityUseCase>((ref) {
+  return GetWeeklyActivityUseCase(ref.watch(userRepositoryProvider));
 });
 
 final getWordsReadTodayUseCaseProvider = Provider((ref) {
@@ -358,8 +362,8 @@ final updateWordListProgressUseCaseProvider = Provider((ref) {
   return UpdateWordListProgressUseCase(ref.watch(wordListRepositoryProvider));
 });
 
-final completePhaseUseCaseProvider = Provider((ref) {
-  return CompletePhaseUseCase(ref.watch(wordListRepositoryProvider));
+final completeSessionUseCaseProvider = Provider((ref) {
+  return CompleteSessionUseCase(ref.watch(wordListRepositoryProvider));
 });
 
 final resetProgressUseCaseProvider = Provider((ref) {

@@ -108,10 +108,10 @@ class _PathNodeState extends State<PathNode>
     final nodeColor = isLocked
         ? AppColors.neutral
         : isComplete
-            ? AppColors.wasp
-            : isStarted
+            ? _getStarColor(widget.wordListWithProgress.starCount, widget.unitColor)
+            : (isStarted || widget.isActive)
                 ? widget.unitColor
-                : AppColors.neutral;
+                : AppColors.white;
 
     final shadowColor = _darken(nodeColor, 0.20);
 
@@ -213,7 +213,7 @@ class _PathNodeState extends State<PathNode>
     required Color shadowColor,
   }) {
     final showGlow = widget.isActive && !isLocked;
-    final phases = widget.wordListWithProgress.progress?.completedPhases ?? 0;
+    final stars = widget.wordListWithProgress.starCount;
 
     return SizedBox(
       width: 76,
@@ -249,13 +249,7 @@ class _PathNodeState extends State<PathNode>
               height: 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isLocked
-                    ? AppColors.neutral
-                    : isComplete
-                        ? AppColors.wasp
-                        : isStarted || widget.isActive
-                            ? widget.unitColor
-                            : AppColors.white,
+                color: nodeColor,
                 border: !isStarted && !widget.isActive && !isLocked
                     ? Border.all(color: AppColors.neutral, width: 2)
                     : null,
@@ -296,35 +290,24 @@ class _PathNodeState extends State<PathNode>
               ),
             ),
           ),
-          // Crown badge for completed nodes
-          if (isComplete && !isLocked)
-            const Positioned(
-              top: -2,
-              right: 4,
-              child: Text('\u{1F451}', style: TextStyle(fontSize: 16)),
-            ),
+          // Crown badge removed by user request
           // Stars for nodes with progress
-          if (phases > 0 && !isLocked)
+          if (stars > 0 && !isLocked)
             Positioned(
               top: 64,
-              child: _buildStars(phases),
+              child: _buildStars(stars),
             ),
         ],
       ),
     );
   }
 
-  /// Build 3 small stars showing phase progress (1-2→★☆☆, 3→★★☆, 4→★★★).
-  Widget _buildStars(int completedPhases) {
-    final filledCount = completedPhases >= 4
-        ? 3
-        : completedPhases >= 3
-            ? 2
-            : 1;
+  /// Build 3 small stars showing accuracy-based progress (1★=complete, 2★=≥80%, 3★=≥95%).
+  Widget _buildStars(int starCount) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(3, (i) {
-        final filled = i < filledCount;
+        final filled = i < starCount;
         return Icon(
           filled ? Icons.star_rounded : Icons.star_border_rounded,
           size: 14,
@@ -365,5 +348,11 @@ class _PathNodeState extends State<PathNode>
     return hsl
         .withLightness((hsl.lightness - amount).clamp(0.0, 1.0))
         .toColor();
+  }
+  Color _getStarColor(int stars, Color defaultColor) {
+    if (stars >= 3) return const Color(0xFFFFD700); // Gold
+    if (stars == 2) return const Color(0xFFE0E0E0); // Lighter Silver
+    if (stars == 1) return const Color(0xFFCD7F32); // Bronze
+    return defaultColor;
   }
 }

@@ -46,10 +46,10 @@ class ActivityCard extends StatelessWidget {
     // Assuming context-based theme check would go here.
 
     final card = Container(
-      margin: margin ?? const EdgeInsets.symmetric(vertical: 24),
+      margin: margin ?? const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: borderColor,
           width: 2,
@@ -57,15 +57,15 @@ class ActivityCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: borderColor,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 3),
             blurRadius: 0,
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18), // Slightly less than container
+        borderRadius: BorderRadius.circular(14), // Slightly less than container
         child: Padding(
-          padding: padding ?? const EdgeInsets.all(20),
+          padding: padding ?? const EdgeInsets.all(16),
           child: child,
         ),
       ),

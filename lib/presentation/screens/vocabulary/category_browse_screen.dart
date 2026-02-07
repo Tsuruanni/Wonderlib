@@ -162,7 +162,7 @@ class _WordListCard extends StatelessWidget {
             ),
 
             // Status icon
-            if (progress?.isFullyComplete ?? false)
+            if (progress?.isComplete ?? false)
                Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 28)
             else
                Icon(

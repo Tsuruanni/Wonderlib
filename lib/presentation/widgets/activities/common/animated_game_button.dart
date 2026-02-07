@@ -32,7 +32,7 @@ class AnimatedGameButton extends StatefulWidget {
     this.variant = GameButtonVariant.primary,
     this.fullWidth = false,
     this.isSelected = false,
-    this.height = 56.0,
+    this.height = 48.0,
     this.borderRadius = 16.0,
     this.textStyle,
   });
@@ -134,7 +134,7 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
       }
     }
 
-    final double depth = widget.variant == GameButtonVariant.outline ? 0 : 4.0;
+    final double depth = widget.variant == GameButtonVariant.outline ? 0 : 3.0;
     final double currentDepth = _isPressed ? 0.0 : depth;
     final double marginTop = _isPressed ? depth : 0.0;
 

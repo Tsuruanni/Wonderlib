@@ -133,7 +133,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity> {
             children: [
               // Word highlight - 3D Style
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -152,14 +152,14 @@ class _WordTranslationActivityState extends State<WordTranslationActivity> {
                 child: Text(
                   content.word,
                   style: GoogleFonts.nunito(
-                    fontSize: widget.settings.fontSize + 4,
+                    fontSize: widget.settings.fontSize + 2,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF374151), // Neutral 700
                   ),
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
 
               // Options
               ...content.options.asMap().entries.map((entry) {
@@ -167,7 +167,7 @@ class _WordTranslationActivityState extends State<WordTranslationActivity> {
                 final option = entry.value;
                 return Padding(
                   padding: EdgeInsets.only(
-                      bottom: index < content.options.length - 1 ? 12 : 0,),
+                      bottom: index < content.options.length - 1 ? 8 : 0,),
                   child: _buildOption(option),
                 );
               }),
@@ -191,8 +191,8 @@ class _WordTranslationActivityState extends State<WordTranslationActivity> {
                 },
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: correct ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.1), // More transparent
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(

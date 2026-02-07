@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-07 (Home Screen Redesign — Quest Cards + Learning Path Improvements)
+Son güncelleme: 2026-02-07 (Vocabulary Session v2 + Reading Progress Fixes + Coin UI)
 
 ## Current Phase
 
@@ -112,6 +112,9 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Vocabulary Session v2 | 2026-02-07 | Duolingo-style quiz system with 7 question types, combo system, replaces old 4-phase vocabulary builder (~2,673 lines removed) |
+| Reading Progress Fixes | 2026-02-07 | Critical autoDispose bug fixed (chapters never marked complete), stale cache invalidation, UPDATE RLS policy for daily_chapter_reads |
+| XP → Coins UI | 2026-02-07 | All XP displays now use coin icon consistently across 5 files |
 | Home Screen Quest Cards | 2026-02-07 | Duolingo-style daily quest cards with progress bars, assignments merged into daily tasks widget |
 | Learning Path Improvements | 2026-02-07 | Linear path layout (1 node/row), unit completion tracking, profile updates |
 | Vocabulary Learning Path | 2026-02-06 | Duolingo-style zigzag skill tree, vocabulary_units table, unit grouping with sinusoidal layout |

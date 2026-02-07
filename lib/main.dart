@@ -12,6 +12,8 @@ Future<void> main() async {
   // Load environment variables
   await dotenv.load(fileName: '.env');
 
+
+
   // Initialize Supabase
   await Supabase.initialize(
     url: EnvConstants.supabaseUrl,

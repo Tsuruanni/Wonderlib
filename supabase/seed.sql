@@ -62,7 +62,22 @@ INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level,
 ('11111111-0003-0001-0001-000000000002', 'nervous', '/ˈnɜːrvəs/', 'gergin', 'feeling worried or slightly afraid', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['anxious', 'worried'], ARRAY['calm', 'relaxed'], ARRAY['I feel nervous before exams.', 'She was nervous about the interview.']),
 ('11111111-0003-0001-0001-000000000003', 'proud', '/praʊd/', 'gururlu', 'feeling pleased about achievements', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['satisfied', 'pleased'], ARRAY['ashamed'], ARRAY['I am proud of you.', 'She felt proud of her work.']),
 ('11111111-0003-0001-0001-000000000004', 'surprised', '/sərˈpraɪzd/', 'şaşırmış', 'feeling amazed by something unexpected', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['amazed', 'astonished'], ARRAY['unsurprised'], ARRAY['I was surprised by the gift.', 'She looked surprised.']),
-('11111111-0003-0001-0001-000000000005', 'grateful', '/ˈɡreɪtfəl/', 'minnettar', 'feeling thankful', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['thankful', 'appreciative'], ARRAY['ungrateful'], ARRAY['I am grateful for your help.', 'We should be grateful.']);
+('11111111-0003-0001-0001-000000000005', 'grateful', '/ˈɡreɪtfəl/', 'minnettar', 'feeling thankful', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['thankful', 'appreciative'], ARRAY['ungrateful'], ARRAY['I am grateful for your help.', 'We should be grateful.']),
+('11111111-0003-0001-0001-000000000006', 'confused', '/kənˈfjuːzd/', 'kafası karışık', 'unable to think clearly', 'A2', ARRAY['adjectives', 'emotions'], ARRAY['puzzled', 'bewildered'], ARRAY['clear', 'certain'], ARRAY['I am confused by the question.', 'She looked confused.']);
+
+-- Extra Common Words L2 (for better session testing — 8 words total)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0001-0002-0001-000000000006', 'discover', '/dɪˈskʌvər/', 'keşfetmek', 'to find something new', 'A2', ARRAY['verbs', 'mental'], ARRAY['find', 'uncover'], ARRAY['hide', 'conceal'], ARRAY['I discovered a new path.', 'Scientists discover new things.']),
+('11111111-0001-0002-0001-000000000007', 'adventure', '/ədˈventʃər/', 'macera', 'an exciting experience', 'A2', ARRAY['nouns', 'activities'], ARRAY['journey', 'expedition'], ARRAY[]::TEXT[], ARRAY['Going to the forest was an adventure.', 'I love adventure stories.']),
+('11111111-0001-0002-0001-000000000008', 'imagine', '/ɪˈmædʒɪn/', 'hayal etmek', 'to form a picture in your mind', 'A2', ARRAY['verbs', 'mental'], ARRAY['picture', 'visualize'], ARRAY[]::TEXT[], ARRAY['Can you imagine living on Mars?', 'Imagine a world without music.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Extra Animals (for better session testing — 8 words total)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0002-0001-0001-000000000006', 'penguin', '/ˈpeŋɡwɪn/', 'penguen', 'a black and white bird that cannot fly', 'A1', ARRAY['nouns', 'animals'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Penguins live in cold places.', 'The penguin slides on ice.']),
+('11111111-0002-0001-0001-000000000007', 'giraffe', '/dʒɪˈræf/', 'zürafa', 'a very tall animal with a long neck', 'A1', ARRAY['nouns', 'animals'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['The giraffe eats leaves from tall trees.', 'Giraffes have long necks.']),
+('11111111-0002-0001-0001-000000000008', 'monkey', '/ˈmʌŋki/', 'maymun', 'a small primate that lives in trees', 'A1', ARRAY['nouns', 'animals'], ARRAY['ape'], ARRAY[]::TEXT[], ARRAY['The monkey climbs the tree.', 'Monkeys love bananas.'])
+ON CONFLICT (id) DO NOTHING;
 
 -- Content Block Book Words (A1-A2)
 INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
@@ -87,11 +102,12 @@ INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level,
 -- =============================================
 -- WORD LISTS
 -- =============================================
+-- word_count = 0 here because the update_word_list_count_trigger auto-increments it
 INSERT INTO word_lists (id, name, description, level, category, word_count, is_system) VALUES
-('22222222-0001-0001-0001-000000000001', 'Common Words Level 1', 'Essential everyday vocabulary for beginners', 'A1', 'common_words', 10, true),
-('22222222-0001-0001-0001-000000000002', 'Common Words Level 2', 'Building your vocabulary foundation', 'A2', 'common_words', 5, true),
-('22222222-0001-0001-0001-000000000003', 'Animals', 'Learn the names of animals in English', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000004', 'Feelings & Emotions', 'Express how you feel in English', 'A2', 'thematic', 5, true);
+('22222222-0001-0001-0001-000000000001', 'Common Words Level 1', 'Essential everyday vocabulary for beginners', 'A1', 'common_words', 0, true),
+('22222222-0001-0001-0001-000000000002', 'Common Words Level 2', 'Building your vocabulary foundation', 'A2', 'common_words', 0, true),
+('22222222-0001-0001-0001-000000000003', 'Animals', 'Learn the names of animals in English', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000004', 'Feelings & Emotions', 'Express how you feel in English', 'A2', 'thematic', 0, true);
 
 -- =============================================
 -- WORD LIST ITEMS (link words to lists)
@@ -110,29 +126,36 @@ INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
 ('22222222-0001-0001-0001-000000000001', '11111111-0001-0001-0001-000000000009', 9),
 ('22222222-0001-0001-0001-000000000001', '11111111-0001-0001-0001-000000000010', 10);
 
--- Common Words Level 2
+-- Common Words Level 2 (8 words)
 INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
 ('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000001', 1),
 ('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000002', 2),
 ('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000003', 3),
 ('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000004', 4),
-('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000005', 5);
+('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000005', 5),
+('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000006', 6),
+('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000007', 7),
+('22222222-0001-0001-0001-000000000002', '11111111-0001-0002-0001-000000000008', 8);
 
--- Animals
+-- Animals (8 words)
 INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
 ('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000001', 1),
 ('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000002', 2),
 ('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000003', 3),
 ('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000004', 4),
-('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000005', 5);
+('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000005', 5),
+('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000006', 6),
+('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000007', 7),
+('22222222-0001-0001-0001-000000000003', '11111111-0002-0001-0001-000000000008', 8);
 
--- Feelings & Emotions
+-- Feelings & Emotions (6 words)
 INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
 ('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000001', 1),
 ('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000002', 2),
 ('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000003', 3),
 ('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000004', 4),
-('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000005', 5);
+('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000005', 5),
+('22222222-0001-0001-0001-000000000004', '11111111-0003-0001-0001-000000000006', 6);
 
 -- =============================================
 -- SAMPLE SCHOOL (for development)
@@ -1519,39 +1542,40 @@ ON CONFLICT (id) DO NOTHING;
 -- =====================
 -- NEW WORD LISTS
 -- =====================
+-- word_count = 0 because the update_word_list_count_trigger auto-increments it
 INSERT INTO word_lists (id, name, description, level, category, word_count, is_system) VALUES
 -- Unit 1 additions
-('22222222-0001-0001-0001-000000000005', 'Greetings', 'Basic greetings and polite words', 'A1', 'common_words', 5, true),
+('22222222-0001-0001-0001-000000000005', 'Greetings', 'Basic greetings and polite words', 'A1', 'common_words', 0, true),
 -- Unit 2 additions
-('22222222-0001-0001-0001-000000000006', 'Colors', 'Learn the basic colors', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000007', 'Shapes', 'Common shapes around us', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000006', 'Colors', 'Learn the basic colors', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000007', 'Shapes', 'Common shapes around us', 'A1', 'thematic', 0, true),
 -- Unit 3 additions
-('22222222-0001-0001-0001-000000000008', 'Actions & Verbs', 'Movement and action words', 'A2', 'common_words', 5, true),
+('22222222-0001-0001-0001-000000000008', 'Actions & Verbs', 'Movement and action words', 'A2', 'common_words', 0, true),
 -- Unit 4: Daily Life
-('22222222-0001-0001-0001-000000000009', 'Family', 'Family member names', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000010', 'Home', 'Things in your house', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000011', 'Clothes', 'What we wear', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000012', 'Time & Days', 'Telling time and days', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000013', 'Numbers', 'Counting and ordinals', 'A1', 'common_words', 5, true),
+('22222222-0001-0001-0001-000000000009', 'Family', 'Family member names', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000010', 'Home', 'Things in your house', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000011', 'Clothes', 'What we wear', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000012', 'Time & Days', 'Telling time and days', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000013', 'Numbers', 'Counting and ordinals', 'A1', 'common_words', 0, true),
 -- Unit 5: Food & Kitchen
-('22222222-0001-0001-0001-000000000014', 'Fruits', 'Delicious fruits', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000015', 'Vegetables', 'Healthy vegetables', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000016', 'Drinks', 'Common beverages', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000017', 'Cooking', 'Kitchen actions and tools', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000014', 'Fruits', 'Delicious fruits', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000015', 'Vegetables', 'Healthy vegetables', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000016', 'Drinks', 'Common beverages', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000017', 'Cooking', 'Kitchen actions and tools', 'A2', 'thematic', 0, true),
 -- Unit 6: School & Learning
-('22222222-0001-0001-0001-000000000018', 'Classroom', 'School and classroom words', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000019', 'Subjects', 'School subjects', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000020', 'Sports', 'Popular sports', 'A2', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000021', 'Music', 'Music and instruments', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000018', 'Classroom', 'School and classroom words', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000019', 'Subjects', 'School subjects', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000020', 'Sports', 'Popular sports', 'A2', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000021', 'Music', 'Music and instruments', 'A2', 'thematic', 0, true),
 -- Unit 7: Nature & Weather
-('22222222-0001-0001-0001-000000000022', 'Weather', 'Weather conditions', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000023', 'Seasons', 'The four seasons', 'A1', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000024', 'Plants', 'Trees, flowers, and plants', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000022', 'Weather', 'Weather conditions', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000023', 'Seasons', 'The four seasons', 'A1', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000024', 'Plants', 'Trees, flowers, and plants', 'A1', 'thematic', 0, true),
 -- Unit 8: Travel & Places
-('22222222-0001-0001-0001-000000000025', 'Countries', 'Nations and geography', 'A2', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000026', 'Transport', 'Vehicles and travel', 'A2', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000027', 'City Places', 'Places in a city', 'A2', 'thematic', 5, true),
-('22222222-0001-0001-0001-000000000028', 'Directions', 'Finding your way', 'A2', 'thematic', 5, true)
+('22222222-0001-0001-0001-000000000025', 'Countries', 'Nations and geography', 'A2', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000026', 'Transport', 'Vehicles and travel', 'A2', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000027', 'City Places', 'Places in a city', 'A2', 'thematic', 0, true),
+('22222222-0001-0001-0001-000000000028', 'Directions', 'Finding your way', 'A2', 'thematic', 0, true)
 ON CONFLICT (id) DO NOTHING;
 
 -- =====================
@@ -1809,18 +1833,20 @@ WHERE id = '22222222-0001-0001-0001-000000000028'; -- Directions → order 3
 -- =====================
 -- USER PROGRESS (Active Student - 88888888-0001-0001-0001-000000000002)
 -- Creates a mix of completed, in-progress, and not-started nodes for visual testing
+-- Session-based: best_score (XP), best_accuracy (%), total_sessions, last_session_at
+-- Star rules: 1★ = any completion, 2★ = ≥80%, 3★ = ≥95%
 -- =====================
-INSERT INTO user_word_list_progress (id, user_id, word_list_id, phase1_complete, phase2_complete, phase3_complete, phase4_complete, phase4_score, phase4_total, started_at, completed_at, updated_at) VALUES
--- Unit 1: ALL COMPLETED (gold nodes)
-('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000001', true, true, true, true, 9, 10, NOW() - INTERVAL '14 days', NOW() - INTERVAL '12 days', NOW()),
-('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000002', true, true, true, true, 5, 5, NOW() - INTERVAL '12 days', NOW() - INTERVAL '10 days', NOW()),
-('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000005', true, true, true, true, 4, 5, NOW() - INTERVAL '11 days', NOW() - INTERVAL '9 days', NOW()),
+INSERT INTO user_word_list_progress (id, user_id, word_list_id, best_score, best_accuracy, total_sessions, last_session_at, started_at, completed_at, updated_at) VALUES
+-- Unit 1: ALL COMPLETED (gold nodes, varying star counts)
+('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000001', 120, 96.00, 3, NOW() - INTERVAL '12 days', NOW() - INTERVAL '14 days', NOW() - INTERVAL '12 days', NOW()),  -- Common Words L1: 3★
+('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000002', 80, 100.00, 1, NOW() - INTERVAL '10 days', NOW() - INTERVAL '12 days', NOW() - INTERVAL '10 days', NOW()),   -- Common Words L2: 3★
+('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000005', 60, 80.00, 2, NOW() - INTERVAL '9 days', NOW() - INTERVAL '11 days', NOW() - INTERVAL '9 days', NOW()),     -- Greetings: 2★
 -- Unit 2: MIXED (gold + colored + gray)
-('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000003', true, true, true, true, 5, 5, NOW() - INTERVAL '9 days', NOW() - INTERVAL '7 days', NOW()),  -- Animals: completed
-('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000006', true, true, false, false, NULL, NULL, NOW() - INTERVAL '5 days', NULL, NOW()),  -- Colors: phase 1+2 done (in-progress)
+('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000003', 100, 100.00, 1, NOW() - INTERVAL '7 days', NOW() - INTERVAL '9 days', NOW() - INTERVAL '7 days', NOW()),    -- Animals: 3★
+('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000006', 40, 65.00, 1, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days', NULL, NOW()),                             -- Colors: 1★ (continue learning)
 -- Shapes: no progress record = not started (gray node)
--- Unit 3: FIRST STARTED
-('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000004', true, false, false, false, NULL, NULL, NOW() - INTERVAL '2 days', NULL, NOW())  -- Feelings: phase 1 done only
+-- Unit 3: JUST STARTED
+('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000004', NULL, NULL, 0, NULL, NOW() - INTERVAL '2 days', NULL, NOW())  -- Feelings: started but no session yet
 -- Actions: no progress = not started
 -- Units 4-8: completely untouched (all gray nodes)
 ON CONFLICT (id) DO NOTHING;

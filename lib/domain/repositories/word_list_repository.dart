@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/vocabulary.dart';
+import '../entities/vocabulary_session.dart';
 import '../entities/vocabulary_unit.dart';
 import '../entities/word_list.dart';
 
@@ -38,13 +39,27 @@ abstract class WordListRepository {
     UserWordListProgress progress,
   );
 
-  /// Complete a specific phase for a word list
-  Future<Either<Failure, UserWordListProgress>> completePhase({
+  /// Complete a vocabulary session: persists result, awards XP, updates streak (calls RPC)
+  Future<Either<Failure, VocabularySessionResult>> completeSession({
     required String userId,
-    required String listId,
-    required int phase,
-    int? score,
-    int? total,
+    required String wordListId,
+    required int totalQuestions,
+    required int correctCount,
+    required int incorrectCount,
+    required double accuracy,
+    required int maxCombo,
+    required int xpEarned,
+    required int durationSeconds,
+    required int wordsStrong,
+    required int wordsWeak,
+    required int firstTryPerfectCount,
+    required List<SessionWordResult> wordResults,
+  });
+
+  /// Get session history for a word list
+  Future<Either<Failure, List<VocabularySessionResult>>> getSessionHistory({
+    required String userId,
+    required String wordListId,
   });
 
   /// Reset progress for a word list
