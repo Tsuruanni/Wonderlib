@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-06 (Duolingo-Style Vocabulary Learning Path)
+Son güncelleme: 2026-02-07 (Home Screen Redesign — Quest Cards + Learning Path Improvements)
 
 ## Current Phase
 
@@ -112,6 +112,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Home Screen Quest Cards | 2026-02-07 | Duolingo-style daily quest cards with progress bars, assignments merged into daily tasks widget |
+| Learning Path Improvements | 2026-02-07 | Linear path layout (1 node/row), unit completion tracking, profile updates |
 | Vocabulary Learning Path | 2026-02-06 | Duolingo-style zigzag skill tree, vocabulary_units table, unit grouping with sinusoidal layout |
 | Reader & Library UI Improvements | 2026-02-06 | Duolingo navbar on library, 3-column grid, compact reader header (44px), chapter badge overlay, audio player repositioned |
 | Book Completion UI & Assignment Sync | 2026-02-03 | Green checkmark on completed books, FAB hidden when complete, assignment auto-sync, async fold fix |

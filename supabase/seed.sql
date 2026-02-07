@@ -1277,16 +1277,551 @@ INSERT INTO vocabulary_units (id, name, description, sort_order, color, icon) VA
 ('aaaaaaaa-0001-0001-0001-000000000003', 'Unit 3: Express Yourself', 'Feelings, emotions, and communication', 2, '#FF9600', '💭')
 ON CONFLICT (id) DO NOTHING;
 
--- Assign existing word lists to units
+-- Assign existing word lists to units (unique order_in_unit per list = linear path)
 UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000001', order_in_unit = 0
-WHERE id = '22222222-0001-0001-0001-000000000001'; -- Common Words Level 1 (Unit 1, row 0)
+WHERE id = '22222222-0001-0001-0001-000000000001'; -- Common Words Level 1 (Unit 1)
 
 UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000001', order_in_unit = 1
-WHERE id = '22222222-0001-0001-0001-000000000002'; -- Common Words Level 2 (Unit 1, row 1)
+WHERE id = '22222222-0001-0001-0001-000000000002'; -- Common Words Level 2 (Unit 1)
 
 UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000002', order_in_unit = 0
-WHERE id = '22222222-0001-0001-0001-000000000003'; -- Animals (Unit 2, row 0)
+WHERE id = '22222222-0001-0001-0001-000000000003'; -- Animals (Unit 2)
 
 UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000003', order_in_unit = 0
-WHERE id = '22222222-0001-0001-0001-000000000004'; -- Feelings & Emotions (Unit 3, row 0)
+WHERE id = '22222222-0001-0001-0001-000000000004'; -- Feelings & Emotions (Unit 3)
+
+-- =============================================
+-- EXPANDED VOCABULARY SEED DATA
+-- Adds units 4-8, many word lists (including multi-node rows),
+-- vocabulary words, and progress records for visual testing.
+-- =============================================
+
+-- =====================
+-- NEW VOCABULARY WORDS
+-- =====================
+
+-- Greetings (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0005-0001-0001-000000000001', 'hello', '/həˈloʊ/', 'merhaba', 'a greeting', 'A1', ARRAY['greetings'], ARRAY['hi', 'hey'], ARRAY['goodbye'], ARRAY['Hello, how are you?', 'She said hello.']),
+('11111111-0005-0001-0001-000000000002', 'goodbye', '/ɡʊdˈbaɪ/', 'hoşça kal', 'a farewell', 'A1', ARRAY['greetings'], ARRAY['bye', 'farewell'], ARRAY['hello'], ARRAY['Goodbye, see you tomorrow!', 'He waved goodbye.']),
+('11111111-0005-0001-0001-000000000003', 'please', '/pliːz/', 'lütfen', 'used to make a polite request', 'A1', ARRAY['greetings', 'polite'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Can I have water, please?', 'Please sit down.']),
+('11111111-0005-0001-0001-000000000004', 'thank', '/θæŋk/', 'teşekkür etmek', 'to express gratitude', 'A1', ARRAY['greetings', 'polite'], ARRAY['appreciate'], ARRAY[]::TEXT[], ARRAY['Thank you very much.', 'I want to thank my teacher.']),
+('11111111-0005-0001-0001-000000000005', 'sorry', '/ˈsɒri/', 'üzgün', 'expressing regret', 'A1', ARRAY['greetings', 'emotions'], ARRAY['apologetic'], ARRAY[]::TEXT[], ARRAY['I am sorry.', 'Sorry for being late.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Colors (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0006-0001-0001-000000000001', 'red', '/red/', 'kırmızı', 'the color of blood', 'A1', ARRAY['adjectives', 'colors'], ARRAY['crimson', 'scarlet'], ARRAY[]::TEXT[], ARRAY['The apple is red.', 'I like the red car.']),
+('11111111-0006-0001-0001-000000000002', 'blue', '/bluː/', 'mavi', 'the color of the sky', 'A1', ARRAY['adjectives', 'colors'], ARRAY['azure'], ARRAY[]::TEXT[], ARRAY['The sky is blue.', 'She wore a blue dress.']),
+('11111111-0006-0001-0001-000000000003', 'green', '/ɡriːn/', 'yeşil', 'the color of grass', 'A1', ARRAY['adjectives', 'colors'], ARRAY['emerald'], ARRAY[]::TEXT[], ARRAY['The grass is green.', 'I have green eyes.']),
+('11111111-0006-0001-0001-000000000004', 'yellow', '/ˈjeloʊ/', 'sarı', 'the color of the sun', 'A1', ARRAY['adjectives', 'colors'], ARRAY['golden'], ARRAY[]::TEXT[], ARRAY['The sun is yellow.', 'Bananas are yellow.']),
+('11111111-0006-0001-0001-000000000005', 'purple', '/ˈpɜːrpəl/', 'mor', 'a mix of red and blue', 'A1', ARRAY['adjectives', 'colors'], ARRAY['violet'], ARRAY[]::TEXT[], ARRAY['Grapes are purple.', 'She loves purple flowers.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Shapes (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0006-0002-0001-000000000001', 'circle', '/ˈsɜːrkəl/', 'daire', 'a round shape', 'A1', ARRAY['nouns', 'shapes'], ARRAY['ring', 'round'], ARRAY['square'], ARRAY['Draw a circle.', 'The wheel is a circle.']),
+('11111111-0006-0002-0001-000000000002', 'square', '/skwer/', 'kare', 'a shape with four equal sides', 'A1', ARRAY['nouns', 'shapes'], ARRAY['box'], ARRAY['circle'], ARRAY['A box has square sides.', 'Draw a square.']),
+('11111111-0006-0002-0001-000000000003', 'triangle', '/ˈtraɪæŋɡəl/', 'üçgen', 'a shape with three sides', 'A1', ARRAY['nouns', 'shapes'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['A triangle has three sides.', 'The roof looks like a triangle.']),
+('11111111-0006-0002-0001-000000000004', 'diamond', '/ˈdaɪmənd/', 'elmas', 'a shape with four sides tilted', 'A1', ARRAY['nouns', 'shapes'], ARRAY['rhombus'], ARRAY[]::TEXT[], ARRAY['Draw a diamond shape.', 'The diamond sparkles.']),
+('11111111-0006-0002-0001-000000000005', 'heart', '/hɑːrt/', 'kalp', 'a love symbol shape', 'A1', ARRAY['nouns', 'shapes'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['She drew a heart.', 'The heart shape means love.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Actions & Verbs (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0007-0001-0001-000000000001', 'jump', '/dʒʌmp/', 'zıplamak', 'to push yourself up into the air', 'A2', ARRAY['verbs', 'movement'], ARRAY['leap', 'hop'], ARRAY['sit'], ARRAY['The frog can jump high.', 'Jump over the puddle!']),
+('11111111-0007-0001-0001-000000000002', 'push', '/pʊʃ/', 'itmek', 'to press something away from you', 'A2', ARRAY['verbs', 'movement'], ARRAY['shove'], ARRAY['pull'], ARRAY['Push the door open.', 'Don''t push me!']),
+('11111111-0007-0001-0001-000000000003', 'throw', '/θroʊ/', 'atmak', 'to send through the air', 'A2', ARRAY['verbs', 'movement'], ARRAY['toss', 'hurl'], ARRAY['catch'], ARRAY['Throw the ball!', 'She threw the paper away.']),
+('11111111-0007-0001-0001-000000000004', 'catch', '/kætʃ/', 'yakalamak', 'to grab something moving', 'A2', ARRAY['verbs', 'movement'], ARRAY['grab', 'seize'], ARRAY['throw'], ARRAY['Catch the ball!', 'The cat tried to catch the mouse.']),
+('11111111-0007-0001-0001-000000000005', 'swim', '/swɪm/', 'yüzmek', 'to move through water', 'A2', ARRAY['verbs', 'movement'], ARRAY['paddle'], ARRAY['sink'], ARRAY['I swim in the pool.', 'Fish can swim fast.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Family (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0008-0001-0001-000000000001', 'mother', '/ˈmʌðər/', 'anne', 'a female parent', 'A1', ARRAY['nouns', 'family'], ARRAY['mom', 'mum'], ARRAY['father'], ARRAY['My mother cooks well.', 'I love my mother.']),
+('11111111-0008-0001-0001-000000000002', 'father', '/ˈfɑːðər/', 'baba', 'a male parent', 'A1', ARRAY['nouns', 'family'], ARRAY['dad', 'papa'], ARRAY['mother'], ARRAY['My father works hard.', 'Father reads to me.']),
+('11111111-0008-0001-0001-000000000003', 'sister', '/ˈsɪstər/', 'kız kardeş', 'a female sibling', 'A1', ARRAY['nouns', 'family'], ARRAY['sis'], ARRAY['brother'], ARRAY['My sister is 10.', 'I play with my sister.']),
+('11111111-0008-0001-0001-000000000004', 'brother', '/ˈbrʌðər/', 'erkek kardeş', 'a male sibling', 'A1', ARRAY['nouns', 'family'], ARRAY['bro'], ARRAY['sister'], ARRAY['My brother is funny.', 'I have two brothers.']),
+('11111111-0008-0001-0001-000000000005', 'baby', '/ˈbeɪbi/', 'bebek', 'a very young child', 'A1', ARRAY['nouns', 'family'], ARRAY['infant'], ARRAY['adult'], ARRAY['The baby is sleeping.', 'Babies cry a lot.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Home (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0008-0002-0001-000000000001', 'house', '/haʊs/', 'ev', 'a building where people live', 'A1', ARRAY['nouns', 'home'], ARRAY['home', 'dwelling'], ARRAY[]::TEXT[], ARRAY['I live in a house.', 'Our house is big.']),
+('11111111-0008-0002-0001-000000000002', 'door', '/dɔːr/', 'kapı', 'something you open to enter', 'A1', ARRAY['nouns', 'home'], ARRAY['entrance', 'gate'], ARRAY[]::TEXT[], ARRAY['Open the door.', 'The door is red.']),
+('11111111-0008-0002-0001-000000000003', 'window', '/ˈwɪndoʊ/', 'pencere', 'glass opening in a wall', 'A1', ARRAY['nouns', 'home'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Look out the window.', 'The window is open.']),
+('11111111-0008-0002-0001-000000000004', 'bed', '/bed/', 'yatak', 'furniture for sleeping', 'A1', ARRAY['nouns', 'home'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I sleep in my bed.', 'The bed is soft.']),
+('11111111-0008-0002-0001-000000000005', 'table', '/ˈteɪbəl/', 'masa', 'furniture with a flat top', 'A1', ARRAY['nouns', 'home'], ARRAY['desk'], ARRAY[]::TEXT[], ARRAY['Put it on the table.', 'We eat at the table.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Clothes (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0008-0003-0001-000000000001', 'shirt', '/ʃɜːrt/', 'gömlek', 'clothing for the upper body', 'A1', ARRAY['nouns', 'clothes'], ARRAY['top', 'blouse'], ARRAY[]::TEXT[], ARRAY['I wear a blue shirt.', 'This shirt is new.']),
+('11111111-0008-0003-0001-000000000002', 'pants', '/pænts/', 'pantolon', 'clothing for legs', 'A1', ARRAY['nouns', 'clothes'], ARRAY['trousers'], ARRAY[]::TEXT[], ARRAY['I need new pants.', 'These pants are long.']),
+('11111111-0008-0003-0001-000000000003', 'shoes', '/ʃuːz/', 'ayakkabılar', 'footwear', 'A1', ARRAY['nouns', 'clothes'], ARRAY['footwear'], ARRAY[]::TEXT[], ARRAY['Put on your shoes.', 'I have red shoes.']),
+('11111111-0008-0003-0001-000000000004', 'hat', '/hæt/', 'şapka', 'head covering', 'A1', ARRAY['nouns', 'clothes'], ARRAY['cap'], ARRAY[]::TEXT[], ARRAY['She wears a hat.', 'The hat is too big.']),
+('11111111-0008-0003-0001-000000000005', 'jacket', '/ˈdʒækɪt/', 'ceket', 'outer clothing', 'A1', ARRAY['nouns', 'clothes'], ARRAY['coat'], ARRAY[]::TEXT[], ARRAY['Wear your jacket.', 'It is cold, take a jacket.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Time & Days (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0008-0004-0001-000000000001', 'morning', '/ˈmɔːrnɪŋ/', 'sabah', 'early part of the day', 'A1', ARRAY['nouns', 'time'], ARRAY['dawn'], ARRAY['evening', 'night'], ARRAY['Good morning!', 'I wake up in the morning.']),
+('11111111-0008-0004-0001-000000000002', 'night', '/naɪt/', 'gece', 'dark time of day', 'A1', ARRAY['nouns', 'time'], ARRAY['evening'], ARRAY['day', 'morning'], ARRAY['Good night!', 'Stars come out at night.']),
+('11111111-0008-0004-0001-000000000003', 'today', '/təˈdeɪ/', 'bugün', 'this day', 'A1', ARRAY['nouns', 'time'], ARRAY[]::TEXT[], ARRAY['yesterday', 'tomorrow'], ARRAY['Today is Monday.', 'What are we doing today?']),
+('11111111-0008-0004-0001-000000000004', 'week', '/wiːk/', 'hafta', 'seven days', 'A1', ARRAY['nouns', 'time'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['There are 7 days in a week.', 'I have school 5 days a week.']),
+('11111111-0008-0004-0001-000000000005', 'year', '/jɪr/', 'yıl', 'twelve months', 'A1', ARRAY['nouns', 'time'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I am 10 years old.', 'A year has 365 days.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Numbers (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0008-0005-0001-000000000001', 'one', '/wʌn/', 'bir', 'the number 1', 'A1', ARRAY['numbers'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I have one dog.', 'One plus one is two.']),
+('11111111-0008-0005-0001-000000000002', 'ten', '/ten/', 'on', 'the number 10', 'A1', ARRAY['numbers'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I have ten fingers.', 'Count to ten.']),
+('11111111-0008-0005-0001-000000000003', 'hundred', '/ˈhʌndrəd/', 'yüz', 'the number 100', 'A1', ARRAY['numbers'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['There are a hundred students.', 'I counted to a hundred.']),
+('11111111-0008-0005-0001-000000000004', 'first', '/fɜːrst/', 'birinci', 'coming before all others', 'A1', ARRAY['numbers', 'adjectives'], ARRAY['initial'], ARRAY['last'], ARRAY['I am first in line.', 'This is my first day.']),
+('11111111-0008-0005-0001-000000000005', 'last', '/lɑːst/', 'son', 'coming after all others', 'A1', ARRAY['numbers', 'adjectives'], ARRAY['final'], ARRAY['first'], ARRAY['This is the last one.', 'She was last in line.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Fruits (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0009-0001-0001-000000000001', 'apple', '/ˈæpəl/', 'elma', 'a round red or green fruit', 'A1', ARRAY['nouns', 'food', 'fruits'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I eat an apple.', 'Apples are healthy.']),
+('11111111-0009-0001-0001-000000000002', 'banana', '/bəˈnænə/', 'muz', 'a long yellow fruit', 'A1', ARRAY['nouns', 'food', 'fruits'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Monkeys eat bananas.', 'I like banana smoothies.']),
+('11111111-0009-0001-0001-000000000003', 'orange', '/ˈɒrɪndʒ/', 'portakal', 'a round citrus fruit', 'A1', ARRAY['nouns', 'food', 'fruits'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I drink orange juice.', 'Oranges have vitamin C.']),
+('11111111-0009-0001-0001-000000000004', 'grape', '/ɡreɪp/', 'üzüm', 'a small round fruit', 'A1', ARRAY['nouns', 'food', 'fruits'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Grapes grow on vines.', 'I like green grapes.']),
+('11111111-0009-0001-0001-000000000005', 'strawberry', '/ˈstrɔːberi/', 'çilek', 'a small red berry', 'A1', ARRAY['nouns', 'food', 'fruits'], ARRAY['berry'], ARRAY[]::TEXT[], ARRAY['Strawberries are sweet.', 'I put strawberries on cake.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Vegetables (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0009-0002-0001-000000000001', 'tomato', '/təˈmeɪtoʊ/', 'domates', 'a red vegetable used in salads', 'A1', ARRAY['nouns', 'food', 'vegetables'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Tomatoes are red.', 'I like tomato soup.']),
+('11111111-0009-0002-0001-000000000002', 'carrot', '/ˈkærət/', 'havuç', 'an orange root vegetable', 'A1', ARRAY['nouns', 'food', 'vegetables'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Rabbits eat carrots.', 'Carrots are good for eyes.']),
+('11111111-0009-0002-0001-000000000003', 'potato', '/pəˈteɪtoʊ/', 'patates', 'a starchy root vegetable', 'A1', ARRAY['nouns', 'food', 'vegetables'], ARRAY['spud'], ARRAY[]::TEXT[], ARRAY['I like baked potato.', 'French fries are made from potatoes.']),
+('11111111-0009-0002-0001-000000000004', 'onion', '/ˈʌnjən/', 'soğan', 'a vegetable that makes you cry', 'A1', ARRAY['nouns', 'food', 'vegetables'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Cutting onions makes me cry.', 'Add onion to the soup.']),
+('11111111-0009-0002-0001-000000000005', 'pepper', '/ˈpepər/', 'biber', 'a vegetable used for flavor', 'A1', ARRAY['nouns', 'food', 'vegetables'], ARRAY['capsicum'], ARRAY[]::TEXT[], ARRAY['Red peppers are sweet.', 'I like pepper on my food.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Drinks (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0009-0003-0001-000000000001', 'milk', '/mɪlk/', 'süt', 'a white liquid from cows', 'A1', ARRAY['nouns', 'food', 'drinks'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I drink milk every day.', 'Milk is good for bones.']),
+('11111111-0009-0003-0001-000000000002', 'juice', '/dʒuːs/', 'meyve suyu', 'liquid from fruits', 'A1', ARRAY['nouns', 'food', 'drinks'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I drink orange juice.', 'Apple juice is sweet.']),
+('11111111-0009-0003-0001-000000000003', 'tea', '/tiː/', 'çay', 'a hot drink made from leaves', 'A1', ARRAY['nouns', 'food', 'drinks'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I drink tea in the morning.', 'Turkish tea is delicious.']),
+('11111111-0009-0003-0001-000000000004', 'coffee', '/ˈkɒfi/', 'kahve', 'a dark hot drink', 'A1', ARRAY['nouns', 'food', 'drinks'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Adults drink coffee.', 'Coffee smells nice.']),
+('11111111-0009-0003-0001-000000000005', 'lemonade', '/ˌleməˈneɪd/', 'limonata', 'a sweet lemon drink', 'A1', ARRAY['nouns', 'food', 'drinks'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I love lemonade in summer.', 'Make lemonade from lemons.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Cooking (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0009-0004-0001-000000000001', 'cook', '/kʊk/', 'pişirmek', 'to prepare food with heat', 'A2', ARRAY['verbs', 'food'], ARRAY['prepare', 'make'], ARRAY[]::TEXT[], ARRAY['I cook dinner.', 'My mom cooks well.']),
+('11111111-0009-0004-0001-000000000002', 'bake', '/beɪk/', 'fırında pişirmek', 'to cook in an oven', 'A2', ARRAY['verbs', 'food'], ARRAY['roast'], ARRAY[]::TEXT[], ARRAY['I bake cookies.', 'We baked a cake.']),
+('11111111-0009-0004-0001-000000000003', 'mix', '/mɪks/', 'karıştırmak', 'to combine things together', 'A2', ARRAY['verbs', 'food'], ARRAY['blend', 'stir'], ARRAY['separate'], ARRAY['Mix the flour and eggs.', 'Mix it well.']),
+('11111111-0009-0004-0001-000000000004', 'taste', '/teɪst/', 'tatmak', 'to try food or drink', 'A2', ARRAY['verbs', 'food'], ARRAY['try', 'sample'], ARRAY[]::TEXT[], ARRAY['Taste the soup.', 'It tastes delicious!']),
+('11111111-0009-0004-0001-000000000005', 'recipe', '/ˈresɪpi/', 'tarif', 'instructions for cooking', 'A2', ARRAY['nouns', 'food'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Follow the recipe.', 'This is my grandma''s recipe.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Classroom (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0010-0001-0001-000000000001', 'teacher', '/ˈtiːtʃər/', 'öğretmen', 'a person who teaches', 'A1', ARRAY['nouns', 'school'], ARRAY['instructor'], ARRAY['student'], ARRAY['My teacher is kind.', 'The teacher gives homework.']),
+('11111111-0010-0001-0001-000000000002', 'student', '/ˈstuːdənt/', 'öğrenci', 'a person who learns', 'A1', ARRAY['nouns', 'school'], ARRAY['pupil', 'learner'], ARRAY['teacher'], ARRAY['I am a student.', 'There are 30 students in class.']),
+('11111111-0010-0001-0001-000000000003', 'pencil', '/ˈpensəl/', 'kalem', 'a writing tool', 'A1', ARRAY['nouns', 'school'], ARRAY['pen'], ARRAY[]::TEXT[], ARRAY['I write with a pencil.', 'Sharpen your pencil.']),
+('11111111-0010-0001-0001-000000000004', 'homework', '/ˈhoʊmwɜːrk/', 'ödev', 'work done at home for school', 'A1', ARRAY['nouns', 'school'], ARRAY['assignment'], ARRAY[]::TEXT[], ARRAY['I do my homework.', 'The homework is easy.']),
+('11111111-0010-0001-0001-000000000005', 'lesson', '/ˈlesən/', 'ders', 'a period of learning', 'A1', ARRAY['nouns', 'school'], ARRAY['class'], ARRAY[]::TEXT[], ARRAY['The lesson starts at 9.', 'I learned a lot in this lesson.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Subjects (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0010-0002-0001-000000000001', 'math', '/mæθ/', 'matematik', 'the study of numbers', 'A1', ARRAY['nouns', 'school', 'subjects'], ARRAY['mathematics'], ARRAY[]::TEXT[], ARRAY['I like math.', 'Math is my favorite subject.']),
+('11111111-0010-0002-0001-000000000002', 'science', '/ˈsaɪəns/', 'bilim', 'the study of the natural world', 'A1', ARRAY['nouns', 'school', 'subjects'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['We do experiments in science.', 'Science is interesting.']),
+('11111111-0010-0002-0001-000000000003', 'English', '/ˈɪŋɡlɪʃ/', 'İngilizce', 'the English language', 'A1', ARRAY['nouns', 'school', 'subjects'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I study English.', 'English is fun to learn.']),
+('11111111-0010-0002-0001-000000000004', 'history', '/ˈhɪstəri/', 'tarih', 'the study of the past', 'A1', ARRAY['nouns', 'school', 'subjects'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['We learn about history.', 'History teaches us a lot.']),
+('11111111-0010-0002-0001-000000000005', 'art', '/ɑːrt/', 'sanat', 'creative expression', 'A1', ARRAY['nouns', 'school', 'subjects'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I love art class.', 'Art is about creativity.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Sports (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0010-0003-0001-000000000001', 'football', '/ˈfʊtbɔːl/', 'futbol', 'a team ball game', 'A2', ARRAY['nouns', 'sports'], ARRAY['soccer'], ARRAY[]::TEXT[], ARRAY['I play football.', 'Football is popular in Turkey.']),
+('11111111-0010-0003-0001-000000000002', 'basketball', '/ˈbæskɪtbɔːl/', 'basketbol', 'a game with a hoop and ball', 'A2', ARRAY['nouns', 'sports'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I play basketball after school.', 'Basketball is exciting.']),
+('11111111-0010-0003-0001-000000000003', 'tennis', '/ˈtenɪs/', 'tenis', 'a racquet sport', 'A2', ARRAY['nouns', 'sports'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I play tennis on weekends.', 'Tennis requires a racquet.']),
+('11111111-0010-0003-0001-000000000004', 'race', '/reɪs/', 'yarış', 'a competition of speed', 'A2', ARRAY['nouns', 'sports'], ARRAY['competition'], ARRAY[]::TEXT[], ARRAY['I won the race!', 'The race was exciting.']),
+('11111111-0010-0003-0001-000000000005', 'team', '/tiːm/', 'takım', 'a group playing together', 'A2', ARRAY['nouns', 'sports'], ARRAY['squad', 'group'], ARRAY[]::TEXT[], ARRAY['I am on the team.', 'Our team won the game.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Music (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0010-0004-0001-000000000001', 'song', '/sɒŋ/', 'şarkı', 'a piece of music with words', 'A2', ARRAY['nouns', 'music'], ARRAY['tune', 'melody'], ARRAY[]::TEXT[], ARRAY['I love this song.', 'She sang a song.']),
+('11111111-0010-0004-0001-000000000002', 'sing', '/sɪŋ/', 'şarkı söylemek', 'to make music with your voice', 'A2', ARRAY['verbs', 'music'], ARRAY['chant'], ARRAY[]::TEXT[], ARRAY['I sing in the shower.', 'She sings beautifully.']),
+('11111111-0010-0004-0001-000000000003', 'dance', '/dæns/', 'dans etmek', 'to move to music', 'A2', ARRAY['verbs', 'music'], ARRAY['groove'], ARRAY[]::TEXT[], ARRAY['I like to dance.', 'Let us dance together!']),
+('11111111-0010-0004-0001-000000000004', 'piano', '/piˈænoʊ/', 'piyano', 'a keyboard instrument', 'A2', ARRAY['nouns', 'music'], ARRAY['keyboard'], ARRAY[]::TEXT[], ARRAY['I play the piano.', 'The piano sounds beautiful.']),
+('11111111-0010-0004-0001-000000000005', 'guitar', '/ɡɪˈtɑːr/', 'gitar', 'a string instrument', 'A2', ARRAY['nouns', 'music'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I play guitar.', 'The guitar has six strings.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Weather (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0011-0001-0001-000000000001', 'cloudy', '/ˈklaʊdi/', 'bulutlu', 'covered with clouds', 'A1', ARRAY['adjectives', 'weather'], ARRAY['overcast'], ARRAY['sunny', 'clear'], ARRAY['It is cloudy today.', 'Cloudy days are cool.']),
+('11111111-0011-0001-0001-000000000002', 'rainy', '/ˈreɪni/', 'yağmurlu', 'with a lot of rain', 'A1', ARRAY['adjectives', 'weather'], ARRAY['wet'], ARRAY['sunny', 'dry'], ARRAY['It is rainy outside.', 'Take an umbrella on rainy days.']),
+('11111111-0011-0001-0001-000000000003', 'cold', '/koʊld/', 'soğuk', 'low temperature', 'A1', ARRAY['adjectives', 'weather'], ARRAY['chilly', 'freezing'], ARRAY['hot', 'warm'], ARRAY['It is cold in winter.', 'The water is cold.']),
+('11111111-0011-0001-0001-000000000004', 'hot', '/hɒt/', 'sıcak', 'high temperature', 'A1', ARRAY['adjectives', 'weather'], ARRAY['warm', 'burning'], ARRAY['cold', 'cool'], ARRAY['It is hot in summer.', 'The soup is hot.']),
+('11111111-0011-0001-0001-000000000005', 'snow', '/snoʊ/', 'kar', 'frozen water falling from sky', 'A1', ARRAY['nouns', 'weather'], ARRAY[]::TEXT[], ARRAY['rain'], ARRAY['It snows in winter.', 'Children play in the snow.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Seasons (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0011-0002-0001-000000000001', 'spring', '/sprɪŋ/', 'ilkbahar', 'the season after winter', 'A1', ARRAY['nouns', 'seasons'], ARRAY[]::TEXT[], ARRAY['autumn'], ARRAY['Flowers bloom in spring.', 'Spring is beautiful.']),
+('11111111-0011-0002-0001-000000000002', 'summer', '/ˈsʌmər/', 'yaz', 'the warmest season', 'A1', ARRAY['nouns', 'seasons'], ARRAY[]::TEXT[], ARRAY['winter'], ARRAY['I swim in summer.', 'Summer vacation is long.']),
+('11111111-0011-0002-0001-000000000003', 'autumn', '/ˈɔːtəm/', 'sonbahar', 'the season after summer', 'A1', ARRAY['nouns', 'seasons'], ARRAY['fall'], ARRAY['spring'], ARRAY['Leaves fall in autumn.', 'Autumn colors are beautiful.']),
+('11111111-0011-0002-0001-000000000004', 'winter', '/ˈwɪntər/', 'kış', 'the coldest season', 'A1', ARRAY['nouns', 'seasons'], ARRAY[]::TEXT[], ARRAY['summer'], ARRAY['It snows in winter.', 'Winter nights are long.']),
+('11111111-0011-0002-0001-000000000005', 'season', '/ˈsiːzən/', 'mevsim', 'a part of the year', 'A1', ARRAY['nouns', 'seasons'], ARRAY['period'], ARRAY[]::TEXT[], ARRAY['There are four seasons.', 'Which season do you like?'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Plants (A1)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0011-0003-0001-000000000001', 'tree', '/triː/', 'ağaç', 'a tall plant with a trunk', 'A1', ARRAY['nouns', 'nature', 'plants'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['The tree is tall.', 'Birds live in trees.']),
+('11111111-0011-0003-0001-000000000002', 'leaf', '/liːf/', 'yaprak', 'a flat green part of a plant', 'A1', ARRAY['nouns', 'nature', 'plants'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['The leaf is green.', 'Leaves fall in autumn.']),
+('11111111-0011-0003-0001-000000000003', 'grass', '/ɡræs/', 'çimen', 'green plants covering ground', 'A1', ARRAY['nouns', 'nature', 'plants'], ARRAY['lawn'], ARRAY[]::TEXT[], ARRAY['The grass is wet.', 'I sit on the grass.']),
+('11111111-0011-0003-0001-000000000004', 'seed', '/siːd/', 'tohum', 'the beginning of a new plant', 'A1', ARRAY['nouns', 'nature', 'plants'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Plant the seed.', 'Seeds grow into plants.']),
+('11111111-0011-0003-0001-000000000005', 'rose', '/roʊz/', 'gül', 'a flower with thorns', 'A1', ARRAY['nouns', 'nature', 'plants'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['The rose is red.', 'Roses smell lovely.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Countries (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0012-0001-0001-000000000001', 'country', '/ˈkʌntri/', 'ülke', 'a nation with borders', 'A2', ARRAY['nouns', 'travel'], ARRAY['nation', 'land'], ARRAY[]::TEXT[], ARRAY['Turkey is a beautiful country.', 'Which country are you from?']),
+('11111111-0012-0001-0001-000000000002', 'city', '/ˈsɪti/', 'şehir', 'a large town', 'A2', ARRAY['nouns', 'travel'], ARRAY['town', 'metropolis'], ARRAY['village'], ARRAY['Istanbul is a big city.', 'I live in a city.']),
+('11111111-0012-0001-0001-000000000003', 'passport', '/ˈpæspɔːrt/', 'pasaport', 'a travel document', 'A2', ARRAY['nouns', 'travel'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['Show your passport.', 'I need a passport to travel.']),
+('11111111-0012-0001-0001-000000000004', 'flag', '/flæɡ/', 'bayrak', 'a piece of cloth with a design', 'A2', ARRAY['nouns', 'travel'], ARRAY['banner'], ARRAY[]::TEXT[], ARRAY['Every country has a flag.', 'The Turkish flag is red and white.']),
+('11111111-0012-0001-0001-000000000005', 'language', '/ˈlæŋɡwɪdʒ/', 'dil', 'a system of words used to communicate', 'A2', ARRAY['nouns', 'travel'], ARRAY['tongue'], ARRAY[]::TEXT[], ARRAY['I speak two languages.', 'English is a global language.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Transport (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0012-0002-0001-000000000001', 'car', '/kɑːr/', 'araba', 'a vehicle with four wheels', 'A2', ARRAY['nouns', 'transport'], ARRAY['automobile', 'vehicle'], ARRAY[]::TEXT[], ARRAY['My dad drives a car.', 'The car is fast.']),
+('11111111-0012-0002-0001-000000000002', 'bus', '/bʌs/', 'otobüs', 'a large vehicle for many people', 'A2', ARRAY['nouns', 'transport'], ARRAY['coach'], ARRAY[]::TEXT[], ARRAY['I take the bus to school.', 'The bus is coming.']),
+('11111111-0012-0002-0001-000000000003', 'train', '/treɪn/', 'tren', 'a vehicle on rails', 'A2', ARRAY['nouns', 'transport'], ARRAY['railway'], ARRAY[]::TEXT[], ARRAY['The train is fast.', 'I love riding the train.']),
+('11111111-0012-0002-0001-000000000004', 'airplane', '/ˈerpleɪn/', 'uçak', 'a flying vehicle', 'A2', ARRAY['nouns', 'transport'], ARRAY['plane', 'aircraft'], ARRAY[]::TEXT[], ARRAY['The airplane flies high.', 'I flew in an airplane.']),
+('11111111-0012-0002-0001-000000000005', 'bicycle', '/ˈbaɪsɪkəl/', 'bisiklet', 'a two-wheeled vehicle', 'A2', ARRAY['nouns', 'transport'], ARRAY['bike', 'cycle'], ARRAY[]::TEXT[], ARRAY['I ride my bicycle.', 'The bicycle is red.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- City Places (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0012-0003-0001-000000000001', 'hospital', '/ˈhɒspɪtəl/', 'hastane', 'a place for sick people', 'A2', ARRAY['nouns', 'places'], ARRAY['clinic'], ARRAY[]::TEXT[], ARRAY['The doctor is at the hospital.', 'Go to the hospital.']),
+('11111111-0012-0003-0001-000000000002', 'library', '/ˈlaɪbrəri/', 'kütüphane', 'a place with many books', 'A2', ARRAY['nouns', 'places'], ARRAY[]::TEXT[], ARRAY[]::TEXT[], ARRAY['I read at the library.', 'The library has many books.']),
+('11111111-0012-0003-0001-000000000003', 'park', '/pɑːrk/', 'park', 'an open area for recreation', 'A2', ARRAY['nouns', 'places'], ARRAY['garden'], ARRAY[]::TEXT[], ARRAY['We play in the park.', 'The park is green.']),
+('11111111-0012-0003-0001-000000000004', 'market', '/ˈmɑːrkɪt/', 'pazar', 'a place to buy things', 'A2', ARRAY['nouns', 'places'], ARRAY['shop', 'store'], ARRAY[]::TEXT[], ARRAY['We go to the market.', 'The market is busy.']),
+('11111111-0012-0003-0001-000000000005', 'restaurant', '/ˈrestərɒnt/', 'restoran', 'a place to eat food', 'A2', ARRAY['nouns', 'places'], ARRAY['cafe', 'eatery'], ARRAY[]::TEXT[], ARRAY['We eat at a restaurant.', 'The restaurant is nice.'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Directions (A2)
+INSERT INTO vocabulary_words (id, word, phonetic, meaning_tr, meaning_en, level, categories, synonyms, antonyms, example_sentences) VALUES
+('11111111-0012-0004-0001-000000000001', 'left', '/left/', 'sol', 'the opposite of right', 'A2', ARRAY['adjectives', 'directions'], ARRAY[]::TEXT[], ARRAY['right'], ARRAY['Turn left.', 'My left hand.']),
+('11111111-0012-0004-0001-000000000002', 'right', '/raɪt/', 'sağ', 'the opposite of left', 'A2', ARRAY['adjectives', 'directions'], ARRAY[]::TEXT[], ARRAY['left'], ARRAY['Turn right.', 'I write with my right hand.']),
+('11111111-0012-0004-0001-000000000003', 'straight', '/streɪt/', 'düz', 'without turning', 'A2', ARRAY['adjectives', 'directions'], ARRAY['direct'], ARRAY['curved'], ARRAY['Go straight ahead.', 'The road is straight.']),
+('11111111-0012-0004-0001-000000000004', 'near', '/nɪr/', 'yakın', 'close in distance', 'A2', ARRAY['adjectives', 'directions'], ARRAY['close', 'nearby'], ARRAY['far'], ARRAY['The school is near.', 'Come near.']),
+('11111111-0012-0004-0001-000000000005', 'far', '/fɑːr/', 'uzak', 'a great distance away', 'A2', ARRAY['adjectives', 'directions'], ARRAY['distant', 'remote'], ARRAY['near', 'close'], ARRAY['The city is far.', 'How far is it?'])
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================
+-- NEW WORD LISTS
+-- =====================
+INSERT INTO word_lists (id, name, description, level, category, word_count, is_system) VALUES
+-- Unit 1 additions
+('22222222-0001-0001-0001-000000000005', 'Greetings', 'Basic greetings and polite words', 'A1', 'common_words', 5, true),
+-- Unit 2 additions
+('22222222-0001-0001-0001-000000000006', 'Colors', 'Learn the basic colors', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000007', 'Shapes', 'Common shapes around us', 'A1', 'thematic', 5, true),
+-- Unit 3 additions
+('22222222-0001-0001-0001-000000000008', 'Actions & Verbs', 'Movement and action words', 'A2', 'common_words', 5, true),
+-- Unit 4: Daily Life
+('22222222-0001-0001-0001-000000000009', 'Family', 'Family member names', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000010', 'Home', 'Things in your house', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000011', 'Clothes', 'What we wear', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000012', 'Time & Days', 'Telling time and days', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000013', 'Numbers', 'Counting and ordinals', 'A1', 'common_words', 5, true),
+-- Unit 5: Food & Kitchen
+('22222222-0001-0001-0001-000000000014', 'Fruits', 'Delicious fruits', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000015', 'Vegetables', 'Healthy vegetables', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000016', 'Drinks', 'Common beverages', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000017', 'Cooking', 'Kitchen actions and tools', 'A2', 'thematic', 5, true),
+-- Unit 6: School & Learning
+('22222222-0001-0001-0001-000000000018', 'Classroom', 'School and classroom words', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000019', 'Subjects', 'School subjects', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000020', 'Sports', 'Popular sports', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000021', 'Music', 'Music and instruments', 'A2', 'thematic', 5, true),
+-- Unit 7: Nature & Weather
+('22222222-0001-0001-0001-000000000022', 'Weather', 'Weather conditions', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000023', 'Seasons', 'The four seasons', 'A1', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000024', 'Plants', 'Trees, flowers, and plants', 'A1', 'thematic', 5, true),
+-- Unit 8: Travel & Places
+('22222222-0001-0001-0001-000000000025', 'Countries', 'Nations and geography', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000026', 'Transport', 'Vehicles and travel', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000027', 'City Places', 'Places in a city', 'A2', 'thematic', 5, true),
+('22222222-0001-0001-0001-000000000028', 'Directions', 'Finding your way', 'A2', 'thematic', 5, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================
+-- WORD LIST ITEMS (link new words to new lists)
+-- =====================
+
+-- Greetings
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000005', '11111111-0005-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000005', '11111111-0005-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000005', '11111111-0005-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000005', '11111111-0005-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000005', '11111111-0005-0001-0001-000000000005', 5);
+-- Colors
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000006', '11111111-0006-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000006', '11111111-0006-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000006', '11111111-0006-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000006', '11111111-0006-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000006', '11111111-0006-0001-0001-000000000005', 5);
+-- Shapes
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000007', '11111111-0006-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000007', '11111111-0006-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000007', '11111111-0006-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000007', '11111111-0006-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000007', '11111111-0006-0002-0001-000000000005', 5);
+-- Actions & Verbs
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000008', '11111111-0007-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000008', '11111111-0007-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000008', '11111111-0007-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000008', '11111111-0007-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000008', '11111111-0007-0001-0001-000000000005', 5);
+-- Family
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000009', '11111111-0008-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000009', '11111111-0008-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000009', '11111111-0008-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000009', '11111111-0008-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000009', '11111111-0008-0001-0001-000000000005', 5);
+-- Home
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000010', '11111111-0008-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000010', '11111111-0008-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000010', '11111111-0008-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000010', '11111111-0008-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000010', '11111111-0008-0002-0001-000000000005', 5);
+-- Clothes
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000011', '11111111-0008-0003-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000011', '11111111-0008-0003-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000011', '11111111-0008-0003-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000011', '11111111-0008-0003-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000011', '11111111-0008-0003-0001-000000000005', 5);
+-- Time & Days
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000012', '11111111-0008-0004-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000012', '11111111-0008-0004-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000012', '11111111-0008-0004-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000012', '11111111-0008-0004-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000012', '11111111-0008-0004-0001-000000000005', 5);
+-- Numbers
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000013', '11111111-0008-0005-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000013', '11111111-0008-0005-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000013', '11111111-0008-0005-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000013', '11111111-0008-0005-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000013', '11111111-0008-0005-0001-000000000005', 5);
+-- Fruits
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000014', '11111111-0009-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000014', '11111111-0009-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000014', '11111111-0009-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000014', '11111111-0009-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000014', '11111111-0009-0001-0001-000000000005', 5);
+-- Vegetables
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000015', '11111111-0009-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000015', '11111111-0009-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000015', '11111111-0009-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000015', '11111111-0009-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000015', '11111111-0009-0002-0001-000000000005', 5);
+-- Drinks
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000016', '11111111-0009-0003-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000016', '11111111-0009-0003-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000016', '11111111-0009-0003-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000016', '11111111-0009-0003-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000016', '11111111-0009-0003-0001-000000000005', 5);
+-- Cooking
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000017', '11111111-0009-0004-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000017', '11111111-0009-0004-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000017', '11111111-0009-0004-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000017', '11111111-0009-0004-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000017', '11111111-0009-0004-0001-000000000005', 5);
+-- Classroom
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000018', '11111111-0010-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000018', '11111111-0010-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000018', '11111111-0010-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000018', '11111111-0010-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000018', '11111111-0010-0001-0001-000000000005', 5);
+-- Subjects
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000019', '11111111-0010-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000019', '11111111-0010-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000019', '11111111-0010-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000019', '11111111-0010-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000019', '11111111-0010-0002-0001-000000000005', 5);
+-- Sports
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000020', '11111111-0010-0003-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000020', '11111111-0010-0003-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000020', '11111111-0010-0003-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000020', '11111111-0010-0003-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000020', '11111111-0010-0003-0001-000000000005', 5);
+-- Music
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000021', '11111111-0010-0004-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000021', '11111111-0010-0004-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000021', '11111111-0010-0004-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000021', '11111111-0010-0004-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000021', '11111111-0010-0004-0001-000000000005', 5);
+-- Weather
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000022', '11111111-0011-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000022', '11111111-0011-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000022', '11111111-0011-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000022', '11111111-0011-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000022', '11111111-0011-0001-0001-000000000005', 5);
+-- Seasons
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000023', '11111111-0011-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000023', '11111111-0011-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000023', '11111111-0011-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000023', '11111111-0011-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000023', '11111111-0011-0002-0001-000000000005', 5);
+-- Plants
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000024', '11111111-0011-0003-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000024', '11111111-0011-0003-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000024', '11111111-0011-0003-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000024', '11111111-0011-0003-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000024', '11111111-0011-0003-0001-000000000005', 5);
+-- Countries
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000025', '11111111-0012-0001-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000025', '11111111-0012-0001-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000025', '11111111-0012-0001-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000025', '11111111-0012-0001-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000025', '11111111-0012-0001-0001-000000000005', 5);
+-- Transport
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000026', '11111111-0012-0002-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000026', '11111111-0012-0002-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000026', '11111111-0012-0002-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000026', '11111111-0012-0002-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000026', '11111111-0012-0002-0001-000000000005', 5);
+-- City Places
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000027', '11111111-0012-0003-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000027', '11111111-0012-0003-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000027', '11111111-0012-0003-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000027', '11111111-0012-0003-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000027', '11111111-0012-0003-0001-000000000005', 5);
+-- Directions
+INSERT INTO word_list_items (word_list_id, word_id, order_index) VALUES
+('22222222-0001-0001-0001-000000000028', '11111111-0012-0004-0001-000000000001', 1),
+('22222222-0001-0001-0001-000000000028', '11111111-0012-0004-0001-000000000002', 2),
+('22222222-0001-0001-0001-000000000028', '11111111-0012-0004-0001-000000000003', 3),
+('22222222-0001-0001-0001-000000000028', '11111111-0012-0004-0001-000000000004', 4),
+('22222222-0001-0001-0001-000000000028', '11111111-0012-0004-0001-000000000005', 5);
+
+-- =====================
+-- NEW VOCABULARY UNITS (4-8)
+-- =====================
+INSERT INTO vocabulary_units (id, name, description, sort_order, color, icon) VALUES
+('aaaaaaaa-0001-0001-0001-000000000004', 'Daily Life', 'Family, home, clothes, and routines', 3, '#CE82FF', '🏠'),
+('aaaaaaaa-0001-0001-0001-000000000005', 'Food & Kitchen', 'Fruits, vegetables, drinks, and cooking', 4, '#FF4B4B', '🍎'),
+('aaaaaaaa-0001-0001-0001-000000000006', 'School & Learning', 'Classroom, subjects, sports, and music', 5, '#2B70C9', '📖'),
+('aaaaaaaa-0001-0001-0001-000000000007', 'Nature & Weather', 'Weather, seasons, and the natural world', 6, '#00CD9C', '🌿'),
+('aaaaaaaa-0001-0001-0001-000000000008', 'Travel & Places', 'Countries, transport, and finding your way', 7, '#F06292', '✈️')
+ON CONFLICT (id) DO NOTHING;
+
+-- =====================
+-- ASSIGN WORD LISTS TO UNITS (unique order_in_unit per list = linear path, one node per row)
+-- =====================
+
+-- Unit 1: First Words (3 lists, sequential 0-1-2)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000001', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000005'; -- Greetings → Unit 1, order 2
+
+-- Unit 2: World Around You (3 lists, sequential 0-1-2)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000002', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000006'; -- Colors → Unit 2, order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000002', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000007'; -- Shapes → Unit 2, order 2
+
+-- Unit 3: Express Yourself (2 lists, sequential 0-1)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000003', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000008'; -- Actions → Unit 3, order 1
+
+-- Unit 4: Daily Life (5 lists, sequential 0-1-2-3-4)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000004', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000009'; -- Family → order 0
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000004', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000010'; -- Home → order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000004', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000011'; -- Clothes → order 2
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000004', order_in_unit = 3
+WHERE id = '22222222-0001-0001-0001-000000000012'; -- Time & Days → order 3
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000004', order_in_unit = 4
+WHERE id = '22222222-0001-0001-0001-000000000013'; -- Numbers → order 4
+
+-- Unit 5: Food & Kitchen (4 lists, sequential 0-1-2-3)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000005', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000014'; -- Fruits → order 0
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000005', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000015'; -- Vegetables → order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000005', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000016'; -- Drinks → order 2
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000005', order_in_unit = 3
+WHERE id = '22222222-0001-0001-0001-000000000017'; -- Cooking → order 3
+
+-- Unit 6: School & Learning (4 lists, sequential 0-1-2-3)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000006', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000018'; -- Classroom → order 0
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000006', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000019'; -- Subjects → order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000006', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000020'; -- Sports → order 2
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000006', order_in_unit = 3
+WHERE id = '22222222-0001-0001-0001-000000000021'; -- Music → order 3
+
+-- Unit 7: Nature & Weather (3 lists, sequential 0-1-2)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000007', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000022'; -- Weather → order 0
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000007', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000023'; -- Seasons → order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000007', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000024'; -- Plants → order 2
+
+-- Unit 8: Travel & Places (4 lists, sequential 0-1-2-3)
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000008', order_in_unit = 0
+WHERE id = '22222222-0001-0001-0001-000000000025'; -- Countries → order 0
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000008', order_in_unit = 1
+WHERE id = '22222222-0001-0001-0001-000000000026'; -- Transport → order 1
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000008', order_in_unit = 2
+WHERE id = '22222222-0001-0001-0001-000000000027'; -- City Places → order 2
+UPDATE word_lists SET unit_id = 'aaaaaaaa-0001-0001-0001-000000000008', order_in_unit = 3
+WHERE id = '22222222-0001-0001-0001-000000000028'; -- Directions → order 3
+
+-- =====================
+-- USER PROGRESS (Active Student - 88888888-0001-0001-0001-000000000002)
+-- Creates a mix of completed, in-progress, and not-started nodes for visual testing
+-- =====================
+INSERT INTO user_word_list_progress (id, user_id, word_list_id, phase1_complete, phase2_complete, phase3_complete, phase4_complete, phase4_score, phase4_total, started_at, completed_at, updated_at) VALUES
+-- Unit 1: ALL COMPLETED (gold nodes)
+('bbbbbbbb-0001-0001-0001-000000000001', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000001', true, true, true, true, 9, 10, NOW() - INTERVAL '14 days', NOW() - INTERVAL '12 days', NOW()),
+('bbbbbbbb-0001-0001-0001-000000000002', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000002', true, true, true, true, 5, 5, NOW() - INTERVAL '12 days', NOW() - INTERVAL '10 days', NOW()),
+('bbbbbbbb-0001-0001-0001-000000000003', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000005', true, true, true, true, 4, 5, NOW() - INTERVAL '11 days', NOW() - INTERVAL '9 days', NOW()),
+-- Unit 2: MIXED (gold + colored + gray)
+('bbbbbbbb-0001-0001-0001-000000000004', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000003', true, true, true, true, 5, 5, NOW() - INTERVAL '9 days', NOW() - INTERVAL '7 days', NOW()),  -- Animals: completed
+('bbbbbbbb-0001-0001-0001-000000000005', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000006', true, true, false, false, NULL, NULL, NOW() - INTERVAL '5 days', NULL, NOW()),  -- Colors: phase 1+2 done (in-progress)
+-- Shapes: no progress record = not started (gray node)
+-- Unit 3: FIRST STARTED
+('bbbbbbbb-0001-0001-0001-000000000006', '88888888-0001-0001-0001-000000000002', '22222222-0001-0001-0001-000000000004', true, false, false, false, NULL, NULL, NOW() - INTERVAL '2 days', NULL, NOW())  -- Feelings: phase 1 done only
+-- Actions: no progress = not started
+-- Units 4-8: completely untouched (all gray nodes)
+ON CONFLICT (id) DO NOTHING;
 

@@ -8,6 +8,41 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Home Screen Redesign — Duolingo-Style Daily Quest Cards (2026-02-07)
+
+#### Changed
+- **Daily Tasks → Quest Cards** - Replaced plain icon+label+badge rows with Duolingo-style quest cards
+  - Each quest: 44px circle icon, bold title, gold progress bar with "X/Y" text overlay, treasure chest emoji
+  - Progress bar uses `FractionallySizedBox` fill with gold (`AppColors.wasp`) color
+  - Completed quests: gold border tint, check icon, gift emoji
+  - All quests inside a single unified card with dividers between rows (not separate cards)
+- **Assignments merged into Daily Tasks** - `DailyGoalWidget` now watches `activeAssignmentsProvider`
+  - Assignment quest rows appear above daily quests with type-based tinted background
+  - Assignment types have distinct icons/colors: book (blue), vocabulary (secondary), mixed (green)
+  - Progress bars show assignment completion, due date text overlay ("2 days left" / "Due today" / "Overdue")
+  - Thick divider separates assignment rows from daily quest rows
+  - Tapping assignment still navigates to detail screen
+- **Loading skeleton** matches new unified card layout (circle + progress bar shimmer rows)
+
+#### Removed
+- **Separate "Assignments" section** from home screen — assignments now inside daily tasks card
+- **`_AssignmentCard`** class from `home_screen.dart` (replaced by `_AssignmentQuestRow` in `daily_tasks_list.dart`)
+- **"Daily Tasks" section header** from home screen
+- **Quest header text** ("Complete your daily quests!" / "X Daily Quest complete!")
+- **"DAILY QUESTS" label divider** between assignments and daily quests
+
+#### Infrastructure
+- **Modified Files**: `daily_tasks_list.dart` (full redesign), `daily_goal_widget.dart` (watches assignments), `home_screen.dart` (cleanup)
+- **No backend changes** — all providers, use cases, entities unchanged
+
+### Vocabulary Learning Path Improvements (2026-02-07)
+
+#### Changed
+- **Linear path layout** - Each word list gets its own row (1 node per row instead of 1-3)
+- **PathUnitData.isAllComplete** getter added for unit completion tracking
+- **Profile screen** - Updated with new stats layout
+- **Seed data** - Expanded vocabulary units and word lists
+
 ### Duolingo-Style Vocabulary Learning Path (2026-02-06)
 
 #### Added

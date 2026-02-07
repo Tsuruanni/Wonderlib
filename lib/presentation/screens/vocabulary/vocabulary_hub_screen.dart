@@ -39,12 +39,9 @@ class VocabularyHubScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Daily Review Section
-                  const _SectionHeader(title: 'Daily Vocabulary Review'),
+                  // Daily Review Section (hidden when < 10 due words and no session)
+                  const _DailyReviewHeader(),
                   const _DailyReviewSection(),
-
-                  // Daily limit indicator
-                  const _DailyLimitIndicator(),
 
                   // Learning Path (Duolingo-style vertical path)
                   const LearningPath(),
@@ -192,7 +189,24 @@ class VocabularyHubScreen extends ConsumerWidget {
   }
 }
 
-/// Daily Review Section with 4 states: completed, no words, building up, ready
+/// Conditionally shows the "Daily Vocabulary Review" header only when the section is visible.
+class _DailyReviewHeader extends ConsumerWidget {
+  const _DailyReviewHeader();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todaySession = ref.watch(todayReviewSessionProvider).valueOrNull;
+    final dueWords = ref.watch(dailyReviewWordsProvider).valueOrNull ?? [];
+
+    final shouldShow = todaySession != null || dueWords.length >= minDailyReviewCount;
+    if (!shouldShow) return const SizedBox.shrink();
+
+    return const _SectionHeader(title: 'Daily Vocabulary Review');
+  }
+}
+
+/// Daily Review Section — only shows when completed or ready (>= 10 words).
+/// "Building up" and "all caught up" states are handled by the profile screen.
 class _DailyReviewSection extends ConsumerWidget {
   const _DailyReviewSection();
 
@@ -204,23 +218,18 @@ class _DailyReviewSection extends ConsumerWidget {
     final todaySession = todaySessionAsync.valueOrNull;
     final dueWords = dueWordsAsync.valueOrNull ?? [];
 
-    // State 1: Already completed today
+    // Already completed today — show completed card
     if (todaySession != null) {
       return _CompletedReviewCard(session: todaySession);
     }
 
-    // State 2: No words due
-    if (dueWords.isEmpty) {
-      return const _AllCaughtUpCard();
+    // Enough words to start a review session
+    if (dueWords.length >= minDailyReviewCount) {
+      return _ReadyToReviewCard(wordCount: dueWords.length);
     }
 
-    // State 3: Not enough words yet (building up)
-    if (dueWords.length < minDailyReviewCount) {
-      return _BuildingUpCard(currentCount: dueWords.length);
-    }
-
-    // State 4: Words ready for review
-    return _ReadyToReviewCard(wordCount: dueWords.length);
+    // Not enough words (or zero) — hide entirely; profile shows the status
+    return const SizedBox.shrink();
   }
 }
 
@@ -278,150 +287,6 @@ class _CompletedReviewCard extends StatelessWidget {
                   style: GoogleFonts.nunito(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Card showing no words due
-class _AllCaughtUpCard extends StatelessWidget {
-  const _AllCaughtUpCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.gemBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.emoji_events_rounded,
-              color: AppColors.gemBlue,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'All Caught Up!',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    color: AppColors.black,
-                  ),
-                ),
-                Text(
-                  'No words due for review.',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Card showing words building up (below minimum threshold)
-class _BuildingUpCard extends StatelessWidget {
-  const _BuildingUpCard({required this.currentCount});
-
-  final int currentCount;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = currentCount / minDailyReviewCount;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gemBlue.withValues(alpha: 0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gemBlue.withValues(alpha: 0.15),
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.gemBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              Icons.hourglass_top_rounded,
-              color: AppColors.gemBlue,
-              size: 32,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Words Building Up',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    color: AppColors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$currentCount/$minDailyReviewCount words — keep learning to unlock review!',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    backgroundColor: AppColors.gemBlue.withValues(alpha: 0.1),
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.gemBlue),
                   ),
                 ),
               ],
@@ -671,44 +536,4 @@ class _WordListTile extends StatelessWidget {
   }
 }
 
-/// Small indicator showing daily word learning allowance
-class _DailyLimitIndicator extends ConsumerWidget {
-  const _DailyLimitIndicator();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final remainingAsync = ref.watch(remainingDailyWordAllowanceProvider);
-    final remaining = remainingAsync.valueOrNull;
-
-    // Don't show if loading or full allowance remaining
-    if (remaining == null || remaining >= dailyWordListLimit) return const SizedBox.shrink();
-
-    final used = dailyWordListLimit - remaining;
-    final isExhausted = remaining <= 0;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Icon(
-            isExhausted ? Icons.lock_rounded : Icons.bolt_rounded,
-            size: 14,
-            color: isExhausted ? AppColors.neutralText : AppColors.streakOrange,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isExhausted
-                ? 'Daily limit reached ($used/$dailyWordListLimit words)'
-                : '$used/$dailyWordListLimit new words today',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: isExhausted ? AppColors.neutralText : AppColors.streakOrange,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 

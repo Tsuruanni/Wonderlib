@@ -531,7 +531,7 @@ class VocabularyHubStats {
 // LEARNING PATH PROVIDERS
 // ============================================
 
-/// One row in the learning path (1-3 word lists at the same order_in_unit)
+/// One row in the learning path (always exactly 1 word list — linear path)
 class PathRowData {
   const PathRowData({required this.orderInUnit, required this.items});
   final int orderInUnit;
@@ -543,6 +543,11 @@ class PathUnitData {
   const PathUnitData({required this.unit, required this.rows});
   final VocabularyUnit unit;
   final List<PathRowData> rows;
+
+  /// Whether every word list in this unit is fully complete.
+  bool get isAllComplete => rows.every(
+    (row) => row.items.every((item) => item.isComplete),
+  );
 }
 
 /// All active vocabulary units (ordered by sort_order)
@@ -577,22 +582,13 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
     final unitLists = listsByUnit[unit.id] ?? [];
     if (unitLists.isEmpty) continue;
 
-    // Group by order_in_unit to create rows
-    final rowMap = <int, List<WordListWithProgress>>{};
-    for (final list in unitLists) {
-      final order = list.orderInUnit ?? 0;
-      rowMap.putIfAbsent(order, () => []).add(
-        WordListWithProgress(
-          wordList: list,
-          progress: progressMap[list.id],
-        ),
-      );
-    }
-
-    // Sort rows by order_in_unit
-    final sortedOrders = rowMap.keys.toList()..sort();
-    final rows = sortedOrders
-        .map((order) => PathRowData(orderInUnit: order, items: rowMap[order]!))
+    // Each word list gets its own row — linear path
+    unitLists.sort((a, b) => (a.orderInUnit ?? 0).compareTo(b.orderInUnit ?? 0));
+    final rows = unitLists
+        .map((list) => PathRowData(
+              orderInUnit: list.orderInUnit ?? 0,
+              items: [WordListWithProgress(wordList: list, progress: progressMap[list.id])],
+            ),)
         .toList();
 
     result.add(PathUnitData(unit: unit, rows: rows));

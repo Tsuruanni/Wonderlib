@@ -10,6 +10,7 @@ import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/game_button.dart';
@@ -224,6 +225,12 @@ class ProfileScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+
+                // Daily Vocabulary Review
+                if (user.role.isStudent) ...[
+                  const SizedBox(height: 32),
+                  const _DailyReviewProfileCard(),
+                ],
 
                 const SizedBox(height: 48),
 
@@ -465,5 +472,226 @@ class _BadgeItem extends StatelessWidget {
           ],
         ),
       );
+  }
+}
+
+/// Daily review status card for the profile screen.
+/// Shows one of three states: completed, building up, or ready to review.
+class _DailyReviewProfileCard extends ConsumerWidget {
+  const _DailyReviewProfileCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todaySession = ref.watch(todayReviewSessionProvider).valueOrNull;
+    final dueWords = ref.watch(dailyReviewWordsProvider).valueOrNull ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Daily Vocabulary Review',
+          style: GoogleFonts.nunito(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.black,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (todaySession != null)
+          _buildCompletedCard(todaySession)
+        else if (dueWords.length >= minDailyReviewCount)
+          _buildReadyCard(context, dueWords.length)
+        else
+          _buildBuildingUpCard(dueWords.length),
+      ],
+    );
+  }
+
+  Widget _buildCompletedCard(dynamic session) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.15),
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.check_circle_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Review Complete!',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Text(
+                  '+${session.xpEarned} XP earned today',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadyCard(BuildContext context, int wordCount) {
+    return PressableScale(
+      onTap: () => context.push('/vocabulary/daily-review'),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.streakOrange.withValues(alpha: 0.3), width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.streakOrange.withValues(alpha: 0.15),
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.streakOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.bolt_rounded,
+                color: AppColors.streakOrange,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$wordCount words ready!',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: AppColors.streakOrange,
+                    ),
+                  ),
+                  Text(
+                    'Tap to start your daily review',
+                    style: GoogleFonts.nunito(
+                      color: AppColors.neutralText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: AppColors.streakOrange),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBuildingUpCard(int currentCount) {
+    final progress = currentCount / minDailyReviewCount;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.gemBlue.withValues(alpha: 0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gemBlue.withValues(alpha: 0.15),
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.gemBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.hourglass_top_rounded,
+              color: AppColors.gemBlue,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Words Building Up',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$currentCount/$minDailyReviewCount — keep learning to unlock review!',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor: AppColors.gemBlue.withValues(alpha: 0.1),
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.gemBlue),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

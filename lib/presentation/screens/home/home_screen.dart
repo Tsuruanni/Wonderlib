@@ -5,10 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
-import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
-import '../../providers/student_assignment_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/home/daily_goal_widget.dart';
@@ -23,7 +21,6 @@ class HomeScreen extends ConsumerWidget {
     final user = userAsync.valueOrNull;
 
     // 2. Data Providers
-    final activeAssignmentsAsync = ref.watch(activeAssignmentsProvider);
     final continueReadingAsync = ref.watch(continueReadingProvider);
     final recommendedBooksAsync = ref.watch(recommendedBooksProvider);
     
@@ -45,36 +42,8 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // --- Daily Tasks Section ---
-                  _buildSectionHeader(context, 'Daily Tasks'),
-                  const SizedBox(height: 16),
                   const DailyGoalWidget(),
                   const SizedBox(height: 32),
-
-              // --- Assignments Section (only if not empty) ---
-              activeAssignmentsAsync.when(
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (assignments) {
-                  if (assignments.isEmpty) return const SizedBox.shrink();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader(context, 'Assignments'),
-                      const SizedBox(height: 16),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: assignments.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          return _AssignmentCard(assignment: assignments[index]);
-                        },
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  );
-                },
-              ),
 
               // --- Continue Reading Section ---
               _buildSectionHeader(context, 'Continue Reading'),
@@ -385,99 +354,3 @@ class _BookCard extends StatelessWidget {
   }
 }
 
-class _AssignmentCard extends StatelessWidget {
-  final StudentAssignment assignment;
-  const _AssignmentCard({required this.assignment});
-
-  @override
-  Widget build(BuildContext context) {
-    final daysLeft = assignment.dueDate.difference(DateTime.now()).inDays;
-    final isOverdue = daysLeft < 0;
-    final isDueToday = daysLeft == 0;
-
-    // Badge color and text
-    final Color badgeColor;
-    final Color badgeTextColor;
-    final String badgeText;
-
-    if (isOverdue) {
-      badgeColor = AppColors.dangerBackground;
-      badgeTextColor = AppColors.danger;
-      badgeText = 'Overdue';
-    } else if (isDueToday) {
-      badgeColor = AppColors.waspBackground;
-      badgeTextColor = AppColors.waspDark;
-      badgeText = 'Due today';
-    } else if (daysLeft == 1) {
-      badgeColor = AppColors.waspBackground;
-      badgeTextColor = AppColors.waspDark;
-      badgeText = '1 day left';
-    } else {
-      badgeColor = AppColors.secondaryBackground;
-      badgeTextColor = AppColors.secondary;
-      badgeText = '$daysLeft days left';
-    }
-
-    return PressableScale(
-      onTap: () => context.push('${AppRoutes.studentAssignments}/${assignment.assignmentId}'),
-      child: Container(
-         padding: const EdgeInsets.all(14),
-         decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.neutral, width: 2),
-            boxShadow: [
-              BoxShadow(color: AppColors.neutral, offset: const Offset(0, 3)),
-            ],
-         ),
-         child: Row(
-           children: [
-              Container(
-                 padding: const EdgeInsets.all(10),
-                 decoration: BoxDecoration(
-                    color: AppColors.gemBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                 ),
-                 child: const Icon(Icons.assignment_rounded, color: AppColors.gemBlue, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      assignment.title,
-                      style: GoogleFonts.nunito(fontWeight: FontWeight.w700, fontSize: 15),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: badgeColor,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badgeText,
-                        style: GoogleFonts.nunito(
-                          color: badgeTextColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              if (assignment.status == StudentAssignmentStatus.completed)
-                const Icon(Icons.check_circle, color: AppColors.primary)
-              else
-                const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.neutralText),
-           ],
-         ),
-      ),
-    );
-  }
-}

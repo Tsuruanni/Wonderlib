@@ -3,46 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readeng/app/theme.dart';
 import 'package:readeng/presentation/providers/daily_goal_provider.dart';
+import 'package:readeng/presentation/providers/student_assignment_provider.dart';
 import 'package:readeng/presentation/widgets/home/daily_tasks_list.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// Main daily goal widget combining streak display and tasks list
+/// Main daily goal widget combining quest cards and assignment cards
 class DailyGoalWidget extends ConsumerWidget {
   const DailyGoalWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyGoalAsync = ref.watch(dailyGoalProvider);
+    final assignmentsAsync = ref.watch(activeAssignmentsProvider);
 
     return dailyGoalAsync.when(
       loading: () => _buildLoadingSkeleton(),
       error: (_, __) => _buildErrorState(),
-      data: (state) => _buildContent(state),
-    );
-  }
-
-  Widget _buildContent(DailyGoalState state) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: DailyTasksList(state: state),
+      data: (state) {
+        final assignments = assignmentsAsync.valueOrNull ?? [];
+        return DailyTasksList(
+          state: state,
+          assignments: assignments,
+        );
+      },
     );
   }
 
   Widget _buildLoadingSkeleton() {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
@@ -58,80 +46,62 @@ class DailyGoalWidget extends ConsumerWidget {
       child: Shimmer.fromColors(
         baseColor: AppColors.neutral,
         highlightColor: AppColors.white,
-        child: Column(
-          children: [
-            // Header skeleton
-            Row(
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Column(
+            children: [
+              // Header skeleton
+              Container(
+                width: 180,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(9),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 100,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Content skeleton
-            Row(
-              children: [
-                // Left skeleton
-                Column(
+              ),
+              const SizedBox(height: 14),
+              // 3 row skeletons
+              ...List.generate(3, (index) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
                   children: [
                     Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 40,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(4),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 120,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 24),
-
-                // Right skeleton
-                Expanded(
-                  child: Column(
-                    children: List.generate(
-                      3,
-                      (index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Container(
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              )),
+            ],
+          ),
         ),
       ),
     );
