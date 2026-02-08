@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../common/pressable_scale.dart';
 
 /// Controls whether the text label appears below, to the left, or to the right of the node circle.
@@ -80,22 +82,11 @@ class _PathNodeState extends State<PathNode>
 
   void _handleTap(BuildContext context) {
     if (widget.isLocked) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              'Complete the previous unit to unlock',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
-            ),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      showAppSnackBar(context, 'Complete the previous unit to unlock');
       return;
     }
     final id = widget.wordListWithProgress.wordList.id;
-    context.push('/vocabulary/list/$id');
+    context.push(AppRoutes.vocabularyListPath(id));
   }
 
   @override

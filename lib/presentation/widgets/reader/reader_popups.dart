@@ -7,6 +7,7 @@ import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/word_definition_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../../domain/usecases/vocabulary/search_words_usecase.dart';
 import 'vocabulary_popup.dart';
@@ -99,12 +100,7 @@ class ReaderPopups extends ConsumerWidget {
 
     if (wordData == null) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not find "$word" in vocabulary database'),
-            backgroundColor: Colors.orange,
-          ),
-        );
+        showAppSnackBar(context, 'Could not find "$word" in vocabulary database', type: SnackBarType.warning);
       }
       return;
     }
@@ -119,20 +115,10 @@ class ReaderPopups extends ConsumerWidget {
     if (context.mounted) {
       result.fold(
         (failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to add "$word": ${failure.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          showAppSnackBar(context, 'Failed to add "$word": ${failure.message}', type: SnackBarType.error);
         },
         (progress) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Added "$word" to your vocabulary'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          showAppSnackBar(context, 'Added "$word" to your vocabulary', type: SnackBarType.success);
         },
       );
     }

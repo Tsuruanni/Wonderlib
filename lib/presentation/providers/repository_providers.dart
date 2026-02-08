@@ -12,6 +12,7 @@ import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
 import '../../data/repositories/supabase/supabase_content_block_repository.dart';
+import '../../data/repositories/supabase/supabase_card_repository.dart';
 import '../../data/repositories/supabase/supabase_system_settings_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/content_block_repository.dart';
@@ -23,6 +24,7 @@ import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
 import '../../domain/repositories/teacher_repository.dart';
 import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/repositories/card_repository.dart';
 import '../../domain/repositories/system_settings_repository.dart';
 
 /// Repository providers
@@ -75,6 +77,10 @@ final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
 
 final contentBlockRepositoryProvider = Provider<ContentBlockRepository>((ref) {
   return SupabaseContentBlockRepository();
+});
+
+final cardRepositoryProvider = Provider<CardRepository>((ref) {
+  return SupabaseCardRepository();
 });
 
 final systemSettingsRepositoryProvider = Provider<SystemSettingsRepository>((ref) {

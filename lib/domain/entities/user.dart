@@ -15,6 +15,7 @@ class User extends Equatable {
     this.email,
     this.avatarUrl,
     this.xp = 0,
+    this.coins = 0,
     this.level = 1,
     this.currentStreak = 0,
     this.longestStreak = 0,
@@ -33,6 +34,7 @@ class User extends Equatable {
   final String? email;
   final String? avatarUrl;
   final int xp;
+  final int coins;
   final int level;
   final int currentStreak;
   final int longestStreak;
@@ -70,6 +72,7 @@ class User extends Equatable {
     String? email,
     String? avatarUrl,
     int? xp,
+    int? coins,
     int? level,
     int? currentStreak,
     int? longestStreak,
@@ -89,6 +92,7 @@ class User extends Equatable {
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       xp: xp ?? this.xp,
+      coins: coins ?? this.coins,
       level: level ?? this.level,
       currentStreak: currentStreak ?? this.currentStreak,
       longestStreak: longestStreak ?? this.longestStreak,
@@ -111,6 +115,7 @@ class User extends Equatable {
         email,
         avatarUrl,
         xp,
+        coins,
         level,
         currentStreak,
         longestStreak,

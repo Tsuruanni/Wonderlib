@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../core/constants/reader_constants.dart';
 import '../../../core/services/word_pronunciation_service.dart';
 import '../../../domain/entities/chapter.dart';
@@ -212,7 +213,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     }
 
     if (mounted) {
-      context.go('/reader/$bookId/${nextChapter.id}');
+      context.go(AppRoutes.readerPath(bookId, nextChapter.id));
     }
   }
 
@@ -245,7 +246,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       ref.invalidate(readingProgressProvider(bookId));
       ref.invalidate(continueReadingProvider);
       ref.invalidate(recommendedBooksProvider);
-      context.go('/library/book/$bookId');
+      context.go(AppRoutes.bookDetailPath(bookId));
     }
   }
 
@@ -257,7 +258,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     ref.invalidate(continueReadingProvider);
     ref.invalidate(recommendedBooksProvider);
     if (mounted) {
-      context.go('/library/book/${widget.bookId}');
+      context.go(AppRoutes.bookDetailPath(widget.bookId));
     }
   }
 

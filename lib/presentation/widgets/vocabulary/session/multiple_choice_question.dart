@@ -149,7 +149,6 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
     Color backgroundColor = theme.colorScheme.surface;
     Color textColor = theme.colorScheme.onSurface;
     double borderWidth = 1.0;
-    double elevation = 2.0;
 
     if (_answered) {
       if (isCorrect) {

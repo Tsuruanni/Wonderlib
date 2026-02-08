@@ -5,12 +5,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../domain/entities/vocabulary_session.dart';
 import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 class SessionSummaryScreen extends ConsumerStatefulWidget {
   const SessionSummaryScreen({
@@ -93,16 +96,12 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         debugPrint('Failed to save session: ${failure.message}');
         if (mounted) {
           setState(() => _saving = false); // Allow retry
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Failed to save session. Check your connection.'),
-              backgroundColor: Colors.red,
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: Colors.white,
-                onPressed: _saveSession,
-              ),
-            ),
+          showAppSnackBar(
+            context,
+            'Failed to save session. Check your connection.',
+            type: SnackBarType.error,
+            actionLabel: 'Retry',
+            onAction: _saveSession,
           );
         }
       },
@@ -111,6 +110,8 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(userWordListProgressProvider);
         ref.invalidate(wordListsWithProgressProvider);
         ref.invalidate(learningPathProvider);
+        // Refresh user state so XP/level updates in navbar + triggers level-up celebration
+        ref.read(userControllerProvider.notifier).refresh();
         if (mounted) setState(() => _saved = true);
       },
     );
@@ -265,7 +266,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: () {
-                      context.go('/vocabulary');
+                      context.go(AppRoutes.vocabulary);
                     },
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 18),
@@ -289,7 +290,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                             .map((w) => w.wordId)
                             .toList();
                         context.go(
-                          '/vocabulary/list/${widget.listId}/session',
+                          AppRoutes.vocabularySessionPath(widget.listId),
                           extra: weakWordIds,
                         );
                       },

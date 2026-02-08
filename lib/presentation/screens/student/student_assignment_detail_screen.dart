@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
@@ -389,7 +390,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
                     color: Colors.purple,
                     onTap: () {
                       // Navigate to vocabulary
-                      context.go('/vocabulary');
+                      context.go(AppRoutes.vocabulary);
                     },
                   ),
                 ],
@@ -429,7 +430,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
 
     // Navigate to book detail - use go() not push() to avoid shell navigation conflicts
     if (context.mounted) {
-      context.go('/library/book/${assignment.bookId}');
+      context.go(AppRoutes.bookDetailPath(assignment.bookId!));
     }
   }
 

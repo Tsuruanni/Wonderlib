@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/student_assignment.dart';
 
 import '../../core/constants/app_constants.dart';
-import '../../domain/repositories/student_assignment_repository.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 

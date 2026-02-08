@@ -9,7 +9,12 @@ import '../../domain/usecases/usecase.dart';
 import 'repository_providers.dart';
 import 'usecase_providers.dart';
 
-/// Provides the current user stream
+/// Provides the current user stream.
+///
+/// NOTE: This provider accesses the repository directly (bypassing UseCase layer)
+/// because auth state changes is a reactive stream that doesn't fit the
+/// Future<Either<Failure, T>> UseCase pattern. This is an intentional exception
+/// documented in the architecture audit (2026-02-08).
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   final authRepo = ref.watch(authRepositoryProvider);
   return authRepo.authStateChanges;

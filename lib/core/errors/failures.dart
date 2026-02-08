@@ -87,6 +87,12 @@ class NotFoundFailure extends Failure {
       : super(message: message, code: 'NOT_FOUND');
 }
 
+/// Insufficient funds (e.g., not enough coins for purchase)
+class InsufficientFundsFailure extends Failure {
+  const InsufficientFundsFailure(String message)
+      : super(message: message, code: 'INSUFFICIENT_FUNDS');
+}
+
 /// Generic unexpected failure
 class UnexpectedFailure extends Failure {
   const UnexpectedFailure([String message = 'An unexpected error occurred'])

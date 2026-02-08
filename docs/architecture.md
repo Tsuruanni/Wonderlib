@@ -124,6 +124,7 @@ lib/
 │       ├── teacher/          # Teacher UseCases
 │       ├── assignment/       # Assignment UseCases
 │       ├── content/          # ContentBlock UseCases
+│       ├── card/             # Card collection UseCases (6)
 │       └── settings/         # SystemSettings UseCases
 │
 ├── presentation/
@@ -133,7 +134,9 @@ lib/
 │   │   ├── audio_sync_provider.dart  # Audio playback + auto-play orchestration
 │   │   ├── vocabulary_session_provider.dart  # Vocabulary quiz session state
 │   │   └── *_provider.dart   # Feature providers
-│   ├── screens/              # Page widgets
+│   ├── screens/              # Page widgets (31 screens)
+│   │   ├── cards/            # Card collection + pack opening
+│   │   └── ...
 │   └── widgets/
 │       ├── common/           # Shared widgets (XPBadge, StatItem, TopNavbar, StreakStatusDialog)
 │       ├── vocabulary/       # Vocabulary path widgets

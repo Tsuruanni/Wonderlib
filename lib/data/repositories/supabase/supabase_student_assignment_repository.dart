@@ -45,7 +45,10 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
 
       for (final data in response as List) {
         final assignmentData = data['assignments'] as Map<String, dynamic>?;
-        if (assignmentData == null) continue;
+        if (assignmentData == null) {
+          debugPrint('Skipping assignment_student with missing assignment data: ${data['id']}');
+          continue;
+        }
 
         try {
           assignments.add(StudentAssignmentModel.fromJson(data).toEntity());

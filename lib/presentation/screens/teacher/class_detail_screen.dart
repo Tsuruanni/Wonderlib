@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/change_student_class_usecase.dart';
@@ -10,6 +11,7 @@ import '../../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/ui_helpers.dart';
 
 class ClassDetailScreen extends ConsumerWidget {
   const ClassDetailScreen({
@@ -93,7 +95,7 @@ class ClassDetailScreen extends ConsumerWidget {
                         classId: classId,
                         onTap: () {
                           // Navigate to student detail (nested under class)
-                          context.push('/teacher/classes/$classId/student/${student.id}');
+                          context.push(AppRoutes.teacherStudentDetailPath(classId, student.id));
                         },
                       );
                     },
@@ -348,9 +350,7 @@ class _StudentCard extends ConsumerWidget {
                   ? () {
                       Clipboard.setData(ClipboardData(text: student.email!));
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Email copied to clipboard')),
-                      );
+                      showAppSnackBar(context, 'Email copied to clipboard');
                     }
                   : null,
             ),
@@ -416,20 +416,10 @@ class _StudentCard extends ConsumerWidget {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${failure.message}'),
-            backgroundColor: context.colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
       },
       (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Password reset email sent to ${student.email}'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Password reset email sent to ${student.email}', type: SnackBarType.success);
       },
     );
   }
@@ -458,12 +448,7 @@ class _StudentCard extends ConsumerWidget {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${failure.message}'),
-            backgroundColor: context.colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
       },
       (newPassword) {
         // Show new password dialog
@@ -501,9 +486,7 @@ class _StudentCard extends ConsumerWidget {
                         icon: const Icon(Icons.copy),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: newPassword));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Password copied')),
-                          );
+                          showAppSnackBar(context, 'Password copied');
                         },
                       ),
                     ],
@@ -604,22 +587,12 @@ class _StudentCard extends ConsumerWidget {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${failure.message}'),
-            backgroundColor: context.colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
       },
       (_) {
         // Refresh the class students list
         ref.invalidate(classStudentsProvider(classId));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${student.fullName} moved to new class'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, '${student.fullName} moved to new class', type: SnackBarType.success);
       },
     );
   }

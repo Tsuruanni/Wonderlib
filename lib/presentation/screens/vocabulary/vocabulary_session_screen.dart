@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/entities/vocabulary_session.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
-import '../../widgets/vocabulary/session/combo_indicator.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/vocabulary/session/listening_question.dart';
 import '../../widgets/vocabulary/session/matching_question.dart';
 import '../../widgets/vocabulary/session/multiple_choice_question.dart';
@@ -60,9 +61,7 @@ class _VocabularySessionScreenState
         if (words.isEmpty) {
           context.pop();
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Need at least 2 words for a session')),
-          );
+          showAppSnackBar(context, 'Need at least 2 words for a session');
           context.pop();
         }
       }
@@ -92,7 +91,7 @@ class _VocabularySessionScreenState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go(
-            '/vocabulary/list/${widget.listId}/session/summary',
+            AppRoutes.vocabularySessionSummaryPath(widget.listId),
           );
         }
       });
@@ -294,7 +293,7 @@ class _VocabularySessionScreenState
       return const Center(child: CircularProgressIndicator());
     }
 
-    return _buildQuestion(question, controller);
+    return _buildQuestion(question, controller, sessionState.questionIndex);
   }
 
   Widget _buildIntroductionCards(
@@ -342,9 +341,14 @@ class _VocabularySessionScreenState
   Widget _buildQuestion(
     SessionQuestion question,
     VocabularySessionController controller,
+    int questionIndex,
   ) {
-    // Use a key to force rebuild when question changes
-    final key = ValueKey('${question.type}_${question.targetWordId}_${question.hashCode}');
+    // Use questionIndex (monotonically increasing) to guarantee unique keys.
+    // SessionQuestion extends Equatable, so hashCode is content-based — two
+    // consecutive questions for the same word with the same option order would
+    // produce the same key, causing AnimatedSwitcher to reuse the old widget
+    // element (with _answered = true), making the UI non-interactive.
+    final key = ValueKey('q_$questionIndex');
 
     switch (question.type) {
       case QuestionType.multipleChoice:

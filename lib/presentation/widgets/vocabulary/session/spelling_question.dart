@@ -52,9 +52,6 @@ class _SpellingQuestionState extends State<SpellingQuestion> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isCorrect = _answered &&
-        _controller.text.trim().toLowerCase() ==
-            widget.question.correctAnswer.toLowerCase();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),

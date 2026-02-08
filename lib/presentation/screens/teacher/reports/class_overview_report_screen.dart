@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
@@ -106,7 +107,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                 // Class cards
                 ...classes.map((classItem) => _ClassReportCard(
                   classItem: classItem,
-                  onTap: () => context.push('/teacher/classes/${classItem.id}'),
+                  onTap: () => context.push(AppRoutes.teacherClassDetailPath(classItem.id)),
                 ),),
               ],
             );

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -159,7 +160,7 @@ class WordListDetailScreen extends ConsumerWidget {
   }
 
   void _startSession(BuildContext context) {
-    context.push('/vocabulary/list/$listId/session');
+    context.push(AppRoutes.vocabularySessionPath(listId));
   }
 }
 

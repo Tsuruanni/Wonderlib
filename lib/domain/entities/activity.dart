@@ -15,6 +15,7 @@ enum InlineActivityType {
   trueFalse,        // D/Y soruları
   wordTranslation,  // Kelime çevirisi seç
   findWords,        // Paragraftan kelime bul
+  matching,         // Eşleştirme (tap-to-match pairs)
 }
 
 // ============================================
@@ -70,6 +71,32 @@ class FindWordsContent extends InlineActivityContent {
 
   @override
   List<Object?> get props => [instruction, options, correctAnswers];
+}
+
+/// A single pair in a matching activity
+class MatchingPair extends Equatable {
+  const MatchingPair({
+    required this.left,
+    required this.right,
+  });
+  final String left;
+  final String right;
+
+  @override
+  List<Object?> get props => [left, right];
+}
+
+/// Matching activity content (tap-to-match pairs)
+class MatchingContent extends InlineActivityContent {
+  const MatchingContent({
+    required this.instruction,
+    required this.pairs,
+  });
+  final String instruction;
+  final List<MatchingPair> pairs;
+
+  @override
+  List<Object?> get props => [instruction, pairs];
 }
 
 /// Inline activity that appears between paragraphs during reading

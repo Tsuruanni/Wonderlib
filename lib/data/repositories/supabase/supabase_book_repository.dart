@@ -174,16 +174,24 @@ class SupabaseBookRepository implements BookRepository {
           .maybeSingle();
 
       if (response == null) {
-        // Create new progress if doesn't exist
-        final now = DateTime.now();
-        final newProgress = ReadingProgress(
-          id: 'new-${now.millisecondsSinceEpoch}',
-          userId: userId,
-          bookId: bookId,
-          startedAt: now,
-          updatedAt: now,
-        );
-        return Right(newProgress);
+        // Create new progress in DB and return persisted record
+        final now = DateTime.now().toIso8601String();
+        final inserted = await _supabase
+            .from('reading_progress')
+            .insert({
+              'user_id': userId,
+              'book_id': bookId,
+              'current_page': 0,
+              'is_completed': false,
+              'completion_percentage': 0,
+              'total_reading_time': 0,
+              'completed_chapter_ids': <String>[],
+              'started_at': now,
+              'updated_at': now,
+            })
+            .select()
+            .single();
+        return Right(_mapToReadingProgress(inserted));
       }
 
       return Right(_mapToReadingProgress(response));
@@ -400,19 +408,7 @@ class SupabaseBookRepository implements BookRepository {
     required int xpEarned,
   }) async {
     try {
-      // Check if already exists - prevents duplicate XP
-      final existing = await _supabase
-          .from('inline_activity_results')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('inline_activity_id', activityId)
-          .maybeSingle();
-
-      if (existing != null) {
-        return const Right(false); // Already completed - no XP should be awarded
-      }
-
-      // Insert new result
+      // Optimistic insert - let DB UNIQUE constraint handle duplicates
       await _supabase.from('inline_activity_results').insert({
         'user_id': userId,
         'inline_activity_id': activityId,
@@ -423,6 +419,10 @@ class SupabaseBookRepository implements BookRepository {
 
       return const Right(true); // New completion - XP can be awarded
     } on PostgrestException catch (e) {
+      // 23505 = unique_violation (already completed)
+      if (e.code == '23505') {
+        return const Right(false); // Already completed - no XP should be awarded
+      }
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));

@@ -38,6 +38,16 @@ abstract class AppColors {
   static const xpGold = wasp;
   static const streakOrange = Color(0xFFFF9600);
   static const gemBlue = Color(0xFF1CB0F6);
+
+  // Card Rarities
+  static const cardCommon = Color(0xFFAFAFAF);
+  static const cardCommonDark = Color(0xFF8A8A8A);
+  static const cardRare = Color(0xFF1CB0F6);
+  static const cardRareDark = Color(0xFF1899D6);
+  static const cardEpic = Color(0xFF9B59B6);
+  static const cardEpicDark = Color(0xFF7D3C98);
+  static const cardLegendary = Color(0xFFFFC800);
+  static const cardLegendaryDark = Color(0xFFDFA600);
 }
 
 abstract class AppTheme {

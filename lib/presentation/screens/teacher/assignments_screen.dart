@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/teacher_provider.dart';
@@ -22,7 +23,7 @@ class AssignmentsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              context.push('/teacher/assignments/create');
+              context.push(AppRoutes.teacherCreateAssignment);
             },
             tooltip: 'Create Assignment',
           ),
@@ -75,7 +76,7 @@ class AssignmentsScreen extends ConsumerWidget {
                     const SizedBox(height: 24),
                     FilledButton.icon(
                       onPressed: () {
-                        context.push('/teacher/assignments/create');
+                        context.push(AppRoutes.teacherCreateAssignment);
                       },
                       icon: const Icon(Icons.add),
                       label: const Text('Create Assignment'),
@@ -97,7 +98,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   _SectionHeader(title: 'Active', count: active.length),
                   ...active.map((a) => _AssignmentCard(
                     assignment: a,
-                    onTap: () => context.push('/teacher/assignments/${a.id}'),
+                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
                   ),),
                   const SizedBox(height: 16),
                 ],
@@ -105,7 +106,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   _SectionHeader(title: 'Upcoming', count: upcoming.length),
                   ...upcoming.map((a) => _AssignmentCard(
                     assignment: a,
-                    onTap: () => context.push('/teacher/assignments/${a.id}'),
+                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
                   ),),
                   const SizedBox(height: 16),
                 ],
@@ -113,7 +114,7 @@ class AssignmentsScreen extends ConsumerWidget {
                   _SectionHeader(title: 'Past Due', count: overdue.length),
                   ...overdue.map((a) => _AssignmentCard(
                     assignment: a,
-                    onTap: () => context.push('/teacher/assignments/${a.id}'),
+                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
                   ),),
                 ],
               ],
@@ -123,7 +124,7 @@ class AssignmentsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push('/teacher/assignments/create');
+          context.push(AppRoutes.teacherCreateAssignment);
         },
         icon: const Icon(Icons.add),
         label: const Text('New Assignment'),

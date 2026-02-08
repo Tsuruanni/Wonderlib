@@ -7,10 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
-import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pro_progress_bar.dart';
 
@@ -168,6 +168,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 context.pop();
                 ref.invalidate(todayReviewSessionProvider);
                 ref.invalidate(dailyReviewWordsProvider);
+                ref.read(userControllerProvider.notifier).refresh();
               },
               variant: GameButtonVariant.primary,
             ),

@@ -211,8 +211,22 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     );
   }
 
-  void refresh() {
-    _loadUser();
+  Future<void> refresh() async {
+    final oldUser = state.valueOrNull;
+    final oldLevel = oldUser?.level ?? 1;
+    final oldTier = oldUser?.userLevel ?? UserLevel.bronze;
+
+    await _loadUser();
+
+    final newUser = state.valueOrNull;
+    if (newUser != null && newUser.level > oldLevel) {
+      _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
+        oldLevel: oldLevel,
+        newLevel: newUser.level,
+        oldTier: oldTier,
+        newTier: newUser.userLevel,
+      );
+    }
   }
 }
 

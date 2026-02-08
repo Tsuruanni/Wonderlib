@@ -7,7 +7,6 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
-import '../../providers/user_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_goal_widget.dart';
@@ -18,10 +17,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // 1. User & Stats
-    final userAsync = ref.watch(userControllerProvider);
-    final user = userAsync.valueOrNull;
-
-    // 2. Data Providers
+    // Data Providers
     final continueReadingAsync = ref.watch(continueReadingProvider);
     final recommendedBooksAsync = ref.watch(recommendedBooksProvider);
     

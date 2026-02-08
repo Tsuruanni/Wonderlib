@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -124,11 +125,12 @@ class SupabaseBadgeRepository implements BadgeRepository {
       // Get user's current stats
       final profile = await _supabase
           .from('profiles')
-          .select('xp, current_streak, longest_streak')
+          .select('xp, level, current_streak, longest_streak')
           .eq('id', userId)
           .single();
 
       final xp = profile['xp'] as int? ?? 0;
+      final level = profile['level'] as int? ?? 1;
       final currentStreak = profile['current_streak'] as int? ?? 0;
 
       // Get books completed
@@ -198,11 +200,10 @@ class SupabaseBadgeRepository implements BadgeRepository {
           case BadgeConditionType.perfectScores:
             canEarn = perfectCount >= badge.conditionValue;
           case BadgeConditionType.levelCompleted:
-            // Check if user completed specific level
-            canEarn = false; // Would need more complex logic
+            canEarn = level >= badge.conditionValue;
           case BadgeConditionType.dailyLogin:
-            // Special handling needed
-            canEarn = false;
+            // Daily login tracked via streak - user is active now
+            canEarn = currentStreak >= badge.conditionValue;
         }
 
         if (canEarn) {
@@ -249,35 +250,20 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
   Future<void> _awardXP(String userId, int amount, String reason) async {
     try {
-      // Update profile XP
-      final profile = await _supabase
-          .from('profiles')
-          .select('xp')
-          .eq('id', userId)
-          .single();
-
-      final currentXP = profile['xp'] as int? ?? 0;
-
-      await _supabase
-          .from('profiles')
-          .update({
-            'xp': currentXP + amount,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', userId);
-
-      // Log XP
-      await _supabase.from('xp_logs').insert({
-        'user_id': userId,
-        'amount': amount,
-        'source': reason,
-        'description': 'Badge reward',
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      // Use atomic RPC to prevent race conditions (same as activity repo)
+      await _supabase.rpc(
+        'award_xp_transaction',
+        params: {
+          'p_user_id': userId,
+          'p_amount': amount,
+          'p_source': reason,
+          'p_source_id': null,
+          'p_description': 'Badge reward',
+        },
+      );
     } catch (e) {
       // Log but don't fail the main operation
-      // ignore: avoid_print
-      print('Failed to award XP: $e');
+      debugPrint('Failed to award XP: $e');
     }
   }
 

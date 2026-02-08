@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/teacher_provider.dart';
 import '../../widgets/common/stat_item.dart';
@@ -37,7 +38,7 @@ class ReportsScreen extends ConsumerWidget {
             description: 'View performance summary for each class',
             icon: Icons.groups,
             color: Colors.blue,
-            onTap: () => context.push('/teacher/reports/class-overview'),
+            onTap: () => context.push(AppRoutes.teacherReportClassOverview),
           ),
 
           _ReportTypeCard(
@@ -45,7 +46,7 @@ class ReportsScreen extends ConsumerWidget {
             description: 'Track book completion across all students',
             icon: Icons.menu_book,
             color: Colors.green,
-            onTap: () => context.push('/teacher/reports/reading-progress'),
+            onTap: () => context.push(AppRoutes.teacherReportReadingProgress),
           ),
 
           _ReportTypeCard(
@@ -53,7 +54,7 @@ class ReportsScreen extends ConsumerWidget {
             description: 'Analyze assignment completion rates',
             icon: Icons.assignment_turned_in,
             color: Colors.orange,
-            onTap: () => context.push('/teacher/reports/assignments'),
+            onTap: () => context.push(AppRoutes.teacherReportAssignments),
           ),
 
           _ReportTypeCard(
@@ -61,7 +62,7 @@ class ReportsScreen extends ConsumerWidget {
             description: 'Top performers by XP and achievements',
             icon: Icons.leaderboard,
             color: Colors.purple,
-            onTap: () => context.push('/teacher/reports/leaderboard'),
+            onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
           ),
         ],
       ),

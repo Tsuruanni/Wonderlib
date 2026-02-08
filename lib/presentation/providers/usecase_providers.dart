@@ -48,6 +48,12 @@ import '../../domain/usecases/badge/get_all_badges_usecase.dart';
 import '../../domain/usecases/badge/get_badge_by_id_usecase.dart';
 import '../../domain/usecases/badge/get_recently_earned_usecase.dart';
 import '../../domain/usecases/badge/get_user_badges_usecase.dart';
+import '../../domain/usecases/card/get_all_cards_usecase.dart';
+import '../../domain/usecases/card/get_cards_by_category_usecase.dart';
+import '../../domain/usecases/card/get_user_cards_usecase.dart';
+import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
+import '../../domain/usecases/card/get_user_coins_usecase.dart';
+import '../../domain/usecases/card/open_pack_usecase.dart';
 import '../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
@@ -528,4 +534,32 @@ final checkChapterUsesContentBlocksUseCaseProvider = Provider((ref) {
 
 final getSystemSettingsUseCaseProvider = Provider((ref) {
   return GetSystemSettingsUseCase(ref.watch(systemSettingsRepositoryProvider));
+});
+
+// ============================================
+// CARD USE CASES
+// ============================================
+
+final getAllCardsUseCaseProvider = Provider((ref) {
+  return GetAllCardsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getCardsByCategoryUseCaseProvider = Provider((ref) {
+  return GetCardsByCategoryUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getUserCardsUseCaseProvider = Provider((ref) {
+  return GetUserCardsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getUserCardStatsUseCaseProvider = Provider((ref) {
+  return GetUserCardStatsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final openPackUseCaseProvider = Provider((ref) {
+  return OpenPackUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getUserCoinsUseCaseProvider = Provider((ref) {
+  return GetUserCoinsUseCase(ref.watch(cardRepositoryProvider));
 });

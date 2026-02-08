@@ -54,59 +54,50 @@ class _GameButtonState extends State<GameButton> {
     Color faceColor;
     Color sideColor; // The "3D" part
     Color textColor;
-    Color borderColor;
 
     // Disabled state override
     if (widget.onPressed == null) {
       faceColor = AppColors.neutral;
       sideColor = AppColors.neutralDark;
       textColor = AppColors.neutralText;
-      borderColor = AppColors.neutral;
     } else {
       switch (widget.variant) {
         case GameButtonVariant.primary:
           faceColor = AppColors.primary;
           sideColor = AppColors.primaryDark;
           textColor = AppColors.white;
-          borderColor = AppColors.primary;
           break;
         case GameButtonVariant.secondary:
           faceColor = AppColors.secondary;
           sideColor = AppColors.secondaryDark;
           textColor = AppColors.white;
-          borderColor = AppColors.secondary;
           break;
         case GameButtonVariant.danger:
           faceColor = AppColors.danger;
           sideColor = AppColors.dangerDark;
           textColor = AppColors.white;
-          borderColor = AppColors.danger;
           break;
         case GameButtonVariant.wasp:
           faceColor = AppColors.wasp;
           sideColor = AppColors.waspDark;
           textColor = AppColors.black; // Better readability on yellow
-          borderColor = AppColors.wasp;
           break;
         case GameButtonVariant.neutral:
           faceColor = AppColors.white;
           sideColor = AppColors.neutral;
           textColor = AppColors.black;
-          borderColor = AppColors.neutral;
           break;
         case GameButtonVariant.outline:
-          faceColor = AppColors.white; // Or transparent? Usually white in these apps
+          faceColor = AppColors.white;
           sideColor = AppColors.neutral;
-          textColor = AppColors.primary; // Outline usually matches primary?
-          borderColor = AppColors.neutral;
+          textColor = AppColors.primary;
           break;
       }
     }
-    
+
     // For outline variant override
     if (widget.variant == GameButtonVariant.outline && widget.onPressed != null) {
-      sideColor = AppColors.neutral; // Bottom
-      borderColor = AppColors.neutral; // Top/Sides
+      sideColor = AppColors.neutral;
       textColor = AppColors.primary;
     }
 

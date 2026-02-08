@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../app/router.dart';
 import '../../../core/constants/reader_constants.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/reader_provider.dart';

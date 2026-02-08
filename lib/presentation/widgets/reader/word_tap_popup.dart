@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/word_definition.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/word_definition_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 /// Dark-themed popup for word-tap feature.
 /// Shows word, pronunciation audio, part of speech, Turkish meaning,
@@ -421,9 +422,7 @@ class _WordTapPopupState extends ConsumerState<WordTapPopup> {
           if (mounted) widget.onClose();
         });
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to add: ${result.errorMessage}')),
-        );
+        showAppSnackBar(context, 'Failed to add: ${result.errorMessage}', type: SnackBarType.error);
       }
     } finally {
       if (mounted) {

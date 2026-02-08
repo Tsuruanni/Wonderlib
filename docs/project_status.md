@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-07 (Vocabulary Session v2 + Reading Progress Fixes + Coin UI)
+Son güncelleme: 2026-02-08 (Card Collection + Matching Activity + Vocab Session Fix + Route/SnackBar Refactors)
 
 ## Current Phase
 
@@ -65,6 +65,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Sesli okuma / karaoke (word-level highlighting with Fal AI TTS)
 - [x] Daily Review (Anki-style spaced repetition for vocabulary)
 - [x] Vocabulary Learning Path (Duolingo-style zigzag skill tree with units)
+- [x] Card Collection System (Mythology gacha cards with rarities + pack opening)
+- [x] Matching Inline Activity (tap-to-match pairs in reader)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -104,7 +106,7 @@ See: CLAUDE.md for architecture guidelines
 | ~~AudioService null safety~~ | ~~High~~ | ✅ Fixed - uses getter with StateError |
 | ~~Reading progress bug~~ | ~~High~~ | ✅ Fixed - Continue Reading condition, chapter completion logic |
 | ~~connectivity_plus 6.x~~ | ~~Medium~~ | ✅ Fixed - Updated for new List<ConnectivityResult> API |
-| Screens importing repositories | High | Being fixed in Clean Architecture refactor |
+| ~~Screens importing repositories~~ | ~~High~~ | ✅ Route helpers + unused imports cleaned |
 | Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
@@ -112,6 +114,12 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Card Collection System | 2026-02-08 | Mythology gacha cards, 96 cards across 8 categories, pack opening, pity system, coins currency |
+| Matching Inline Activity | 2026-02-08 | New tap-to-match activity type for reader with entity/model/widget support |
+| Vocabulary Session Fix | 2026-02-08 | Fixed session stuck after retry (Equatable hashCode collision in AnimatedSwitcher key) |
+| Route String Elimination | 2026-02-08 | All ~30 screens use AppRoutes.xxxPath() helpers instead of hardcoded strings |
+| SnackBar Consolidation | 2026-02-08 | All SnackBars use centralized showAppSnackBar() across ~15 screens |
+| Repository Bug Fixes | 2026-02-08 | Badge XP race condition, activity duplicate handling, reading progress persistence, vocab search injection |
 | Vocabulary Session v2 | 2026-02-07 | Duolingo-style quiz system with 7 question types, combo system, replaces old 4-phase vocabulary builder (~2,673 lines removed) |
 | Reading Progress Fixes | 2026-02-07 | Critical autoDispose bug fixed (chapters never marked complete), stale cache invalidation, UPDATE RLS policy for daily_chapter_reads |
 | XP → Coins UI | 2026-02-07 | All XP displays now use coin icon consistently across 5 files |

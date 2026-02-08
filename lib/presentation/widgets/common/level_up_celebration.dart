@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../providers/user_provider.dart';
 
@@ -18,16 +19,19 @@ class LevelUpCelebrationListener extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<LevelUpEvent?>(levelUpEventProvider, (previous, next) {
       if (next != null) {
-        _showCelebration(context, ref, next);
+        _showCelebration(ref, next);
       }
     });
 
     return child;
   }
 
-  void _showCelebration(BuildContext context, WidgetRef ref, LevelUpEvent event) {
+  void _showCelebration(WidgetRef ref, LevelUpEvent event) {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+
     showDialog(
-      context: context,
+      context: ctx,
       barrierDismissible: true,
       builder: (context) => _LevelUpDialog(event: event),
     ).then((_) {

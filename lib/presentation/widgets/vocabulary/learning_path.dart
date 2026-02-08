@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/vocabulary_unit.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -369,7 +371,7 @@ class _PathRow extends StatelessWidget {
               top: 20,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => context.push('/vocabulary/list/${item.wordList.id}'),
+                onTap: () => context.push(AppRoutes.vocabularyListPath(item.wordList.id)),
                 child: _startPill(),
               ),
             ),
@@ -548,31 +550,10 @@ class _TreasureChestNode extends StatelessWidget {
     }
     leftEdge = leftEdge.clamp(0, screenWidth - sideWidth);
 
-    final color = isUnitComplete ? AppColors.wasp : AppColors.neutral;
-    final shadowColor = isUnitComplete
-        ? AppColors.waspDark
-        : AppColors.neutralDark.withValues(alpha: 0.5);
-
-    final circle = Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor,
-            offset: const Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Center(
-        child: Text(
-          isUnitComplete ? '\u{1F381}' : '\u{1F4E6}',
-          style: const TextStyle(fontSize: 26),
-        ),
-      ),
+    final circle = Lottie.asset(
+      'assets/animations/Treasure Box Animation.json',
+      width: 100,
+      fit: BoxFit.contain,
     );
 
     final isLeft = labelPos == LabelPosition.left;
@@ -594,15 +575,15 @@ class _TreasureChestNode extends StatelessWidget {
         : [circle, const SizedBox(width: 8), label];
 
     return SizedBox(
-      height: 70,
+      height: 100,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: leftEdge,
-            top: 0,
+            left: leftEdge - 20,
+            top: -15,
             child: SizedBox(
-              width: 164,
+              width: 200,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,

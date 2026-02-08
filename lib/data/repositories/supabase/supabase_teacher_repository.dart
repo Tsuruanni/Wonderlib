@@ -234,7 +234,10 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       for (final data in response as List) {
         final profileData = data['profiles'] as Map<String, dynamic>?;
-        if (profileData == null) continue;
+        if (profileData == null) {
+          debugPrint('Skipping assignment_student with missing profile: ${data['id']}');
+          continue;
+        }
 
         students.add(AssignmentStudentModel.fromJson(data).toEntity());
       }

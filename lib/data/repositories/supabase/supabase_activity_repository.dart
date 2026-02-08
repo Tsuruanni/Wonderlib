@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -58,34 +59,36 @@ class SupabaseActivityRepository implements ActivityRepository {
     ActivityResult result,
   ) async {
     try {
-      // Get attempt number (count existing results + 1)
-      final existingResults = await _supabase
-          .from('activity_results')
-          .select('id')
-          .eq('user_id', result.userId)
-          .eq('activity_id', result.activityId);
-
-      final attemptNumber = (existingResults as List).length + 1;
-
+      // Get attempt number and insert - retry once on unique conflict
       final resultModel = ActivityResultModel.fromEntity(result);
-      final data = {
-        'user_id': resultModel.userId,
-        'activity_id': resultModel.activityId,
-        'score': resultModel.score,
-        'max_score': resultModel.maxScore,
-        'answers': resultModel.answers,
-        'time_spent': resultModel.timeSpent,
-        'attempt_number': attemptNumber,
-        'completed_at': resultModel.completedAt.toIso8601String(),
-      };
+      int attemptNumber = await _getNextAttemptNumber(
+        result.userId,
+        result.activityId,
+      );
 
-      final response = await _supabase
-          .from('activity_results')
-          .insert(data)
-          .select()
-          .single();
+      Map<String, dynamic> response;
+      try {
+        response = await _insertActivityResult(
+          resultModel,
+          attemptNumber,
+        );
+      } on PostgrestException catch (e) {
+        // 23505 = unique_violation - retry with fresh attempt number
+        if (e.code == '23505') {
+          attemptNumber = await _getNextAttemptNumber(
+            result.userId,
+            result.activityId,
+          );
+          response = await _insertActivityResult(
+            resultModel,
+            attemptNumber,
+          );
+        } else {
+          rethrow;
+        }
+      }
 
-      // Award XP based on score (if first attempt or better score)
+      // Award XP based on score (if first attempt or perfect score)
       if (attemptNumber == 1 || result.score == result.maxScore) {
         final xpToAward = _calculateXP(result.score, result.maxScore);
         if (xpToAward > 0) {
@@ -209,6 +212,35 @@ class SupabaseActivityRepository implements ActivityRepository {
   // HELPER METHODS
   // ============================================
 
+  Future<int> _getNextAttemptNumber(String userId, String activityId) async {
+    final existingResults = await _supabase
+        .from('activity_results')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('activity_id', activityId);
+    return (existingResults as List).length + 1;
+  }
+
+  Future<Map<String, dynamic>> _insertActivityResult(
+    ActivityResultModel resultModel,
+    int attemptNumber,
+  ) async {
+    return await _supabase
+        .from('activity_results')
+        .insert({
+          'user_id': resultModel.userId,
+          'activity_id': resultModel.activityId,
+          'score': resultModel.score,
+          'max_score': resultModel.maxScore,
+          'answers': resultModel.answers,
+          'time_spent': resultModel.timeSpent,
+          'attempt_number': attemptNumber,
+          'completed_at': resultModel.completedAt.toIso8601String(),
+        })
+        .select()
+        .single();
+  }
+
   int _calculateXP(double score, double maxScore) {
     if (maxScore == 0) return 0;
     final percentage = (score / maxScore) * 100;
@@ -246,8 +278,7 @@ class SupabaseActivityRepository implements ActivityRepository {
       return null;
     } catch (e) {
       // Log but don't fail the main operation
-      // ignore: avoid_print
-      print('Failed to award XP: $e');
+      debugPrint('Failed to award XP: $e');
       return null;
     }
   }

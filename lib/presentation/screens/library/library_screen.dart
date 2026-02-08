@@ -11,8 +11,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/library_provider.dart';
-import '../../widgets/book/book_grid_card.dart';
-import '../../widgets/book/book_list_tile.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -216,7 +214,6 @@ class LibraryScreen extends ConsumerWidget {
     final selectedLevel = ref.watch(selectedLevelProvider);
     final isSearchActive = ref.watch(isSearchActiveProvider);
     final booksAsync = ref.watch(filteredBooksProvider);
-    final user = ref.watch(currentUserProvider).valueOrNull;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -461,10 +458,6 @@ class _BookList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Reusing the grid card style but in a list view for now, or just a simpler list item
-    // For consistency with the "Gamified" look, list items should also be chunky cards
-    final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
-
     return ListView.separated(
       padding: const EdgeInsets.all(20),
       itemCount: books.length,

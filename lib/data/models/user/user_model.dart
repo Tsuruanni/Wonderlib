@@ -15,6 +15,7 @@ class UserModel {
     this.email,
     this.avatarUrl,
     this.xp = 0,
+    this.coins = 0,
     this.level = 1,
     this.currentStreak = 0,
     this.longestStreak = 0,
@@ -36,6 +37,7 @@ class UserModel {
       email: json['email'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       xp: json['xp'] as int? ?? 0,
+      coins: json['coins'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
       currentStreak: json['current_streak'] as int? ?? 0,
       longestStreak: json['longest_streak'] as int? ?? 0,
@@ -60,6 +62,7 @@ class UserModel {
       email: entity.email,
       avatarUrl: entity.avatarUrl,
       xp: entity.xp,
+      coins: entity.coins,
       level: entity.level,
       currentStreak: entity.currentStreak,
       longestStreak: entity.longestStreak,
@@ -79,6 +82,7 @@ class UserModel {
   final String? email;
   final String? avatarUrl;
   final int xp;
+  final int coins;
   final int level;
   final int currentStreak;
   final int longestStreak;
@@ -99,6 +103,7 @@ class UserModel {
       'email': email,
       'avatar_url': avatarUrl,
       'xp': xp,
+      'coins': coins,
       'level': level,
       'current_streak': currentStreak,
       'longest_streak': longestStreak,
@@ -131,6 +136,7 @@ class UserModel {
       email: email,
       avatarUrl: avatarUrl,
       xp: xp,
+      coins: coins,
       level: level,
       currentStreak: currentStreak,
       longestStreak: longestStreak,

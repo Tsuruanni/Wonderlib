@@ -73,6 +73,8 @@ class InlineActivityModel {
         return InlineActivityType.wordTranslation;
       case 'find_words':
         return InlineActivityType.findWords;
+      case 'matching':
+        return InlineActivityType.matching;
       default:
         return InlineActivityType.trueFalse;
     }
@@ -86,6 +88,8 @@ class InlineActivityModel {
         return 'word_translation';
       case InlineActivityType.findWords:
         return 'find_words';
+      case InlineActivityType.matching:
+        return 'matching';
     }
   }
 
@@ -108,6 +112,18 @@ class InlineActivityModel {
           options: (json['options'] as List<dynamic>?)?.map((o) => o as String).toList() ?? [],
           correctAnswers:
               (json['correct_answers'] as List<dynamic>?)?.map((a) => a as String).toList() ?? [],
+        );
+      case 'matching':
+        return MatchingContent(
+          instruction: json['instruction'] as String? ?? '',
+          pairs: (json['pairs'] as List<dynamic>?)
+                  ?.whereType<Map<String, dynamic>>()
+                  .map((p) => MatchingPair(
+                        left: p['left'] as String? ?? '',
+                        right: p['right'] as String? ?? '',
+                      ))
+                  .toList() ??
+              [],
         );
       default:
         return const TrueFalseContent(
@@ -138,6 +154,14 @@ class InlineActivityModel {
           'instruction': findWords.instruction,
           'options': findWords.options,
           'correct_answers': findWords.correctAnswers,
+        };
+      case InlineActivityType.matching:
+        final matching = content as MatchingContent;
+        return {
+          'instruction': matching.instruction,
+          'pairs': matching.pairs
+              .map((p) => {'left': p.left, 'right': p.right})
+              .toList(),
         };
     }
   }

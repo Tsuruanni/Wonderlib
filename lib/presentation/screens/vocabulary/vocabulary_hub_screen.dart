@@ -7,7 +7,6 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/daily_review_provider.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/vocabulary/learning_path.dart';
 import '../../widgets/common/top_navbar.dart';
@@ -18,8 +17,6 @@ class VocabularyHubScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(userControllerProvider);
-    final user = userAsync.valueOrNull;
     final storyListsAsync = ref.watch(storyWordListsProvider);
     final storyLists = storyListsAsync.valueOrNull ?? [];
 
@@ -179,7 +176,7 @@ class _ReadyToReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/vocabulary/daily-review'),
+      onTap: () => context.push(AppRoutes.vocabularyDailyReview),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.all(24),
@@ -336,7 +333,7 @@ class _WordListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/vocabulary/list/${wordList.id}'),
+      onTap: () => context.push(AppRoutes.vocabularyListPath(wordList.id)),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),

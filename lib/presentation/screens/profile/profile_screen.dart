@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/badge.dart';
@@ -11,7 +12,6 @@ import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/daily_review_provider.dart';
-import '../../providers/teacher_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
@@ -168,7 +168,7 @@ class ProfileScreen extends ConsumerWidget {
                 // My Word Bank
                 if (user.role.isStudent)
                   PressableScale(
-                    onTap: () => context.push('/word-bank'),
+                    onTap: () => context.push(AppRoutes.wordBank),
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -566,7 +566,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
 
   Widget _buildReadyCard(BuildContext context, int wordCount) {
     return PressableScale(
-      onTap: () => context.push('/vocabulary/daily-review'),
+      onTap: () => context.push(AppRoutes.vocabularyDailyReview),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

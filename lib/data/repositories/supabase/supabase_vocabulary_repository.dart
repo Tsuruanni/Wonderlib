@@ -72,10 +72,18 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     String query,
   ) async {
     try {
+      // Escape special PostgREST filter characters to prevent injection
+      final escapedQuery = query
+          .replaceAll(r'\', r'\\')
+          .replaceAll('%', r'\%')
+          .replaceAll('_', r'\_')
+          .replaceAll(',', '')
+          .replaceAll('(', '')
+          .replaceAll(')', '');
       final response = await _supabase
           .from('vocabulary_words')
           .select()
-          .or('word.ilike.%$query%,meaning_tr.ilike.%$query%')
+          .or('word.ilike.%$escapedQuery%,meaning_tr.ilike.%$escapedQuery%')
           .limit(30);
 
       final words =
@@ -609,26 +617,31 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final now = DateTime.now();
       final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
 
-      // 1. Get all word IDs that belong to any word list
-      final listWordIds = await _supabase
-          .from('word_list_items')
-          .select('word_id');
-      final wordIdSet = (listWordIds as List)
+      // 1. Get today's learned word IDs (small set - typically <50)
+      final todayProgress = await _supabase
+          .from('vocabulary_progress')
+          .select('word_id')
+          .eq('user_id', userId)
+          .gte('created_at', todayStart);
+
+      final todayWordIds = (todayProgress as List)
           .map((r) => r['word_id'] as String)
-          .toSet()
           .toList();
 
-      if (wordIdSet.isEmpty) return const Right(0);
+      if (todayWordIds.isEmpty) return const Right(0);
 
-      // 2. Count vocabulary_progress created today, filtered to list words
-      final response = await _supabase
-          .from('vocabulary_progress')
-          .select('id')
-          .eq('user_id', userId)
-          .gte('created_at', todayStart)
-          .inFilter('word_id', wordIdSet);
+      // 2. Check which of today's words belong to any word list
+      final listMatches = await _supabase
+          .from('word_list_items')
+          .select('word_id')
+          .inFilter('word_id', todayWordIds);
 
-      return Right((response as List).length);
+      // Use Set to count unique words (a word may appear in multiple lists)
+      final uniqueListWordIds = (listMatches as List)
+          .map((r) => r['word_id'] as String)
+          .toSet();
+
+      return Right(uniqueListWordIds.length);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

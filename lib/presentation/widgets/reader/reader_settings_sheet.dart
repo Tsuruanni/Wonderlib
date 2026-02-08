@@ -23,7 +23,6 @@ class ReaderSettingsSheet extends ConsumerWidget {
     final settings = ref.watch(readerSettingsProvider);
     final notifier = ref.read(readerSettingsProvider.notifier);
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return SafeArea(
       child: Padding(

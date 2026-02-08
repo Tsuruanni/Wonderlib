@@ -240,43 +240,33 @@ class SupabaseUserRepository implements UserRepository {
 
       final dates = <DateTime>{}; // Use Set to avoid duplicates
 
-      // Parse activity dates
+      // Helper: normalize any date string to local start-of-day
+      DateTime toLocalDay(String dateStr) {
+        final dt = DateTime.parse(dateStr).toLocal();
+        return DateTime(dt.year, dt.month, dt.day);
+      }
+
+      // Parse activity dates (timestamp with tz → toLocal)
       for (final row in activitiesResponse as List) {
-        final dateStr = row['completed_at'] as String;
-        final dt = DateTime.parse(dateStr).toLocal();
-        dates.add(DateTime(dt.year, dt.month, dt.day)); // Normalize to start of day
+        dates.add(toLocalDay(row['completed_at'] as String));
       }
 
-      // Parse review dates
+      // Parse review dates (DATE type, no tz but normalize consistently)
       for (final row in reviewsResponse as List) {
-        final dateStr = row['session_date'] as String;
-        // session_date is likely YYYY-MM-DD
-        final dt = DateTime.parse(dateStr); 
-        dates.add(DateTime(dt.year, dt.month, dt.day));
+        dates.add(toLocalDay(row['session_date'] as String));
       }
 
-      // Parse reading completion dates
+      // Parse reading completion dates (DATE type)
       for (final row in readingResponse as List) {
-        final dateStr = row['read_date'] as String;
-        // read_date is YYYY-MM-DD
-        final dt = DateTime.parse(dateStr); 
-        dates.add(DateTime(dt.year, dt.month, dt.day));
+        dates.add(toLocalDay(row['read_date'] as String));
       }
 
-      // Parse reading progress dates
+      // Parse reading progress dates (timestamp with tz → toLocal)
       for (final row in progressResponse as List) {
-        final dateStr = row['updated_at'] as String;
-        final dt = DateTime.parse(dateStr).toLocal();
-        dates.add(DateTime(dt.year, dt.month, dt.day));
+        dates.add(toLocalDay(row['updated_at'] as String));
       }
 
       final sortedDates = dates.toList()..sort((a, b) => b.compareTo(a));
-      print('DEBUG: Activity History for $userId');
-      print('DEBUG: Activities: $activitiesResponse');
-      print('DEBUG: Reviews: $reviewsResponse');
-      print('DEBUG: Reading Completions: $readingResponse');
-      print('DEBUG: Reading Progress: $progressResponse');
-      print('DEBUG: Final Dates: $sortedDates');
 
       return Right(sortedDates);
     } on PostgrestException catch (e) {

@@ -34,9 +34,9 @@ class DailyTasksList extends StatelessWidget {
 
     // Daily quest rows
     rows.add(_QuestRow(
-      icon: Icons.local_fire_department_rounded,
-      iconColor: AppColors.streakOrange,
-      title: 'Start a streak',
+      icon: Icons.spellcheck_rounded,
+      iconColor: AppColors.secondary,
+      title: 'Review daily vocab',
       progress: state.dailyReviewCompleted ? 1.0 : 0.0,
       progressText: state.dailyReviewCompleted ? '1 / 1' : '0 / 1',
       isCompleted: state.dailyReviewCompleted,

@@ -50,6 +50,13 @@ class MainShellScaffold extends StatelessWidget {
                   onTap: () => _onTap(context, 2),
                   color: AppColors.wasp,
                 ),
+                _NavButton(
+                  icon: Icons.collections_bookmark_rounded,
+                  label: 'CARDS',
+                  isSelected: navigationShell.currentIndex == 3,
+                  onTap: () => _onTap(context, 3),
+                  color: AppColors.cardEpic,
+                ),
               ],
             ),
           ),
@@ -72,7 +79,6 @@ class _NavButton extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final Color color;
-  final bool isVisible;
 
   const _NavButton({
     required this.icon,
@@ -80,12 +86,10 @@ class _NavButton extends StatelessWidget {
     required this.isSelected,
     required this.onTap,
     this.color = AppColors.primary,
-    this.isVisible = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (!isVisible) return const SizedBox.shrink();
 
     // When selected: Icon is colored, has a subtle border?
     // Duolingo style: Just icon, colored when active, grey when inactive.

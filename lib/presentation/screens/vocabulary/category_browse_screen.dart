@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
-import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
 
@@ -85,7 +85,7 @@ class _WordListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        context.push('/vocabulary/list/${wordList.id}');
+        context.push(AppRoutes.vocabularyListPath(wordList.id));
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

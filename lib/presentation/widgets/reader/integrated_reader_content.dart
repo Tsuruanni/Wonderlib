@@ -189,6 +189,17 @@ class _IntegratedReaderContentState extends ConsumerState<IntegratedReaderConten
             _handleActivityAnswer(activity.id, isCorrect, xpEarned, wordsLearned);
           },
         );
+
+      case InlineActivityType.matching:
+        return MatchingActivity(
+          activity: activity,
+          settings: widget.settings,
+          isCompleted: isCompleted,
+          wasCorrect: wasCorrect,
+          onAnswer: (isCorrect, xpEarned, wordsLearned) {
+            _handleActivityAnswer(activity.id, isCorrect, xpEarned, wordsLearned);
+          },
+        );
     }
   }
 

@@ -115,6 +115,17 @@ class ActivityBlockWidget extends ConsumerWidget {
             _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, wordsLearned);
           },
         );
+
+      case InlineActivityType.matching:
+        return MatchingActivity(
+          activity: activity,
+          settings: settings,
+          isCompleted: isCompleted,
+          wasCorrect: wasCorrect,
+          onAnswer: (isCorrect, xpEarned, wordsLearned) {
+            _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, wordsLearned);
+          },
+        );
     }
   }
 

@@ -8,6 +8,63 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Card Collection System — Mythology Cards (2026-02-08)
+
+#### Added
+- **Collectible Card System** - Gacha-style mythology card collection with rarities
+  - Card catalog: 96 cards across 8 mythology categories (Greek, Norse, Egyptian, etc.)
+  - 4 rarity tiers: Common, Rare, Epic, Legendary with distinct colors
+  - Pack opening mechanic: 3 cards per pack, costs 100 coins
+  - Pity system: guaranteed Epic+ after 15 packs without one
+  - Card collection screen with category filters and completion tracking
+  - Pack opening screen with immersive reveal animation
+- **Coins Currency** - `coins` field added to User entity/model for in-app economy
+- **InsufficientFundsFailure** - New failure type for purchase operations
+- **Card rarity colors** in `AppColors` (cardCommon, cardRare, cardEpic, cardLegendary)
+- **Card constants** in `AppConstants` (packCost, cardsPerPack, totalCardCount, pityThreshold)
+
+#### Infrastructure
+- **New Clean Architecture module**: entity (`card.dart`), repository interface + Supabase impl, 4 models, 6 UseCases, provider, 2 screens
+- **6 DB migrations**: `add_coins_to_profiles`, `create_card_catalog`, `seed_myth_cards`, `create_user_cards`, `create_pack_opening_function`
+- **Router**: New `/cards` shell branch + `/cards/open-pack` standalone route
+
+### Matching Inline Activity (2026-02-08)
+
+#### Added
+- **Matching activity type** for reader inline activities (tap-to-match pairs)
+  - `InlineActivityType.matching` enum value
+  - `MatchingContent` + `MatchingPair` entities
+  - Model serialization/deserialization support
+  - `MatchingActivity` widget with pair-matching UI
+- **Migration**: `add_matching_inline_activity_type.sql`
+
+### Vocabulary Session Bug Fix (2026-02-08)
+
+#### Fixed
+- **Session stuck after retry question** — When the same word was asked with the same question type and options in the same order, `AnimatedSwitcher` key collided (because `SessionQuestion` extends `Equatable` → content-based `hashCode`). The old widget's `_answered = true` state persisted, making the UI non-interactive. Fix: replaced `question.hashCode` with monotonically-increasing `questionIndex` in the widget key.
+
+### Code Quality & Routing Refactors (2026-02-08)
+
+#### Changed
+- **Route string elimination** — All ~30 screens now use `AppRoutes.xxxPath()` helpers instead of hardcoded route strings (e.g., `'/library/book/$id'` → `AppRoutes.bookDetailPath(id)`)
+- **SnackBar consolidation** — All `ScaffoldMessenger.of(context).showSnackBar(...)` calls replaced with centralized `showAppSnackBar(context, message, type:)` across ~15 screens
+- **Level-up detection** — `UserController.refresh()` now async, detects level changes and emits `LevelUpEvent` for celebration dialog
+- **Post-session user refresh** — After vocabulary session and daily review completion, user state is refreshed to update XP/level/coins in navbar
+
+#### Fixed
+- **Badge earning conditions** — `levelCompleted` now checks actual user level, `dailyLogin` checks streak (was hardcoded `false`)
+- **XP race condition in badges** — Badge repo now uses atomic `award_xp_transaction` RPC instead of read-then-write
+- **Activity result duplicate** — Activity repo retries on unique_violation (23505) with fresh attempt number
+- **Reading progress creation** — New progress now persisted to DB immediately (was in-memory only)
+- **Inline activity duplicate XP** — Uses optimistic insert + DB UNIQUE constraint instead of check-then-insert
+- **Vocabulary search injection** — PostgREST special characters now escaped in search queries
+- **Daily word count query** — Optimized: fetches today's progress first (small set), then cross-references word lists
+- **Debug prints removed** — Cleaned up leftover `print()` calls in user repository, replaced with `debugPrint`
+- **Unused imports cleaned** — Removed ~10 unused repository/provider imports across screens
+
+#### Infrastructure
+- **3 DB migrations**: `restrict_content_blocks_rls`, `add_vocabulary_progress_status_check` (idempotent), `fix_content_blocks_rls_and_constraints`
+
 ### Reading Progress & Chapter Completion Fixes (2026-02-07)
 
 #### Fixed

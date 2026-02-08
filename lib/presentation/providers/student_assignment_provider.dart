@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/repositories/student_assignment_repository.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import '../../domain/entities/student_assignment.dart';

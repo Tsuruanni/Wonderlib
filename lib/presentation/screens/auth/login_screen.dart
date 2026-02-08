@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/extensions/string_extensions.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -54,17 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!success && mounted) {
       final error = ref.read(authControllerProvider).error;
       if (error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              error,
-              style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
-            ),
-            backgroundColor: AppColors.danger,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-        );
+        showAppSnackBar(context, error, type: SnackBarType.error);
       }
     }
   }
@@ -236,9 +227,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       label: 'I FORGOT MY PASSWORD',
                       onPressed: () {
                          // TODO: Implement forgot password
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Working on it!')),
-                         );
+                         showAppSnackBar(context, 'Working on it!');
                       },
                       variant: GameButtonVariant.neutral,
                       fullWidth: true,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../app/router.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
@@ -143,7 +144,7 @@ class AssignmentReportScreen extends ConsumerWidget {
                 // Assignment cards
                 ...assignments.map((assignment) => _AssignmentReportCard(
                   assignment: assignment,
-                  onTap: () => context.push('/teacher/assignments/${assignment.id}'),
+                  onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(assignment.id)),
                 ),),
               ],
             );

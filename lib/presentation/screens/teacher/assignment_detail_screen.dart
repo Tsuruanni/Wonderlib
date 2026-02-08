@@ -190,18 +190,14 @@ class _AssignmentAppBar extends StatelessWidget {
                 result.fold(
                   (failure) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${failure.message}')),
-                      );
+                      showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
                     }
                   },
                   (_) {
                     if (context.mounted) {
                       container.invalidate(teacherAssignmentsProvider);
                       container.invalidate(teacherStatsProvider);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Assignment deleted')),
-                      );
+                      showAppSnackBar(context, 'Assignment deleted');
                       context.pop();
                     }
                   },

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/ui_helpers.dart';
 
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
@@ -83,7 +85,7 @@ class ClassesScreen extends ConsumerWidget {
                   classItem: classItem,
                   onTap: () {
                     // Navigate to class detail (nested under /teacher/classes/:classId)
-                    context.push('/teacher/classes/${classItem.id}');
+                    context.push(AppRoutes.teacherClassDetailPath(classItem.id));
                   },
                 );
               },
@@ -168,9 +170,7 @@ class ClassesScreen extends ConsumerWidget {
     // Get teacher's school ID
     final user = ref.read(authStateChangesProvider).valueOrNull;
     if (user == null || user.schoolId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error: Could not determine school')),
-      );
+      showAppSnackBar(context, 'Error: Could not determine school', type: SnackBarType.error);
       return;
     }
 
@@ -185,21 +185,11 @@ class ClassesScreen extends ConsumerWidget {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${failure.message}'),
-            backgroundColor: context.colorScheme.error,
-          ),
-        );
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
       },
       (classId) {
         ref.invalidate(currentTeacherClassesProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Class "$name" created'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'Class "$name" created', type: SnackBarType.success);
       },
     );
   }

@@ -13,6 +13,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 class CreateAssignmentScreen extends ConsumerStatefulWidget {
   const CreateAssignmentScreen({
@@ -101,9 +102,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedClassId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a class')),
-      );
+      showAppSnackBar(context, 'Please select a class', type: SnackBarType.warning);
       return;
     }
 
@@ -134,27 +133,21 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
       result.fold(
         (failure) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${failure.message}')),
-            );
+            showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
           }
         },
         (assignment) {
           ref.invalidate(teacherAssignmentsProvider);
           ref.invalidate(teacherStatsProvider);
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Assignment created successfully')),
-            );
+            showAppSnackBar(context, 'Assignment created successfully', type: SnackBarType.success);
             context.pop();
           }
         },
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        showAppSnackBar(context, 'Error: $e', type: SnackBarType.error);
       }
     } finally {
       if (mounted) {

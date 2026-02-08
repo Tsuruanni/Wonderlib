@@ -345,6 +345,8 @@ INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, cont
 '{"statement": "The roses could sing songs.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0004-0002-0001-000000000003', '55555555-0002-0001-0001-000000000002', 'find_words', 0,
 '{"instruction": "Which flowers did Lily meet?", "options": ["Rose", "Sunflower", "Cactus", "Daisy"], "correct_answers": ["Rose", "Sunflower", "Daisy"]}', 5, ARRAY[]::TEXT[]),
+('66666666-0004-0002-0001-000000000004', '55555555-0002-0001-0001-000000000002', 'matching', 0,
+'{"instruction": "Match the words with their translations!", "pairs": [{"left": "flower", "right": "cicek"}, {"left": "garden", "right": "bahce"}, {"left": "butterfly", "right": "kelebek"}]}', 5, ARRAY['11111111-0004-0001-0001-000000000003', '11111111-0004-0001-0001-000000000001', '11111111-0002-0001-0001-000000000002']),
 -- Chapter 3 activities
 ('66666666-0004-0003-0001-000000000001', '55555555-0002-0001-0001-000000000003', 'word_translation', 0,
 '{"word": "butterfly", "correct_answer": "kelebek", "options": ["kelebek", "kus", "bocek"]}', 5, ARRAY['11111111-0002-0001-0001-000000000002']),
@@ -393,7 +395,11 @@ NULL, NULL, NULL, '66666666-0004-0002-0001-000000000002'),
 ('cb000001-0002-0001-0001-000000000008', '55555555-0002-0001-0001-000000000002', 8, 'text',
 'Lily listened with wonder. She had never heard anything so beautiful in her whole life. The flowers danced in the gentle breeze as they sang.', NULL, NULL, NULL),
 ('cb000001-0002-0001-0001-000000000009', '55555555-0002-0001-0001-000000000002', 9, 'activity',
-NULL, NULL, NULL, '66666666-0004-0002-0001-000000000003');
+NULL, NULL, NULL, '66666666-0004-0002-0001-000000000003'),
+('cb000001-0002-0001-0001-000000000010', '55555555-0002-0001-0001-000000000002', 10, 'text',
+'Each flower had a special name and a beautiful meaning. Lily wanted to learn them all!', NULL, NULL, NULL),
+('cb000001-0002-0001-0001-000000000011', '55555555-0002-0001-0001-000000000002', 11, 'activity',
+NULL, NULL, NULL, '66666666-0004-0002-0001-000000000004');
 
 -- Content Blocks for Magic Garden - Chapter 3
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -444,6 +450,8 @@ INSERT INTO inline_activities (id, chapter_id, type, after_paragraph_index, cont
 '{"statement": "Mars is called the Red Planet.", "correct_answer": true}', 5, ARRAY[]::TEXT[]),
 ('66666666-0005-0002-0001-000000000003', '55555555-0002-0002-0001-000000000002', 'find_words', 0,
 '{"instruction": "What did Max see on Mars?", "options": ["Mountains", "Rivers", "Red rocks", "Aliens"], "correct_answers": ["Mountains", "Red rocks"]}', 5, ARRAY[]::TEXT[]),
+('66666666-0005-0002-0001-000000000004', '55555555-0002-0002-0001-000000000002', 'matching', 0,
+'{"instruction": "Match the space words!", "pairs": [{"left": "planet", "right": "gezegen"}, {"left": "rocket", "right": "roket"}, {"left": "star", "right": "yildiz"}]}', 5, ARRAY['11111111-0004-0001-0001-000000000007', '11111111-0004-0001-0001-000000000005', '11111111-0004-0001-0001-000000000009']),
 -- Chapter 3 activities
 ('66666666-0005-0003-0001-000000000001', '55555555-0002-0002-0001-000000000003', 'word_translation', 0,
 '{"word": "Earth", "correct_answer": "Dunya", "options": ["Dunya", "Mars", "Ay"]}', 5, ARRAY['11111111-0004-0001-0001-000000000008']),
@@ -494,7 +502,11 @@ NULL, NULL, NULL, '66666666-0005-0002-0001-000000000002'),
 ('cb000002-0002-0001-0001-000000000008', '55555555-0002-0002-0001-000000000002', 8, 'activity',
 NULL, NULL, NULL, '66666666-0005-0002-0001-000000000003'),
 ('cb000002-0002-0001-0001-000000000009', '55555555-0002-0002-0001-000000000002', 9, 'text',
-'Max collected some rocks to bring back home. Scientists would study them to learn more about Mars. He felt like the luckiest boy in the universe!', NULL, NULL, NULL);
+'Max collected some rocks to bring back home. Scientists would study them to learn more about Mars. He felt like the luckiest boy in the universe!', NULL, NULL, NULL),
+('cb000002-0002-0001-0001-000000000010', '55555555-0002-0002-0001-000000000002', 10, 'text',
+'Max looked up at the night sky and thought about all the new words he had learned about space.', NULL, NULL, NULL),
+('cb000002-0002-0001-0001-000000000011', '55555555-0002-0002-0001-000000000002', 11, 'activity',
+NULL, NULL, NULL, '66666666-0005-0002-0001-000000000004');
 
 -- Content Blocks for Space Adventure - Chapter 3
 INSERT INTO content_blocks (id, chapter_id, order_index, type, text, image_url, caption, activity_id) VALUES
@@ -1850,4 +1862,35 @@ INSERT INTO user_word_list_progress (id, user_id, word_list_id, best_score, best
 -- Actions: no progress = not started
 -- Units 4-8: completely untouched (all gray nodes)
 ON CONFLICT (id) DO NOTHING;
+
+-- =============================================
+-- CARD SYSTEM TEST DATA
+-- =============================================
+
+-- Give active student (active@demo.com) 500 coins for pack testing
+UPDATE profiles SET coins = 500 WHERE id = '88888888-0001-0001-0001-000000000002';
+
+-- Give advanced student 1000 coins
+UPDATE profiles SET coins = 1000 WHERE id = '88888888-0001-0001-0001-000000000003';
+
+-- Give teacher 200 coins
+UPDATE profiles SET coins = 200 WHERE id = '88888888-0001-0001-0001-000000000004';
+
+-- Give active student a few starter cards (2 common, 1 rare)
+INSERT INTO user_cards (user_id, card_id, quantity) VALUES
+('88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000001', 1),  -- Gulyabani (Common)
+('88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000013', 1),  -- Satyr (Common)
+('88888888-0001-0001-0001-000000000002', '44444444-0001-0001-0001-000000000018', 1)   -- Medusa (Rare)
+ON CONFLICT (user_id, card_id) DO NOTHING;
+
+-- Initialize card stats for active student
+INSERT INTO user_card_stats (user_id, packs_since_legendary, total_packs_opened, total_unique_cards)
+VALUES ('88888888-0001-0001-0001-000000000002', 0, 0, 3)
+ON CONFLICT (user_id) DO NOTHING;
+
+-- Log initial coin grants
+INSERT INTO coin_logs (user_id, amount, balance_after, source, description) VALUES
+('88888888-0001-0001-0001-000000000002', 500, 500, 'seed', 'Test data: initial coin grant'),
+('88888888-0001-0001-0001-000000000003', 1000, 1000, 'seed', 'Test data: initial coin grant'),
+('88888888-0001-0001-0001-000000000004', 200, 200, 'seed', 'Test data: initial coin grant');
 

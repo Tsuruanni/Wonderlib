@@ -265,7 +265,7 @@ class BookDetailScreen extends ConsumerWidget {
                           isCurrent: isCurrentChapter,
                           isLocked: isLocked,
                           onTap: () {
-                            context.go('/reader/$bookId/${chapter.id}');
+                            context.go(AppRoutes.readerPath(bookId, chapter.id));
                           },
                         );
                       },
@@ -414,7 +414,7 @@ class _BookDetailFAB extends ConsumerWidget {
                     targetChapterId = chapters.first.id;
                   }
 
-                  context.go('/reader/$bookId/$targetChapterId');
+                  context.go(AppRoutes.readerPath(bookId, targetChapterId));
                 });
               },
             ),
@@ -629,7 +629,7 @@ class _LockedBookScreen extends ConsumerWidget {
 
               // Go to assignments button
               FilledButton.icon(
-                onPressed: () => context.go('/assignments'),
+                onPressed: () => context.go(AppRoutes.studentAssignments),
                 icon: const Icon(Icons.assignment),
                 label: const Text('View My Assignments'),
               ),
@@ -638,7 +638,7 @@ class _LockedBookScreen extends ConsumerWidget {
 
               // Back to library button
               OutlinedButton.icon(
-                onPressed: () => context.go('/library'),
+                onPressed: () => context.go(AppRoutes.library),
                 icon: const Icon(Icons.library_books),
                 label: const Text('Back to Library'),
               ),

@@ -5,7 +5,6 @@ import '../../domain/entities/student_assignment.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/reading_progress.dart';
-import '../../domain/repositories/student_assignment_repository.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';

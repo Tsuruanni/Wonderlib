@@ -19,7 +19,7 @@ class TopNavbar extends ConsumerWidget {
     final activityHistoryAsync = ref.watch(activityHistoryProvider);
 
     final streak = user?.currentStreak ?? 0;
-    final xp = user?.xp ?? 0;
+    final coins = user?.coins ?? 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -72,13 +72,11 @@ class TopNavbar extends ConsumerWidget {
 
           _buildNavDivider(),
 
-
-
-          // XP
+          // Coins (Globally replaced XP)
           _buildNavStat(
-            icon: Icons.monetization_on,
-            value: xp,
-            iconColor: AppColors.wasp,
+            icon: Icons.monetization_on_rounded, // Coin icon
+            value: coins,
+            iconColor: AppColors.cardLegendary, // Gold color for coins
           ),
 
   // ... (rest of file)

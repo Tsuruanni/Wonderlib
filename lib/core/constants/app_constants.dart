@@ -37,6 +37,13 @@ abstract class AppConstants {
 
   // Streak
   static const streakResetHours = 48;
+
+  // Card System
+  static const packCost = 100;
+  static const cardsPerPack = 3;
+  static const totalCardCount = 96;
+  static const cardsPerCategory = 12;
+  static const pityThreshold = 15;
 }
 
 abstract class CEFRLevels {
