@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'question_container.dart';
+import 'question_image.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Scrambled letters: tap letters in correct order to spell the word
@@ -24,22 +24,9 @@ class _ScrambledLettersQuestionState extends State<ScrambledLettersQuestion> {
   final List<String> _selectedLetters = [];
   final List<int> _usedIndices = [];
   bool _answered = false;
-  final FlutterTts _tts = FlutterTts();
 
   List<String> get letters => widget.question.scrambledLetters ?? [];
   String get correctWord => widget.question.correctAnswer;
-
-  @override
-  void initState() {
-    super.initState();
-    _tts.setLanguage('en-US');
-  }
-  
-  @override
-  void dispose() {
-    _tts.stop();
-    super.dispose();
-  }
 
   void _tapLetter(int index) {
     if (_answered || _usedIndices.contains(index)) return;
@@ -50,7 +37,6 @@ class _ScrambledLettersQuestionState extends State<ScrambledLettersQuestion> {
     });
 
     HapticFeedback.selectionClick();
-    _tts.speak(letters[index]);
 
     // Auto-submit when all letters selected
     if (_selectedLetters.length == letters.length) {
@@ -104,10 +90,12 @@ class _ScrambledLettersQuestionState extends State<ScrambledLettersQuestion> {
           const SizedBox(height: 12),
 
           QuestionContainer(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
             child: Column(
               children: [
-                // Hint (Turkish meaning)
+                // Image + Hint
+                QuestionImage(imageUrl: widget.question.imageUrl, size: 72),
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
@@ -124,7 +112,7 @@ class _ScrambledLettersQuestionState extends State<ScrambledLettersQuestion> {
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 // Answer Slots
                 Wrap(

@@ -6,6 +6,7 @@ import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/vocabulary_repository.dart';
 import '../../models/vocabulary/daily_review_session_model.dart';
+import '../../models/vocabulary/node_completion_model.dart';
 import '../../models/vocabulary/vocabulary_progress_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
 
@@ -642,6 +643,58 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .toSet();
 
       return Right(uniqueListWordIds.length);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  // ============================================================
+  // Path Node Completion Methods
+  // ============================================================
+
+  @override
+  Future<Either<Failure, List<NodeCompletion>>> getNodeCompletions(
+    String userId,
+  ) async {
+    try {
+      final response = await _supabase
+          .from('user_node_completions')
+          .select()
+          .eq('user_id', userId);
+
+      final completions = (response as List)
+          .map((json) =>
+              NodeCompletionModel.fromJson(json as Map<String, dynamic>)
+                  .toEntity())
+          .toList();
+
+      return Right(completions);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> completeNode({
+    required String userId,
+    required String unitId,
+    required String nodeType,
+  }) async {
+    try {
+      await _supabase.from('user_node_completions').upsert(
+        {
+          'user_id': userId,
+          'unit_id': unitId,
+          'node_type': nodeType,
+        },
+        onConflict: 'user_id,unit_id,node_type',
+      );
+
+      return const Right(null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

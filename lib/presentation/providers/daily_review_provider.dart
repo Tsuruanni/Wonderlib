@@ -8,7 +8,10 @@ import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
+import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
+import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
 import 'auth_provider.dart';
+
 import 'usecase_providers.dart';
 
 /// Minimum words needed to start a daily review session
@@ -69,6 +72,7 @@ class DailyReviewState {
     this.sessionResult,
     this.requeueCount = const {},
     this.originalWordCount = 0,
+    this.isUnitReview = false,
   });
 
   final bool isLoading;
@@ -81,6 +85,7 @@ class DailyReviewState {
   final DailyReviewResult? sessionResult;
   final Map<String, int> requeueCount;
   final int originalWordCount;
+  final bool isUnitReview;
 
   bool get isComplete => currentIndex >= words.length;
   VocabularyWord? get currentWord =>
@@ -113,6 +118,7 @@ class DailyReviewState {
     DailyReviewResult? sessionResult,
     Map<String, int>? requeueCount,
     int? originalWordCount,
+    bool? isUnitReview,
   }) {
     return DailyReviewState(
       isLoading: isLoading ?? this.isLoading,
@@ -125,6 +131,7 @@ class DailyReviewState {
       sessionResult: sessionResult ?? this.sessionResult,
       requeueCount: requeueCount ?? this.requeueCount,
       originalWordCount: originalWordCount ?? this.originalWordCount,
+      isUnitReview: isUnitReview ?? this.isUnitReview,
     );
   }
 }
@@ -137,6 +144,8 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     required this.getWordProgressUseCase,
     required this.updateWordProgressUseCase,
     required this.completeDailyReviewUseCase,
+    required this.getAllWordListsUseCase,
+    required this.getWordsForListUseCase,
   }) : super(const DailyReviewState());
 
   final String userId;
@@ -144,6 +153,8 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
   final GetWordProgressUseCase getWordProgressUseCase;
   final UpdateWordProgressUseCase updateWordProgressUseCase;
   final CompleteDailyReviewUseCase completeDailyReviewUseCase;
+  final GetAllWordListsUseCase getAllWordListsUseCase;
+  final GetWordsForListUseCase getWordsForListUseCase;
 
   /// Load words for review session
   ///
@@ -222,6 +233,74 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
       incorrectCount: 0,
       responses: [],
       requeueCount: {},
+    );
+  }
+
+  /// Loads ALL words in a specific unit for a "Cram/Review" session.
+  /// Ignores SRS due dates and daily limits.
+  Future<void> loadUnitReviewSession(String unitId) async {
+    state = state.copyWith(isLoading: true);
+
+    // 1. Get all word lists in this unit
+    final allListsResult = await getAllWordListsUseCase(const GetAllWordListsParams());
+    
+    final unitListIds = allListsResult.fold(
+      (f) => <String>[],
+      (lists) => lists
+          .where((l) => l.unitId == unitId)
+          .map((l) => l.id)
+          .toList(),
+    );
+
+    if (unitListIds.isEmpty) {
+       state = state.copyWith(isLoading: false, words: []);
+       return;
+    }
+
+    // 2. Get words for all these lists
+    final futureWords = unitListIds.map((listId) => 
+      getWordsForListUseCase(GetWordsForListParams(listId: listId))
+    );
+    
+    final results = await Future.wait(futureWords);
+    final allWords = <VocabularyWord>[];
+    
+    for (final result in results) {
+      result.fold(
+        (f) {}, 
+        (words) => allWords.addAll(words),
+      );
+    }
+    
+    // Deduplicate by ID just in case
+    final uniqueWords = {for (var w in allWords) w.id: w}.values.toList();
+
+    // Shuffle for variety
+    uniqueWords.shuffle();
+
+    // Fetch progress for each word so answerWord() can update SM2
+    final progressMap = <String, VocabularyProgress>{};
+    for (final word in uniqueWords) {
+      final progressResult = await getWordProgressUseCase(
+        GetWordProgressParams(userId: userId, wordId: word.id),
+      );
+      progressResult.fold(
+        (failure) {},
+        (progress) => progressMap[word.id] = progress,
+      );
+    }
+
+    state = state.copyWith(
+      isLoading: false,
+      words: uniqueWords,
+      progressMap: progressMap,
+      originalWordCount: uniqueWords.length,
+      currentIndex: 0,
+      correctCount: 0,
+      incorrectCount: 0,
+      responses: [],
+      requeueCount: {},
+      isUnitReview: true,
     );
   }
 
@@ -327,6 +406,8 @@ final dailyReviewControllerProvider =
       getWordProgressUseCase: ref.watch(getWordProgressUseCaseProvider),
       updateWordProgressUseCase: ref.watch(updateWordProgressUseCaseProvider),
       completeDailyReviewUseCase: ref.watch(completeDailyReviewUseCaseProvider),
+      getAllWordListsUseCase: ref.watch(getAllWordListsUseCaseProvider),
+      getWordsForListUseCase: ref.watch(getWordsForListUseCaseProvider),
     );
   },
 );

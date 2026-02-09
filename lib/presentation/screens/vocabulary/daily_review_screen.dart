@@ -11,12 +11,16 @@ import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pro_progress_bar.dart';
 
 /// Daily Review Screen - Anki-style spaced repetition flashcards
 class DailyReviewScreen extends ConsumerStatefulWidget {
-  const DailyReviewScreen({super.key});
+  const DailyReviewScreen({super.key, this.unitId});
+
+  /// If set, reviews all words in this unit (cram mode).
+  final String? unitId;
 
   @override
   ConsumerState<DailyReviewScreen> createState() => _DailyReviewScreenState();
@@ -41,7 +45,12 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     // Load session on init
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(dailyReviewControllerProvider.notifier).loadSession();
+      final controller = ref.read(dailyReviewControllerProvider.notifier);
+      if (widget.unitId != null) {
+        controller.loadUnitReviewSession(widget.unitId!);
+      } else {
+        controller.loadSession();
+      }
     });
   }
 
@@ -83,14 +92,44 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
   }
 
   Future<void> _completeSession() async {
+    final state = ref.read(dailyReviewControllerProvider);
+
+    // Unit review: SRS updates already saved per-word in answerWord().
+    // Skip the daily review RPC (avoids UNIQUE constraint conflict).
+    if (state.isUnitReview) {
+      // Mark daily_review node complete in the learning path lock chain
+      if (widget.unitId != null) {
+        await completePathNode(ref, widget.unitId!, 'daily_review');
+      }
+      if (!mounted) return;
+      _showCompletionDialog(state: state, xpEarned: null);
+      return;
+    }
+
+    // Daily review: record session + earn XP
     final result = await ref
         .read(dailyReviewControllerProvider.notifier)
         .completeSession();
 
     if (result == null || !mounted) return;
 
-    final state = ref.read(dailyReviewControllerProvider);
-    final accuracyPercent = (state.accuracy * 100).round();
+    // Re-read state after completeSession updates it
+    final updatedState = ref.read(dailyReviewControllerProvider);
+    _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
+  }
+
+  void _showCompletionDialog({
+    required DailyReviewState state,
+    int? xpEarned,
+    bool isPerfect = false,
+  }) {
+    final showXp = xpEarned != null && xpEarned > 0;
+    final easyCount = state.responses.where((r) => r == SM2Response.veryEasy).length;
+    final goodCount = state.responses.where((r) => r == SM2Response.gotIt).length;
+    final hardCount = state.responses.where((r) => r == SM2Response.dontKnow).length;
+    final knownPercent = state.totalReviewed > 0
+        ? ((easyCount + goodCount) / state.totalReviewed * 100).round()
+        : 0;
 
     showDialog(
       context: context,
@@ -99,12 +138,16 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
         backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         icon: Icon(
-          result.isPerfect ? Icons.celebration_rounded : Icons.check_circle_rounded,
-          color: result.isPerfect ? AppColors.streakOrange : AppColors.primary,
+          isPerfect ? Icons.celebration_rounded : Icons.check_circle_rounded,
+          color: isPerfect ? AppColors.streakOrange : AppColors.primary,
           size: 64,
         ),
         title: Text(
-          result.isPerfect ? 'Perfect Session!' : 'Review Complete!',
+          state.isUnitReview
+              ? 'Practice Complete!'
+              : isPerfect
+                  ? 'Perfect Session!'
+                  : 'Review Complete!',
           textAlign: TextAlign.center,
           style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
         ),
@@ -112,8 +155,8 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // XP earned
-            if (result.isNewSession) ...[
+            // XP earned (daily review only)
+            if (showXp) ...[
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
@@ -127,7 +170,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     const Icon(Icons.bolt_rounded, color: AppColors.streakOrange, size: 32),
                     const SizedBox(width: 8),
                     Text(
-                      '+${result.xpEarned} XP',
+                      '+$xpEarned XP',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w900,
                         fontSize: 24,
@@ -140,9 +183,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
               const SizedBox(height: 24),
             ],
 
-            // Stats
+            // Response distribution
             Text(
-              'Accuracy: $accuracyPercent%',
+              'Known: $knownPercent%',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 20,
@@ -152,9 +195,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
             ),
             const SizedBox(height: 24),
 
-            _StatRow(emoji: '✅', label: 'Correct', count: state.correctCount, color: AppColors.primary),
-            _StatRow(emoji: '❌', label: 'Incorrect', count: state.incorrectCount, color: AppColors.danger),
-            _StatRow(emoji: '📚', label: 'Total', count: state.totalReviewed, color: AppColors.secondary),
+            _StatRow(emoji: '🚀', label: 'Easy', count: easyCount, color: AppColors.primary),
+            _StatRow(emoji: '😊', label: 'Good', count: goodCount, color: AppColors.secondary),
+            _StatRow(emoji: '😕', label: 'Hard', count: hardCount, color: AppColors.danger),
           ],
         ),
         actions: [
@@ -166,8 +209,10 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
               onPressed: () {
                 Navigator.of(ctx).pop();
                 context.pop();
-                ref.invalidate(todayReviewSessionProvider);
-                ref.invalidate(dailyReviewWordsProvider);
+                if (!state.isUnitReview) {
+                  ref.invalidate(todayReviewSessionProvider);
+                  ref.invalidate(dailyReviewWordsProvider);
+                }
                 ref.read(userControllerProvider.notifier).refresh();
               },
               variant: GameButtonVariant.primary,
@@ -224,8 +269,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       );
     }
 
-    // Guard: not enough words for a meaningful review session
-    if (state.words.length < minDailyReviewCount) {
+    // Guard: not enough words for a meaningful daily review session
+    // Unit reviews skip this — a unit may legitimately have fewer words
+    if (!state.isUnitReview && state.words.length < minDailyReviewCount) {
       return Scaffold(
         backgroundColor: AppColors.background,
         body: Center(

@@ -2,120 +2,108 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../../domain/entities/vocabulary_session.dart';
+import 'question_image.dart';
 
-/// Faz 1 card showing word, meaning, image, example sentence, and speaker icon
+/// Faz 1 flashcard: vertical centered layout — image hero, word + meaning below.
+/// Designed to be wrapped in Expanded so it fills available space.
 class WordIntroductionCard extends StatelessWidget {
   const WordIntroductionCard({
     super.key,
     required this.word,
-    this.showImage = true,
   });
 
   final WordSessionState word;
-  final bool showImage;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.10),
+        ),
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            color: theme.colorScheme.shadow.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.12),
-        ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Speaker + Word
+            // Image — hero element
+            Flexible(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 140, maxWidth: 140),
+                child: QuestionImage(imageUrl: word.imageUrl, size: 140),
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            // Word + speaker
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _SpeakerButton(word: word.word),
-                const SizedBox(width: 12),
-                Text(
-                  word.word,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
+                Flexible(
+                  child: Text(
+                    word.word,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(width: 6),
+                _SpeakerButton(word: word.word),
               ],
             ),
 
-            if (word.phonetic != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                word.phonetic!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ],
+            const SizedBox(height: 8),
 
-            const SizedBox(height: 12),
-
-            // Turkish meaning
+            // Turkish meaning pill
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 word.meaningTR,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.w600,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
             ),
 
-            // Image
-            if (showImage && word.imageUrl != null) ...[
-              const SizedBox(height: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  word.imageUrl!,
-                  height: 120,
-                  width: 120,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                ),
-              ),
-            ],
-
             // Example sentence
             if (word.exampleSentence != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 10),
+              Text(
+                '"${word.exampleSentence}"',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontStyle: FontStyle.italic,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.50),
+                  height: 1.3,
                 ),
-                child: Text(
-                  '"${word.exampleSentence}"',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ],
           ],
@@ -148,7 +136,9 @@ class _SpeakerButtonState extends State<_SpeakerButton> {
 
   @override
   void dispose() {
-    _tts.stop();
+    // Do NOT call _tts.stop() here — AnimatedSwitcher keeps this widget alive
+    // during fade-out. If the next question is a ListeningQuestion, its TTS
+    // starts before this dispose runs, and stop() would kill it mid-word.
     super.dispose();
   }
 
@@ -159,12 +149,17 @@ class _SpeakerButtonState extends State<_SpeakerButton> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: _isPlaying ? null : _speak,
-      icon: Icon(
-        _isPlaying ? Icons.volume_up : Icons.volume_up_outlined,
-        color: Theme.of(context).colorScheme.primary,
-        size: 28,
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        onPressed: _isPlaying ? null : _speak,
+        icon: Icon(
+          _isPlaying ? Icons.volume_up : Icons.volume_up_outlined,
+          color: Theme.of(context).colorScheme.primary,
+          size: 22,
+        ),
       ),
     );
   }

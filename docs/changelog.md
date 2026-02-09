@@ -8,6 +8,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Sequential Lock System & Learning Path Improvements (2026-02-10)
+
+#### Added
+- **Sequential Lock System** - Full progression chain: Word List 1 → 2 → ... → N → Flipbook → Daily Review → Game → Treasure → Next Unit
+  - `user_node_completions` DB table with RLS policies for tracking special node completions
+  - `NodeCompletion` entity, `NodeCompletionModel`, 2 new UseCases (`GetNodeCompletionsUseCase`, `CompleteNodeUseCase`)
+  - `nodeCompletionsProvider` + `completePathNode()` action in vocabulary_provider.dart
+- **Unit Review Mode** - Cram review for all words in a unit via learning path Daily Review node
+  - `DailyReviewScreen` accepts optional `unitId` for unit-scoped review
+  - `loadUnitReviewSession()` in daily review controller (fetches all words in unit, ignores SRS scheduling)
+  - `/vocabulary/unit-review/:unitId` route added to router
+- **Learning Path Special Node Labels** - Side labels (left/right) on Flipbook, Review, Game, Treasure nodes matching word list label style
+
+#### Changed
+- **Learning Path** - Major refactor from single 1047-line file → 4 focused files:
+  - `learning_path.dart` (orchestrator), `path_painters.dart` (background + connectors), `path_row.dart` (word list positioning), `path_special_nodes.dart` (Flipbook/Review/Game/Treasure)
+- **Lock Visual Style** - Locked nodes show original icon in gray (not lock icon), making upcoming content visible
+- **Daily Review Section** - Moved from vocabulary hub to home screen (under daily tasks)
+- **Flashcard Completion Dialog** - Changed from Correct/Incorrect/Total → Easy/Good/Hard (matches self-assessment semantics)
+- **Path Background** - Narrowed organic path width (140→100) and border stroke (8→6)
+- **PathUnitData** - Now tracks `completedNodeTypes` set; `isAllComplete` requires both word lists AND all 4 special nodes
+- **Word List Nodes** - Lock message updated: "Complete the previous unit" → "Complete previous steps"
+
+#### Infrastructure
+- **1 DB Migration**: `20260210000003_create_node_completions.sql` — node completions table with UNIQUE constraint, RLS, index
+- **New Files**: `node_completion_model.dart`, `complete_node_usecase.dart`, `get_node_completions_usecase.dart`, `path_painters.dart`, `path_row.dart`, `path_special_nodes.dart`
+- **Modified**: router.dart, vocabulary_repository (interface + impl), vocabulary_provider, usecase_providers, daily_review_provider, daily_review_screen, home_screen, vocabulary_hub_screen, learning_path, path_node
+
 ### Teacher Student Vocab Stats & Detail Improvements (2026-02-09)
 
 #### Added

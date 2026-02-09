@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'question_container.dart';
+import 'question_image.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Spelling question: Turkish meaning given, type the English word
@@ -73,11 +74,13 @@ class _SpellingQuestionState extends State<SpellingQuestion> {
           const SizedBox(height: 12),
 
           QuestionContainer(
-            padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
             child: Column(
               children: [
+                QuestionImage(imageUrl: widget.question.imageUrl),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(16),
@@ -87,7 +90,7 @@ class _SpellingQuestionState extends State<SpellingQuestion> {
                   ),
                   child: Text(
                     widget.question.targetMeaning,
-                    style: theme.textTheme.headlineMedium?.copyWith(
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
                     ),

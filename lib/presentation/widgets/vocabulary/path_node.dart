@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -22,6 +23,7 @@ class PathNode extends StatefulWidget {
     required this.unitColor,
     this.isActive = false,
     this.isLocked = false,
+    this.canStartNewList = true,
     this.labelPosition = LabelPosition.below,
   });
 
@@ -29,6 +31,8 @@ class PathNode extends StatefulWidget {
   final Color unitColor;
   final bool isActive;
   final bool isLocked;
+  /// Whether a NEW word list (no progress) can be started (daily limit not reached).
+  final bool canStartNewList;
   final LabelPosition labelPosition;
 
   @override
@@ -40,11 +44,7 @@ class _PathNodeState extends State<PathNode>
   AnimationController? _bounceController;
   late Animation<double> _bounceAnimation;
 
-  @override
-  void initState() {
-    super.initState();
-    _setupBounce();
-  }
+
 
   @override
   void didUpdateWidget(PathNode oldWidget) {
@@ -82,11 +82,153 @@ class _PathNodeState extends State<PathNode>
 
   void _handleTap(BuildContext context) {
     if (widget.isLocked) {
-      showAppSnackBar(context, 'Complete the previous unit to unlock');
+      showAppSnackBar(context, 'Complete previous steps to unlock!');
       return;
     }
-    final id = widget.wordListWithProgress.wordList.id;
-    context.push(AppRoutes.vocabularyListPath(id));
+
+    final wlp = widget.wordListWithProgress;
+    final id = wlp.wordList.id;
+    final progress = wlp.progress;
+
+    if (progress == null) {
+      // No progress → check daily limit, then start session directly
+      if (!widget.canStartNewList) {
+        showAppSnackBar(context, 'Daily limit reached. Come back tomorrow!');
+        return;
+      }
+      context.push(AppRoutes.vocabularySessionPath(id));
+    } else {
+      // Has progress → show stats bottom sheet
+      _showProgressSheet(context, wlp);
+    }
+  }
+
+  void _showProgressSheet(BuildContext context, WordListWithProgress wlp) {
+    final progress = wlp.progress!;
+    final id = wlp.wordList.id;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: AppColors.white,
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.neutral,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                wlp.wordList.name,
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+
+              // Stats row
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.neutral, width: 2),
+                  boxShadow: const [
+                    BoxShadow(color: AppColors.neutral, offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _SheetStat(
+                      icon: Icons.repeat_rounded,
+                      value: '${progress.totalSessions}',
+                      label: 'Sessions',
+                    ),
+                    if (progress.bestAccuracy != null)
+                      _SheetStat(
+                        icon: Icons.star_rounded,
+                        value: '${progress.bestAccuracy!.toStringAsFixed(0)}%',
+                        label: 'Best',
+                      ),
+                    if (progress.bestScore != null)
+                      _SheetStat(
+                        icon: Icons.bolt_rounded,
+                        value: '${progress.bestScore}',
+                        label: 'Top XP',
+                      ),
+                  ],
+                ),
+              ),
+
+              // Stars
+              if (wlp.starCount > 0) ...[
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (i) {
+                    final filled = i < wlp.starCount;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(
+                        filled ? Icons.star_rounded : Icons.star_border_rounded,
+                        color: filled ? AppColors.wasp : AppColors.neutral,
+                        size: 32,
+                      ),
+                    );
+                  }),
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Practice Again button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    context.push(AppRoutes.vocabularySessionPath(id));
+                  },
+                  icon: const Icon(Icons.replay_rounded),
+                  label: Text(
+                    'Practice Again',
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: widget.unitColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -208,6 +350,22 @@ class _PathNodeState extends State<PathNode>
     );
   }
 
+  late double _rotation;
+  
+  @override
+  void initState() {
+    super.initState();
+    _setupBounce();
+    
+    // Calculate random rotation once on init
+    final seed = widget.wordListWithProgress.wordList.id.hashCode;
+    final random = Random(seed);
+    // Rotation (-0.25 to 0.25 radians ~ +/- 14 degrees)
+    _rotation = (random.nextDouble() - 0.5) * 0.5;
+  }
+
+  // ... (existing helper methods)
+
   Widget _buildNodeCircle({
     required WordList wordList,
     required bool isComplete,
@@ -245,55 +403,57 @@ class _PathNodeState extends State<PathNode>
                 ),
               ),
             ),
-          // Inner 3D circle
-          Positioned(
-            top: 4,
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: nodeColor,
-                border: !isStarted && !widget.isActive && !isLocked
-                    ? Border.all(color: AppColors.neutral, width: 2)
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: isLocked
-                        ? AppColors.neutralDark.withValues(alpha: 0.5)
-                        : isStarted || isComplete || widget.isActive
-                            ? shadowColor
-                            : AppColors.neutralDark.withValues(alpha: 0.5),
-                    offset: const Offset(0, 4),
-                    blurRadius: 0,
-                  ),
-                ],
-              ),
-              child: Center(
-                child: isLocked
-                    ? const Icon(
-                        Icons.lock_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      )
-                    : isComplete
-                        ? const Icon(
-                            Icons.check_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          )
-                        : Text(
-                            wordList.category.icon,
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: isStarted || widget.isActive
-                                  ? null
-                                  : AppColors.neutralText,
-                            ),
+              // Inner 3D Node Shape
+              // Wrapped in RepaintBoundary to cache the rasterized circle/shadow
+              Positioned(
+                top: 4,
+                child: RepaintBoundary(
+                  child: Transform.rotate(
+                    angle: _rotation,
+                    child: Container(
+                      width: 56.0,
+                      height: 56.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: nodeColor,
+                        border: !isStarted && !widget.isActive && !isLocked
+                            ? Border.all(color: AppColors.neutral, width: 2)
+                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: isLocked
+                                ? AppColors.neutralDark.withValues(alpha: 0.6)
+                                : isStarted || isComplete || widget.isActive
+                                    ? shadowColor.withValues(alpha: 0.8)
+                                    : AppColors.neutralDark.withValues(alpha: 0.6),
+                            offset: const Offset(0, 8),
+                            blurRadius: 0, 
                           ),
+                        ],
+                      ),
+                      child: Center(
+                        child: isComplete
+                            ? const Icon(
+                                Icons.check_rounded,
+                                color: Colors.white,
+                                size: 28,
+                              )
+                            : Text(
+                                wordList.category.icon,
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  color: isLocked
+                                      ? AppColors.neutralText
+                                      : (isStarted || widget.isActive)
+                                          ? null
+                                          : AppColors.neutralText,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ),
           // Crown badge removed by user request
           // Stars for nodes with progress
           if (stars > 0 && !isLocked)
@@ -321,31 +481,6 @@ class _PathNodeState extends State<PathNode>
     );
   }
 
-  Widget _buildStartPill() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.primaryDark,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Text(
-        'START',
-        style: GoogleFonts.nunito(
-          fontSize: 13,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
   /// Darken a color by reducing its lightness in HSL space.
   Color _darken(Color color, double amount) {
     final hsl = HSLColor.fromColor(color);
@@ -358,5 +493,44 @@ class _PathNodeState extends State<PathNode>
     if (stars == 2) return const Color(0xFFE0E0E0); // Lighter Silver
     if (stars == 1) return const Color(0xFFCD7F32); // Bronze
     return defaultColor;
+  }
+}
+
+/// Mini stat widget for the progress bottom sheet.
+class _SheetStat extends StatelessWidget {
+  const _SheetStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: AppColors.primary),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: GoogleFonts.nunito(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: AppColors.black,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.neutralText,
+          ),
+        ),
+      ],
+    );
   }
 }

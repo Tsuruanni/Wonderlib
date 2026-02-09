@@ -88,4 +88,20 @@ abstract class VocabularyRepository {
   /// Count words learned today that belong to word lists only
   /// (excludes words learned from reader or other sources)
   Future<Either<Failure, int>> getWordsLearnedFromListsTodayCount(String userId);
+
+  // ============================================================
+  // Path Node Completion Methods
+  // ============================================================
+
+  /// Get all node completions for a user
+  Future<Either<Failure, List<NodeCompletion>>> getNodeCompletions(
+    String userId,
+  );
+
+  /// Mark a path node as completed (idempotent — ignores duplicates)
+  Future<Either<Failure, void>> completeNode({
+    required String userId,
+    required String unitId,
+    required String nodeType,
+  });
 }

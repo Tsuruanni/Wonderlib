@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
+import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
+import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
@@ -536,16 +538,30 @@ class PathRowData {
   final List<WordListWithProgress> items;
 }
 
+/// Node types for special path nodes
+const allSpecialNodeTypes = ['flipbook', 'daily_review', 'game', 'treasure'];
+
 /// One unit in the learning path (header + rows of word lists)
 class PathUnitData {
-  const PathUnitData({required this.unit, required this.rows});
+  const PathUnitData({
+    required this.unit,
+    required this.rows,
+    this.completedNodeTypes = const {},
+  });
+
   final VocabularyUnit unit;
   final List<PathRowData> rows;
+  final Set<String> completedNodeTypes;
 
-  /// Whether every word list in this unit is fully complete.
-  bool get isAllComplete => rows.every(
+  /// Whether ALL word lists in this unit are complete.
+  bool get isAllListsComplete => rows.every(
     (row) => row.items.every((item) => item.isComplete),
   );
+
+  /// Whether every word list AND every special node is complete.
+  bool get isAllComplete =>
+    isAllListsComplete &&
+    completedNodeTypes.containsAll(allSpecialNodeTypes);
 }
 
 /// Vocabulary units filtered by curriculum assignments.
@@ -559,11 +575,33 @@ final vocabularyUnitsProvider = FutureProvider<List<VocabularyUnit>>((ref) async
   return result.fold((f) => [], (units) => units);
 });
 
-/// Complete learning path: units + word lists + progress combined
+/// Node completions for the current user (Set of "unitId:nodeType" for fast lookup)
+final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return {};
+
+  final useCase = ref.watch(getNodeCompletionsUseCaseProvider);
+  final result = await useCase(GetNodeCompletionsParams(userId: userId));
+
+  return result.fold(
+    (failure) => {},
+    (completions) {
+      // Group by unitId → Set<nodeType>
+      final map = <String, Set<String>>{};
+      for (final c in completions) {
+        map.putIfAbsent(c.unitId, () => {}).add(c.nodeType);
+      }
+      return map;
+    },
+  );
+});
+
+/// Complete learning path: units + word lists + progress + node completions
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final units = await ref.watch(vocabularyUnitsProvider.future);
   final allLists = await ref.watch(allWordListsProvider.future);
   final progressList = await ref.watch(userWordListProgressProvider.future);
+  final nodeCompletions = await ref.watch(nodeCompletionsProvider.future);
 
   if (units.isEmpty) return [];
 
@@ -593,7 +631,13 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
             ),)
         .toList();
 
-    result.add(PathUnitData(unit: unit, rows: rows));
+    result.add(
+    PathUnitData(
+      unit: unit,
+      rows: rows,
+      completedNodeTypes: nodeCompletions[unit.id] ?? {},
+    ),
+  );
   }
 
   return result;
@@ -662,6 +706,25 @@ class VocabularyActionResult {
   const VocabularyActionResult({required this.success, this.errorMessage});
   final bool success;
   final String? errorMessage;
+}
+
+/// Mark a special path node as completed and refresh the learning path
+Future<bool> completePathNode(WidgetRef ref, String unitId, String nodeType) async {
+  final userId = ref.read(currentUserIdProvider);
+  if (userId == null) return false;
+
+  final useCase = ref.read(completeNodeUseCaseProvider);
+  final result = await useCase(
+    CompleteNodeParams(userId: userId, unitId: unitId, nodeType: nodeType),
+  );
+
+  return result.fold(
+    (failure) => false,
+    (_) {
+      ref.invalidate(nodeCompletionsProvider);
+      return true;
+    },
+  );
 }
 
 /// Add a word to user's vocabulary

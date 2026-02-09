@@ -240,7 +240,9 @@ class _VocabularySessionScreenState
               key: const ValueKey('feedback'),
               isCorrect: sessionState.lastAnswerCorrect,
               correctAnswer: sessionState.lastCorrectAnswer,
-              targetWord: sessionState.currentQuestion?.targetWord,
+              targetWord: sessionState.currentQuestion?.type == QuestionType.matching
+                  ? null
+                  : sessionState.currentQuestion?.targetWord,
               // For feedback display, use the last gained XP
               xpGained: sessionState.lastXPGained, 
               combo: sessionState.combo,
@@ -317,8 +319,8 @@ class _VocabularySessionScreenState
             ),
           ),
         ),
-        ...pair.map((word) => WordIntroductionCard(word: word)),
-        const SizedBox(height: 16),
+        ...pair.map((word) => Expanded(child: WordIntroductionCard(word: word))),
+        const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SizedBox(

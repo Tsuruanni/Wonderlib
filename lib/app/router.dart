@@ -48,7 +48,9 @@ abstract class AppRoutes {
   static const activity = '/activity/:chapterId';
   static const vocabulary = '/vocabulary';
   static const vocabularyDailyReview = '/vocabulary/daily-review';
+
   static const profile = '/profile';
+
   static const wordBank = '/word-bank';
   static const studentAssignments = '/assignments';
   static const studentAssignmentDetail = '/assignments/:assignmentId';
@@ -85,6 +87,9 @@ abstract class AppRoutes {
       '/vocabulary/list/$listId/session/summary';
   static String vocabularyCategoryPath(String categoryName) =>
       '/vocabulary/category/$categoryName';
+  static String vocabularyUnitReviewPath(String unitId) =>
+      '/vocabulary/unit-review/$unitId';
+
   static String teacherClassDetailPath(String classId) =>
       '/teacher/classes/$classId';
   static String teacherStudentDetailPath(String classId, String studentId) =>
@@ -307,6 +312,13 @@ GoRouter _createRouter() {
                   GoRoute(
                     path: 'daily-review',
                     builder: (context, state) => const DailyReviewScreen(),
+                  ),
+                  GoRoute(
+                    path: 'unit-review/:unitId',
+                    builder: (context, state) {
+                      final unitId = state.pathParameters['unitId']!;
+                      return DailyReviewScreen(unitId: unitId);
+                    },
                   ),
                   GoRoute(
                     path: 'word-bank',

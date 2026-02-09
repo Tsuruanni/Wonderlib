@@ -54,7 +54,11 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
   @override
   void dispose() {
     _autoDismissTimer?.cancel();
-    _tts.stop();
+    // NOTE: Do NOT call _tts.stop() here. The AnimatedSwitcher keeps this
+    // widget alive during its fade-out animation. If the next question is a
+    // ListeningQuestion, its TTS starts before this dispose runs — calling
+    // stop() here would kill the platform TTS engine globally and cut off
+    // the new question's pronunciation mid-word.
     super.dispose();
   }
 

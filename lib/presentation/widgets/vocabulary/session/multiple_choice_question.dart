@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'question_container.dart';
+import 'question_image.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Multiple choice question: EN→TR or TR→EN with 2-4 options
@@ -32,7 +33,8 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
 
   @override
   void dispose() {
-    _tts.stop();
+    // Do NOT call _tts.stop() here — AnimatedSwitcher keeps this widget alive
+    // during fade-out, and stop() would kill the next question's TTS mid-word.
     super.dispose();
   }
 
@@ -75,20 +77,11 @@ class _MultipleChoiceQuestionState extends State<MultipleChoiceQuestion> {
           QuestionContainer(
             child: Column(
               children: [
-                // Icon / Media
-                if (q.imageUrl != null && !q.isRemediation) 
+                // Image
+                if (!q.isRemediation)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        q.imageUrl!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
-                      ),
-                    ),
+                    child: QuestionImage(imageUrl: q.imageUrl),
                   ),
 
                 // Target Word

@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_goal_widget.dart';
@@ -41,9 +42,11 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // --- Daily Tasks Section ---
                   const DailyGoalWidget(),
+                  const SizedBox(height: 16),
+
+                  // --- Daily Vocabulary Review ---
+                  const _DailyReviewSection(),
                   const SizedBox(height: 32),
-
-
 
               // --- Continue Reading Section ---
               _buildSectionHeader(context, 'Continue Reading'),
@@ -165,6 +168,156 @@ class HomeScreen extends ConsumerWidget {
          ],
        ),
      );
+  }
+}
+
+/// Daily Review Section — only shows when completed or ready (>= 10 words).
+class _DailyReviewSection extends ConsumerWidget {
+  const _DailyReviewSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todaySession = ref.watch(todayReviewSessionProvider).valueOrNull;
+    final dueWords = ref.watch(dailyReviewWordsProvider).valueOrNull ?? [];
+
+    // Already completed today
+    if (todaySession != null) {
+      return _CompletedReviewCard(session: todaySession);
+    }
+
+    // Enough words to start a review session
+    if (dueWords.length >= minDailyReviewCount) {
+      return _ReadyToReviewCard(wordCount: dueWords.length);
+    }
+
+    // Not enough words — hide
+    return const SizedBox.shrink();
+  }
+}
+
+class _CompletedReviewCard extends StatelessWidget {
+  const _CompletedReviewCard({required this.session});
+
+  final dynamic session; // DailyReviewSession
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryShadow,
+            offset: const Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.check_rounded, color: Colors.white, size: 32),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Review Complete!',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                  ),
+                ),
+                Text(
+                  '+${session.xpEarned} XP earned',
+                  style: GoogleFonts.nunito(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReadyToReviewCard extends StatelessWidget {
+  const _ReadyToReviewCard({required this.wordCount});
+
+  final int wordCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push(AppRoutes.vocabularyDailyReview),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.streakOrange,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(color: const Color(0xFFC76A00), offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 32),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Daily Review',
+                    style: GoogleFonts.nunito(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 20,
+                    ),
+                  ),
+                  Text(
+                    '$wordCount words ready!',
+                    style: GoogleFonts.nunito(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.play_arrow_rounded, color: AppColors.streakOrange, size: 24),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

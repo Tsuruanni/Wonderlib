@@ -73,6 +73,8 @@ import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
+import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
+import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
@@ -336,6 +338,14 @@ final getWordsLearnedTodayUseCaseProvider = Provider((ref) {
 
 final getWordsFromListsLearnedTodayUseCaseProvider = Provider((ref) {
   return GetWordsFromListsLearnedTodayUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final getNodeCompletionsUseCaseProvider = Provider((ref) {
+  return GetNodeCompletionsUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final completeNodeUseCaseProvider = Provider((ref) {
+  return CompleteNodeUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 // ============================================

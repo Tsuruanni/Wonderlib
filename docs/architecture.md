@@ -141,8 +141,11 @@ lib/
 │   └── widgets/
 │       ├── common/           # Shared widgets (XPBadge, StatItem, TopNavbar, StreakStatusDialog)
 │       ├── vocabulary/       # Vocabulary path widgets
-│       │   ├── learning_path.dart    # Duolingo-style zigzag path
-│       │   ├── path_node.dart        # Circle node with progress ring
+│       │   ├── learning_path.dart    # Duolingo-style zigzag path (orchestrator)
+│       │   ├── path_painters.dart    # Background path + connector painters
+│       │   ├── path_row.dart         # Word list node positioning
+│       │   ├── path_node.dart        # Circle node with progress/stars
+│       │   ├── path_special_nodes.dart # Flipbook/Review/Game/Treasure nodes
 │       │   └── session/              # Quiz session widgets (7 question types + feedback)
 │       └── reader/           # Reader-specific widgets
 │           ├── reader_body.dart           # Main scrollable content

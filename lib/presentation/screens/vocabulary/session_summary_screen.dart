@@ -106,7 +106,8 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         }
       },
       (savedResult) {
-        // Invalidate progress providers so learning path updates
+        // Invalidate progress providers so learning path + detail screen update
+        ref.invalidate(progressForListProvider(widget.listId));
         ref.invalidate(userWordListProgressProvider);
         ref.invalidate(wordListsWithProgressProvider);
         ref.invalidate(learningPathProvider);

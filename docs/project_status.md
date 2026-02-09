@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-09 (Teacher Vocab Stats + Unit Curriculum Assignments + Admin Panel + Learning Path Redesign)
+Son güncelleme: 2026-02-10 (Sequential Lock System + Unit Review + Learning Path Refactor)
 
 ## Current Phase
 
@@ -71,6 +71,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Matching Inline Activity (tap-to-match pairs in reader)
 - [x] Unit Curriculum Assignments (school/grade/class-based unit filtering)
 - [x] Teacher Student Vocab Stats (per-student vocabulary & word list progress)
+- [x] Sequential Lock System (word list → special node → next unit progression)
+- [x] Unit Review Mode (cram review for all words in a unit)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -118,6 +120,10 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Sequential Lock System | 2026-02-10 | Full progression chain with DB persistence, special node completion tracking, visual lock refinements |
+| Unit Review Mode | 2026-02-10 | Cram review for unit words, daily review screen supports unitId param, wired to lock chain |
+| Learning Path Refactor | 2026-02-10 | Split 1047-line file into 4 focused files (painters, row, special_nodes, orchestrator) |
+| Daily Review → Homepage | 2026-02-10 | Moved daily review section from vocabulary hub to home screen under daily tasks |
 | Teacher Vocab Stats | 2026-02-09 | Student vocabulary progress stats, per-list progress with star ratings, new entities/models/usecases |
 | Unit Curriculum Assignments | 2026-02-09 | School/grade/class-based unit filtering, DB migration + RPC, admin CRUD screens, backward compatible |
 | Learning Path Redesign | 2026-02-09 | Background path line, flipbook node, terrain background, Patrick Hand font, visual overhaul |

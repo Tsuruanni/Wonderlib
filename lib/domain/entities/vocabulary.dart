@@ -164,3 +164,19 @@ class VocabularyProgress extends Equatable {
         createdAt,
       ];
 }
+
+/// Tracks completion of a special path node (flipbook, daily_review, game, treasure)
+class NodeCompletion extends Equatable {
+  const NodeCompletion({
+    required this.unitId,
+    required this.nodeType,
+    required this.completedAt,
+  });
+
+  final String unitId;
+  final String nodeType; // 'flipbook', 'daily_review', 'game', 'treasure'
+  final DateTime completedAt;
+
+  @override
+  List<Object?> get props => [unitId, nodeType, completedAt];
+}

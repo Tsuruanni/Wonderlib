@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'question_container.dart';
+import 'question_image.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Sentence gap-fill: "I bought a red ___ from the market" → type the missing word
@@ -78,6 +79,8 @@ class _SentenceGapQuestionState extends State<SentenceGapQuestion> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
+                QuestionImage(imageUrl: widget.question.imageUrl, size: 72),
+                const SizedBox(height: 12),
                 Text(
                   widget.question.targetMeaning,
                   style: theme.textTheme.titleMedium?.copyWith(
