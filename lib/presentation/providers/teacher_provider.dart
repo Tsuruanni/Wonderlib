@@ -10,6 +10,8 @@ import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
 import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
 import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
+import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -111,6 +113,39 @@ final studentProgressProvider =
     FutureProvider.family<List<StudentBookProgress>, String>((ref, studentId) async {
   final useCase = ref.watch(getStudentProgressUseCaseProvider);
   final result = await useCase(GetStudentProgressParams(studentId: studentId));
+
+  return result.fold(
+    (failure) => [],
+    (progress) => progress,
+  );
+});
+
+/// Provider for student's vocabulary stats
+final studentVocabStatsProvider =
+    FutureProvider.family<StudentVocabStats, String>((ref, studentId) async {
+  final useCase = ref.watch(getStudentVocabStatsUseCaseProvider);
+  final result = await useCase(GetStudentVocabStatsParams(studentId: studentId));
+
+  return result.fold(
+    (failure) => const StudentVocabStats(
+      totalWords: 0,
+      newCount: 0,
+      learningCount: 0,
+      reviewingCount: 0,
+      masteredCount: 0,
+      listsStarted: 0,
+      listsCompleted: 0,
+      totalSessions: 0,
+    ),
+    (stats) => stats,
+  );
+});
+
+/// Provider for student's word list progress
+final studentWordListProgressProvider =
+    FutureProvider.family<List<StudentWordListProgress>, String>((ref, studentId) async {
+  final useCase = ref.watch(getStudentWordListProgressUseCaseProvider);
+  final result = await useCase(GetStudentWordListProgressParams(studentId: studentId));
 
   return result.fold(
     (failure) => [],

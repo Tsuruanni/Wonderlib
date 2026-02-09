@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
-import '../../domain/usecases/usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
@@ -20,6 +19,7 @@ import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
+import '../../domain/usecases/wordlist/get_assigned_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -548,10 +548,14 @@ class PathUnitData {
   );
 }
 
-/// All active vocabulary units (ordered by sort_order)
+/// Vocabulary units filtered by curriculum assignments.
+/// Returns ALL units if no assignments exist for the user's school.
 final vocabularyUnitsProvider = FutureProvider<List<VocabularyUnit>>((ref) async {
-  final useCase = ref.watch(getVocabularyUnitsUseCaseProvider);
-  final result = await useCase(const NoParams());
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final useCase = ref.watch(getAssignedVocabularyUnitsUseCaseProvider);
+  final result = await useCase(GetAssignedUnitsParams(userId: userId));
   return result.fold((f) => [], (units) => units);
 });
 

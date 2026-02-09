@@ -127,12 +127,18 @@ class _PathNodeState extends State<PathNode>
       );
     }
 
-    final labelStyle = GoogleFonts.nunito(
-      fontSize: 11,
-      fontWeight: FontWeight.w800,
-      color: !isLocked && (isStarted || widget.isActive)
-          ? AppColors.black
-          : AppColors.neutralText,
+    final labelStyle = GoogleFonts.patrickHand(
+      fontSize: 22, // Increased font size again
+      fontWeight: FontWeight.w700,
+      color: Colors.white,
+      letterSpacing: 0.5,
+      shadows: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.6),
+          offset: const Offset(0, 2),
+          blurRadius: 4,
+        ),
+      ],
     );
 
     if (widget.labelPosition == LabelPosition.below) {
@@ -140,20 +146,21 @@ class _PathNodeState extends State<PathNode>
         pressedScale: 0.92,
         onTap: () => _handleTap(context),
         child: SizedBox(
-          width: 92,
+          width: 140, 
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               nodeWidget,
               const SizedBox(height: 6),
-              if (widget.isActive && !isLocked) _buildStartPill(),
-              if (widget.isActive && !isLocked) const SizedBox(height: 2),
-              Text(
-                wordList.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: labelStyle,
+              // Pill removed
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  wordList.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  style: labelStyle,
+                ),
               ),
             ],
           ),
@@ -162,30 +169,36 @@ class _PathNodeState extends State<PathNode>
     }
 
     // Side label layout (left or right)
-    // Note: START pill is rendered by _PathRow (parent) so it's in the
-    // full-width Stack and tappable outside PathNode's 164px bounds.
     final isLeft = widget.labelPosition == LabelPosition.left;
 
-    final labelWidget = SizedBox(
-      width: 80,
-      child: Text(
-        wordList.name,
-        textAlign: isLeft ? TextAlign.right : TextAlign.left,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: labelStyle,
+    // Translate text up to align with the visual center of the node (circle) 
+    // rather than the container center (which includes space for stars/crown).
+    final labelWidget = Transform.translate(
+      offset: const Offset(0, -12),
+      child: SizedBox(
+        width: 140, 
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: isLeft ? Alignment.centerRight : Alignment.centerLeft,
+          child: Text(
+            wordList.name,
+            textAlign: isLeft ? TextAlign.right : TextAlign.left,
+            maxLines: 1,
+            style: labelStyle,
+          ),
+        ),
       ),
     );
 
     final rowChildren = isLeft
-        ? [labelWidget, const SizedBox(width: 8), nodeWidget]
-        : [nodeWidget, const SizedBox(width: 8), labelWidget];
+        ? [labelWidget, const SizedBox(width: 70), nodeWidget] // Increased gap to 70
+        : [nodeWidget, const SizedBox(width: 70), labelWidget]; // Increased gap to 70
 
     return PressableScale(
       pressedScale: 0.92,
       onTap: () => _handleTap(context),
       child: SizedBox(
-        width: 164,
+        width: 286, // 140 + 70 + 76
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,

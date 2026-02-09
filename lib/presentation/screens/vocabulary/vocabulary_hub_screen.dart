@@ -11,6 +11,8 @@ import '../../providers/vocabulary_provider.dart';
 import '../../widgets/vocabulary/learning_path.dart';
 import '../../widgets/common/top_navbar.dart';
 
+import '../../widgets/common/terrain_background.dart';
+
 /// Main vocabulary hub screen with word lists organized by sections
 class VocabularyHubScreen extends ConsumerWidget {
   const VocabularyHubScreen({super.key});
@@ -21,38 +23,40 @@ class VocabularyHubScreen extends ConsumerWidget {
     final storyLists = storyListsAsync.valueOrNull ?? [];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-        children: [
-          // --- Duolingo-style Navbar ---
-          const TopNavbar(),
+      backgroundColor: AppColors.terrain, // Fallback/Base color
+      body: TerrainBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // --- Duolingo-style Navbar ---
+              const TopNavbar(),
 
-          // --- Scrollable Content ---
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Daily Review Section (hidden when < 10 due words and no session)
-                  const _DailyReviewHeader(),
-                  const _DailyReviewSection(),
+              // --- Scrollable Content ---
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Daily Review Section
+                      const _DailyReviewHeader(),
+                      const _DailyReviewSection(),
 
-                  // Learning Path (Duolingo-style vertical path)
-                  const LearningPath(),
+                      // Learning Path
+                      const LearningPath(),
 
-                  // My Word Lists (story vocabulary)
-                  if (storyLists.isNotEmpty) ...[
-                    const _SectionHeader(title: 'My Word Lists'),
-                    _VerticalListSection(lists: storyLists, ref: ref),
-                  ],
-                ],
+                      // My Word Lists
+                      if (storyLists.isNotEmpty) ...[
+                        const _SectionHeader(title: 'My Word Lists'),
+                        _VerticalListSection(lists: storyLists, ref: ref),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
       ),
     );
   }

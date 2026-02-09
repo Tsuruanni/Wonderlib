@@ -23,6 +23,11 @@ abstract class AppColors {
   static const waspDark = Color(0xFFDFA600);
   static const waspBackground = Color(0xFFFFF7D1);
 
+  // Status Aliases
+  static const success = primary;
+  static const successDark = primaryDark;
+  static const successBackground = primaryBackground;
+
   // Neutral (Grey)
   static const neutral = Color(0xFFE5E5E5);
   static const neutralDark = Color(0xFFAFAFAF);
@@ -48,6 +53,12 @@ abstract class AppColors {
   static const cardEpicDark = Color(0xFF7D3C98);
   static const cardLegendary = Color(0xFFFFC800);
   static const cardLegendaryDark = Color(0xFFDFA600);
+
+  // Gamification (Path & Terrain)
+  static const terrain = Color(0xFF5D4037); // Dark Brown
+  static const terrainLight = Color(0xFF8D6E63); // Lighter Brown
+  static const path = Color(0xFFFFF8E7); // Cream (Vanilla)
+  static const pathBorder = Color(0xFFC1A17A); // Earthy Sand Border
 }
 
 abstract class AppTheme {

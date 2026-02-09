@@ -5,6 +5,7 @@ import '../../providers/reader_provider.dart';
 import '../common/xp_badge.dart';
 import 'common/activity_card.dart';
 import 'common/animated_game_button.dart';
+import 'common/feedback_animation.dart';
 
 /// Find words activity widget (multi-select) - gamified version
 class FindWordsActivity extends StatefulWidget {
@@ -160,37 +161,10 @@ class _FindWordsActivityState extends State<FindWordsActivity>
 
         // Feedback Overlay
          if (answered && correct != null)
-          Positioned.fill(
+           Positioned.fill(
             child: Center(
-              child: TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.elasticOut,
-                builder: (context, value, child) {
-                  return Transform.scale(
-                    scale: value,
-                    child: child,
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    correct ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                    size: 80,
-                    color: correct ? const Color(0xFF2F855A).withValues(alpha: 0.8) : const Color(0xFFC53030).withValues(alpha: 0.8), // Slightly transparent icon
-                    shadows: [
-                      BoxShadow(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                ),
+              child: FeedbackAnimation(
+                isCorrect: correct,
               ),
             ),
           ),

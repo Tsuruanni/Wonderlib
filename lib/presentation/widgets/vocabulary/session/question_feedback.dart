@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../../activities/common/feedback_animation.dart';
+
 /// Feedback overlay after answering: green check or red X with correct answer
 class QuestionFeedback extends StatefulWidget {
   const QuestionFeedback({
@@ -77,7 +79,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16), // Reduced vertical padding
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -97,20 +99,10 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    isCorrect ? Icons.check_rounded : Icons.close_rounded,
-                    color: colorScheme.primary,
-                    size: 32,
-                  ),
-                ).animate()
-                 .scale(duration: 400.ms, curve: Curves.elasticOut)
-                 .shakeX(delay: 200.ms, hz: 4, amount: isCorrect ? 0 : 6), // Shake horizontally if wrong
+                FeedbackAnimation(
+                   isCorrect: isCorrect,
+                   size: isCorrect ? 60 : 72, // Reduced from 120 to 72 for compactness
+                 ),
 
                 const SizedBox(width: 16),
                 
@@ -128,20 +120,27 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                       
                       if (!isCorrect && widget.correctAnswer != null) ...[
                         const SizedBox(height: 4),
-                        Text(
-                          'Correct answer:',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.onSurface.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.correctAnswer!,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.baseline,
+                          textBaseline: TextBaseline.alphabetic,
+                          children: [
+                            Text(
+                              'Correct answer: ',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                widget.correctAnswer!,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ] else if (isCorrect) ...[
                         const SizedBox(height: 4),
@@ -188,20 +187,12 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                   ),
                 ),
                 
-                if (!isCorrect && widget.targetWord != null)
-                  IconButton(
-                    onPressed: () => _tts.speak(widget.targetWord!),
-                    icon: const Icon(Icons.volume_up_rounded),
-                    color: colorScheme.primary,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white,
-                    ),
-                  ),
+                // Removed redundant audio button here as per request
               ],
             ),
 
             if (!isCorrect) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 12), // Reduced spacing
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -209,7 +200,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 12), // Compact button
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),

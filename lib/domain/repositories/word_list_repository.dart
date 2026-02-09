@@ -11,6 +11,12 @@ abstract class WordListRepository {
   /// Get all active vocabulary units ordered by sort_order
   Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits();
 
+  /// Get vocabulary units assigned to a user via curriculum assignments.
+  /// Returns all active units if no assignments exist for the user's school.
+  Future<Either<Failure, List<VocabularyUnit>>> getAssignedVocabularyUnits(
+    String userId,
+  );
+
   /// Get all word lists with optional filtering
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,

@@ -17,6 +17,8 @@ class StudentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final studentAsync = ref.watch(studentDetailProvider(studentId));
     final progressAsync = ref.watch(studentProgressProvider(studentId));
+    final vocabStatsAsync = ref.watch(studentVocabStatsProvider(studentId));
+    final wordListProgressAsync = ref.watch(studentWordListProgressProvider(studentId));
 
     return Scaffold(
       body: studentAsync.when(
@@ -33,6 +35,8 @@ class StudentDetailScreen extends ConsumerWidget {
                 onPressed: () {
                   ref.invalidate(studentDetailProvider(studentId));
                   ref.invalidate(studentProgressProvider(studentId));
+                  ref.invalidate(studentVocabStatsProvider(studentId));
+                  ref.invalidate(studentWordListProgressProvider(studentId));
                 },
                 child: const Text('Retry'),
               ),
@@ -204,6 +208,92 @@ class StudentDetailScreen extends ConsumerWidget {
                 },
               ),
 
+              // Vocabulary Stats section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                  child: Text(
+                    'Vocabulary Progress',
+                    style: context.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: vocabStatsAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                  error: (_, __) => const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: Text('Error loading vocabulary stats')),
+                  ),
+                  data: (stats) => _VocabStatsSection(stats: stats),
+                ),
+              ),
+
+              // Word Lists section
+              SliverToBoxAdapter(
+                child: wordListProgressAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (lists) => lists.isNotEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                          child: Text(
+                            'Word Lists (${lists.length})',
+                            style: context.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
+
+              wordListProgressAsync.when(
+                loading: () => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+                data: (lists) {
+                  if (lists.isEmpty) {
+                    return SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.all(32),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.abc_outlined,
+                              size: 48,
+                              color: context.colorScheme.outline,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'No vocabulary activity yet',
+                              style: context.textTheme.bodyMedium?.copyWith(
+                                color: context.colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final progress = lists[index];
+                        return _WordListProgressCard(progress: progress);
+                      },
+                      childCount: lists.length,
+                    ),
+                  );
+                },
+              ),
+
               // Bottom padding
               const SliverToBoxAdapter(
                 child: SizedBox(height: 32),
@@ -365,6 +455,187 @@ class _BookProgressCard extends StatelessWidget {
     if (percentage >= 100) return Colors.green;
     if (percentage >= 50) return Colors.blue;
     if (percentage >= 25) return Colors.orange;
+    return Colors.red;
+  }
+}
+
+class _VocabStatsSection extends StatelessWidget {
+  const _VocabStatsSection({required this.stats});
+
+  final StudentVocabStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _StatColumn(
+            value: '${stats.totalWords}',
+            label: 'Words',
+            icon: Icons.abc,
+            color: Colors.blue,
+          ),
+          _StatColumn(
+            value: '${stats.masteredCount}',
+            label: 'Mastered',
+            icon: Icons.check_circle,
+            color: Colors.green,
+          ),
+          _StatColumn(
+            value: '${stats.learningCount}',
+            label: 'Learning',
+            icon: Icons.school,
+            color: Colors.orange,
+          ),
+          _StatColumn(
+            value: '${stats.totalSessions}',
+            label: 'Sessions',
+            icon: Icons.replay,
+            color: Colors.purple,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WordListProgressCard extends StatelessWidget {
+  const _WordListProgressCard({required this.progress});
+
+  final StudentWordListProgress progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // List icon with level badge
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: _getCategoryColor(progress.wordListCategory).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.list_alt,
+                    color: _getCategoryColor(progress.wordListCategory),
+                    size: 24,
+                  ),
+                  if (progress.wordListLevel != null)
+                    Text(
+                      progress.wordListLevel!,
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: _getCategoryColor(progress.wordListCategory),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 9,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // List info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    progress.wordListName,
+                    style: context.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '${progress.wordCount} words',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${progress.totalSessions} sessions',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (progress.bestAccuracy != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        ...List.generate(3, (i) => Icon(
+                          i < progress.starCount ? Icons.star : Icons.star_border,
+                          size: 16,
+                          color: i < progress.starCount ? Colors.amber : context.colorScheme.outline,
+                        )),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${progress.bestAccuracy!.toStringAsFixed(0)}%',
+                          style: context.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _getAccuracyColor(progress.bestAccuracy!),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            // Completion indicator
+            if (progress.isComplete)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'common_words':
+        return Colors.blue;
+      case 'grade_level':
+        return Colors.green;
+      case 'test_prep':
+        return Colors.red;
+      case 'thematic':
+        return Colors.purple;
+      case 'story_vocab':
+        return Colors.teal;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Color _getAccuracyColor(double accuracy) {
+    if (accuracy >= 90) return Colors.green;
+    if (accuracy >= 70) return Colors.blue;
+    if (accuracy >= 50) return Colors.orange;
     return Colors.red;
   }
 }

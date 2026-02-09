@@ -20,7 +20,7 @@ class ReportsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         children: [
           // Quick Stats Summary
-          _QuickStatsCard(ref: ref),
+          const _QuickStatsCard(),
 
           const SizedBox(height: 24),
 
@@ -70,13 +70,11 @@ class ReportsScreen extends ConsumerWidget {
   }
 }
 
-class _QuickStatsCard extends StatelessWidget {
-  const _QuickStatsCard({required this.ref});
-
-  final WidgetRef ref;
+class _QuickStatsCard extends ConsumerWidget {
+  const _QuickStatsCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(teacherStatsProvider);
 
     return Card(

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-08 (Card Collection + Matching Activity + Vocab Session Fix + Route/SnackBar Refactors)
+Son güncelleme: 2026-02-09 (Teacher Vocab Stats + Unit Curriculum Assignments + Admin Panel + Learning Path Redesign)
 
 ## Current Phase
 
@@ -40,11 +40,13 @@ Son güncelleme: 2026-02-08 (Card Collection + Matching Activity + Vocab Session
 - [x] Temel raporlar
 - [x] Student assignment view (öğrenci tarafı)
 
-### Faz 4: Admin & İçerik
-- [ ] Admin panel
-- [ ] Okul/kullanıcı yönetimi
-- [ ] Kitap ekleme arayüzü
-- [ ] İçerik pipeline
+### Faz 4: Admin & İçerik ✅
+- [x] Admin panel (readeng_admin/ — Flutter web)
+- [x] Okul/kullanıcı yönetimi (CRUD + import)
+- [x] Kitap ekleme arayüzü (books + chapters + content blocks)
+- [x] Vocabulary & Word List management
+- [x] Unit Curriculum Assignments (school/grade/class scoping)
+- [ ] İçerik pipeline (batch content creation)
 
 ### Faz 5: Clean Architecture Refactor 🔄
 - [x] UseCase base class and initial 4 UseCases
@@ -67,6 +69,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Vocabulary Learning Path (Duolingo-style zigzag skill tree with units)
 - [x] Card Collection System (Mythology gacha cards with rarities + pack opening)
 - [x] Matching Inline Activity (tap-to-match pairs in reader)
+- [x] Unit Curriculum Assignments (school/grade/class-based unit filtering)
+- [x] Teacher Student Vocab Stats (per-student vocabulary & word list progress)
 - [ ] Final Quiz (chapter-end gamified quiz) - deferred
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -114,6 +118,13 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Teacher Vocab Stats | 2026-02-09 | Student vocabulary progress stats, per-list progress with star ratings, new entities/models/usecases |
+| Unit Curriculum Assignments | 2026-02-09 | School/grade/class-based unit filtering, DB migration + RPC, admin CRUD screens, backward compatible |
+| Learning Path Redesign | 2026-02-09 | Background path line, flipbook node, terrain background, Patrick Hand font, visual overhaul |
+| Library Category Filter | 2026-02-09 | Genre-based filtering replaces CEFR level filter, category chips |
+| Admin Panel Improvements | 2026-02-09 | Word list unit assignment, content completeness table, clickable words, level/category cleanup |
+| Shared Feedback Animation | 2026-02-09 | Lottie-based FeedbackAnimation widget replaces inline animation in 5 widgets |
+| Teacher Shell Router Fix | 2026-02-09 | Top-level StatefulShellRoute with full paths (fixes Android key collision) |
 | Card Collection System | 2026-02-08 | Mythology gacha cards, 96 cards across 8 categories, pack opening, pity system, coins currency |
 | Matching Inline Activity | 2026-02-08 | New tap-to-match activity type for reader with entity/model/widget support |
 | Vocabulary Session Fix | 2026-02-08 | Fixed session stuck after retry (Equatable hashCode collision in AnimatedSwitcher key) |

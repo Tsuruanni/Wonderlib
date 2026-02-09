@@ -10,6 +10,8 @@ import '../../../domain/repositories/teacher_repository.dart';
 import '../../models/assignment/assignment_model.dart';
 import '../../models/assignment/assignment_student_model.dart';
 import '../../models/teacher/student_book_progress_model.dart';
+import '../../models/teacher/student_vocab_stats_model.dart';
+import '../../models/teacher/student_word_list_progress_model.dart';
 import '../../models/teacher/student_summary_model.dart';
 import '../../models/teacher/teacher_class_model.dart';
 import '../../models/teacher/teacher_stats_model.dart';
@@ -138,6 +140,60 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       final progressList = (response as List)
           .map((data) => StudentBookProgressModel.fromJson(data).toEntity())
+          .toList();
+
+      return Right(progressList);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StudentVocabStats>> getStudentVocabStats(
+    String studentId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_student_vocab_stats',
+        params: {'p_student_id': studentId},
+      );
+
+      final data = (response as List).firstOrNull;
+      if (data == null) {
+        return const Right(StudentVocabStats(
+          totalWords: 0,
+          newCount: 0,
+          learningCount: 0,
+          reviewingCount: 0,
+          masteredCount: 0,
+          listsStarted: 0,
+          listsCompleted: 0,
+          totalSessions: 0,
+        ));
+      }
+
+      return Right(StudentVocabStatsModel.fromJson(data).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<StudentWordListProgress>>> getStudentWordListProgress(
+    String studentId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        'get_student_word_list_progress',
+        params: {'p_student_id': studentId},
+      );
+
+      final progressList = (response as List)
+          .map((data) => StudentWordListProgressModel.fromJson(data).toEntity())
           .toList();
 
       return Right(progressList);

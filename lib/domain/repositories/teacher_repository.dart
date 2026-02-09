@@ -26,6 +26,12 @@ abstract class TeacherRepository {
   /// Get student's reading progress across all books
   Future<Either<Failure, List<StudentBookProgress>>> getStudentProgress(String studentId);
 
+  /// Get student's vocabulary learning stats summary
+  Future<Either<Failure, StudentVocabStats>> getStudentVocabStats(String studentId);
+
+  /// Get student's word list progress (per-list breakdown)
+  Future<Either<Failure, List<StudentWordListProgress>>> getStudentWordListProgress(String studentId);
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================

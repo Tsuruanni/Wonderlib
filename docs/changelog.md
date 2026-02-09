@@ -8,6 +8,72 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Teacher Student Vocab Stats & Detail Improvements (2026-02-09)
+
+#### Added
+- **Student Vocabulary Stats** - Teacher can now see vocabulary progress per student
+  - `StudentVocabStats` entity with word counts by status (new, learning, reviewing, mastered)
+  - `StudentWordListProgress` entity with per-list progress, star rating, completion status
+  - `GetStudentVocabStatsUseCase` + `GetStudentWordListProgressUseCase` (Clean Architecture)
+  - `StudentVocabStatsModel` + `StudentWordListProgressModel` for JSON serialization
+  - `studentVocabStatsProvider` + `studentWordListProgressProvider` in teacher provider
+  - `_VocabStatsSection` + `_WordListProgressSection` widgets in student detail screen
+- **Feedback Animation Widget** - Shared Lottie animation for correct/incorrect answers
+  - `FeedbackAnimation` widget replaces inline TweenAnimationBuilder in 4 activity widgets + question feedback
+  - Lottie files: `animation_success.json`, `animation_error.json`
+- **Terrain Background** - `TerrainBackground` widget for vocabulary hub screen
+- **Doodle Background** - `DoodleBackground` widget for decorative screen backgrounds
+- **Lottie Animations** - `flipbook.json`, `game_controller.json`, `Treasure Box Animation.json` for learning path nodes
+- **Card Collection Widgets** - `cards/` widget directory with 7 reusable card components (card_flip, card_reveal_effects, coin_badge, collection_progress, locked_card, myth_card, pack_glow)
+
+#### Changed
+- **Unit Curriculum Assignments** - `vocabularyUnitsProvider` now uses `GetAssignedVocabularyUnitsUseCase` to filter units by school/grade/class assignments (backward compatible: no assignments → all units shown)
+- **Teacher Shell Router** - Refactored from nested GoRoute + StatefulShellRoute to top-level `StatefulShellRoute.indexedStack` with full paths (fixes Android key collision)
+- **Teacher Dashboard** - "Browse Books" quick action → "My Classes" for more relevant teacher workflow
+- **Teacher Reports** - `_QuickStatsCard` changed from `StatelessWidget` with `ref` parameter to `ConsumerWidget` (proper Riverpod pattern)
+- **Learning Path** - Major visual overhaul:
+  - Background path line connecting all nodes via `_PathPainter` custom painter
+  - Flipbook node added between word list rows and game node per unit
+  - Unit banner now shows locked state indicator
+  - Path points collected for smooth background curve rendering
+- **Path Node** - Visual redesign:
+  - Font: Nunito → Patrick Hand (handwritten style), size 11→22px
+  - Label color: conditional → white with text shadow
+  - Node width: 92→140px, single-line text with `FittedBox`
+  - START pill removed, side labels translated up for visual alignment
+- **Library Screen** - Redesigned with category-based filtering:
+  - New `selectedCategoryProvider` + `libraryFilteredBooksProvider` + `availableCategoriesProvider`
+  - Category (genre) filter chips replace CEFR level filter
+  - Layout restructured with genre-based book grouping
+- **Vocabulary Hub Screen** - `TerrainBackground` wrapper replaces plain `AppColors.background`
+- **Question Feedback** - Compact layout with reduced padding, `FeedbackAnimation` widget, correct answer displayed inline in Row
+- **Activity Widgets** - All 4 activities (find_words, matching, true_false, word_translation) use shared `FeedbackAnimation` instead of inline animation code
+
+#### Infrastructure
+- **2 DB Migrations**:
+  - `20260210000001_teacher_student_vocab.sql` - RPC functions for student vocab stats & word list progress
+  - `20260210000002_create_unit_curriculum_assignments.sql` - Unit curriculum assignment table, RPC function, RLS, indexes
+- **New Domain**: `GetAssignedVocabularyUnitsUseCase`, `GetStudentVocabStatsUseCase`, `GetStudentWordListProgressUseCase`
+- **New Models**: `StudentVocabStatsModel`, `StudentWordListProgressModel`
+- **New Widgets**: `FeedbackAnimation`, `TerrainBackground`, `DoodleBackground`, 7 card widgets
+- **Modified**: router.dart, theme.dart, teacher entities/repo/provider, word_list repo, vocabulary_provider, usecase_providers, library_screen, vocabulary_hub_screen, student_detail_screen, vocabulary_session_screen, learning_path, path_node, question_feedback, 4 activity widgets
+
+### Admin Panel — Word List & Curriculum Management (2026-02-09)
+
+#### Added
+- **Admin Panel** (`readeng_admin/`) - Full Flutter web admin panel for ReadEng content management
+  - Dashboard with 10 management cards (Books, Schools, Users, Classes, Badges, Vocabulary, Word Lists, Unit Assignments, Settings, Gallery)
+  - CRUD screens for: Books, Chapters, Schools, Users, Classes, Badges, Vocabulary, Word Lists, Unit Assignments
+  - User import, vocabulary import screens
+  - Gallery screen for developer tools
+  - Authentication with Supabase, GoRouter navigation, Riverpod state management
+
+#### Changed (in admin panel, this session)
+- **Word List Edit Screen** - Unit assignment (unit dropdown + order_in_unit field), content completeness table showing field status per word, clickable words linking to vocabulary detail page
+- **Word List List Screen** - Unit column + order column + unit filter, removed level filter and category column
+- **Dashboard** - "Curriculum" card renamed to "Unit Assignments"
+- **Curriculum List Screen** - Title: "Curriculum Assignments" → "Unit Assignments"
+
 ### Card Collection System — Mythology Cards (2026-02-08)
 
 #### Added

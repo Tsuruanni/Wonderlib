@@ -206,6 +206,11 @@ GoRouter _createRouter() {
         final isTeacherOrHigher = role == 'teacher' || role == 'head' || role == 'admin';
         final isTeacherRoute = state.matchedLocation.startsWith('/teacher');
 
+        // Redirect bare /teacher to /teacher/dashboard
+        if (state.matchedLocation == '/teacher') {
+          return AppRoutes.teacherDashboard;
+        }
+
         if (isTeacherOrHigher && state.matchedLocation == AppRoutes.home) {
           return AppRoutes.teacherDashboard;
         }
@@ -344,59 +349,47 @@ GoRouter _createRouter() {
         builder: (context, state) => const ProfileScreen(),
       ),
 
-      // Teacher Shell — nested under /teacher GoRoute to avoid
-      // dual StatefulShellRoute at top level (causes key collision on Android)
-      GoRoute(
+      // Teacher Shell — top-level StatefulShellRoute (same pattern as student shell)
+      // Each branch uses full paths for proper goBranch() navigation
+      StatefulShellRoute.indexedStack(
         parentNavigatorKey: rootNavigatorKey,
-        path: '/teacher',
-        redirect: (context, state) {
-          // Redirect bare /teacher to /teacher/dashboard
-          if (state.matchedLocation == '/teacher') {
-            return AppRoutes.teacherDashboard;
-          }
-          return null;
+        builder: (context, state, navigationShell) {
+          return TeacherShellScaffold(navigationShell: navigationShell);
         },
-        routes: [
-          StatefulShellRoute.indexedStack(
-            builder: (context, state, navigationShell) {
-              return TeacherShellScaffold(navigationShell: navigationShell);
-            },
-            branches: [
-              StatefulShellBranch(
-                navigatorKey: _teacherDashboardKey,
-                routes: [
-                  GoRoute(
-                    path: 'dashboard',
-                    builder: (context, state) => const TeacherDashboardScreen(),
-                  ),
-                ],
+        branches: [
+          StatefulShellBranch(
+            navigatorKey: _teacherDashboardKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherDashboard,
+                builder: (context, state) => const TeacherDashboardScreen(),
               ),
-              StatefulShellBranch(
-                navigatorKey: _teacherClassesKey,
-                routes: [
-                  GoRoute(
-                    path: 'classes',
-                    builder: (context, state) => const ClassesScreen(),
-                  ),
-                ],
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _teacherClassesKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherClasses,
+                builder: (context, state) => const ClassesScreen(),
               ),
-              StatefulShellBranch(
-                navigatorKey: _teacherAssignmentsKey,
-                routes: [
-                  GoRoute(
-                    path: 'assignments',
-                    builder: (context, state) => const AssignmentsScreen(),
-                  ),
-                ],
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _teacherAssignmentsKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherAssignments,
+                builder: (context, state) => const AssignmentsScreen(),
               ),
-              StatefulShellBranch(
-                navigatorKey: _teacherReportsKey,
-                routes: [
-                  GoRoute(
-                    path: 'reports',
-                    builder: (context, state) => const ReportsScreen(),
-                  ),
-                ],
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _teacherReportsKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherReports,
+                builder: (context, state) => const ReportsScreen(),
               ),
             ],
           ),

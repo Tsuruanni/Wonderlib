@@ -291,9 +291,9 @@ class _QuickActionsRow extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickActionButton(
-                icon: Icons.library_books,
-                label: 'Browse Books',
-                onTap: () => context.push(AppRoutes.library),
+                icon: Icons.groups,
+                label: 'My Classes',
+                onTap: () => context.go(AppRoutes.teacherClasses),
               ),
             ),
             const SizedBox(width: 12),

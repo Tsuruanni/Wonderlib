@@ -16,7 +16,9 @@ import '../../widgets/vocabulary/session/scrambled_letters_question.dart';
 import '../../widgets/vocabulary/session/sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/session_progress_bar.dart';
 import '../../widgets/vocabulary/session/spelling_question.dart';
+import '../../widgets/vocabulary/session/spelling_question.dart';
 import '../../widgets/vocabulary/session/word_introduction_card.dart';
+import '../../widgets/activities/common/feedback_animation.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -197,7 +199,7 @@ class _VocabularySessionScreenState
             ),
           ),
           
-          // Feedback Overlay
+          // Feedback Footer
           Positioned(
             left: 0,
             right: 0,

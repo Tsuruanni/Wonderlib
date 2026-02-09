@@ -125,6 +125,7 @@ lib/
 │       ├── assignment/       # Assignment UseCases
 │       ├── content/          # ContentBlock UseCases
 │       ├── card/             # Card collection UseCases (6)
+│       ├── student_assignment/ # Student assignment UseCases
 │       └── settings/         # SystemSettings UseCases
 │
 ├── presentation/
@@ -151,6 +152,14 @@ lib/
 │
 ├── l10n/                     # Localization
 │
+readeng_admin/                 # Admin panel (separate Flutter web project)
+├── lib/
+│   ├── core/                  # Supabase client, router
+│   └── features/              # Feature modules (books, schools, users, classes, badges, vocabulary, wordlists, curriculum, settings, gallery)
+│       └── */screens/         # CRUD screens per feature
+├── pubspec.yaml
+└── web/
+
 widgetbook/                   # Standalone UI catalog (separate Flutter project)
 ├── lib/
 │   ├── main.dart             # Widgetbook app entry
@@ -279,6 +288,10 @@ Update UI, show notifications
   - `is_active` - Soft delete flag
 - `word_lists` - Extended with `unit_id` FK + `order_in_unit` for path positioning
   - Same `order_in_unit` within a unit = side-by-side nodes in learning path
+- `unit_curriculum_assignments` - School/grade/class-based unit access control
+  - Scoping: school-wide, grade-level, or class-specific
+  - No assignments for a school → all units visible (backward compatible)
+  - RPC: `get_assigned_vocabulary_units(p_user_id)` returns filtered unit IDs
 
 ### Progress
 - `reading_progress` - Book completion tracking

@@ -87,3 +87,66 @@ class StudentBookProgress {
   final int totalChapters;
   final DateTime? lastReadAt;
 }
+
+/// Summary of a student's vocabulary learning stats
+class StudentVocabStats {
+
+  const StudentVocabStats({
+    required this.totalWords,
+    required this.newCount,
+    required this.learningCount,
+    required this.reviewingCount,
+    required this.masteredCount,
+    required this.listsStarted,
+    required this.listsCompleted,
+    required this.totalSessions,
+  });
+  final int totalWords;
+  final int newCount;
+  final int learningCount;
+  final int reviewingCount;
+  final int masteredCount;
+  final int listsStarted;
+  final int listsCompleted;
+  final int totalSessions;
+}
+
+/// Student's progress on a specific word list
+class StudentWordListProgress {
+
+  const StudentWordListProgress({
+    required this.wordListId,
+    required this.wordListName,
+    this.wordListLevel,
+    required this.wordListCategory,
+    required this.wordCount,
+    this.bestScore,
+    this.bestAccuracy,
+    required this.totalSessions,
+    this.lastSessionAt,
+    this.startedAt,
+    this.completedAt,
+  });
+  final String wordListId;
+  final String wordListName;
+  final String? wordListLevel;
+  final String wordListCategory;
+  final int wordCount;
+  final int? bestScore;
+  final double? bestAccuracy;
+  final int totalSessions;
+  final DateTime? lastSessionAt;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+
+  bool get isComplete => completedAt != null;
+
+  /// Star rating: 3 stars for ≥90%, 2 for ≥70%, 1 for ≥50%, 0 otherwise
+  int get starCount {
+    if (bestAccuracy == null) return 0;
+    if (bestAccuracy! >= 90) return 3;
+    if (bestAccuracy! >= 70) return 2;
+    if (bestAccuracy! >= 50) return 1;
+    return 0;
+  }
+}

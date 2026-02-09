@@ -14,263 +14,507 @@ import '../../providers/library_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 
+// --- Providers ---
+
+final selectedCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Returns books filtered by Search and Category (Genre).
+/// Grouping by Level happens in the UI.
+final libraryFilteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
+  final booksAsync = ref.watch(booksProvider(null));
+  final searchQuery = ref.watch(librarySearchQueryProvider).toLowerCase();
+  final selectedCategory = ref.watch(selectedCategoryProvider);
+
+  return booksAsync.whenData((books) {
+    return books.where((book) {
+      // 1. Search Filter
+      final matchesSearch = book.title.toLowerCase().contains(searchQuery);
+      
+      // 2. Category Filter
+      final matchesCategory = selectedCategory == null || book.genre == selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    }).toList();
+  });
+});
+
+/// Extracts unique categories from all books for the filter chips.
+final availableCategoriesProvider = Provider<AsyncValue<List<String>>>((ref) {
+  final booksAsync = ref.watch(booksProvider(null));
+  return booksAsync.whenData((books) {
+    return books
+        .map((b) => b.genre)
+        .where((g) => g != null && g.isNotEmpty)
+        .map((g) => g!)
+        .toSet()
+        .toList()
+      ..sort();
+  });
+});
+
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
 
+  // --- Helper to build Category Chips with Search Button ---
+  Widget _buildTopBar(WidgetRef ref, String? selectedCategory, List<String> categories, bool isSearchActive) {
+    if (isSearchActive) {
+      return Container(
+        margin: const EdgeInsets.fromLTRB(20, 24, 20, 12), // Increased top margin
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.secondary, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.secondary.withOpacity(0.2),
+              offset: const Offset(0, 4),
+              blurRadius: 8,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+             const SizedBox(width: 14),
+             Icon(Icons.search_rounded, color: AppColors.secondary, size: 28),
+             const SizedBox(width: 12),
+             Expanded(
+               child: TextField(
+                 autofocus: true,
+                 style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18),
+                 decoration: InputDecoration(
+                   hintText: 'Search books...',
+                   hintStyle: GoogleFonts.nunito(color: AppColors.neutralText),
+                   border: InputBorder.none,
+                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                 ),
+                 onChanged: (val) => ref.read(librarySearchQueryProvider.notifier).state = val,
+               ),
+             ),
+             IconButton(
+               icon: Icon(Icons.close_rounded, color: AppColors.neutralText),
+               onPressed: () {
+                  ref.read(isSearchActiveProvider.notifier).state = false;
+                  ref.read(librarySearchQueryProvider.notifier).state = '';
+               },
+             )
+          ],
+        ),
+      );
+    }
 
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
+    return Container(
+      height: 48, // Slightly taller
+      margin: const EdgeInsets.fromLTRB(0, 24, 0, 12), // Increased top margin
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          Expanded(
-            child: Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neutral.withValues(alpha: 0),
-                    AppColors.neutral,
+          // Search Button as first item
+          GestureDetector(
+             onTap: () => ref.read(isSearchActiveProvider.notifier).state = true,
+             child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.white, 
+                  borderRadius: BorderRadius.circular(14), 
+                  border: Border.all(color: AppColors.neutral, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neutral.withOpacity(0.5),
+                      offset: const Offset(0, 2),
+                      blurRadius: 0,
+                    ),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
+                child: Icon(Icons.search_rounded, color: AppColors.neutralText, size: 20),
+             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              title.toUpperCase(),
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-                letterSpacing: 1,
-              ),
-            ),
+          
+          _buildChip(
+            label: 'All',
+            isSelected: selectedCategory == null,
+            onTap: () => ref.read(selectedCategoryProvider.notifier).state = null,
           ),
-          Expanded(
-            child: Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neutral,
-                    AppColors.neutral.withValues(alpha: 0),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(1),
-              ),
-            ),
-          ),
+          ...categories.map((category) => _buildChip(
+                label: category,
+                isSelected: selectedCategory == category,
+                onTap: () {
+                  ref.read(selectedCategoryProvider.notifier).state =
+                      selectedCategory == category ? null : category;
+                },
+              )),
         ],
       ),
     );
   }
 
-  Widget _buildFilterRow(WidgetRef ref, String? selectedLevel, bool isSearchActive, LibraryViewMode viewMode) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          // Level chips (scrollable)
-          Expanded(
-            child: SizedBox(
-              height: 36,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _buildLevelChip('All', selectedLevel == null, () {
-                    ref.read(selectedLevelProvider.notifier).state = null;
-                  }),
-                  ...cefrLevels.map((level) => _buildLevelChip(
-                    level,
-                    selectedLevel == level,
-                    () {
-                      ref.read(selectedLevelProvider.notifier).state =
-                          selectedLevel == level ? null : level;
-                    },
-                  )),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // Search button
-          GestureDetector(
-            onTap: () {
-              ref.read(isSearchActiveProvider.notifier).state = !isSearchActive;
-              if (!isSearchActive) {
-                ref.read(librarySearchQueryProvider.notifier).state = '';
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSearchActive ? AppColors.secondary : AppColors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.neutral, width: 2),
-              ),
-              child: Icon(
-                isSearchActive ? Icons.close_rounded : Icons.search_rounded,
-                color: isSearchActive ? Colors.white : AppColors.neutralText,
-                size: 18,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // View mode button
-          GestureDetector(
-            onTap: () {
-              ref.read(libraryViewModeProvider.notifier).state =
-                  viewMode == LibraryViewMode.grid
-                      ? LibraryViewMode.list
-                      : LibraryViewMode.grid;
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.neutral, width: 2),
-              ),
-              child: Icon(
-                viewMode == LibraryViewMode.grid ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                color: AppColors.neutralText,
-                size: 18,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLevelChip(String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildChip({required String label, required bool isSelected, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.secondary : AppColors.white,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected ? AppColors.secondary : AppColors.neutral,
             width: 2,
           ),
+          boxShadow: [
+            if (!isSelected)
+            BoxShadow(
+              color: AppColors.neutral.withOpacity(0.5),
+              offset: const Offset(0, 2),
+              blurRadius: 0,
+            ),
+          ],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.nunito(
-            color: isSelected ? Colors.white : AppColors.neutralText,
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-
-
-
-  void _showLockedBookDialog(BuildContext context, String bookTitle) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.lock_rounded, size: 48, color: AppColors.neutralText),
-        title: Text(
-          'Book Locked',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
-        ),
-        content: Text(
-          'You have an active assignment. Complete your assigned reading first to unlock "$bookTitle" and other books.',
-          style: GoogleFonts.nunito(fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              color: isSelected ? Colors.white : AppColors.neutralText,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final viewMode = ref.watch(libraryViewModeProvider);
-    final selectedLevel = ref.watch(selectedLevelProvider);
     final isSearchActive = ref.watch(isSearchActiveProvider);
-    final booksAsync = ref.watch(filteredBooksProvider);
+    final selectedCategory = ref.watch(selectedCategoryProvider);
+    final booksAsync = ref.watch(libraryFilteredBooksProvider);
+    final categoriesAsync = ref.watch(availableCategoriesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        bottom: false, // Let scroll view handle bottom padding
         child: Column(
           children: [
-            // --- Duolingo-style Navbar ---
             const TopNavbar(),
-
-            const SizedBox(height: 16),
-
+            
             // --- Locked Banner ---
             _LockedLibraryBanner(ref: ref),
 
-            // --- Filter Section Header + Level Chips + Search/View ---
-            _buildSectionHeader('Filter by Level'),
-            const SizedBox(height: 8),
-            _buildFilterRow(ref, selectedLevel, isSearchActive, viewMode),
+            // --- Search & Categories Row ---
+            categoriesAsync.when(
+              data: (categories) => _buildTopBar(ref, selectedCategory, categories, isSearchActive),
+              loading: () => const SizedBox(height: 80),
+              error: (_, __) => const SizedBox(height: 80),
+            ),
 
-            // --- Search Bar (when active) ---
-            if (isSearchActive)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-                child: _SearchField(ref: ref),
-              ),
-
-            const SizedBox(height: 16),
-
-            // --- Library Section Header ---
-            _buildSectionHeader('Library'),
-            const SizedBox(height: 8),
-
-            // --- Content ---
+            // --- Content (Shelves) ---
             Expanded(
               child: booksAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(child: Text('Error: $error')),
+                error: (error, _) => Center(child: Text('Error: $error')),
                 data: (books) {
-                   if (books.isEmpty) {
-                      return _EmptyState(isSearchActive: isSearchActive, selectedLevel: selectedLevel);
-                   }
-                   
-                   // Grid/List View
-                   if (viewMode == LibraryViewMode.grid) {
-                     return _BookGrid(
-                       books: books,
-                       onBookTap: (bookId) => context.go('${AppRoutes.library}/book/$bookId'),
-                       onLockedBookTap: (title) => _showLockedBookDialog(context, title),
-                     );
-                   } else {
-                     return _BookList(
-                       books: books,
-                       onBookTap: (bookId) => context.go('${AppRoutes.library}/book/$bookId'),
-                       onLockedBookTap: (title) => _showLockedBookDialog(context, title),
-                     );
-                   }
+                  if (books.isEmpty) {
+                    return _EmptyState(isSearchActive: isSearchActive);
+                  }
+
+                  // Group books by Level
+                  final booksByLevel = <String, List<Book>>{};
+                  for (var book in books) {
+                    final level = book.level.toUpperCase();
+                    booksByLevel.putIfAbsent(level, () => []).add(book);
+                  }
+
+                  // Sort levels (A1, A2, B1...)
+                  final sortedLevels = booksByLevel.keys.toList()..sort();
+
+                  return CustomScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    slivers: [
+                      const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      for (final level in sortedLevels)
+                        SliverToBoxAdapter(
+                          child: _LibraryShelf(
+                            level: level,
+                            books: booksByLevel[level]!,
+                            ref: ref,
+                          ),
+                        ),
+                      const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
+                    ],
+                  );
                 },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLockedBookDialog(BuildContext context, String bookTitle) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          icon: const Icon(Icons.lock_rounded, size: 48, color: AppColors.neutralText),
+          title: Text(
+            'Book Locked',
+            style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
+          ),
+          content: Text(
+            'You have an active assignment. Complete your assigned reading first to unlock "$bookTitle" and other books.',
+            style: GoogleFonts.nunito(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'OK',
+                style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18),
+              ),
+            ),
+          ],
+        ),
+      );
+  }
+}
+
+class _LibraryShelf extends StatelessWidget {
+  final String level;
+  final List<Book> books;
+  final WidgetRef ref;
+
+  const _LibraryShelf({required this.level, required this.books, required this.ref});
+
+  Color _getLevelColor(String level) {
+    switch (level.toUpperCase()) {
+      case 'A1': return AppColors.primary;       // Green
+      case 'A2': return AppColors.secondary;     // Blue
+      case 'B1': return AppColors.wasp;          // Yellow
+      case 'B2': return AppColors.streakOrange;  // Orange
+      case 'C1': return AppColors.cardEpic;      // Purple
+      case 'C2': return AppColors.danger;        // Red
+      default: return AppColors.neutralText;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _getLevelColor(level);
+    final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
+    final completedCount = books.where((b) => completedIds.contains(b.id)).length;
+    final progress = books.isEmpty ? 0.0 : completedCount / books.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Section Header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 8), // Adjusted vertical padding
+          child: Row(
+            children: [
+              // Icon - using a generic book icon or could use level letter icon
+              Container(
+                 padding: const EdgeInsets.all(8),
+                 decoration: BoxDecoration(
+                   color: color.withOpacity(0.1),
+                   shape: BoxShape.circle,
+                 ),
+                 child: Icon(Icons.auto_stories_rounded, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  "Level $level",
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$completedCount / ${books.length}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        // Progress Bar Line
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.neutral.withOpacity(0.3),
+              color: color,
+              minHeight: 4,
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 16), // Space between line and books
+
+        SizedBox(
+          height: 240, // Height for book cards
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            itemCount: books.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              return _BookShelfItem(book: books[index], ref: ref);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BookShelfItem extends StatelessWidget {
+  final Book book;
+  final WidgetRef ref;
+
+  const _BookShelfItem({required this.book, required this.ref});
+
+  @override
+  Widget build(BuildContext context) {
+    final canAccess = ref.watch(canAccessBookProvider(book.id));
+    final isCompleted = ref.watch(completedBookIdsProvider).valueOrNull?.contains(book.id) ?? false;
+
+    return PressableScale(
+      onTap: () {
+        if (canAccess) {
+          context.go('${AppRoutes.library}/book/${book.id}');
+        } else {
+           showDialog(
+             context: context,
+             builder: (_) => AlertDialog(
+               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+               title: Text("Locked", style: GoogleFonts.fredoka(fontSize: 24, color: AppColors.danger)),
+               content: Text(
+                 "Complete your assignment to read this book.",
+                 style: GoogleFonts.nunito(fontSize: 16),
+               ),
+               actions: [
+                 TextButton(
+                   onPressed: () => Navigator.pop(context), 
+                   child: Text("OK", style: GoogleFonts.fredoka(fontSize: 18, color: AppColors.primary))
+                 )
+               ],
+             ),
+           );
+        }
+      },
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(bottom: 10), // For shadow
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.neutral, width: 2),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.neutral.withOpacity(0.6), 
+              offset: const Offset(0, 4),
+              blurRadius: 0,
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: Image.network(
+                      book.coverUrl ?? '',
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: AppColors.neutral.withOpacity(0.2), 
+                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText))
+                      ),
+                    ),
+                  ),
+                  if (!canAccess)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: const Center(child: Icon(Icons.lock_rounded, color: Colors.white, size: 36)),
+                    ),
+                  if (isCompleted)
+                     Positioned(
+                        top: 8, right: 8,
+                        child: Container(
+                           padding: const EdgeInsets.all(6),
+                           decoration: BoxDecoration(
+                             color: AppColors.success, 
+                             shape: BoxShape.circle,
+                             border: Border.all(color: Colors.white, width: 2),
+                           ),
+                           child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                        ),
+                     ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito( // Reverted to Nunito
+                      fontSize: 14, 
+                      fontWeight: FontWeight.w700, 
+                      height: 1.2,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      book.genre?.toUpperCase() ?? 'GENERAL',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 9, 
+                        color: AppColors.neutralText, 
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -280,28 +524,25 @@ class LibraryScreen extends ConsumerWidget {
   }
 }
 
-class _SearchField extends StatelessWidget {
-  final WidgetRef ref;
-  const _SearchField({required this.ref});
+
+class _EmptyState extends StatelessWidget {
+  final bool isSearchActive;
+
+  const _EmptyState({required this.isSearchActive});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.neutral, width: 2),
-      ),
-      child: TextField(
-        autofocus: true,
-        style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
-        decoration: InputDecoration(
-          hintText: 'Search books...',
-          hintStyle: GoogleFonts.nunito(color: AppColors.neutralText),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-        onChanged: (val) => ref.read(librarySearchQueryProvider.notifier).state = val,
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+           Icon(Icons.menu_book_rounded, size: 60, color: AppColors.neutral),
+           const SizedBox(height: 16),
+           Text(
+             'No books found',
+             style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.neutralText),
+           ),
+        ],
       ),
     );
   }
@@ -354,174 +595,4 @@ class _LockedLibraryBanner extends ConsumerWidget {
   }
 }
 
-class _BookGrid extends ConsumerWidget {
-  final List<Book> books;
-  final ValueChanged<String> onBookTap;
-  final ValueChanged<String> onLockedBookTap;
 
-  const _BookGrid({required this.books, required this.onBookTap, required this.onLockedBookTap});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-     final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
-
-     return GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 0.6,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        itemCount: books.length,
-        itemBuilder: (context, index) {
-           final book = books[index];
-           final canAccess = ref.watch(canAccessBookProvider(book.id));
-           final isCompleted = completedIds.contains(book.id);
-
-           return PressableScale(
-             onTap: () => canAccess ? onBookTap(book.id) : onLockedBookTap(book.title),
-             child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.neutral, width: 2),
-                  boxShadow: [
-                     BoxShadow(color: AppColors.neutral, offset: Offset(0, 4))
-                  ]
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                       child: Stack(
-                         fit: StackFit.expand,
-                         children: [
-                           ClipRRect(
-                             borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                             child: Image.network(
-                               book.coverUrl ?? '',
-                               fit: BoxFit.cover,
-                               errorBuilder: (_,__,___) => Container(color: AppColors.primary.withValues(alpha: 0.1), child: Icon(Icons.book, size: 40, color: AppColors.primary)),
-                             ),
-                           ),
-                           if (!canAccess)
-                             Container(
-                               color: Colors.black.withValues(alpha: 0.5),
-                               child: const Center(child: Icon(Icons.lock_rounded, color: Colors.white, size: 40)),
-                             ),
-                           if (isCompleted)
-                              Positioned(
-                                top: 8, right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                                  child: const Icon(Icons.check, color: Colors.white, size: 16),
-                                ),
-                              ),
-                         ],
-                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                           Text(
-                             book.title,
-                             maxLines: 2,
-                             overflow: TextOverflow.ellipsis,
-                             style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 11, height: 1.2),
-                           ),
-                           Text(
-                             book.level,
-                             style: GoogleFonts.nunito(color: AppColors.secondary, fontWeight: FontWeight.w800, fontSize: 10),
-                           ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-             ),
-           );
-        },
-     );
-  }
-}
-
-class _BookList extends ConsumerWidget {
-  final List<Book> books;
-  final ValueChanged<String> onBookTap;
-  final ValueChanged<String> onLockedBookTap;
-
-  const _BookList({required this.books, required this.onBookTap, required this.onLockedBookTap});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: books.length,
-      separatorBuilder: (_,__) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-         final book = books[index];
-         final canAccess = ref.watch(canAccessBookProvider(book.id));
-         
-         return PressableScale(
-           onTap: () => canAccess ? onBookTap(book.id) : onLockedBookTap(book.title),
-           child: Container(
-             padding: const EdgeInsets.all(12),
-             decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.neutral, width: 2),
-                boxShadow: [BoxShadow(color: AppColors.neutral, offset: Offset(0, 3))],
-             ),
-             child: Row(
-               children: [
-                 ClipRRect(
-                   borderRadius: BorderRadius.circular(12),
-                   child: Image.network(book.coverUrl ?? '', width: 60, height: 80, fit: BoxFit.cover, errorBuilder: (_,__,___) => Container(width: 60, height: 80, color: AppColors.neutral)),
-                 ),
-                 const SizedBox(width: 16),
-                 Expanded(
-                   child: Column(
-                     crossAxisAlignment: CrossAxisAlignment.start,
-                     children: [
-                        Text(book.title, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text(book.level, style: GoogleFonts.nunito(color: AppColors.secondary, fontWeight: FontWeight.bold)),
-                     ],
-                   ),
-                 ),
-                 if (!canAccess) Icon(Icons.lock_rounded, color: AppColors.neutralText),
-               ],
-             ),
-           ),
-         );
-      },
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final bool isSearchActive;
-  final String? selectedLevel;
-
-  const _EmptyState({required this.isSearchActive, required this.selectedLevel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-           Icon(Icons.menu_book_rounded, size: 60, color: AppColors.neutral),
-           const SizedBox(height: 16),
-           Text(
-             'No books found',
-             style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.neutralText),
-           ),
-        ],
-      ),
-    );
-  }
-}

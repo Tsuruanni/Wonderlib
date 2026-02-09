@@ -60,6 +60,8 @@ import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
 import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
 import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
+import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
@@ -89,7 +91,7 @@ import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
-import '../../domain/usecases/wordlist/get_vocabulary_units_usecase.dart';
+import '../../domain/usecases/wordlist/get_assigned_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
@@ -340,8 +342,8 @@ final getWordsFromListsLearnedTodayUseCaseProvider = Provider((ref) {
 // WORD LIST USE CASES
 // ============================================
 
-final getVocabularyUnitsUseCaseProvider = Provider((ref) {
-  return GetVocabularyUnitsUseCase(ref.watch(wordListRepositoryProvider));
+final getAssignedVocabularyUnitsUseCaseProvider = Provider((ref) {
+  return GetAssignedVocabularyUnitsUseCase(ref.watch(wordListRepositoryProvider));
 });
 
 final getAllWordListsUseCaseProvider = Provider((ref) {
@@ -462,6 +464,14 @@ final getStudentProgressUseCaseProvider = Provider((ref) {
 
 final createClassUseCaseProvider = Provider((ref) {
   return CreateClassUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getStudentVocabStatsUseCaseProvider = Provider((ref) {
+  return GetStudentVocabStatsUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getStudentWordListProgressUseCaseProvider = Provider((ref) {
+  return GetStudentWordListProgressUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 final sendPasswordResetEmailUseCaseProvider = Provider((ref) {
