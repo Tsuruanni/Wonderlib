@@ -8,20 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
-### Vocabulary Session Mascot System (2026-02-11)
+### Vocabulary Session Mascot System + Sound Effects (2026-02-11)
 
 #### Added
 - **Rive Mascot Animations** - Owl mascot characters appear during vocabulary sessions as feedback overlays
-  - **Incorrect answers**: 4 mascots (confused, frightened, angry, crying) cycle through shuffled pool, continuous Rive animation
-  - **Correct answers**: 3 mascots (cool, flying, kips) with freeze-frame capture + slide-right exit animation
+  - **Incorrect answers**: 4 mascots (confused, frightened, angry, crying) cycle through shuffled pool, continuous Rive animation, size 185px
+  - **Correct answers**: 3 mascots (cool, flying, kips) with freeze-frame capture + slide-right exit animation, size 257px
   - `vocabulary_mascot_overlay.dart` - Centralized widget: asset pools, `MascotPicker` (shuffle+cycle), `MascotOverlay` (3-phase animation lifecycle)
 - **Streak Dialog Mascot** - Balloon owl Rive animation (280x280) in streak status popup with transparent background
+- **Sound Effects** - `correctvoc.mp3` / `falsevoc.mp3` play on answer feedback via `just_audio`
 - **Rive Package** - Added `rive: ^0.13.17` dependency, `assets/animations/mascot/` asset directory
+
+#### Removed
+- **TTS on Feedback** - Removed `FlutterTts` auto-speak from question feedback (replaced by sound effects)
+- **Grass/Tree Scenery** - Removed `_GrassSceneryPainter` CustomPainter overlay from feedback panel (visual experiment, discarded)
 
 #### Infrastructure
 - **New File**: `lib/presentation/widgets/common/vocabulary_mascot_overlay.dart` (mascot constants, picker, overlay widget)
 - **Rive Background Fix**: `artboard.fills.clear()` in `onInit` removes default white artboard backgrounds
 - **Dynamic State Machine Detection**: Uses `artboard.animations.whereType<StateMachine>()` instead of hardcoded SM names
+- **AnimatedSwitcher Cleanup**: Feedback panel animation unified to single source (AnimatedSwitcher), removed duplicate `.animate().slideY()`
 
 ### Pack Inventory System & Codebase Security Audit (2026-02-10)
 

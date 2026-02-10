@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../../../app/router.dart';
 import '../../../domain/entities/vocabulary.dart';
@@ -39,6 +40,7 @@ class _VocabularySessionScreenState
   bool _initialized = false;
   final _incorrectMascotPicker = MascotPicker(incorrectMascotAssets);
   final _correctMascotPicker = MascotPicker(correctMascotAssets);
+  final _audioPlayer = AudioPlayer();
   String? _currentMascotAsset;
   bool? _currentMascotCorrect;
   int _lastFeedbackQuestion = -1;
@@ -47,6 +49,19 @@ class _VocabularySessionScreenState
   void initState() {
     super.initState();
     _loadAndStart();
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  void _playFeedbackSound(bool isCorrect) {
+    _audioPlayer
+        .setAsset('assets/sounds/${isCorrect ? 'correctvoc' : 'falsevoc'}.mp3')
+        .then((_) => _audioPlayer.play())
+        .catchError((_) {});
   }
 
   Future<void> _loadAndStart() async {
@@ -94,6 +109,7 @@ class _VocabularySessionScreenState
       _currentMascotAsset = sessionState.lastAnswerCorrect
           ? _correctMascotPicker.next()
           : _incorrectMascotPicker.next();
+      _playFeedbackSound(sessionState.lastAnswerCorrect);
     }
 
     if (!_initialized) {
@@ -232,7 +248,7 @@ class _VocabularySessionScreenState
                 child: MascotOverlay(
                   key: ValueKey('mascot_$_lastFeedbackQuestion'),
                   asset: _currentMascotAsset!,
-                  size: 142.0,
+                  size: 185.0,
                   freeze: false,
                 ),
               ),
@@ -249,6 +265,7 @@ class _VocabularySessionScreenState
                 child: MascotOverlay(
                   key: ValueKey('mascot_$_lastFeedbackQuestion'),
                   asset: _currentMascotAsset!,
+                  size: 257.0,
                   slideRight: true,
                   playDuration: const Duration(milliseconds: 800),
                 ),
@@ -269,10 +286,9 @@ class _VocabularySessionScreenState
     VocabularySessionController controller,
     ThemeData theme,
   ) {
-    // Placeholder for new footer logic
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      switchInCurve: Curves.easeOutQuart,
+      duration: const Duration(milliseconds: 400),
+      switchInCurve: Curves.easeOutQuint,
       switchOutCurve: Curves.easeInQuart,
       transitionBuilder: (child, animation) {
         return SlideTransition(

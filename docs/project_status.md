@@ -125,6 +125,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Vocabulary Mascot System | 2026-02-11 | Rive owl mascots on feedback, sound effects, streak dialog mascot, TTS removed |
 | Pack Inventory System | 2026-02-10 | Buy packs to inventory, open later, daily quest pack rewards, 3 new RPCs, migration with RLS + index |
 | Codebase Security Audit | 2026-02-10 | SQL injection fixes (2), Equatable added to 12 entities, duplicate class rename, domain dart:ui removed, timezone fix, autoDispose fix |
 | Sequential Lock System | 2026-02-10 | Full progression chain with DB persistence, special node completion tracking, visual lock refinements |

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import '../../activities/common/feedback_animation.dart';
 
 /// Feedback overlay after answering: green check or red X with correct answer
@@ -29,18 +28,11 @@ class QuestionFeedback extends StatefulWidget {
 }
 
 class _QuestionFeedbackState extends State<QuestionFeedback> {
-  final FlutterTts _tts = FlutterTts();
   Timer? _autoDismissTimer;
 
   @override
   void initState() {
     super.initState();
-    _tts.setLanguage('en-US');
-
-    // Auto-read the word on correct answer
-    if (widget.isCorrect && widget.targetWord != null) {
-      _tts.speak(widget.targetWord!);
-    }
 
     // Auto-dismiss for correct answers after delay
     if (widget.isCorrect) {
@@ -53,11 +45,6 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
   @override
   void dispose() {
     _autoDismissTimer?.cancel();
-    // NOTE: Do NOT call _tts.stop() here. The AnimatedSwitcher keeps this
-    // widget alive during its fade-out animation. If the next question is a
-    // ListeningQuestion, its TTS starts before this dispose runs — calling
-    // stop() here would kill the platform TTS engine globally and cut off
-    // the new question's pronunciation mid-word.
     super.dispose();
   }
 
@@ -82,7 +69,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16), // Reduced vertical padding
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
@@ -106,9 +93,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                   isCorrect: isCorrect,
                   size: isCorrect ? 60 : 72,
                 ),
-
                 const SizedBox(width: 16),
-                
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +105,6 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                           color: colorScheme.primary,
                         ),
                       ).animate().fadeIn(duration: 300.ms).moveX(begin: 20, end: 0),
-                      
                       if (!isCorrect && widget.correctAnswer != null) ...[
                         const SizedBox(height: 4),
                         Row(
@@ -163,7 +147,6 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                                 ),
                               ],
                             ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.2, end: 0),
-                            
                             if (widget.combo >= 2) ...[
                               const SizedBox(width: 12),
                               Container(
@@ -189,13 +172,10 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                     ],
                   ),
                 ),
-                
-                // Removed redundant audio button here as per request
               ],
             ),
-
             if (!isCorrect) ...[
-              const SizedBox(height: 12), // Reduced spacing
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
@@ -203,7 +183,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                   style: FilledButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 12), // Compact button
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -212,7 +192,7 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
                   child: const Text(
                     'GOT IT',
                     style: TextStyle(
-                      fontSize: 16, 
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
                     ),
@@ -223,8 +203,6 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
           ],
         ),
       ),
-    )
-    .animate()
-    .slideY(begin: 1.0, end: 0.0, duration: 400.ms, curve: Curves.easeOutQuint);
+    );
   }
 }
