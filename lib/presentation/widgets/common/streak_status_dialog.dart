@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rive/rive.dart';
 
 import '../../../app/theme.dart';
 
@@ -48,6 +49,21 @@ class StreakStatusDialog extends StatelessWidget {
               ),
             ),
 
+            // Balloon Owl Mascot
+            SizedBox(
+              height: 280,
+              width: 280,
+              child: RiveAnimation.asset(
+                'assets/animations/mascot/balloon-owl-mascot.riv',
+                artboard: 'Artboard',
+                stateMachines: const ['State Machine 1'],
+                fit: BoxFit.contain,
+                onInit: (artboard) => artboard.fills.clear(),
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
             // Title
             Text(
               'Current Streak',
@@ -58,8 +74,8 @@ class StreakStatusDialog extends StatelessWidget {
                 letterSpacing: 0.5,
               ),
             ),
-            
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
 
             // Big Streak Counter with Fire Icon
             Row(
@@ -84,7 +100,7 @@ class StreakStatusDialog extends StatelessWidget {
               ],
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
             // Weekly Days Row
             _buildWeekRow(),

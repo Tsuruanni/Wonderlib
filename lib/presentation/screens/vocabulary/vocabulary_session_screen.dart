@@ -8,6 +8,7 @@ import '../../../domain/entities/vocabulary_session.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/vocabulary_mascot_overlay.dart';
 import '../../widgets/vocabulary/session/listening_question.dart';
 import '../../widgets/vocabulary/session/matching_question.dart';
 import '../../widgets/vocabulary/session/multiple_choice_question.dart';
@@ -16,9 +17,7 @@ import '../../widgets/vocabulary/session/scrambled_letters_question.dart';
 import '../../widgets/vocabulary/session/sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/session_progress_bar.dart';
 import '../../widgets/vocabulary/session/spelling_question.dart';
-import '../../widgets/vocabulary/session/spelling_question.dart';
 import '../../widgets/vocabulary/session/word_introduction_card.dart';
-import '../../widgets/activities/common/feedback_animation.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -38,6 +37,11 @@ class VocabularySessionScreen extends ConsumerStatefulWidget {
 class _VocabularySessionScreenState
     extends ConsumerState<VocabularySessionScreen> {
   bool _initialized = false;
+  final _incorrectMascotPicker = MascotPicker(incorrectMascotAssets);
+  final _correctMascotPicker = MascotPicker(correctMascotAssets);
+  String? _currentMascotAsset;
+  bool? _currentMascotCorrect;
+  int _lastFeedbackQuestion = -1;
 
   @override
   void initState() {
@@ -81,6 +85,16 @@ class _VocabularySessionScreenState
     final sessionState = ref.watch(vocabularySessionControllerProvider);
     final controller = ref.read(vocabularySessionControllerProvider.notifier);
     final theme = Theme.of(context);
+
+    // Pick mascot for each new feedback (correct or incorrect)
+    if (sessionState.isShowingFeedback &&
+        sessionState.totalQuestionsAnswered != _lastFeedbackQuestion) {
+      _lastFeedbackQuestion = sessionState.totalQuestionsAnswered;
+      _currentMascotCorrect = sessionState.lastAnswerCorrect;
+      _currentMascotAsset = sessionState.lastAnswerCorrect
+          ? _correctMascotPicker.next()
+          : _incorrectMascotPicker.next();
+    }
 
     if (!_initialized) {
       return const Scaffold(
@@ -206,6 +220,40 @@ class _VocabularySessionScreenState
             bottom: 0,
             child: _buildFooter(sessionState, controller, theme),
           ),
+
+          // Mascot overlay for incorrect answers (left side)
+          if (sessionState.isShowingFeedback &&
+              _currentMascotAsset != null &&
+              _currentMascotCorrect == false)
+            Positioned(
+              bottom: 110,
+              right: 30,
+              child: IgnorePointer(
+                child: MascotOverlay(
+                  key: ValueKey('mascot_$_lastFeedbackQuestion'),
+                  asset: _currentMascotAsset!,
+                  size: 142.0,
+                  freeze: false,
+                ),
+              ),
+            ),
+
+          // Mascot overlay for correct answers (right side, lower)
+          if (sessionState.isShowingFeedback &&
+              _currentMascotAsset != null &&
+              _currentMascotCorrect == true)
+            Positioned(
+              bottom: 30,
+              right: 30,
+              child: IgnorePointer(
+                child: MascotOverlay(
+                  key: ValueKey('mascot_$_lastFeedbackQuestion'),
+                  asset: _currentMascotAsset!,
+                  slideRight: true,
+                  playDuration: const Duration(milliseconds: 800),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
 import '../../activities/common/feedback_animation.dart';
 
 /// Feedback overlay after answering: green check or red X with correct answer
@@ -104,9 +103,9 @@ class _QuestionFeedbackState extends State<QuestionFeedback> {
             Row(
               children: [
                 FeedbackAnimation(
-                   isCorrect: isCorrect,
-                   size: isCorrect ? 60 : 72, // Reduced from 120 to 72 for compactness
-                 ),
+                  isCorrect: isCorrect,
+                  size: isCorrect ? 60 : 72,
+                ),
 
                 const SizedBox(width: 16),
                 
