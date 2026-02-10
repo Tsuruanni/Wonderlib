@@ -1,5 +1,7 @@
+import 'package:equatable/equatable.dart';
+
 /// Statistics for teacher dashboard
-class TeacherStats {
+class TeacherStats extends Equatable {
 
   const TeacherStats({
     required this.totalStudents,
@@ -11,10 +13,13 @@ class TeacherStats {
   final int totalClasses;
   final int activeAssignments;
   final double avgProgress;
+
+  @override
+  List<Object?> get props => [totalStudents, totalClasses, activeAssignments, avgProgress];
 }
 
 /// Class entity for teacher view
-class TeacherClass {
+class TeacherClass extends Equatable {
 
   const TeacherClass({
     required this.id,
@@ -32,10 +37,13 @@ class TeacherClass {
   final int studentCount;
   final double avgProgress;
   final DateTime? createdAt;
+
+  @override
+  List<Object?> get props => [id, name, grade, academicYear, studentCount, avgProgress, createdAt];
 }
 
 /// Student summary for class view
-class StudentSummary {
+class StudentSummary extends Equatable {
 
   const StudentSummary({
     required this.id,
@@ -63,10 +71,13 @@ class StudentSummary {
   final double avgProgress;
 
   String get fullName => '$firstName $lastName';
+
+  @override
+  List<Object?> get props => [id, firstName, lastName, studentNumber, email, avatarUrl, xp, level, currentStreak, booksRead, avgProgress];
 }
 
 /// Student's progress on a specific book
-class StudentBookProgress {
+class StudentBookProgress extends Equatable {
 
   const StudentBookProgress({
     required this.bookId,
@@ -86,10 +97,13 @@ class StudentBookProgress {
   final int completedChapters;
   final int totalChapters;
   final DateTime? lastReadAt;
+
+  @override
+  List<Object?> get props => [bookId, bookTitle, bookCoverUrl, completionPercentage, totalReadingTime, completedChapters, totalChapters, lastReadAt];
 }
 
 /// Summary of a student's vocabulary learning stats
-class StudentVocabStats {
+class StudentVocabStats extends Equatable {
 
   const StudentVocabStats({
     required this.totalWords,
@@ -109,10 +123,13 @@ class StudentVocabStats {
   final int listsStarted;
   final int listsCompleted;
   final int totalSessions;
+
+  @override
+  List<Object?> get props => [totalWords, newCount, learningCount, reviewingCount, masteredCount, listsStarted, listsCompleted, totalSessions];
 }
 
 /// Student's progress on a specific word list
-class StudentWordListProgress {
+class StudentWordListProgress extends Equatable {
 
   const StudentWordListProgress({
     required this.wordListId,
@@ -149,4 +166,7 @@ class StudentWordListProgress {
     if (bestAccuracy! >= 50) return 1;
     return 0;
   }
+
+  @override
+  List<Object?> get props => [wordListId, wordListName, wordListLevel, wordListCategory, wordCount, bestScore, bestAccuracy, totalSessions, lastSessionAt, startedAt, completedAt];
 }

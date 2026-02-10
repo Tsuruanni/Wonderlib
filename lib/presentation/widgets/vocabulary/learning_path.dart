@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 import 'path_painters.dart';
 import 'path_row.dart';
 import 'path_special_nodes.dart';
@@ -179,7 +180,7 @@ class LearningPath extends ConsumerWidget {
       final treasureDone = unit.completedNodeTypes.contains('treasure');
 
       final flipbookLocked = isUnitLocked || !allListsDone;
-      final reviewLocked = isUnitLocked || !flipbookDone;
+      final reviewLocked = false; // TODO: restore → isUnitLocked || !flipbookDone;
       final gameLocked = isUnitLocked || !reviewDone;
       final treasureLocked = isUnitLocked || !gameDone;
 

@@ -706,7 +706,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     otherWords.shuffle(_random);
     final matchWords = [word, ...otherWords.take(3)];
 
-    final pairs = matchWords.map((w) => MatchingPair(
+    final pairs = matchWords.map((w) => SessionMatchingPair(
       word: w.word,
       meaning: w.meaningTR,
       wordId: w.wordId,

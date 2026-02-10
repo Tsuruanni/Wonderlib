@@ -184,24 +184,41 @@ class UserCard extends Equatable {
 }
 
 /// Result of opening a card pack (3 cards)
-class PackResult {
+class PackResult extends Equatable {
   const PackResult({
     required this.cards,
     required this.packGlowRarity,
-    required this.coinsSpent,
-    required this.coinsRemaining,
+    this.packsRemaining = 0,
     this.pityTriggered = false,
   });
 
   final List<PackCard> cards;
   final CardRarity packGlowRarity;
+  final int packsRemaining;
+  final bool pityTriggered;
+
+  @override
+  List<Object?> get props => [cards, packGlowRarity, packsRemaining, pityTriggered];
+}
+
+/// Result of buying a card pack (coins → inventory)
+class BuyPackResult extends Equatable {
+  const BuyPackResult({
+    required this.coinsSpent,
+    required this.coinsRemaining,
+    required this.unopenedPacks,
+  });
+
   final int coinsSpent;
   final int coinsRemaining;
-  final bool pityTriggered;
+  final int unopenedPacks;
+
+  @override
+  List<Object?> get props => [coinsSpent, coinsRemaining, unopenedPacks];
 }
 
 /// A single card from a pack opening result
-class PackCard {
+class PackCard extends Equatable {
   const PackCard({
     required this.card,
     required this.isNew,
@@ -211,6 +228,9 @@ class PackCard {
   final MythCard card;
   final bool isNew;
   final int currentQuantity;
+
+  @override
+  List<Object?> get props => [card, isNew, currentQuantity];
 }
 
 /// Aggregate card collection statistics

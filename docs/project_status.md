@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-10 (Sequential Lock System + Unit Review + Learning Path Refactor)
+Son güncelleme: 2026-02-10 (Pack Inventory System + Codebase Security Audit)
 
 ## Current Phase
 
@@ -68,6 +68,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Review (Anki-style spaced repetition for vocabulary)
 - [x] Vocabulary Learning Path (Duolingo-style zigzag skill tree with units)
 - [x] Card Collection System (Mythology gacha cards with rarities + pack opening)
+- [x] Pack Inventory System (buy-to-inventory, open later, daily quest rewards)
 - [x] Matching Inline Activity (tap-to-match pairs in reader)
 - [x] Unit Curriculum Assignments (school/grade/class-based unit filtering)
 - [x] Teacher Student Vocab Stats (per-student vocabulary & word list progress)
@@ -113,6 +114,10 @@ See: CLAUDE.md for architecture guidelines
 | ~~Reading progress bug~~ | ~~High~~ | ✅ Fixed - Continue Reading condition, chapter completion logic |
 | ~~connectivity_plus 6.x~~ | ~~Medium~~ | ✅ Fixed - Updated for new List<ConnectivityResult> API |
 | ~~Screens importing repositories~~ | ~~High~~ | ✅ Route helpers + unused imports cleaned |
+| ~~SQL injection in search queries~~ | ~~High~~ | ✅ PostgREST filter escaping added to book + vocab search |
+| ~~Entities missing Equatable~~ | ~~High~~ | ✅ 12 entities fixed (teacher, assignment, card) |
+| ~~Domain dart:ui dependency~~ | ~~Medium~~ | ✅ Moved parsedColor to presentation extension |
+| ~~Duplicate MatchingPair class~~ | ~~Medium~~ | ✅ Renamed to ActivityMatchingPair + SessionMatchingPair |
 | Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
@@ -120,6 +125,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Pack Inventory System | 2026-02-10 | Buy packs to inventory, open later, daily quest pack rewards, 3 new RPCs, migration with RLS + index |
+| Codebase Security Audit | 2026-02-10 | SQL injection fixes (2), Equatable added to 12 entities, duplicate class rename, domain dart:ui removed, timezone fix, autoDispose fix |
 | Sequential Lock System | 2026-02-10 | Full progression chain with DB persistence, special node completion tracking, visual lock refinements |
 | Unit Review Mode | 2026-02-10 | Cram review for unit words, daily review screen supports unitId param, wired to lock chain |
 | Learning Path Refactor | 2026-02-10 | Split 1047-line file into 4 focused files (painters, row, special_nodes, orchestrator) |

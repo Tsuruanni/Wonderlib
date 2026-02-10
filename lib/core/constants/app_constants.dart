@@ -17,8 +17,8 @@ abstract class AppConstants {
 
   // Gamification
   static const xpPerPage = 2;
-  static const xpPerChapter = 20;
-  static const xpPerBook = 100;
+  static const xpPerChapter = 25;
+  static const xpPerBook = 150;
   static const xpPerCorrectAnswer = 5;
   static const xpPerVocabularyWord = 3;
   static const xpDailyLogin = 10;

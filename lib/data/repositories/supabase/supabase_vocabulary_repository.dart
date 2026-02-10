@@ -278,7 +278,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
       if (existingWordIds.isNotEmpty) {
         // Exclude already started words (single query instead of N queries)
-        query = query.not('id', 'in', '(${existingWordIds.join(',')})');
+        query = query.not('id', 'in_', existingWordIds);
       }
 
       final wordsResponse = await query.limit(limit).order('level');

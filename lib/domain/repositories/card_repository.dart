@@ -16,9 +16,18 @@ abstract class CardRepository {
   /// Get user's card collection statistics
   Future<Either<Failure, UserCardStats>> getUserCardStats(String userId);
 
-  /// Open a card pack (atomic: deducts coins, rolls 3 cards, updates collection)
-  Future<Either<Failure, PackResult>> openPack(String userId, {int cost = 100});
+  /// Buy a card pack (deducts coins, adds to inventory — does NOT open)
+  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100});
+
+  /// Open a card pack from inventory (consumes 1 unopened pack, rolls 3 cards)
+  Future<Either<Failure, PackResult>> openPack(String userId);
 
   /// Get user's current coin balance
   Future<Either<Failure, int>> getUserCoins(String userId);
+
+  /// Claim daily quest pack reward (awards 1 pack, once per day)
+  Future<Either<Failure, int>> claimDailyQuestPack(String userId);
+
+  /// Check if daily quest pack has been claimed today
+  Future<Either<Failure, bool>> hasDailyQuestPackBeenClaimed(String userId);
 }

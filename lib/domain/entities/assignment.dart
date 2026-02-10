@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 /// Assignment type enum
 enum AssignmentType {
   book,
@@ -66,7 +68,7 @@ enum AssignmentStatus {
 }
 
 /// Assignment entity for teacher view
-class Assignment {
+class Assignment extends Equatable {
 
   const Assignment({
     required this.id,
@@ -104,10 +106,13 @@ class Assignment {
   bool get isActive =>
       DateTime.now().isAfter(startDate) && DateTime.now().isBefore(dueDate);
   bool get isUpcoming => DateTime.now().isBefore(startDate);
+
+  @override
+  List<Object?> get props => [id, teacherId, classId, className, type, title, description, contentConfig, startDate, dueDate, createdAt, totalStudents, completedStudents];
 }
 
 /// Student's progress on a specific assignment
-class AssignmentStudent {
+class AssignmentStudent extends Equatable {
 
   const AssignmentStudent({
     required this.id,
@@ -129,10 +134,13 @@ class AssignmentStudent {
   final double? score;
   final DateTime? startedAt;
   final DateTime? completedAt;
+
+  @override
+  List<Object?> get props => [id, studentId, studentName, avatarUrl, status, progress, score, startedAt, completedAt];
 }
 
 /// Data for creating a new assignment
-class CreateAssignmentData {
+class CreateAssignmentData extends Equatable {
 
   const CreateAssignmentData({
     this.classId,
@@ -152,4 +160,7 @@ class CreateAssignmentData {
   final Map<String, dynamic> contentConfig;
   final DateTime startDate;
   final DateTime dueDate;
+
+  @override
+  List<Object?> get props => [classId, studentIds, type, title, description, contentConfig, startDate, dueDate];
 }

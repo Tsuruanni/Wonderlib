@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:readeng/app/router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:readeng/app/theme.dart';
 import 'package:readeng/domain/entities/student_assignment.dart';
+import 'package:readeng/domain/usecases/card/claim_daily_quest_pack_usecase.dart';
+import 'package:readeng/presentation/providers/auth_provider.dart';
 import 'package:readeng/presentation/providers/daily_goal_provider.dart';
+import 'package:readeng/presentation/providers/usecase_providers.dart';
+import 'package:readeng/presentation/providers/user_provider.dart';
 
 /// Displays daily quests and assignment quests inside a single unified card
-class DailyTasksList extends StatelessWidget {
+class DailyTasksList extends ConsumerStatefulWidget {
   final DailyGoalState state;
   final List<StudentAssignment> assignments;
 
@@ -18,17 +24,58 @@ class DailyTasksList extends StatelessWidget {
   });
 
   @override
+  ConsumerState<DailyTasksList> createState() => _DailyTasksListState();
+}
+
+class _DailyTasksListState extends ConsumerState<DailyTasksList> {
+  bool _isClaiming = false;
+  bool _justClaimed = false;
+
+  Future<void> _claimPack() async {
+    if (_isClaiming) return;
+
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    setState(() => _isClaiming = true);
+
+    final useCase = ref.read(claimDailyQuestPackUseCaseProvider);
+    final result = await useCase(ClaimDailyQuestPackParams(userId: userId));
+
+    result.fold(
+      (failure) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failure.message)),
+          );
+        }
+      },
+      (newPackCount) {
+        if (mounted) {
+          setState(() => _justClaimed = true);
+          // Refresh providers
+          ref.invalidate(dailyGoalProvider);
+          ref.invalidate(dailyQuestPackClaimedProvider);
+          ref.read(userControllerProvider.notifier).refresh();
+        }
+      },
+    );
+
+    if (mounted) setState(() => _isClaiming = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Build all rows: assignments first, then daily quests
     final List<Widget> rows = [];
 
     // Assignment rows
-    for (var i = 0; i < assignments.length; i++) {
-      rows.add(_AssignmentQuestRow(assignment: assignments[i]));
+    for (var i = 0; i < widget.assignments.length; i++) {
+      rows.add(_AssignmentQuestRow(assignment: widget.assignments[i]));
     }
 
     // Simple divider between assignments and daily quests
-    if (assignments.isNotEmpty) {
+    if (widget.assignments.isNotEmpty) {
       rows.add(const _ThickDivider());
     }
 
@@ -37,26 +84,30 @@ class DailyTasksList extends StatelessWidget {
       icon: Icons.spellcheck_rounded,
       iconColor: AppColors.secondary,
       title: 'Review daily vocab',
-      progress: state.dailyReviewCompleted ? 1.0 : 0.0,
-      progressText: state.dailyReviewCompleted ? '1 / 1' : '0 / 1',
-      isCompleted: state.dailyReviewCompleted,
+      progress: widget.state.dailyReviewCompleted ? 1.0 : 0.0,
+      progressText: widget.state.dailyReviewCompleted ? '1 / 1' : '0 / 1',
+      isCompleted: widget.state.dailyReviewCompleted,
     ));
     rows.add(_QuestRow(
       icon: Icons.auto_stories_rounded,
       iconColor: AppColors.primary,
-      title: 'Read ${state.wordsGoal} words',
-      progress: state.readingProgress,
-      progressText: '${state.wordsReadToday} / ${state.wordsGoal}',
-      isCompleted: state.isReadingGoalCompleted,
+      title: 'Read ${widget.state.wordsGoal} words',
+      progress: widget.state.readingProgress,
+      progressText: '${widget.state.wordsReadToday} / ${widget.state.wordsGoal}',
+      isCompleted: widget.state.isReadingGoalCompleted,
     ));
     rows.add(_QuestRow(
       icon: Icons.star_rounded,
       iconColor: AppColors.gemBlue,
-      title: 'Answer ${state.answersGoal} questions',
-      progress: state.activityProgress,
-      progressText: '${state.correctAnswersToday} / ${state.answersGoal}',
-      isCompleted: state.isActivityGoalCompleted,
+      title: 'Answer ${widget.state.answersGoal} questions',
+      progress: widget.state.activityProgress,
+      progressText: '${widget.state.correctAnswersToday} / ${widget.state.answersGoal}',
+      isCompleted: widget.state.isActivityGoalCompleted,
     ));
+
+    // Treasure reward row
+    rows.add(const _ThickDivider());
+    rows.add(_buildRewardRow());
 
     return Container(
       decoration: BoxDecoration(
@@ -83,6 +134,173 @@ class DailyTasksList extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRewardRow() {
+    final allDone = widget.state.allTasksCompleted;
+    final claimed = widget.state.packClaimed || _justClaimed;
+
+    if (claimed) {
+      // Already claimed today
+      return Container(
+        color: AppColors.primary.withValues(alpha: 0.04),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                size: 24,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Pack claimed!',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.style_rounded, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '+1',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (allDone) {
+      // All quests done — claim available
+      return GestureDetector(
+        onTap: _isClaiming ? null : _claimPack,
+        child: Container(
+          color: AppColors.wasp.withValues(alpha: 0.06),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              // Pulsing treasure chest
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.wasp.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: _isClaiming
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.wasp),
+                      )
+                    : const Text(
+                        '🎁',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 24),
+                      ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scale(
+                    begin: const Offset(0.95, 0.95),
+                    end: const Offset(1.05, 1.05),
+                    duration: 800.ms,
+                  ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Claim your reward!',
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.waspDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tap to get a free Mythic Pack',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.neutralText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: AppColors.wasp,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Not all quests done — show locked reward
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.neutral.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.lock_rounded,
+              size: 20,
+              color: AppColors.neutralText,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Complete all quests for a Mythic Pack',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutralText,
+              ),
+            ),
+          ),
+          const Text('📦', style: TextStyle(fontSize: 22)),
+        ],
       ),
     );
   }

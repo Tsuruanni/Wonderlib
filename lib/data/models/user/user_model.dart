@@ -16,6 +16,7 @@ class UserModel {
     this.avatarUrl,
     this.xp = 0,
     this.coins = 0,
+    this.unopenedPacks = 0,
     this.level = 1,
     this.currentStreak = 0,
     this.longestStreak = 0,
@@ -38,6 +39,7 @@ class UserModel {
       avatarUrl: json['avatar_url'] as String?,
       xp: json['xp'] as int? ?? 0,
       coins: json['coins'] as int? ?? 0,
+      unopenedPacks: json['unopened_packs'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
       currentStreak: json['current_streak'] as int? ?? 0,
       longestStreak: json['longest_streak'] as int? ?? 0,
@@ -63,6 +65,7 @@ class UserModel {
       avatarUrl: entity.avatarUrl,
       xp: entity.xp,
       coins: entity.coins,
+      unopenedPacks: entity.unopenedPacks,
       level: entity.level,
       currentStreak: entity.currentStreak,
       longestStreak: entity.longestStreak,
@@ -83,6 +86,7 @@ class UserModel {
   final String? avatarUrl;
   final int xp;
   final int coins;
+  final int unopenedPacks;
   final int level;
   final int currentStreak;
   final int longestStreak;
@@ -104,6 +108,7 @@ class UserModel {
       'avatar_url': avatarUrl,
       'xp': xp,
       'coins': coins,
+      'unopened_packs': unopenedPacks,
       'level': level,
       'current_streak': currentStreak,
       'longest_streak': longestStreak,
@@ -137,6 +142,7 @@ class UserModel {
       avatarUrl: avatarUrl,
       xp: xp,
       coins: coins,
+      unopenedPacks: unopenedPacks,
       level: level,
       currentStreak: currentStreak,
       longestStreak: longestStreak,

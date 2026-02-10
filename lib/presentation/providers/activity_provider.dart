@@ -10,6 +10,7 @@ import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 /// Provides activities for a chapter (end-of-chapter quizzes)
 final chapterActivitiesProvider =
@@ -159,8 +160,8 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
 
     final activityResult = submitResult.fold((_) => null, (r) => r)!;
 
-    // Refresh user data to update XP in UI
-    await refreshUserData(_ref);
+    // Refresh user data to update XP/coins in UI
+    await _ref.read(userControllerProvider.notifier).refresh();
 
     state = state.copyWith(
       isSubmitting: false,

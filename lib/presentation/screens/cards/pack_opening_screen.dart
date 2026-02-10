@@ -15,8 +15,9 @@ import '../../widgets/common/game_button.dart';
 
 /// Full-screen immersive pack opening experience.
 ///
-/// State flow: idle → purchasing → glowing → revealing → complete
-/// This screen is outside the shell (like reader_screen) for full immersion.
+/// State flow:
+///   Open: idle → opening → glowing → revealing → complete
+///   Buy:  idle → buying → idle (with buySuccess feedback)
 class PackOpeningScreen extends ConsumerStatefulWidget {
   const PackOpeningScreen({super.key});
 
@@ -27,11 +28,12 @@ class PackOpeningScreen extends ConsumerStatefulWidget {
 class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   bool _showLegendaryOverlay = false;
   String? _legendaryCardName;
+  bool _showBuyFeedback = false;
 
   @override
   void dispose() {
-    // Reset controller when leaving
-    ref.read(packOpeningControllerProvider.notifier).reset();
+    // reset() is called by the "DONE" button before pop.
+    // Calling ref.read() here is unsafe — WidgetRef may already be invalidated.
     super.dispose();
   }
 
@@ -39,7 +41,19 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(packOpeningControllerProvider);
     final coins = ref.watch(userCoinsProvider);
+    final packs = ref.watch(unopenedPacksProvider);
     final controller = ref.read(packOpeningControllerProvider.notifier);
+
+    // Show buy success feedback
+    if (state.buySuccess && !_showBuyFeedback) {
+      _showBuyFeedback = true;
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) setState(() => _showBuyFeedback = false);
+      });
+    }
+    if (!state.buySuccess) {
+      _showBuyFeedback = false;
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E),
@@ -49,7 +63,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             // Main content
             Column(
               children: [
-                // Top bar: back button + coin badge
+                // Top bar: back button + pack count + coin badge
                 Padding(
                   padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
                   child: Row(
@@ -60,6 +74,41 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                         onPressed: () => context.pop(),
                       ),
                       const Spacer(),
+                      // Pack count badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: packs > 0
+                              ? AppColors.cardEpic.withValues(alpha: 0.2)
+                              : Colors.white.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: packs > 0
+                                ? AppColors.cardEpic.withValues(alpha: 0.5)
+                                : Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.style_rounded,
+                              size: 16,
+                              color: packs > 0 ? AppColors.cardEpic : AppColors.white.withValues(alpha: 0.5),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '$packs',
+                              style: GoogleFonts.nunito(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: packs > 0 ? AppColors.cardEpic : AppColors.white.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       CoinBadgeWidget(coins: coins),
                     ],
                   ),
@@ -70,12 +119,51 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                   child: Center(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
-                      child: _buildPhaseContent(state, controller, coins),
+                      child: _buildPhaseContent(state, controller, coins, packs),
                     ),
                   ),
                 ),
               ],
             ),
+
+            // Buy success feedback overlay
+            if (_showBuyFeedback)
+              Positioned(
+                top: 80,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: AppColors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Pack added to inventory!',
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.3),
+                ),
+              ),
 
             // Legendary overlay
             if (_showLegendaryOverlay && _legendaryCardName != null)
@@ -94,12 +182,14 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     PackOpeningState state,
     PackOpeningController controller,
     int coins,
+    int packs,
   ) {
     switch (state.phase) {
       case PackOpeningPhase.idle:
-        return _buildIdlePhase(controller, coins, state.error);
+        return _buildIdlePhase(controller, coins, packs, state.error);
 
-      case PackOpeningPhase.purchasing:
+      case PackOpeningPhase.buying:
+      case PackOpeningPhase.opening:
         return _buildPurchasingPhase();
 
       case PackOpeningPhase.glowing:
@@ -107,13 +197,14 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
       case PackOpeningPhase.revealing:
       case PackOpeningPhase.complete:
-        return _buildRevealPhase(state, controller, coins);
+        return _buildRevealPhase(state, controller, packs);
     }
   }
 
   Widget _buildIdlePhase(
-      PackOpeningController controller, int coins, String? error) {
+      PackOpeningController controller, int coins, int packs, String? error) {
     final canAfford = coins >= 100;
+    final hasPacks = packs > 0;
 
     return Padding(
       key: const ValueKey('idle'),
@@ -245,67 +336,52 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                 curve: Curves.easeInOut,
               ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
 
-          // Cost display
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: const BoxDecoration(
-                  color: AppColors.wasp,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    '\u00a2',
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.white,
-                    ),
-                  ),
+          // Pack count indicator
+          if (hasPacks)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: AppColors.cardEpic.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.cardEpic.withValues(alpha: 0.3),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                '100',
+              child: Text(
+                'You have $packs pack${packs > 1 ? 's' : ''}',
                 style: GoogleFonts.nunito(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.white,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      offset: const Offset(0, 2),
-                      blurRadius: 4,
-                    ),
-                  ],
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.cardEpic,
                 ),
               ),
-            ],
-          ),
+            ),
 
-          const SizedBox(height: 24),
-
-          // Open button
+          // OPEN PACK button (primary action — from inventory)
           SizedBox(
             width: 240,
             height: 56,
             child: GameButton(
               label: 'OPEN PACK',
               variant:
-                  canAfford ? GameButtonVariant.wasp : GameButtonVariant.neutral,
-              onPressed: canAfford ? () => controller.purchasePack() : null,
+                  hasPacks ? GameButtonVariant.wasp : GameButtonVariant.neutral,
+              onPressed: hasPacks ? () => controller.openPack() : null,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // BUY PACK button (secondary action — with coins)
+          SizedBox(
+            width: 240,
+            height: 48,
+            child: GameButton(
+              label: 'BUY PACK  \u00a2100',
+              variant: canAfford ? GameButtonVariant.primary : GameButtonVariant.neutral,
+              onPressed: canAfford ? () => controller.buyPack() : null,
             ),
           ),
 
@@ -322,10 +398,10 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             ),
           ],
 
-          if (!canAfford) ...[
+          if (!hasPacks && !canAfford) ...[
             const SizedBox(height: 16),
             Text(
-              'Read books and complete activities to earn coins!',
+              'Complete daily quests or read books to get packs!',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 14,
@@ -340,7 +416,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
   Widget _buildPurchasingPhase() {
     return Column(
-      key: const ValueKey('purchasing'),
+      key: const ValueKey('opening'),
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(
@@ -376,11 +452,12 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   Widget _buildRevealPhase(
     PackOpeningState state,
     PackOpeningController controller,
-    int coins,
+    int packs,
   ) {
     final packResult = state.packResult!;
     final cards = packResult.cards;
     final isComplete = state.phase == PackOpeningPhase.complete;
+    final packsRemaining = packResult.packsRemaining;
 
     return Padding(
       key: const ValueKey('reveal'),
@@ -395,7 +472,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             children: List.generate(cards.length, (index) {
               final packCard = cards[index];
               final isRevealed = state.revealedIndices.contains(index);
-              final isSpecialSlot = index == 2;
 
               return Expanded(
                 child: Padding(
@@ -413,7 +489,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                           index: index,
                           onFlip: () {
                             controller.revealCard(index);
-                            // Check for legendary reveal
                             if (packCard.card.rarity == CardRarity.legendary) {
                               Future.delayed(const Duration(milliseconds: 700),
                                   () {
@@ -432,7 +507,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                       // NEW/duplicate indicator after reveal
                       const SizedBox(height: 8),
                       SizedBox(
-                        height: 20, // Reserve height for badge
+                        height: 20,
                         child: isRevealed
                             ? Center(
                                 child: packCard.isNew
@@ -453,18 +528,32 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
           // Complete phase: summary + action buttons
           if (isComplete) ...[
-            // Remaining coins
+            // Remaining packs
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Remaining: ',
+                  'Packs remaining: ',
                   style: GoogleFonts.nunito(
                     fontSize: 16,
                     color: AppColors.white.withValues(alpha: 0.6),
                   ),
                 ),
-                CoinBadgeWidget(coins: packResult.coinsRemaining),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardEpic.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$packsRemaining',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.cardEpic,
+                    ),
+                  ),
+                ),
               ],
             ),
 
@@ -474,18 +563,18 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (coins >= 100)
+                if (packsRemaining > 0)
                   Expanded(
                     child: GameButton(
                       label: 'OPEN AGAIN',
                       variant: GameButtonVariant.wasp,
                       onPressed: () {
                         controller.reset();
-                        controller.purchasePack();
+                        controller.openPack();
                       },
                     ),
                   ),
-                if (coins >= 100) const SizedBox(width: 16),
+                if (packsRemaining > 0) const SizedBox(width: 16),
                 Expanded(
                   child: GameButton(
                     label: 'DONE',

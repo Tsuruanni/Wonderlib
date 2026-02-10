@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/card.dart';
 import '../../../domain/repositories/card_repository.dart';
+import '../../models/card/buy_pack_result_model.dart';
 import '../../models/card/myth_card_model.dart';
 import '../../models/card/pack_result_model.dart';
 import '../../models/card/user_card_model.dart';
@@ -89,7 +90,6 @@ class SupabaseCardRepository implements CardRepository {
           .maybeSingle();
 
       if (response == null) {
-        // No stats yet — return defaults
         return Right(UserCardStats(userId: userId));
       }
 
@@ -102,21 +102,43 @@ class SupabaseCardRepository implements CardRepository {
   }
 
   @override
-  Future<Either<Failure, PackResult>> openPack(String userId, {int cost = 100}) async {
+  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100}) async {
     try {
       final response = await _supabase.rpc(
-        'open_card_pack',
+        'buy_card_pack',
         params: {
           'p_user_id': userId,
           'p_pack_cost': cost,
         },
       );
 
-      final result = PackResultModel.fromJson(response as Map<String, dynamic>);
+      final result = BuyPackResultModel.fromJson(response as Map<String, dynamic>);
       return Right(result.toEntity());
     } on PostgrestException catch (e) {
       if (e.message.contains('Insufficient coins')) {
         return const Left(InsufficientFundsFailure('Not enough coins to buy a pack'));
+      }
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, PackResult>> openPack(String userId) async {
+    try {
+      final response = await _supabase.rpc(
+        'open_card_pack',
+        params: {
+          'p_user_id': userId,
+        },
+      );
+
+      final result = PackResultModel.fromJson(response as Map<String, dynamic>);
+      return Right(result.toEntity());
+    } on PostgrestException catch (e) {
+      if (e.message.contains('No unopened packs')) {
+        return const Left(ServerFailure('No packs available to open'));
       }
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -134,6 +156,45 @@ class SupabaseCardRepository implements CardRepository {
           .single();
 
       return Right(response['coins'] as int? ?? 0);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, int>> claimDailyQuestPack(String userId) async {
+    try {
+      final response = await _supabase.rpc(
+        'claim_daily_quest_pack',
+        params: {
+          'p_user_id': userId,
+        },
+      );
+
+      final data = response as Map<String, dynamic>;
+      return Right(data['unopened_packs'] as int);
+    } on PostgrestException catch (e) {
+      if (e.message.contains('already claimed')) {
+        return const Left(ServerFailure('Daily quest pack already claimed today'));
+      }
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> hasDailyQuestPackBeenClaimed(String userId) async {
+    try {
+      // Use server-side RPC to avoid client/server timezone mismatch
+      final response = await _supabase.rpc(
+        'has_daily_quest_pack_claimed',
+        params: {'p_user_id': userId},
+      );
+
+      return Right(response as bool);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

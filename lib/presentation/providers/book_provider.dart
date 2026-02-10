@@ -22,9 +22,11 @@ import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../core/constants/app_constants.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 /// Provides all published books with optional filters
 final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filters) async {
@@ -170,11 +172,24 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
     );
 
     if (progress != null) {
+      // Check if this chapter was newly completed (prevent duplicate XP)
+      final previousProgress = _ref.read(readingProgressProvider(bookId)).valueOrNull;
+      final wasAlreadyCompleted = previousProgress?.completedChapterIds.contains(chapterId) ?? false;
+
       state = const AsyncValue.data(null);
       // Invalidate providers to refresh UI
       _ref.invalidate(readingProgressProvider(bookId));
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
       _ref.invalidate(wordsReadTodayProvider); // Refresh daily goal
+
+      // Award XP for new chapter completion
+      if (!wasAlreadyCompleted) {
+        await _ref.read(userControllerProvider.notifier).addXP(AppConstants.xpPerChapter);
+        // Book completion bonus
+        if (progress.isCompleted) {
+          await _ref.read(userControllerProvider.notifier).addXP(AppConstants.xpPerBook);
+        }
+      }
 
       // Update assignment progress if this book is part of an assignment
       await _updateAssignmentProgress(

@@ -69,11 +69,19 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, List<Book>>> searchBooks(String query) async {
     try {
+      // Escape special PostgREST filter characters to prevent injection
+      final escapedQuery = query
+          .replaceAll(r'\', r'\\')
+          .replaceAll('%', r'\%')
+          .replaceAll('_', r'\_')
+          .replaceAll(',', '')
+          .replaceAll('(', '')
+          .replaceAll(')', '');
       final response = await _supabase
           .from('books')
           .select()
           .eq('status', 'published')
-          .or('title.ilike.%$query%,description.ilike.%$query%')
+          .or('title.ilike.%$escapedQuery%,description.ilike.%$escapedQuery%')
           .limit(20);
 
       final books =
@@ -104,7 +112,7 @@ class SupabaseBookRepository implements BookRepository {
 
       // Exclude books already being read (single filter instead of N loops)
       if (readBookIds.isNotEmpty) {
-        query = query.not('id', 'in', '(${readBookIds.join(',')})');
+        query = query.not('id', 'in_', readBookIds);
       }
 
       final response = await query.limit(6).order('created_at', ascending: false);

@@ -27,7 +27,7 @@ class MatchingQuestion extends StatefulWidget {
 }
 
 class _MatchingQuestionState extends State<MatchingQuestion> {
-  late List<MatchingPair> _pairs;
+  late List<SessionMatchingPair> _pairs;
   late List<String> _shuffledWords;
   late List<String> _shuffledMeanings;
 

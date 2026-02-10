@@ -5,8 +5,7 @@ class PackResultModel {
   const PackResultModel({
     required this.cards,
     required this.packGlowRarity,
-    required this.coinsSpent,
-    required this.coinsRemaining,
+    this.packsRemaining = 0,
     this.pityTriggered = false,
   });
 
@@ -41,24 +40,21 @@ class PackResultModel {
     return PackResultModel(
       cards: cards,
       packGlowRarity: json['pack_glow_rarity'] as String,
-      coinsSpent: json['coins_spent'] as int,
-      coinsRemaining: json['coins_remaining'] as int,
+      packsRemaining: json['packs_remaining'] as int? ?? 0,
       pityTriggered: json['pity_triggered'] as bool? ?? false,
     );
   }
 
   final List<PackCardModel> cards;
   final String packGlowRarity;
-  final int coinsSpent;
-  final int coinsRemaining;
+  final int packsRemaining;
   final bool pityTriggered;
 
   PackResult toEntity() {
     return PackResult(
       cards: cards.map((c) => c.toEntity()).toList(),
       packGlowRarity: MythCardModel.parseRarity(packGlowRarity),
-      coinsSpent: coinsSpent,
-      coinsRemaining: coinsRemaining,
+      packsRemaining: packsRemaining,
       pityTriggered: pityTriggered,
     );
   }
@@ -90,8 +86,8 @@ class PackCardModel {
   final String? specialSkill;
   final String? description;
   final bool isNew;
-  final int quantity; // Restored field
-  final String? imageUrl; // Added field
+  final int quantity;
+  final String? imageUrl;
 
   PackCard toEntity() {
     final card = MythCard(
@@ -104,7 +100,7 @@ class PackCardModel {
       specialSkill: specialSkill,
       description: description,
       categoryIcon: categoryIcon,
-      imageUrl: imageUrl, // Added field
+      imageUrl: imageUrl,
       createdAt: DateTime.now(),
     );
 

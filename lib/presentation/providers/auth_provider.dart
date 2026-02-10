@@ -20,7 +20,8 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
   return authRepo.authStateChanges;
 });
 
-/// Provides the current authenticated user
+/// Provides the current authenticated user (used for auth flow / initial check).
+/// For up-to-date XP/coins/packs data, use [userControllerProvider] instead.
 final currentUserProvider = FutureProvider<User?>((ref) async {
   final useCase = ref.watch(getCurrentUserUseCaseProvider);
   final result = await useCase(const NoParams());
@@ -153,9 +154,3 @@ final authControllerProvider =
   return AuthController(ref);
 });
 
-/// Refreshes the current user data from database
-/// Call this after XP changes, profile updates, etc.
-Future<void> refreshUserData(Ref ref) async {
-  final useCase = ref.read(refreshCurrentUserUseCaseProvider);
-  await useCase(const NoParams());
-}

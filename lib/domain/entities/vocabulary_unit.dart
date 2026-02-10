@@ -1,9 +1,8 @@
-import 'dart:ui';
-
 import 'package:equatable/equatable.dart';
 
 /// Represents a grouping unit in the vocabulary learning path.
 /// Units are ordered vertically and contain word lists arranged in rows.
+/// Note: Color parsing moved to VocabularyUnitColor extension in ui_helpers.dart.
 class VocabularyUnit extends Equatable {
   const VocabularyUnit({
     required this.id,
@@ -26,16 +25,6 @@ class VocabularyUnit extends Equatable {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
-
-  /// Parse hex color string to Flutter Color. Falls back to green.
-  Color get parsedColor {
-    if (color == null || color!.length < 7) return const Color(0xFF58CC02);
-    try {
-      return Color(int.parse(color!.substring(1), radix: 16) + 0xFF000000);
-    } catch (_) {
-      return const Color(0xFF58CC02);
-    }
-  }
 
   @override
   List<Object?> get props => [

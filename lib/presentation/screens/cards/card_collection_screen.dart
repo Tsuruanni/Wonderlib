@@ -452,13 +452,16 @@ class _CategorySection extends StatelessWidget {
   }
 }
 
-class _OpenPackBanner extends StatelessWidget {
+class _OpenPackBanner extends ConsumerWidget {
   const _OpenPackBanner({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final packs = ref.watch(unopenedPacksProvider);
+    final hasPacks = packs > 0;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -466,7 +469,7 @@ class _OpenPackBanner extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           gradient: const LinearGradient(
-            colors: [Color(0xFF6B4CFE), Color(0xFFD355FF)], // Epic purple/pink gradient
+            colors: [Color(0xFF6B4CFE), Color(0xFFD355FF)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -480,7 +483,6 @@ class _OpenPackBanner extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            // Background patterns or shapes could go here
             Positioned(
               right: -20,
               top: -20,
@@ -490,7 +492,7 @@ class _OpenPackBanner extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
-            
+
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
@@ -501,7 +503,7 @@ class _OpenPackBanner extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'GET NEW CARDS',
+                          hasPacks ? 'PACKS AVAILABLE' : 'GET NEW CARDS',
                           style: GoogleFonts.nunito(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
@@ -511,7 +513,9 @@ class _OpenPackBanner extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Open Booster Pack',
+                          hasPacks
+                              ? 'Open Booster Pack ($packs)'
+                              : 'Buy Booster Pack',
                           style: GoogleFonts.nunito(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
@@ -521,8 +525,8 @@ class _OpenPackBanner extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
-                  // Cost Button
+
+                  // Action badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
@@ -536,25 +540,45 @@ class _OpenPackBanner extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.monetization_on_rounded,
-                          color: AppColors.wasp,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '100',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.black,
+                    child: hasPacks
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.style_rounded,
+                                color: AppColors.cardEpic,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '$packs',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.cardEpic,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.monetization_on_rounded,
+                                color: AppColors.wasp,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '100',
+                                style: GoogleFonts.nunito(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.black,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),

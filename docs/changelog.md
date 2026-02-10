@@ -8,6 +8,36 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Pack Inventory System & Codebase Security Audit (2026-02-10)
+
+#### Added
+- **Pack Inventory System** - Users can now buy packs to inventory and open them later (instead of buy-and-open immediately)
+  - `unopened_packs` column on profiles, `daily_quest_pack_claims` table with RLS policies
+  - `BuyPackResult` entity, `BuyPackResultModel`, 3 new UseCases (`BuyPackUseCase`, `ClaimDailyQuestPackUseCase`, `HasDailyQuestPackClaimedUseCase`)
+  - `buy_card_pack()` RPC (coins → inventory), `open_card_pack()` RPC refactored (consumes from inventory)
+  - `claim_daily_quest_pack()` RPC for daily quest reward with idempotency via UNIQUE constraint
+  - `has_daily_quest_pack_claimed()` RPC for server-side date check (avoids timezone mismatch)
+  - `userCoinsProvider` + `unopenedPacksProvider` derived from user state (single source of truth)
+  - Pack opening screen redesigned with buy/open separation, pack count badge, coin badge
+  - Daily quest pack claim flow in `DailyTasksList` with animated reward row
+- **Missing UseCase Provider** - `getSessionHistoryUseCaseProvider` registered for future session history UI
+
+#### Fixed
+- **SQL Injection in Book Search** - Added PostgREST filter character escaping to `searchBooks()` (matched existing vocabulary search pattern)
+- **SQL Injection in .not() Filters** - Replaced string interpolation `'(${ids.join(',')})'` with SDK's `.not('id', 'in_', list)` in book and vocabulary repositories
+- **12 Entities Missing Equatable** - Added `extends Equatable` + `props` to: `TeacherStats`, `TeacherClass`, `StudentSummary`, `StudentBookProgress`, `StudentVocabStats`, `StudentWordListProgress`, `Assignment`, `AssignmentStudent`, `CreateAssignmentData`, `PackResult`, `BuyPackResult`, `PackCard`
+- **Duplicate Class Name Collision** - Renamed `MatchingPair` → `ActivityMatchingPair` (activity.dart) and `SessionMatchingPair` (vocabulary_session.dart)
+- **Domain Layer Flutter Dependency** - Removed `dart:ui` import from `vocabulary_unit.dart`, moved `parsedColor` to `VocabularyUnitColor` extension in `ui_helpers.dart`
+- **Client/Server Timezone Mismatch** - Daily quest pack claim check now uses server-side RPC (`has_daily_quest_pack_claimed`) instead of client-side date comparison
+- **Missing Database Index** - Added composite index on `daily_quest_pack_claims(user_id, claim_date)` for query performance
+- **Memory Leak Risk** - `packOpeningControllerProvider` changed to `autoDispose` (screen-specific state cleaned up on navigation)
+- **Missing `toJson()`** - Added to `BuyPackResultModel` for serialization symmetry
+
+#### Infrastructure
+- **2 DB Migrations**: `20260209000007_add_pack_inventory.sql` (pack inventory + daily claims + 3 RPCs + index), `20260210000004_add_balance_constraints.sql`
+- **New Files**: `buy_pack_result_model.dart`, `buy_pack_usecase.dart`, `claim_daily_quest_pack_usecase.dart`, `has_daily_quest_pack_claimed_usecase.dart`
+- **Modified (32 files)**: Across all layers — entities, models, repositories, usecases, providers, screens, widgets, router, migration
+
 ### Sequential Lock System & Learning Path Improvements (2026-02-10)
 
 #### Added

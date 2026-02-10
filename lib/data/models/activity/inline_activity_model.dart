@@ -118,7 +118,7 @@ class InlineActivityModel {
           instruction: json['instruction'] as String? ?? '',
           pairs: (json['pairs'] as List<dynamic>?)
                   ?.whereType<Map<String, dynamic>>()
-                  .map((p) => MatchingPair(
+                  .map((p) => ActivityMatchingPair(
                         left: p['left'] as String? ?? '',
                         right: p['right'] as String? ?? '',
                       ))

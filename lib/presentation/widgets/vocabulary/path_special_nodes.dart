@@ -8,6 +8,7 @@ import 'package:lottie/lottie.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../utils/ui_helpers.dart';
 import '../../../domain/entities/vocabulary_unit.dart';
 import '../common/pressable_scale.dart';
 

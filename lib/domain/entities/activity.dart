@@ -74,8 +74,8 @@ class FindWordsContent extends InlineActivityContent {
 }
 
 /// A single pair in a matching activity
-class MatchingPair extends Equatable {
-  const MatchingPair({
+class ActivityMatchingPair extends Equatable {
+  const ActivityMatchingPair({
     required this.left,
     required this.right,
   });
@@ -93,7 +93,7 @@ class MatchingContent extends InlineActivityContent {
     required this.pairs,
   });
   final String instruction;
-  final List<MatchingPair> pairs;
+  final List<ActivityMatchingPair> pairs;
 
   @override
   List<Object?> get props => [instruction, pairs];

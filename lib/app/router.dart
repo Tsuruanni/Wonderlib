@@ -321,10 +321,6 @@ GoRouter _createRouter() {
                     },
                   ),
                   GoRoute(
-                    path: 'word-bank',
-                    builder: (context, state) => const VocabularyScreen(),
-                  ),
-                  GoRoute(
                     path: 'category/:categoryName',
                     builder: (context, state) {
                       final categoryName = state.pathParameters['categoryName']!;

@@ -6,9 +6,8 @@ import '../../repositories/card_repository.dart';
 import '../usecase.dart';
 
 class OpenPackParams {
-  const OpenPackParams({required this.userId, this.cost = 100});
+  const OpenPackParams({required this.userId});
   final String userId;
-  final int cost;
 }
 
 class OpenPackUseCase implements UseCase<PackResult, OpenPackParams> {
@@ -17,6 +16,6 @@ class OpenPackUseCase implements UseCase<PackResult, OpenPackParams> {
 
   @override
   Future<Either<Failure, PackResult>> call(OpenPackParams params) {
-    return _repository.openPack(params.userId, cost: params.cost);
+    return _repository.openPack(params.userId);
   }
 }

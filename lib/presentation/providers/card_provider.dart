@@ -2,12 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/card.dart';
+import '../../domain/usecases/card/buy_pack_usecase.dart';
 import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 // ============================================
 // DATA PROVIDERS
@@ -58,10 +60,16 @@ final userCardStatsProvider = FutureProvider<UserCardStats>((ref) async {
   );
 });
 
-/// User's coin balance — derived from currentUserProvider
+/// User's coin balance — derived from userControllerProvider (single source of truth)
 final userCoinsProvider = Provider<int>((ref) {
-  final user = ref.watch(currentUserProvider).valueOrNull;
+  final user = ref.watch(userControllerProvider).valueOrNull;
   return user?.coins ?? 0;
+});
+
+/// User's unopened pack count — derived from userControllerProvider (single source of truth)
+final unopenedPacksProvider = Provider<int>((ref) {
+  final user = ref.watch(userControllerProvider).valueOrNull;
+  return user?.unopenedPacks ?? 0;
 });
 
 // ============================================
@@ -109,7 +117,7 @@ final filteredCatalogProvider = Provider<List<MythCard>>((ref) {
 // ============================================
 
 /// Pack opening state machine
-enum PackOpeningPhase { idle, purchasing, glowing, revealing, complete }
+enum PackOpeningPhase { idle, opening, buying, glowing, revealing, complete }
 
 class PackOpeningState {
   const PackOpeningState({
@@ -117,12 +125,14 @@ class PackOpeningState {
     this.packResult,
     this.revealedIndices = const {},
     this.error,
+    this.buySuccess = false,
   });
 
   final PackOpeningPhase phase;
   final PackResult? packResult;
   final Set<int> revealedIndices;
   final String? error;
+  final bool buySuccess;
 
   bool get allRevealed =>
       packResult != null && revealedIndices.length >= packResult!.cards.length;
@@ -132,12 +142,14 @@ class PackOpeningState {
     PackResult? packResult,
     Set<int>? revealedIndices,
     String? error,
+    bool? buySuccess,
   }) {
     return PackOpeningState(
       phase: phase ?? this.phase,
       packResult: packResult ?? this.packResult,
       revealedIndices: revealedIndices ?? this.revealedIndices,
       error: error,
+      buySuccess: buySuccess ?? this.buySuccess,
     );
   }
 }
@@ -147,11 +159,47 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
 
   final Ref _ref;
 
-  /// Purchase a pack: deduct coins, get 3 cards
-  Future<void> purchasePack({int cost = 100}) async {
+  /// Buy a pack: deduct coins, add to inventory (does NOT open)
+  Future<void> buyPack({int cost = 100}) async {
     if (state.phase != PackOpeningPhase.idle) return;
 
-    state = state.copyWith(phase: PackOpeningPhase.purchasing, error: null);
+    state = state.copyWith(phase: PackOpeningPhase.buying, error: null, buySuccess: false);
+
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) {
+      state = state.copyWith(
+        phase: PackOpeningPhase.idle,
+        error: 'Not logged in',
+      );
+      return;
+    }
+
+    final useCase = _ref.read(buyPackUseCaseProvider);
+    final result = await useCase(BuyPackParams(userId: userId, cost: cost));
+
+    result.fold(
+      (failure) {
+        state = state.copyWith(
+          phase: PackOpeningPhase.idle,
+          error: failure.message,
+        );
+      },
+      (buyResult) {
+        // Refresh user data to update coin/pack counts
+        _ref.read(userControllerProvider.notifier).refresh();
+        state = state.copyWith(
+          phase: PackOpeningPhase.idle,
+          buySuccess: true,
+        );
+      },
+    );
+  }
+
+  /// Open a pack from inventory: consumes 1 pack, rolls 3 cards
+  Future<void> openPack() async {
+    if (state.phase != PackOpeningPhase.idle) return;
+
+    state = state.copyWith(phase: PackOpeningPhase.opening, error: null, buySuccess: false);
 
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) {
@@ -163,7 +211,7 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
     }
 
     final useCase = _ref.read(openPackUseCaseProvider);
-    final result = await useCase(OpenPackParams(userId: userId, cost: cost));
+    final result = await useCase(OpenPackParams(userId: userId));
 
     result.fold(
       (failure) {
@@ -206,14 +254,13 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
   /// Reset to idle — invalidates dependent providers for fresh data
   void reset() {
     state = const PackOpeningState();
-    // Refresh collection data after pack opening
     _ref.invalidate(userCardsProvider);
     _ref.invalidate(userCardStatsProvider);
-    _ref.invalidate(currentUserProvider);
+    _ref.read(userControllerProvider.notifier).refresh();
   }
 }
 
 final packOpeningControllerProvider =
-    StateNotifierProvider<PackOpeningController, PackOpeningState>((ref) {
+    StateNotifierProvider.autoDispose<PackOpeningController, PackOpeningState>((ref) {
   return PackOpeningController(ref);
 });

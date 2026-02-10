@@ -53,6 +53,9 @@ import '../../domain/usecases/card/get_cards_by_category_usecase.dart';
 import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/get_user_coins_usecase.dart';
+import '../../domain/usecases/card/buy_pack_usecase.dart';
+import '../../domain/usecases/card/claim_daily_quest_pack_usecase.dart';
+import '../../domain/usecases/card/has_daily_quest_pack_claimed_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
 import '../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
@@ -98,6 +101,7 @@ import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
+import '../../domain/usecases/wordlist/get_session_history_usecase.dart';
 import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
 import '../../domain/usecases/wordlist/update_word_list_progress_usecase.dart';
 import '../../domain/usecases/content/get_content_blocks_usecase.dart';
@@ -582,4 +586,24 @@ final openPackUseCaseProvider = Provider((ref) {
 
 final getUserCoinsUseCaseProvider = Provider((ref) {
   return GetUserCoinsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final buyPackUseCaseProvider = Provider((ref) {
+  return BuyPackUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final claimDailyQuestPackUseCaseProvider = Provider((ref) {
+  return ClaimDailyQuestPackUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final hasDailyQuestPackClaimedUseCaseProvider = Provider((ref) {
+  return HasDailyQuestPackClaimedUseCase(ref.watch(cardRepositoryProvider));
+});
+
+// ============================================
+// WORD LIST (SESSION HISTORY)
+// ============================================
+
+final getSessionHistoryUseCaseProvider = Provider((ref) {
+  return GetSessionHistoryUseCase(ref.watch(wordListRepositoryProvider));
 });

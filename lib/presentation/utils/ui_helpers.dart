@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../app/theme.dart';
 import '../../domain/entities/card.dart';
 import '../../domain/entities/student_assignment.dart';
+import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
 import '../../domain/repositories/teacher_repository.dart';
 
@@ -301,6 +302,19 @@ abstract class CardColors {
         return '\u2605\u2605\u2605';
       case CardRarity.legendary:
         return '\u2605\u2605\u2605\u2605';
+    }
+  }
+}
+
+/// Parse hex color string from VocabularyUnit to Flutter Color.
+/// Keeps domain entity free from dart:ui dependency.
+extension VocabularyUnitColor on VocabularyUnit {
+  Color get parsedColor {
+    if (color == null || color!.length < 7) return const Color(0xFF58CC02);
+    try {
+      return Color(int.parse(color!.substring(1), radix: 16) + 0xFF000000);
+    } catch (_) {
+      return const Color(0xFF58CC02);
     }
   }
 }

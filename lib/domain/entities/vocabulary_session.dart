@@ -180,7 +180,7 @@ class SessionQuestion extends Equatable {
   final String? sentence;              // For sentence gap
   final String? audioUrl;              // For listening questions
   final String? imageUrl;              // For visual support
-  final List<MatchingPair>? matchingPairs; // For matching questions
+  final List<SessionMatchingPair>? matchingPairs; // For matching questions
   final List<String>? scrambledLetters;    // For scrambled letters
 
   final bool isRemediation; // Whether this is a remediation retry
@@ -194,8 +194,8 @@ class SessionQuestion extends Equatable {
 }
 
 /// A pair for matching questions
-class MatchingPair extends Equatable {
-  const MatchingPair({
+class SessionMatchingPair extends Equatable {
+  const SessionMatchingPair({
     required this.word,
     required this.meaning,
     required this.wordId,
