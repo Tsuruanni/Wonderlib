@@ -9,7 +9,7 @@ import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
 import '../../widgets/cards/card_flip_widget.dart';
 import '../../widgets/cards/card_reveal_effects.dart';
-import '../../widgets/cards/coin_badge_widget.dart';
+import '../../widgets/cards/coin_badge.dart';
 import '../../widgets/cards/pack_glow_widget.dart';
 import '../../widgets/common/game_button.dart';
 
@@ -109,7 +109,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                           ],
                         ),
                       ),
-                      CoinBadgeWidget(coins: coins),
+                      CoinBadge(coins: coins),
                     ],
                   ),
                 ),

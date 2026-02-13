@@ -8,10 +8,10 @@ import '../../providers/activity_provider.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/content_block_provider.dart';
 import '../../providers/reader_provider.dart';
-import 'chapter_completion_card.dart';
-import 'collapsible_reader_header.dart';
-import 'content_block_list.dart';
-import 'integrated_reader_content.dart';
+import 'reader_chapter_completion.dart';
+import 'reader_collapsible_header.dart';
+import 'reader_content_block_list.dart';
+import 'reader_legacy_content.dart';
 import 'reader_settings_sheet.dart';
 
 /// Main scrollable body of the reader screen.
@@ -28,6 +28,10 @@ class ReaderBody extends ConsumerWidget {
     required this.onClose,
     required this.onNextChapter,
     required this.onBackToBook,
+    this.bookHasQuiz = false,
+    this.quizPassed = false,
+    this.onTakeQuiz,
+    this.bestQuizScore,
   });
 
   final Book book;
@@ -39,6 +43,10 @@ class ReaderBody extends ConsumerWidget {
   final VoidCallback onClose;
   final Future<void> Function(Chapter nextChapter) onNextChapter;
   final VoidCallback onBackToBook;
+  final bool bookHasQuiz;
+  final bool quizPassed;
+  final VoidCallback? onTakeQuiz;
+  final double? bestQuizScore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,7 +104,7 @@ class ReaderBody extends ConsumerWidget {
             pinned: true,
             automaticallyImplyLeading: false,
             backgroundColor: settings.theme.background,
-            flexibleSpace: CollapsibleReaderHeader(
+            flexibleSpace: ReaderCollapsibleHeader(
               book: book,
               chapter: chapter,
               chapterNumber: currentIndex + 1,
@@ -117,8 +125,8 @@ class ReaderBody extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Chapter content - uses ContentBlockList if available,
-                  // falls back to IntegratedReaderContent for legacy content
+                  // Chapter content - uses ReaderContentBlockList if available,
+                  // falls back to ReaderLegacyContent for legacy content
                   _ChapterContent(
                     chapter: chapter,
                     settings: settings,
@@ -130,7 +138,7 @@ class ReaderBody extends ConsumerWidget {
 
                   // Chapter completion actions (only visible when all activities done)
                   if (isChapterComplete)
-                    ChapterCompletionCard(
+                    ReaderChapterCompletion(
                       hasNextChapter: hasNextChapter,
                       nextChapter: nextChapter,
                       settings: settings,
@@ -141,6 +149,10 @@ class ReaderBody extends ConsumerWidget {
                         }
                       },
                       onBackToBook: onBackToBook,
+                      bookHasQuiz: bookHasQuiz,
+                      quizPassed: quizPassed,
+                      onTakeQuiz: onTakeQuiz,
+                      bestScore: bestQuizScore,
                     ),
 
                   // Extra padding at bottom
@@ -177,7 +189,7 @@ class _ChapterContent extends ConsumerWidget {
       data: (usesBlocks) {
         if (usesBlocks) {
           // New content block system
-          return ContentBlockList(
+          return ReaderContentBlockList(
             key: ValueKey('blocks-${chapter.id}'),
             chapter: chapter,
             settings: settings,
@@ -186,7 +198,7 @@ class _ChapterContent extends ConsumerWidget {
           );
         } else if (chapter.content != null) {
           // Legacy plain text content
-          return IntegratedReaderContent(
+          return ReaderLegacyContent(
             key: ValueKey(chapter.id),
             chapter: chapter,
             settings: settings,
@@ -207,7 +219,7 @@ class _ChapterContent extends ConsumerWidget {
       error: (_, __) {
         // On error, try legacy content
         if (chapter.content != null) {
-          return IntegratedReaderContent(
+          return ReaderLegacyContent(
             key: ValueKey(chapter.id),
             chapter: chapter,
             settings: settings,

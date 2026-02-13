@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'package:readeng/presentation/widgets/reader/chapter_navigation_bar.dart';
-import 'package:readeng/presentation/widgets/reader/chapter_completion_card.dart';
-import 'package:readeng/presentation/widgets/reader/collapsible_reader_header.dart';
-import 'package:readeng/presentation/widgets/reader/image_block_widget.dart';
-import 'package:readeng/presentation/widgets/reader/paragraph_widget.dart';
-import 'package:readeng/presentation/widgets/reader/word_highlight_text.dart';
-import 'package:readeng/presentation/widgets/reader/vocabulary_popup.dart';
+import 'package:readeng/presentation/widgets/reader/reader_chapter_completion.dart';
+import 'package:readeng/presentation/widgets/reader/reader_collapsible_header.dart';
+import 'package:readeng/presentation/widgets/reader/reader_image_block.dart';
+import 'package:readeng/presentation/widgets/reader/reader_paragraph.dart';
+import 'package:readeng/presentation/widgets/reader/reader_word_highlight.dart';
+import 'package:readeng/presentation/widgets/reader/reader_vocab_highlight_popup.dart';
 import 'package:readeng/presentation/providers/reader_provider.dart';
 import 'package:readeng/domain/entities/book.dart';
 import 'package:readeng/domain/entities/chapter.dart';
@@ -15,92 +14,16 @@ import 'package:readeng/domain/entities/content/content_block.dart';
 
 /// Reader widgets for Widgetbook
 final readerWidgets = [
-  // Chapter Navigation Bar
-  WidgetbookComponent(
-    name: 'ChapterNavigationBar',
-    useCases: [
-      WidgetbookUseCase(
-        name: 'First Chapter',
-        builder: (context) => const ChapterNavigationBar(
-          chapterNumber: 1,
-          totalChapters: 5,
-          scrollProgress: 0.3,
-          onPrevious: null,
-          onNext: null,
-          onComplete: null,
-          hasPrevious: false,
-          hasNext: true,
-          isLastChapter: false,
-        ),
-      ),
-      WidgetbookUseCase(
-        name: 'Middle Chapter',
-        builder: (context) => const ChapterNavigationBar(
-          chapterNumber: 3,
-          totalChapters: 5,
-          scrollProgress: 0.6,
-          onPrevious: null,
-          onNext: null,
-          onComplete: null,
-          hasPrevious: true,
-          hasNext: true,
-          isLastChapter: false,
-        ),
-      ),
-      WidgetbookUseCase(
-        name: 'Last Chapter - Complete Button',
-        builder: (context) => const ChapterNavigationBar(
-          chapterNumber: 5,
-          totalChapters: 5,
-          scrollProgress: 0.95,
-          onPrevious: null,
-          onNext: null,
-          onComplete: null,
-          hasPrevious: true,
-          hasNext: false,
-          isLastChapter: true,
-        ),
-      ),
-      WidgetbookUseCase(
-        name: 'With Knobs',
-        builder: (context) => ChapterNavigationBar(
-          chapterNumber: context.knobs.int.slider(
-            label: 'Chapter',
-            initialValue: 2,
-            min: 1,
-            max: 10,
-          ),
-          totalChapters: 10,
-          scrollProgress: context.knobs.double.slider(
-            label: 'Progress',
-            initialValue: 0.5,
-            min: 0,
-            max: 1,
-          ),
-          onPrevious: () {},
-          onNext: () {},
-          onComplete: () {},
-          hasPrevious: true,
-          hasNext: true,
-          isLastChapter: context.knobs.boolean(
-            label: 'Is Last Chapter',
-            initialValue: false,
-          ),
-        ),
-      ),
-    ],
-  ),
-
   // Chapter Completion Card
   WidgetbookComponent(
-    name: 'ChapterCompletionCard',
+    name: 'ReaderChapterCompletion',
     useCases: [
       WidgetbookUseCase(
         name: 'Has Next Chapter',
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ChapterCompletionCard(
+          child: ReaderChapterCompletion(
             hasNextChapter: true,
             nextChapter: _mockChapter,
             settings: _lightSettings,
@@ -115,7 +38,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ChapterCompletionCard(
+          child: ReaderChapterCompletion(
             hasNextChapter: false,
             nextChapter: null,
             settings: _lightSettings,
@@ -130,7 +53,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _darkSettings.theme.background,
-          child: ChapterCompletionCard(
+          child: ReaderChapterCompletion(
             hasNextChapter: false,
             nextChapter: null,
             settings: _darkSettings,
@@ -145,13 +68,13 @@ final readerWidgets = [
 
   // Collapsible Reader Header
   WidgetbookComponent(
-    name: 'CollapsibleReaderHeader',
+    name: 'ReaderCollapsibleHeader',
     useCases: [
       WidgetbookUseCase(
         name: 'Expanded (400px)',
         builder: (context) => SizedBox(
           height: 400,
-          child: CollapsibleReaderHeader(
+          child: ReaderCollapsibleHeader(
             book: _mockBook,
             chapter: _mockChapter,
             chapterNumber: 1,
@@ -169,7 +92,7 @@ final readerWidgets = [
         name: 'Collapsed (100px)',
         builder: (context) => SizedBox(
           height: 100,
-          child: CollapsibleReaderHeader(
+          child: ReaderCollapsibleHeader(
             book: _mockBook,
             chapter: _mockChapter,
             chapterNumber: 2,
@@ -187,7 +110,7 @@ final readerWidgets = [
         name: 'Dark Theme',
         builder: (context) => SizedBox(
           height: 400,
-          child: CollapsibleReaderHeader(
+          child: ReaderCollapsibleHeader(
             book: _mockBook,
             chapter: _mockChapter,
             chapterNumber: 1,
@@ -206,14 +129,14 @@ final readerWidgets = [
 
   // Image Block Widget
   WidgetbookComponent(
-    name: 'ImageBlockWidget',
+    name: 'ReaderImageBlock',
     useCases: [
       WidgetbookUseCase(
         name: 'With Image',
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ImageBlockWidget(
+          child: ReaderImageBlock(
             block: _mockImageBlock,
             settings: _lightSettings,
           ),
@@ -224,7 +147,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ImageBlockWidget(
+          child: ReaderImageBlock(
             block: _mockImageBlockWithCaption,
             settings: _lightSettings,
           ),
@@ -235,7 +158,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _darkSettings.theme.background,
-          child: ImageBlockWidget(
+          child: ReaderImageBlock(
             block: _mockImageBlockWithCaption,
             settings: _darkSettings,
           ),
@@ -246,14 +169,14 @@ final readerWidgets = [
 
   // Paragraph Widget
   WidgetbookComponent(
-    name: 'ParagraphWidget',
+    name: 'ReaderParagraph',
     useCases: [
       WidgetbookUseCase(
         name: 'Plain Text',
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ParagraphWidget(
+          child: ReaderParagraph(
             content: _sampleParagraph,
             vocabulary: const [],
             settings: _lightSettings,
@@ -266,7 +189,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ParagraphWidget(
+          child: ReaderParagraph(
             content: _sampleParagraph,
             vocabulary: _mockVocabulary,
             settings: _lightSettings,
@@ -279,7 +202,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _darkSettings.theme.background,
-          child: ParagraphWidget(
+          child: ReaderParagraph(
             content: _sampleParagraph,
             vocabulary: _mockVocabulary,
             settings: _darkSettings,
@@ -292,7 +215,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: ParagraphWidget(
+          child: ReaderParagraph(
             content: _sampleParagraph,
             vocabulary: _mockVocabulary,
             settings: _largeFontSettings,
@@ -305,14 +228,14 @@ final readerWidgets = [
 
   // Word Highlight Text
   WidgetbookComponent(
-    name: 'WordHighlightText',
+    name: 'ReaderWordHighlight',
     useCases: [
       WidgetbookUseCase(
         name: 'No Highlight',
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: WordHighlightText(
+          child: ReaderWordHighlight(
             text: _sampleSentence,
             wordTimings: _mockWordTimings,
             settings: _lightSettings,
@@ -325,7 +248,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: WordHighlightText(
+          child: ReaderWordHighlight(
             text: _sampleSentence,
             wordTimings: _mockWordTimings,
             settings: _lightSettings,
@@ -338,7 +261,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _lightSettings.theme.background,
-          child: WordHighlightText(
+          child: ReaderWordHighlight(
             text: _sampleSentence,
             wordTimings: _mockWordTimings,
             settings: _lightSettings,
@@ -353,7 +276,7 @@ final readerWidgets = [
         builder: (context) => Container(
           padding: const EdgeInsets.all(16),
           color: _darkSettings.theme.background,
-          child: WordHighlightText(
+          child: ReaderWordHighlight(
             text: _sampleSentence,
             wordTimings: _mockWordTimings,
             settings: _darkSettings,
@@ -397,14 +320,14 @@ final readerWidgets = [
 
   // Vocabulary Popup
   WidgetbookComponent(
-    name: 'VocabularyPopup',
+    name: 'ReaderVocabHighlightPopup',
     useCases: [
       WidgetbookUseCase(
         name: 'With Meaning',
         builder: (context) => SizedBox(
           width: 400,
           height: 400,
-          child: VocabularyPopup(
+          child: ReaderVocabHighlightPopup(
             vocabulary: const ChapterVocabulary(
               word: 'beautiful',
               meaning: 'very attractive or pleasing; having beauty',
@@ -421,7 +344,7 @@ final readerWidgets = [
         builder: (context) => SizedBox(
           width: 400,
           height: 400,
-          child: VocabularyPopup(
+          child: ReaderVocabHighlightPopup(
             vocabulary: const ChapterVocabulary(
               word: 'garden',
               meaning: 'a piece of ground used to grow flowers, vegetables, or fruit',
@@ -437,7 +360,7 @@ final readerWidgets = [
         builder: (context) => SizedBox(
           width: 400,
           height: 400,
-          child: VocabularyPopup(
+          child: ReaderVocabHighlightPopup(
             vocabulary: const ChapterVocabulary(
               word: 'magical',
               meaning: 'having special powers; enchanting',

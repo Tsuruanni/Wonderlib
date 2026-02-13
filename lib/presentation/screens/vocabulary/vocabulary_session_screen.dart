@@ -10,15 +10,15 @@ import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/vocabulary_mascot_overlay.dart';
-import '../../widgets/vocabulary/session/listening_question.dart';
-import '../../widgets/vocabulary/session/matching_question.dart';
-import '../../widgets/vocabulary/session/multiple_choice_question.dart';
-import '../../widgets/vocabulary/session/question_feedback.dart';
-import '../../widgets/vocabulary/session/scrambled_letters_question.dart';
-import '../../widgets/vocabulary/session/sentence_gap_question.dart';
-import '../../widgets/vocabulary/session/session_progress_bar.dart';
-import '../../widgets/vocabulary/session/spelling_question.dart';
-import '../../widgets/vocabulary/session/word_introduction_card.dart';
+import '../../widgets/vocabulary/session/vocab_listening_question.dart';
+import '../../widgets/vocabulary/session/vocab_matching_question.dart';
+import '../../widgets/vocabulary/session/vocab_multiple_choice_question.dart';
+import '../../widgets/vocabulary/session/vocab_question_feedback.dart';
+import '../../widgets/vocabulary/session/vocab_scrambled_letters_question.dart';
+import '../../widgets/vocabulary/session/vocab_sentence_gap_question.dart';
+import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
+import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
+import '../../widgets/vocabulary/session/vocab_word_introduction_card.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -160,7 +160,7 @@ class _VocabularySessionScreenState
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: SessionProgressBar(
+                          child: VocabSessionProgressBar(
                             progress: progress,
                             xpEarned: sessionState.xpEarned,
                             comboActive: sessionState.combo >= 2,
@@ -300,7 +300,7 @@ class _VocabularySessionScreenState
         );
       },
       child: sessionState.isShowingFeedback
-          ? QuestionFeedback(
+          ? VocabQuestionFeedback(
               key: const ValueKey('feedback'),
               isCorrect: sessionState.lastAnswerCorrect,
               correctAnswer: sessionState.lastCorrectAnswer,
@@ -383,7 +383,7 @@ class _VocabularySessionScreenState
             ),
           ),
         ),
-        ...pair.map((word) => Expanded(child: WordIntroductionCard(word: word))),
+        ...pair.map((word) => Expanded(child: VocabWordIntroductionCard(word: word))),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -421,7 +421,7 @@ class _VocabularySessionScreenState
     switch (question.type) {
       case QuestionType.multipleChoice:
       case QuestionType.reverseMultipleChoice:
-        return MultipleChoiceQuestion(
+        return VocabMultipleChoiceQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
@@ -429,14 +429,14 @@ class _VocabularySessionScreenState
 
       case QuestionType.listeningSelect:
       case QuestionType.listeningWrite:
-        return ListeningQuestion(
+        return VocabListeningQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
         );
 
       case QuestionType.matching:
-        return MatchingQuestion(
+        return VocabMatchingQuestion(
           key: key,
           question: question,
           onComplete: ({
@@ -457,21 +457,21 @@ class _VocabularySessionScreenState
         );
 
       case QuestionType.scrambledLetters:
-        return ScrambledLettersQuestion(
+        return VocabScrambledLettersQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
         );
 
       case QuestionType.spelling:
-        return SpellingQuestion(
+        return VocabSpellingQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
         );
 
       case QuestionType.sentenceGap:
-        return SentenceGapQuestion(
+        return VocabSentenceGapQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),

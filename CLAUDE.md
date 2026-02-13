@@ -118,7 +118,17 @@ lib/
 │   ├── providers/       # 19 provider files (87 UseCase + 11 Repository providers)
 │   ├── screens/         # 29 active screens (auth, home, library, reader, vocabulary, profile, student, teacher)
 │   ├── utils/           # UI helpers (colors, formatters)
-│   └── widgets/         # Reusable components (activities, book, common, home, reader, shell)
+│   └── widgets/         # Reusable components
+│       ├── book_quiz/       # BookQuiz* - final book quiz widgets (8)
+│       ├── cards/           # Card collection widgets (CoinBadge, CardFlip, etc.)
+│       ├── common/          # Shared: AnimatedGameButton, FeedbackAnimation, SubtleBackground, etc.
+│       ├── home/            # Home screen widgets (TopNavbar, BottomNavbar)
+│       ├── inline_activities/ # InlineActivity* - in-chapter activities (6)
+│       ├── reader/          # Reader* - reader screen widgets (15)
+│       ├── shell/           # App shell widgets
+│       └── vocabulary/
+│           ├── session/     # Vocab* - vocabulary session question widgets (12)
+│           └── *.dart       # LearningPath, PathNodes, etc.
 └── l10n/                # Localization (TR/EN)
 ```
 

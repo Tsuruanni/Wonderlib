@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-11 (Rive Dynamic Image Replacement Research)
+Son güncelleme: 2026-02-13 (Widget Rename & Dead Code Cleanup)
 
 ## Current Phase
 
@@ -74,7 +74,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Teacher Student Vocab Stats (per-student vocabulary & word list progress)
 - [x] Sequential Lock System (word list → special node → next unit progression)
 - [x] Unit Review Mode (cram review for all words in a unit)
-- [ ] Final Quiz (chapter-end gamified quiz) - deferred
+- [x] Book Quiz (chapter-end gamified quiz with 5 question types)
+- [x] Widget naming convention (group prefixes: inline_, reader_, book_quiz_, vocab_)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
@@ -86,11 +87,10 @@ See: CLAUDE.md for architecture guidelines
 | Clean Architecture Refactor | Claude + User | Active | Reader refactored, Model layer + UseCases remaining |
 | Testing & Validation | User | Active | Manual testing of all features |
 
-## Deferred to Phase 4
+## Deferred
 
 | Task | Notes |
 |------|-------|
-| Final Quiz | Bölüm sonu gamified quiz (escape room) |
 | Offline Mode | SyncService + Isar local storage |
 | Edge Functions | award-xp, check-streak (currently using RPC functions) |
 
@@ -125,6 +125,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Widget Rename & Cleanup | 2026-02-13 | Group prefixes (inline_, reader_, book_quiz_, vocab_), 5 dead files removed, shared widgets moved to common/, ~48 file operations |
 | Rive Dynamic Image Guide | 2026-02-11 | CallbackAssetLoader API research, image injection docs for pack opening Rive integration |
 | Vocabulary Mascot System | 2026-02-11 | Rive owl mascots on feedback, sound effects, streak dialog mascot, TTS removed |
 | Pack Inventory System | 2026-02-10 | Buy packs to inventory, open later, daily quest pack rewards, 3 new RPCs, migration with RLS + index |

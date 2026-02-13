@@ -139,18 +139,22 @@ lib/
 │   │   ├── cards/            # Card collection + pack opening
 │   │   └── ...
 │   └── widgets/
-│       ├── common/           # Shared widgets (XPBadge, StatItem, TopNavbar, StreakStatusDialog)
+│       ├── book_quiz/        # BookQuiz* — final book quiz widgets (8)
+│       ├── cards/            # Card collection widgets (CoinBadge, CardFlip, etc.)
+│       ├── common/           # Shared widgets (AnimatedGameButton, FeedbackAnimation, SubtleBackground, XPBadge, TopNavbar)
+│       ├── home/             # Home screen widgets (TopNavbar, BottomNavbar)
+│       ├── inline_activities/ # InlineActivity* — in-chapter activities (6)
 │       ├── vocabulary/       # Vocabulary path widgets
 │       │   ├── learning_path.dart    # Duolingo-style zigzag path (orchestrator)
 │       │   ├── path_painters.dart    # Background path + connector painters
 │       │   ├── path_row.dart         # Word list node positioning
 │       │   ├── path_node.dart        # Circle node with progress/stars
 │       │   ├── path_special_nodes.dart # Flipbook/Review/Game/Treasure nodes
-│       │   └── session/              # Quiz session widgets (7 question types + feedback)
-│       └── reader/           # Reader-specific widgets
-│           ├── reader_body.dart           # Main scrollable content
-│           ├── reader_popups.dart         # Vocabulary/word popups
-│           ├── chapter_completion_card.dart # Next chapter UI
+│       │   └── session/              # Vocab* — quiz session widgets (12)
+│       └── reader/           # Reader* — reader-specific widgets (15)
+│           ├── reader_body.dart               # Main scrollable content
+│           ├── reader_popups.dart             # Vocabulary/word popups
+│           ├── reader_chapter_completion.dart  # Next chapter UI
 │           └── ...
 │
 ├── l10n/                     # Localization

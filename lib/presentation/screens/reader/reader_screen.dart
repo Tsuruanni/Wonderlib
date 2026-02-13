@@ -12,11 +12,13 @@ import '../../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/word_definition_provider.dart';
-import '../../widgets/reader/audio_player_controls.dart';
+import '../../widgets/reader/reader_audio_controls.dart';
 import '../../widgets/reader/reader_body.dart';
 import '../../widgets/reader/reader_popups.dart';
 
@@ -250,6 +252,33 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     }
   }
 
+  Future<void> _handleTakeQuiz() async {
+    final bookId = widget.bookId;
+    final chapterId = widget.chapterId;
+
+    _stopCurrentAudio();
+    await _saveReadingTime();
+
+    if (!mounted) return;
+
+    try {
+      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
+      await completionNotifier.markComplete(
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+    } catch (e) {
+      debugPrint('ChapterCompletionNotifier error: $e');
+    }
+
+    if (mounted) {
+      ref.invalidate(readingProgressProvider(bookId));
+      ref.invalidate(continueReadingProvider);
+      ref.invalidate(recommendedBooksProvider);
+      context.push(AppRoutes.bookQuizPath(bookId));
+    }
+  }
+
   Future<void> _handleClose() async {
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
@@ -289,7 +318,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
           body: Stack(
             children: [
               // Main scrollable content
-              ReaderBody(
+              _ReaderBodyWithQuiz(
                 book: book,
                 chapter: chapter,
                 chapters: chapters,
@@ -299,6 +328,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                 onClose: _handleClose,
                 onNextChapter: _handleNextChapter,
                 onBackToBook: _handleBackToBook,
+                onTakeQuiz: _handleTakeQuiz,
               ),
 
               // Popup overlays
@@ -309,7 +339,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                 left: 0,
                 right: 0,
                 top: MediaQuery.of(context).padding.top + 44,
-                child: AudioPlayerControls(settings: settings),
+                child: ReaderAudioControls(settings: settings),
               ),
             ],
           ),
@@ -344,6 +374,61 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         foregroundColor: settings.theme.text,
       ),
       body: const Center(child: Text('Chapter not found')),
+    );
+  }
+}
+
+/// Wraps [ReaderBody] with quiz provider data.
+/// Separated to avoid watching quiz providers at ReaderScreen level.
+class _ReaderBodyWithQuiz extends ConsumerWidget {
+  const _ReaderBodyWithQuiz({
+    required this.book,
+    required this.chapter,
+    required this.chapters,
+    required this.settings,
+    required this.onVocabularyTap,
+    required this.onWordTap,
+    required this.onClose,
+    required this.onNextChapter,
+    required this.onBackToBook,
+    required this.onTakeQuiz,
+  });
+
+  final Book book;
+  final Chapter chapter;
+  final List<Chapter> chapters;
+  final ReaderSettings settings;
+  final void Function(ChapterVocabulary vocab, Offset position) onVocabularyTap;
+  final void Function(String word, Offset position) onWordTap;
+  final VoidCallback onClose;
+  final Future<void> Function(Chapter nextChapter) onNextChapter;
+  final VoidCallback onBackToBook;
+  final VoidCallback onTakeQuiz;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasQuiz =
+        ref.watch(bookHasQuizProvider(book.id)).valueOrNull ?? false;
+    final bestResult =
+        ref.watch(bestQuizResultProvider(book.id)).valueOrNull;
+    final progress =
+        ref.watch(readingProgressProvider(book.id)).valueOrNull;
+    final quizPassed = progress?.quizPassed ?? false;
+
+    return ReaderBody(
+      book: book,
+      chapter: chapter,
+      chapters: chapters,
+      settings: settings,
+      onVocabularyTap: onVocabularyTap,
+      onWordTap: onWordTap,
+      onClose: onClose,
+      onNextChapter: onNextChapter,
+      onBackToBook: onBackToBook,
+      bookHasQuiz: hasQuiz,
+      quizPassed: quizPassed,
+      bestQuizScore: bestResult?.percentage,
+      onTakeQuiz: onTakeQuiz,
     );
   }
 }

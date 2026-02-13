@@ -8,6 +8,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Widget Rename & Dead Code Cleanup (2026-02-13)
+
+#### Changed
+- **Widget folder & file prefix convention** - All widget files now carry a group prefix for instant identification in IDE tabs and imports:
+  - `activities/` → `inline_activities/` with `inline_` prefix (6 files, 5 classes renamed)
+  - `reader/` widgets renamed with `reader_` prefix (12 files, 12 classes renamed)
+  - `final_quiz/` → `book_quiz/` with `book_quiz_` prefix (8 files, 8 classes renamed)
+  - `vocabulary/session/` widgets renamed with `vocab_` prefix (12 files, 12 classes renamed)
+- **Shared widgets moved** - `activities/common/` → `common/` (AnimatedGameButton, FeedbackAnimation, ActivityCard)
+- **Minor renames** - `CoinBadgeWidget` → `CoinBadge`, `DoodleBackground` → `SubtleBackground` (dead painter code removed)
+
+#### Removed
+- **Dead code** (5 unused widget files): `reader_content.dart`, `chapter_navigation_bar.dart`, `gamified_app_bar.dart`, `streak_display.dart`, `unit_path_widget.dart`
+
+#### Infrastructure
+- **CLAUDE.md** updated with new widget folder structure
+- **Widgetbook** updated with all new class names and imports
+- ~48 file operations total, 0 dart analyze errors
+
 ### Rive Dynamic Image Replacement Research (2026-02-11)
 
 #### Added

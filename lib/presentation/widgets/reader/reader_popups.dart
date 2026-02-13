@@ -10,8 +10,8 @@ import '../../providers/word_definition_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../../domain/usecases/vocabulary/search_words_usecase.dart';
-import 'vocabulary_popup.dart';
-import 'word_tap_popup.dart';
+import 'reader_vocab_highlight_popup.dart';
+import 'reader_word_tap_popup.dart';
 
 /// Manages vocabulary and word tap popups in the reader screen.
 /// Extracts popup logic from the main reader screen for cleaner code.
@@ -37,10 +37,10 @@ class ReaderPopups extends ConsumerWidget {
       children: [
         // Vocabulary popup (legacy - for pre-highlighted vocab words)
         if (hasVocabPopup)
-          VocabularyPopup(
+          ReaderVocabHighlightPopup(
             vocabulary: selectedVocab,
             position: popupPosition,
-            onClose: () => _closeVocabularyPopup(ref),
+            onClose: () => _closeReaderVocabHighlightPopup(ref),
             onAddToVocabulary: () => _addWordToVocabulary(
               context,
               ref,
@@ -50,22 +50,22 @@ class ReaderPopups extends ConsumerWidget {
 
         // Word tap popup (new - for any word tap)
         if (hasWordPopup)
-          WordTapPopup(
+          ReaderWordTapPopup(
             word: tappedWord,
             position: tappedWordPosition,
-            onClose: () => _closeWordTapPopup(ref),
+            onClose: () => _closeReaderWordTapPopup(ref),
             onPlayAudio: () => _playWordAudio(ref, tappedWord),
           ),
       ],
     );
   }
 
-  void _closeVocabularyPopup(WidgetRef ref) {
+  void _closeReaderVocabHighlightPopup(WidgetRef ref) {
     ref.read(selectedVocabularyProvider.notifier).state = null;
     ref.read(vocabularyPopupPositionProvider.notifier).state = null;
   }
 
-  void _closeWordTapPopup(WidgetRef ref) {
+  void _closeReaderWordTapPopup(WidgetRef ref) {
     ref.read(tappedWordProvider.notifier).state = null;
     ref.read(tappedWordPositionProvider.notifier).state = null;
     ref.read(tappedWordInfoProvider.notifier).state = null;
@@ -131,12 +131,12 @@ class ReaderPopupController {
 
   final WidgetRef _ref;
 
-  void showVocabularyPopup(ChapterVocabulary vocab, Offset position) {
+  void showReaderVocabHighlightPopup(ChapterVocabulary vocab, Offset position) {
     _ref.read(selectedVocabularyProvider.notifier).state = vocab;
     _ref.read(vocabularyPopupPositionProvider.notifier).state = position;
   }
 
-  void showWordTapPopup(String word, Offset position) {
+  void showReaderWordTapPopup(String word, Offset position) {
     _ref.read(tappedWordProvider.notifier).state = word;
     _ref.read(tappedWordPositionProvider.notifier).state = position;
   }
