@@ -8,6 +8,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Rive Dynamic Image Replacement Research (2026-02-11)
+
+#### Added
+- **Rive Dynamic Image Replacement Guide** - Comprehensive documentation for injecting network images into Rive animations at runtime
+  - `CallbackAssetLoader` API verified against rive 0.13.20 source code
+  - `ImageAsset.decode(Uint8List)` flow documented with fallback strategy
+  - State machine input mapping (next trigger, flipped bool, holding bool)
+  - Image slot mapping: C_K.png → card[0], C_Q.png → card[1], C_J.png → card[2]
+  - Dart type inference workaround for unexported `FileAsset` class
+  - Integration code examples with Dio download + CallbackAssetLoader + StateMachineController
+
+#### Infrastructure
+- **New Doc**: `docs/rive-dynamic-image-replacement.md` — full implementation guide for future pack opening Rive integration
+
 ### Vocabulary Session Mascot System + Sound Effects (2026-02-11)
 
 #### Added
