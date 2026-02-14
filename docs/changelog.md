@@ -8,6 +8,49 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Lexile Score Support (2026-02-14)
+
+#### Added
+- **Lexile score field** on books — full-stack addition: DB migration (`ALTER TABLE books ADD COLUMN lexile_score INTEGER`), entity, model, admin edit screen, main app display
+- **Admin panel input** — `TextFormField` with 0–2000 validation in book edit screen
+- **Book detail display** — Lexile shown as `820L` with speed icon in stats `Wrap` (replaced `Row` for graceful overflow)
+
+#### Infrastructure
+- **DB Migration**: `20260213100001_add_lexile_score.sql`
+- **Seed data** updated — 4 books with appropriate Lexile values (320L, 350L, 480L, 300L based on CEFR mapping)
+- **Test fixtures** updated — `validBookJson()`, `bookJsonWithNulls()`, `validBook()` include `lexile_score`
+
+### Book Quiz System (2026-02-14)
+
+#### Added
+- **Book quiz backend** — Full Clean Architecture implementation for chapter-end quizzes
+  - `BookQuiz`, `BookQuizQuestion`, `BookQuizResult`, `StudentQuizProgress` entities
+  - `BookQuizModel`, `BookQuizResultModel`, `StudentQuizProgressModel` with JSON serialization
+  - `BookQuizRepository` interface + `SupabaseBookQuizRepository` implementation
+  - 5 UseCases: `GetQuizForBookUseCase`, `SubmitQuizResultUseCase`, `GetBestQuizResultUseCase`, `GetUserQuizResultsUseCase`, `BookHasQuizUseCase`
+  - `bookQuizProvider` with state management for quiz session flow
+- **5 question types** — Multiple choice, fill-in-blank, matching, event sequencing, who-says-what
+- **Quiz widgets** — `BookQuizProgressBar`, `BookQuizResultCard`, `BookQuizMultipleChoice`, `BookQuizFillBlank`, `BookQuizMatching`, `BookQuizEventSequencing`, `BookQuizWhoSaysWhat`
+
+#### Infrastructure
+- **3 DB Migrations**: `20260211000001_create_book_quiz_tables.sql`, `20260211000002_add_quiz_passed.sql`, `20260211000003_quiz_rpc_functions.sql`
+- **Admin quiz screens**: `book_quiz_edit_screen.dart`, `quiz_question_edit_screen.dart`
+
+### Admin Panel Enhancements (2026-02-14)
+
+#### Added
+- **Role-Based Access Control (RBAC)** — Two-layer defense: login screen rejects non-admin/head-teacher users + router guard redirects unauthorized users
+  - `currentUserRoleProvider` + `isAuthorizedAdminProvider` in `supabase_client.dart`
+- **Myth Cards CRUD** — `card_list_screen.dart` (grid with rarity chips, category filter) + `card_edit_screen.dart` (full form with preview)
+- **Assignments Viewer** — `assignment_list_screen.dart` (read-only teacher assignments) + `assignment_detail_screen.dart` (student progress table)
+- **Units Management** — `unit_list_screen.dart` + `unit_edit_screen.dart` for vocabulary unit CRUD
+- **Unit Books Management** — `unit_books_list_screen.dart` + `unit_books_edit_screen.dart` for unit-book assignments
+- **Dashboard cards** for new features (Myth Cards, Assignments, Units, Unit Books, Quizzes)
+
+#### Infrastructure
+- **Shared Dart Package** (`packages/readeng_shared/`) — `DbTables`, `RpcFunctions`, and shared enums (`BookStatus`, `CardRarity`, `CefrLevel`, `UserRole`) used by both main app and admin panel
+- **Router updated** with routes for cards, assignments, quizzes, units, unit-books
+
 ### Card Artwork Integration & Detail Popup Redesign (2026-02-14)
 
 #### Changed

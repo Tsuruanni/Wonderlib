@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-14 (Card Artwork Integration & Detail Popup Redesign)
+Son güncelleme: 2026-02-14 (Lexile Score, Book Quiz, Admin Panel Enhancements)
 
 ## Current Phase
 
@@ -77,6 +77,13 @@ See: CLAUDE.md for architecture guidelines
 - [x] Book Quiz (chapter-end gamified quiz with 5 question types)
 - [x] Widget naming convention (group prefixes: inline_, reader_, book_quiz_, vocab_)
 - [x] Card artwork integration (real card images replacing mock placeholders)
+- [x] Lexile score support (full-stack: DB, entity, model, admin, main app display)
+- [x] Book Quiz system (5 question types, Clean Architecture, admin quiz editor)
+- [x] Admin Panel RBAC (role-based access control, two-layer defense)
+- [x] Admin Myth Cards CRUD (card list + edit with rarity preview)
+- [x] Admin Assignments Viewer (read-only teacher assignments + student progress)
+- [x] Admin Units & Unit Books management (CRUD screens)
+- [x] Shared Dart package (readeng_shared: DbTables, RpcFunctions, shared enums)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
@@ -126,6 +133,10 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Lexile Score Support | 2026-02-14 | Full-stack: DB migration, entity, model, admin input (0-2000 validation), main app display with speed icon |
+| Book Quiz System | 2026-02-14 | 5 question types, Clean Architecture (entities, models, repos, usecases, providers), admin quiz editor |
+| Admin Panel Enhancements | 2026-02-14 | RBAC (login + router guard), Myth Cards CRUD, Assignments viewer, Units/Unit Books CRUD, Quizzes editor |
+| Shared Dart Package | 2026-02-13 | `packages/readeng_shared/` with DbTables, RpcFunctions, 4 shared enums (BookStatus, CardRarity, CefrLevel, UserRole) |
 | Card Artwork & Popup Redesign | 2026-02-14 | Real card images replacing picsum mocks, fullscreen detail dialog, reduced corner radius |
 | Widget Rename & Cleanup | 2026-02-13 | Group prefixes (inline_, reader_, book_quiz_, vocab_), 5 dead files removed, shared widgets moved to common/, ~48 file operations |
 | Rive Dynamic Image Guide | 2026-02-11 | CallbackAssetLoader API research, image injection docs for pack opening Rive integration |

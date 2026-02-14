@@ -159,11 +159,35 @@ lib/
 │
 ├── l10n/                     # Localization
 │
+packages/readeng_shared/         # Shared Dart package (used by main app + admin)
+├── lib/
+│   ├── readeng_shared.dart      # Barrel export
+│   └── src/
+│       ├── constants/tables.dart  # DbTables, RpcFunctions
+│       └── enums/                 # BookStatus, CardRarity, CefrLevel, UserRole
+└── pubspec.yaml
+
 readeng_admin/                 # Admin panel (separate Flutter web project)
 ├── lib/
-│   ├── core/                  # Supabase client, router
-│   └── features/              # Feature modules (books, schools, users, classes, badges, vocabulary, wordlists, curriculum, settings, gallery)
-│       └── */screens/         # CRUD screens per feature
+│   ├── core/                  # Supabase client (+ RBAC providers), router
+│   └── features/              # Feature modules (17 total)
+│       ├── assignments/       # Teacher assignment viewer (read-only)
+│       ├── auth/              # Login with RBAC enforcement
+│       ├── badges/            # Badge CRUD
+│       ├── books/             # Book + chapter + content block CRUD
+│       ├── cards/             # Myth card CRUD
+│       ├── classes/           # Class management
+│       ├── curriculum/        # Unit curriculum assignments
+│       ├── dashboard/         # Overview with feature cards
+│       ├── gallery/           # Media gallery
+│       ├── quizzes/           # Book quiz + question editing
+│       ├── schools/           # School management
+│       ├── settings/          # System settings
+│       ├── unit_books/        # Unit-book assignments
+│       ├── units/             # Vocabulary unit management
+│       ├── users/             # User management + progress tabs
+│       ├── vocabulary/        # Vocabulary word management
+│       └── wordlists/         # Word list management
 ├── pubspec.yaml
 └── web/
 
@@ -280,7 +304,7 @@ Update UI, show notifications
 - `profiles` - User data + gamification stats
 
 ### Content
-- `books` - Book metadata (title, author, level, cover_image_url)
+- `books` - Book metadata (title, author, level, cover_image_url, lexile_score)
 - `chapters` - Book content (use_content_blocks flag)
 - `content_blocks` - Structured content (text, image, audio, activity types)
   - `word_timings` JSONB - Audio-text sync data for karaoke highlighting
@@ -305,6 +329,11 @@ Update UI, show notifications
 - `activity_results` - Quiz answers and scores
 - `vocabulary_progress` - Spaced repetition state (SM-2 algorithm)
 - `daily_review_sessions` - Daily review session tracking (one per user per day)
+
+### Assessment
+- `book_quizzes` - Quiz definitions per book (title, passing score)
+- `book_quiz_questions` - Quiz questions (5 types: multiple_choice, fill_blank, matching, event_sequencing, who_says_what)
+- `book_quiz_results` - Student quiz attempts and scores
 
 ### Gamification
 - `badges` - Badge definitions
