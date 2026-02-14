@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -12,7 +13,7 @@ final allVocabularyUnitsProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('vocabulary_units')
+      .from(DbTables.vocabularyUnits)
       .select('id, name, sort_order, color, icon, is_active')
       .eq('is_active', true)
       .order('sort_order', ascending: true);
@@ -25,7 +26,7 @@ final schoolClassesProvider =
         (ref, schoolId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('classes')
+      .from(DbTables.classes)
       .select('id, name, grade, academic_year')
       .eq('school_id', schoolId)
       .order('grade')
@@ -42,7 +43,7 @@ final scopeAssignmentsProvider = FutureProvider.family<
   final classId = params['class_id'] as String?;
 
   var query = supabase
-      .from('unit_curriculum_assignments')
+      .from(DbTables.unitCurriculumAssignments)
       .select('id, unit_id')
       .eq('school_id', schoolId);
 
@@ -98,7 +99,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       final response = await supabase
-          .from('unit_curriculum_assignments')
+          .from(DbTables.unitCurriculumAssignments)
           .select('id, unit_id, school_id, grade, class_id')
           .eq('id', widget.assignmentId!)
           .maybeSingle();
@@ -204,7 +205,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
       // Delete existing assignments for this scope
       if (_existingAssignmentIds.isNotEmpty) {
         await supabase
-            .from('unit_curriculum_assignments')
+            .from(DbTables.unitCurriculumAssignments)
             .delete()
             .inFilter('id', _existingAssignmentIds.toList());
       }
@@ -225,7 +226,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
         return row;
       }).toList();
 
-      await supabase.from('unit_curriculum_assignments').insert(rows);
+      await supabase.from(DbTables.unitCurriculumAssignments).insert(rows);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -278,7 +279,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       await supabase
-          .from('unit_curriculum_assignments')
+          .from(DbTables.unitCurriculumAssignments)
           .delete()
           .inFilter('id', _existingAssignmentIds.toList());
 

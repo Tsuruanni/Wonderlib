@@ -58,7 +58,6 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
 
     return Scaffold(
       body: SubtleBackground(
-        iconColor: Theme.of(context).primaryColor.withValues(alpha: 0.15),
         child: progressAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error loading progress: $e')),

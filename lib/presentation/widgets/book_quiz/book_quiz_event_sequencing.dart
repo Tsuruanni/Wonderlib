@@ -177,7 +177,7 @@ class _EventCard3D extends StatelessWidget {
             top: depth,
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E7EB),
+                color: AppColors.gray200,
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
@@ -194,7 +194,7 @@ class _EventCard3D extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: const Color(0xFFE5E7EB),
+                  color: AppColors.gray200,
                   width: 2,
                 ),
               ),
@@ -235,7 +235,7 @@ class _EventCard3D extends StatelessWidget {
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
-                        color: Color(0xFF4B5563),
+                        color: AppColors.gray600,
                         fontFamily: 'Nunito',
                         height: 1.3,
                       ),
@@ -247,7 +247,7 @@ class _EventCard3D extends StatelessWidget {
                   // Drag handle
                   Icon(
                     Icons.drag_handle_rounded,
-                    color: const Color(0xFF9CA3AF),
+                    color: AppColors.gray400,
                     size: 24,
                   ),
                 ],

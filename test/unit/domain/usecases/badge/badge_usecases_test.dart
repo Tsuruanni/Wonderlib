@@ -189,7 +189,7 @@ void main() {
         (failure) => fail('Should not return failure'),
         (returnedBadges) {
           expect(returnedBadges.length, 3);
-          expect(returnedBadges[0].odId, 'user-123');
+          expect(returnedBadges[0].userId, 'user-123');
           expect(returnedBadges[0].badge, isNotNull);
         },
       );
@@ -263,7 +263,7 @@ void main() {
       result.fold(
         (failure) => fail('Should not return failure'),
         (returnedUserBadge) {
-          expect(returnedUserBadge.odId, 'user-123');
+          expect(returnedUserBadge.userId, 'user-123');
           expect(returnedUserBadge.badgeId, 'badge-vocab-50');
           expect(returnedUserBadge.badge, isNotNull);
           expect(returnedUserBadge.earnedAt, isNotNull);

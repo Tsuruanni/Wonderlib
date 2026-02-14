@@ -6,6 +6,7 @@ import '../../../../app/router.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../widgets/common/error_state_widget.dart';
 
 class ClassOverviewReportScreen extends ConsumerWidget {
   const ClassOverviewReportScreen({super.key});
@@ -24,20 +25,9 @@ class ClassOverviewReportScreen extends ConsumerWidget {
         },
         child: classesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading classes', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(currentTeacherClassesProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading classes',
+            onRetry: () => ref.invalidate(currentTeacherClassesProvider),
           ),
           data: (classes) {
             if (classes.isEmpty) {

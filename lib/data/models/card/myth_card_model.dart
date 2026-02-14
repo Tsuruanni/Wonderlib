@@ -17,13 +17,8 @@ class MythCardModel {
   });
 
   factory MythCardModel.fromJson(Map<String, dynamic> json) {
-    // Mock image logic for testing
-    String? mockImage;
-    if (json['image_url'] == null) {
-      // Deterministic mock image based on card ID or name
-      final hash = json['name'].hashCode;
-      mockImage = 'https://picsum.photos/seed/$hash/400/560'; // 2.5:3.5 ratio approx
-    }
+    final imageUrl = json['image_url'] as String? ??
+        cardAssetPath(json['name'] as String);
 
     return MythCardModel(
       id: json['id'] as String,
@@ -36,9 +31,19 @@ class MythCardModel {
       description: json['description'] as String?,
       categoryIcon: json['category_icon'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      imageUrl: json['image_url'] as String? ?? mockImage,
+      imageUrl: imageUrl,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
+  }
+
+  /// Generates an asset path from a card name by stripping special characters.
+  /// e.g. "Pandora's Box" → "assets/images/cards/Pandoras Box.png"
+  static String cardAssetPath(String name) {
+    final sanitized = name
+        .replaceAll("'", '')
+        .replaceAll('(', '')
+        .replaceAll(')', '');
+    return 'assets/images/cards/$sanitized.png';
   }
 
   factory MythCardModel.fromEntity(MythCard entity) {

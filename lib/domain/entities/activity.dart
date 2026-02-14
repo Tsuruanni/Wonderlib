@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
+
+export 'package:readeng_shared/src/enums/inline_activity_type.dart';
 
 /// Activity types for end-of-chapter quizzes (legacy)
 enum ActivityType {
@@ -8,14 +11,6 @@ enum ActivityType {
   ordering,
   fillBlank,
   shortAnswer,
-}
-
-/// Inline activity types for microlearning during reading
-enum InlineActivityType {
-  trueFalse,        // D/Y soruları
-  wordTranslation,  // Kelime çevirisi seç
-  findWords,        // Paragraftan kelime bul
-  matching,         // Eşleştirme (tap-to-match pairs)
 }
 
 // ============================================

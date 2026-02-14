@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:just_audio/just_audio.dart';
 
+import '../../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
 import '../common/xp_badge.dart';
 import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
 import '../common/feedback_animation.dart';
+import 'inline_activity_sound_mixin.dart';
 
 /// Word translation activity widget - gamified version
 class InlineWordTranslationActivity extends StatefulWidget {
@@ -30,13 +31,12 @@ class InlineWordTranslationActivity extends StatefulWidget {
   State<InlineWordTranslationActivity> createState() => _InlineWordTranslationActivityState();
 }
 
-class _InlineWordTranslationActivityState extends State<InlineWordTranslationActivity> {
+class _InlineWordTranslationActivityState extends State<InlineWordTranslationActivity>
+    with InlineActivitySoundMixin {
   String? _selectedAnswer;
   bool _isAnswered = false;
   bool? _isCorrect;
   bool _showXPAnimation = false;
-
-  late AudioPlayer _audioPlayer;
 
   WordTranslationContent get content =>
       widget.activity.content as WordTranslationContent;
@@ -44,7 +44,7 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
   @override
   void initState() {
     super.initState();
-    _audioPlayer = AudioPlayer();
+    initSoundPlayer();
 
     if (widget.isCompleted) {
       _isAnswered = true;
@@ -60,21 +60,8 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    disposeSoundPlayer();
     super.dispose();
-  }
-
-  Future<void> _playSound(bool isCorrect) async {
-    try {
-      if (isCorrect) {
-        await _audioPlayer.setAsset('assets/audio/correct.mp3');
-      } else {
-        await _audioPlayer.setAsset('assets/audio/wrong.mp3');
-      }
-      await _audioPlayer.play();
-    } catch (e) {
-      debugPrint('Error playing sound: $e');
-    }
   }
 
   void _handleAnswer(String answer) {
@@ -91,7 +78,7 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
       }
     });
 
-    _playSound(isCorrect);
+    playSound(isCorrect);
 
     if (isCorrect) {
       Future.delayed(const Duration(milliseconds: 1500), () {
@@ -139,7 +126,7 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE5E7EB), // Neutral 200
+                    color: AppColors.gray200, // Neutral 200
                     width: 2,
                   ),
                   boxShadow: const [

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/error_state_widget.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
   const StudentDetailScreen({
@@ -23,25 +25,14 @@ class StudentDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: studentAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Error loading student', style: context.textTheme.bodyLarge),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () {
-                  ref.invalidate(studentDetailProvider(studentId));
-                  ref.invalidate(studentProgressProvider(studentId));
-                  ref.invalidate(studentVocabStatsProvider(studentId));
-                  ref.invalidate(studentWordListProgressProvider(studentId));
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (_, __) => ErrorStateWidget(
+          message: 'Error loading student',
+          onRetry: () {
+            ref.invalidate(studentDetailProvider(studentId));
+            ref.invalidate(studentProgressProvider(studentId));
+            ref.invalidate(studentVocabStatsProvider(studentId));
+            ref.invalidate(studentWordListProgressProvider(studentId));
+          },
         ),
         data: (student) {
           if (student == null) {
@@ -206,6 +197,23 @@ class StudentDetailScreen extends ConsumerWidget {
                     ),
                   );
                 },
+              ),
+
+              // Quiz Results section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                  child: Text(
+                    'Quiz Results',
+                    style: context.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverToBoxAdapter(
+                child: _QuizResultsSection(studentId: studentId),
               ),
 
               // Vocabulary Stats section
@@ -637,5 +645,125 @@ class _WordListProgressCard extends StatelessWidget {
     if (accuracy >= 70) return Colors.blue;
     if (accuracy >= 50) return Colors.orange;
     return Colors.red;
+  }
+}
+
+/// Quiz results section showing best scores per book
+class _QuizResultsSection extends ConsumerWidget {
+  const _QuizResultsSection({required this.studentId});
+
+  final String studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quizResultsAsync = ref.watch(studentQuizResultsProvider(studentId));
+
+    return quizResultsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: Text('Error loading quiz results')),
+      ),
+      data: (results) {
+        if (results.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Text(
+                'No quiz attempts yet',
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: context.colorScheme.outline,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: results.map((result) {
+              final scoreColor = result.isPassing
+                  ? Colors.green
+                  : (result.bestPercentage >= 50
+                      ? Colors.orange
+                      : Colors.red);
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      // Pass/fail indicator
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: scoreColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          result.isPassing
+                              ? Icons.check_circle_rounded
+                              : Icons.cancel_rounded,
+                          color: scoreColor,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Book & quiz info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              result.bookTitle,
+                              style: context.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '${result.totalAttempts} attempt${result.totalAttempts != 1 ? 's' : ''}',
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: context.colorScheme.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Score
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scoreColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${result.bestPercentage.round()}%',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: scoreColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
   }
 }

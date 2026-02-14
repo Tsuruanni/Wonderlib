@@ -8,6 +8,8 @@ import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/error_state_widget.dart';
 
 class StudentAssignmentsScreen extends ConsumerWidget {
   const StudentAssignmentsScreen({super.key});
@@ -26,46 +28,16 @@ class StudentAssignmentsScreen extends ConsumerWidget {
         },
         child: assignmentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading assignments', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(studentAssignmentsProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading assignments',
+            onRetry: () => ref.invalidate(studentAssignmentsProvider),
           ),
           data: (assignments) {
             if (assignments.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.assignment_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No assignments yet',
-                      style: context.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Your teacher will assign tasks here',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.assignment_outlined,
+                title: 'No assignments yet',
+                subtitle: 'Your teacher will assign tasks here',
               );
             }
 

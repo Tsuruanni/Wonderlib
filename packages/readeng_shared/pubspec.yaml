@@ -1,0 +1,10 @@
+name: readeng_shared
+description: Shared constants and enums for ReadEng platform (main app + admin panel)
+publish_to: 'none'
+version: 1.0.0
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dev_dependencies:
+  lints: ^5.0.0

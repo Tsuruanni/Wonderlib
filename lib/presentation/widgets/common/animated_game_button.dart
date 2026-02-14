@@ -2,14 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../../app/theme.dart';
 
-enum GameButtonVariant {
-  primary,
-  secondary,
-  success,
-  danger,
-  neutral,
-  outline, // Special case
-}
+export 'game_button.dart' show GameButtonVariant;
+import 'game_button.dart' show GameButtonVariant;
 
 /// A highly animated button with a 3D press effect.
 /// Simulates "pushing down" by changing margin/translation.
@@ -118,6 +112,12 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
           sideColor = const Color(0xFFEA2B2B);
           textColor = Colors.white;
           borderColor = const Color(0xFFFF4B4B);
+          break;
+        case GameButtonVariant.wasp:
+          faceColor = AppColors.wasp;
+          sideColor = AppColors.waspDark;
+          textColor = Colors.black;
+          borderColor = AppColors.wasp;
           break;
         case GameButtonVariant.neutral:
           faceColor = Colors.white;

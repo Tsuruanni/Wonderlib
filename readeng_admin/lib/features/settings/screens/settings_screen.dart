@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -9,7 +10,7 @@ final settingsProvider =
     FutureProvider<Map<String, List<Map<String, dynamic>>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('system_settings')
+      .from(DbTables.systemSettings)
       .select()
       .order('category')
       .order('key');
@@ -77,7 +78,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       await supabase
-          .from('system_settings')
+          .from(DbTables.systemSettings)
           .update({'value': '"$value"'})
           .eq('key', key);
 

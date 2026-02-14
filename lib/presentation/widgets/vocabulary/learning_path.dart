@@ -174,26 +174,66 @@ class LearningPath extends ConsumerWidget {
 
       // --- Sequential special node locking ---
       final allListsDone = unit.isAllListsComplete;
-      final flipbookDone = unit.completedNodeTypes.contains('flipbook');
+      final allBooksDone = unit.isAllBooksComplete;
       final reviewDone = unit.completedNodeTypes.contains('daily_review');
       final gameDone = unit.completedNodeTypes.contains('game');
       final treasureDone = unit.completedNodeTypes.contains('treasure');
 
-      final flipbookLocked = isUnitLocked || !allListsDone;
-      final reviewLocked = false; // TODO: restore → isUnitLocked || !flipbookDone;
+      // Previous node completion for connector coloring
+      final lastListComplete = allListsDone && !isUnitLocked;
+
+      // --- Book Nodes (replace Flipbook) ---
+      for (int bookIdx = 0; bookIdx < unit.books.length; bookIdx++) {
+        final bookData = unit.books[bookIdx];
+
+        // Lock: first book needs all lists done, subsequent books need previous book done
+        final isBookLocked = isUnitLocked ||
+            (bookIdx == 0 ? !allListsDone : !unit.books[bookIdx - 1].isCompleted);
+
+        // Active detection
+        bool isBookActive = false;
+        if (!foundActive && !isBookLocked && !bookData.isCompleted) {
+          isBookActive = true;
+          foundActive = true;
+        }
+
+        // Connector coloring
+        final bookConnectorComplete = bookIdx == 0
+            ? lastListComplete
+            : unit.books[bookIdx - 1].isCompleted && !isUnitLocked;
+
+        y = _addSpecialNode(
+          nodes: nodes,
+          connectors: connectors,
+          pathPoints: pathPoints,
+          prevCenterXs: prevNodeCenterXs,
+          globalRowIndex: globalRowIndex,
+          screenWidth: screenWidth,
+          y: y,
+          connectorCompleted: bookConnectorComplete,
+          builder: (idx) => PathBookNode(
+            globalRowIndex: idx,
+            bookTitle: bookData.book.title,
+            bookId: bookData.book.id,
+            isLocked: isBookLocked,
+            isComplete: bookData.isCompleted,
+            isActive: isBookActive,
+          ),
+        );
+        prevNodeCenterXs = _nodeCenterXs(globalRowIndex: globalRowIndex, screenWidth: screenWidth);
+        globalRowIndex++;
+      }
+
+      // Review depends on books (or word lists if no books)
+      final reviewLocked = isUnitLocked || !allBooksDone;
       final gameLocked = isUnitLocked || !reviewDone;
       final treasureLocked = isUnitLocked || !gameDone;
 
       // Active detection for special nodes
-      bool flipbookActive = false;
       bool reviewActive = false;
       bool gameActive = false;
       bool treasureActive = false;
 
-      if (!foundActive && !flipbookLocked && !flipbookDone) {
-        flipbookActive = true;
-        foundActive = true;
-      }
       if (!foundActive && !reviewLocked && !reviewDone) {
         reviewActive = true;
         foundActive = true;
@@ -207,29 +247,10 @@ class LearningPath extends ConsumerWidget {
         foundActive = true;
       }
 
-      // Previous node completion for connector coloring
-      final lastListComplete = allListsDone && !isUnitLocked;
-
-      // --- Flipbook Node ---
-      y = _addSpecialNode(
-        nodes: nodes,
-        connectors: connectors,
-        pathPoints: pathPoints,
-        prevCenterXs: prevNodeCenterXs,
-        globalRowIndex: globalRowIndex,
-        screenWidth: screenWidth,
-        y: y,
-        connectorCompleted: lastListComplete,
-        builder: (idx) => PathFlipbookNode(
-          globalRowIndex: idx,
-          isLocked: flipbookLocked,
-          isComplete: flipbookDone,
-          isActive: flipbookActive,
-          onComplete: () => completePathNode(ref, unit.unit.id, 'flipbook'),
-        ),
-      );
-      prevNodeCenterXs = _nodeCenterXs(globalRowIndex: globalRowIndex, screenWidth: screenWidth);
-      globalRowIndex++;
+      // Connector from last book (or last word list) to Daily Review
+      final preReviewComplete = unit.books.isNotEmpty
+          ? allBooksDone && !isUnitLocked
+          : lastListComplete;
 
       // --- Daily Review Node ---
       y = _addSpecialNode(
@@ -240,7 +261,7 @@ class LearningPath extends ConsumerWidget {
         globalRowIndex: globalRowIndex,
         screenWidth: screenWidth,
         y: y,
-        connectorCompleted: flipbookDone && !isUnitLocked,
+        connectorCompleted: preReviewComplete,
         builder: (idx) => PathDailyReviewNode(
           globalRowIndex: idx,
           unitId: unit.unit.id,

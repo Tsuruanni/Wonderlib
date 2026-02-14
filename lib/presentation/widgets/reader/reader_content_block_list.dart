@@ -296,7 +296,6 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
           block: block,
           settings: widget.settings,
           activity: activity,
-          onActivityCompleted: (isCorrect, xpEarned) {},
         );
     }
   }

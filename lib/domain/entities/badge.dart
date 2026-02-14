@@ -1,14 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-enum BadgeConditionType {
-  xpTotal,
-  streakDays,
-  booksCompleted,
-  vocabularyLearned,
-  perfectScores,
-  levelCompleted,
-  dailyLogin,
-}
+export 'package:readeng_shared/src/enums/badge_condition_type.dart';
 
 class Badge extends Equatable {
 

@@ -91,7 +91,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
               top: depth,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
+                  color: AppColors.gray200,
                   borderRadius: BorderRadius.circular(20),
                 ),
               ),
@@ -104,7 +104,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                    color: const Color(0xFFE5E7EB),
+                    color: AppColors.gray200,
                     width: 2,
                 ),
               ),
@@ -117,7 +117,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                         height: 1.6,
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF4B5563),
+                        color: AppColors.gray600,
                         fontFamily: 'Nunito',
                     ),
                     children: _buildTextSpans(parts),
@@ -204,7 +204,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                     top: depth,
                     child: Container(
                         decoration: BoxDecoration(
-                            color: isFocused ? AppColors.primary : const Color(0xFFE5E7EB),
+                            color: isFocused ? AppColors.primary : AppColors.gray200,
                             borderRadius: BorderRadius.circular(16),
                         ),
                     ),
@@ -221,7 +221,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: isFocused ? AppColors.primary : const Color(0xFFE5E7EB),
+                                color: isFocused ? AppColors.primary : AppColors.gray200,
                                 width: 2,
                             ),
                         ),
@@ -241,19 +241,19 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                             decoration: InputDecoration(
                                 hintText: 'Type your answer here...',
                                 hintStyle: const TextStyle(
-                                    color: Color(0xFF9CA3AF),
+                                    color: AppColors.gray400,
                                     fontWeight: FontWeight.w600,
                                 ),
                                 border: InputBorder.none,
                                 icon: Icon(
                                     Icons.edit_rounded,
-                                    color: isFocused ? AppColors.primary : const Color(0xFF9CA3AF),
+                                    color: isFocused ? AppColors.primary : AppColors.gray400,
                                 ),
                                 suffixIcon: _controller.text.isNotEmpty
                                     ? IconButton(
                                         icon: const Icon(
                                             Icons.clear_rounded,
-                                            color: Color(0xFF9CA3AF),
+                                            color: AppColors.gray400,
                                         ),
                                         onPressed: () {
                                             _controller.clear();

@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Card Artwork Integration & Detail Popup Redesign (2026-02-14)
+
+#### Changed
+- **Real card artwork** - Replaced `picsum.photos` mock images with actual card artwork from `assets/images/cards/`
+  - `MythCardModel.cardAssetPath()` maps card names to local asset paths (strips `'`, `()` for filename matching)
+  - `PackResultModel` reuses same asset path logic for pack opening cards
+  - `MythCardWidget._buildCardImage()` detects `assets/` prefix → uses `Image.asset()`, falls back to `Image.network()` for future remote URLs
+- **Card detail popup** - Replaced scrollable bottom sheet with centered fullscreen dialog
+  - Removed: card name, rarity badge, stats row (POWER/COPIES), lore/description section
+  - Card artwork fills the dialog, tap anywhere to dismiss
+  - `showDialog` with `barrierColor: Colors.black87` for immersive card viewing
+- **Card corners** - Reduced `borderRadius` from 16px to 4px (card artwork no longer clipped by rounded corners)
+
+#### Removed
+- **`_DetailStatItem` widget** - No longer needed (card detail info removed from popup)
+- **picsum.photos dependency** - Cards no longer require network for placeholder images
+
+#### Infrastructure
+- **pubspec.yaml** - Added `assets/images/cards/` to flutter assets
+- 95 card artwork PNGs covering all 96 myth cards (Cerberus shared between Greek + Dark Creatures categories)
+
 ### Widget Rename & Dead Code Cleanup (2026-02-13)
 
 #### Changed

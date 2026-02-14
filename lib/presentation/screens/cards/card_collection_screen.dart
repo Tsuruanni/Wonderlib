@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -17,57 +18,10 @@ class CardCollectionScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final catalogAsync = ref.watch(cardCatalogProvider);
-    final userCardsAsync = ref.watch(userCardsProvider);
     final ownedIds = ref.watch(ownedCardIdsProvider);
-    
-    // We categorize the full catalog to show all sections
-    final catalog = catalogAsync.valueOrNull ?? [];
-    final userCards = userCardsAsync.valueOrNull ?? [];
-    
-    // Group all cards by category
-    final categorizedCards = <CardCategory, List<MythCard>>{};
-    for (final card in catalog) {
-      categorizedCards.putIfAbsent(card.category, () => []).add(card);
-    }
-
-    // SORTING: Sort each category list
-    // 1. Owned first
-    // 2. Rarity (Legendary -> Epic -> Rare -> Common)
-    // 3. Card Number/ID
-    for (final category in categorizedCards.keys) {
-      categorizedCards[category]!.sort((a, b) {
-        final aOwned = ownedIds.contains(a.id);
-        final bOwned = ownedIds.contains(b.id);
-        
-        // 1. Owned Status
-        if (aOwned && !bOwned) return -1;
-        if (!aOwned && bOwned) return 1;
-
-        // 2. Rarity Sorting
-        if (aOwned && bOwned) {
-          // Owned: Descending (Legendary -> Common)
-          // index: 0=Common ... 3=Legendary
-          // b.index.compareTo(a.index) gives Descending
-          final rarityCompare = b.rarity.index.compareTo(a.rarity.index);
-          if (rarityCompare != 0) return rarityCompare;
-        } else if (!aOwned && !bOwned) {
-          // Unowned: Ascending (Common -> Legendary)
-          // a.index.compareTo(b.index) gives Ascending
-          final rarityCompare = a.rarity.index.compareTo(b.rarity.index);
-          if (rarityCompare != 0) return rarityCompare;
-        }
-
-        // 3. Card No (Ascending)
-        return a.cardNo.compareTo(b.cardNo);
-      });
-    }
-
-    // Calculate progress map
-    final categoryProgress = <CardCategory, int>{};
-    for (final uc in userCards) {
-      final cat = uc.card.category;
-      categoryProgress[cat] = (categoryProgress[cat] ?? 0) + 1;
-    }
+    final categorizedCards = ref.watch(sortedCollectionByCategoryProvider);
+    final categoryProgress = ref.watch(categoryProgressProvider);
+    final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -100,7 +54,7 @@ class CardCollectionScreen extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
                           child: _OpenPackBanner(
-                            onTap: () => context.push('/cards/open-pack'),
+                            onTap: () => context.push(AppRoutes.packOpening),
                           ),
                         ),
                       ),
@@ -138,123 +92,20 @@ class CardCollectionScreen extends ConsumerWidget {
   }
 
   void _showCardDetail(BuildContext context, MythCard card, int quantity) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.8,
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Drag handle
-             Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.neutral,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 400,
-                      child: MythCardWidget(
-                        card: card,
-                        isFull: true,
-                        quantity: quantity,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Card Details
-                    Text(
-                      card.name,
-                      style: GoogleFonts.nunito(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: CardColors.getRarityColor(card.rarity).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: CardColors.getRarityColor(card.rarity),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        '${card.rarity.label.toUpperCase()} CARD',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: CardColors.getRarityColor(card.rarity),
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Stats Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _DetailStatItem(
-                          label: 'POWER',
-                          value: '${card.power}',
-                          icon: Icons.bolt_rounded,
-                          color: AppColors.wasp,
-                        ),
-                         _DetailStatItem(
-                          label: 'COPIES',
-                          value: '$quantity',
-                          icon: Icons.copy_rounded,
-                          color: AppColors.secondary,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    if (card.description != null) ...[
-                      Text(
-                        'LORE',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.neutralText,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        card.description!,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          color: AppColors.black,
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
+      barrierColor: Colors.black87,
+      builder: (context) => GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+            child: MythCardWidget(
+              card: card,
+              isFull: true,
+              quantity: quantity,
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -308,7 +159,7 @@ class CardCollectionScreen extends ConsumerWidget {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  context.push('/cards/open-pack');
+                  context.push(AppRoutes.packOpening);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -590,49 +441,3 @@ class _OpenPackBanner extends ConsumerWidget {
   }
 }
 
-class _DetailStatItem extends StatelessWidget {
-  const _DetailStatItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.color,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: GoogleFonts.nunito(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: AppColors.black,
-          ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutralText,
-          ),
-        ),
-      ],
-    );
-  }
-}

@@ -7,11 +7,9 @@ class SubtleBackground extends StatelessWidget {
   const SubtleBackground({
     super.key,
     required this.child,
-    this.iconColor = const Color(0xFFE5E5E5),
   });
 
   final Widget child;
-  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {

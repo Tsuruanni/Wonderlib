@@ -6,7 +6,6 @@ import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
 import '../../domain/usecases/activity/get_best_result_usecase.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
-import '../../domain/usecases/activity/get_user_activity_results_usecase.dart';
 import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
 import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import '../../domain/usecases/assignment/create_assignment_usecase.dart';
@@ -21,7 +20,6 @@ import '../../domain/usecases/student_assignment/get_student_assignment_detail_u
 import '../../domain/usecases/student_assignment/get_student_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
-import '../../domain/usecases/auth/refresh_current_user_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
@@ -32,6 +30,7 @@ import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
+import '../../domain/usecases/book/get_unit_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
@@ -101,11 +100,14 @@ import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
-import '../../domain/usecases/wordlist/get_session_history_usecase.dart';
-import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
 import '../../domain/usecases/wordlist/update_word_list_progress_usecase.dart';
 import '../../domain/usecases/content/get_content_blocks_usecase.dart';
 import '../../domain/usecases/content/check_chapter_uses_content_blocks_usecase.dart';
+import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
+import '../../domain/usecases/book_quiz/get_best_quiz_result_usecase.dart';
+import '../../domain/usecases/book_quiz/get_quiz_for_book_usecase.dart';
+import '../../domain/usecases/book_quiz/get_student_quiz_results_usecase.dart';
+import '../../domain/usecases/book_quiz/submit_quiz_result_usecase.dart';
 import '../../domain/usecases/settings/get_system_settings_usecase.dart';
 import 'repository_providers.dart';
 
@@ -127,10 +129,6 @@ final signOutUseCaseProvider = Provider((ref) {
 
 final getCurrentUserUseCaseProvider = Provider((ref) {
   return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
-});
-
-final refreshCurrentUserUseCaseProvider = Provider((ref) {
-  return RefreshCurrentUserUseCase(ref.watch(authRepositoryProvider));
 });
 
 // ============================================
@@ -167,6 +165,10 @@ final getRecommendedBooksUseCaseProvider = Provider((ref) {
 
 final getCompletedBookIdsUseCaseProvider = Provider((ref) {
   return GetCompletedBookIdsUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final getUnitBooksUseCaseProvider = Provider((ref) {
+  return GetUnitBooksUseCase(ref.watch(bookRepositoryProvider));
 });
 
 // ============================================
@@ -246,10 +248,6 @@ final getActivityByIdUseCaseProvider = Provider((ref) {
 
 final submitActivityResultUseCaseProvider = Provider((ref) {
   return SubmitActivityResultUseCase(ref.watch(activityRepositoryProvider));
-});
-
-final getUserActivityResultsUseCaseProvider = Provider((ref) {
-  return GetUserActivityResultsUseCase(ref.watch(activityRepositoryProvider));
 });
 
 final getBestResultUseCaseProvider = Provider((ref) {
@@ -386,10 +384,6 @@ final updateWordListProgressUseCaseProvider = Provider((ref) {
 
 final completeSessionUseCaseProvider = Provider((ref) {
   return CompleteSessionUseCase(ref.watch(wordListRepositoryProvider));
-});
-
-final resetProgressUseCaseProvider = Provider((ref) {
-  return ResetProgressUseCase(ref.watch(wordListRepositoryProvider));
 });
 
 // ============================================
@@ -601,9 +595,25 @@ final hasDailyQuestPackClaimedUseCaseProvider = Provider((ref) {
 });
 
 // ============================================
-// WORD LIST (SESSION HISTORY)
+// BOOK QUIZ USE CASES
 // ============================================
 
-final getSessionHistoryUseCaseProvider = Provider((ref) {
-  return GetSessionHistoryUseCase(ref.watch(wordListRepositoryProvider));
+final getQuizForBookUseCaseProvider = Provider((ref) {
+  return GetQuizForBookUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+final bookHasQuizUseCaseProvider = Provider((ref) {
+  return BookHasQuizUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+final submitQuizResultUseCaseProvider = Provider((ref) {
+  return SubmitQuizResultUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+final getBestQuizResultUseCaseProvider = Provider((ref) {
+  return GetBestQuizResultUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+final getStudentQuizResultsUseCaseProvider = Provider((ref) {
+  return GetStudentQuizResultsUseCase(ref.watch(bookQuizRepositoryProvider));
 });

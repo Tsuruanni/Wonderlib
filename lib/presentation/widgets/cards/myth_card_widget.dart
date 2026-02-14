@@ -36,7 +36,7 @@ class MythCardWidget extends StatelessWidget {
     Widget cardContent = Container(
       decoration: BoxDecoration(
         color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(
           color: rarityColor,
           width: card.rarity == CardRarity.legendary ? 3.0 : 2.0,
@@ -50,18 +50,13 @@ class MythCardWidget extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(2),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Background: Image or Rarity Gradient
+            // Background: Card artwork or rarity gradient fallback
             if (card.imageUrl != null)
-              Image.network(
-                card.imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    _buildFallbackBackground(getGradient: true),
-              )
+              _buildCardImage(card.imageUrl!)
             else
               _buildFallbackBackground(getGradient: true),
 
@@ -87,7 +82,7 @@ class MythCardWidget extends StatelessWidget {
                 card.rarity == CardRarity.epic)
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(2),
                   border: Border.all(
                     color: rarityColor.withValues(alpha: 0.3),
                     width: 4,
@@ -336,6 +331,23 @@ class MythCardWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCardImage(String url) {
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) =>
+            _buildFallbackBackground(getGradient: true),
+      );
+    }
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) =>
+          _buildFallbackBackground(getGradient: true),
     );
   }
 

@@ -481,7 +481,7 @@ class _AssignmentQuestRow extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => context.push(
-        '${AppRoutes.studentAssignments}/${assignment.assignmentId}',
+        AppRoutes.studentAssignmentDetailPath(assignment.assignmentId),
       ),
       child: Container(
         color: iconColor.withValues(alpha: 0.04),

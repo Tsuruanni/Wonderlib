@@ -12,6 +12,8 @@ import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart'
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/error_state_widget.dart';
 
 class ClassDetailScreen extends ConsumerWidget {
   const ClassDetailScreen({
@@ -35,46 +37,16 @@ class ClassDetailScreen extends ConsumerWidget {
         },
         child: studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading students', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(classStudentsProvider(classId)),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading students',
+            onRetry: () => ref.invalidate(classStudentsProvider(classId)),
           ),
           data: (students) {
             if (students.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.person_off_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No students in this class',
-                      style: context.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Students will appear here once enrolled',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.person_off_outlined,
+                title: 'No students in this class',
+                subtitle: 'Students will appear here once enrolled',
               );
             }
 

@@ -35,6 +35,7 @@ import '../presentation/screens/teacher/reports/reading_progress_report_screen.d
 import '../presentation/screens/teacher/reports/assignment_report_screen.dart';
 import '../presentation/screens/teacher/reports/leaderboard_report_screen.dart';
 import '../presentation/widgets/shell/main_shell_scaffold.dart';
+import '../presentation/screens/quiz/book_quiz_screen.dart';
 import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
 
 // Route paths
@@ -89,6 +90,8 @@ abstract class AppRoutes {
       '/vocabulary/category/$categoryName';
   static String vocabularyUnitReviewPath(String unitId) =>
       '/vocabulary/unit-review/$unitId';
+  static const bookQuiz = '/quiz/:bookId';
+  static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
   static String teacherClassDetailPath(String classId) =>
       '/teacher/classes/$classId';
@@ -348,6 +351,16 @@ GoRouter _createRouter() {
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.packOpening,
         builder: (context, state) => const PackOpeningScreen(),
+      ),
+
+      // Book quiz (standalone, full-screen quiz experience)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutes.bookQuiz,
+        builder: (context, state) {
+          final bookId = state.pathParameters['bookId']!;
+          return BookQuizScreen(bookId: bookId);
+        },
       ),
 
       // Profile (standalone, accessed from home avatar)

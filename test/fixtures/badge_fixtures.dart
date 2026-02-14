@@ -205,7 +205,7 @@ class UserBadgeFixtures {
 
   static Map<String, dynamic> validUserBadgeJson() => {
         'id': 'user-badge-1',
-        'od_id': 'user-123',
+        'user_id': 'user-123',
         'badge_id': 'badge-123',
         'badge': BadgeFixtures.validBadgeJson(),
         'earned_at': '2024-01-15T10:30:00Z',
@@ -213,7 +213,7 @@ class UserBadgeFixtures {
 
   static Map<String, dynamic> xpUserBadgeJson() => {
         'id': 'user-badge-2',
-        'od_id': 'user-123',
+        'user_id': 'user-123',
         'badge_id': 'badge-xp-100',
         'badge': BadgeFixtures.xpBadgeJson(),
         'earned_at': '2024-01-10T08:00:00Z',
@@ -221,7 +221,7 @@ class UserBadgeFixtures {
 
   static Map<String, dynamic> streakUserBadgeJson() => {
         'id': 'user-badge-3',
-        'od_id': 'user-123',
+        'user_id': 'user-123',
         'badge_id': 'badge-streak-7',
         'badge': BadgeFixtures.streakBadgeJson(),
         'earned_at': '2024-01-20T12:00:00Z',
@@ -239,7 +239,7 @@ class UserBadgeFixtures {
 
   static UserBadge validUserBadge() => UserBadge(
         id: 'user-badge-1',
-        odId: 'user-123',
+        userId: 'user-123',
         badgeId: 'badge-123',
         badge: BadgeFixtures.validBadge(),
         earnedAt: DateTime.parse('2024-01-15T10:30:00Z'),
@@ -247,7 +247,7 @@ class UserBadgeFixtures {
 
   static UserBadge xpUserBadge() => UserBadge(
         id: 'user-badge-2',
-        odId: 'user-123',
+        userId: 'user-123',
         badgeId: 'badge-xp-100',
         badge: BadgeFixtures.xpBadge(),
         earnedAt: DateTime.parse('2024-01-10T08:00:00Z'),
@@ -255,7 +255,7 @@ class UserBadgeFixtures {
 
   static UserBadge streakUserBadge() => UserBadge(
         id: 'user-badge-3',
-        odId: 'user-123',
+        userId: 'user-123',
         badgeId: 'badge-streak-7',
         badge: BadgeFixtures.streakBadge(),
         earnedAt: DateTime.parse('2024-01-20T12:00:00Z'),
@@ -263,7 +263,7 @@ class UserBadgeFixtures {
 
   static UserBadge newUserBadge() => UserBadge(
         id: 'user-badge-new',
-        odId: 'user-123',
+        userId: 'user-123',
         badgeId: 'badge-vocab-50',
         badge: BadgeFixtures.vocabularyBadge(),
         earnedAt: DateTime.now(),

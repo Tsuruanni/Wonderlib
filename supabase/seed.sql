@@ -320,8 +320,8 @@ INSERT INTO vocabulary_progress (id, user_id, word_id, status, ease_factor, inte
 -- =============================================
 
 -- BOOK 1: The Magic Garden (A1 - Elementary)
-INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
-('44444444-0002-0001-0001-000000000001', 'The Magic Garden', 'the-magic-garden', 'Join Lily on a magical adventure through an enchanted garden where flowers can talk and butterflies grant wishes!', 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400', 'A1', 'Fiction', 'elementary', 20, 1200, 3, 'published', '{"author": "Emma Stories", "year": 2024}', NOW());
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, lexile_score, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0001-0001-000000000001', 'The Magic Garden', 'the-magic-garden', 'Join Lily on a magical adventure through an enchanted garden where flowers can talk and butterflies grant wishes!', 'https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=400', 'A1', 'Fiction', 'elementary', 20, 1200, 320, 3, 'published', '{"author": "Emma Stories", "year": 2024}', NOW());
 
 -- Chapters for Magic Garden (with use_content_blocks = true)
 INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
@@ -425,8 +425,8 @@ NULL, NULL, NULL, '66666666-0004-0003-0001-000000000003'),
 -- =============================================
 -- BOOK 2: Space Adventure (A1 - Elementary)
 -- =============================================
-INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
-('44444444-0002-0002-0001-000000000001', 'Space Adventure', 'space-adventure', 'Join astronaut Max on an exciting journey through the solar system! Visit planets, meet friendly aliens, and discover the wonders of space.', 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400', 'A1', 'Fiction', 'elementary', 25, 1500, 3, 'published', '{"author": "Star Writer", "year": 2024}', NOW());
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, lexile_score, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0002-0001-000000000001', 'Space Adventure', 'space-adventure', 'Join astronaut Max on an exciting journey through the solar system! Visit planets, meet friendly aliens, and discover the wonders of space.', 'https://images.unsplash.com/photo-1446776877081-d282a0f896e2?w=400', 'A1', 'Fiction', 'elementary', 25, 1500, 350, 3, 'published', '{"author": "Star Writer", "year": 2024}', NOW());
 
 -- Chapters for Space Adventure
 INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
@@ -534,8 +534,8 @@ NULL, NULL, NULL, '66666666-0005-0003-0001-000000000003');
 -- =============================================
 -- BOOK 3: The Brave Little Robot (A2 - Elementary)
 -- =============================================
-INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
-('44444444-0002-0003-0001-000000000001', 'The Brave Little Robot', 'the-brave-little-robot', 'Beep is a small robot who dreams of doing big things. When the city needs help, can this little robot save the day?', 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400', 'A2', 'Fiction', 'elementary', 30, 1800, 3, 'published', '{"author": "Tech Tales", "year": 2024}', NOW());
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, lexile_score, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0003-0001-000000000001', 'The Brave Little Robot', 'the-brave-little-robot', 'Beep is a small robot who dreams of doing big things. When the city needs help, can this little robot save the day?', 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400', 'A2', 'Fiction', 'elementary', 30, 1800, 480, 3, 'published', '{"author": "Tech Tales", "year": 2024}', NOW());
 
 -- Chapters for Brave Little Robot
 INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
@@ -635,8 +635,8 @@ NULL, NULL, NULL, '66666666-0006-0003-0001-000000000003'),
 -- =============================================
 -- BOOK 4: Ocean Explorers (A1 - Elementary)
 -- =============================================
-INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, chapter_count, status, metadata, published_at) VALUES
-('44444444-0002-0004-0001-000000000001', 'Ocean Explorers', 'ocean-explorers', 'Dive deep into the ocean with Maya and her dolphin friend Splash! Discover colorful coral reefs, mysterious caves, and amazing sea creatures.', 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=400', 'A1', 'Fiction', 'elementary', 25, 1400, 3, 'published', '{"author": "Sea Stories", "year": 2024}', NOW());
+INSERT INTO books (id, title, slug, description, cover_url, level, genre, age_group, estimated_minutes, word_count, lexile_score, chapter_count, status, metadata, published_at) VALUES
+('44444444-0002-0004-0001-000000000001', 'Ocean Explorers', 'ocean-explorers', 'Dive deep into the ocean with Maya and her dolphin friend Splash! Discover colorful coral reefs, mysterious caves, and amazing sea creatures.', 'https://images.unsplash.com/photo-1551244072-5d12893278ab?w=400', 'A1', 'Fiction', 'elementary', 25, 1400, 300, 3, 'published', '{"author": "Sea Stories", "year": 2024}', NOW());
 
 -- Chapters for Ocean Explorers
 INSERT INTO chapters (id, book_id, title, order_index, content, word_count, estimated_minutes, vocabulary, use_content_blocks) VALUES
@@ -1893,4 +1893,116 @@ INSERT INTO coin_logs (user_id, amount, balance_after, source, description) VALU
 ('88888888-0001-0001-0001-000000000002', 500, 500, 'seed', 'Test data: initial coin grant'),
 ('88888888-0001-0001-0001-000000000003', 1000, 1000, 'seed', 'Test data: initial coin grant'),
 ('88888888-0001-0001-0001-000000000004', 200, 200, 'seed', 'Test data: initial coin grant');
+
+-- =============================================
+-- BOOK QUIZZES (Final Quiz for each book)
+-- =============================================
+
+-- Quiz for Book 1: The Magic Garden
+INSERT INTO book_quizzes (id, book_id, title, instructions, passing_score, total_points, is_published) VALUES
+('aaaa0001-0001-0001-0001-000000000001', '44444444-0002-0001-0001-000000000001', 'The Magic Garden - Final Quiz',
+ 'Answer these questions about The Magic Garden. You need 70% to pass!', 70.00, 5, true);
+
+INSERT INTO book_quiz_questions (id, quiz_id, type, order_index, question, content, explanation, points) VALUES
+('aaaa0001-0002-0001-0001-000000000001', 'aaaa0001-0001-0001-0001-000000000001', 'multiple_choice', 1,
+ 'Where did Lily find the secret gate?',
+ '{"options": ["Behind the rose bushes", "Under a big tree", "Next to the house", "By the river"], "correct_answer": "Behind the rose bushes"}',
+ 'Lily found the small wooden gate hidden behind the rose bushes in her grandmother''s backyard.', 1),
+('aaaa0001-0002-0001-0001-000000000002', 'aaaa0001-0001-0001-0001-000000000001', 'fill_blank', 2,
+ 'Complete the sentence about the flowers:',
+ '{"sentence": "The flowers in the magic garden could talk and ___.", "correct_answer": "sing", "accept_alternatives": ["Sing", "SING"]}',
+ 'The rose told Lily that all the flowers could talk and sing together.', 1),
+('aaaa0001-0002-0001-0001-000000000003', 'aaaa0001-0001-0001-0001-000000000001', 'event_sequencing', 3,
+ 'Put these events in the correct order:',
+ '{"events": ["Lily found a secret gate", "The flowers sang a song", "The Wish Butterfly granted a wish", "Lily entered the magic garden"], "correct_order": [0, 3, 1, 2]}',
+ 'First Lily found the gate, then entered the garden, heard the flowers sing, and finally the butterfly granted her wish.', 1),
+('aaaa0001-0002-0001-0001-000000000004', 'aaaa0001-0001-0001-0001-000000000001', 'who_says_what', 4,
+ 'Match each character with what they said:',
+ '{"characters": ["Lily", "The Rose", "The Wish Butterfly"], "quotes": ["How strange! I have never seen this gate before.", "Of course we can talk! We can also sing!", "I can grant one wish to anyone who finds the magic garden."], "correct_pairs": {"0": "0", "1": "1", "2": "2"}}',
+ 'Each character said something memorable in the story!', 1),
+('aaaa0001-0002-0001-0001-000000000005', 'aaaa0001-0001-0001-0001-000000000001', 'multiple_choice', 5,
+ 'What did Lily wish for?',
+ '{"options": ["To come back and visit her friends", "To have lots of toys", "To fly like a butterfly", "To take flowers home"], "correct_answer": "To come back and visit her friends"}',
+ 'Lily wished to come back and visit her new friends in the garden whenever she wanted.', 1);
+
+-- Quiz for Book 2: Space Adventure
+INSERT INTO book_quizzes (id, book_id, title, instructions, passing_score, total_points, is_published) VALUES
+('aaaa0002-0001-0001-0001-000000000001', '44444444-0002-0002-0001-000000000001', 'Space Adventure - Final Quiz',
+ 'Answer these questions about Space Adventure. You need 70% to pass!', 70.00, 5, true);
+
+INSERT INTO book_quiz_questions (id, quiz_id, type, order_index, question, content, explanation, points) VALUES
+('aaaa0002-0002-0001-0001-000000000001', 'aaaa0002-0001-0001-0001-000000000001', 'multiple_choice', 1,
+ 'How old was astronaut Max?',
+ '{"options": ["Ten years old", "Eight years old", "Twelve years old", "Six years old"], "correct_answer": "Ten years old"}',
+ 'Max was the youngest astronaut in the world - he was only ten years old!', 1),
+('aaaa0002-0002-0001-0001-000000000002', 'aaaa0002-0001-0001-0001-000000000001', 'fill_blank', 2,
+ 'Complete the sentence:',
+ '{"sentence": "Mars is called the ___ Planet.", "correct_answer": "Red", "accept_alternatives": ["red", "RED"]}',
+ 'Mars is known as the Red Planet because of its red surface.', 1),
+('aaaa0002-0002-0001-0001-000000000003', 'aaaa0002-0001-0001-0001-000000000001', 'event_sequencing', 3,
+ 'Put these events in the correct order:',
+ '{"events": ["The rocket blasted off", "Max landed on Mars", "Max saw Earth from space", "Max collected rocks on Mars"], "correct_order": [0, 1, 3, 2]}',
+ 'First the rocket launched, then Max landed on Mars, collected rocks, and finally saw Earth on the way home.', 1),
+('aaaa0002-0002-0001-0001-000000000004', 'aaaa0002-0001-0001-0001-000000000001', 'matching', 4,
+ 'Match the description with the correct item:',
+ '{"left": ["Captain Luna", "Mars surface", "Earth from space"], "right": ["Asked if Max was ready", "Covered in red rocks", "Looked like a precious marble"], "correct_pairs": {"0": "0", "1": "1", "2": "2"}}',
+ 'Captain Luna helped Max, Mars had red rocks, and Earth looked like a marble from space.', 1),
+('aaaa0002-0002-0001-0001-000000000005', 'aaaa0002-0001-0001-0001-000000000001', 'multiple_choice', 5,
+ 'What did Max want to do after returning home?',
+ '{"options": ["Visit every planet in the solar system", "Stay on Earth forever", "Go back to Mars only", "Become a scientist"], "correct_answer": "Visit every planet in the solar system"}',
+ 'Max said he wanted to visit every planet in the solar system someday.', 1);
+
+-- Quiz for Book 3: The Brave Little Robot
+INSERT INTO book_quizzes (id, book_id, title, instructions, passing_score, total_points, is_published) VALUES
+('aaaa0003-0001-0001-0001-000000000001', '44444444-0002-0003-0001-000000000001', 'The Brave Little Robot - Final Quiz',
+ 'Answer these questions about The Brave Little Robot. You need 70% to pass!', 70.00, 5, true);
+
+INSERT INTO book_quiz_questions (id, quiz_id, type, order_index, question, content, explanation, points) VALUES
+('aaaa0003-0002-0001-0001-000000000001', 'aaaa0003-0001-0001-0001-000000000001', 'multiple_choice', 1,
+ 'How small was Beep the robot?',
+ '{"options": ["As tall as a water bottle", "As tall as a cat", "As tall as a book", "As tall as a shoe"], "correct_answer": "As tall as a water bottle"}',
+ 'Beep was only as tall as a water bottle - the smallest robot in the factory!', 1),
+('aaaa0003-0002-0001-0001-000000000002', 'aaaa0003-0001-0001-0001-000000000001', 'fill_blank', 2,
+ 'Complete the sentence:',
+ '{"sentence": "The city''s ___ station broke down and all the lights went out.", "correct_answer": "power", "accept_alternatives": ["Power", "POWER"]}',
+ 'The city''s power station broke down, causing all lights to go out.', 1),
+('aaaa0003-0002-0001-0001-000000000003', 'aaaa0003-0001-0001-0001-000000000001', 'who_says_what', 3,
+ 'Match each character with what they said:',
+ '{"characters": ["The big robots", "Beep", "The Mayor"], "quotes": ["You are too small! What can you do?", "I can help!", "We believe in you, Beep."], "correct_pairs": {"0": "0", "1": "1", "2": "2"}}',
+ 'The big robots doubted Beep, but the Mayor believed in him.', 1),
+('aaaa0003-0002-0001-0001-000000000004', 'aaaa0003-0001-0001-0001-000000000001', 'event_sequencing', 4,
+ 'Put these events in the correct order:',
+ '{"events": ["The power station broke down", "Beep squeezed into the tiny tunnel", "The lights came back on", "The Mayor gave Beep a golden medal"], "correct_order": [0, 1, 2, 3]}',
+ 'First the power broke, then Beep went into the tunnel, fixed it, and was celebrated as a hero.', 1),
+('aaaa0003-0002-0001-0001-000000000005', 'aaaa0003-0001-0001-0001-000000000001', 'multiple_choice', 5,
+ 'What was the main lesson of the story?',
+ '{"options": ["It does not matter how big or small you are, what matters is being brave and kind", "Big robots are always better", "Small robots should not try to help", "Power stations never break down"], "correct_answer": "It does not matter how big or small you are, what matters is being brave and kind"}',
+ 'The story teaches us that size does not matter - bravery and kindness are what truly count.', 1);
+
+-- Quiz for Book 4: Ocean Explorers
+INSERT INTO book_quizzes (id, book_id, title, instructions, passing_score, total_points, is_published) VALUES
+('aaaa0004-0001-0001-0001-000000000001', '44444444-0002-0004-0001-000000000001', 'Ocean Explorers - Final Quiz',
+ 'Answer these questions about Ocean Explorers. You need 70% to pass!', 70.00, 5, true);
+
+INSERT INTO book_quiz_questions (id, quiz_id, type, order_index, question, content, explanation, points) VALUES
+('aaaa0004-0002-0001-0001-000000000001', 'aaaa0004-0001-0001-0001-000000000001', 'multiple_choice', 1,
+ 'What kind of animal was Splash?',
+ '{"options": ["A dolphin", "A whale", "A shark", "A turtle"], "correct_answer": "A dolphin"}',
+ 'Splash was a baby dolphin that Maya found splashing in the water.', 1),
+('aaaa0004-0002-0001-0001-000000000002', 'aaaa0004-0001-0001-0001-000000000001', 'matching', 2,
+ 'Match the sea creatures with what they did:',
+ '{"left": ["Turtle", "Octopus", "Silver fish"], "right": ["Swam slowly by", "Waved with eight arms", "Sparkled like glitter"], "correct_pairs": {"0": "0", "1": "1", "2": "2"}}',
+ 'Maya saw each sea creature doing something special in the coral reef.', 1),
+('aaaa0004-0002-0001-0001-000000000003', 'aaaa0004-0001-0001-0001-000000000001', 'fill_blank', 3,
+ 'Complete the sentence:',
+ '{"sentence": "Inside the treasure chest, Maya found a pearl necklace and an old ___.", "correct_answer": "map", "accept_alternatives": ["Map", "MAP"]}',
+ 'The treasure chest contained a pearl necklace and an old map for more adventures!', 1),
+('aaaa0004-0002-0001-0001-000000000004', 'aaaa0004-0001-0001-0001-000000000001', 'event_sequencing', 4,
+ 'Put these events in the correct order:',
+ '{"events": ["Maya met Splash the dolphin", "They visited the coral reef", "They found a dark cave", "Maya opened the treasure chest"], "correct_order": [0, 1, 2, 3]}',
+ 'Maya first met Splash, then they explored the coral reef, found a cave, and discovered the treasure.', 1),
+('aaaa0004-0002-0001-0001-000000000005', 'aaaa0004-0001-0001-0001-000000000001', 'multiple_choice', 5,
+ 'What was NOT inside the treasure chest?',
+ '{"options": ["Gold coins", "A pearl necklace", "An old map", "Both necklace and map were inside"], "correct_answer": "Gold coins"}',
+ 'There were no gold coins or jewels - instead Maya found a pearl necklace and an old map.', 1);
 

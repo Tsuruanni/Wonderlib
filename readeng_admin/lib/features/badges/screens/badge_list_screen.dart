@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -8,7 +9,7 @@ import '../../../core/supabase_client.dart';
 final badgesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('badges')
+      .from(DbTables.badges)
       .select()
       .order('name');
 

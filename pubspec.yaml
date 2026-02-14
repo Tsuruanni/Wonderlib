@@ -41,6 +41,10 @@ dependencies:
   audio_session: ^0.1.25
   flutter_tts: ^4.0.2
 
+  # Shared
+  readeng_shared:
+    path: packages/readeng_shared
+
   # Utils
   intl: any
   equatable: ^2.0.5
@@ -74,9 +78,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/images/cards/
     - assets/icons/
     - assets/animations/
     - assets/animations/mascot/
+    - assets/sounds/
     - .env
 
 # flutter_gen configuration

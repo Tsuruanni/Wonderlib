@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
+
+export 'package:readeng_shared/src/enums/word_list_category.dart';
 
 /// Represents a collection of vocabulary words that can be studied together
 class WordList extends Equatable {
@@ -50,31 +53,8 @@ class WordList extends Equatable {
       ];
 }
 
-/// Categories for organizing word lists
-enum WordListCategory {
-  commonWords,    // Common Words Level 1, 2, 3...
-  gradeLevel,     // Grade 1-12 vocabulary
-  testPrep,       // YDS, YÖKDİL, TOEFL, etc.
-  thematic,       // Animals, Food, Travel, etc.
-  storyVocab,     // Words from stories/books
-}
-
-extension WordListCategoryExtension on WordListCategory {
-  String get displayName {
-    switch (this) {
-      case WordListCategory.commonWords:
-        return 'Common Words';
-      case WordListCategory.gradeLevel:
-        return 'Grade Level';
-      case WordListCategory.testPrep:
-        return 'Test Preparation';
-      case WordListCategory.thematic:
-        return 'Thematic';
-      case WordListCategory.storyVocab:
-        return 'Story Vocabulary';
-    }
-  }
-
+/// Emoji icons for word list categories (UI-specific)
+extension WordListCategoryIcon on WordListCategory {
   String get icon {
     switch (this) {
       case WordListCategory.commonWords:

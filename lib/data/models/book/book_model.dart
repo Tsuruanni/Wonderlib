@@ -14,6 +14,7 @@ class BookModel {
     this.ageGroup,
     this.estimatedMinutes,
     this.wordCount,
+    this.lexileScore,
     this.chapterCount = 0,
     this.status = BookStatus.draft,
     this.metadata = const {},
@@ -34,6 +35,7 @@ class BookModel {
       ageGroup: json['age_group'] as String?,
       estimatedMinutes: json['estimated_minutes'] as int?,
       wordCount: json['word_count'] as int?,
+      lexileScore: json['lexile_score'] as int?,
       chapterCount: json['chapter_count'] as int? ?? 0,
       status: _parseBookStatus(json['status'] as String?),
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
@@ -57,6 +59,7 @@ class BookModel {
       ageGroup: entity.ageGroup,
       estimatedMinutes: entity.estimatedMinutes,
       wordCount: entity.wordCount,
+      lexileScore: entity.lexileScore,
       chapterCount: entity.chapterCount,
       status: entity.status,
       metadata: entity.metadata,
@@ -75,6 +78,7 @@ class BookModel {
   final String? ageGroup;
   final int? estimatedMinutes;
   final int? wordCount;
+  final int? lexileScore;
   final int chapterCount;
   final BookStatus status;
   final Map<String, dynamic> metadata;
@@ -94,6 +98,7 @@ class BookModel {
       'age_group': ageGroup,
       'estimated_minutes': estimatedMinutes,
       'word_count': wordCount,
+      'lexile_score': lexileScore,
       'chapter_count': chapterCount,
       'status': status.name,
       'metadata': metadata,
@@ -115,6 +120,7 @@ class BookModel {
       ageGroup: ageGroup,
       estimatedMinutes: estimatedMinutes,
       wordCount: wordCount,
+      lexileScore: lexileScore,
       chapterCount: chapterCount,
       status: status,
       metadata: metadata,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/csv_import_dialog.dart';
@@ -112,7 +113,7 @@ class UserImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Valid roles: student, teacher, admin',
+                      'Valid roles: ${UserRole.values.map((r) => r.dbValue).join(', ')}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.blue.shade700,
@@ -166,15 +167,15 @@ class UserImportScreen extends ConsumerWidget {
     if (role == null || role.isEmpty) {
       return 'Role is required';
     }
-    if (!['student', 'teacher', 'admin'].contains(role)) {
-      return 'Invalid role: $role (must be student, teacher, or admin)';
+    if (!UserRole.values.map((r) => r.dbValue).contains(role)) {
+      return 'Invalid role: $role (must be ${UserRole.values.map((r) => r.dbValue).join(', ')})';
     }
 
     // Look up school_id if school_code provided
     String? schoolId;
     if (schoolCode != null && schoolCode.isNotEmpty) {
       final school = await supabase
-          .from('schools')
+          .from(DbTables.schools)
           .select('id')
           .eq('code', schoolCode)
           .maybeSingle();
@@ -187,7 +188,7 @@ class UserImportScreen extends ConsumerWidget {
 
     // Check if profile exists
     final existing = await supabase
-        .from('profiles')
+        .from(DbTables.profiles)
         .select('id')
         .eq('email', email)
         .maybeSingle();
@@ -204,7 +205,7 @@ class UserImportScreen extends ConsumerWidget {
 
     if (existing != null) {
       // Update existing profile
-      await supabase.from('profiles').update(data).eq('id', existing['id']);
+      await supabase.from(DbTables.profiles).update(data).eq('id', existing['id']);
     } else {
       // Cannot create auth user from admin panel
       // Just create the profile record - user will need to register

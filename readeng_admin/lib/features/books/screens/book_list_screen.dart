@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -9,7 +10,7 @@ import '../../../core/supabase_client.dart';
 final booksProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('books')
+      .from(DbTables.books)
       .select('*, chapters(count)')
       .order('created_at', ascending: false);
 
@@ -121,7 +122,7 @@ class _BookCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final coverUrl = book['cover_image_url'] as String?;
     final level = book['level'] as String? ?? 'Unknown';
-    final isPublished = book['status'] == 'published';
+    final isPublished = book['status'] == BookStatus.published.dbValue;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),

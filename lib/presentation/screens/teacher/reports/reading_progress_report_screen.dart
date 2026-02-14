@@ -5,6 +5,7 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/usecases/book/get_books_usecase.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/usecase_providers.dart';
+import '../../../widgets/common/error_state_widget.dart';
 
 /// Book reading stats for the school
 class BookReadingStats {
@@ -81,20 +82,9 @@ class ReadingProgressReportScreen extends ConsumerWidget {
         },
         child: statsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading data', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(bookReadingStatsProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading data',
+            onRetry: () => ref.invalidate(bookReadingStatsProvider),
           ),
           data: (books) {
             if (books.isEmpty) {

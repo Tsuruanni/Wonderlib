@@ -8,6 +8,7 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
+import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/stat_item.dart';
 
 class AssignmentReportScreen extends ConsumerWidget {
@@ -27,20 +28,9 @@ class AssignmentReportScreen extends ConsumerWidget {
         },
         child: assignmentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading data', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(teacherAssignmentsProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading data',
+            onRetry: () => ref.invalidate(teacherAssignmentsProvider),
           ),
           data: (assignments) {
             if (assignments.isEmpty) {

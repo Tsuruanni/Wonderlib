@@ -1037,6 +1037,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  readeng_shared:
+    dependency: "direct main"
+    description:
+      path: "packages/readeng_shared"
+      relative: true
+    source: path
+    version: "1.0.0"
   realtime_client:
     dependency: transitive
     description:

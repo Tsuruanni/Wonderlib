@@ -13,6 +13,7 @@ class ReadingProgressModel {
     this.completionPercentage = 0,
     this.totalReadingTime = 0,
     this.completedChapterIds = const [],
+    this.quizPassed = false,
     required this.startedAt,
     this.completedAt,
     required this.updatedAt,
@@ -34,6 +35,7 @@ class ReadingProgressModel {
           (json['completion_percentage'] as num?)?.toDouble() ?? 0.0,
       totalReadingTime: json['total_reading_time'] as int? ?? 0,
       completedChapterIds: completedChapterIds,
+      quizPassed: json['quiz_passed'] as bool? ?? false,
       startedAt: DateTime.parse(json['started_at'] as String),
       completedAt: json['completed_at'] != null
           ? DateTime.parse(json['completed_at'] as String)
@@ -53,6 +55,7 @@ class ReadingProgressModel {
       completionPercentage: entity.completionPercentage,
       totalReadingTime: entity.totalReadingTime,
       completedChapterIds: entity.completedChapterIds,
+      quizPassed: entity.quizPassed,
       startedAt: entity.startedAt,
       completedAt: entity.completedAt,
       updatedAt: entity.updatedAt,
@@ -67,6 +70,7 @@ class ReadingProgressModel {
   final double completionPercentage;
   final int totalReadingTime;
   final List<String> completedChapterIds;
+  final bool quizPassed;
   final DateTime startedAt;
   final DateTime? completedAt;
   final DateTime updatedAt;
@@ -82,6 +86,7 @@ class ReadingProgressModel {
       'completion_percentage': completionPercentage,
       'total_reading_time': totalReadingTime,
       'completed_chapter_ids': completedChapterIds,
+      'quiz_passed': quizPassed,
       'started_at': startedAt.toIso8601String(),
       'completed_at': completedAt?.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -99,6 +104,7 @@ class ReadingProgressModel {
       completionPercentage: completionPercentage,
       totalReadingTime: totalReadingTime,
       completedChapterIds: completedChapterIds,
+      quizPassed: quizPassed,
       startedAt: startedAt,
       completedAt: completedAt,
       updatedAt: updatedAt,

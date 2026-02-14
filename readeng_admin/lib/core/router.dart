@@ -25,11 +25,22 @@ import '../features/settings/screens/settings_screen.dart';
 import '../features/curriculum/screens/curriculum_edit_screen.dart';
 import '../features/curriculum/screens/curriculum_list_screen.dart';
 import '../features/gallery/screens/gallery_screen.dart';
+import '../features/units/screens/unit_list_screen.dart';
+import '../features/units/screens/unit_edit_screen.dart';
+import '../features/unit_books/screens/unit_books_list_screen.dart';
+import '../features/unit_books/screens/unit_books_edit_screen.dart';
+import '../features/quizzes/screens/book_quiz_edit_screen.dart';
+import '../features/quizzes/screens/quiz_question_edit_screen.dart';
+import '../features/cards/screens/card_list_screen.dart';
+import '../features/cards/screens/card_edit_screen.dart';
+import '../features/assignments/screens/assignment_list_screen.dart';
+import '../features/assignments/screens/assignment_detail_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
 final routerProvider = Provider<GoRouter>((ref) {
   final isAuthenticated = ref.watch(isAuthenticatedProvider);
+  final isAuthorized = ref.watch(isAuthorizedAdminProvider);
 
   return GoRouter(
     initialLocation: '/login',
@@ -40,7 +51,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      if (isAuthenticated && isOnLogin) {
+      // Authenticated but not admin/head → sign out and redirect
+      if (isAuthenticated && !isAuthorized && !isOnLogin) {
+        ref.read(supabaseClientProvider).auth.signOut();
+        return '/login';
+      }
+
+      if (isAuthenticated && isAuthorized && isOnLogin) {
         return '/';
       }
 
@@ -80,6 +97,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ChapterEditScreen(
           bookId: state.pathParameters['bookId']!,
           chapterId: state.pathParameters['chapterId'],
+        ),
+      ),
+      // Book Quizzes
+      GoRoute(
+        path: '/books/:bookId/quiz',
+        builder: (context, state) => BookQuizEditScreen(
+          bookId: state.pathParameters['bookId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/books/:bookId/quiz/questions/new',
+        builder: (context, state) => QuizQuestionEditScreen(
+          quizId: state.uri.queryParameters['quizId'] ?? '',
+        ),
+      ),
+      GoRoute(
+        path: '/books/:bookId/quiz/questions/:questionId',
+        builder: (context, state) => QuizQuestionEditScreen(
+          quizId: state.uri.queryParameters['quizId'] ?? '',
+          questionId: state.pathParameters['questionId'],
         ),
       ),
       // Schools
@@ -189,6 +226,56 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/curriculum/:assignmentId',
         builder: (context, state) => CurriculumEditScreen(
           assignmentId: state.pathParameters['assignmentId'],
+        ),
+      ),
+      // Units
+      GoRoute(
+        path: '/units',
+        builder: (context, state) => const UnitListScreen(),
+      ),
+      GoRoute(
+        path: '/units/new',
+        builder: (context, state) => const UnitEditScreen(),
+      ),
+      GoRoute(
+        path: '/units/:unitId',
+        builder: (context, state) => UnitEditScreen(
+          unitId: state.pathParameters['unitId'],
+        ),
+      ),
+      // Unit Book Assignments
+      GoRoute(
+        path: '/unit-books',
+        builder: (context, state) => const UnitBooksListScreen(),
+      ),
+      GoRoute(
+        path: '/unit-books/new',
+        builder: (context, state) => const UnitBooksEditScreen(),
+      ),
+      // Teacher Assignments (read-only)
+      GoRoute(
+        path: '/assignments',
+        builder: (context, state) => const AssignmentListScreen(),
+      ),
+      GoRoute(
+        path: '/assignments/:assignmentId',
+        builder: (context, state) => AssignmentDetailScreen(
+          assignmentId: state.pathParameters['assignmentId']!,
+        ),
+      ),
+      // Myth Cards
+      GoRoute(
+        path: '/cards',
+        builder: (context, state) => const CardListScreen(),
+      ),
+      GoRoute(
+        path: '/cards/new',
+        builder: (context, state) => const CardEditScreen(),
+      ),
+      GoRoute(
+        path: '/cards/:cardId',
+        builder: (context, state) => CardEditScreen(
+          cardId: state.pathParameters['cardId'],
         ),
       ),
       // Settings

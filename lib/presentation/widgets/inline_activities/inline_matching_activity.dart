@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:just_audio/just_audio.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
@@ -9,6 +8,7 @@ import '../common/xp_badge.dart';
 import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
 import '../common/feedback_animation.dart';
+import 'inline_activity_sound_mixin.dart';
 
 /// Matching activity widget (tap-to-match pairs) - Duolingo style
 class InlineMatchingActivity extends StatefulWidget {
@@ -32,7 +32,8 @@ class InlineMatchingActivity extends StatefulWidget {
   State<InlineMatchingActivity> createState() => _InlineMatchingActivityState();
 }
 
-class _InlineMatchingActivityState extends State<InlineMatchingActivity> {
+class _InlineMatchingActivityState extends State<InlineMatchingActivity>
+    with InlineActivitySoundMixin {
   /// Shuffled right-side items (computed once in initState)
   late List<String> _shuffledRightItems;
 
@@ -57,14 +58,12 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity> {
   bool? _isCorrect;
   bool _showXPAnimation = false;
 
-  late AudioPlayer _audioPlayer;
-
   MatchingContent get content => widget.activity.content as MatchingContent;
 
   @override
   void initState() {
     super.initState();
-    _audioPlayer = AudioPlayer();
+    initSoundPlayer();
 
     // Shuffle right items once
     _shuffledRightItems = content.pairs.map((p) => p.right).toList()
@@ -82,18 +81,8 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    disposeSoundPlayer();
     super.dispose();
-  }
-
-  Future<void> _playSound(bool isCorrect) async {
-    try {
-      await _audioPlayer
-          .setAsset('assets/audio/${isCorrect ? 'correct' : 'wrong'}.mp3');
-      await _audioPlayer.play();
-    } catch (e) {
-      debugPrint('Error playing sound: $e');
-    }
   }
 
   /// Get the correct right value for a left item
@@ -143,7 +132,7 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity> {
 
     if (right == correctRight) {
       // Correct match
-      _playSound(true);
+      playSound(true);
       setState(() {
         _matchedPairs[left] = right;
         _selectedLeft = null;
@@ -156,7 +145,7 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity> {
       }
     } else {
       // Wrong match
-      _playSound(false);
+      playSound(false);
       _mistakeCount++;
       setState(() {
         _wrongLeft = left;

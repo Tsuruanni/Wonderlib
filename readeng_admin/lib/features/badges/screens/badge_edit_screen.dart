@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -11,7 +12,7 @@ final badgeDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, badgeId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('badges')
+      .from(DbTables.badges)
       .select()
       .eq('id', badgeId)
       .maybeSingle();
@@ -37,17 +38,17 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   final _conditionValueController = TextEditingController();
   final _xpRewardController = TextEditingController();
 
-  static const _conditionTypes = [
-    ('xp_total', 'Total XP Earned'),
-    ('streak_days', 'Consecutive Days Active'),
-    ('books_completed', 'Books Completed'),
-    ('vocabulary_learned', 'Words Learned'),
-    ('perfect_scores', 'Perfect Activity Scores'),
+  static final _conditionTypes = [
+    (BadgeConditionType.xpTotal.dbValue, 'Total XP Earned'),
+    (BadgeConditionType.streakDays.dbValue, 'Consecutive Days Active'),
+    (BadgeConditionType.booksCompleted.dbValue, 'Books Completed'),
+    (BadgeConditionType.vocabularyLearned.dbValue, 'Words Learned'),
+    (BadgeConditionType.perfectScores.dbValue, 'Perfect Activity Scores'),
   ];
 
   static const _categories = ['achievement', 'streak', 'reading', 'vocabulary', 'special'];
 
-  String _conditionType = 'xp_total';
+  String _conditionType = BadgeConditionType.xpTotal.dbValue;
   String _category = 'achievement';
   bool _isLoading = false;
   bool _isSaving = false;
@@ -128,7 +129,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
       if (isNewBadge) {
         data['id'] = const Uuid().v4();
-        await supabase.from('badges').insert(data);
+        await supabase.from(DbTables.badges).insert(data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +139,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
           context.go('/badges/${data['id']}');
         }
       } else {
-        await supabase.from('badges').update(data).eq('id', widget.badgeId!);
+        await supabase.from(DbTables.badges).update(data).eq('id', widget.badgeId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -192,7 +193,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('badges').delete().eq('id', widget.badgeId!);
+      await supabase.from(DbTables.badges).delete().eq('id', widget.badgeId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

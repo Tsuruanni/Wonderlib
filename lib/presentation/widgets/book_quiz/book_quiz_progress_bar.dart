@@ -41,7 +41,7 @@ class BookQuizProgressBar extends StatelessWidget {
             height: 16,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: const Color(0xFFE5E7EB), // Grey-200
+              color: AppColors.gray200, // Grey-200
               borderRadius: BorderRadius.circular(12),
             ),
             child: LayoutBuilder(

@@ -198,37 +198,3 @@ class ReaderParagraph extends StatelessWidget {
     );
   }
 }
-
-/// "Translate all" button for paragraph translation
-class TranslateButton extends StatelessWidget {
-  const TranslateButton({
-    super.key,
-    required this.onPressed,
-    required this.settings,
-  });
-
-  final VoidCallback onPressed;
-  final ReaderSettings settings;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 16),
-      child: OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFE53E3E),
-          side: const BorderSide(color: Color(0xFFE53E3E)),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-          ),
-        ),
-        child: const Text(
-          'Translate all',
-          style: TextStyle(fontSize: 12),
-        ),
-      ),
-    );
-  }
-}

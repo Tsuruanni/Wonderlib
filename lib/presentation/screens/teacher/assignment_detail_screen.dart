@@ -9,6 +9,7 @@ import '../../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/stat_item.dart';
 
 class AssignmentDetailScreen extends ConsumerWidget {
@@ -27,23 +28,12 @@ class AssignmentDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: assignmentAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Error loading assignment', style: context.textTheme.bodyLarge),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () {
-                  ref.invalidate(assignmentDetailProvider(assignmentId));
-                  ref.invalidate(assignmentStudentsProvider(assignmentId));
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        error: (_, __) => ErrorStateWidget(
+          message: 'Error loading assignment',
+          onRetry: () {
+            ref.invalidate(assignmentDetailProvider(assignmentId));
+            ref.invalidate(assignmentStudentsProvider(assignmentId));
+          },
         ),
         data: (assignment) {
           if (assignment == null) {

@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
@@ -103,8 +104,6 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-
-
 
   Widget _buildSectionHeader(BuildContext context, String title) {
     return Row(
@@ -321,14 +320,20 @@ class _ReadyToReviewCard extends StatelessWidget {
   }
 }
 
-class _BookCard extends StatelessWidget {
+class _BookCard extends ConsumerWidget {
   final Book book;
   const _BookCard({required this.book});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isQuizReady =
+        ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
+    final progress =
+        ref.watch(readingProgressProvider(book.id)).valueOrNull;
+    final percentage = progress?.completionPercentage ?? 0;
+
     return PressableScale(
-      onTap: () => context.go('${AppRoutes.library}/book/${book.id}'),
+      onTap: () => context.go(AppRoutes.bookDetailPath(book.id)),
       child: Container(
         width: 140,
         decoration: BoxDecoration(
@@ -336,22 +341,66 @@ class _BookCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.neutral, width: 2),
           boxShadow: [
-             BoxShadow(color: AppColors.neutral, offset: Offset(0, 4))
-          ]
+             BoxShadow(color: AppColors.neutral, offset: Offset(0, 4)),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                child: Image.network(
-                  book.coverUrl ?? '',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: AppColors.primary.withValues(alpha: 0.2), child: Icon(Icons.book, color: AppColors.primary)),
-                ),
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    child: Image.network(
+                      book.coverUrl ?? '',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (_, __, ___) => Container(color: AppColors.primary.withValues(alpha: 0.2), child: Icon(Icons.book, color: AppColors.primary)),
+                    ),
+                  ),
+                  // Quiz Ready badge overlay
+                  if (isQuizReady)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Quiz',
+                              style: GoogleFonts.nunito(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
+            // Reading progress bar
+            if (percentage > 0 && percentage < 100)
+              ClipRRect(
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                  color: AppColors.secondary,
+                  minHeight: 3,
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -369,7 +418,7 @@ class _BookCard extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

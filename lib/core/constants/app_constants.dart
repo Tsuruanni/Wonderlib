@@ -1,3 +1,6 @@
+export 'package:readeng_shared/src/enums/user_role.dart';
+export 'package:readeng_shared/src/enums/cefr_level.dart';
+
 abstract class AppConstants {
   // App info
   static const appName = 'ReadEng';
@@ -44,51 +47,6 @@ abstract class AppConstants {
   static const totalCardCount = 96;
   static const cardsPerCategory = 12;
   static const pityThreshold = 15;
-}
-
-abstract class CEFRLevels {
-  static const a1 = 'A1';
-  static const a2 = 'A2';
-  static const b1 = 'B1';
-  static const b2 = 'B2';
-  static const c1 = 'C1';
-  static const c2 = 'C2';
-
-  static const all = [a1, a2, b1, b2, c1, c2];
-
-  static String displayName(String level) {
-    switch (level) {
-      case a1:
-        return 'Beginner (A1)';
-      case a2:
-        return 'Elementary (A2)';
-      case b1:
-        return 'Intermediate (B1)';
-      case b2:
-        return 'Upper Intermediate (B2)';
-      case c1:
-        return 'Advanced (C1)';
-      case c2:
-        return 'Proficient (C2)';
-      default:
-        return level;
-    }
-  }
-}
-
-enum UserRole {
-  student,
-  teacher,
-  head,
-  admin;
-
-  bool get isStudent => this == student;
-  bool get isTeacher => this == teacher;
-  bool get isHead => this == head;
-  bool get isAdmin => this == admin;
-  bool get canManageStudents => this == teacher || this == head || this == admin;
-  bool get canManageTeachers => this == head || this == admin;
-  bool get canManageContent => this == admin;
 }
 
 enum UserLevel {

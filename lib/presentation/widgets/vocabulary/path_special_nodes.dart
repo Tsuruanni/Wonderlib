@@ -126,8 +126,8 @@ class PathUnitBanner extends StatelessWidget {
 // Special Node Base — shared circle layout
 // ============================================================
 
-/// Shared label style for special nodes (matches PathNode label style exactly).
-TextStyle _nodeLabelStyle() => GoogleFonts.patrickHand(
+/// Shared label style for all path nodes (PathNode + special nodes).
+TextStyle pathNodeLabelStyle() => GoogleFonts.patrickHand(
       fontSize: 22,
       fontWeight: FontWeight.w700,
       color: Colors.white,
@@ -239,7 +239,7 @@ class _SpecialNodeCircle extends StatelessWidget {
           label,
           textAlign: isLeftLabel ? TextAlign.right : TextAlign.left,
           maxLines: 1,
-          style: _nodeLabelStyle(),
+          style: pathNodeLabelStyle(),
         ),
       ),
     );
@@ -315,34 +315,36 @@ class _BounceWrapperState extends State<_BounceWrapper>
 }
 
 // ============================================================
-// Flipbook Node
+// Book Node (replaces Flipbook)
 // ============================================================
 
-class PathFlipbookNode extends StatelessWidget {
-  const PathFlipbookNode({
+class PathBookNode extends StatelessWidget {
+  const PathBookNode({
     super.key,
     required this.globalRowIndex,
+    required this.bookTitle,
+    required this.bookId,
     this.isLocked = false,
     this.isComplete = false,
     this.isActive = false,
-    this.onComplete,
   });
 
   final int globalRowIndex;
+  final String bookTitle;
+  final String bookId;
   final bool isLocked;
   final bool isComplete;
   final bool isActive;
-  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context) {
     return _SpecialNodeCircle(
       globalRowIndex: globalRowIndex,
-      seedMultiplier: 999,
-      bgColor: const Color(0xFFE0F7FA),
+      seedMultiplier: 999 + bookId.hashCode.abs() % 100,
+      bgColor: const Color(0xFFE3F2FD),
       icon: Icons.menu_book_rounded,
-      iconColor: const Color(0xFF006064),
-      label: 'Flipbook',
+      iconColor: const Color(0xFF1565C0),
+      label: bookTitle,
       isLocked: isLocked,
       isComplete: isComplete,
       isActive: isActive,
@@ -351,10 +353,8 @@ class PathFlipbookNode extends StatelessWidget {
           _showLockedSnackbar(context);
           return;
         }
-        if (!isComplete) {
-          HapticFeedback.mediumImpact();
-          onComplete?.call();
-        }
+        HapticFeedback.mediumImpact();
+        context.push(AppRoutes.bookDetailPath(bookId));
       },
     );
   }
@@ -529,7 +529,7 @@ class PathTreasureNode extends StatelessWidget {
           'Treasure',
           textAlign: isLeftLabel ? TextAlign.right : TextAlign.left,
           maxLines: 1,
-          style: _nodeLabelStyle(),
+          style: pathNodeLabelStyle(),
         ),
       ),
     );

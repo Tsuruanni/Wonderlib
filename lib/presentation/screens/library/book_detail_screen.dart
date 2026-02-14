@@ -6,6 +6,7 @@ import '../../../app/router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/game_button.dart';
 
@@ -152,7 +153,9 @@ class BookDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
 
                       // Stats row
-                      Row(
+                      Wrap(
+                        spacing: 20,
+                        runSpacing: 8,
                         children: [
                           _StatItem(
                             icon: Icons.schedule,
@@ -160,18 +163,20 @@ class BookDetailScreen extends ConsumerWidget {
                                 ? book.readingTime
                                 : '${book.estimatedMinutes ?? 0} min',
                           ),
-                          const SizedBox(width: 24),
                           _StatItem(
                             icon: Icons.menu_book,
                             label: '${book.chapterCount} chapters',
                           ),
-                          if (book.wordCount != null) ...[
-                            const SizedBox(width: 24),
+                          if (book.wordCount != null)
                             _StatItem(
                               icon: Icons.text_fields,
                               label: '${(book.wordCount! / 1000).toStringAsFixed(1)}k words',
                             ),
-                          ],
+                          if (book.lexileScore != null)
+                            _StatItem(
+                              icon: Icons.speed,
+                              label: '${book.lexileScore}L',
+                            ),
                         ],
                       ),
 
@@ -388,6 +393,33 @@ class _BookDetailFAB extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    // Check if quiz is ready (all chapters read, quiz exists, not passed)
+    final isQuizReady =
+        ref.watch(isQuizReadyProvider(bookId)).valueOrNull ?? false;
+
+    if (isQuizReady) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 20, top: 8),
+          child: Center(
+            heightFactor: 1.0,
+            child: SizedBox(
+              width: 280,
+              height: 54,
+              child: GameButton(
+                label: 'Take the Quiz',
+                icon: const Icon(Icons.quiz_rounded),
+                variant: GameButtonVariant.primary,
+                onPressed: () {
+                  context.push(AppRoutes.bookQuizPath(bookId));
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     // Student sees "Start/Continue Reading" button (GameButton island style)
     return SafeArea(
       child: Padding(
@@ -434,6 +466,9 @@ class _ProgressSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final percentage = progress.completionPercentage as double;
+    final isQuizPending = percentage >= 100 &&
+        !(progress.isCompleted as bool) &&
+        !(progress.quizPassed as bool);
 
     return Card(
       child: Padding(
@@ -475,6 +510,39 @@ class _ProgressSection extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
             ),
+            // Quiz-ready message
+            if (isQuizPending) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.quiz_rounded,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'All chapters read! Take the quiz to complete.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

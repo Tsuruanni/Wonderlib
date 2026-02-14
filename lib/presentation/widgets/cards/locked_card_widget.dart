@@ -21,7 +21,6 @@ class LockedCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rarityColor = CardColors.getRarityColor(card.rarity);
-    final rarityDark = CardColors.getRarityDarkColor(card.rarity);
 
     return GestureDetector(
       onTap: onTap,

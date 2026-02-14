@@ -10,6 +10,7 @@ import '../../../domain/entities/book.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
@@ -36,6 +37,19 @@ final libraryFilteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
       return matchesSearch && matchesCategory;
     }).toList();
   });
+});
+
+/// Books grouped by level (A1, A2, B1...), sorted by level key.
+/// Extracted from build() to avoid recomputing on every rebuild.
+final booksByLevelProvider = Provider<Map<String, List<Book>>>((ref) {
+  final books = ref.watch(libraryFilteredBooksProvider).valueOrNull ?? [];
+  final map = <String, List<Book>>{};
+  for (var book in books) {
+    map.putIfAbsent(book.level.toUpperCase(), () => []).add(book);
+  }
+  return Map.fromEntries(
+    map.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
+  );
 });
 
 /// Extracts unique categories from all books for the filter chips.
@@ -220,21 +234,13 @@ class LibraryScreen extends ConsumerWidget {
                     return _EmptyState(isSearchActive: isSearchActive);
                   }
 
-                  // Group books by Level
-                  final booksByLevel = <String, List<Book>>{};
-                  for (var book in books) {
-                    final level = book.level.toUpperCase();
-                    booksByLevel.putIfAbsent(level, () => []).add(book);
-                  }
-
-                  // Sort levels (A1, A2, B1...)
-                  final sortedLevels = booksByLevel.keys.toList()..sort();
+                  final booksByLevel = ref.watch(booksByLevelProvider);
 
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
                     slivers: [
                       const SliverToBoxAdapter(child: SizedBox(height: 12)),
-                      for (final level in sortedLevels)
+                      for (final level in booksByLevel.keys)
                         SliverToBoxAdapter(
                           child: _LibraryShelf(
                             level: level,
@@ -254,34 +260,6 @@ class LibraryScreen extends ConsumerWidget {
     );
   }
 
-  void _showLockedBookDialog(BuildContext context, String bookTitle) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          icon: const Icon(Icons.lock_rounded, size: 48, color: AppColors.neutralText),
-          title: Text(
-            'Book Locked',
-            style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
-          ),
-          content: Text(
-            'You have an active assignment. Complete your assigned reading first to unlock "$bookTitle" and other books.',
-            style: GoogleFonts.nunito(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'OK',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.primary, fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-      );
-  }
 }
 
 class _LibraryShelf extends StatelessWidget {
@@ -309,6 +287,14 @@ class _LibraryShelf extends StatelessWidget {
     final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
     final completedCount = books.where((b) => completedIds.contains(b.id)).length;
     final progress = books.isEmpty ? 0.0 : completedCount / books.length;
+
+    // Sort: completed books go to the end
+    final sortedBooks = [...books]
+      ..sort((a, b) {
+        final aCompleted = completedIds.contains(a.id) ? 1 : 0;
+        final bCompleted = completedIds.contains(b.id) ? 1 : 0;
+        return aCompleted.compareTo(bCompleted);
+      });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -378,10 +364,10 @@ class _LibraryShelf extends StatelessWidget {
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
-            itemCount: books.length,
+            itemCount: sortedBooks.length,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
             itemBuilder: (context, index) {
-              return _BookShelfItem(book: books[index], ref: ref);
+              return _BookShelfItem(book: sortedBooks[index], ref: ref);
             },
           ),
         ),
@@ -400,11 +386,14 @@ class _BookShelfItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final canAccess = ref.watch(canAccessBookProvider(book.id));
     final isCompleted = ref.watch(completedBookIdsProvider).valueOrNull?.contains(book.id) ?? false;
+    final isQuizReady = ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
+    final progress = ref.watch(readingProgressProvider(book.id)).valueOrNull;
+    final percentage = progress?.completionPercentage ?? 0;
 
     return PressableScale(
       onTap: () {
         if (canAccess) {
-          context.go('${AppRoutes.library}/book/${book.id}');
+          context.go(AppRoutes.bookDetailPath(book.id));
         } else {
            showDialog(
              context: context,
@@ -469,16 +458,53 @@ class _BookShelfItem extends StatelessWidget {
                         child: Container(
                            padding: const EdgeInsets.all(6),
                            decoration: BoxDecoration(
-                             color: AppColors.success, 
+                             color: AppColors.success,
                              shape: BoxShape.circle,
                              border: Border.all(color: Colors.white, width: 2),
                            ),
                            child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
                         ),
                      ),
+                  if (!isCompleted && isQuizReady)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Quiz',
+                              style: GoogleFonts.nunito(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
+            // Reading progress bar
+            if (percentage > 0 && percentage < 100)
+              ClipRRect(
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                  color: AppColors.secondary,
+                  minHeight: 3,
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -489,8 +515,8 @@ class _BookShelfItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.nunito( // Reverted to Nunito
-                      fontSize: 14, 
-                      fontWeight: FontWeight.w700, 
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                       height: 1.2,
                       color: AppColors.black,
                     ),

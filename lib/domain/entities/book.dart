@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-enum BookStatus { draft, published, archived }
+export 'package:readeng_shared/src/enums/book_status.dart';
 
 class Book extends Equatable {
 
@@ -15,6 +16,7 @@ class Book extends Equatable {
     this.ageGroup,
     this.estimatedMinutes,
     this.wordCount,
+    this.lexileScore,
     this.chapterCount = 0,
     this.status = BookStatus.draft,
     this.metadata = const {},
@@ -32,6 +34,7 @@ class Book extends Equatable {
   final String? ageGroup; // elementary, middle, high
   final int? estimatedMinutes;
   final int? wordCount;
+  final int? lexileScore;
   final int chapterCount;
   final BookStatus status;
   final Map<String, dynamic> metadata;
@@ -63,6 +66,7 @@ class Book extends Equatable {
         ageGroup,
         estimatedMinutes,
         wordCount,
+        lexileScore,
         chapterCount,
         status,
         metadata,

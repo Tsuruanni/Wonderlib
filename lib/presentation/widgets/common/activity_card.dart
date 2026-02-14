@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../../app/theme.dart';
+
 enum ActivityCardVariant {
   neutral,
   correct,
@@ -31,7 +33,7 @@ class ActivityCard extends StatelessWidget {
     // TODO: Move these specific colors to AppTheme or use existing ones if they match
     switch (variant) {
       case ActivityCardVariant.neutral:
-        borderColor = const Color(0xFFE5E7EB);
+        borderColor = AppColors.gray200;
         backgroundColor = Colors.white;
       case ActivityCardVariant.correct:
         borderColor = const Color(0xFF38A169); // Green 600

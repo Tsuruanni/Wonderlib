@@ -517,4 +517,4 @@ final isBlockLoadingProvider = Provider.family<bool, String>((ref, blockId) {
 
 /// Provider for audio completion events
 /// Returns the blockId of the block that just completed
-final audioCompletedBlockProvider = StateProvider<String?>((ref) => null);
+final audioCompletedBlockProvider = StateProvider.autoDispose<String?>((ref) => null);

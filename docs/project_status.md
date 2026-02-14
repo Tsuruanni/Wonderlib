@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-13 (Widget Rename & Dead Code Cleanup)
+Son güncelleme: 2026-02-14 (Card Artwork Integration & Detail Popup Redesign)
 
 ## Current Phase
 
@@ -76,6 +76,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Unit Review Mode (cram review for all words in a unit)
 - [x] Book Quiz (chapter-end gamified quiz with 5 question types)
 - [x] Widget naming convention (group prefixes: inline_, reader_, book_quiz_, vocab_)
+- [x] Card artwork integration (real card images replacing mock placeholders)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
@@ -125,6 +126,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Card Artwork & Popup Redesign | 2026-02-14 | Real card images replacing picsum mocks, fullscreen detail dialog, reduced corner radius |
 | Widget Rename & Cleanup | 2026-02-13 | Group prefixes (inline_, reader_, book_quiz_, vocab_), 5 dead files removed, shared widgets moved to common/, ~48 file operations |
 | Rive Dynamic Image Guide | 2026-02-11 | CallbackAssetLoader API research, image injection docs for pack opening Rive integration |
 | Vocabulary Mascot System | 2026-02-11 | Rive owl mascots on feedback, sound effects, streak dialog mascot, TTS removed |

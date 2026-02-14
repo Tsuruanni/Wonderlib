@@ -21,16 +21,16 @@ class TappedWordInfo {
 }
 
 /// Extended tapped word info with block ID and timing index for audio playback
-final tappedWordInfoProvider = StateProvider<TappedWordInfo?>((ref) => null);
+final tappedWordInfoProvider = StateProvider.autoDispose<TappedWordInfo?>((ref) => null);
 
 /// The currently tapped word in the reader (legacy, for backward compatibility)
-final tappedWordProvider = StateProvider<String?>((ref) => null);
+final tappedWordProvider = StateProvider.autoDispose<String?>((ref) => null);
 
 /// Position where the word was tapped (for popup positioning) (legacy)
-final tappedWordPositionProvider = StateProvider<Offset?>((ref) => null);
+final tappedWordPositionProvider = StateProvider.autoDispose<Offset?>((ref) => null);
 
 /// Loading state when adding word to vocabulary
-final isAddingWordProvider = StateProvider<bool>((ref) => false);
+final isAddingWordProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 // ============================================
 // WORD DEFINITION LOOKUP
@@ -59,14 +59,14 @@ final wordDefinitionProvider = FutureProvider.autoDispose
 // ============================================
 
 /// Whether the word popup should be shown
-final showWordPopupProvider = Provider<bool>((ref) {
+final showWordPopupProvider = Provider.autoDispose<bool>((ref) {
   final word = ref.watch(tappedWordProvider);
   final position = ref.watch(tappedWordPositionProvider);
   return word != null && position != null;
 });
 
 /// Get current tapped word's definition
-final currentWordDefinitionProvider = Provider<AsyncValue<WordDefinition?>>((ref) {
+final currentWordDefinitionProvider = Provider.autoDispose<AsyncValue<WordDefinition?>>((ref) {
   final word = ref.watch(tappedWordProvider);
   if (word == null) return const AsyncValue.data(null);
   return ref.watch(wordDefinitionProvider(word));

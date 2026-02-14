@@ -47,7 +47,7 @@ class BookQuizResultCard extends StatelessWidget {
               right: 0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
+                  color: AppColors.gray200,
                   borderRadius: BorderRadius.circular(24),
                 ),
               ),
@@ -60,7 +60,7 @@ class BookQuizResultCard extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: const Color(0xFFE5E7EB),
+                  color: AppColors.gray200,
                   width: 2,
                 ),
               ),
@@ -220,7 +220,7 @@ class BookQuizResultCard extends StatelessWidget {
         style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
-            color: const Color(0xFF9CA3AF),
+            color: AppColors.gray400,
             fontFamily: 'Nunito',
             letterSpacing: 1.0,
         ),

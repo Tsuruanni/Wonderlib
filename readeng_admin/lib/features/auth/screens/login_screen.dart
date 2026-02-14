@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -39,6 +40,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      // Check if user has admin or head role
+      final userId = supabase.auth.currentUser!.id;
+      final profile = await supabase
+          .from(DbTables.profiles)
+          .select('role')
+          .eq('id', userId)
+          .maybeSingle();
+
+      final role = profile?['role'] as String?;
+      if (role != UserRole.admin.dbValue && role != UserRole.head.dbValue) {
+        await supabase.auth.signOut();
+        setState(() {
+          _error = 'Access denied. Admin or Head Teacher role required.';
+        });
+        return;
+      }
 
       if (mounted) {
         context.go('/');

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -12,7 +13,7 @@ final wordlistDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, listId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('word_lists')
+      .from(DbTables.wordLists)
       .select('*, word_list_items(id, order_index, vocabulary_words(*))')
       .eq('id', listId)
       .maybeSingle();
@@ -27,7 +28,7 @@ final vocabularySearchProvider =
 
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('vocabulary_words')
+      .from(DbTables.vocabularyWords)
       .select('id, word, meaning_tr, level')
       .ilike('word', '%$query%')
       .order('word')
@@ -129,15 +130,15 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       if (isNewList) {
         listId = const Uuid().v4();
         data['id'] = listId;
-        await supabase.from('word_lists').insert(data);
+        await supabase.from(DbTables.wordLists).insert(data);
       } else {
         listId = widget.listId!;
-        await supabase.from('word_lists').update(data).eq('id', listId);
+        await supabase.from(DbTables.wordLists).update(data).eq('id', listId);
       }
 
       // Update word items
       // Delete existing items and re-insert
-      await supabase.from('word_list_items').delete().eq('word_list_id', listId);
+      await supabase.from(DbTables.wordListItems).delete().eq('word_list_id', listId);
 
       if (_wordItems.isNotEmpty) {
         final items = _wordItems.asMap().entries.map((entry) => {
@@ -147,7 +148,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
               'order_index': entry.key,
             }).toList();
 
-        await supabase.from('word_list_items').insert(items);
+        await supabase.from(DbTables.wordListItems).insert(items);
       }
 
       if (mounted) {
@@ -208,7 +209,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('word_lists').delete().eq('id', widget.listId!);
+      await supabase.from(DbTables.wordLists).delete().eq('id', widget.listId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

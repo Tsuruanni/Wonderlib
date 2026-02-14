@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../users/screens/user_list_screen.dart';
@@ -13,7 +14,7 @@ final classesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final schoolFilter = ref.watch(classSchoolFilterProvider);
 
-  var query = supabase.from('classes').select('*, schools(name), profiles(count)');
+  var query = supabase.from(DbTables.classes).select('*, schools(name), profiles(count)');
 
   if (schoolFilter != null) {
     query = query.eq('school_id', schoolFilter);

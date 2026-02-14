@@ -1,12 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-/// Type of content block
-enum ContentBlockType {
-  text,
-  image,
-  audio,
-  activity,
-}
+export 'package:readeng_shared/src/enums/content_block_type.dart';
 
 /// A structured content block within a chapter
 class ContentBlock extends Equatable {

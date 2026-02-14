@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -12,7 +13,7 @@ final wordDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, wordId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('vocabulary_words')
+      .from(DbTables.vocabularyWords)
       .select()
       .eq('id', wordId)
       .maybeSingle();
@@ -51,7 +52,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
     'determiner',
   ];
 
-  static const _levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  static final _levels = CEFRLevel.allValues;
 
   String _partOfSpeech = 'noun';
   String _level = 'B1';
@@ -128,7 +129,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
       if (isNewWord) {
         data['id'] = const Uuid().v4();
-        await supabase.from('vocabulary_words').insert(data);
+        await supabase.from(DbTables.vocabularyWords).insert(data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +139,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
           context.go('/vocabulary/${data['id']}');
         }
       } else {
-        await supabase.from('vocabulary_words').update(data).eq('id', widget.wordId!);
+        await supabase.from(DbTables.vocabularyWords).update(data).eq('id', widget.wordId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -191,7 +192,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('vocabulary_words').delete().eq('id', widget.wordId!);
+      await supabase.from(DbTables.vocabularyWords).delete().eq('id', widget.wordId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

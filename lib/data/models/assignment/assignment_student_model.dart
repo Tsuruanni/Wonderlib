@@ -80,7 +80,7 @@ class AssignmentStudentModel {
       studentId: studentId,
       studentName: studentName,
       avatarUrl: avatarUrl,
-      status: AssignmentStatus.fromString(status),
+      status: AssignmentStatus.fromDbValue(status),
       progress: progress,
       score: score,
       startedAt: startedAt,

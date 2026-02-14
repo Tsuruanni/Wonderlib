@@ -95,15 +95,13 @@ class _OptionCard3DState extends State<_OptionCard3D> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     // Colors
     final Color faceColor = widget.isSelected
         ? Color.alphaBlend(AppColors.primary.withValues(alpha: 0.1), Colors.white)
         : Colors.white;
-    final Color sideColor = widget.isSelected ? AppColors.primary : const Color(0xFFE5E7EB);
-    final Color borderColor = widget.isSelected ? AppColors.primary : const Color(0xFFE5E7EB);
-    final Color textColor = widget.isSelected ? AppColors.primary : const Color(0xFF4B5563);
+    final Color sideColor = widget.isSelected ? AppColors.primary : AppColors.gray200;
+    final Color borderColor = widget.isSelected ? AppColors.primary : AppColors.gray200;
+    final Color textColor = widget.isSelected ? AppColors.primary : AppColors.gray600;
 
     // 3D Depth
     const double depth = 4.0;
@@ -169,7 +167,7 @@ class _OptionCard3DState extends State<_OptionCard3D> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: widget.isSelected ? Colors.white : const Color(0xFF9CA3AF),
+                          color: widget.isSelected ? Colors.white : AppColors.gray400,
                           fontFamily: 'Nunito',
                         ),
                       ),

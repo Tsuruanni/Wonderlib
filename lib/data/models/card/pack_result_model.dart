@@ -14,12 +14,8 @@ class PackResultModel {
     final cardsJson = json['cards'] as List<dynamic>;
     final cards = cardsJson.map((c) {
       final cardJson = c as Map<String, dynamic>;
-      // Mock image logic
-      String? mockImage;
-      if (cardJson['image_url'] == null) {
-        final hash = (cardJson['name'] as String).hashCode;
-        mockImage = 'https://picsum.photos/seed/$hash/400/560';
-      }
+      final imageUrl = cardJson['image_url'] as String? ??
+          MythCardModel.cardAssetPath(cardJson['name'] as String);
 
       return PackCardModel(
         id: cardJson['id'] as String,
@@ -33,7 +29,7 @@ class PackResultModel {
         description: cardJson['description'] as String?,
         isNew: cardJson['is_new'] as bool,
         quantity: cardJson['quantity'] as int,
-        imageUrl: cardJson['image_url'] as String? ?? mockImage,
+        imageUrl: imageUrl,
       );
     }).toList();
 

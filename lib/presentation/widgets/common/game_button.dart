@@ -4,10 +4,11 @@ import '../../../../app/theme.dart';
 enum GameButtonVariant {
   primary,
   secondary,
+  success,
   danger,
   wasp,
   neutral,
-  outline, // Special case
+  outline,
 }
 
 class GameButton extends StatefulWidget {
@@ -70,6 +71,11 @@ class _GameButtonState extends State<GameButton> {
         case GameButtonVariant.secondary:
           faceColor = AppColors.secondary;
           sideColor = AppColors.secondaryDark;
+          textColor = AppColors.white;
+          break;
+        case GameButtonVariant.success:
+          faceColor = const Color(0xFF58CC02);
+          sideColor = const Color(0xFF46A302);
           textColor = AppColors.white;
           break;
         case GameButtonVariant.danger:

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../widgets/common/empty_state_widget.dart';
+import '../../../widgets/common/error_state_widget.dart';
 
 /// Provider that aggregates all students from all classes for leaderboard
 final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
@@ -40,39 +42,15 @@ class LeaderboardReportScreen extends ConsumerWidget {
         },
         child: studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading students', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(allStudentsLeaderboardProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading students',
+            onRetry: () => ref.invalidate(allStudentsLeaderboardProvider),
           ),
           data: (students) {
             if (students.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.leaderboard_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No students found',
-                      style: context.textTheme.titleMedium,
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.leaderboard_outlined,
+                title: 'No students found',
               );
             }
 

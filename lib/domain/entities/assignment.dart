@@ -1,71 +1,8 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-/// Assignment type enum
-enum AssignmentType {
-  book,
-  vocabulary,
-  mixed;
-
-  String get displayName {
-    switch (this) {
-      case AssignmentType.book:
-        return 'Book Reading';
-      case AssignmentType.vocabulary:
-        return 'Vocabulary';
-      case AssignmentType.mixed:
-        return 'Mixed';
-    }
-  }
-
-  static AssignmentType fromString(String value) {
-    switch (value) {
-      case 'book':
-        return AssignmentType.book;
-      case 'vocabulary':
-        return AssignmentType.vocabulary;
-      case 'mixed':
-        return AssignmentType.mixed;
-      default:
-        return AssignmentType.book;
-    }
-  }
-}
-
-/// Assignment status for students
-enum AssignmentStatus {
-  pending,
-  inProgress,
-  completed,
-  overdue;
-
-  String get displayName {
-    switch (this) {
-      case AssignmentStatus.pending:
-        return 'Not Started';
-      case AssignmentStatus.inProgress:
-        return 'In Progress';
-      case AssignmentStatus.completed:
-        return 'Completed';
-      case AssignmentStatus.overdue:
-        return 'Overdue';
-    }
-  }
-
-  static AssignmentStatus fromString(String value) {
-    switch (value) {
-      case 'pending':
-        return AssignmentStatus.pending;
-      case 'in_progress':
-        return AssignmentStatus.inProgress;
-      case 'completed':
-        return AssignmentStatus.completed;
-      case 'overdue':
-        return AssignmentStatus.overdue;
-      default:
-        return AssignmentStatus.pending;
-    }
-  }
-}
+export 'package:readeng_shared/src/enums/assignment_type.dart';
+export 'package:readeng_shared/src/enums/assignment_status.dart';
 
 /// Assignment entity for teacher view
 class Assignment extends Equatable {

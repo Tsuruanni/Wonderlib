@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -21,7 +22,7 @@ class VocabularyImportScreen extends ConsumerWidget {
 
   static const requiredHeaders = ['word', 'meaning_tr'];
 
-  static const validLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  static final validLevels = CEFRLevel.allValues;
 
   static const validPartsOfSpeech = [
     'noun',
@@ -202,7 +203,7 @@ class VocabularyImportScreen extends ConsumerWidget {
 
     // Check if word already exists
     final existing = await supabase
-        .from('vocabulary_words')
+        .from(DbTables.vocabularyWords)
         .select('id')
         .eq('word', word)
         .maybeSingle();
@@ -219,11 +220,11 @@ class VocabularyImportScreen extends ConsumerWidget {
 
     if (existing != null) {
       // Update existing word
-      await supabase.from('vocabulary_words').update(data).eq('id', existing['id']);
+      await supabase.from(DbTables.vocabularyWords).update(data).eq('id', existing['id']);
     } else {
       // Insert new word
       data['id'] = const Uuid().v4();
-      await supabase.from('vocabulary_words').insert(data);
+      await supabase.from(DbTables.vocabularyWords).insert(data);
     }
 
     return null; // Success

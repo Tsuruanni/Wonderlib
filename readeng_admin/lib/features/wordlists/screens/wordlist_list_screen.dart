@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../curriculum/screens/curriculum_edit_screen.dart';
@@ -14,7 +15,7 @@ final wordlistsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async
   final unitFilter = ref.watch(wordlistUnitFilterProvider);
 
   var query = supabase
-      .from('word_lists')
+      .from(DbTables.wordLists)
       .select('id, name, description, unit_id, order_in_unit, vocabulary_units(id, name, sort_order)');
 
   if (unitFilter != null) {

@@ -5,6 +5,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../domain/entities/book_quiz.dart';
 import '../../../../app/theme.dart';
 
+/// Colors assigned to matched pairs in matching-style quiz widgets.
+const List<Color> kQuizPairColors = [
+  Color(0xFF58CC02), // Green
+  Color(0xFF1CB0F6), // Blue
+  Color(0xFFFFC800), // Gold
+  Color(0xFFFF4B4B), // Red
+  Color(0xFF9B59B6), // Purple
+  Color(0xFFFF9600), // Orange
+  Color(0xFF2ECC71), // Emerald
+  Color(0xFFE91E63), // Pink
+];
+
 /// Two-column tap-to-match widget for quiz matching questions.
 ///
 /// User taps a left item, then a right item to create a pair.
@@ -35,18 +47,6 @@ class _BookQuizMatchingState extends State<BookQuizMatching> {
   /// Currently selected right index (null = nothing selected).
   int? _selectedRight;
 
-  /// Colors assigned to matched pairs.
-  static const List<Color> _pairColors = [
-    Color(0xFF58CC02), // Green
-    Color(0xFF1CB0F6), // Blue
-    Color(0xFFFFC800), // Gold
-    Color(0xFFFF4B4B), // Red
-    Color(0xFF9B59B6), // Purple
-    Color(0xFFFF9600), // Orange
-    Color(0xFF2ECC71), // Emerald
-    Color(0xFFE91E63), // Pink
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -65,7 +65,7 @@ class _BookQuizMatchingState extends State<BookQuizMatching> {
   }
 
   Color _getMatchColor(int pairIndex) {
-    return _pairColors[pairIndex % _pairColors.length];
+    return kQuizPairColors[pairIndex % kQuizPairColors.length];
   }
 
   /// Returns the color for a matched left item, or null if not matched.
@@ -281,9 +281,9 @@ class _MatchItem3DState extends State<_MatchItem3D> {
     final Color faceColor = isActive
         ? Color.alphaBlend(primaryColor.withValues(alpha: 0.1), Colors.white)
         : Colors.white;
-    final Color sideColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color borderColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color textColor = isActive ? primaryColor : const Color(0xFF4B5563);
+    final Color sideColor = isActive ? primaryColor : AppColors.gray200;
+    final Color borderColor = isActive ? primaryColor : AppColors.gray200;
+    final Color textColor = isActive ? primaryColor : AppColors.gray600;
 
     const double depth = 4.0;
     final double currentDepth = _isPressed ? 0.0 : depth;

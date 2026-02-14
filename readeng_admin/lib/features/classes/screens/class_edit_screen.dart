@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -12,7 +13,7 @@ final classDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, classId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('classes')
+      .from(DbTables.classes)
       .select('*, schools(id, name), profiles(id, first_name, last_name, email)')
       .eq('id', classId)
       .maybeSingle();
@@ -25,10 +26,10 @@ final availableStudentsProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>((ref, schoolId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('profiles')
+      .from(DbTables.profiles)
       .select('id, first_name, last_name, email')
       .eq('school_id', schoolId)
-      .eq('role', 'student')
+      .eq('role', UserRole.student.dbValue)
       .isFilter('class_id', null)
       .order('first_name');
 
@@ -111,7 +112,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
       if (isNewClass) {
         data['id'] = const Uuid().v4();
-        await supabase.from('classes').insert(data);
+        await supabase.from(DbTables.classes).insert(data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,7 +122,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
           context.go('/classes/${data['id']}');
         }
       } else {
-        await supabase.from('classes').update(data).eq('id', widget.classId!);
+        await supabase.from(DbTables.classes).update(data).eq('id', widget.classId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -175,7 +176,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('classes').delete().eq('id', widget.classId!);
+      await supabase.from(DbTables.classes).delete().eq('id', widget.classId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -251,7 +252,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       await supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .update({'class_id': widget.classId})
           .eq('id', selectedStudent['id']);
 
@@ -298,7 +299,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       await supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .update({'class_id': null}).eq('id', student['id']);
 
       if (mounted) {

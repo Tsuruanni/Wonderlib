@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -11,7 +12,7 @@ final schoolDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, schoolId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('schools')
+      .from(DbTables.schools)
       .select()
       .eq('id', schoolId)
       .maybeSingle();
@@ -102,7 +103,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
 
       if (isNewSchool) {
         data['id'] = const Uuid().v4();
-        await supabase.from('schools').insert(data);
+        await supabase.from(DbTables.schools).insert(data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -112,7 +113,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
           context.go('/schools/${data['id']}');
         }
       } else {
-        await supabase.from('schools').update(data).eq('id', widget.schoolId!);
+        await supabase.from(DbTables.schools).update(data).eq('id', widget.schoolId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -166,7 +167,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('schools').delete().eq('id', widget.schoolId!);
+      await supabase.from(DbTables.schools).delete().eq('id', widget.schoolId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

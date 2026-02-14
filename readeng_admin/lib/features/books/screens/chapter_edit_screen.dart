@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -12,7 +13,7 @@ final chapterDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, chapterId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('chapters')
+      .from(DbTables.chapters)
       .select('*, content_blocks(*)')
       .eq('id', chapterId)
       .order('order_index', referencedTable: 'content_blocks')
@@ -88,7 +89,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
       int orderIndex = 0;
       if (isNewChapter) {
         final maxOrder = await supabase
-            .from('chapters')
+            .from(DbTables.chapters)
             .select('order_index')
             .eq('book_id', widget.bookId)
             .order('order_index', ascending: false)
@@ -109,7 +110,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
         data['id'] = const Uuid().v4();
         data['book_id'] = widget.bookId;
         data['order_index'] = orderIndex;
-        await supabase.from('chapters').insert(data);
+        await supabase.from(DbTables.chapters).insert(data);
 
         if (mounted) {
           // Refresh book data after chapter creation
@@ -120,7 +121,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
           context.go('/books/${widget.bookId}/chapters/${data['id']}');
         }
       } else {
-        await supabase.from('chapters').update(data).eq('id', widget.chapterId!);
+        await supabase.from(DbTables.chapters).update(data).eq('id', widget.chapterId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -171,7 +172,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('chapters').delete().eq('id', widget.chapterId!);
+      await supabase.from(DbTables.chapters).delete().eq('id', widget.chapterId!);
 
       if (mounted) {
         // Refresh book data after deletion

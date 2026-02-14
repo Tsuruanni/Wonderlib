@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -23,7 +24,7 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   const pageSize = 50;
   final offset = page * pageSize;
 
-  var query = supabase.from('vocabulary_words').select();
+  var query = supabase.from(DbTables.vocabularyWords).select();
 
   if (search.isNotEmpty) {
     query = query.ilike('word', '%$search%');
@@ -37,7 +38,7 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
       .range(offset, offset + pageSize - 1);
 
   // Get total count
-  var countQuery = supabase.from('vocabulary_words').select('id');
+  var countQuery = supabase.from(DbTables.vocabularyWords).select('id');
   if (search.isNotEmpty) {
     countQuery = countQuery.ilike('word', '%$search%');
   }
@@ -151,14 +152,12 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All Levels')),
-                      DropdownMenuItem(value: 'A1', child: Text('A1')),
-                      DropdownMenuItem(value: 'A2', child: Text('A2')),
-                      DropdownMenuItem(value: 'B1', child: Text('B1')),
-                      DropdownMenuItem(value: 'B2', child: Text('B2')),
-                      DropdownMenuItem(value: 'C1', child: Text('C1')),
-                      DropdownMenuItem(value: 'C2', child: Text('C2')),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All Levels')),
+                      ...CEFRLevel.allValues.map((level) => DropdownMenuItem(
+                            value: level,
+                            child: Text(level),
+                          )),
                     ],
                     onChanged: (value) {
                       ref.read(vocabularyLevelFilterProvider.notifier).state = value;

@@ -13,8 +13,10 @@ import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
 import '../../data/repositories/supabase/supabase_content_block_repository.dart';
 import '../../data/repositories/supabase/supabase_card_repository.dart';
+import '../../data/repositories/supabase/supabase_book_quiz_repository.dart';
 import '../../data/repositories/supabase/supabase_system_settings_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../../domain/repositories/book_quiz_repository.dart';
 import '../../domain/repositories/content_block_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
@@ -85,4 +87,8 @@ final cardRepositoryProvider = Provider<CardRepository>((ref) {
 
 final systemSettingsRepositoryProvider = Provider<SystemSettingsRepository>((ref) {
   return SupabaseSystemSettingsRepository(Supabase.instance.client);
+});
+
+final bookQuizRepositoryProvider = Provider<BookQuizRepository>((ref) {
+  return SupabaseBookQuizRepository();
 });

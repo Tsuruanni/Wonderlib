@@ -1,8 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/book.dart';
+import '../../domain/entities/unit_book.dart';
+import 'book_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
+import '../../domain/usecases/book/get_unit_books_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
 import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
@@ -538,19 +542,34 @@ class PathRowData {
   final List<WordListWithProgress> items;
 }
 
-/// Node types for special path nodes
-const allSpecialNodeTypes = ['flipbook', 'daily_review', 'game', 'treasure'];
+/// Node types for special path nodes (flipbook removed — replaced by book nodes)
+const allSpecialNodeTypes = ['daily_review', 'game', 'treasure'];
 
-/// One unit in the learning path (header + rows of word lists)
+/// A book assigned to a unit with its reading completion status.
+class UnitBookWithProgress {
+  const UnitBookWithProgress({
+    required this.unitBook,
+    required this.book,
+    required this.isCompleted,
+  });
+
+  final UnitBook unitBook;
+  final Book book;
+  final bool isCompleted;
+}
+
+/// One unit in the learning path (header + rows of word lists + books)
 class PathUnitData {
   const PathUnitData({
     required this.unit,
     required this.rows,
+    this.books = const [],
     this.completedNodeTypes = const {},
   });
 
   final VocabularyUnit unit;
   final List<PathRowData> rows;
+  final List<UnitBookWithProgress> books;
   final Set<String> completedNodeTypes;
 
   /// Whether ALL word lists in this unit are complete.
@@ -558,9 +577,14 @@ class PathUnitData {
     (row) => row.items.every((item) => item.isComplete),
   );
 
-  /// Whether every word list AND every special node is complete.
+  /// Whether ALL assigned books in this unit are complete (or no books assigned).
+  bool get isAllBooksComplete =>
+    books.isEmpty || books.every((b) => b.isCompleted);
+
+  /// Whether every word list, book, AND special node is complete.
   bool get isAllComplete =>
     isAllListsComplete &&
+    isAllBooksComplete &&
     completedNodeTypes.containsAll(allSpecialNodeTypes);
 }
 
@@ -596,12 +620,35 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   );
 });
 
-/// Complete learning path: units + word lists + progress + node completions
+/// Unit books for current user (scoped by school/grade/class).
+/// Returns `Map<unitId, List<UnitBook>>` for fast lookup.
+final unitBooksProvider = FutureProvider<Map<String, List<UnitBook>>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return {};
+
+  final useCase = ref.watch(getUnitBooksUseCaseProvider);
+  final result = await useCase(GetUnitBooksParams(userId: userId));
+
+  return result.fold(
+    (failure) => {},
+    (books) {
+      final map = <String, List<UnitBook>>{};
+      for (final b in books) {
+        map.putIfAbsent(b.unitId, () => []).add(b);
+      }
+      return map;
+    },
+  );
+});
+
+/// Complete learning path: units + word lists + progress + node completions + books
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final units = await ref.watch(vocabularyUnitsProvider.future);
   final allLists = await ref.watch(allWordListsProvider.future);
   final progressList = await ref.watch(userWordListProgressProvider.future);
   final nodeCompletions = await ref.watch(nodeCompletionsProvider.future);
+  final unitBooksMap = await ref.watch(unitBooksProvider.future);
+  final completedBookIds = await ref.watch(completedBookIdsProvider.future);
 
   if (units.isEmpty) return [];
 
@@ -613,6 +660,23 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   for (final list in allLists) {
     if (list.unitId != null) {
       listsByUnit.putIfAbsent(list.unitId!, () => []).add(list);
+    }
+  }
+
+  // Collect all book IDs we need to fetch details for
+  final allBookIds = <String>{};
+  for (final books in unitBooksMap.values) {
+    for (final b in books) {
+      allBookIds.add(b.bookId);
+    }
+  }
+
+  // Fetch book details for all assigned books
+  final bookDetailsMap = <String, Book>{};
+  for (final bookId in allBookIds) {
+    final bookAsync = await ref.watch(bookByIdProvider(bookId).future);
+    if (bookAsync != null) {
+      bookDetailsMap[bookId] = bookAsync;
     }
   }
 
@@ -631,10 +695,27 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
             ),)
         .toList();
 
+    // Build book list with progress
+    final unitBooks = unitBooksMap[unit.id] ?? [];
+    final booksWithProgress = <UnitBookWithProgress>[];
+    for (final ub in unitBooks) {
+      final book = bookDetailsMap[ub.bookId];
+      if (book != null) {
+        booksWithProgress.add(
+          UnitBookWithProgress(
+            unitBook: ub,
+            book: book,
+            isCompleted: completedBookIds.contains(ub.bookId),
+          ),
+        );
+      }
+    }
+
     result.add(
     PathUnitData(
       unit: unit,
       rows: rows,
+      books: booksWithProgress,
       completedNodeTypes: nodeCompletions[unit.id] ?? {},
     ),
   );

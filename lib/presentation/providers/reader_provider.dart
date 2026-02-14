@@ -154,10 +154,10 @@ final readerSettingsProvider =
 });
 
 /// Currently selected vocabulary word (for popup)
-final selectedVocabularyProvider = StateProvider<ChapterVocabulary?>((ref) => null);
+final selectedVocabularyProvider = StateProvider.autoDispose<ChapterVocabulary?>((ref) => null);
 
 /// Vocabulary popup position
-final vocabularyPopupPositionProvider = StateProvider<Offset?>((ref) => null);
+final vocabularyPopupPositionProvider = StateProvider.autoDispose<Offset?>((ref) => null);
 
 /// Reading timer state (in seconds)
 class ReadingTimerNotifier extends StateNotifier<int> {
@@ -179,7 +179,7 @@ final readingTimerProvider =
 });
 
 /// Current scroll progress (0.0 to 1.0)
-final scrollProgressProvider = StateProvider<double>((ref) => 0.0);
+final scrollProgressProvider = StateProvider.autoDispose<double>((ref) => 0.0);
 
 // ============================================
 // INLINE ACTIVITY STATE
@@ -284,11 +284,11 @@ final learnedWordsProvider =
 // ============================================
 
 /// Total number of activities in current chapter
-final totalActivitiesProvider = StateProvider<int>((ref) => 0);
+final totalActivitiesProvider = StateProvider.autoDispose<int>((ref) => 0);
 
 /// Activity-based progress (0.0 to 1.0)
 /// Progress = completed activities / total activities
-final activityProgressProvider = Provider<double>((ref) {
+final activityProgressProvider = Provider.autoDispose<double>((ref) {
   final completedActivities = ref.watch(inlineActivityStateProvider);
   final totalActivities = ref.watch(totalActivitiesProvider);
 
@@ -299,7 +299,7 @@ final activityProgressProvider = Provider<double>((ref) {
 
 /// Whether all activities in the chapter are completed
 /// Note: If there are no activities, chapter is considered complete
-final isChapterCompleteProvider = Provider<bool>((ref) {
+final isChapterCompleteProvider = Provider.autoDispose<bool>((ref) {
   final completedActivities = ref.watch(inlineActivityStateProvider);
   final totalActivities = ref.watch(totalActivitiesProvider);
 
@@ -314,11 +314,11 @@ final isChapterCompleteProvider = Provider<bool>((ref) {
 // ============================================
 
 /// Current chapter ID for word audio playback context
-final currentChapterIdProvider = StateProvider<String?>((ref) => null);
+final currentChapterIdProvider = StateProvider.autoDispose<String?>((ref) => null);
 
 /// Whether the current chapter has finished initial loading (activities loaded from DB)
 /// Used to prevent auto-play before we know if user has existing progress
-final chapterInitializedProvider = StateProvider<bool>((ref) => false);
+final chapterInitializedProvider = StateProvider.autoDispose<bool>((ref) => false);
 
 // ============================================
 // INLINE ACTIVITY COMPLETION HANDLER

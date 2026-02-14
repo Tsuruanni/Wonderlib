@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -10,7 +11,7 @@ final contentBlocksProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>((ref, chapterId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('content_blocks')
+      .from(DbTables.contentBlocks)
       .select()
       .eq('chapter_id', chapterId)
       .order('order_index', ascending: true);
@@ -112,7 +113,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
 
     // Then persist to database
     try {
-      await supabase.from('content_blocks').insert(newBlock);
+      await supabase.from(DbTables.contentBlocks).insert(newBlock);
       // Refresh from server to ensure consistency
       widget.onRefresh();
     } catch (e) {
@@ -158,7 +159,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('content_blocks').delete().eq('id', blockId);
+      await supabase.from(DbTables.contentBlocks).delete().eq('id', blockId);
       widget.onRefresh();
     } catch (e) {
       // Rollback on error
@@ -251,6 +252,9 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
     if (oldIndex == newIndex) return;
     if (newIndex > oldIndex) newIndex--;
 
+    // Save original state for rollback
+    final originalBlocks = List<Map<String, dynamic>>.from(_localBlocks);
+
     // Optimistically update local list
     final reorderedBlocks = List<Map<String, dynamic>>.from(_localBlocks);
     final movedBlock = reorderedBlocks.removeAt(oldIndex);
@@ -272,7 +276,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
       for (int i = 0; i < reorderedBlocks.length; i++) {
         updates.add(
           supabase
-              .from('content_blocks')
+              .from(DbTables.contentBlocks)
               .update({'order_index': i})
               .eq('id', reorderedBlocks[i]['id']),
         );
@@ -280,9 +284,11 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
       await Future.wait(updates);
       widget.onRefresh();
     } catch (e) {
-      // On error, refresh from server
-      widget.onRefresh();
+      // Rollback to original state immediately
       if (mounted) {
+        setState(() {
+          _localBlocks = originalBlocks;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error reordering: $e'), backgroundColor: Colors.red),
         );
@@ -534,7 +540,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
       }
 
       await supabase
-          .from('content_blocks')
+          .from(DbTables.contentBlocks)
           .update(data)
           .eq('id', widget.block['id']);
 
@@ -912,7 +918,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
   Future<Map<String, dynamic>?> _loadActivity(String activityId) async {
     final supabase = ref.read(supabaseClientProvider);
     final response = await supabase
-        .from('inline_activities')
+        .from(DbTables.inlineActivities)
         .select()
         .eq('id', activityId)
         .maybeSingle();
@@ -1204,7 +1210,7 @@ class _ActivityConfigDialogState extends ConsumerState<_ActivityConfigDialog> {
 
       // Get chapter_id from the content_block
       final blockResult = await supabase
-          .from('content_blocks')
+          .from(DbTables.contentBlocks)
           .select('chapter_id')
           .eq('id', widget.blockId)
           .single();
@@ -1217,7 +1223,7 @@ class _ActivityConfigDialogState extends ConsumerState<_ActivityConfigDialog> {
         // Update existing activity
         activityId = widget.existingActivity!['id'] as String;
         await supabase
-            .from('inline_activities')
+            .from(DbTables.inlineActivities)
             .update({
               'type': _selectedType,
               'content': content,
@@ -1231,14 +1237,14 @@ class _ActivityConfigDialogState extends ConsumerState<_ActivityConfigDialog> {
 
         // Get the order_index of the content block to use as after_paragraph_index
         final blockOrderResult = await supabase
-            .from('content_blocks')
+            .from(DbTables.contentBlocks)
             .select('order_index')
             .eq('id', widget.blockId)
             .single();
 
         final orderIndex = blockOrderResult['order_index'] as int;
 
-        await supabase.from('inline_activities').insert({
+        await supabase.from(DbTables.inlineActivities).insert({
           'id': activityId,
           'chapter_id': chapterId,
           'type': _selectedType,
@@ -1249,7 +1255,7 @@ class _ActivityConfigDialogState extends ConsumerState<_ActivityConfigDialog> {
 
         // Update the content_block to reference this activity
         await supabase
-            .from('content_blocks')
+            .from(DbTables.contentBlocks)
             .update({'activity_id': activityId})
             .eq('id', widget.blockId);
       }

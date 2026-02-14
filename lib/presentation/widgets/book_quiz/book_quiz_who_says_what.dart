@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
 import '../../../../app/theme.dart';
+import 'book_quiz_matching.dart' show kQuizPairColors;
 
 /// Character-to-quote matching widget themed for "Who Says What?" questions.
 ///
@@ -35,18 +36,6 @@ class _BookQuizWhoSaysWhatState extends State<BookQuizWhoSaysWhat> {
   /// Currently selected quote index.
   int? _selectedQuote;
 
-  /// Colors assigned to matched pairs.
-  static const List<Color> _pairColors = [
-    Color(0xFF58CC02), // Green
-    Color(0xFF1CB0F6), // Blue
-    Color(0xFFFFC800), // Gold
-    Color(0xFFFF4B4B), // Red
-    Color(0xFF9B59B6), // Purple
-    Color(0xFFFF9600), // Orange
-    Color(0xFF2ECC71), // Emerald
-    Color(0xFFE91E63), // Pink
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -65,7 +54,7 @@ class _BookQuizWhoSaysWhatState extends State<BookQuizWhoSaysWhat> {
   }
 
   Color _getMatchColor(int pairIndex) {
-    return _pairColors[pairIndex % _pairColors.length];
+    return kQuizPairColors[pairIndex % kQuizPairColors.length];
   }
 
   Color? _getCharacterMatchColor(int charIndex) {
@@ -281,9 +270,9 @@ class _CharacterCard3DState extends State<_CharacterCard3D> {
     final Color faceColor = isActive
         ? Color.alphaBlend(primaryColor.withValues(alpha: 0.1), Colors.white)
         : Colors.white;
-    final Color sideColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color borderColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color textColor = isActive ? primaryColor : const Color(0xFF4B5563);
+    final Color sideColor = isActive ? primaryColor : AppColors.gray200;
+    final Color borderColor = isActive ? primaryColor : AppColors.gray200;
+    final Color textColor = isActive ? primaryColor : AppColors.gray600;
 
     const double depth = 4.0;
     final double currentDepth = _isPressed ? 0.0 : depth;
@@ -333,7 +322,7 @@ class _CharacterCard3DState extends State<_CharacterCard3D> {
                     Icon(
                         Icons.person_rounded,
                         size: 18,
-                        color: widget.isSelected ? primaryColor : const Color(0xFF9CA3AF),
+                        color: widget.isSelected ? primaryColor : AppColors.gray400,
                     ),
                     const SizedBox(width: 8),
                      Expanded(
@@ -404,9 +393,9 @@ class _QuoteCard3DState extends State<_QuoteCard3D> {
     final Color faceColor = isActive
         ? Color.alphaBlend(primaryColor.withValues(alpha: 0.1), Colors.white)
         : Colors.white;
-    final Color sideColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color borderColor = isActive ? primaryColor : const Color(0xFFE5E7EB);
-    final Color textColor = isActive ? primaryColor : const Color(0xFF4B5563);
+    final Color sideColor = isActive ? primaryColor : AppColors.gray200;
+    final Color borderColor = isActive ? primaryColor : AppColors.gray200;
+    final Color textColor = isActive ? primaryColor : AppColors.gray600;
 
     const double depth = 4.0;
     final double currentDepth = _isPressed ? 0.0 : depth;
@@ -456,7 +445,7 @@ class _QuoteCard3DState extends State<_QuoteCard3D> {
                     Icon(
                         Icons.format_quote_rounded,
                         size: 18,
-                        color: widget.isSelected ? primaryColor : const Color(0xFF9CA3AF),
+                        color: widget.isSelected ? primaryColor : AppColors.gray400,
                     ),
                     const SizedBox(width: 8),
                      Expanded(

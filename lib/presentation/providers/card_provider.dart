@@ -101,6 +101,53 @@ final collectionProgressProvider = Provider<double>((ref) {
   return owned / catalog.length;
 });
 
+/// Cards grouped by category, sorted by owned status + rarity + cardNo.
+/// Extracted from CardCollectionScreen.build() for memoization.
+final sortedCollectionByCategoryProvider =
+    Provider<Map<CardCategory, List<MythCard>>>((ref) {
+  final catalog = ref.watch(cardCatalogProvider).valueOrNull ?? [];
+  final ownedIds = ref.watch(ownedCardIdsProvider);
+
+  final grouped = <CardCategory, List<MythCard>>{};
+  for (final card in catalog) {
+    grouped.putIfAbsent(card.category, () => []).add(card);
+  }
+
+  // Sort each category: owned first, then by rarity, then card number
+  for (final category in grouped.keys) {
+    grouped[category]!.sort((a, b) {
+      final aOwned = ownedIds.contains(a.id);
+      final bOwned = ownedIds.contains(b.id);
+
+      if (aOwned && !bOwned) return -1;
+      if (!aOwned && bOwned) return 1;
+
+      if (aOwned && bOwned) {
+        final rarityCompare = b.rarity.index.compareTo(a.rarity.index);
+        if (rarityCompare != 0) return rarityCompare;
+      } else if (!aOwned && !bOwned) {
+        final rarityCompare = a.rarity.index.compareTo(b.rarity.index);
+        if (rarityCompare != 0) return rarityCompare;
+      }
+
+      return a.cardNo.compareTo(b.cardNo);
+    });
+  }
+
+  return grouped;
+});
+
+/// Per-category owned card count for progress display.
+final categoryProgressProvider = Provider<Map<CardCategory, int>>((ref) {
+  final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
+  final progress = <CardCategory, int>{};
+  for (final uc in userCards) {
+    final cat = uc.card.category;
+    progress[cat] = (progress[cat] ?? 0) + 1;
+  }
+  return progress;
+});
+
 /// Category filter state for collection screen
 final selectedCategoryProvider = StateProvider<CardCategory?>((ref) => null);
 

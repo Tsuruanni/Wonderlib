@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -16,7 +17,7 @@ final usersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final schoolFilter = ref.watch(schoolFilterProvider);
   final roleFilter = ref.watch(roleFilterProvider);
 
-  var query = supabase.from('profiles').select('*, schools(name)');
+  var query = supabase.from(DbTables.profiles).select('*, schools(name)');
 
   if (schoolFilter != null) {
     query = query.eq('school_id', schoolFilter);
@@ -33,7 +34,7 @@ final usersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
 final allSchoolsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('schools')
+      .from(DbTables.schools)
       .select('id, name')
       .order('name');
   return List<Map<String, dynamic>>.from(response);
@@ -117,12 +118,12 @@ class UserListScreen extends ConsumerWidget {
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All Roles')),
-                      DropdownMenuItem(value: 'student', child: Text('Student')),
-                      DropdownMenuItem(value: 'teacher', child: Text('Teacher')),
-                      DropdownMenuItem(value: 'head', child: Text('Head Teacher')),
-                      DropdownMenuItem(value: 'admin', child: Text('Admin')),
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('All Roles')),
+                      DropdownMenuItem(value: UserRole.student.dbValue, child: const Text('Student')),
+                      DropdownMenuItem(value: UserRole.teacher.dbValue, child: const Text('Teacher')),
+                      DropdownMenuItem(value: UserRole.head.dbValue, child: const Text('Head Teacher')),
+                      DropdownMenuItem(value: UserRole.admin.dbValue, child: const Text('Admin')),
                     ],
                     onChanged: (value) {
                       ref.read(roleFilterProvider.notifier).state = value;

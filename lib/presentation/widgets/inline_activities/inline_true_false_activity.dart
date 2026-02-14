@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:just_audio/just_audio.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
@@ -9,6 +8,7 @@ import '../common/xp_badge.dart';
 import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
 import '../common/feedback_animation.dart';
+import 'inline_activity_sound_mixin.dart';
 
 /// True/False inline activity widget - gamified version
 class InlineTrueFalseActivity extends StatefulWidget {
@@ -31,20 +31,19 @@ class InlineTrueFalseActivity extends StatefulWidget {
   State<InlineTrueFalseActivity> createState() => _InlineTrueFalseActivityState();
 }
 
-class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity> {
+class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
+    with InlineActivitySoundMixin {
   bool? _selectedAnswer;
   bool _isAnswered = false;
   bool? _isCorrect;
   bool _showXPAnimation = false;
-
-  late AudioPlayer _audioPlayer;
 
   TrueFalseContent get content => widget.activity.content as TrueFalseContent;
 
   @override
   void initState() {
     super.initState();
-    _audioPlayer = AudioPlayer();
+    initSoundPlayer();
 
     if (widget.isCompleted) {
       _isAnswered = true;
@@ -57,21 +56,8 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity> {
 
   @override
   void dispose() {
-    _audioPlayer.dispose();
+    disposeSoundPlayer();
     super.dispose();
-  }
-
-  Future<void> _playSound(bool isCorrect) async {
-    try {
-      if (isCorrect) {
-        await _audioPlayer.setAsset('assets/audio/correct.mp3');
-      } else {
-        await _audioPlayer.setAsset('assets/audio/wrong.mp3');
-      }
-      await _audioPlayer.play();
-    } catch (e) {
-      debugPrint('Error playing sound: $e');
-    }
   }
 
   void _handleAnswer(bool answer) {
@@ -88,7 +74,7 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity> {
       }
     });
 
-    _playSound(isCorrect);
+    playSound(isCorrect);
 
     if (isCorrect) {
       // Only trigger callback (which advances flow) if correct
@@ -187,25 +173,17 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity> {
     final isSelected = _selectedAnswer == value;
     final isCorrectOption = content.correctAnswer == value;
 
-    GameButtonVariant variant = GameButtonVariant.secondary;
-    // Determine the variant based on logic only
+    GameButtonVariant variant;
     if (answered) {
       if (isCorrectOption) {
-        variant = GameButtonVariant.success; // Always show correct answer as Green
+        variant = GameButtonVariant.success;
       } else if (isSelected && !isCorrectOption) {
-        variant = GameButtonVariant.danger; // Show wrong selection as Red
+        variant = GameButtonVariant.danger;
       } else {
-        variant = GameButtonVariant.neutral; // Non-selected incorrect option
+        variant = GameButtonVariant.neutral;
       }
     } else {
-       // Default state
-       if (value) {
-          variant = GameButtonVariant.success; // TRUE is visually distinct? or just primary/secondary
-          // Actually let's keep them uniform
-          variant = GameButtonVariant.secondary;
-       } else {
-          variant = GameButtonVariant.secondary;
-       }
+      variant = GameButtonVariant.secondary;
     }
 
     return AnimatedGameButton(

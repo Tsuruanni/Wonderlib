@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/word_pronunciation_service.dart';
-import '../../../domain/entities/chapter.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -125,26 +124,3 @@ class ReaderPopups extends ConsumerWidget {
   }
 }
 
-/// Helper class for managing popup state from parent widgets
-class ReaderPopupController {
-  const ReaderPopupController(this._ref);
-
-  final WidgetRef _ref;
-
-  void showReaderVocabHighlightPopup(ChapterVocabulary vocab, Offset position) {
-    _ref.read(selectedVocabularyProvider.notifier).state = vocab;
-    _ref.read(vocabularyPopupPositionProvider.notifier).state = position;
-  }
-
-  void showReaderWordTapPopup(String word, Offset position) {
-    _ref.read(tappedWordProvider.notifier).state = word;
-    _ref.read(tappedWordPositionProvider.notifier).state = position;
-  }
-
-  void closeAll() {
-    _ref.read(selectedVocabularyProvider.notifier).state = null;
-    _ref.read(vocabularyPopupPositionProvider.notifier).state = null;
-    _ref.read(tappedWordProvider.notifier).state = null;
-    _ref.read(tappedWordPositionProvider.notifier).state = null;
-  }
-}

@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
+import 'path_special_nodes.dart' show pathNodeLabelStyle;
 import '../common/pressable_scale.dart';
 
 /// Controls whether the text label appears below, to the left, or to the right of the node circle.
@@ -269,19 +270,7 @@ class _PathNodeState extends State<PathNode>
       );
     }
 
-    final labelStyle = GoogleFonts.patrickHand(
-      fontSize: 22, // Increased font size again
-      fontWeight: FontWeight.w700,
-      color: Colors.white,
-      letterSpacing: 0.5,
-      shadows: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.6),
-          offset: const Offset(0, 2),
-          blurRadius: 4,
-        ),
-      ],
-    );
+    final labelStyle = pathNodeLabelStyle();
 
     if (widget.labelPosition == LabelPosition.below) {
       return PressableScale(

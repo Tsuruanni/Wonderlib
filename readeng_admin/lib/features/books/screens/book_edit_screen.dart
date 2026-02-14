@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -10,7 +11,7 @@ final bookDetailProvider =
     FutureProvider.family<Map<String, dynamic>?, String>((ref, bookId) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
-      .from('books')
+      .from(DbTables.books)
       .select('*, chapters(*)')
       .eq('id', bookId)
       .order('order_index', referencedTable: 'chapters')
@@ -34,27 +35,13 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
   final _authorController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _coverUrlController = TextEditingController();
+  final _lexileController = TextEditingController();
 
-  // CEFR levels + descriptive levels
-  static const _validLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  // CEFR levels from shared package
+  static final _validLevels = CEFRLevel.allValues;
 
   String _getLevelLabel(String level) {
-    switch (level) {
-      case 'A1':
-        return 'A1 - Beginner';
-      case 'A2':
-        return 'A2 - Elementary';
-      case 'B1':
-        return 'B1 - Intermediate';
-      case 'B2':
-        return 'B2 - Upper Intermediate';
-      case 'C1':
-        return 'C1 - Advanced';
-      case 'C2':
-        return 'C2 - Proficient';
-      default:
-        return level;
-    }
+    return CEFRLevel.fromDbValue(level).displayName;
   }
 
   String _level = 'B1';
@@ -81,11 +68,13 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
       _authorController.text = book['author'] ?? '';
       _descriptionController.text = book['description'] ?? '';
       _coverUrlController.text = book['cover_image_url'] ?? '';
+      final lexile = book['lexile_score'] as int?;
+      _lexileController.text = lexile != null ? '$lexile' : '';
       final dbLevel = book['level'] as String? ?? 'B1';
       setState(() {
         // Normalize level to valid CEFR levels
         _level = _validLevels.contains(dbLevel) ? dbLevel : 'B1';
-        _isPublished = book['status'] == 'published';
+        _isPublished = book['status'] == BookStatus.published.dbValue;
         _isLoading = false;
       });
     } else {
@@ -99,6 +88,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
     _authorController.dispose();
     _descriptionController.dispose();
     _coverUrlController.dispose();
+    _lexileController.dispose();
     super.dispose();
   }
 
@@ -110,13 +100,17 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
 
-      final data = {
+      final lexileText = _lexileController.text.trim();
+      final lexileScore = lexileText.isNotEmpty ? int.tryParse(lexileText) : null;
+
+      final data = <String, dynamic>{
         'title': _titleController.text.trim(),
         'author': _authorController.text.trim(),
         'description': _descriptionController.text.trim(),
         'cover_image_url': _coverUrlController.text.trim(),
         'level': _level,
-        'status': _isPublished ? 'published' : 'draft',
+        'lexile_score': lexileScore,
+        'status': _isPublished ? BookStatus.published.dbValue : BookStatus.draft.dbValue,
       };
 
       if (isNewBook) {
@@ -127,7 +121,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
             .toLowerCase()
             .replaceAll(RegExp(r'[^a-z0-9\s-]'), '')
             .replaceAll(RegExp(r'\s+'), '-');
-        await supabase.from('books').insert(data);
+        await supabase.from(DbTables.books).insert(data);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +130,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
           context.go('/books/${data['id']}');
         }
       } else {
-        await supabase.from('books').update(data).eq('id', widget.bookId!);
+        await supabase.from(DbTables.books).update(data).eq('id', widget.bookId!);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -187,7 +181,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
     try {
       final supabase = ref.read(supabaseClientProvider);
-      await supabase.from('books').delete().eq('id', widget.bookId!);
+      await supabase.from(DbTables.books).delete().eq('id', widget.bookId!);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -327,6 +321,26 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          // Lexile Score
+                          TextFormField(
+                            controller: _lexileController,
+                            decoration: const InputDecoration(
+                              labelText: 'Lexile Score',
+                              hintText: 'e.g. 820',
+                              helperText: 'Typical range: 0–2000',
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value != null && value.isNotEmpty) {
+                                final n = int.tryParse(value);
+                                if (n == null) return 'Enter a valid number';
+                                if (n < 0 || n > 2000) return 'Must be 0–2000';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
                           // Published switch
                           SwitchListTile(
                             title: const Text('Published'),
@@ -438,7 +452,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
       for (final chapter in widget.chapters) {
         // Check for content blocks first
         final blocksResponse = await supabase
-            .from('content_blocks')
+            .from(DbTables.contentBlocks)
             .select('text')
             .eq('chapter_id', chapter['id'])
             .eq('type', 'text')
@@ -617,7 +631,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
                       if (chapter['order_index'] != i) {
                         updates.add(
                           supabase
-                              .from('chapters')
+                              .from(DbTables.chapters)
                               .update({'order_index': i})
                               .eq('id', chapter['id']),
                         );

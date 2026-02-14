@@ -3,16 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
-import '../../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
-import '../../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../providers/activity_provider.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/book_provider.dart';
-import '../../providers/daily_review_provider.dart';
 import '../../providers/reader_provider.dart';
-import '../../providers/usecase_providers.dart';
-import '../../providers/user_provider.dart';
-import '../../providers/vocabulary_provider.dart';
 import '../inline_activities/inline_activities.dart';
 import 'reader_paragraph.dart';
 
@@ -203,74 +195,19 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
     }
   }
 
-  Future<void> _handleActivityAnswer(
+  void _handleActivityAnswer(
     String activityId,
     bool isCorrect,
     int xpEarned,
     List<String> wordsLearned,
-  ) async {
-    // Layer 1: Quick check local state to prevent double-processing
-    final completedActivities = ref.read(inlineActivityStateProvider);
-    if (completedActivities.containsKey(activityId)) {
-      return; // Already completed locally, skip everything
-    }
-
-    // Mark activity as completed in local state
-    ref.read(inlineActivityStateProvider.notifier).markCompleted(activityId, isCorrect);
-
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
-
-    // Layer 2: Save to DB and check if this is a NEW completion
-    final useCase = ref.read(saveInlineActivityResultUseCaseProvider);
-    final result = await useCase(SaveInlineActivityResultParams(
-      userId: userId,
+  ) {
+    handleInlineActivityCompletion(
+      ref,
       activityId: activityId,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
-    ),);
-
-    // Extract whether this is a new completion (prevents duplicate XP)
-    final isNewCompletion = result.fold(
-      (failure) => false, // On error, don't award XP
-      (isNew) => isNew,
+      wordsLearned: wordsLearned,
     );
-
-    // Refresh daily goal (correct answers count)
-    if (isNewCompletion) {
-      ref.invalidate(correctAnswersTodayProvider);
-    }
-
-    // Only award XP for NEW completions
-    if (isNewCompletion && xpEarned > 0) {
-      // Update local session XP counter
-      ref.read(sessionXPProvider.notifier).addXP(xpEarned);
-
-      // Persist XP to database AND update local state (no page reload)
-      await ref.read(userControllerProvider.notifier).addXP(xpEarned);
-    } else if (isNewCompletion) {
-      // Update streak even without XP (wrong answer still counts as daily activity)
-      await ref.read(userControllerProvider.notifier).updateStreak();
-    }
-
-    // Add words to learned vocabulary (idempotent - safe to retry)
-    if (wordsLearned.isNotEmpty) {
-      ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
-
-      // Persist to vocabulary_progress
-      final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
-      for (final wordId in wordsLearned) {
-        await addWordUseCase(AddWordToVocabularyParams(
-          userId: userId,
-          wordId: wordId,
-          immediate: !isCorrect,
-        ),);
-      }
-
-      // Invalidate providers so new words appear in Word Bank and Daily Review
-      ref.invalidate(dailyReviewWordsProvider);
-      ref.invalidate(userVocabularyProgressProvider);
-    }
   }
 }
 

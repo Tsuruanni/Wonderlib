@@ -1,125 +1,29 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-/// Card rarity levels - determines drop rate, visual style, and value
-enum CardRarity {
-  common,
-  rare,
-  epic,
-  legendary;
+export 'package:readeng_shared/src/enums/card_rarity.dart';
+export 'package:readeng_shared/src/enums/card_category.dart';
 
-  /// Display label for UI
-  String get label {
-    switch (this) {
-      case common:
-        return 'Common';
-      case rare:
-        return 'Rare';
-      case epic:
-        return 'Epic';
-      case legendary:
-        return 'Legendary';
-    }
-  }
-}
-
-/// Mythology categories - 8 total, 12 cards each
-enum CardCategory {
-  turkishMyths,
-  ancientGreece,
-  vikingIceLands,
-  egyptianDeserts,
-  farEast,
-  medievalMagic,
-  legendaryWeapons,
-  darkCreatures;
-
-  /// Display label for UI
-  String get label {
-    switch (this) {
-      case turkishMyths:
-        return 'Turkish Myths';
-      case ancientGreece:
-        return 'Ancient Greece';
-      case vikingIceLands:
-        return 'Viking Ice Lands';
-      case egyptianDeserts:
-        return 'Egyptian Deserts';
-      case farEast:
-        return 'Far East';
-      case medievalMagic:
-        return 'Medieval Magic';
-      case legendaryWeapons:
-        return 'Legendary Weapons';
-      case darkCreatures:
-        return 'Dark Creatures';
-    }
-  }
-
-  /// Emoji icon for category
+/// Emoji icons for card categories (UI-specific)
+extension CardCategoryIcon on CardCategory {
   String get icon {
     switch (this) {
-      case turkishMyths:
+      case CardCategory.turkishMyths:
         return '🐺';
-      case ancientGreece:
+      case CardCategory.ancientGreece:
         return '🏛️';
-      case vikingIceLands:
+      case CardCategory.vikingIceLands:
         return '⚔️';
-      case egyptianDeserts:
+      case CardCategory.egyptianDeserts:
         return '🏺';
-      case farEast:
+      case CardCategory.farEast:
         return '🐉';
-      case medievalMagic:
+      case CardCategory.medievalMagic:
         return '🏰';
-      case legendaryWeapons:
+      case CardCategory.legendaryWeapons:
         return '🗡️';
-      case darkCreatures:
+      case CardCategory.darkCreatures:
         return '👹';
-    }
-  }
-
-  /// Database slug value
-  String get dbValue {
-    switch (this) {
-      case turkishMyths:
-        return 'turkish_myths';
-      case ancientGreece:
-        return 'ancient_greece';
-      case vikingIceLands:
-        return 'viking_ice_lands';
-      case egyptianDeserts:
-        return 'egyptian_deserts';
-      case farEast:
-        return 'far_east';
-      case medievalMagic:
-        return 'medieval_magic';
-      case legendaryWeapons:
-        return 'legendary_weapons';
-      case darkCreatures:
-        return 'dark_creatures';
-    }
-  }
-
-  /// Parse from database string
-  static CardCategory fromDbValue(String value) {
-    switch (value) {
-      case 'turkish_myths':
-        return turkishMyths;
-      case 'ancient_greece':
-        return ancientGreece;
-      case 'viking_ice_lands':
-        return vikingIceLands;
-      case 'egyptian_deserts':
-        return egyptianDeserts;
-      case 'far_east':
-        return farEast;
-      case 'medieval_magic':
-        return medievalMagic;
-      case 'legendary_weapons':
-        return legendaryWeapons;
-      case 'dark_creatures':
-        return darkCreatures;
-      default:
-        return turkishMyths;
     }
   }
 }

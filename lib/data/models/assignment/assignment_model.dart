@@ -94,7 +94,7 @@ class AssignmentModel {
       teacherId: teacherId,
       classId: classId,
       className: className,
-      type: AssignmentType.fromString(type),
+      type: AssignmentType.fromDbValue(type),
       title: title,
       description: description,
       contentConfig: contentConfig,

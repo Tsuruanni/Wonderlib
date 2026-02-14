@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../users/screens/user_list_screen.dart';
@@ -17,7 +18,7 @@ final curriculumAssignmentsProvider =
   final gradeFilter = ref.watch(curriculumGradeFilterProvider);
 
   var query = supabase
-      .from('unit_curriculum_assignments')
+      .from(DbTables.unitCurriculumAssignments)
       .select('id, unit_id, school_id, grade, class_id, created_at, '
           'vocabulary_units(id, name, sort_order, color, icon), '
           'schools(id, name), '

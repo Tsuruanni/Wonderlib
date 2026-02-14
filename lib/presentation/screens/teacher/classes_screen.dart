@@ -10,6 +10,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/empty_state_widget.dart';
+import '../../widgets/common/error_state_widget.dart';
 
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
@@ -33,46 +35,16 @@ class ClassesScreen extends ConsumerWidget {
         },
         child: classesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 48, color: context.colorScheme.error),
-                const SizedBox(height: 16),
-                Text('Error loading classes', style: context.textTheme.bodyLarge),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => ref.invalidate(currentTeacherClassesProvider),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
+          error: (_, __) => ErrorStateWidget(
+            message: 'Error loading classes',
+            onRetry: () => ref.invalidate(currentTeacherClassesProvider),
           ),
           data: (classes) {
             if (classes.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.groups_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No classes found',
-                      style: context.textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Classes from your school will appear here',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.groups_outlined,
+                title: 'No classes found',
+                subtitle: 'Classes from your school will appear here',
               );
             }
 

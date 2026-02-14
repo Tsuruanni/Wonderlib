@@ -12,7 +12,6 @@ import 'package:readeng/domain/usecases/wordlist/get_words_for_list_usecase.dart
 import 'package:readeng/domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import 'package:readeng/domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import 'package:readeng/domain/usecases/wordlist/update_word_list_progress_usecase.dart';
-import 'package:readeng/domain/usecases/wordlist/complete_phase_usecase.dart';
 import 'package:readeng/domain/usecases/wordlist/reset_progress_usecase.dart';
 
 import '../../../../fixtures/vocabulary_fixtures.dart';
@@ -355,9 +354,8 @@ void main() {
           expect(returnedProgress, isNotNull);
           expect(returnedProgress!.userId, 'user-123');
           expect(returnedProgress.wordListId, 'list-123');
-          expect(returnedProgress.phase1Complete, true);
-          expect(returnedProgress.phase2Complete, true);
-          expect(returnedProgress.phase3Complete, false);
+          expect(returnedProgress.totalSessions, 3);
+          expect(returnedProgress.bestAccuracy, 90.0);
         },
       );
     });
@@ -413,7 +411,7 @@ void main() {
         (failure) => fail('Should not return failure'),
         (returnedProgress) {
           expect(returnedProgress.id, progress.id);
-          expect(returnedProgress.phase1Complete, progress.phase1Complete);
+          expect(returnedProgress.totalSessions, progress.totalSessions);
         },
       );
     });
@@ -434,7 +432,7 @@ void main() {
       result.fold(
         (failure) => fail('Should not return failure'),
         (returnedProgress) {
-          expect(returnedProgress.isFullyComplete, true);
+          expect(returnedProgress.isComplete, true);
           expect(returnedProgress.completedAt, isNotNull);
         },
       );
@@ -455,110 +453,6 @@ void main() {
       expect(result.isLeft(), true);
       result.fold(
         (failure) => expect(failure, isA<ServerFailure>()),
-        (_) => fail('Should return failure'),
-      );
-    });
-  });
-
-  // ============================================
-  // CompletePhaseUseCase Tests
-  // ============================================
-  group('CompletePhaseUseCase', () {
-    late CompletePhaseUseCase usecase;
-
-    setUp(() {
-      usecase = CompletePhaseUseCase(mockWordListRepository);
-    });
-
-    test('withPhase1_shouldReturnProgressWithPhase1Complete', () async {
-      // Arrange
-      final progress = UserWordListProgressFixtures.phase1CompleteProgress();
-      when(mockWordListRepository.completePhase(
-        userId: 'user-123',
-        listId: 'list-123',
-        phase: 1,
-        score: null,
-        total: null,
-      )).thenAnswer((_) async => Right(progress));
-
-      const params = CompletePhaseParams(
-        userId: 'user-123',
-        listId: 'list-123',
-        phase: 1,
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedProgress) {
-          expect(returnedProgress.phase1Complete, true);
-          expect(returnedProgress.nextPhase, 2);
-        },
-      );
-    });
-
-    test('withPhase4AndScore_shouldReturnProgressWithScore', () async {
-      // Arrange
-      final progress = UserWordListProgressFixtures.completedProgress();
-      when(mockWordListRepository.completePhase(
-        userId: 'user-123',
-        listId: 'list-789',
-        phase: 4,
-        score: 18,
-        total: 20,
-      )).thenAnswer((_) async => Right(progress));
-
-      const params = CompletePhaseParams(
-        userId: 'user-123',
-        listId: 'list-789',
-        phase: 4,
-        score: 18,
-        total: 20,
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedProgress) {
-          expect(returnedProgress.phase4Complete, true);
-          expect(returnedProgress.phase4Score, 18);
-          expect(returnedProgress.phase4Total, 20);
-          expect(returnedProgress.isFullyComplete, true);
-        },
-      );
-    });
-
-    test('withInvalidPhase_shouldReturnValidationFailure', () async {
-      // Arrange
-      when(mockWordListRepository.completePhase(
-        userId: 'user-123',
-        listId: 'list-123',
-        phase: 5, // Invalid phase
-        score: null,
-        total: null,
-      )).thenAnswer((_) async => const Left(ValidationFailure('Invalid phase')));
-
-      const params = CompletePhaseParams(
-        userId: 'user-123',
-        listId: 'list-123',
-        phase: 5,
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (failure) => expect(failure, isA<ValidationFailure>()),
         (_) => fail('Should return failure'),
       );
     });
@@ -653,33 +547,31 @@ void main() {
       );
     });
 
-    test('userWordListProgress_progressPercentage_shouldCalculateCorrectly', () {
-      // Test progress percentage calculation
+    test('userWordListProgress_isComplete_shouldReflectSessions', () {
       final progress = UserWordListProgressFixtures.validProgress();
-      expect(progress.progressPercentage, 0.5); // 2 of 4 phases complete
-      expect(progress.completedPhases, 2);
+      expect(progress.isComplete, true); // totalSessions > 0
+      expect(progress.totalSessions, 3);
 
       final completedProgress = UserWordListProgressFixtures.completedProgress();
-      expect(completedProgress.progressPercentage, 1.0); // All 4 phases complete
-      expect(completedProgress.completedPhases, 4);
+      expect(completedProgress.isComplete, true);
+      expect(completedProgress.completedAt, isNotNull);
 
       final freshProgress = UserWordListProgressFixtures.freshProgress();
-      expect(freshProgress.progressPercentage, 0.0); // No phases complete
-      expect(freshProgress.completedPhases, 0);
+      expect(freshProgress.isComplete, false); // totalSessions == 0
     });
 
-    test('userWordListProgress_nextPhase_shouldReturnCorrectPhase', () {
-      final freshProgress = UserWordListProgressFixtures.freshProgress();
-      expect(freshProgress.nextPhase, 1);
-
-      final phase1Progress = UserWordListProgressFixtures.phase1CompleteProgress();
-      expect(phase1Progress.nextPhase, 2);
-
-      final phase3Progress = UserWordListProgressFixtures.phase3CompleteProgress();
-      expect(phase3Progress.nextPhase, 4);
-
+    test('userWordListProgress_starCount_shouldReflectAccuracy', () {
+      // 95%+ → 3 stars
       final completedProgress = UserWordListProgressFixtures.completedProgress();
-      expect(completedProgress.nextPhase, isNull);
+      expect(completedProgress.starCount, 3);
+
+      // 80-94% → 2 stars
+      final progress = UserWordListProgressFixtures.validProgress();
+      expect(progress.starCount, 2); // bestAccuracy = 90.0
+
+      // No sessions → 0 stars
+      final freshProgress = UserWordListProgressFixtures.freshProgress();
+      expect(freshProgress.starCount, 0);
     });
   });
 
@@ -730,37 +622,6 @@ void main() {
       // Assert
       expect(params.userId, 'test-user');
       expect(params.listId, 'test-list');
-    });
-
-    test('completePhaseParams_shouldStoreAllFields', () {
-      // Act
-      const params = CompletePhaseParams(
-        userId: 'test-user',
-        listId: 'test-list',
-        phase: 4,
-        score: 18,
-        total: 20,
-      );
-
-      // Assert
-      expect(params.userId, 'test-user');
-      expect(params.listId, 'test-list');
-      expect(params.phase, 4);
-      expect(params.score, 18);
-      expect(params.total, 20);
-    });
-
-    test('completePhaseParams_shouldHaveOptionalScoreAndTotal', () {
-      // Act
-      const params = CompletePhaseParams(
-        userId: 'test-user',
-        listId: 'test-list',
-        phase: 1,
-      );
-
-      // Assert
-      expect(params.score, isNull);
-      expect(params.total, isNull);
     });
 
     test('resetProgressParams_shouldStoreUserIdAndListId', () {

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readeng/core/constants/app_constants.dart';
-import 'package:readeng/data/models/auth/user_model.dart';
+import 'package:readeng/data/models/user/user_model.dart';
 import 'package:readeng/domain/entities/user.dart';
 
 import '../../../../fixtures/user_fixtures.dart';

@@ -28,10 +28,19 @@ abstract class AppColors {
   static const successDark = primaryDark;
   static const successBackground = primaryBackground;
 
-  // Neutral (Grey)
+  // Neutral (Grey - legacy)
   static const neutral = Color(0xFFE5E5E5);
   static const neutralDark = Color(0xFFAFAFAF);
   static const neutralText = Color(0xFF777777);
+
+  // Tailwind Gray Palette (used across quiz/reader/vocab widgets)
+  static const gray100 = Color(0xFFF3F4F6);
+  static const gray200 = Color(0xFFE5E7EB);
+  static const gray300 = Color(0xFFD1D5DB);
+  static const gray400 = Color(0xFF9CA3AF);
+  static const gray500 = Color(0xFF6B7280);
+  static const gray600 = Color(0xFF4B5563);
+  static const gray700 = Color(0xFF374151);
 
   // Base
   static const white = Color(0xFFFFFFFF);
