@@ -50,25 +50,25 @@ All three projects share the same Supabase backend. The shared package ensures t
 │                    PRESENTATION LAYER                        │
 │  ┌─────────┐    ┌──────────┐    ┌─────────────────────┐    │
 │  │ Screens │───▶│ Providers │───▶│ UseCase Providers  │    │
-│  │  (29)   │    │   (19)   │    │      (87)          │    │
+│  │  (28)   │    │   (24)   │    │     (117)          │    │
 │  └─────────┘    └──────────┘    └─────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      DOMAIN LAYER                            │
-│  ┌──────────┐    ┌────────────────────┐    ┌───────────┐   │
-│  │ Entities │    │ UseCase (85 total) │    │ Repo Intf │   │
-│  │  (14)    │    └────────────────────┘    │   (11)    │   │
-│  └──────────┘                              └───────────┘   │
+│  ┌──────────┐    ┌─────────────────────┐    ┌───────────┐  │
+│  │ Entities │    │ UseCase (117 total) │    │ Repo Intf │  │
+│  │  (21)    │    └─────────────────────┘    │   (13)    │  │
+│  └──────────┘                               └───────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       DATA LAYER                             │
 │  ┌──────────────────┐    ┌────────────────────────────┐    │
-│  │ Models (25 total)│    │ Repository Implementations │    │
-│  │ (JSON ↔ Entity)  │    │ (11 Supabase repositories) │    │
+│  │ Models (38 total)│    │ Repository Implementations │    │
+│  │ (JSON ↔ Entity)  │    │ (13 Supabase repositories) │    │
 │  └──────────────────┘    └────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -85,44 +85,47 @@ lib/
 │   ├── services/        # AudioService, WordPronunciationService, EdgeFunctionService
 │   └── utils/           # SM2 algorithm, extensions (context, string, datetime)
 ├── data/
-│   ├── models/          # JSON serialization (25 models)
+│   ├── models/          # JSON serialization (38 models)
 │   │   ├── activity/    # 3 models (activity, result, inline)
 │   │   ├── assignment/  # 3 models (assignment, student, student_assignment)
-│   │   │   # (auth/ removed - consolidated into user/)
 │   │   ├── badge/       # 2 models (badge, user_badge)
 │   │   ├── book/        # 3 models (book, chapter, reading_progress)
+│   │   ├── book_quiz/   # 3 models (quiz, result, student_progress)
+│   │   ├── card/        # 4 models (myth_card, pack_result, buy_pack_result, user_card_stats)
 │   │   ├── content/     # 1 model (content_block)
 │   │   ├── settings/    # 1 model (system_settings)
 │   │   ├── teacher/     # 4 models (stats, class, student_summary, progress)
-│   │   ├── user/        # 1 model (user)
-│   │   └── vocabulary/  # 5 models (word, progress, word_list, list_progress, daily_review)
+│   │   ├── user/        # 2 models (user, leaderboard_entry)
+│   │   └── vocabulary/  # 7 models (word, progress, word_list, list_progress, daily_review, session, node_completion)
 │   └── repositories/
-│       └── supabase/    # 11 repository implementations
+│       └── supabase/    # 13 repository implementations
 ├── domain/
-│   ├── entities/        # 14 entity files (pure business objects)
-│   ├── repositories/    # 11 repository interfaces
-│   └── usecases/        # 85 use cases + 1 base class
+│   ├── entities/        # 21 entity files (pure business objects)
+│   ├── repositories/    # 13 repository interfaces
+│   └── usecases/        # 117 use cases + 1 base class
 │       ├── auth/        # 5 usecases
-│       ├── book/        # 8 usecases
+│       ├── book/        # 9 usecases
+│       ├── book_quiz/   # 6 usecases
 │       ├── reading/     # 8 usecases
-│       ├── activity/    # 9 usecases
-│       ├── vocabulary/  # 11 usecases
-│       ├── wordlist/    # 8 usecases
+│       ├── activity/    # 10 usecases
+│       ├── vocabulary/  # 18 usecases
+│       ├── wordlist/    # 10 usecases
 │       ├── badge/       # 6 usecases
-│       ├── user/        # 7 usecases
-│       ├── teacher/     # 9 usecases
+│       ├── card/        # 9 usecases
+│       ├── user/        # 11 usecases
+│       ├── teacher/     # 11 usecases
 │       ├── assignment/  # 5 usecases (teacher-side)
 │       ├── student_assignment/ # 6 usecases (student-side)
 │       ├── content/     # 2 usecases
 │       └── settings/    # 1 usecase
 ├── presentation/
-│   ├── providers/       # 19 provider files (87 UseCase + 11 Repository providers)
-│   ├── screens/         # 29 active screens (auth, home, library, reader, vocabulary, profile, student, teacher)
+│   ├── providers/       # 24 provider files (117 UseCase + 13 Repository providers)
+│   ├── screens/         # 28 active screens (auth, home, library, reader, vocabulary, profile, leaderboard, student, teacher)
 │   ├── utils/           # UI helpers (colors, formatters)
 │   └── widgets/         # Reusable components
 │       ├── book_quiz/       # BookQuiz* - final book quiz widgets (8)
 │       ├── cards/           # Card collection widgets (CoinBadge, CardFlip, etc.)
-│       ├── common/          # Shared: AnimatedGameButton, FeedbackAnimation, SubtleBackground, etc.
+│       ├── common/          # Shared: AnimatedGameButton, FeedbackAnimation, SubtleBackground, StudentProfileDialog, etc.
 │       ├── home/            # Home screen widgets (TopNavbar, BottomNavbar)
 │       ├── inline_activities/ # InlineActivity* - in-chapter activities (6)
 │       ├── reader/          # Reader* - reader screen widgets (15)
@@ -341,25 +344,38 @@ flutter test --coverage
 
 ---
 
-# Current Status (2026-02-06)
+# Current Status (2026-02-20)
 
 ## ✅ Completed
-- Clean Architecture refactor (13 modules)
-- 25 Models, 85 UseCases, 11 Repositories
-- 29 screens, 34 routes, 19 provider files
+- Clean Architecture refactor (17 modules)
+- 38 Models, 117 UseCases, 13 Repositories
+- 28 screens, 24 provider files
 - All screens use UseCases via Providers (not repositories)
+- All 13 repos use `DbTables.*` and `RpcFunctions.*` constants (no hard-coded strings)
 - UI helpers centralized (`ui_helpers.dart`)
 - Business logic moved from widgets to providers
-- 27 DB migrations, properly versioned
-- 8 Failure types, 6 Exception types - all used
+- 59 DB migrations, properly versioned
+- Shared package: 41 DbTables, 31 RpcFunctions, 13 shared enums
 - Audio system with word-level karaoke + listening mode
 - Spaced repetition (SM2 algorithm)
+- Codebase audit: RLS security, null safety, race conditions fixed (2026-02-20)
 
 ## 🐛 Known Issues (To Fix)
 
 ### Medium Priority
 - [ ] `vocabulary_screen.dart` router'da yok - ileride eklenecek (önemli sayfa, SİLME)
 - [ ] Constants overlap between `AppConfig.xpRewards` and `AppConstants` XP values
+
+### Resolved (2026-02-20)
+- [x] RLS security: `user_badges` + `xp_logs` INSERT restricted to `auth.uid()`
+- [x] Quiz XP bug: RPC param name mismatch fixed (`p_xp_amount` → `p_amount`)
+- [x] Null safety: guards added to 8+ model files
+- [x] Race conditions: 3 repos converted to atomic upsert
+- [x] Hard-coded table/RPC strings eliminated across all 13 repos
+- [x] Leaderboard provider rewired through UseCases (was only architecture violation)
+- [x] StudentAssignment enums consolidated to shared package typedefs
+- [x] Dead UseCases: 4 registered, 1 superseded deleted
+- [x] Sign-out stale state: event providers cleared
 
 ### Resolved (2026-02-06)
 - [x] `UserBadge.odId` → `userId` renamed
