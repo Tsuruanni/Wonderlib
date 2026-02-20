@@ -68,13 +68,19 @@ import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
-import '../../domain/usecases/user/get_classmates_usecase.dart';
-import '../../domain/usecases/user/get_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_weekly_position_usecase.dart';
+import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_total_position_usecase.dart';
+import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
+import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
+import '../../domain/usecases/book_quiz/get_user_quiz_results_usecase.dart';
+import '../../domain/usecases/wordlist/get_session_history_usecase.dart';
+import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
 import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
@@ -438,12 +444,44 @@ final getUserStatsUseCaseProvider = Provider((ref) {
   return GetUserStatsUseCase(ref.watch(userRepositoryProvider));
 });
 
+final getWeeklyLeaderboardUseCaseProvider = Provider((ref) {
+  return GetWeeklyLeaderboardUseCase(ref.watch(userRepositoryProvider));
+});
+
+final getUserWeeklyPositionUseCaseProvider = Provider((ref) {
+  return GetUserWeeklyPositionUseCase(ref.watch(userRepositoryProvider));
+});
+
+final getTotalLeaderboardUseCaseProvider = Provider((ref) {
+  return GetTotalLeaderboardUseCase(ref.watch(userRepositoryProvider));
+});
+
+final getUserTotalPositionUseCaseProvider = Provider((ref) {
+  return GetUserTotalPositionUseCase(ref.watch(userRepositoryProvider));
+});
+
 final getClassmatesUseCaseProvider = Provider((ref) {
   return GetClassmatesUseCase(ref.watch(userRepositoryProvider));
 });
 
-final getLeaderboardUseCaseProvider = Provider((ref) {
-  return GetLeaderboardUseCase(ref.watch(userRepositoryProvider));
+// ============================================
+// WORD LIST USE CASES (additional)
+// ============================================
+
+final getSessionHistoryUseCaseProvider = Provider((ref) {
+  return GetSessionHistoryUseCase(ref.watch(wordListRepositoryProvider));
+});
+
+final resetProgressUseCaseProvider = Provider((ref) {
+  return ResetProgressUseCase(ref.watch(wordListRepositoryProvider));
+});
+
+// ============================================
+// BOOK QUIZ USE CASES (additional)
+// ============================================
+
+final getUserQuizResultsUseCaseProvider = Provider((ref) {
+  return GetUserQuizResultsUseCase(ref.watch(bookQuizRepositoryProvider));
 });
 
 // ============================================

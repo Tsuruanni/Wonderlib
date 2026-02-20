@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -20,7 +21,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('activities')
+          .from(DbTables.activities)
           .select()
           .eq('chapter_id', chapterId)
           .order('order_index', ascending: true);
@@ -41,7 +42,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   Future<Either<Failure, Activity>> getActivityById(String id) async {
     try {
       final response =
-          await _supabase.from('activities').select().eq('id', id).single();
+          await _supabase.from(DbTables.activities).select().eq('id', id).single();
 
       return Right(ActivityModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -117,7 +118,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   }) async {
     try {
       var query = _supabase
-          .from('activity_results')
+          .from(DbTables.activityResults)
           .select()
           .eq('user_id', userId);
 
@@ -146,7 +147,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('activity_results')
+          .from(DbTables.activityResults)
           .select()
           .eq('user_id', userId)
           .eq('activity_id', activityId)
@@ -173,7 +174,7 @@ class SupabaseActivityRepository implements ActivityRepository {
     try {
       // Get total activities completed
       final resultsResponse = await _supabase
-          .from('activity_results')
+          .from(DbTables.activityResults)
           .select('id, score, max_score')
           .eq('user_id', userId);
 
@@ -186,8 +187,8 @@ class SupabaseActivityRepository implements ActivityRepository {
       int perfectScores = 0;
 
       for (final result in results) {
-        final score = (result['score'] as num).toDouble();
-        final maxScore = (result['max_score'] as num).toDouble();
+        final score = (result['score'] as num?)?.toDouble() ?? 0.0;
+        final maxScore = (result['max_score'] as num?)?.toDouble() ?? 0.0;
         totalScore += score;
         totalMaxScore += maxScore;
         if (score == maxScore) perfectScores++;
@@ -214,7 +215,7 @@ class SupabaseActivityRepository implements ActivityRepository {
 
   Future<int> _getNextAttemptNumber(String userId, String activityId) async {
     final existingResults = await _supabase
-        .from('activity_results')
+        .from(DbTables.activityResults)
         .select('id')
         .eq('user_id', userId)
         .eq('activity_id', activityId);
@@ -226,7 +227,7 @@ class SupabaseActivityRepository implements ActivityRepository {
     int attemptNumber,
   ) async {
     return await _supabase
-        .from('activity_results')
+        .from(DbTables.activityResults)
         .insert({
           'user_id': resultModel.userId,
           'activity_id': resultModel.activityId,
@@ -259,7 +260,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   }) async {
     try {
       // Use the stored function for atomic XP award + level calculation
-      final result = await _supabase.rpc('award_xp_transaction', params: {
+      final result = await _supabase.rpc(RpcFunctions.awardXpTransaction, params: {
         'p_user_id': userId,
         'p_amount': amount,
         'p_source': source,
@@ -268,7 +269,7 @@ class SupabaseActivityRepository implements ActivityRepository {
       },);
 
       // Also check for new badges
-      await _supabase.rpc('check_and_award_badges', params: {
+      await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
         'p_user_id': userId,
       },);
 

@@ -20,8 +20,8 @@ class StudentSummaryModel {
   factory StudentSummaryModel.fromJson(Map<String, dynamic> json) {
     return StudentSummaryModel(
       id: json['id'] as String,
-      firstName: json['first_name'] as String,
-      lastName: json['last_name'] as String,
+      firstName: json['first_name'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
       studentNumber: json['student_number'] as String?,
       email: json['email'] as String?,
       avatarUrl: json['avatar_url'] as String?,

@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-import '../../core/constants/app_constants.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
 class User extends Equatable {
 
@@ -22,6 +21,7 @@ class User extends Equatable {
     this.longestStreak = 0,
     this.lastActivityDate,
     this.settings = const {},
+    this.leagueTier = LeagueTier.bronze,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -42,6 +42,7 @@ class User extends Equatable {
   final int longestStreak;
   final DateTime? lastActivityDate;
   final Map<String, dynamic> settings;
+  final LeagueTier leagueTier;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -51,14 +52,6 @@ class User extends Equatable {
     final first = firstName.isNotEmpty ? firstName[0].toUpperCase() : '';
     final last = lastName.isNotEmpty ? lastName[0].toUpperCase() : '';
     return '$first$last';
-  }
-
-  UserLevel get userLevel => UserLevel.fromXP(xp);
-
-  double get levelProgress {
-    final currentLevelXP = userLevel.minXP;
-    final nextLevelXP = userLevel.maxXP;
-    return (xp - currentLevelXP) / (nextLevelXP - currentLevelXP);
   }
 
   bool get hasActiveStreak => currentStreak > 0;
@@ -81,6 +74,7 @@ class User extends Equatable {
     int? longestStreak,
     DateTime? lastActivityDate,
     Map<String, dynamic>? settings,
+    LeagueTier? leagueTier,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -102,6 +96,7 @@ class User extends Equatable {
       longestStreak: longestStreak ?? this.longestStreak,
       lastActivityDate: lastActivityDate ?? this.lastActivityDate,
       settings: settings ?? this.settings,
+      leagueTier: leagueTier ?? this.leagueTier,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -126,6 +121,7 @@ class User extends Equatable {
         longestStreak,
         lastActivityDate,
         settings,
+        leagueTier,
         createdAt,
         updatedAt,
       ];

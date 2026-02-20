@@ -13,6 +13,7 @@ import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_goal_widget.dart';
 
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -54,7 +55,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               continueReadingAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, __) => _buildErrorRetry(context, ref),
                 data: (books) {
                   if (books.isEmpty) {
                      return _buildEmptyState(context, 'No books in progress', Icons.auto_stories);
@@ -79,7 +80,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               recommendedBooksAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, __) => _buildErrorRetry(context, ref),
                 data: (books) {
                   if (books.isEmpty) return const Text('No recommendations yet.');
                   return SizedBox(
@@ -150,6 +151,33 @@ class HomeScreen extends ConsumerWidget {
     );
   }
   
+  Widget _buildErrorRetry(BuildContext context, WidgetRef ref) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral.withValues(alpha: 0.5), width: 2),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.cloud_off, color: AppColors.neutral, size: 40),
+          const SizedBox(height: 8),
+          Text('Could not load data', style: GoogleFonts.nunito(color: AppColors.neutralText, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              ref.invalidate(continueReadingProvider);
+              ref.invalidate(recommendedBooksProvider);
+            },
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context, String message, IconData icon) {
      return Container(
        width: double.infinity,

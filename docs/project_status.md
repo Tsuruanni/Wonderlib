@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-14 (Lexile Score, Book Quiz, Admin Panel Enhancements)
+Son güncelleme: 2026-02-20 (League System, Leaderboard, Codebase Audit Fixes)
 
 ## Current Phase
 
@@ -84,6 +84,9 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Assignments Viewer (read-only teacher assignments + student progress)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (readeng_shared: DbTables, RpcFunctions, shared enums)
+- [x] League system (weekly tier-based competition within schools)
+- [x] Leaderboard screen (class/school/league scopes with student profile popup)
+- [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [ ] Remote Supabase deployment (`supabase db push`)
@@ -126,13 +129,19 @@ See: CLAUDE.md for architecture guidelines
 | ~~Entities missing Equatable~~ | ~~High~~ | ✅ 12 entities fixed (teacher, assignment, card) |
 | ~~Domain dart:ui dependency~~ | ~~Medium~~ | ✅ Moved parsedColor to presentation extension |
 | ~~Duplicate MatchingPair class~~ | ~~Medium~~ | ✅ Renamed to ActivityMatchingPair + SessionMatchingPair |
-| Providers bypassing UseCases | High | Being fixed in Clean Architecture refactor |
+| ~~Providers bypassing UseCases~~ | ~~High~~ | ✅ Leaderboard provider fixed, all providers now use UseCases |
+| ~~Unsafe JSON type casts~~ | ~~High~~ | ✅ Null guards added to 8+ model files |
+| ~~Race conditions in upserts~~ | ~~High~~ | ✅ Check-then-act replaced with atomic upsert in 3 repos |
+| ~~Hard-coded table/RPC strings~~ | ~~Medium~~ | ✅ All 13 repos use DbTables/RpcFunctions constants |
+| ~~RLS INSERT too permissive~~ | ~~Critical~~ | ✅ user_badges + xp_logs restricted to auth.uid() |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| League System & Leaderboard | 2026-02-20 | Weekly tier-based leagues, 3-scope leaderboard, student profile popup, 5 migrations, 4 new UseCases |
+| Codebase Audit & Fixes | 2026-02-20 | RLS security fix, quiz XP bug, null safety (8+ models), race conditions (3 repos), hard-coded strings (13 repos), enum consolidation |
 | Lexile Score Support | 2026-02-14 | Full-stack: DB migration, entity, model, admin input (0-2000 validation), main app display with speed icon |
 | Book Quiz System | 2026-02-14 | 5 question types, Clean Architecture (entities, models, repos, usecases, providers), admin quiz editor |
 | Admin Panel Enhancements | 2026-02-14 | RBAC (login + router guard), Myth Cards CRUD, Assignments viewer, Units/Unit Books CRUD, Quizzes editor |

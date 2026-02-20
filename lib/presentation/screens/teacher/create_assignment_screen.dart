@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/book.dart';
-import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';

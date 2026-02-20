@@ -57,6 +57,13 @@ class MainShellScaffold extends StatelessWidget {
                   onTap: () => _onTap(context, 3),
                   color: AppColors.cardEpic,
                 ),
+                _NavButton(
+                  icon: Icons.emoji_events_rounded,
+                  label: 'LEAGUE',
+                  isSelected: navigationShell.currentIndex == 4,
+                  onTap: () => _onTap(context, 4),
+                  color: AppColors.streakOrange,
+                ),
               ],
             ),
           ),

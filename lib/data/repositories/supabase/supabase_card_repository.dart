@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -20,7 +21,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, List<MythCard>>> getAllCards() async {
     try {
       final response = await _supabase
-          .from('myth_cards')
+          .from(DbTables.mythCards)
           .select()
           .eq('is_active', true)
           .order('card_no');
@@ -41,7 +42,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, List<MythCard>>> getCardsByCategory(CardCategory category) async {
     try {
       final response = await _supabase
-          .from('myth_cards')
+          .from(DbTables.mythCards)
           .select()
           .eq('is_active', true)
           .eq('category', category.dbValue)
@@ -63,7 +64,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, List<UserCard>>> getUserCards(String userId) async {
     try {
       final response = await _supabase
-          .from('user_cards')
+          .from(DbTables.userCards)
           .select('*, myth_cards(*)')
           .eq('user_id', userId)
           .order('first_obtained_at', ascending: false);
@@ -84,7 +85,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, UserCardStats>> getUserCardStats(String userId) async {
     try {
       final response = await _supabase
-          .from('user_card_stats')
+          .from(DbTables.userCardStats)
           .select()
           .eq('user_id', userId)
           .maybeSingle();
@@ -105,7 +106,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100}) async {
     try {
       final response = await _supabase.rpc(
-        'buy_card_pack',
+        RpcFunctions.buyCardPack,
         params: {
           'p_user_id': userId,
           'p_pack_cost': cost,
@@ -128,7 +129,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, PackResult>> openPack(String userId) async {
     try {
       final response = await _supabase.rpc(
-        'open_card_pack',
+        RpcFunctions.openCardPack,
         params: {
           'p_user_id': userId,
         },
@@ -150,7 +151,7 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, int>> getUserCoins(String userId) async {
     try {
       final response = await _supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .select('coins')
           .eq('id', userId)
           .single();
@@ -167,14 +168,14 @@ class SupabaseCardRepository implements CardRepository {
   Future<Either<Failure, int>> claimDailyQuestPack(String userId) async {
     try {
       final response = await _supabase.rpc(
-        'claim_daily_quest_pack',
+        RpcFunctions.claimDailyQuestPack,
         params: {
           'p_user_id': userId,
         },
       );
 
-      final data = response as Map<String, dynamic>;
-      return Right(data['unopened_packs'] as int);
+      final data = response as Map<String, dynamic>? ?? {};
+      return Right((data['unopened_packs'] as num?)?.toInt() ?? 0);
     } on PostgrestException catch (e) {
       if (e.message.contains('already claimed')) {
         return const Left(ServerFailure('Daily quest pack already claimed today'));
@@ -190,7 +191,7 @@ class SupabaseCardRepository implements CardRepository {
     try {
       // Use server-side RPC to avoid client/server timezone mismatch
       final response = await _supabase.rpc(
-        'has_daily_quest_pack_claimed',
+        RpcFunctions.hasDailyQuestPackClaimed,
         params: {'p_user_id': userId},
       );
 

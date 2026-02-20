@@ -1,4 +1,5 @@
-import '../../../core/constants/app_constants.dart';
+import 'package:readeng_shared/readeng_shared.dart';
+
 import '../../../domain/entities/user.dart';
 
 /// Model for User entity - handles JSON serialization
@@ -22,6 +23,7 @@ class UserModel {
     this.longestStreak = 0,
     this.lastActivityDate,
     this.settings = const {},
+    this.leagueTier = LeagueTier.bronze,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -47,6 +49,7 @@ class UserModel {
           ? DateTime.parse(json['last_activity_date'] as String)
           : null,
       settings: (json['settings'] as Map<String, dynamic>?) ?? {},
+      leagueTier: LeagueTier.fromDbValue(json['league_tier'] as String? ?? 'bronze'),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -71,6 +74,7 @@ class UserModel {
       longestStreak: entity.longestStreak,
       lastActivityDate: entity.lastActivityDate,
       settings: entity.settings,
+      leagueTier: entity.leagueTier,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -92,6 +96,7 @@ class UserModel {
   final int longestStreak;
   final DateTime? lastActivityDate;
   final Map<String, dynamic> settings;
+  final LeagueTier leagueTier;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -148,6 +153,7 @@ class UserModel {
       longestStreak: longestStreak,
       lastActivityDate: lastActivityDate,
       settings: settings,
+      leagueTier: leagueTier,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );

@@ -28,6 +28,19 @@ abstract class RpcFunctions {
   static const claimDailyQuestPack = 'claim_daily_quest_pack';
   static const hasDailyQuestPackClaimed = 'has_daily_quest_pack_claimed';
 
+  // Leaderboard (total XP)
+  static const getClassLeaderboard = 'get_class_leaderboard';
+  static const getSchoolLeaderboard = 'get_school_leaderboard';
+  static const getUserClassPosition = 'get_user_class_position';
+  static const getUserSchoolPosition = 'get_user_school_position';
+
+  // Leaderboard (weekly leagues)
+  static const getWeeklyClassLeaderboard = 'get_weekly_class_leaderboard';
+  static const getWeeklySchoolLeaderboard = 'get_weekly_school_leaderboard';
+  static const getUserWeeklyClassPosition = 'get_user_weekly_class_position';
+  static const getUserWeeklySchoolPosition = 'get_user_weekly_school_position';
+  static const processWeeklyLeagueReset = 'process_weekly_league_reset';
+
   // Teacher
   static const getTeacherStats = 'get_teacher_stats';
   static const getClassesWithStats = 'get_classes_with_stats';

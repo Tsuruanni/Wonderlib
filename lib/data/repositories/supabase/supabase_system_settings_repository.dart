@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -16,7 +17,7 @@ class SupabaseSystemSettingsRepository implements SystemSettingsRepository {
   Future<Either<Failure, SystemSettings>> getSettings() async {
     try {
       final response = await _client
-          .from('system_settings')
+          .from(DbTables.systemSettings)
           .select('key, value');
 
       final rows = List<Map<String, dynamic>>.from(response);

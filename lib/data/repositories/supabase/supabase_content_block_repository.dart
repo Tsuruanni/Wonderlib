@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -18,7 +19,7 @@ class SupabaseContentBlockRepository implements ContentBlockRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('content_blocks')
+          .from(DbTables.contentBlocks)
           .select()
           .eq('chapter_id', chapterId)
           .order('order_index', ascending: true);
@@ -41,7 +42,7 @@ class SupabaseContentBlockRepository implements ContentBlockRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('content_blocks')
+          .from(DbTables.contentBlocks)
           .select()
           .eq('id', blockId)
           .single();
@@ -63,7 +64,7 @@ class SupabaseContentBlockRepository implements ContentBlockRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('chapters')
+          .from(DbTables.chapters)
           .select('use_content_blocks')
           .eq('id', chapterId)
           .single();

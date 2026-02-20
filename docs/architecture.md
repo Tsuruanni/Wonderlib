@@ -164,7 +164,7 @@ packages/readeng_shared/         # Shared Dart package (used by main app + admin
 │   ├── readeng_shared.dart      # Barrel export
 │   └── src/
 │       ├── constants/tables.dart  # DbTables, RpcFunctions
-│       └── enums/                 # BookStatus, CardRarity, CefrLevel, UserRole
+│       └── enums/                 # BookStatus, CardRarity, CefrLevel, UserRole, LeagueTier, AssignmentStatus, AssignmentType, ...
 └── pubspec.yaml
 
 readeng_admin/                 # Admin panel (separate Flutter web project)
@@ -339,6 +339,15 @@ Update UI, show notifications
 - `badges` - Badge definitions
 - `user_badges` - Earned badges
 - `xp_logs` - XP history
+- `league_history` - Weekly league tier changes (promotion/demotion tracking)
+
+### Card Collection
+- `myth_cards` - Card catalog (96 mythology cards)
+- `user_cards` - Owned cards per user
+- `user_card_stats` - Collection stats (pity counter, total packs)
+- `pack_purchases` - Pack purchase history
+- `daily_quest_pack_claims` - Daily quest reward claims
+- `coin_logs` - Coin transaction history
 
 ### Assignments
 - `assignments` - Teacher-created tasks

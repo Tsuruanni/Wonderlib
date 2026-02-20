@@ -305,7 +305,7 @@ class _StudentStatsGrid extends StatelessWidget {
             Expanded(
               child: _StatBox(
                 icon: Icons.stars_rounded, // Use a filled icon
-                value: user.userLevel.title,
+                value: user.leagueTier.label,
                 label: 'Current League',
                 color: AppColors.secondary,
               ),

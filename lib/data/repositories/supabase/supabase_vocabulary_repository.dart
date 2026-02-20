@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -24,7 +25,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     int pageSize = 50,
   }) async {
     try {
-      var query = _supabase.from('vocabulary_words').select();
+      var query = _supabase.from(DbTables.vocabularyWords).select();
 
       if (level != null) {
         query = query.eq('level', level);
@@ -55,7 +56,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, VocabularyWord>> getWordById(String id) async {
     try {
       final response =
-          await _supabase.from('vocabulary_words').select().eq('id', id).single();
+          await _supabase.from(DbTables.vocabularyWords).select().eq('id', id).single();
 
       return Right(VocabularyWordModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -82,7 +83,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .replaceAll('(', '')
           .replaceAll(')', '');
       final response = await _supabase
-          .from('vocabulary_words')
+          .from(DbTables.vocabularyWords)
           .select()
           .or('word.ilike.%$escapedQuery%,meaning_tr.ilike.%$escapedQuery%')
           .limit(30);
@@ -104,7 +105,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select()
           .eq('user_id', userId)
           .order('created_at', ascending: false);
@@ -128,7 +129,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select()
           .eq('user_id', userId)
           .eq('word_id', wordId)
@@ -171,33 +172,13 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         'last_reviewed_at': progress.lastReviewedAt?.toIso8601String(),
       };
 
-      // Check if progress exists
-      final existing = await _supabase
-          .from('vocabulary_progress')
-          .select('id')
-          .eq('user_id', progress.userId)
-          .eq('word_id', progress.wordId)
-          .maybeSingle();
+      data['created_at'] = progress.createdAt.toIso8601String();
 
-      Map<String, dynamic> response;
-
-      if (existing != null) {
-        // Update existing
-        response = await _supabase
-            .from('vocabulary_progress')
-            .update(data)
-            .eq('id', existing['id'])
-            .select()
-            .single();
-      } else {
-        // Insert new
-        data['created_at'] = progress.createdAt.toIso8601String();
-        response = await _supabase
-            .from('vocabulary_progress')
-            .insert(data)
-            .select()
-            .single();
-      }
+      final response = await _supabase
+          .from(DbTables.vocabularyProgress)
+          .upsert(data, onConflict: 'user_id,word_id')
+          .select()
+          .single();
 
       return Right(VocabularyProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -217,7 +198,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       // Get word IDs due for review, ordered by most overdue first
       // Includes mastered words (they appear at long intervals via SM-2)
       final progressResponse = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('word_id')
           .eq('user_id', userId)
           .lte('next_review_at', now)
@@ -234,7 +215,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
       // Get the actual words
       final wordsResponse = await _supabase
-          .from('vocabulary_words')
+          .from(DbTables.vocabularyWords)
           .select()
           .inFilter('id', wordIds);
 
@@ -265,7 +246,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     try {
       // Get word IDs user already has progress on
       final progressResponse = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('word_id')
           .eq('user_id', userId);
 
@@ -274,7 +255,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .toList();
 
       // Get words user hasn't started
-      var query = _supabase.from('vocabulary_words').select();
+      var query = _supabase.from(DbTables.vocabularyWords).select();
 
       if (existingWordIds.isNotEmpty) {
         // Exclude already started words (single query instead of N queries)
@@ -301,7 +282,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('status')
           .eq('user_id', userId);
 
@@ -329,7 +310,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       // Get due for review count (includes mastered words)
       final now = DateTime.now().toIso8601String();
       final dueResponse = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('id')
           .eq('user_id', userId)
           .lte('next_review_at', now);
@@ -358,7 +339,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     try {
       // Check if progress already exists
       final existing = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select()
           .eq('user_id', userId)
           .eq('word_id', wordId)
@@ -369,7 +350,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         if (immediate) {
           final now = DateTime.now();
           final updated = await _supabase
-              .from('vocabulary_progress')
+              .from(DbTables.vocabularyProgress)
               .update({'next_review_at': now.toIso8601String()})
               .eq('user_id', userId)
               .eq('word_id', wordId)
@@ -397,7 +378,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       };
 
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .insert(data)
           .select()
           .single();
@@ -414,7 +395,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, VocabularyWord?>> getWordByWord(String word) async {
     try {
       final response = await _supabase
-          .from('vocabulary_words')
+          .from(DbTables.vocabularyWords)
           .select()
           .ilike('word', word)
           .maybeSingle();
@@ -438,7 +419,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     try {
       // Query all rows matching this word, with joined book title
       final response = await _supabase
-          .from('vocabulary_words')
+          .from(DbTables.vocabularyWords)
           .select('*, books:source_book_id(title)')
           .ilike('word', word);
 
@@ -470,7 +451,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final today = DateTime.now().toIso8601String().split('T').first;
 
       final response = await _supabase
-          .from('daily_review_sessions')
+          .from(DbTables.dailyReviewSessions)
           .select()
           .eq('user_id', userId)
           .eq('session_date', today)
@@ -497,7 +478,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   }) async {
     try {
       final response = await _supabase.rpc(
-        'complete_daily_review',
+        RpcFunctions.completeDailyReview,
         params: {
           'p_user_id': userId,
           'p_words_reviewed': wordsReviewed,
@@ -532,7 +513,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
       // Get existing progress to avoid duplicates
       final existingResponse = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('word_id')
           .eq('user_id', userId)
           .inFilter('word_id', wordIds);
@@ -544,7 +525,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       // If immediate, update existing words' next_review_at to now
       if (immediate && existingWordIds.isNotEmpty) {
         await _supabase
-            .from('vocabulary_progress')
+            .from(DbTables.vocabularyProgress)
             .update({'next_review_at': now.toIso8601String()})
             .eq('user_id', userId)
             .inFilter('word_id', existingWordIds.toList());
@@ -576,7 +557,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .toList();
 
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .insert(insertData)
           .select();
 
@@ -599,7 +580,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
 
       final response = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('id')
           .eq('user_id', userId)
           .gte('created_at', todayStart);
@@ -620,7 +601,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
       // 1. Get today's learned word IDs (small set - typically <50)
       final todayProgress = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('word_id')
           .eq('user_id', userId)
           .gte('created_at', todayStart);
@@ -633,7 +614,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
       // 2. Check which of today's words belong to any word list
       final listMatches = await _supabase
-          .from('word_list_items')
+          .from(DbTables.wordListItems)
           .select('word_id')
           .inFilter('word_id', todayWordIds);
 
@@ -660,7 +641,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('user_node_completions')
+          .from(DbTables.userNodeCompletions)
           .select()
           .eq('user_id', userId);
 
@@ -685,7 +666,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     required String nodeType,
   }) async {
     try {
-      await _supabase.from('user_node_completions').upsert(
+      await _supabase.from(DbTables.userNodeCompletions).upsert(
         {
           'user_id': userId,
           'unit_id': unitId,

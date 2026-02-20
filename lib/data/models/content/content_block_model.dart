@@ -30,7 +30,7 @@ class ContentBlockModel {
       id: json['id'] as String,
       chapterId: json['chapter_id'] as String,
       orderIndex: json['order_index'] as int,
-      type: _parseBlockType(json['type'] as String),
+      type: _parseBlockType(json['type'] as String? ?? 'text'),
       text: json['text'] as String?,
       audioUrl: json['audio_url'] as String?,
       wordTimings: wordTimings,
@@ -158,11 +158,11 @@ class WordTimingModel {
 
   factory WordTimingModel.fromJson(Map<String, dynamic> json) {
     return WordTimingModel(
-      word: json['word'] as String,
-      startIndex: json['startIndex'] as int,
-      endIndex: json['endIndex'] as int,
-      startMs: json['startMs'] as int,
-      endMs: json['endMs'] as int,
+      word: json['word'] as String? ?? '',
+      startIndex: (json['startIndex'] as num?)?.toInt() ?? 0,
+      endIndex: (json['endIndex'] as num?)?.toInt() ?? 0,
+      startMs: (json['startMs'] as num?)?.toInt() ?? 0,
+      endMs: (json['endMs'] as num?)?.toInt() ?? 0,
     );
   }
 

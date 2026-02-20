@@ -367,6 +367,7 @@ Future<void> handleInlineActivityCompletion(
   }
 
   // Award XP for new completions
+  debugPrint('📊 Activity $activityId: isNew=$isNewCompletion, xp=$xpEarned');
   if (isNewCompletion && xpEarned > 0) {
     ref.read(sessionXPProvider.notifier).addXP(xpEarned);
     await ref.read(userControllerProvider.notifier).addXP(xpEarned);

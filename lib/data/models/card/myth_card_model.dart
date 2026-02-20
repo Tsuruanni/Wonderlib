@@ -26,7 +26,7 @@ class MythCardModel {
       name: json['name'] as String,
       category: json['category'] as String,
       rarity: json['rarity'] as String,
-      power: json['power'] as int,
+      power: (json['power'] as num?)?.toInt() ?? 0,
       specialSkill: json['special_skill'] as String?,
       description: json['description'] as String?,
       categoryIcon: json['category_icon'] as String?,

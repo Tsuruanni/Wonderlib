@@ -9,9 +9,9 @@ class BuyPackResultModel {
 
   factory BuyPackResultModel.fromJson(Map<String, dynamic> json) {
     return BuyPackResultModel(
-      coinsSpent: json['coins_spent'] as int,
-      coinsRemaining: json['coins_remaining'] as int,
-      unopenedPacks: json['unopened_packs'] as int,
+      coinsSpent: (json['coins_spent'] as num?)?.toInt() ?? 0,
+      coinsRemaining: (json['coins_remaining'] as num?)?.toInt() ?? 0,
+      unopenedPacks: (json['unopened_packs'] as num?)?.toInt() ?? 0,
     );
   }
 

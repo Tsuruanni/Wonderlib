@@ -167,7 +167,9 @@ INSERT INTO schools (id, name, code, status, subscription_tier) VALUES
 -- SAMPLE CLASS (for development)
 -- =============================================
 INSERT INTO classes (id, school_id, name, grade, academic_year) VALUES
-('77777777-0001-0001-0001-000000000001', '33333333-0001-0001-0001-000000000001', '5-A', '5', '2024-2025');
+('77777777-0001-0001-0001-000000000001', '33333333-0001-0001-0001-000000000001', '5-A', '5', '2024-2025'),
+('77777777-0001-0001-0001-000000000002', '33333333-0001-0001-0001-000000000001', '5-B', '5', '2024-2025'),
+('77777777-0001-0001-0001-000000000003', '33333333-0001-0001-0001-000000000001', '6-A', '6', '2024-2025');
 
 -- =============================================
 -- TEST USERS (for development)
@@ -196,7 +198,8 @@ UPDATE profiles SET
   email = 'fresh@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
-  student_number = '2024001', xp = 0, current_streak = 0, longest_streak = 0
+  student_number = '2024001', xp = 0, level = 1, league_tier = 'bronze',
+  current_streak = 0, longest_streak = 0
 WHERE id = '88888888-0001-0001-0001-000000000001';
 
 -- 2. ACTIVE USER: Mid-progress student, 500 XP, reading 1 book
@@ -221,7 +224,8 @@ UPDATE profiles SET
   email = 'active@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
-  student_number = '2024002', xp = 500, current_streak = 3, longest_streak = 5
+  student_number = '2024002', xp = 500, level = 4, league_tier = 'bronze',
+  current_streak = 3, longest_streak = 5
 WHERE id = '88888888-0001-0001-0001-000000000002';
 
 -- 3. ADVANCED USER: High-progress student, 5000 XP, many activities completed
@@ -246,7 +250,8 @@ UPDATE profiles SET
   email = 'advanced@demo.com',
   school_id = '33333333-0001-0001-0001-000000000001',
   class_id = '77777777-0001-0001-0001-000000000001',
-  student_number = '2024003', xp = 5000, current_streak = 14, longest_streak = 21
+  student_number = '2024003', xp = 5000, level = 10, league_tier = 'gold',
+  current_streak = 14, longest_streak = 21
 WHERE id = '88888888-0001-0001-0001-000000000003';
 
 -- 4. TEACHER USER: For dashboard testing
@@ -296,6 +301,498 @@ UPDATE profiles SET
   school_id = '33333333-0001-0001-0001-000000000001',
   xp = 0, current_streak = 0, longest_streak = 0
 WHERE id = '88888888-0001-0001-0001-000000000005';
+
+-- =============================================
+-- LEADERBOARD TEST STUDENTS (20 students across 3 classes)
+-- Password for all: Test1234
+-- Classes: 5-A (7 students + 3 existing), 5-B (7 students), 6-A (6 students)
+-- =============================================
+
+-- ---------- CLASS 5-A: Additional students ----------
+
+-- S04: Elif Yilmaz — 8200 XP, Level 12, Gold
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000001',
+  '00000000-0000-0000-0000-000000000000',
+  'elif@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Elif", "last_name": "Yilmaz", "student_number": "2024004", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Elif', last_name = 'Yilmaz', role = 'student',
+  email = 'elif@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024004', xp = 8200, level = 12, league_tier = 'platinum',
+  current_streak = 7, longest_streak = 14
+WHERE id = '88888888-0002-0001-0001-000000000001';
+
+-- S05: Ahmet Kaya — 3200 XP, Level 8, Silver
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000002',
+  '00000000-0000-0000-0000-000000000000',
+  'ahmet@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Ahmet", "last_name": "Kaya", "student_number": "2024005", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Ahmet', last_name = 'Kaya', role = 'student',
+  email = 'ahmet@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024005', xp = 3200, level = 8, league_tier = 'silver',
+  current_streak = 2, longest_streak = 5
+WHERE id = '88888888-0002-0001-0001-000000000002';
+
+-- S06: Zeynep Demir — 1800 XP, Level 6, Silver
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000003',
+  '00000000-0000-0000-0000-000000000000',
+  'zeynep@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Zeynep", "last_name": "Demir", "student_number": "2024006", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Zeynep', last_name = 'Demir', role = 'student',
+  email = 'zeynep@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024006', xp = 1800, level = 6, league_tier = 'silver',
+  current_streak = 5, longest_streak = 10
+WHERE id = '88888888-0002-0001-0001-000000000003';
+
+-- S07: Can Ozturk — 12500 XP, Level 15, Diamond
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000004',
+  '00000000-0000-0000-0000-000000000000',
+  'can@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Can", "last_name": "Ozturk", "student_number": "2024007", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Can', last_name = 'Ozturk', role = 'student',
+  email = 'can@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024007', xp = 12500, level = 15, league_tier = 'diamond',
+  current_streak = 30, longest_streak = 45
+WHERE id = '88888888-0002-0001-0001-000000000004';
+
+-- S08: Selin Arslan — 250 XP, Level 2, Bronze
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000005',
+  '00000000-0000-0000-0000-000000000000',
+  'selin@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Selin", "last_name": "Arslan", "student_number": "2024008", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Selin', last_name = 'Arslan', role = 'student',
+  email = 'selin@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024008', xp = 250, level = 2, league_tier = 'bronze',
+  current_streak = 1, longest_streak = 3
+WHERE id = '88888888-0002-0001-0001-000000000005';
+
+-- S09: Emre Celik — 6800 XP, Level 11, Gold
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000006',
+  '00000000-0000-0000-0000-000000000000',
+  'emre@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Emre", "last_name": "Celik", "student_number": "2024009", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Emre', last_name = 'Celik', role = 'student',
+  email = 'emre@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024009', xp = 6800, level = 11, league_tier = 'gold',
+  current_streak = 10, longest_streak = 20
+WHERE id = '88888888-0002-0001-0001-000000000006';
+
+-- S10: Defne Sahin — 950 XP, Level 4, Bronze
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0001-0001-000000000007',
+  '00000000-0000-0000-0000-000000000000',
+  'defne@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Defne", "last_name": "Sahin", "student_number": "2024010", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Defne', last_name = 'Sahin', role = 'student',
+  email = 'defne@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000001',
+  student_number = '2024010', xp = 950, level = 4, league_tier = 'bronze',
+  current_streak = 0, longest_streak = 2
+WHERE id = '88888888-0002-0001-0001-000000000007';
+
+-- ---------- CLASS 5-B: 7 students ----------
+
+-- S11: Berk Aydin — 9500 XP, Level 13, Platinum
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000001',
+  '00000000-0000-0000-0000-000000000000',
+  'berk@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Berk", "last_name": "Aydin", "student_number": "2024011", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Berk', last_name = 'Aydin', role = 'student',
+  email = 'berk@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024011', xp = 9500, level = 13, league_tier = 'platinum',
+  current_streak = 21, longest_streak = 30
+WHERE id = '88888888-0002-0002-0001-000000000001';
+
+-- S12: Yagmur Koc — 4200 XP, Level 9, Gold
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000002',
+  '00000000-0000-0000-0000-000000000000',
+  'yagmur@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Yagmur", "last_name": "Koc", "student_number": "2024012", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Yagmur', last_name = 'Koc', role = 'student',
+  email = 'yagmur@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024012', xp = 4200, level = 9, league_tier = 'gold',
+  current_streak = 4, longest_streak = 12
+WHERE id = '88888888-0002-0002-0001-000000000002';
+
+-- S13: Arda Yildiz — 2400 XP, Level 7, Silver
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000003',
+  '00000000-0000-0000-0000-000000000000',
+  'arda@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Arda", "last_name": "Yildiz", "student_number": "2024013", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Arda', last_name = 'Yildiz', role = 'student',
+  email = 'arda@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024013', xp = 2400, level = 7, league_tier = 'silver',
+  current_streak = 6, longest_streak = 8
+WHERE id = '88888888-0002-0002-0001-000000000003';
+
+-- S14: Nil Erdem — 7400 XP, Level 12, Gold
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000004',
+  '00000000-0000-0000-0000-000000000000',
+  'nil@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Nil", "last_name": "Erdem", "student_number": "2024014", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Nil', last_name = 'Erdem', role = 'student',
+  email = 'nil@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024014', xp = 7400, level = 12, league_tier = 'platinum',
+  current_streak = 12, longest_streak = 18
+WHERE id = '88888888-0002-0002-0001-000000000004';
+
+-- S15: Mert Toprak — 150 XP, Level 2, Bronze
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000005',
+  '00000000-0000-0000-0000-000000000000',
+  'mert@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Mert", "last_name": "Toprak", "student_number": "2024015", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Mert', last_name = 'Toprak', role = 'student',
+  email = 'mert@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024015', xp = 150, level = 2, league_tier = 'bronze',
+  current_streak = 0, longest_streak = 1
+WHERE id = '88888888-0002-0002-0001-000000000005';
+
+-- S16: Deniz Ozkan — 5800 XP, Level 11, Platinum
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000006',
+  '00000000-0000-0000-0000-000000000000',
+  'deniz@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Deniz", "last_name": "Ozkan", "student_number": "2024016", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Deniz', last_name = 'Ozkan', role = 'student',
+  email = 'deniz@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024016', xp = 5800, level = 11, league_tier = 'gold',
+  current_streak = 9, longest_streak = 15
+WHERE id = '88888888-0002-0002-0001-000000000006';
+
+-- S17: Ece Polat — 1200 XP, Level 5, Bronze
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0002-0001-000000000007',
+  '00000000-0000-0000-0000-000000000000',
+  'ece@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Ece", "last_name": "Polat", "student_number": "2024017", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Ece', last_name = 'Polat', role = 'student',
+  email = 'ece@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000002',
+  student_number = '2024017', xp = 1200, level = 5, league_tier = 'bronze',
+  current_streak = 3, longest_streak = 7
+WHERE id = '88888888-0002-0002-0001-000000000007';
+
+-- ---------- CLASS 6-A: 6 students ----------
+
+-- S18: Ali Korkmaz — 15000 XP, Level 17, Diamond
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000001',
+  '00000000-0000-0000-0000-000000000000',
+  'ali@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Ali", "last_name": "Korkmaz", "student_number": "2024018", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Ali', last_name = 'Korkmaz', role = 'student',
+  email = 'ali@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024018', xp = 15000, level = 17, league_tier = 'diamond',
+  current_streak = 45, longest_streak = 60
+WHERE id = '88888888-0002-0003-0001-000000000001';
+
+-- S19: Irem Aksoy — 6200 XP, Level 11, Gold
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000002',
+  '00000000-0000-0000-0000-000000000000',
+  'irem@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Irem", "last_name": "Aksoy", "student_number": "2024019", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Irem', last_name = 'Aksoy', role = 'student',
+  email = 'irem@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024019', xp = 6200, level = 11, league_tier = 'gold',
+  current_streak = 8, longest_streak = 16
+WHERE id = '88888888-0002-0003-0001-000000000002';
+
+-- S20: Burak Dogan — 3800 XP, Level 9, Silver
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000003',
+  '00000000-0000-0000-0000-000000000000',
+  'burak@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Burak", "last_name": "Dogan", "student_number": "2024020", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Burak', last_name = 'Dogan', role = 'student',
+  email = 'burak@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024020', xp = 3800, level = 9, league_tier = 'silver',
+  current_streak = 3, longest_streak = 9
+WHERE id = '88888888-0002-0003-0001-000000000003';
+
+-- S21: Asya Cetin — 11000 XP, Level 14, Platinum
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000004',
+  '00000000-0000-0000-0000-000000000000',
+  'asya@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Asya", "last_name": "Cetin", "student_number": "2024021", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Asya', last_name = 'Cetin', role = 'student',
+  email = 'asya@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024021', xp = 11000, level = 14, league_tier = 'diamond',
+  current_streak = 18, longest_streak = 25
+WHERE id = '88888888-0002-0003-0001-000000000004';
+
+-- S22: Kerem Tas — 450 XP, Level 3, Bronze
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000005',
+  '00000000-0000-0000-0000-000000000000',
+  'kerem@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Kerem", "last_name": "Tas", "student_number": "2024022", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Kerem', last_name = 'Tas', role = 'student',
+  email = 'kerem@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024022', xp = 450, level = 3, league_tier = 'bronze',
+  current_streak = 1, longest_streak = 2
+WHERE id = '88888888-0002-0003-0001-000000000005';
+
+-- S23: Melis Yalcin — 2000 XP, Level 6, Silver
+INSERT INTO auth.users (
+  id, instance_id, email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  role, aud, confirmation_token, email_change, email_change_token_new, recovery_token
+) VALUES (
+  '88888888-0002-0003-0001-000000000006',
+  '00000000-0000-0000-0000-000000000000',
+  'melis@demo.com',
+  crypt('Test1234', gen_salt('bf')),
+  NOW(),
+  '{"provider": "email", "providers": ["email"]}',
+  '{"first_name": "Melis", "last_name": "Yalcin", "student_number": "2024023", "school_code": "DEMO123", "role": "student"}',
+  NOW(), NOW(), 'authenticated', 'authenticated', '', '', '', ''
+);
+UPDATE profiles SET
+  first_name = 'Melis', last_name = 'Yalcin', role = 'student',
+  email = 'melis@demo.com',
+  school_id = '33333333-0001-0001-0001-000000000001',
+  class_id = '77777777-0001-0001-0001-000000000003',
+  student_number = '2024023', xp = 2000, level = 6, league_tier = 'silver',
+  current_streak = 4, longest_streak = 11
+WHERE id = '88888888-0002-0003-0001-000000000006';
 
 -- =============================================
 -- VOCABULARY PROGRESS (words learned by users - content block book words)

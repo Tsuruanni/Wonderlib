@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -18,7 +19,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
   Future<Either<Failure, List<Badge>>> getAllBadges() async {
     try {
       final response = await _supabase
-          .from('badges')
+          .from(DbTables.badges)
           .select()
           .eq('is_active', true)
           .order('category')
@@ -39,7 +40,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
   Future<Either<Failure, Badge>> getBadgeById(String id) async {
     try {
       final response =
-          await _supabase.from('badges').select().eq('id', id).single();
+          await _supabase.from(DbTables.badges).select().eq('id', id).single();
 
       return Right(BadgeModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -56,7 +57,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
   Future<Either<Failure, List<UserBadge>>> getUserBadges(String userId) async {
     try {
       final response = await _supabase
-          .from('user_badges')
+          .from(DbTables.userBadges)
           .select('*, badges(*)')
           .eq('user_id', userId)
           .order('earned_at', ascending: false);
@@ -81,7 +82,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
     try {
       // Check if user already has this badge
       final existing = await _supabase
-          .from('user_badges')
+          .from(DbTables.userBadges)
           .select()
           .eq('user_id', userId)
           .eq('badge_id', badgeId)
@@ -94,7 +95,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Award the badge
       final response = await _supabase
-          .from('user_badges')
+          .from(DbTables.userBadges)
           .insert({
             'user_id': userId,
             'badge_id': badgeId,
@@ -124,7 +125,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
     try {
       // Get user's current stats
       final profile = await _supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .select('xp, level, current_streak, longest_streak')
           .eq('id', userId)
           .single();
@@ -135,7 +136,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Get books completed
       final booksCompleted = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select('id')
           .eq('user_id', userId)
           .eq('is_completed', true);
@@ -144,7 +145,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Get vocabulary mastered
       final vocabMastered = await _supabase
-          .from('vocabulary_progress')
+          .from(DbTables.vocabularyProgress)
           .select('id')
           .eq('user_id', userId)
           .eq('status', 'mastered');
@@ -153,7 +154,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Get perfect activity scores (score == max_score)
       final allScores = await _supabase
-          .from('activity_results')
+          .from(DbTables.activityResults)
           .select('score, max_score')
           .eq('user_id', userId);
 
@@ -163,7 +164,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Get user's existing badges
       final existingBadges = await _supabase
-          .from('user_badges')
+          .from(DbTables.userBadges)
           .select('badge_id')
           .eq('user_id', userId);
 
@@ -173,7 +174,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
 
       // Get all active badges
       final allBadges = await _supabase
-          .from('badges')
+          .from(DbTables.badges)
           .select()
           .eq('is_active', true);
 
@@ -226,13 +227,14 @@ class SupabaseBadgeRepository implements BadgeRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('user_badges')
+          .from(DbTables.userBadges)
           .select('*, badges(*)')
           .eq('user_id', userId)
           .order('earned_at', ascending: false)
           .limit(limit);
 
       final badges = (response as List)
+          .where((json) => json['badges'] != null)
           .map((json) => BadgeModel.fromJson(json['badges'] as Map<String, dynamic>).toEntity())
           .toList();
 
@@ -252,7 +254,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
     try {
       // Use atomic RPC to prevent race conditions (same as activity repo)
       await _supabase.rpc(
-        'award_xp_transaction',
+        RpcFunctions.awardXpTransaction,
         params: {
           'p_user_id': userId,
           'p_amount': amount,

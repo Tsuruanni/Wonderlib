@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -29,7 +30,7 @@ class SupabaseBookRepository implements BookRepository {
     int pageSize = 20,
   }) async {
     try {
-      var query = _supabase.from('books').select().eq('status', 'published');
+      var query = _supabase.from(DbTables.books).select().eq('status', 'published');
 
       if (level != null) query = query.eq('level', level);
       if (genre != null) query = query.eq('genre', genre);
@@ -55,7 +56,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, Book>> getBookById(String id) async {
     try {
       final response =
-          await _supabase.from('books').select().eq('id', id).single();
+          await _supabase.from(DbTables.books).select().eq('id', id).single();
 
       return Right(_mapToBook(response));
     } on PostgrestException catch (e) {
@@ -80,7 +81,7 @@ class SupabaseBookRepository implements BookRepository {
           .replaceAll('(', '')
           .replaceAll(')', '');
       final response = await _supabase
-          .from('books')
+          .from(DbTables.books)
           .select()
           .eq('status', 'published')
           .or('title.ilike.%$escapedQuery%,description.ilike.%$escapedQuery%')
@@ -102,7 +103,7 @@ class SupabaseBookRepository implements BookRepository {
     try {
       // Get books the user hasn't started reading
       final progressResponse = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select('book_id')
           .eq('user_id', userId);
 
@@ -110,7 +111,7 @@ class SupabaseBookRepository implements BookRepository {
           .map((p) => p['book_id'] as String)
           .toList();
 
-      var query = _supabase.from('books').select().eq('status', 'published');
+      var query = _supabase.from(DbTables.books).select().eq('status', 'published');
 
       // Exclude books already being read (single filter instead of N loops)
       if (readBookIds.isNotEmpty) {
@@ -134,7 +135,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, List<Chapter>>> getChapters(String bookId) async {
     try {
       final response = await _supabase
-          .from('chapters')
+          .from(DbTables.chapters)
           .select()
           .eq('book_id', bookId)
           .order('order_index', ascending: true);
@@ -154,7 +155,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, Chapter>> getChapterById(String chapterId) async {
     try {
       final response = await _supabase
-          .from('chapters')
+          .from(DbTables.chapters)
           .select()
           .eq('id', chapterId)
           .single();
@@ -177,18 +178,18 @@ class SupabaseBookRepository implements BookRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select()
           .eq('user_id', userId)
           .eq('book_id', bookId)
           .maybeSingle();
 
       if (response == null) {
-        // Create new progress in DB and return persisted record
+        // Create new progress using upsert to avoid race conditions
         final now = DateTime.now().toIso8601String();
         final inserted = await _supabase
-            .from('reading_progress')
-            .insert({
+            .from(DbTables.readingProgress)
+            .upsert({
               'user_id': userId,
               'book_id': bookId,
               'current_page': 0,
@@ -198,7 +199,7 @@ class SupabaseBookRepository implements BookRepository {
               'completed_chapter_ids': <String>[],
               'started_at': now,
               'updated_at': now,
-            })
+            }, onConflict: 'user_id,book_id')
             .select()
             .single();
         return Right(_mapToReadingProgress(inserted));
@@ -230,30 +231,13 @@ class SupabaseBookRepository implements BookRepository {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      // Check if progress exists
-      final existing = await _supabase
-          .from('reading_progress')
-          .select('id')
-          .eq('user_id', progress.userId)
-          .eq('book_id', progress.bookId)
-          .maybeSingle();
+      data['started_at'] = progress.startedAt.toIso8601String();
 
-      Map<String, dynamic> response;
-
-      if (existing != null) {
-        // Update existing
-        response = await _supabase
-            .from('reading_progress')
-            .update(data)
-            .eq('id', existing['id'])
-            .select()
-            .single();
-      } else {
-        // Insert new
-        data['started_at'] = progress.startedAt.toIso8601String();
-        response =
-            await _supabase.from('reading_progress').insert(data).select().single();
-      }
+      final response = await _supabase
+          .from(DbTables.readingProgress)
+          .upsert(data, onConflict: 'user_id,book_id')
+          .select()
+          .single();
 
       return Right(_mapToReadingProgress(response));
     } on PostgrestException catch (e) {
@@ -269,7 +253,7 @@ class SupabaseBookRepository implements BookRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select()
           .eq('user_id', userId)
           .order('updated_at', ascending: false);
@@ -291,7 +275,7 @@ class SupabaseBookRepository implements BookRepository {
     try {
       // Get in-progress reading (not completed)
       final progressResponse = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select('book_id')
           .eq('user_id', userId)
           .eq('is_completed', false)
@@ -307,7 +291,7 @@ class SupabaseBookRepository implements BookRepository {
       }
 
       final booksResponse = await _supabase
-          .from('books')
+          .from(DbTables.books)
           .select()
           .inFilter('id', bookIds);
 
@@ -368,7 +352,7 @@ class SupabaseBookRepository implements BookRepository {
               bool isCompleted = allChaptersComplete;
               if (allChaptersComplete) {
                 final hasQuiz = await _supabase.rpc(
-                  'book_has_quiz',
+                  RpcFunctions.bookHasQuiz,
                   params: {'p_book_id': bookId},
                 );
                 if (hasQuiz == true) {
@@ -405,7 +389,7 @@ class SupabaseBookRepository implements BookRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('inline_activities')
+          .from(DbTables.inlineActivities)
           .select()
           .eq('chapter_id', chapterId)
           .order('after_paragraph_index', ascending: true);
@@ -431,7 +415,7 @@ class SupabaseBookRepository implements BookRepository {
   }) async {
     try {
       // Optimistic insert - let DB UNIQUE constraint handle duplicates
-      await _supabase.from('inline_activity_results').insert({
+      await _supabase.from(DbTables.inlineActivityResults).insert({
         'user_id': userId,
         'inline_activity_id': activityId,
         'is_correct': isCorrect,
@@ -459,7 +443,7 @@ class SupabaseBookRepository implements BookRepository {
     try {
       // Get activity IDs for this chapter
       final activitiesResponse = await _supabase
-          .from('inline_activities')
+          .from(DbTables.inlineActivities)
           .select('id')
           .eq('chapter_id', chapterId);
 
@@ -473,7 +457,7 @@ class SupabaseBookRepository implements BookRepository {
 
       // Get completed activities for this user
       final resultsResponse = await _supabase
-          .from('inline_activity_results')
+          .from(DbTables.inlineActivityResults)
           .select('inline_activity_id')
           .eq('user_id', userId)
           .inFilter('inline_activity_id', activityIds);
@@ -497,7 +481,7 @@ class SupabaseBookRepository implements BookRepository {
     required String chapterId,
   }) async {
     try {
-      await _supabase.from('reading_progress').upsert(
+      await _supabase.from(DbTables.readingProgress).upsert(
         {
           'user_id': userId,
           'book_id': bookId,
@@ -518,7 +502,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, Set<String>>> getCompletedBookIds(String userId) async {
     try {
       final response = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select('book_id')
           .eq('user_id', userId)
           .eq('is_completed', true);
@@ -542,7 +526,7 @@ class SupabaseBookRepository implements BookRepository {
       final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
 
       final response = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select('id')
           .eq('user_id', userId)
           .gte('updated_at', todayStart)
@@ -563,7 +547,7 @@ class SupabaseBookRepository implements BookRepository {
       final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
 
       final response = await _supabase
-          .from('inline_activity_results')
+          .from(DbTables.inlineActivityResults)
           .select('id')
           .eq('user_id', userId)
           .eq('is_correct', true)
@@ -584,7 +568,7 @@ class SupabaseBookRepository implements BookRepository {
 
       // Get chapters read today with their word counts via join
       final response = await _supabase
-          .from('daily_chapter_reads')
+          .from(DbTables.dailyChapterReads)
           .select('chapters(word_count)')
           .eq('user_id', userId)
           .eq('read_date', today);
@@ -607,7 +591,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<void> _logDailyChapterRead(String userId, String chapterId) async {
     try {
       final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
-      await _supabase.from('daily_chapter_reads').upsert(
+      await _supabase.from(DbTables.dailyChapterReads).upsert(
         {
           'user_id': userId,
           'chapter_id': chapterId,
@@ -628,7 +612,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, List<UnitBook>>> getUnitBooks(String userId) async {
     try {
       final response = await _supabase.rpc(
-        'get_user_unit_books',
+        RpcFunctions.getUserUnitBooks,
         params: {'p_user_id': userId},
       );
 

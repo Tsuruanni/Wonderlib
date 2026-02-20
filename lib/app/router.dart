@@ -18,6 +18,7 @@ import '../presentation/screens/vocabulary/vocabulary_session_screen.dart';
 import '../presentation/screens/vocabulary/session_summary_screen.dart';
 import '../presentation/screens/vocabulary/daily_review_screen.dart';
 import '../presentation/screens/cards/card_collection_screen.dart';
+import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
@@ -58,6 +59,7 @@ abstract class AppRoutes {
   // Teacher routes — dashboard now at /teacher/dashboard
   // Card collection routes
   static const cards = '/cards';
+  static const leaderboard = '/leaderboard';
   static const packOpening = '/cards/open-pack';
 
   // Teacher routes — dashboard now at /teacher/dashboard
@@ -169,6 +171,7 @@ final _studentHomeKey = GlobalKey<NavigatorState>(debugLabel: 'studentHome');
 final _studentLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'studentLibrary');
 final _studentVocabKey = GlobalKey<NavigatorState>(debugLabel: 'studentVocab');
 final _studentCardsKey = GlobalKey<NavigatorState>(debugLabel: 'studentCards');
+final _studentLeaderboardKey = GlobalKey<NavigatorState>(debugLabel: 'studentLeaderboard');
 final _teacherDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'teacherDashboard');
 final _teacherClassesKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses');
 final _teacherAssignmentsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
@@ -340,6 +343,15 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.cards,
                 builder: (context, state) => const CardCollectionScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _studentLeaderboardKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.leaderboard,
+                builder: (context, state) => const LeaderboardScreen(),
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -30,7 +31,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       // Use RPC function to get all stats in single query (eliminates N+1)
       final response = await _supabase.rpc(
-        'get_teacher_stats',
+        RpcFunctions.getTeacherStats,
         params: {'p_teacher_id': teacherId},
       );
 
@@ -65,7 +66,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       // Use RPC function to get all class stats in single query (eliminates N+1)
       final response = await _supabase.rpc(
-        'get_classes_with_stats',
+        RpcFunctions.getClassesWithStats,
         params: {'p_school_id': schoolId},
       );
 
@@ -91,7 +92,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     try {
       // Use RPC function that includes avg_progress (eliminates N+1)
       final response = await _supabase.rpc(
-        'get_students_in_class',
+        RpcFunctions.getStudentsInClass,
         params: {'p_class_id': classId},
       );
 
@@ -111,7 +112,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   Future<Either<Failure, domain.User>> getStudentDetail(String studentId) async {
     try {
       final response = await _supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .select()
           .eq('id', studentId)
           .single();
@@ -134,7 +135,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     try {
       // Use RPC function that includes chapter counts (eliminates N+1)
       final response = await _supabase.rpc(
-        'get_student_progress_with_books',
+        RpcFunctions.getStudentProgressWithBooks,
         params: {'p_student_id': studentId},
       );
 
@@ -156,7 +157,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   ) async {
     try {
       final response = await _supabase.rpc(
-        'get_student_vocab_stats',
+        RpcFunctions.getStudentVocabStats,
         params: {'p_student_id': studentId},
       );
 
@@ -188,7 +189,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   ) async {
     try {
       final response = await _supabase.rpc(
-        'get_student_word_list_progress',
+        RpcFunctions.getStudentWordListProgress,
         params: {'p_student_id': studentId},
       );
 
@@ -213,7 +214,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     try {
       // Use RPC function that includes student stats (eliminates N+1)
       final response = await _supabase.rpc(
-        'get_assignments_with_stats',
+        RpcFunctions.getAssignmentsWithStats,
         params: {'p_teacher_id': teacherId},
       );
 
@@ -233,7 +234,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   Future<Either<Failure, Assignment>> getAssignmentDetail(String assignmentId) async {
     try {
       final response = await _supabase
-          .from('assignments')
+          .from(DbTables.assignments)
           .select('''
             *,
             classes:class_id (name)
@@ -243,7 +244,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       // Get student counts
       final studentsResponse = await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .select('status')
           .eq('assignment_id', assignmentId);
 
@@ -274,7 +275,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .select('''
             *,
             profiles:student_id (
@@ -314,7 +315,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     try {
       // Create the assignment
       final assignmentResponse = await _supabase
-          .from('assignments')
+          .from(DbTables.assignments)
           .insert({
             'teacher_id': teacherId,
             'class_id': data.classId,
@@ -339,7 +340,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
       } else if (data.classId != null) {
         // All students in the class
         final studentsResponse = await _supabase
-            .from('profiles')
+            .from(DbTables.profiles)
             .select('id')
             .eq('class_id', data.classId!)
             .eq('role', 'student');
@@ -358,7 +359,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
           'progress': 0,
         },).toList();
 
-        await _supabase.from('assignment_students').insert(assignmentStudents);
+        await _supabase.from(DbTables.assignmentStudents).insert(assignmentStudents);
       }
 
       // Return the created assignment
@@ -374,7 +375,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
   Future<Either<Failure, void>> deleteAssignment(String assignmentId) async {
     try {
       await _supabase
-          .from('assignments')
+          .from(DbTables.assignments)
           .delete()
           .eq('id', assignmentId);
 
@@ -397,7 +398,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     String? description,
   }) async {
     try {
-      final response = await _supabase.from('classes').insert({
+      final response = await _supabase.from(DbTables.classes).insert({
         'school_id': schoolId,
         'name': name,
         'description': description,
@@ -417,7 +418,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
     required String newClassId,
   }) async {
     try {
-      await _supabase.from('profiles').update({
+      await _supabase.from(DbTables.profiles).update({
         'class_id': newClassId,
       }).eq('id', studentId);
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -60,7 +61,7 @@ class SupabaseAuthRepository implements AuthRepository {
     try {
       // 1. Find user by student number (globally unique)
       final profileResponse = await _supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .select('id, email')
           .eq('student_number', studentNumber)
           .maybeSingle();
@@ -162,7 +163,7 @@ class SupabaseAuthRepository implements AuthRepository {
       }
 
       final profileData = await _supabase
-          .from('profiles')
+          .from(DbTables.profiles)
           .select()
           .eq('id', authUser.id)
           .maybeSingle();

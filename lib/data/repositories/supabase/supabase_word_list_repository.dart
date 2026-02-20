@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -23,7 +24,7 @@ class SupabaseWordListRepository implements WordListRepository {
   Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits() async {
     try {
       final response = await _supabase
-          .from('vocabulary_units')
+          .from(DbTables.vocabularyUnits)
           .select()
           .eq('is_active', true)
           .order('sort_order', ascending: true);
@@ -47,7 +48,7 @@ class SupabaseWordListRepository implements WordListRepository {
     try {
       // Call RPC to resolve which units this user can access
       final rpcResponse = await _supabase.rpc(
-        'get_assigned_vocabulary_units',
+        RpcFunctions.getAssignedVocabularyUnits,
         params: {'p_user_id': userId},
       );
 
@@ -61,7 +62,7 @@ class SupabaseWordListRepository implements WordListRepository {
 
       // Fetch full unit details for the assigned IDs
       final unitsResponse = await _supabase
-          .from('vocabulary_units')
+          .from(DbTables.vocabularyUnits)
           .select()
           .inFilter('id', unitIds)
           .eq('is_active', true)
@@ -85,7 +86,7 @@ class SupabaseWordListRepository implements WordListRepository {
     bool? isSystem,
   }) async {
     try {
-      var query = _supabase.from('word_lists').select();
+      var query = _supabase.from(DbTables.wordLists).select();
 
       if (category != null) {
         query = query.eq('category', WordListModel.categoryToString(category));
@@ -112,7 +113,7 @@ class SupabaseWordListRepository implements WordListRepository {
   Future<Either<Failure, WordList>> getWordListById(String id) async {
     try {
       final response =
-          await _supabase.from('word_lists').select().eq('id', id).single();
+          await _supabase.from(DbTables.wordLists).select().eq('id', id).single();
 
       return Right(WordListModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -132,7 +133,7 @@ class SupabaseWordListRepository implements WordListRepository {
     try {
       // Get word IDs from junction table
       final junctionResponse = await _supabase
-          .from('word_list_items')
+          .from(DbTables.wordListItems)
           .select('word_id, order_index')
           .eq('word_list_id', listId)
           .order('order_index', ascending: true);
@@ -147,7 +148,7 @@ class SupabaseWordListRepository implements WordListRepository {
 
       // Get actual words
       final wordsResponse = await _supabase
-          .from('vocabulary_words')
+          .from(DbTables.vocabularyWords)
           .select()
           .inFilter('id', wordIds);
 
@@ -179,7 +180,7 @@ class SupabaseWordListRepository implements WordListRepository {
   ) async {
     try {
       final response = await _supabase
-          .from('user_word_list_progress')
+          .from(DbTables.userWordListProgress)
           .select()
           .eq('user_id', userId)
           .order('updated_at', ascending: false);
@@ -203,7 +204,7 @@ class SupabaseWordListRepository implements WordListRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('user_word_list_progress')
+          .from(DbTables.userWordListProgress)
           .select()
           .eq('user_id', userId)
           .eq('word_list_id', listId)
@@ -238,30 +239,11 @@ class SupabaseWordListRepository implements WordListRepository {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      // Check if progress exists
-      final existing = await _supabase
-          .from('user_word_list_progress')
-          .select('id')
-          .eq('user_id', progress.userId)
-          .eq('word_list_id', progress.wordListId)
-          .maybeSingle();
-
-      Map<String, dynamic> response;
-
-      if (existing != null) {
-        response = await _supabase
-            .from('user_word_list_progress')
-            .update(data)
-            .eq('id', existing['id'])
-            .select()
-            .single();
-      } else {
-        response = await _supabase
-            .from('user_word_list_progress')
-            .insert(data)
-            .select()
-            .single();
-      }
+      final response = await _supabase
+          .from(DbTables.userWordListProgress)
+          .upsert(data, onConflict: 'user_id,word_list_id')
+          .select()
+          .single();
 
       return Right(WordListProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
@@ -293,7 +275,7 @@ class SupabaseWordListRepository implements WordListRepository {
           .toList();
 
       final response = await _supabase.rpc(
-        'complete_vocabulary_session',
+        RpcFunctions.completeVocabularySession,
         params: {
           'p_user_id': userId,
           'p_word_list_id': wordListId,
@@ -345,7 +327,7 @@ class SupabaseWordListRepository implements WordListRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('vocabulary_sessions')
+          .from(DbTables.vocabularySessions)
           .select()
           .eq('user_id', userId)
           .eq('word_list_id', wordListId)
@@ -371,7 +353,7 @@ class SupabaseWordListRepository implements WordListRepository {
   }) async {
     try {
       await _supabase
-          .from('user_word_list_progress')
+          .from(DbTables.userWordListProgress)
           .delete()
           .eq('user_id', userId)
           .eq('word_list_id', listId);

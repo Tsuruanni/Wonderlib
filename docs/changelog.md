@@ -8,6 +8,51 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### League System & Leaderboard (2026-02-20)
+
+#### Added
+- **League tier system** — Weekly competitive leagues within schools, tier-based matchmaking (Bronze → Diamond)
+  - `LeagueTier` enum in shared package with `dbValue`/`fromDbValue()` DB mapping
+  - `league_history` table tracking weekly tier changes
+  - `process_weekly_league_reset()` RPC for automated weekly promotions/demotions
+  - Tier-scoped leaderboard RPCs: `get_weekly_school_leaderboard`, `get_user_weekly_school_position`
+- **Leaderboard screen** — Three scopes (Class, School, League) with scope toggle
+  - `LeaderboardScreen` + `LeaderboardListTile` widgets
+  - `LeaderboardEntry` entity + `LeaderboardEntryModel` with JSON serialization
+  - 4 new UseCases: `GetTotalLeaderboardUseCase`, `GetUserTotalPositionUseCase`, `GetWeeklyLeaderboardUseCase`, `GetUserWeeklyPositionUseCase`
+  - `leaderboardDisplayProvider` combines entries + user position + scope state
+- **Student profile popup** — Tap any leaderboard entry to see student stats dialog
+  - `StudentProfileDialog` widget + `studentProfilePopupProvider`
+
+#### Infrastructure
+- **5 DB Migrations**: `20260217000001_create_league_system.sql`, `20260217000002_user_badges_school_rls.sql`, `20260218000001_league_school_based_reset.sql`, `20260218000002_fix_xp_idempotency_index.sql`, `20260218000003_league_tier_based_competition.sql`
+- **Shared package**: `LeagueTier` enum added to `readeng_shared`
+- **Router**: Leaderboard tab added to student shell
+
+### Codebase Audit & Bug Fixes (2026-02-20)
+
+#### Fixed
+- **RLS security** — `user_badges` and `xp_logs` INSERT policies changed from `WITH CHECK (true)` to `WITH CHECK (user_id = auth.uid())` preventing cross-user data injection
+- **Quiz XP not awarding** — Fixed RPC parameter name mismatch: `p_xp_amount` → `p_amount` in book quiz repository
+- **Null crash on JSON parse** — Added null guards to 8+ model files (activity_result, assignment, pack_result, buy_pack_result, myth_card, content_block, student_summary)
+- **Race conditions** — Replaced check-then-act patterns with atomic upsert in 3 repositories (book progress, vocabulary progress, word list progress)
+- **Sign-out stale state** — `levelUpEvent` and `leagueTierChange` providers now cleared on sign-out
+- **Streak update on failed XP** — `updateStreak()` now only called when XP award succeeds
+- **Reader timer crash** — Added `mounted` guard before `ref.read` in timer callback
+- **Home screen silent failures** — Added retry UI with "Could not load data" message and Retry button
+
+#### Changed
+- **Hard-coded strings eliminated** — All 13 Supabase repository files now use `DbTables.*` and `RpcFunctions.*` constants instead of raw string literals
+- **Leaderboard provider** — Rewired from direct repository access to UseCase pattern (was the only architecture violation)
+- **StudentAssignment enums consolidated** — Replaced duplicate enum definitions with typedefs to shared `AssignmentStatus`/`AssignmentType`
+- **Dead UseCase cleanup** — Registered 4 orphaned UseCases in providers, deleted 1 superseded UseCase (`get_leaderboard_usecase.dart`)
+- **DbTables completeness** — Added 7 missing table constants: `xpLogs`, `coinLogs`, `leagueHistory`, `vocabularySessionWords`, `chapterVocabulary`, `packPurchases`, `dailyQuestPackClaims`
+- **Warnings cleaned** — Removed unused import and unused variable (0 errors, 0 warnings)
+
+#### Infrastructure
+- **1 DB Migration**: `20260220000001_fix_badge_xplog_rls.sql`
+- **Seed data** expanded with league system test data
+
 ### Lexile Score Support (2026-02-14)
 
 #### Added

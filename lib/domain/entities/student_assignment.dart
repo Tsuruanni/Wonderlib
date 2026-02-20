@@ -1,70 +1,46 @@
 import 'package:equatable/equatable.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-/// Assignment status for students
-enum StudentAssignmentStatus {
-  pending,
-  inProgress,
-  completed,
-  overdue;
+// Re-export shared enums with student-facing typedefs for backwards compat.
+// Both teacher and student sides now use the same underlying enum.
+typedef StudentAssignmentStatus = AssignmentStatus;
+typedef StudentAssignmentType = AssignmentType;
 
-  String get displayName {
+/// Student-facing display names (slightly different from teacher-side).
+extension StudentAssignmentStatusDisplay on AssignmentStatus {
+  String get studentDisplayName {
     switch (this) {
-      case StudentAssignmentStatus.pending:
+      case AssignmentStatus.pending:
         return 'Not Started';
-      case StudentAssignmentStatus.inProgress:
+      case AssignmentStatus.inProgress:
         return 'In Progress';
-      case StudentAssignmentStatus.completed:
+      case AssignmentStatus.completed:
         return 'Completed';
-      case StudentAssignmentStatus.overdue:
+      case AssignmentStatus.overdue:
         return 'Overdue';
     }
   }
 
-  static StudentAssignmentStatus fromString(String value) {
-    switch (value) {
-      case 'pending':
-        return StudentAssignmentStatus.pending;
-      case 'in_progress':
-        return StudentAssignmentStatus.inProgress;
-      case 'completed':
-        return StudentAssignmentStatus.completed;
-      case 'overdue':
-        return StudentAssignmentStatus.overdue;
-      default:
-        return StudentAssignmentStatus.pending;
-    }
-  }
+  /// Backwards compat: fromString maps to fromDbValue.
+  static AssignmentStatus fromString(String value) =>
+      AssignmentStatus.fromDbValue(value);
 }
 
-/// Assignment type
-enum StudentAssignmentType {
-  book,
-  vocabulary,
-  mixed;
-
-  String get displayName {
+extension StudentAssignmentTypeDisplay on AssignmentType {
+  String get studentDisplayName {
     switch (this) {
-      case StudentAssignmentType.book:
+      case AssignmentType.book:
         return 'Reading';
-      case StudentAssignmentType.vocabulary:
+      case AssignmentType.vocabulary:
         return 'Vocabulary';
-      case StudentAssignmentType.mixed:
+      case AssignmentType.mixed:
         return 'Mixed';
     }
   }
 
-  static StudentAssignmentType fromString(String value) {
-    switch (value) {
-      case 'book':
-        return StudentAssignmentType.book;
-      case 'vocabulary':
-        return StudentAssignmentType.vocabulary;
-      case 'mixed':
-        return StudentAssignmentType.mixed;
-      default:
-        return StudentAssignmentType.book;
-    }
-  }
+  /// Backwards compat: fromString maps to fromDbValue.
+  static AssignmentType fromString(String value) =>
+      AssignmentType.fromDbValue(value);
 }
 
 /// Assignment as seen by a student

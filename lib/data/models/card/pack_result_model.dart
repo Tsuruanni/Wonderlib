@@ -11,24 +11,25 @@ class PackResultModel {
 
   /// Parse the JSONB returned by open_card_pack() RPC function
   factory PackResultModel.fromJson(Map<String, dynamic> json) {
-    final cardsJson = json['cards'] as List<dynamic>;
+    final cardsJson = json['cards'] as List<dynamic>? ?? [];
     final cards = cardsJson.map((c) {
       final cardJson = c as Map<String, dynamic>;
+      final name = cardJson['name'] as String? ?? '';
       final imageUrl = cardJson['image_url'] as String? ??
-          MythCardModel.cardAssetPath(cardJson['name'] as String);
+          MythCardModel.cardAssetPath(name);
 
       return PackCardModel(
-        id: cardJson['id'] as String,
-        cardNo: cardJson['card_no'] as String,
-        name: cardJson['name'] as String,
-        category: cardJson['category'] as String,
+        id: cardJson['id'] as String? ?? '',
+        cardNo: cardJson['card_no'] as String? ?? '',
+        name: name,
+        category: cardJson['category'] as String? ?? '',
         categoryIcon: cardJson['category_icon'] as String?,
-        rarity: cardJson['rarity'] as String,
-        power: cardJson['power'] as int,
+        rarity: cardJson['rarity'] as String? ?? 'common',
+        power: (cardJson['power'] as num?)?.toInt() ?? 0,
         specialSkill: cardJson['special_skill'] as String?,
         description: cardJson['description'] as String?,
-        isNew: cardJson['is_new'] as bool,
-        quantity: cardJson['quantity'] as int,
+        isNew: cardJson['is_new'] as bool? ?? true,
+        quantity: (cardJson['quantity'] as num?)?.toInt() ?? 1,
         imageUrl: imageUrl,
       );
     }).toList();

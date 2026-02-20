@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -19,7 +20,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
   Future<Either<Failure, BookQuiz?>> getQuizForBook(String bookId) async {
     try {
       final response = await _supabase
-          .from('book_quizzes')
+          .from(DbTables.bookQuizzes)
           .select('*, book_quiz_questions(*)')
           .eq('book_id', bookId)
           .eq('is_published', true)
@@ -39,7 +40,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
   Future<Either<Failure, bool>> bookHasQuiz(String bookId) async {
     try {
       final result = await _supabase.rpc(
-        'book_has_quiz',
+        RpcFunctions.bookHasQuiz,
         params: {'p_book_id': bookId},
       );
       return Right(result == true);
@@ -57,7 +58,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
     try {
       // Calculate attempt number
       final countResponse = await _supabase
-          .from('book_quiz_results')
+          .from(DbTables.bookQuizResults)
           .select('id')
           .eq('user_id', result.userId)
           .eq('quiz_id', result.quizId);
@@ -69,7 +70,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
       insertData['attempt_number'] = attemptNumber;
 
       final response = await _supabase
-          .from('book_quiz_results')
+          .from(DbTables.bookQuizResults)
           .insert(insertData)
           .select()
           .single();
@@ -100,7 +101,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
     try {
       // Get current reading progress
       final progressResponse = await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .select()
           .eq('user_id', userId)
           .eq('book_id', bookId)
@@ -115,7 +116,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
       final completedChapterIds =
           (progressResponse['completed_chapter_ids'] as List<dynamic>?) ?? [];
       final chaptersResponse = await _supabase
-          .from('chapters')
+          .from(DbTables.chapters)
           .select('id')
           .eq('book_id', bookId);
       final totalChapters = (chaptersResponse as List).length;
@@ -133,18 +134,18 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
       }
 
       await _supabase
-          .from('reading_progress')
+          .from(DbTables.readingProgress)
           .update(updateData)
           .eq('user_id', userId)
           .eq('book_id', bookId);
 
       // Award XP for first-time quiz passing
       try {
-        await _supabase.rpc('award_xp_transaction', params: {
+        await _supabase.rpc(RpcFunctions.awardXpTransaction, params: {
           'p_user_id': userId,
-          'p_xp_amount': 20, // Book completion XP
+          'p_amount': 20, // Book completion XP
         });
-        await _supabase.rpc('check_and_award_badges', params: {
+        await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
           'p_user_id': userId,
         });
       } catch (e) {
@@ -162,7 +163,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
   }) async {
     try {
       final response = await _supabase.rpc(
-        'get_best_book_quiz_result',
+        RpcFunctions.getBestBookQuizResult,
         params: {'p_user_id': userId, 'p_book_id': bookId},
       );
 
@@ -202,7 +203,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
   }) async {
     try {
       final response = await _supabase
-          .from('book_quiz_results')
+          .from(DbTables.bookQuizResults)
           .select()
           .eq('user_id', userId)
           .eq('book_id', bookId)
@@ -228,7 +229,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
   ) async {
     try {
       final response = await _supabase.rpc(
-        'get_student_quiz_results',
+        RpcFunctions.getStudentQuizResults,
         params: {'p_student_id': studentId},
       );
 

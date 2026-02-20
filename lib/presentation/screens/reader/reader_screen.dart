@@ -149,11 +149,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   void _startReadingTimer() {
     _readingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       ref.read(readingTimerProvider.notifier).tick();
 
       final seconds = ref.read(readingTimerProvider);
       if (seconds > 0 && seconds % ReaderConstants.autoSaveIntervalSeconds == 0) {
         _saveReadingTime().then((_) {
+          if (!mounted) return;
           ref.read(readingTimerProvider.notifier).reset();
         });
       }
@@ -362,7 +364,25 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: settings.theme.text,
       ),
-      body: Center(child: Text('Error: $error')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Something went wrong loading this chapter.',
+              style: TextStyle(color: settings.theme.text),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

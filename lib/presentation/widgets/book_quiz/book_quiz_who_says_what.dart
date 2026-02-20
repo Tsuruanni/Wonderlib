@@ -138,8 +138,6 @@ class _BookQuizWhoSaysWhatState extends State<BookQuizWhoSaysWhat> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(

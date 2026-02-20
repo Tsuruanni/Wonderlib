@@ -1,10 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
-import '../../domain/usecases/user/get_classmates_usecase.dart';
-import '../../domain/usecases/user/get_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
@@ -17,24 +16,31 @@ class LevelUpEvent {
   const LevelUpEvent({
     required this.oldLevel,
     required this.newLevel,
-    required this.oldTier,
-    required this.newTier,
   });
 
   final int oldLevel;
   final int newLevel;
-  final UserLevel oldTier;
-  final UserLevel newTier;
-
-  /// True if user advanced to a new tier (every 5 levels)
-  bool get isTierUp => oldTier != newTier;
-
-  /// True if this is a milestone level (5, 10, 15, 20, etc.)
-  bool get isMilestone => newLevel % 5 == 0;
 }
 
 /// Provider for level up events - UI can listen to this to show celebrations
 final levelUpEventProvider = StateProvider<LevelUpEvent?>((ref) => null);
+
+/// League tier change event (weekly league promotion/demotion)
+class LeagueTierChangeEvent {
+  const LeagueTierChangeEvent({
+    required this.oldTier,
+    required this.newTier,
+  });
+
+  final LeagueTier oldTier;
+  final LeagueTier newTier;
+
+  bool get isPromotion => newTier.index > oldTier.index;
+  bool get isDemotion => newTier.index < oldTier.index;
+}
+
+/// Provider for league tier change events
+final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -63,46 +69,6 @@ final activityHistoryProvider = FutureProvider<List<DateTime>>((ref) async {
   );
 });
 
-/// Provides leaderboard
-final leaderboardProvider = FutureProvider.family<List<User>, LeaderboardParams?>((ref, params) async {
-  final useCase = ref.watch(getLeaderboardUseCaseProvider);
-  final result = await useCase(GetLeaderboardParams(
-    schoolId: params?.schoolId,
-    classId: params?.classId,
-    limit: params?.limit ?? 10,
-  ),);
-  return result.fold(
-    (failure) => [],
-    (users) => users,
-  );
-});
-
-/// Provides classmates
-final classmatesProvider = FutureProvider<List<User>>((ref) async {
-  final user = ref.watch(authStateChangesProvider).valueOrNull;
-  if (user == null || user.classId == null) return [];
-
-  final useCase = ref.watch(getClassmatesUseCaseProvider);
-  final result = await useCase(GetClassmatesParams(classId: user.classId!));
-  return result.fold(
-    (failure) => [],
-    (users) => users,
-  );
-});
-
-/// Leaderboard params
-class LeaderboardParams {
-
-  const LeaderboardParams({
-    this.schoolId,
-    this.classId,
-    this.limit = 10,
-  });
-  final String? schoolId;
-  final String? classId;
-  final int limit;
-}
-
 /// User controller for XP and streak updates
 class UserController extends StateNotifier<AsyncValue<User?>> {
 
@@ -116,14 +82,17 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       if (newUser != null && newUser.id != oldUserId) {
         _loadUserById(newUser.id);
       } else if (newUser == null && oldUserId != null) {
-        // User logged out
+        // User logged out — clear stale state
         state = const AsyncValue.data(null);
+        _ref.read(levelUpEventProvider.notifier).state = null;
+        _ref.read(leagueTierChangeEventProvider.notifier).state = null;
       }
     }, fireImmediately: true,);
   }
   final Ref _ref;
 
   Future<void> _loadUserById(String userId) async {
+    final oldUser = state.valueOrNull;
     state = const AsyncValue.loading();
 
     final useCase = _ref.read(getUserByIdUseCaseProvider);
@@ -136,8 +105,20 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (user) {
         state = AsyncValue.data(user);
         _updateStreakIfNeeded(user);
+        _checkLeagueTierChange(oldUser, user);
       },
     );
+  }
+
+  void _checkLeagueTierChange(User? oldUser, User newUser) {
+    if (oldUser == null) return;
+    if (oldUser.leagueTier != newUser.leagueTier) {
+      _ref.read(leagueTierChangeEventProvider.notifier).state =
+          LeagueTierChangeEvent(
+        oldTier: oldUser.leagueTier,
+        newTier: newUser.leagueTier,
+      );
+    }
   }
 
   Future<void> _loadUser() async {
@@ -161,17 +142,19 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
-    // Capture old level/tier before XP update
-    final oldUser = state.valueOrNull;
-    final oldLevel = oldUser?.level ?? 1;
-    final oldTier = oldUser?.userLevel ?? UserLevel.bronze;
+    final oldLevel = state.valueOrNull?.level ?? 1;
 
     final useCase = _ref.read(addXPUseCaseProvider);
+    debugPrint('🔄 addXP: awarding $amount XP to $userId');
     final result = await useCase(AddXPParams(userId: userId, amount: amount));
 
-    result.fold(
-      (failure) => null,
+    final succeeded = result.fold(
+      (failure) {
+        debugPrint('❌ addXP FAILED: ${failure.message}');
+        return false;
+      },
       (user) {
+        debugPrint('✅ addXP SUCCESS: new XP=${user.xp}, level=${user.level}');
         state = AsyncValue.data(user);
         _ref.invalidate(activityHistoryProvider);
 
@@ -180,19 +163,17 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
           _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
             oldLevel: oldLevel,
             newLevel: user.level,
-            oldTier: oldTier,
-            newTier: user.userLevel,
           );
         }
+        return true;
       },
     );
 
-    // Update streak when XP is earned (activity completion)
+    // Update streak only when XP was successfully awarded
     // DB function handles "once per day" logic automatically
-    await updateStreak();
-
-    // Note: Badge checking is handled by the check_and_award_badges RPC
-    // called within SupabaseUserRepository.addXP()
+    if (succeeded) {
+      await updateStreak();
+    }
   }
 
   Future<void> updateStreak() async {
@@ -212,9 +193,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> refresh() async {
-    final oldUser = state.valueOrNull;
-    final oldLevel = oldUser?.level ?? 1;
-    final oldTier = oldUser?.userLevel ?? UserLevel.bronze;
+    final oldLevel = state.valueOrNull?.level ?? 1;
 
     await _loadUser();
 
@@ -223,8 +202,6 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
         oldLevel: oldLevel,
         newLevel: newUser.level,
-        oldTier: oldTier,
-        newTier: newUser.userLevel,
       );
     }
   }

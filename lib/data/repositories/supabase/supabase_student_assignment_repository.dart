@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:readeng_shared/readeng_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
@@ -20,7 +21,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     debugPrint('🔍 getStudentAssignments called with studentId: $studentId');
     try {
       final response = await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .select('''
             *,
             assignments:assignment_id (
@@ -99,7 +100,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
   ) async {
     try {
       final response = await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .select('''
             *,
             assignments:assignment_id (
@@ -143,7 +144,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
   ) async {
     try {
       await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .update({
             'status': 'in_progress',
             'started_at': DateTime.now().toIso8601String(),
@@ -172,7 +173,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
 
       // If progress > 0 and status is pending, update to in_progress
       final currentData = await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .select('status, started_at')
           .eq('student_id', studentId)
           .eq('assignment_id', assignmentId)
@@ -186,7 +187,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
       }
 
       await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .update(updateData)
           .eq('student_id', studentId)
           .eq('assignment_id', assignmentId);
@@ -207,7 +208,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
   ) async {
     try {
       await _supabase
-          .from('assignment_students')
+          .from(DbTables.assignmentStudents)
           .update({
             'status': 'completed',
             'progress': 100,

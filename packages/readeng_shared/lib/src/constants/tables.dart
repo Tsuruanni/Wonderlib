@@ -33,6 +33,8 @@ abstract class DbTables {
   static const vocabularyProgress = 'vocabulary_progress';
   static const vocabularyUnits = 'vocabulary_units';
   static const vocabularySessions = 'vocabulary_sessions';
+  static const vocabularySessionWords = 'vocabulary_session_words';
+  static const chapterVocabulary = 'chapter_vocabulary';
   static const wordLists = 'word_lists';
   static const wordListItems = 'word_list_items';
   static const userWordListProgress = 'user_word_list_progress';
@@ -42,9 +44,14 @@ abstract class DbTables {
   // Gamification
   static const badges = 'badges';
   static const userBadges = 'user_badges';
+  static const xpLogs = 'xp_logs';
+  static const coinLogs = 'coin_logs';
+  static const leagueHistory = 'league_history';
   static const mythCards = 'myth_cards';
   static const userCards = 'user_cards';
   static const userCardStats = 'user_card_stats';
+  static const packPurchases = 'pack_purchases';
+  static const dailyQuestPackClaims = 'daily_quest_pack_claims';
 
   // Assignments
   static const assignments = 'assignments';
