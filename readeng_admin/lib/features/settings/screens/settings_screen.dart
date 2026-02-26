@@ -79,7 +79,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final supabase = ref.read(supabaseClientProvider);
       await supabase
           .from(DbTables.systemSettings)
-          .update({'value': '"$value"'})
+          .update({'value': value})
           .eq('key', key);
 
       if (mounted) {
@@ -113,10 +113,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   String _parseValue(dynamic jsonbValue) {
     if (jsonbValue is String) {
-      // Remove surrounding quotes if present
-      if (jsonbValue.startsWith('"') && jsonbValue.endsWith('"')) {
-        return jsonbValue.substring(1, jsonbValue.length - 1);
-      }
       return jsonbValue;
     }
     return jsonbValue.toString();

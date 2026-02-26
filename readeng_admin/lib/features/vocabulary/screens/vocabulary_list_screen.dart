@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:readeng_shared/readeng_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -37,16 +38,16 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
       .order('word')
       .range(offset, offset + pageSize - 1);
 
-  // Get total count
-  var countQuery = supabase.from(DbTables.vocabularyWords).select('id');
+  // Get total count efficiently
+  var countQuery = supabase.from(DbTables.vocabularyWords).select();
   if (search.isNotEmpty) {
     countQuery = countQuery.ilike('word', '%$search%');
   }
   if (levelFilter != null) {
     countQuery = countQuery.eq('level', levelFilter);
   }
-  final countResponse = await countQuery;
-  final totalCount = (countResponse as List).length;
+  final countResult = await countQuery.count(CountOption.exact);
+  final totalCount = countResult.count;
 
   return {
     'data': List<Map<String, dynamic>>.from(response),

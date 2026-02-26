@@ -152,7 +152,8 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
     if (confirmed != true) return;
 
     // Optimistically remove from local list
-    final deletedBlock = _localBlocks.firstWhere((b) => b['id'] == blockId);
+    final deletedBlock = _localBlocks.where((b) => b['id'] == blockId).firstOrNull;
+    if (deletedBlock == null) return;
     setState(() {
       _localBlocks = _localBlocks.where((b) => b['id'] != blockId).toList();
     });
@@ -1197,6 +1198,16 @@ class _ActivityConfigDialogState extends ConsumerState<_ActivityConfigDialog> {
             if (_correctAnswersSet.contains(i) && _findWordsOptionsControllers[i].text.trim().isNotEmpty) {
               correctAnswers.add(_findWordsOptionsControllers[i].text.trim());
             }
+          }
+          if (correctAnswers.isEmpty) {
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please mark at least one option as correct'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
           }
           content = {
             'instruction': _instructionController.text.trim(),

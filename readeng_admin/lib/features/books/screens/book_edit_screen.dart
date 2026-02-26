@@ -688,7 +688,9 @@ class _ChapterTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
-        '${(chapter['content'] as String?)?.split(' ').length ?? 0} words',
+        chapter['use_content_blocks'] == true
+            ? 'Content blocks'
+            : '${(chapter['content'] as String?)?.split(' ').length ?? 0} words',
         style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
       ),
       trailing: ReorderableDragStartListener(

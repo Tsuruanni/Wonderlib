@@ -22,7 +22,7 @@ final wordlistDetailProvider =
 });
 
 /// Provider for searching vocabulary words
-final vocabularySearchProvider =
+final wordlistWordSearchProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>((ref, query) async {
   if (query.isEmpty) return [];
 
@@ -910,7 +910,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final searchResults = ref.watch(vocabularySearchProvider(_searchQuery));
+    final searchResults = ref.watch(wordlistWordSearchProvider(_searchQuery));
 
     return AlertDialog(
       title: const Text('Add Word'),
