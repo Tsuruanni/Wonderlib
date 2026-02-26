@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'package:readeng/presentation/widgets/activities/true_false_activity.dart';
-import 'package:readeng/presentation/widgets/activities/word_translation_activity.dart';
-import 'package:readeng/presentation/widgets/activities/find_words_activity.dart';
-import 'package:readeng/presentation/widgets/activities/activity_wrapper.dart';
-import 'package:readeng/domain/entities/activity.dart';
-import 'package:readeng/presentation/providers/reader_provider.dart';
+import 'package:owlio/presentation/widgets/activities/true_false_activity.dart';
+import 'package:owlio/presentation/widgets/activities/word_translation_activity.dart';
+import 'package:owlio/presentation/widgets/activities/find_words_activity.dart';
+import 'package:owlio/presentation/widgets/activities/activity_wrapper.dart';
+import 'package:owlio/domain/entities/activity.dart';
+import 'package:owlio/presentation/providers/reader_provider.dart';
 
 /// Activity widgets for Widgetbook
 final activityWidgets = [

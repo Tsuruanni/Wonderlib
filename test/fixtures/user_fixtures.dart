@@ -1,5 +1,5 @@
-import 'package:readeng/core/constants/app_constants.dart';
-import 'package:readeng/domain/entities/user.dart';
+import 'package:owlio/core/constants/app_constants.dart';
+import 'package:owlio/domain/entities/user.dart';
 
 /// Test fixtures for User-related tests
 class UserFixtures {

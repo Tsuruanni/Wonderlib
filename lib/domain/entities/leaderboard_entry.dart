@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:readeng_shared/readeng_shared.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 class LeaderboardEntry extends Equatable {
   const LeaderboardEntry({

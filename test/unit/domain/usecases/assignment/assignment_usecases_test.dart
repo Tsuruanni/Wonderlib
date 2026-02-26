@@ -2,13 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:readeng/core/errors/failures.dart';
-import 'package:readeng/domain/repositories/teacher_repository.dart';
-import 'package:readeng/domain/usecases/assignment/create_assignment_usecase.dart';
-import 'package:readeng/domain/usecases/assignment/delete_assignment_usecase.dart';
-import 'package:readeng/domain/usecases/assignment/get_assignment_detail_usecase.dart';
-import 'package:readeng/domain/usecases/assignment/get_assignment_students_usecase.dart';
-import 'package:readeng/domain/usecases/assignment/get_assignments_usecase.dart';
+import 'package:owlio/core/errors/failures.dart';
+import 'package:owlio/domain/repositories/teacher_repository.dart';
+import 'package:owlio/domain/usecases/assignment/create_assignment_usecase.dart';
+import 'package:owlio/domain/usecases/assignment/delete_assignment_usecase.dart';
+import 'package:owlio/domain/usecases/assignment/get_assignment_detail_usecase.dart';
+import 'package:owlio/domain/usecases/assignment/get_assignment_students_usecase.dart';
+import 'package:owlio/domain/usecases/assignment/get_assignments_usecase.dart';
 
 import '../../../../fixtures/teacher_fixtures.dart';
 

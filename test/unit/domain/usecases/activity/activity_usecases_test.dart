@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:readeng/core/errors/failures.dart';
-import 'package:readeng/domain/entities/activity.dart';
-import 'package:readeng/domain/usecases/activity/get_activities_by_chapter_usecase.dart';
-import 'package:readeng/domain/usecases/activity/submit_activity_result_usecase.dart';
-import 'package:readeng/domain/usecases/activity/get_user_activity_results_usecase.dart';
+import 'package:owlio/core/errors/failures.dart';
+import 'package:owlio/domain/entities/activity.dart';
+import 'package:owlio/domain/usecases/activity/get_activities_by_chapter_usecase.dart';
+import 'package:owlio/domain/usecases/activity/submit_activity_result_usecase.dart';
+import 'package:owlio/domain/usecases/activity/get_user_activity_results_usecase.dart';
 
 import '../../../../fixtures/activity_fixtures.dart';
 import '../../../../mocks/mock_repositories.mocks.dart';

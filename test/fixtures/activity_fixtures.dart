@@ -1,4 +1,4 @@
-import 'package:readeng/domain/entities/activity.dart';
+import 'package:owlio/domain/entities/activity.dart';
 
 /// Test fixtures for Activity-related tests
 class ActivityFixtures {

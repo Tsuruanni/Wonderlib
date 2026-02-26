@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:readeng_shared/readeng_shared.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
-export 'package:readeng_shared/src/enums/content_block_type.dart';
+export 'package:owlio_shared/src/enums/content_block_type.dart';
 
 /// A structured content block within a chapter
 class ContentBlock extends Equatable {

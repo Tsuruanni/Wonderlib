@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'package:readeng/presentation/widgets/reader/reader_chapter_completion.dart';
-import 'package:readeng/presentation/widgets/reader/reader_collapsible_header.dart';
-import 'package:readeng/presentation/widgets/reader/reader_image_block.dart';
-import 'package:readeng/presentation/widgets/reader/reader_paragraph.dart';
-import 'package:readeng/presentation/widgets/reader/reader_word_highlight.dart';
-import 'package:readeng/presentation/widgets/reader/reader_vocab_highlight_popup.dart';
-import 'package:readeng/presentation/providers/reader_provider.dart';
-import 'package:readeng/domain/entities/book.dart';
-import 'package:readeng/domain/entities/chapter.dart';
-import 'package:readeng/domain/entities/content/content_block.dart';
+import 'package:owlio/presentation/widgets/reader/reader_chapter_completion.dart';
+import 'package:owlio/presentation/widgets/reader/reader_collapsible_header.dart';
+import 'package:owlio/presentation/widgets/reader/reader_image_block.dart';
+import 'package:owlio/presentation/widgets/reader/reader_paragraph.dart';
+import 'package:owlio/presentation/widgets/reader/reader_word_highlight.dart';
+import 'package:owlio/presentation/widgets/reader/reader_vocab_highlight_popup.dart';
+import 'package:owlio/presentation/providers/reader_provider.dart';
+import 'package:owlio/domain/entities/book.dart';
+import 'package:owlio/domain/entities/chapter.dart';
+import 'package:owlio/domain/entities/content/content_block.dart';
 
 /// Reader widgets for Widgetbook
 final readerWidgets = [

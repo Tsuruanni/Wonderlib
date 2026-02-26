@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'package:readeng/presentation/widgets/common/stat_item.dart';
-import 'package:readeng/presentation/widgets/common/xp_badge.dart';
+import 'package:owlio/presentation/widgets/common/stat_item.dart';
+import 'package:owlio/presentation/widgets/common/xp_badge.dart';
 
 /// Common widgets for Widgetbook
 final commonWidgets = [

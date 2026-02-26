@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:widgetbook/widgetbook.dart';
 
-import 'package:readeng/presentation/widgets/book/level_badge.dart';
-import 'package:readeng/presentation/widgets/book/book_grid_card.dart';
-import 'package:readeng/presentation/widgets/book/book_list_tile.dart';
-import 'package:readeng/domain/entities/book.dart';
+import 'package:owlio/presentation/widgets/book/level_badge.dart';
+import 'package:owlio/presentation/widgets/book/book_grid_card.dart';
+import 'package:owlio/presentation/widgets/book/book_list_tile.dart';
+import 'package:owlio/domain/entities/book.dart';
 
 /// Book widgets for Widgetbook
 final bookWidgets = [

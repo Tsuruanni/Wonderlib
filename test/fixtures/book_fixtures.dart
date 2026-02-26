@@ -1,6 +1,6 @@
-import 'package:readeng/domain/entities/book.dart';
-import 'package:readeng/domain/entities/chapter.dart';
-import 'package:readeng/domain/entities/reading_progress.dart';
+import 'package:owlio/domain/entities/book.dart';
+import 'package:owlio/domain/entities/chapter.dart';
+import 'package:owlio/domain/entities/reading_progress.dart';
 
 /// Test fixtures for Book-related tests
 class BookFixtures {

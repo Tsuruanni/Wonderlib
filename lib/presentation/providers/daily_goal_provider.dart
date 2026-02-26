@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:readeng/domain/usecases/card/has_daily_quest_pack_claimed_usecase.dart';
-import 'package:readeng/presentation/providers/book_provider.dart';
-import 'package:readeng/presentation/providers/daily_review_provider.dart';
-import 'package:readeng/presentation/providers/user_provider.dart';
+import 'package:owlio/domain/usecases/card/has_daily_quest_pack_claimed_usecase.dart';
+import 'package:owlio/presentation/providers/book_provider.dart';
+import 'package:owlio/presentation/providers/daily_review_provider.dart';
+import 'package:owlio/presentation/providers/user_provider.dart';
 
 import 'auth_provider.dart';
 import 'usecase_providers.dart';

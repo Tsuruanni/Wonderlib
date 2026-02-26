@@ -1,13 +1,13 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:readeng/core/errors/failures.dart';
-import 'package:readeng/domain/entities/user.dart';
-import 'package:readeng/domain/usecases/auth/sign_in_with_email_usecase.dart';
-import 'package:readeng/domain/usecases/auth/sign_in_with_student_number_usecase.dart';
-import 'package:readeng/domain/usecases/auth/sign_out_usecase.dart';
-import 'package:readeng/domain/usecases/auth/get_current_user_usecase.dart';
-import 'package:readeng/domain/usecases/usecase.dart';
+import 'package:owlio/core/errors/failures.dart';
+import 'package:owlio/domain/entities/user.dart';
+import 'package:owlio/domain/usecases/auth/sign_in_with_email_usecase.dart';
+import 'package:owlio/domain/usecases/auth/sign_in_with_student_number_usecase.dart';
+import 'package:owlio/domain/usecases/auth/sign_out_usecase.dart';
+import 'package:owlio/domain/usecases/auth/get_current_user_usecase.dart';
+import 'package:owlio/domain/usecases/usecase.dart';
 
 import '../../../../fixtures/user_fixtures.dart';
 import '../../../../mocks/mock_repositories.mocks.dart';

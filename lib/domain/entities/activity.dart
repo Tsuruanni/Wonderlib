@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
-import 'package:readeng_shared/readeng_shared.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
-export 'package:readeng_shared/src/enums/inline_activity_type.dart';
+export 'package:owlio_shared/src/enums/inline_activity_type.dart';
 
 /// Activity types for end-of-chapter quizzes (legacy)
 enum ActivityType {

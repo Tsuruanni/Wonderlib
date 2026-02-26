@@ -1,4 +1,4 @@
-import 'package:readeng/domain/entities/word_list.dart';
+import 'package:owlio/domain/entities/word_list.dart';
 
 /// Test fixtures for WordList-related tests
 class WordListFixtures {

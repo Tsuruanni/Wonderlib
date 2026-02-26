@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:readeng/data/models/activity/activity_model.dart';
-import 'package:readeng/domain/entities/activity.dart';
+import 'package:owlio/data/models/activity/activity_model.dart';
+import 'package:owlio/domain/entities/activity.dart';
 
 import '../../../../fixtures/activity_fixtures.dart';
 

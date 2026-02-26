@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:readeng/data/models/book/book_model.dart';
-import 'package:readeng/domain/entities/book.dart';
+import 'package:owlio/data/models/book/book_model.dart';
+import 'package:owlio/domain/entities/book.dart';
 
 import '../../../../fixtures/book_fixtures.dart';
 

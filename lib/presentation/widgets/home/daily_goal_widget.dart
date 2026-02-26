@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readeng/app/theme.dart';
-import 'package:readeng/presentation/providers/daily_goal_provider.dart';
-import 'package:readeng/presentation/providers/student_assignment_provider.dart';
-import 'package:readeng/presentation/widgets/home/daily_tasks_list.dart';
+import 'package:owlio/app/theme.dart';
+import 'package:owlio/presentation/providers/daily_goal_provider.dart';
+import 'package:owlio/presentation/providers/student_assignment_provider.dart';
+import 'package:owlio/presentation/widgets/home/daily_tasks_list.dart';
 import 'package:shimmer/shimmer.dart';
 
 /// Main daily goal widget combining quest cards and assignment cards

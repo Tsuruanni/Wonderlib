@@ -17,7 +17,7 @@ class AppLocalizations {
 
   static final Map<String, Map<String, String>> _localizedValues = {
     'en': {
-      'appName': 'ReadEng',
+      'appName': 'Owlio',
       'schoolCode': 'School Code',
       'email': 'Email',
       'password': 'Password',
@@ -44,7 +44,7 @@ class AppLocalizations {
       'words': 'Words',
     },
     'tr': {
-      'appName': 'ReadEng',
+      'appName': 'Owlio',
       'schoolCode': 'Okul Kodu',
       'email': 'E-posta',
       'password': 'Şifre',

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:readeng_shared/readeng_shared.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 // Re-export shared enums with student-facing typedefs for backwards compat.
 // Both teacher and student sides now use the same underlying enum.

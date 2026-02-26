@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:readeng_shared/readeng_shared.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
-export 'package:readeng_shared/src/enums/card_rarity.dart';
-export 'package:readeng_shared/src/enums/card_category.dart';
+export 'package:owlio_shared/src/enums/card_rarity.dart';
+export 'package:owlio_shared/src/enums/card_category.dart';
 
 /// Emoji icons for card categories (UI-specific)
 extension CardCategoryIcon on CardCategory {

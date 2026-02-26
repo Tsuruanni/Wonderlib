@@ -105,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                     const SizedBox(height: 24),
                     Text(
-                      'Wonderlib',
+                      'Owlio',
                       style: GoogleFonts.nunito(
                         fontSize: 32,
                         fontWeight: FontWeight.w900,

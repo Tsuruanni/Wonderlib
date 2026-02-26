@@ -26,7 +26,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 #### Infrastructure
 - **5 DB Migrations**: `20260217000001_create_league_system.sql`, `20260217000002_user_badges_school_rls.sql`, `20260218000001_league_school_based_reset.sql`, `20260218000002_fix_xp_idempotency_index.sql`, `20260218000003_league_tier_based_competition.sql`
-- **Shared package**: `LeagueTier` enum added to `readeng_shared`
+- **Shared package**: `LeagueTier` enum added to `owlio_shared`
 - **Router**: Leaderboard tab added to student shell
 
 ### Codebase Audit & Bug Fixes (2026-02-20)
@@ -93,7 +93,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Dashboard cards** for new features (Myth Cards, Assignments, Units, Unit Books, Quizzes)
 
 #### Infrastructure
-- **Shared Dart Package** (`packages/readeng_shared/`) — `DbTables`, `RpcFunctions`, and shared enums (`BookStatus`, `CardRarity`, `CefrLevel`, `UserRole`) used by both main app and admin panel
+- **Shared Dart Package** (`packages/owlio_shared/`) — `DbTables`, `RpcFunctions`, and shared enums (`BookStatus`, `CardRarity`, `CefrLevel`, `UserRole`) used by both main app and admin panel
 - **Router updated** with routes for cards, assignments, quizzes, units, unit-books
 
 ### Card Artwork Integration & Detail Popup Redesign (2026-02-14)

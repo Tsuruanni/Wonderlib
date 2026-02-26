@@ -7,8 +7,8 @@ import '../presentation/widgets/common/level_up_celebration.dart';
 import 'router.dart';
 import 'theme.dart';
 
-class ReadEngApp extends ConsumerWidget {
-  const ReadEngApp({super.key});
+class OwlioApp extends ConsumerWidget {
+  const OwlioApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -17,7 +17,7 @@ class ReadEngApp extends ConsumerWidget {
     final router = ref.read(routerProvider);
 
     return MaterialApp.router(
-      title: 'ReadEng',
+      title: 'Owlio',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

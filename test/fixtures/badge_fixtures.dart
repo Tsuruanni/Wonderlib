@@ -1,4 +1,4 @@
-import 'package:readeng/domain/entities/badge.dart';
+import 'package:owlio/domain/entities/badge.dart';
 
 /// Test fixtures for Badge-related tests
 class BadgeFixtures {

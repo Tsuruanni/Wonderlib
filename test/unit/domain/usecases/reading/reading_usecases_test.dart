@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:readeng/core/errors/failures.dart';
-import 'package:readeng/domain/entities/reading_progress.dart';
-import 'package:readeng/domain/usecases/reading/get_reading_progress_usecase.dart';
-import 'package:readeng/domain/usecases/reading/mark_chapter_complete_usecase.dart';
-import 'package:readeng/domain/usecases/reading/update_reading_progress_usecase.dart';
+import 'package:owlio/core/errors/failures.dart';
+import 'package:owlio/domain/entities/reading_progress.dart';
+import 'package:owlio/domain/usecases/reading/get_reading_progress_usecase.dart';
+import 'package:owlio/domain/usecases/reading/mark_chapter_complete_usecase.dart';
+import 'package:owlio/domain/usecases/reading/update_reading_progress_usecase.dart';
 
 import '../../../../fixtures/book_fixtures.dart';
 import '../../../../mocks/mock_repositories.mocks.dart';

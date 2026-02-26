@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:readeng/data/models/book/reading_progress_model.dart';
-import 'package:readeng/domain/entities/reading_progress.dart';
+import 'package:owlio/data/models/book/reading_progress_model.dart';
+import 'package:owlio/domain/entities/reading_progress.dart';
 
 import '../../../../fixtures/book_fixtures.dart';
 

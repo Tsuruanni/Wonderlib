@@ -1,6 +1,6 @@
 {
-    "name": "readeng_widgetbook",
-    "short_name": "readeng_widgetbook",
+    "name": "Owlio Widgetbook",
+    "short_name": "Owlio Widgetbook",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

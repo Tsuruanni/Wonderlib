@@ -1,9 +1,9 @@
-export 'package:readeng_shared/src/enums/user_role.dart';
-export 'package:readeng_shared/src/enums/cefr_level.dart';
+export 'package:owlio_shared/src/enums/user_role.dart';
+export 'package:owlio_shared/src/enums/cefr_level.dart';
 
 abstract class AppConstants {
   // App info
-  static const appName = 'ReadEng';
+  static const appName = 'Owlio';
   static const appVersion = '1.0.0';
 
   // Pagination

@@ -1,4 +1,4 @@
-name: readeng
+name: owlio
 description: K12 English Reading Platform - Interactive reading and vocabulary learning for students
 publish_to: "none"
 version: 1.0.0+1
@@ -42,8 +42,8 @@ dependencies:
   flutter_tts: ^4.0.2
 
   # Shared
-  readeng_shared:
-    path: packages/readeng_shared
+  owlio_shared:
+    path: packages/owlio_shared
 
   # Utils
   intl: any

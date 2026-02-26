@@ -8,9 +8,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Project | Path | Description |
 |---------|------|-------------|
-| ReadEng Mobile | `/Users/wonderelt/Desktop/wonderlib` | Main Flutter app (student/teacher) |
-| ReadEng Admin | `/Users/wonderelt/Desktop/wonderlib/readeng_admin` | Admin panel (content management) |
-| Shared Package | `/Users/wonderelt/Desktop/wonderlib/packages/readeng_shared` | Shared enums, table names, RPC constants |
+| Owlio Mobile | `/Users/wonderelt/Desktop/wonderlib` | Main Flutter app (student/teacher) |
+| Owlio Admin | `/Users/wonderelt/Desktop/wonderlib/owlio_admin` | Admin panel (content management) |
+| Shared Package | `/Users/wonderelt/Desktop/wonderlib/packages/owlio_shared` | Shared enums, table names, RPC constants |
 
 All three projects share the same Supabase backend. The shared package ensures table names, enum values, and RPC function names stay consistent between main app and admin panel.
 
@@ -18,7 +18,7 @@ All three projects share the same Supabase backend. The shared package ensures t
 
 # Project Overview
 
-- **Project:** ReadEng (Wonderlib)
+- **Project:** Owlio
 - **Purpose:** Interactive English reading platform for K-12 students
 - **Users:** Elementary-high school students, English teachers
 - **Core Features:** Digital library, chapter-end activities, vocabulary exercises, XP/badge system, teacher dashboard
@@ -79,7 +79,7 @@ All three projects share the same Supabase backend. The shared package ensures t
 lib/
 ├── core/
 │   ├── config/          # App config, constants
-│   ├── constants/       # AppConstants, UserLevel (enums moved to readeng_shared)
+│   ├── constants/       # AppConstants, UserLevel (enums moved to owlio_shared)
 │   ├── errors/          # 8 Failure types, 6 Exception types
 │   ├── network/         # ApiClient, interceptors, connectivity
 │   ├── services/        # AudioService, WordPronunciationService, EdgeFunctionService
@@ -240,7 +240,7 @@ flutter test
 | UseCase returns Either | `Future<Either<Failure, T>>` |
 | Model handles JSON | `FeatureModel.fromJson(json).toEntity()` |
 | Repository uses Model | `return Right(model.toEntity())` |
-| Use shared package enums | `import 'package:readeng_shared/readeng_shared.dart'` |
+| Use shared package enums | `import 'package:owlio_shared/owlio_shared.dart'` |
 | Use `DbTables.x` for table names | `supabase.from(DbTables.books)` not `supabase.from('books')` |
 | Use `RpcFunctions.x` for RPC | `supabase.rpc(RpcFunctions.awardXpTransaction)` |
 
@@ -248,12 +248,12 @@ flutter test
 
 When modifying database schema (migrations, RLS policies, RPC functions):
 
-1. **Check if admin accesses affected tables:** `grep -r "DbTables.tableName" readeng_admin/lib/`
+1. **Check if admin accesses affected tables:** `grep -r "DbTables.tableName" owlio_admin/lib/`
 2. **If yes**, verify admin panel still works with the change
 3. **Update shared package** if schema changes affect enums or table structure
-4. **Both apps use `readeng_shared`** — changes to shared enums affect both projects
+4. **Both apps use `owlio_shared`** — changes to shared enums affect both projects
 
-The admin panel (`readeng_admin/`) accesses 17+ Supabase tables for content management. Any migration that changes table structure, RLS policies, or RPC functions can silently break it.
+The admin panel (`owlio_admin/`) accesses 17+ Supabase tables for content management. Any migration that changes table structure, RLS policies, or RPC functions can silently break it.
 
 ---
 

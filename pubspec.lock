@@ -869,6 +869,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  owlio_shared:
+    dependency: "direct main"
+    description:
+      path: "packages/owlio_shared"
+      relative: true
+    source: path
+    version: "1.0.0"
   package_config:
     dependency: transitive
     description:
@@ -1037,13 +1044,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
-  readeng_shared:
-    dependency: "direct main"
-    description:
-      path: "packages/readeng_shared"
-      relative: true
-    source: path
-    version: "1.0.0"
   realtime_client:
     dependency: transitive
     description:

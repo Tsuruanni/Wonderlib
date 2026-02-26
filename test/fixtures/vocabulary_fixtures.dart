@@ -1,4 +1,4 @@
-import 'package:readeng/domain/entities/vocabulary.dart';
+import 'package:owlio/domain/entities/vocabulary.dart';
 
 /// Test fixtures for Vocabulary-related tests
 class VocabularyWordFixtures {

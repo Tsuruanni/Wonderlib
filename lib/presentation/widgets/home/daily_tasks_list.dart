@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:readeng/app/router.dart';
+import 'package:owlio/app/router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readeng/app/theme.dart';
-import 'package:readeng/domain/entities/student_assignment.dart';
-import 'package:readeng/domain/usecases/card/claim_daily_quest_pack_usecase.dart';
-import 'package:readeng/presentation/providers/auth_provider.dart';
-import 'package:readeng/presentation/providers/daily_goal_provider.dart';
-import 'package:readeng/presentation/providers/usecase_providers.dart';
-import 'package:readeng/presentation/providers/user_provider.dart';
+import 'package:owlio/app/theme.dart';
+import 'package:owlio/domain/entities/student_assignment.dart';
+import 'package:owlio/domain/usecases/card/claim_daily_quest_pack_usecase.dart';
+import 'package:owlio/presentation/providers/auth_provider.dart';
+import 'package:owlio/presentation/providers/daily_goal_provider.dart';
+import 'package:owlio/presentation/providers/usecase_providers.dart';
+import 'package:owlio/presentation/providers/user_provider.dart';
 
 /// Displays daily quests and assignment quests inside a single unified card
 class DailyTasksList extends ConsumerStatefulWidget {

@@ -1,5 +1,5 @@
-name: readeng_widgetbook
-description: Widget catalog for ReadEng app
+name: owlio_widgetbook
+description: Widget catalog for Owlio app
 publish_to: 'none'
 
 version: 1.0.0
@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   # Reference main app for widgets
-  readeng:
+  owlio:
     path: ..
 
   # Widgetbook

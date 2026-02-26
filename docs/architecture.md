@@ -159,9 +159,9 @@ lib/
 │
 ├── l10n/                     # Localization
 │
-packages/readeng_shared/         # Shared Dart package (used by main app + admin)
+packages/owlio_shared/         # Shared Dart package (used by main app + admin)
 ├── lib/
-│   ├── readeng_shared.dart      # Barrel export
+│   ├── owlio_shared.dart      # Barrel export
 │   └── src/
 │       ├── constants/tables.dart  # DbTables, RpcFunctions
 │       └── enums/                 # BookStatus, CardRarity, CefrLevel, UserRole, LeagueTier, AssignmentStatus, AssignmentType, ...

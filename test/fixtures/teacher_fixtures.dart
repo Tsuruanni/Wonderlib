@@ -1,4 +1,4 @@
-import 'package:readeng/domain/repositories/teacher_repository.dart';
+import 'package:owlio/domain/repositories/teacher_repository.dart';
 
 /// Test fixtures for Teacher-related tests
 class TeacherStatsFixtures {

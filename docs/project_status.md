@@ -83,7 +83,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Myth Cards CRUD (card list + edit with rarity preview)
 - [x] Admin Assignments Viewer (read-only teacher assignments + student progress)
 - [x] Admin Units & Unit Books management (CRUD screens)
-- [x] Shared Dart package (readeng_shared: DbTables, RpcFunctions, shared enums)
+- [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
@@ -145,7 +145,7 @@ See: CLAUDE.md for architecture guidelines
 | Lexile Score Support | 2026-02-14 | Full-stack: DB migration, entity, model, admin input (0-2000 validation), main app display with speed icon |
 | Book Quiz System | 2026-02-14 | 5 question types, Clean Architecture (entities, models, repos, usecases, providers), admin quiz editor |
 | Admin Panel Enhancements | 2026-02-14 | RBAC (login + router guard), Myth Cards CRUD, Assignments viewer, Units/Unit Books CRUD, Quizzes editor |
-| Shared Dart Package | 2026-02-13 | `packages/readeng_shared/` with DbTables, RpcFunctions, 4 shared enums (BookStatus, CardRarity, CefrLevel, UserRole) |
+| Shared Dart Package | 2026-02-13 | `packages/owlio_shared/` with DbTables, RpcFunctions, 4 shared enums (BookStatus, CardRarity, CefrLevel, UserRole) |
 | Card Artwork & Popup Redesign | 2026-02-14 | Real card images replacing picsum mocks, fullscreen detail dialog, reduced corner radius |
 | Widget Rename & Cleanup | 2026-02-13 | Group prefixes (inline_, reader_, book_quiz_, vocab_), 5 dead files removed, shared widgets moved to common/, ~48 file operations |
 | Rive Dynamic Image Guide | 2026-02-11 | CallbackAssetLoader API research, image injection docs for pack opening Rive integration |
