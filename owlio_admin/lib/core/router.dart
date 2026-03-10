@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/screens/login_screen.dart';
 import '../features/books/screens/book_edit_screen.dart';
+import '../features/books/screens/book_json_import_screen.dart';
 import '../features/books/screens/book_list_screen.dart';
 import '../features/books/screens/chapter_edit_screen.dart';
 import '../features/dashboard/screens/dashboard_screen.dart';
@@ -24,7 +25,6 @@ import '../features/wordlists/screens/wordlist_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/curriculum/screens/curriculum_edit_screen.dart';
 import '../features/curriculum/screens/curriculum_list_screen.dart';
-import '../features/gallery/screens/gallery_screen.dart';
 import '../features/units/screens/unit_list_screen.dart';
 import '../features/units/screens/unit_edit_screen.dart';
 import '../features/unit_books/screens/unit_books_list_screen.dart';
@@ -75,6 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/books',
         builder: (context, state) => const BookListScreen(),
+      ),
+      GoRoute(
+        path: '/books/import',
+        builder: (context, state) => const BookJsonImportScreen(),
       ),
       GoRoute(
         path: '/books/new',
@@ -278,20 +282,26 @@ final routerProvider = Provider<GoRouter>((ref) {
           cardId: state.pathParameters['cardId'],
         ),
       ),
-      // Settings
+      // XP Ayarları
       GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        path: '/xp-settings',
+        builder: (context, state) => const SettingsScreen(
+          title: 'XP Ayarları',
+          categories: ['xp', 'progression', 'game'],
+        ),
       ),
-      // Gallery (Developer Tool)
+      // Uygulama Ayarları
       GoRoute(
-        path: '/gallery',
-        builder: (context, state) => const GalleryScreen(),
+        path: '/app-settings',
+        builder: (context, state) => const SettingsScreen(
+          title: 'Uygulama Ayarları',
+          categories: ['app'],
+        ),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(
-        child: Text('Page not found: ${state.matchedLocation}'),
+        child: Text('Sayfa bulunamadı: ${state.matchedLocation}'),
       ),
     ),
   );

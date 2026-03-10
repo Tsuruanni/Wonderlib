@@ -26,16 +26,22 @@ class BookListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Books'),
+        title: const Text('Kitaplar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
         ),
         actions: [
+          OutlinedButton.icon(
+            onPressed: () => context.go('/books/import'),
+            icon: const Icon(Icons.upload_file, size: 18),
+            label: const Text('JSON İçe Aktar'),
+          ),
+          const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: () => context.go('/books/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Book'),
+            label: const Text('Yeni Kitap'),
           ),
           const SizedBox(width: 16),
         ],
@@ -54,7 +60,7 @@ class BookListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No books yet',
+                    'Henüz kitap yok',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -64,7 +70,7 @@ class BookListScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: () => context.go('/books/new'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create your first book'),
+                    label: const Text('İlk kitabınızı oluşturun'),
                   ),
                 ],
               ),
@@ -93,11 +99,11 @@ class BookListScreen extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('Hata: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(booksProvider),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),
@@ -121,7 +127,7 @@ class _BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coverUrl = book['cover_image_url'] as String?;
-    final level = book['level'] as String? ?? 'Unknown';
+    final level = book['level'] as String? ?? 'Bilinmiyor';
     final isPublished = book['status'] == BookStatus.published.dbValue;
 
     return Card(
@@ -158,7 +164,7 @@ class _BookCard extends StatelessWidget {
                   children: [
                     // Title
                     Text(
-                      book['title'] as String? ?? 'Untitled',
+                      book['title'] as String? ?? 'Başlıksız',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -171,7 +177,7 @@ class _BookCard extends StatelessWidget {
                     // Author
                     if (book['author'] != null)
                       Text(
-                        'by ${book['author']}',
+                        'Yazar: ${book['author']}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -189,17 +195,17 @@ class _BookCard extends StatelessWidget {
                           color: _getLevelColor(level),
                         ),
                         _Chip(
-                          label: '$chapterCount chapters',
+                          label: '$chapterCount bölüm',
                           color: Colors.grey,
                         ),
                         if (isPublished)
                           const _Chip(
-                            label: 'Published',
+                            label: 'Yayında',
                             color: Colors.green,
                           )
                         else
                           const _Chip(
-                            label: 'Draft',
+                            label: 'Taslak',
                             color: Colors.orange,
                           ),
                       ],
