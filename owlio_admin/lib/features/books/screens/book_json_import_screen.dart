@@ -160,6 +160,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
           'word_count': ch['word_count'],
           'estimated_minutes': ch['estimated_minutes'],
           'vocabulary': ch['vocabulary'] ?? [],
+          'use_content_blocks': true,
         });
 
         // 3. Create inline activities first (need activity_ids for content blocks)
