@@ -215,7 +215,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
           'instructions': quiz['instructions'],
           'passing_score': quiz['passing_score'] ?? 70.0,
           'total_points': quiz['total_points'] ?? 10,
-          'is_published': quiz['is_published'] ?? false,
+          'is_published': true,
         });
 
         // 6. Create quiz questions

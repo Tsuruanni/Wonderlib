@@ -23,7 +23,6 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
           .from(DbTables.bookQuizzes)
           .select('*, book_quiz_questions(*)')
           .eq('book_id', bookId)
-          .eq('is_published', true)
           .maybeSingle();
 
       if (response == null) return const Right(null);

@@ -35,7 +35,6 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
   final _instructionsController = TextEditingController();
   final _passingScoreController = TextEditingController(text: '70');
 
-  bool _isPublished = false;
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -61,14 +60,13 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
         _instructionsController.text = quiz['instructions'] ?? '';
         _passingScoreController.text =
             (quiz['passing_score'] ?? 70).toString();
-        _isPublished = quiz['is_published'] == true;
         _questions = (quiz['book_quiz_questions'] as List? ?? [])
             .cast<Map<String, dynamic>>();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading quiz: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Quiz yükleme hatası: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -100,7 +98,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
         'title': _titleController.text.trim(),
         'instructions': _instructionsController.text.trim(),
         'passing_score': passingScore,
-        'is_published': _isPublished,
+        'is_published': true,
         'book_id': widget.bookId,
         'total_points':
             _questions.fold<int>(0, (sum, q) => sum + ((q['points'] as int?) ?? 1)),
@@ -116,7 +114,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Quiz created successfully')),
+            const SnackBar(content: Text('Quiz başarıyla oluşturuldu')),
           );
         }
       } else {
@@ -124,7 +122,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Quiz saved successfully')),
+            const SnackBar(content: Text('Quiz başarıyla kaydedildi')),
           );
         }
       }
@@ -134,7 +132,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -148,19 +146,19 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Question'),
+        title: const Text('Soruyu Sil'),
         content: const Text(
-          'Are you sure you want to delete this question? This action cannot be undone.',
+          'Bu soruyu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -177,13 +175,13 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Question deleted')),
+          const SnackBar(content: Text('Soru silindi')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -218,37 +216,24 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error reordering: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Sıralama hatası: $e'), backgroundColor: Colors.red),
         );
       }
     }
   }
 
-  void _handlePublishToggle(bool value) {
-    if (value && _questions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot publish a quiz with no questions'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    setState(() => _isPublished = value);
-  }
-
   String _getQuestionTypeLabel(String type) {
     switch (type) {
       case 'multiple_choice':
-        return 'Multiple Choice';
+        return 'Çoktan Seçmeli';
       case 'fill_blank':
-        return 'Fill in the Blank';
+        return 'Boşluk Doldurma';
       case 'event_sequencing':
-        return 'Event Sequencing';
+        return 'Olay Sıralaması';
       case 'matching':
-        return 'Matching';
+        return 'Eşleştirme';
       case 'who_says_what':
-        return 'Who Says What';
+        return 'Kim Ne Dedi';
       default:
         return type;
     }
@@ -274,7 +259,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewQuiz ? 'New Book Quiz' : 'Edit Book Quiz'),
+        title: Text(isNewQuiz ? 'Yeni Kitap Quizi' : 'Kitap Quizini Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/books/${widget.bookId}'),
@@ -291,7 +276,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewQuiz ? 'Create' : 'Save'),
+                : Text(isNewQuiz ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -312,7 +297,7 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Quiz Details',
+                            'Quiz Bilgileri',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 24),
@@ -321,12 +306,12 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                           TextFormField(
                             controller: _titleController,
                             decoration: const InputDecoration(
-                              labelText: 'Title',
-                              hintText: 'Enter quiz title',
+                              labelText: 'Başlık',
+                              hintText: 'Quiz başlığını girin',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Title is required';
+                                return 'Başlık zorunludur';
                               }
                               return null;
                             },
@@ -337,8 +322,8 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                           TextFormField(
                             controller: _instructionsController,
                             decoration: const InputDecoration(
-                              labelText: 'Instructions',
-                              hintText: 'Enter quiz instructions for students',
+                              labelText: 'Talimatlar',
+                              hintText: 'Öğrenciler için quiz talimatlarını girin',
                             ),
                             maxLines: 3,
                           ),
@@ -348,18 +333,18 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                           TextFormField(
                             controller: _passingScoreController,
                             decoration: const InputDecoration(
-                              labelText: 'Passing Score (%)',
+                              labelText: 'Geçme Puanı (%)',
                               hintText: '70',
                               suffixText: '%',
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Passing score is required';
+                                return 'Geçme puanı zorunludur';
                               }
                               final score = int.tryParse(value.trim());
                               if (score == null || score < 0 || score > 100) {
-                                return 'Enter a number between 0 and 100';
+                                return '0 ile 100 arasında bir sayı girin';
                               }
                               return null;
                             },
@@ -367,20 +352,6 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                           const SizedBox(height: 16),
 
                           // Published switch
-                          SwitchListTile(
-                            title: const Text('Published'),
-                            subtitle: Text(
-                              _questions.isEmpty
-                                  ? 'Add questions before publishing'
-                                  : 'When enabled, the quiz will be available to students',
-                            ),
-                            value: _isPublished,
-                            onChanged: _handlePublishToggle,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-
-                          const SizedBox(height: 24),
-
                           // Stats card
                           if (!isNewQuiz)
                             Card(
@@ -389,23 +360,15 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
                                 child: Row(
                                   children: [
                                     _StatChip(
-                                      label: 'Questions',
+                                      label: 'Sorular',
                                       value: '${_questions.length}',
                                       icon: Icons.quiz,
                                     ),
                                     const SizedBox(width: 24),
                                     _StatChip(
-                                      label: 'Total Points',
+                                      label: 'Toplam Puan',
                                       value: '${_questions.fold<int>(0, (sum, q) => sum + ((q['points'] as int?) ?? 1))}',
                                       icon: Icons.star,
-                                    ),
-                                    const SizedBox(width: 24),
-                                    _StatChip(
-                                      label: 'Status',
-                                      value: _isPublished ? 'Published' : 'Draft',
-                                      icon: _isPublished
-                                          ? Icons.check_circle
-                                          : Icons.edit_note,
                                     ),
                                   ],
                                 ),
@@ -518,7 +481,7 @@ class _QuestionsList extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Questions (${questions.length})',
+                'Sorular (${questions.length})',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               FilledButton.icon(
@@ -531,7 +494,7 @@ class _QuestionsList extends StatelessWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Quiz saved. Now you can add questions.'),
+                          content: Text('Quiz kaydedildi. Şimdi soru ekleyebilirsiniz.'),
                         ),
                       );
                     }
@@ -542,7 +505,7 @@ class _QuestionsList extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add'),
+                label: const Text('Ekle'),
               ),
             ],
           ),
@@ -561,12 +524,12 @@ class _QuestionsList extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No questions yet',
+                        'Henüz soru yok',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Add questions to build your quiz',
+                        'Quizinizi oluşturmak için soru ekleyin',
                         style: TextStyle(
                           color: Colors.grey.shade400,
                           fontSize: 12,
@@ -611,7 +574,7 @@ class _QuestionsList extends StatelessWidget {
                         ),
                       ),
                       title: Text(
-                        question['question'] ?? 'Untitled Question',
+                        question['question'] ?? 'Başlıksız Soru',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
