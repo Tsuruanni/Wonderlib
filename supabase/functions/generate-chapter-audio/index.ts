@@ -105,7 +105,13 @@ Deno.serve(async (req) => {
     const blockBoundaries = calculateBlockBoundaries(blocks as ContentBlock[]);
 
     // 3. Call Fal AI with combined text - SINGLE API CALL
-    const FAL_KEY = Deno.env.get("FAL_KEY") || "482f71ee-7bbb-4966-a021-e67f0ec3a4a4:173a09396d98fd54b75c8666f7698b84";
+    const FAL_KEY = Deno.env.get("FAL_KEY");
+    if (!FAL_KEY) {
+      return new Response(
+        JSON.stringify({ error: "FAL_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     console.log("Calling Fal AI for combined text...");
     const falResponse = await fetch(

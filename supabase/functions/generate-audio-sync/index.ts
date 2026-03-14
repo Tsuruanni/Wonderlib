@@ -48,7 +48,13 @@ Deno.serve(async (req) => {
     }
 
     // Fal AI credentials (ElevenLabs key format: key_id:key_secret)
-    const FAL_KEY = Deno.env.get("FAL_KEY") || "482f71ee-7bbb-4966-a021-e67f0ec3a4a4:173a09396d98fd54b75c8666f7698b84";
+    const FAL_KEY = Deno.env.get("FAL_KEY");
+    if (!FAL_KEY) {
+      return new Response(
+        JSON.stringify({ error: "FAL_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // 1. Call Fal AI ElevenLabs TTS with timestamps
     console.log(`Generating audio for block ${blockId}...`);

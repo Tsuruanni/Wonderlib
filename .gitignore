@@ -59,6 +59,8 @@ lib/generated/
 .env
 .env.local
 .env.*.local
+.env.local.backup
+.env.remote.reference
 
 # Coverage
 coverage/
