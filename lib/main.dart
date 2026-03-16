@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app/app.dart';
@@ -12,8 +13,24 @@ Future<void> main() async {
   // Load environment variables
   await dotenv.load(fileName: '.env');
 
+  // Initialize Sentry if DSN is configured
+  final sentryDsn = EnvConstants.sentryDsn;
+  if (sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.environment = EnvConstants.environment;
+        options.tracesSampleRate = 0.2;
+        options.sendDefaultPii = false; // K-12 privacy
+      },
+      appRunner: () => _initAndRunApp(),
+    );
+  } else {
+    await _initAndRunApp();
+  }
+}
 
-
+Future<void> _initAndRunApp() async {
   // Initialize Supabase
   await Supabase.initialize(
     url: EnvConstants.supabaseUrl,

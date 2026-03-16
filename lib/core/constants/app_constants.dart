@@ -18,16 +18,8 @@ abstract class AppConstants {
   static const apiTimeoutSeconds = 30;
   static const syncTimeoutSeconds = 60;
 
-  // Gamification
-  static const xpPerPage = 2;
-  static const xpPerChapter = 25;
-  static const xpPerBook = 150;
-  static const xpPerCorrectAnswer = 5;
-  static const xpPerVocabularyWord = 3;
-  static const xpDailyLogin = 10;
-  static const xpStreak7Days = 50;
-  static const xpStreak30Days = 200;
-  static const xpPerfectScore = 30;
+  // XP values → use AppConfig.xpRewards (single source of truth)
+  // See: lib/core/config/app_config.dart
 
   // Activity thresholds
   static const minimumPassScore = 60.0;

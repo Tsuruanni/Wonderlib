@@ -23,7 +23,7 @@ import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
-import '../../core/constants/app_constants.dart';
+import '../../core/config/app_config.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
@@ -185,7 +185,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
       // Award XP for new chapter completion
       if (!wasAlreadyCompleted) {
-        await _ref.read(userControllerProvider.notifier).addXP(AppConstants.xpPerChapter);
+        await _ref.read(userControllerProvider.notifier).addXP(AppConfig.xpRewards['chapter_complete']!);
         // Book completion bonus (only if no quiz required - quiz XP is handled by quiz controller)
         if (progress.isCompleted) {
           final hasQuizResult = await _ref.read(bookHasQuizUseCaseProvider)(
@@ -193,7 +193,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           );
           final quizExists = hasQuizResult.fold((_) => false, (v) => v);
           if (!quizExists) {
-            await _ref.read(userControllerProvider.notifier).addXP(AppConstants.xpPerBook);
+            await _ref.read(userControllerProvider.notifier).addXP(AppConfig.xpRewards['book_complete']!);
           }
         }
       }

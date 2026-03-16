@@ -51,7 +51,7 @@ All three projects share the same Supabase backend. The shared package ensures t
 | PostgreSQL | 17.6 |
 | Dashboard | https://supabase.com/dashboard/project/wqkxjjakysuabjcotvim |
 | Migrations | 69 (supabase/migrations/) |
-| Edge Functions | 6 (award-xp, check-streak, extract-vocabulary, generate-audio-sync, generate-chapter-audio, reset-student-password) |
+| Edge Functions | 7 (award-xp, check-streak, extract-vocabulary, generate-audio-sync, generate-chapter-audio, reset-student-password, league-reset) |
 
 **Flutter apps connect to remote via `.env`:**
 ```
@@ -397,14 +397,11 @@ All passwords: `Test1234`
 ## 🐛 Known Issues (To Fix)
 
 ### Medium Priority
-- [ ] `vocabulary_screen.dart` router'da yok - ileride eklenecek (önemli sayfa, SİLME)
-- [ ] Constants overlap between `AppConfig.xpRewards` and `AppConstants` XP values
+- (none currently)
 
 ### Future Improvements (Requires Flutter Code Changes)
-- [ ] `completed_chapter_ids UUID[]` → junction table (`reading_chapter_progress`)
-- [ ] `chapters.vocabulary` JSONB vs `chapter_vocabulary` table — pick one canonical source
-- [ ] `assignments.content_config` JSONB → nullable FK columns for referential integrity
-- [ ] League `process_weekly_league_reset()` needs a scheduler (Edge Function cron or pg_cron)
+- [ ] `completed_chapter_ids UUID[]` → junction table (`reading_chapter_progress`) — touches 5+ files
+- [ ] `assignments.content_config` JSONB → nullable FK columns — touches 9 files
 
 ### Resolved (2026-03-16)
 - [x] Supabase local → remote cloud migration
@@ -419,6 +416,11 @@ All passwords: `Test1234`
 - [x] Composite performance indexes (leaderboard, class queries, badge checks)
 - [x] League reset optimized (single-pass XP aggregation)
 - [x] Hardcoded FAL_KEY removed from edge functions
+- [x] Sentry initialization in main.dart
+- [x] XP constants consolidated (AppConstants → AppConfig.xpRewards)
+- [x] League scheduler Edge Function created (cron-job.org)
+- [x] vocabulary_screen.dart confirmed routed (was false positive)
+- [x] chapters.vocabulary JSONB confirmed unused (junction table is canonical)
 
 ### Resolved (2026-02-20)
 - [x] RLS security: `user_badges` + `xp_logs` INSERT restricted to `auth.uid()`
@@ -433,11 +435,9 @@ All passwords: `Test1234`
 
 # Remaining Technical Debt
 
-1. **Constants Consolidation**: Merge `AppConfig.xpRewards` and `AppConstants` XP values into single source of truth
-2. **vocabulary_screen.dart**: Eklenmeyi bekliyor (router'da route yok, ileride bağlanacak)
-3. **GameConfig pattern**: Documented in CLAUDE.md but not implemented - activities use AppConfig directly
-4. **`completed_chapter_ids`**: UUID array → junction table refactor (requires Flutter code changes)
-5. **League scheduler**: `process_weekly_league_reset()` needs automated weekly execution
+1. **`completed_chapter_ids`**: UUID array → junction table refactor (requires Flutter code changes in 5+ files)
+2. **`assignments.content_config`**: JSONB → FK columns refactor (requires Flutter code changes in 9 files)
+3. **GameConfig pattern**: Documented but not implemented — activities use AppConfig directly (low priority)
 
 ---
 
