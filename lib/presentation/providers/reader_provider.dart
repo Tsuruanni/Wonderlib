@@ -333,6 +333,30 @@ Future<void> handleInlineActivityCompletion(
   required List<String> wordsLearned,
   void Function(bool isCorrect, int xpEarned)? onComplete,
 }) async {
+  try {
+    return await _handleInlineActivityCompletionImpl(
+      ref,
+      activityId: activityId,
+      isCorrect: isCorrect,
+      xpEarned: xpEarned,
+      wordsLearned: wordsLearned,
+      onComplete: onComplete,
+    );
+  } on StateError catch (_) {
+    // Widget was disposed during async operation — safe to ignore,
+    // the DB save already happened before the dispose
+    debugPrint('⚠️ Activity $activityId: widget disposed during completion, ignoring');
+  }
+}
+
+Future<void> _handleInlineActivityCompletionImpl(
+  WidgetRef ref, {
+  required String activityId,
+  required bool isCorrect,
+  required int xpEarned,
+  required List<String> wordsLearned,
+  void Function(bool isCorrect, int xpEarned)? onComplete,
+}) async {
   // Check if already completed locally
   final completedActivities = ref.read(inlineActivityStateProvider);
   if (completedActivities.containsKey(activityId)) {
