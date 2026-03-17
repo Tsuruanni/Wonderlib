@@ -611,6 +611,25 @@ class BookCacheStore {
     );
   }
 
+  /// Look up the book ID for an inline activity by joining
+  /// cached_inline_activities -> cached_chapters.
+  /// Returns empty string if the activity is not cached.
+  Future<String> getBookIdForActivity(String activityId) async {
+    final db = await _db;
+    final rows = await db.rawQuery(
+      '''
+      SELECT c.book_id
+      FROM cached_inline_activities a
+      JOIN cached_chapters c ON c.chapter_id = a.chapter_id
+      WHERE a.id = ?
+      LIMIT 1
+      ''',
+      [activityId],
+    );
+    if (rows.isEmpty) return '';
+    return rows.first['book_id'] as String? ?? '';
+  }
+
   /// Check whether a result already exists for an inline activity.
   Future<bool> hasInlineActivityResult(String activityId) async {
     final db = await _db;
