@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
+import '../../providers/book_download_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/library/download_button.dart';
 
 class BookDetailScreen extends ConsumerWidget {
 
@@ -27,6 +29,7 @@ class BookDetailScreen extends ConsumerWidget {
     final chaptersAsync = ref.watch(chaptersProvider(bookId));
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
+    final userId = ref.watch(currentUserIdProvider);
 
     // Show locked screen if book is not accessible
     if (!canAccess) {
@@ -64,6 +67,11 @@ class BookDetailScreen extends ConsumerWidget {
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
+                actions: [
+                  if (userId != null)
+                    BookDownloadButton(bookId: bookId, userId: userId),
+                  const SizedBox(width: 8),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
                     fit: StackFit.expand,
@@ -294,6 +302,7 @@ class BookDetailScreen extends ConsumerWidget {
             isCompleted: progress?.isCompleted ?? false,
             chaptersAsync: chaptersAsync,
             progress: progress,
+            userId: userId,
           ),
         );
       },
@@ -343,6 +352,7 @@ class _BookDetailFAB extends ConsumerWidget {
     required this.isCompleted,
     required this.chaptersAsync,
     required this.progress,
+    required this.userId,
   });
 
   final String bookId;
@@ -352,6 +362,7 @@ class _BookDetailFAB extends ConsumerWidget {
   final bool isCompleted;
   final AsyncValue<dynamic> chaptersAsync;
   final dynamic progress;
+  final String? userId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -447,6 +458,14 @@ class _BookDetailFAB extends ConsumerWidget {
                   }
 
                   context.go(AppRoutes.readerPath(bookId, targetChapterId));
+
+                  // Fire-and-forget background download while user reads
+                  if (userId != null) {
+                    ref.read(bookDownloaderProvider.notifier).downloadBook(
+                          bookId,
+                          userId: userId!,
+                        );
+                  }
                 });
               },
             ),
