@@ -8,6 +8,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Supabase Cloud Migration & Database Hardening (2026-03-16)
+
+#### Infrastructure
+- **Supabase Cloud migration** — Migrated from local Docker to remote Supabase Cloud (project: `wqkxjjakysuabjcotvim`, region: eu-central-1)
+- **69 DB migrations** applied to remote (59 schema + 10 hardening)
+- **7 Edge Functions** deployed to remote (6 existing + league-reset)
+- **Seed data** loaded: 25 users, 4 books, 271 vocab words, 17 badges, 47 audio blocks
+- **GEMINI_API_KEY + FAL_KEY + CRON_SECRET** configured as Edge Function secrets
+- **League scheduler** — `league-reset` Edge Function + cron-job.org weekly trigger (Monday 00:00 UTC)
+- **Sentry initialization** — `SentryFlutter.init()` in main.dart with K-12 privacy settings
+
+#### Fixed (Security)
+- **coin_logs INSERT RLS** — restricted to `user_id = auth.uid()` (was `WITH CHECK (true)`)
+- **safe_profiles view** — hides email/student_number/coins from student peer access
+- **get_teacher_stats auth** — enforces `auth.uid() = p_teacher_id` (prevents cross-school data leak)
+- **inline_activity_results** — removed student DELETE permission (prevents XP gaming)
+- **schools public SELECT** — replaced with `lookup_school_by_code()` RPC (was `USING (true)`)
+- **Hardcoded FAL_KEY** — removed from generate-audio-sync and generate-chapter-audio Edge Functions
+
+#### Fixed (Data Integrity)
+- **Coin idempotency** — added partial unique index on coin_logs + idempotency check in `award_coins_transaction`
+- **XP non-negative** — added `chk_xp_non_negative CHECK (xp >= 0)` constraint
+- **TOCTOU race condition** — `award_xp_transaction` now locks row BEFORE idempotency check
+- **Vocabulary uniqueness** — case-insensitive unique index `LOWER(word), meaning_tr`
+
+#### Changed (Performance)
+- **check_and_award_badges** — replaced FOR LOOP with set-based INSERT...SELECT
+- **Composite indexes** — added 4 indexes for leaderboard, class queries, badge checks, coin history
+- **League reset** — single-pass XP aggregation with temp table (was N×M nested loops)
+- **XP constants consolidated** — merged AppConstants XP values into AppConfig.xpRewards
+
 ### League System & Leaderboard (2026-02-20)
 
 #### Added

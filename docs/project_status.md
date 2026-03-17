@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-02-20 (League System, Leaderboard, Codebase Audit Fixes)
+Son güncelleme: 2026-03-16 (Supabase Cloud Migration, DB Hardening, Tech Debt Cleanup)
 
 ## Current Phase
 
@@ -89,21 +89,22 @@ See: CLAUDE.md for architecture guidelines
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
-- [ ] Remote Supabase deployment (`supabase db push`)
+- [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
 
 ## In Progress
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Clean Architecture Refactor | Claude + User | Active | Reader refactored, Model layer + UseCases remaining |
-| Testing & Validation | User | Active | Manual testing of all features |
+| Testing & Validation | User | Active | Manual testing on remote Supabase |
 
 ## Deferred
 
 | Task | Notes |
 |------|-------|
 | Offline Mode | SyncService + Isar local storage |
-| Edge Functions | award-xp, check-streak (currently using RPC functions) |
+| `completed_chapter_ids` refactor | UUID array → junction table (5+ Flutter files) |
+| `assignments.content_config` refactor | JSONB → FK columns (9 Flutter files) |
+| PostHog analytics integration | Dependency + key exist, needs init + event tracking |
 
 ## Blockers
 
@@ -133,13 +134,19 @@ See: CLAUDE.md for architecture guidelines
 | ~~Unsafe JSON type casts~~ | ~~High~~ | ✅ Null guards added to 8+ model files |
 | ~~Race conditions in upserts~~ | ~~High~~ | ✅ Check-then-act replaced with atomic upsert in 3 repos |
 | ~~Hard-coded table/RPC strings~~ | ~~Medium~~ | ✅ All 13 repos use DbTables/RpcFunctions constants |
-| ~~RLS INSERT too permissive~~ | ~~Critical~~ | ✅ user_badges + xp_logs restricted to auth.uid() |
+| ~~RLS INSERT too permissive~~ | ~~Critical~~ | ✅ user_badges + xp_logs + coin_logs restricted to auth.uid() |
+| ~~XP constants overlap~~ | ~~Medium~~ | ✅ Consolidated into AppConfig.xpRewards |
+| ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
+| ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Supabase Cloud Migration | 2026-03-16 | Local Docker → remote cloud (eu-central-1), 69 migrations, 7 Edge Functions, full seed data |
+| Database Hardening | 2026-03-16 | 10 migrations: 5 security fixes, 3 integrity fixes, 2 performance optimizations |
+| Tech Debt Cleanup | 2026-03-16 | Sentry init, XP constants consolidation, league scheduler, CLAUDE.md update |
 | League System & Leaderboard | 2026-02-20 | Weekly tier-based leagues, 3-scope leaderboard, student profile popup, 5 migrations, 4 new UseCases |
 | Codebase Audit & Fixes | 2026-02-20 | RLS security fix, quiz XP bug, null safety (8+ models), race conditions (3 repos), hard-coded strings (13 repos), enum consolidation |
 | Lexile Score Support | 2026-02-14 | Full-stack: DB migration, entity, model, admin input (0-2000 validation), main app display with speed icon |

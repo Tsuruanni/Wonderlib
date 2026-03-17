@@ -15,7 +15,7 @@
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       BACKEND LAYER                             │
-│                     Supabase (Hosted)                           │
+│               Supabase Cloud (wqkxjjakysuabjcotvim)             │
 │  ┌───────────┬───────────┬───────────┬───────────┬─────────┐  │
 │  │PostgreSQL │   Auth    │  Storage  │ Realtime  │  Edge   │  │
 │  │  + RLS    │(JWT/Magic)│ (Backup)  │(WebSocket)│Functions│  │
