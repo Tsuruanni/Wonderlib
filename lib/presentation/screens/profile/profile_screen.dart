@@ -232,6 +232,72 @@ class ProfileScreen extends ConsumerWidget {
                   const _DailyReviewProfileCard(),
                 ],
 
+                // Downloaded Books
+                if (user.role.isStudent) ...[
+                  const SizedBox(height: 32),
+                  PressableScale(
+                    onTap: () => context.push(AppRoutes.profileDownloads),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.neutral, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.neutral,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.download_done_rounded,
+                              color: AppColors.secondary,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Downloaded Books',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    color: AppColors.black,
+                                  ),
+                                ),
+                                Text(
+                                  'Manage offline reading content',
+                                  style: GoogleFonts.nunito(
+                                    color: AppColors.neutralText,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.neutralText,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 48),
 
                 // Sign Out

@@ -21,6 +21,7 @@ import '../presentation/screens/cards/card_collection_screen.dart';
 import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
+import '../presentation/screens/profile/downloaded_books_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
 import '../presentation/screens/student/student_assignment_detail_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
@@ -52,6 +53,7 @@ abstract class AppRoutes {
   static const vocabularyDailyReview = '/vocabulary/daily-review';
 
   static const profile = '/profile';
+  static const profileDownloads = '/profile/downloads';
 
   static const wordBank = '/word-bank';
   static const studentAssignments = '/assignments';
@@ -380,6 +382,13 @@ GoRouter _createRouter() {
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.profile,
         builder: (context, state) => const ProfileScreen(),
+      ),
+
+      // Downloaded books management (accessed from profile)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutes.profileDownloads,
+        builder: (context, state) => const DownloadedBooksScreen(),
       ),
 
       // Teacher Shell — top-level StatefulShellRoute (same pattern as student shell)
