@@ -106,6 +106,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         }
       },
       (savedResult) {
+        if (!mounted) return;
         // Invalidate progress providers so learning path + detail screen update
         ref.invalidate(progressForListProvider(widget.listId));
         ref.invalidate(userWordListProgressProvider);
@@ -113,7 +114,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(learningPathProvider);
         // Refresh user state so XP/level updates in navbar + triggers level-up celebration
         ref.read(userControllerProvider.notifier).refresh();
-        if (mounted) setState(() => _saved = true);
+        setState(() => _saved = true);
       },
     );
   }
