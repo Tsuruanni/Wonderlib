@@ -15,6 +15,7 @@ class Chapter extends Equatable {
     this.vocabulary = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.useContentBlocks = false,
   });
   final String id;
   final String bookId;
@@ -28,6 +29,7 @@ class Chapter extends Equatable {
   final List<ChapterVocabulary> vocabulary;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool useContentBlocks;
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
   bool get hasContent => content != null && content!.isNotEmpty;
@@ -57,6 +59,7 @@ class Chapter extends Equatable {
         vocabulary,
         createdAt,
         updatedAt,
+        useContentBlocks,
       ];
 }
 

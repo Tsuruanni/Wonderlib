@@ -16,6 +16,7 @@ class ChapterModel {
     this.vocabulary = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.useContentBlocks = false,
   });
 
   factory ChapterModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +42,7 @@ class ChapterModel {
       vocabulary: vocabulary,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      useContentBlocks: json['use_content_blocks'] as bool? ?? false,
     );
   }
 
@@ -60,6 +62,7 @@ class ChapterModel {
           .toList(),
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      useContentBlocks: entity.useContentBlocks,
     );
   }
   final String id;
@@ -74,6 +77,7 @@ class ChapterModel {
   final List<ChapterVocabularyModel> vocabulary;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool useContentBlocks;
 
   Map<String, dynamic> toJson() {
     return {
@@ -89,6 +93,7 @@ class ChapterModel {
       'vocabulary': vocabulary.map((v) => v.toJson()).toList(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'use_content_blocks': useContentBlocks,
     };
   }
 
@@ -106,6 +111,7 @@ class ChapterModel {
       vocabulary: vocabulary.map((v) => v.toEntity()).toList(),
       createdAt: createdAt,
       updatedAt: updatedAt,
+      useContentBlocks: useContentBlocks,
     );
   }
 }
