@@ -6,7 +6,6 @@ import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/audio_sync_provider.dart';
-import '../../providers/content_block_provider.dart';
 import '../../providers/reader_provider.dart';
 import 'reader_chapter_completion.dart';
 import 'reader_collapsible_header.dart';
@@ -183,54 +182,28 @@ class _ChapterContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final usesContentBlocks = ref.watch(chapterUsesContentBlocksProvider(chapter.id));
-
-    return usesContentBlocks.when(
-      data: (usesBlocks) {
-        if (usesBlocks) {
-          // New content block system
-          return ReaderContentBlockList(
-            key: ValueKey('blocks-${chapter.id}'),
-            chapter: chapter,
-            settings: settings,
-            onVocabularyTap: onVocabularyTap,
-            onWordTap: onWordTap,
-          );
-        } else if (chapter.content != null) {
-          // Legacy plain text content
-          return ReaderLegacyContent(
-            key: ValueKey(chapter.id),
-            chapter: chapter,
-            settings: settings,
-            onVocabularyTap: onVocabularyTap,
-            onWordTap: onWordTap,
-            scrollController: null,
-          );
-        } else {
-          return _buildNoContentMessage();
-        }
-      },
-      loading: () => Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: settings.theme.text.withValues(alpha: 0.5),
-        ),
-      ),
-      error: (_, __) {
-        // On error, try legacy content
-        if (chapter.content != null) {
-          return ReaderLegacyContent(
-            key: ValueKey(chapter.id),
-            chapter: chapter,
-            settings: settings,
-            onVocabularyTap: onVocabularyTap,
-            onWordTap: onWordTap,
-            scrollController: null,
-          );
-        }
-        return _buildErrorMessage();
-      },
-    );
+    if (chapter.useContentBlocks) {
+      // New content block system
+      return ReaderContentBlockList(
+        key: ValueKey('blocks-${chapter.id}'),
+        chapter: chapter,
+        settings: settings,
+        onVocabularyTap: onVocabularyTap,
+        onWordTap: onWordTap,
+      );
+    } else if (chapter.content != null) {
+      // Legacy plain text content
+      return ReaderLegacyContent(
+        key: ValueKey(chapter.id),
+        chapter: chapter,
+        settings: settings,
+        onVocabularyTap: onVocabularyTap,
+        onWordTap: onWordTap,
+        scrollController: null,
+      );
+    } else {
+      return _buildNoContentMessage();
+    }
   }
 
   Widget _buildNoContentMessage() {
@@ -243,13 +216,4 @@ class _ChapterContent extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorMessage() {
-    return Text(
-      'Failed to load content.',
-      style: TextStyle(
-        color: settings.theme.text.withValues(alpha: 0.7),
-        fontStyle: FontStyle.italic,
-      ),
-    );
-  }
 }
