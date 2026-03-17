@@ -125,6 +125,16 @@ CREATE TABLE cached_book_quizzes (
   FOREIGN KEY (book_id) REFERENCES cached_books(book_id) ON DELETE CASCADE
 );
 
+CREATE TABLE cached_book_quiz_results (
+  id TEXT PRIMARY KEY,              -- result UUID
+  quiz_id TEXT NOT NULL,
+  book_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  result_json TEXT NOT NULL,        -- full BookQuizResult serialized
+  is_dirty INTEGER DEFAULT 0,
+  FOREIGN KEY (book_id) REFERENCES cached_books(book_id) ON DELETE CASCADE
+);
+
 CREATE TABLE cached_vocabulary_words (
   word_id TEXT PRIMARY KEY,
   book_id TEXT NOT NULL,
@@ -154,6 +164,7 @@ CREATE TABLE cached_activity_results (
   id TEXT PRIMARY KEY,             -- result UUID
   activity_id TEXT NOT NULL,
   book_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   result_json TEXT NOT NULL,       -- full ActivityResult serialized
   is_dirty INTEGER DEFAULT 0
 );
@@ -164,6 +175,16 @@ CREATE TABLE cached_files (
   local_path TEXT NOT NULL,
   file_type TEXT NOT NULL,  -- 'image' | 'audio'
   file_size INTEGER NOT NULL,
+  FOREIGN KEY (book_id) REFERENCES cached_books(book_id) ON DELETE CASCADE
+);
+
+-- Queued server-side actions that cannot run offline (XP awards, badge checks, etc.)
+CREATE TABLE offline_pending_actions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action_type TEXT NOT NULL,       -- 'award_xp' | 'check_assignment' | 'log_daily_read'
+  payload_json TEXT NOT NULL,      -- action-specific params (userId, xp, chapterId, etc.)
+  book_id TEXT NOT NULL,
+  created_at TEXT NOT NULL,
   FOREIGN KEY (book_id) REFERENCES cached_books(book_id) ON DELETE CASCADE
 );
 ```
@@ -177,6 +198,9 @@ CREATE TABLE cached_files (
 - `download_status` — tracks partial downloads for resume capability
 - `cached_reading_progress.id` is composite `{user_id}_{book_id}` — supports multi-user on same device
 - `cached_inline_activity_results` stores full result data (`is_correct`, `xp_earned`, `answered_at`) — needed for sync replay
+- `cached_activity_results` has explicit `user_id` column — needed for user-scoped queries without parsing JSON
+- `cached_book_quiz_results` stores full serialized results — needed for `getBestResult()`, `getUserQuizResults()` cache-aside and offline `submitQuizResult()`
+- `offline_pending_actions` is a sqflite table (not in-memory) — survives app kill, ensures XP awards and badge checks are never lost
 - `cached_activity_results` stores full `result_json` — needed for sync replay
 - **Freshness granularity:** `updated_at` is tracked at book and chapter level only. Content block, activity, and vocabulary changes are detected via their parent chapter's `updated_at`. This is acceptable because admin edits to content blocks/activities will bump the chapter's `updated_at` timestamp. If this assumption proves wrong, per-table `updated_at` can be added later.
 
@@ -264,7 +288,7 @@ The `BookRepository` interface has 21 methods. Each gets one of three treatments
 |---|---|---|
 | `getContentBlocks()` | Cache-aside | By chapterId |
 | `getContentBlockById()` | Cache-aside | Single row |
-| `chapterUsesContentBlocks()` | **Eliminated** | Read from `Chapter.useContentBlocks` field instead |
+| `chapterUsesContentBlocks()` | **Cache-aside (from chapter)** | Reads `useContentBlocks` from cached chapter data — no separate query. Method still exists on interface, `CachedContentBlockRepository` implements it by reading the chapter cache. |
 
 ### BookQuizRepository Method Classification (6 methods)
 
@@ -318,11 +342,16 @@ markChapterComplete() offline:
   4. Calculate completion_percentage locally
   5. Set is_completed = true ONLY IF all chapters done AND (no quiz OR quiz_passed)
   6. Write updated progress to cache with is_dirty = 1
-  7. Queue XP award and assignment check for sync
+  7. Queue to offline_pending_actions:
+     a. 'award_xp' — XP for chapter completion
+     b. 'check_assignment' — assignment progress update
+     c. 'log_daily_read' — daily_chapter_reads log entry
   8. Return Right(updatedProgress)
 ```
 
-**On sync:** The dirty reading progress is upserted to remote. XP award and assignment check are replayed via their respective edge functions/RPCs. The server recalculates `is_completed` authoritatively — the local value is optimistic.
+**On sync:** The dirty reading progress is upserted to remote. Pending actions are replayed in order from `offline_pending_actions` table (XP award via `award_xp_transaction` RPC, assignment check, daily read log). The server recalculates `is_completed` authoritatively — the local value is optimistic. After sync, each pending action row is deleted.
+
+**`book_id` resolution for inline activity results:** When `saveInlineActivityResult()` is called, the caller (reader screen) knows the current `bookId`. The `CachedBookRepository` receives this context through the method call chain. The `book_id` is populated at write time into `cached_inline_activity_results`, avoiding the need for a join chain during sync.
 
 ---
 
@@ -519,7 +548,7 @@ When offline, progress writes go to local cache with `is_dirty = 1`:
 - `cached_inline_activity_results` — inline activity completions with full result data
 - `cached_activity_results` — legacy activity results with full result JSON
 
-XP awards and badge checks are queued in a separate `offline_pending_actions` list (in-memory or lightweight sqflite table).
+XP awards, badge checks, daily read logs, and assignment checks are queued in the `offline_pending_actions` sqflite table (survives app kill).
 
 ### Syncing on Reconnect
 
@@ -534,10 +563,15 @@ Online detected:
      - If remote returns false (already existed), discard — not an error
   5. Find all cached_activity_results WHERE is_dirty = 1
   6. For each: call submitActivityResult() on remote repo
-  7. Process queued XP awards (call award_xp_transaction RPC)
-  8. Process queued assignment checks
-  9. Set is_dirty = 0 on all synced records
-  10. Refresh reading progress from remote (server is authoritative for is_completed)
+  7. Find all cached_book_quiz_results WHERE is_dirty = 1
+  8. For each: call submitQuizResult() on remote repo
+  9. Process offline_pending_actions in FIFO order:
+     a. 'award_xp' → call award_xp_transaction RPC
+     b. 'check_assignment' → call assignment progress update
+     c. 'log_daily_read' → insert into daily_chapter_reads
+     d. Delete each action row after successful processing
+  10. Set is_dirty = 0 on all synced records
+  11. Refresh reading progress from remote (server is authoritative for is_completed)
 ```
 
 **Conflict resolution:** Server wins. After sync, reading progress is re-fetched from remote to get authoritative `is_completed` status (server checks quiz pass + chapter completion).
