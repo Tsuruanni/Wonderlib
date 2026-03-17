@@ -12,7 +12,10 @@ import 'package:owlio/domain/usecases/user/add_xp_usecase.dart';
 import 'package:owlio/domain/usecases/user/update_streak_usecase.dart';
 import 'package:owlio/domain/usecases/user/get_user_stats_usecase.dart';
 import 'package:owlio/domain/usecases/user/get_classmates_usecase.dart';
-import 'package:owlio/domain/usecases/user/get_leaderboard_usecase.dart';
+import 'package:owlio/domain/usecases/user/get_weekly_leaderboard_usecase.dart';
+import 'package:owlio/domain/usecases/user/get_total_leaderboard_usecase.dart';
+import 'package:owlio/domain/entities/leaderboard_entry.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../../fixtures/user_fixtures.dart';
 import 'user_usecases_test.mocks.dart';
@@ -489,79 +492,27 @@ void main() {
   });
 
   // ============================================
-  // GetLeaderboardUseCase Tests
+  // GetWeeklyLeaderboardUseCase Tests
   // ============================================
-  group('GetLeaderboardUseCase', () {
-    late GetLeaderboardUseCase usecase;
+  group('GetWeeklyLeaderboardUseCase', () {
+    late GetWeeklyLeaderboardUseCase usecase;
 
     setUp(() {
-      usecase = GetLeaderboardUseCase(mockUserRepository);
+      usecase = GetWeeklyLeaderboardUseCase(mockUserRepository);
     });
 
-    test('withDefaultParams_shouldReturnTopUsers', () async {
+    test('withClassScope_shouldReturnClassLeaderboard', () async {
       // Arrange
-      final leaderboard = UserFixtures.leaderboardUsers();
-      when(mockUserRepository.getLeaderboard(
-        schoolId: null,
-        classId: null,
-        limit: 10,
-      )).thenAnswer((_) async => Right(leaderboard));
-
-      const params = GetLeaderboardParams();
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedUsers) {
-          expect(returnedUsers.length, 3);
-          // Should be sorted by XP (highest first)
-          expect(returnedUsers[0].xp, greaterThanOrEqualTo(returnedUsers[1].xp));
-        },
-      );
-      verify(mockUserRepository.getLeaderboard(
-        schoolId: null,
-        classId: null,
-        limit: 10,
-      )).called(1);
-    });
-
-    test('withSchoolFilter_shouldReturnSchoolLeaderboard', () async {
-      // Arrange
-      final leaderboard = UserFixtures.leaderboardUsers();
-      when(mockUserRepository.getLeaderboard(
-        schoolId: 'school-456',
-        classId: null,
-        limit: 10,
-      )).thenAnswer((_) async => Right(leaderboard));
-
-      const params = GetLeaderboardParams(schoolId: 'school-456');
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      verify(mockUserRepository.getLeaderboard(
-        schoolId: 'school-456',
-        classId: null,
-        limit: 10,
-      )).called(1);
-    });
-
-    test('withClassFilter_shouldReturnClassLeaderboard', () async {
-      // Arrange
-      final leaderboard = UserFixtures.classmatesList();
-      when(mockUserRepository.getLeaderboard(
-        schoolId: null,
+      final leaderboard = _leaderboardEntries();
+      when(mockUserRepository.getWeeklyClassLeaderboard(
         classId: 'class-789',
         limit: 10,
       )).thenAnswer((_) async => Right(leaderboard));
 
-      const params = GetLeaderboardParams(classId: 'class-789');
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.classScope,
+        classId: 'class-789',
+      );
 
       // Act
       final result = await usecase(params);
@@ -570,59 +521,142 @@ void main() {
       expect(result.isRight(), true);
       result.fold(
         (failure) => fail('Should not return failure'),
-        (returnedUsers) {
-          // All should be from same class
-          expect(returnedUsers.every((u) => u.classId == 'class-789'), true);
+        (entries) {
+          expect(entries.length, 3);
+          expect(entries[0].weeklyXp, greaterThanOrEqualTo(entries[1].weeklyXp));
         },
       );
-    });
-
-    test('withCustomLimit_shouldPassLimitToRepository', () async {
-      // Arrange
-      final leaderboard = [UserFixtures.highXPUser()];
-      when(mockUserRepository.getLeaderboard(
-        schoolId: null,
-        classId: null,
-        limit: 1,
-      )).thenAnswer((_) async => Right(leaderboard));
-
-      const params = GetLeaderboardParams(limit: 1);
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedUsers) => expect(returnedUsers.length, 1),
-      );
-      verify(mockUserRepository.getLeaderboard(
-        schoolId: null,
-        classId: null,
-        limit: 1,
+      verify(mockUserRepository.getWeeklyClassLeaderboard(
+        classId: 'class-789',
+        limit: 10,
       )).called(1);
     });
 
-    test('withNoUsers_shouldReturnEmptyList', () async {
+    test('withSchoolScope_shouldReturnSchoolLeaderboard', () async {
       // Arrange
-      when(mockUserRepository.getLeaderboard(
-        schoolId: 'new-school',
-        classId: null,
+      final leaderboard = _leaderboardEntries();
+      when(mockUserRepository.getWeeklySchoolLeaderboard(
+        schoolId: 'school-456',
         limit: 10,
-      )).thenAnswer((_) async => const Right(<User>[]));
+        leagueTier: null,
+      )).thenAnswer((_) async => Right(leaderboard));
 
-      const params = GetLeaderboardParams(schoolId: 'new-school');
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.schoolScope,
+        schoolId: 'school-456',
+      );
 
       // Act
       final result = await usecase(params);
 
       // Assert
       expect(result.isRight(), true);
+      verify(mockUserRepository.getWeeklySchoolLeaderboard(
+        schoolId: 'school-456',
+        limit: 10,
+        leagueTier: null,
+      )).called(1);
+    });
+
+    test('withClassScopeAndNoClassId_shouldReturnValidationFailure', () async {
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.classScope,
+      );
+
+      final result = await usecase(params);
+
+      expect(result.isLeft(), true);
+      result.fold(
+        (failure) => expect(failure, isA<ValidationFailure>()),
+        (_) => fail('Should return failure'),
+      );
+    });
+
+    test('withSchoolScopeAndNoSchoolId_shouldReturnValidationFailure', () async {
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.schoolScope,
+      );
+
+      final result = await usecase(params);
+
+      expect(result.isLeft(), true);
+      result.fold(
+        (failure) => expect(failure, isA<ValidationFailure>()),
+        (_) => fail('Should return failure'),
+      );
+    });
+
+    test('withEmptyResult_shouldReturnEmptyList', () async {
+      when(mockUserRepository.getWeeklyClassLeaderboard(
+        classId: 'empty-class',
+        limit: 10,
+      )).thenAnswer((_) async => const Right(<LeaderboardEntry>[]));
+
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.classScope,
+        classId: 'empty-class',
+      );
+
+      final result = await usecase(params);
+
+      expect(result.isRight(), true);
       result.fold(
         (failure) => fail('Should not return failure'),
-        (returnedUsers) => expect(returnedUsers, isEmpty),
+        (entries) => expect(entries, isEmpty),
       );
+    });
+  });
+
+  // ============================================
+  // GetTotalLeaderboardUseCase Tests
+  // ============================================
+  group('GetTotalLeaderboardUseCase', () {
+    late GetTotalLeaderboardUseCase usecase;
+
+    setUp(() {
+      usecase = GetTotalLeaderboardUseCase(mockUserRepository);
+    });
+
+    test('withClassScope_shouldReturnClassLeaderboard', () async {
+      final leaderboard = _leaderboardEntries();
+      when(mockUserRepository.getTotalClassLeaderboard(
+        classId: 'class-789',
+        limit: 50,
+      )).thenAnswer((_) async => Right(leaderboard));
+
+      const params = GetTotalLeaderboardParams(
+        scope: TotalLeaderboardScope.classScope,
+        classId: 'class-789',
+      );
+
+      final result = await usecase(params);
+
+      expect(result.isRight(), true);
+      result.fold(
+        (failure) => fail('Should not return failure'),
+        (entries) => expect(entries.length, 3),
+      );
+    });
+
+    test('withSchoolScope_shouldReturnSchoolLeaderboard', () async {
+      final leaderboard = _leaderboardEntries();
+      when(mockUserRepository.getTotalSchoolLeaderboard(
+        schoolId: 'school-456',
+        limit: 50,
+      )).thenAnswer((_) async => Right(leaderboard));
+
+      const params = GetTotalLeaderboardParams(
+        scope: TotalLeaderboardScope.schoolScope,
+        schoolId: 'school-456',
+      );
+
+      final result = await usecase(params);
+
+      expect(result.isRight(), true);
+      verify(mockUserRepository.getTotalSchoolLeaderboard(
+        schoolId: 'school-456',
+        limit: 50,
+      )).called(1);
     });
   });
 
@@ -646,18 +680,17 @@ void main() {
       expect(result.isRight(), true);
     });
 
-    test('getLeaderboard_withAllFilters_shouldWork', () async {
+    test('getWeeklyLeaderboard_withCustomLimit_shouldWork', () async {
       // Arrange
-      final usecase = GetLeaderboardUseCase(mockUserRepository);
-      final leaderboard = UserFixtures.classmatesList();
-      when(mockUserRepository.getLeaderboard(
-        schoolId: 'school-456',
+      final usecase = GetWeeklyLeaderboardUseCase(mockUserRepository);
+      final leaderboard = _leaderboardEntries();
+      when(mockUserRepository.getWeeklyClassLeaderboard(
         classId: 'class-789',
         limit: 5,
       )).thenAnswer((_) async => Right(leaderboard));
 
-      const params = GetLeaderboardParams(
-        schoolId: 'school-456',
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.classScope,
         classId: 'class-789',
         limit: 5,
       );
@@ -759,28 +792,66 @@ void main() {
       expect(params.classId, 'test-class');
     });
 
-    test('getLeaderboardParams_shouldHaveCorrectDefaults', () {
+    test('getWeeklyLeaderboardParams_shouldHaveCorrectDefaults', () {
       // Act
-      const params = GetLeaderboardParams();
-
-      // Assert
-      expect(params.schoolId, isNull);
-      expect(params.classId, isNull);
-      expect(params.limit, 10);
-    });
-
-    test('getLeaderboardParams_withCustomValues_shouldStoreAll', () {
-      // Act
-      const params = GetLeaderboardParams(
-        schoolId: 'school-1',
+      const params = GetWeeklyLeaderboardParams(
+        scope: LeaderboardScope.classScope,
         classId: 'class-1',
-        limit: 20,
       );
 
       // Assert
-      expect(params.schoolId, 'school-1');
+      expect(params.scope, LeaderboardScope.classScope);
       expect(params.classId, 'class-1');
-      expect(params.limit, 20);
+      expect(params.schoolId, isNull);
+      expect(params.limit, 10);
+    });
+
+    test('getTotalLeaderboardParams_shouldHaveCorrectDefaults', () {
+      // Act
+      const params = GetTotalLeaderboardParams(
+        scope: TotalLeaderboardScope.schoolScope,
+        schoolId: 'school-1',
+      );
+
+      // Assert
+      expect(params.scope, TotalLeaderboardScope.schoolScope);
+      expect(params.schoolId, 'school-1');
+      expect(params.classId, isNull);
+      expect(params.limit, 50);
     });
   });
 }
+
+/// Helper to create test LeaderboardEntry instances.
+List<LeaderboardEntry> _leaderboardEntries() => [
+      const LeaderboardEntry(
+        userId: 'user-1',
+        firstName: 'Pro',
+        lastName: 'Gamer',
+        totalXp: 5000,
+        weeklyXp: 500,
+        level: 25,
+        rank: 1,
+        leagueTier: LeagueTier.gold,
+      ),
+      const LeaderboardEntry(
+        userId: 'user-2',
+        firstName: 'John',
+        lastName: 'Doe',
+        totalXp: 3000,
+        weeklyXp: 300,
+        level: 15,
+        rank: 2,
+        leagueTier: LeagueTier.silver,
+      ),
+      const LeaderboardEntry(
+        userId: 'user-3',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        totalXp: 1000,
+        weeklyXp: 100,
+        level: 5,
+        rank: 3,
+        leagueTier: LeagueTier.bronze,
+      ),
+    ];

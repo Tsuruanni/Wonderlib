@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/services/offline_sync_service.dart';
 import '../l10n/app_localizations.dart';
 import '../presentation/widgets/common/level_up_celebration.dart';
 import 'router.dart';
@@ -15,6 +16,10 @@ class OwlioApp extends ConsumerWidget {
     // Use ref.read - router instance never changes, only its internal state
     // Using ref.watch would cause MaterialApp to rebuild, creating duplicate Navigator widgets
     final router = ref.read(routerProvider);
+
+    // Initialize the offline sync service so it starts listening for
+    // connectivity changes and can sync dirty cached records when back online.
+    ref.read(offlineSyncServiceProvider);
 
     return MaterialApp.router(
       title: 'Owlio',
