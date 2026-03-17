@@ -1,33 +1,39 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../core/network/network_info.dart';
+import '../../core/services/book_cache_store.dart';
 import '../../core/services/edge_function_service.dart';
+import '../../data/repositories/cached/cached_activity_repository.dart';
+import '../../data/repositories/cached/cached_book_quiz_repository.dart';
+import '../../data/repositories/cached/cached_book_repository.dart';
+import '../../data/repositories/cached/cached_content_block_repository.dart';
 import '../../data/repositories/supabase/supabase_activity_repository.dart';
 import '../../data/repositories/supabase/supabase_auth_repository.dart';
 import '../../data/repositories/supabase/supabase_badge_repository.dart';
 import '../../data/repositories/supabase/supabase_book_repository.dart';
+import '../../data/repositories/supabase/supabase_book_quiz_repository.dart';
+import '../../data/repositories/supabase/supabase_card_repository.dart';
+import '../../data/repositories/supabase/supabase_content_block_repository.dart';
+import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
+import '../../data/repositories/supabase/supabase_system_settings_repository.dart';
+import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
-import '../../data/repositories/supabase/supabase_teacher_repository.dart';
-import '../../data/repositories/supabase/supabase_student_assignment_repository.dart';
-import '../../data/repositories/supabase/supabase_content_block_repository.dart';
-import '../../data/repositories/supabase/supabase_card_repository.dart';
-import '../../data/repositories/supabase/supabase_book_quiz_repository.dart';
-import '../../data/repositories/supabase/supabase_system_settings_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
-import '../../domain/repositories/book_quiz_repository.dart';
-import '../../domain/repositories/content_block_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
+import '../../domain/repositories/book_quiz_repository.dart';
 import '../../domain/repositories/book_repository.dart';
+import '../../domain/repositories/card_repository.dart';
+import '../../domain/repositories/content_block_repository.dart';
+import '../../domain/repositories/student_assignment_repository.dart';
+import '../../domain/repositories/system_settings_repository.dart';
+import '../../domain/repositories/teacher_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/vocabulary_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
-import '../../domain/repositories/teacher_repository.dart';
-import '../../domain/repositories/student_assignment_repository.dart';
-import '../../domain/repositories/card_repository.dart';
-import '../../domain/repositories/system_settings_repository.dart';
 
 /// Repository providers
 /// All repositories now use Supabase implementations
@@ -39,7 +45,14 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 final bookRepositoryProvider = Provider<BookRepository>((ref) {
-  return SupabaseBookRepository();
+  final remoteRepo = SupabaseBookRepository();
+  final cacheStore = ref.watch(bookCacheStoreProvider);
+  final networkInfo = ref.watch(networkInfoProvider);
+  return CachedBookRepository(
+    remoteRepo: remoteRepo,
+    cacheStore: cacheStore,
+    networkInfo: networkInfo,
+  );
 });
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
@@ -51,7 +64,14 @@ final vocabularyRepositoryProvider = Provider<VocabularyRepository>((ref) {
 });
 
 final activityRepositoryProvider = Provider<ActivityRepository>((ref) {
-  return SupabaseActivityRepository();
+  final remoteRepo = SupabaseActivityRepository();
+  final cacheStore = ref.watch(bookCacheStoreProvider);
+  final networkInfo = ref.watch(networkInfoProvider);
+  return CachedActivityRepository(
+    remoteRepo: remoteRepo,
+    cacheStore: cacheStore,
+    networkInfo: networkInfo,
+  );
 });
 
 final badgeRepositoryProvider = Provider<BadgeRepository>((ref) {
@@ -78,7 +98,14 @@ final edgeFunctionServiceProvider = Provider<EdgeFunctionService>((ref) {
 });
 
 final contentBlockRepositoryProvider = Provider<ContentBlockRepository>((ref) {
-  return SupabaseContentBlockRepository();
+  final remoteRepo = SupabaseContentBlockRepository();
+  final cacheStore = ref.watch(bookCacheStoreProvider);
+  final networkInfo = ref.watch(networkInfoProvider);
+  return CachedContentBlockRepository(
+    remoteRepo: remoteRepo,
+    cacheStore: cacheStore,
+    networkInfo: networkInfo,
+  );
 });
 
 final cardRepositoryProvider = Provider<CardRepository>((ref) {
@@ -90,5 +117,12 @@ final systemSettingsRepositoryProvider = Provider<SystemSettingsRepository>((ref
 });
 
 final bookQuizRepositoryProvider = Provider<BookQuizRepository>((ref) {
-  return SupabaseBookQuizRepository();
+  final remoteRepo = SupabaseBookQuizRepository();
+  final cacheStore = ref.watch(bookCacheStoreProvider);
+  final networkInfo = ref.watch(networkInfoProvider);
+  return CachedBookQuizRepository(
+    remoteRepo: remoteRepo,
+    cacheStore: cacheStore,
+    networkInfo: networkInfo,
+  );
 });
