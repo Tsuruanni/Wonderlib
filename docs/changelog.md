@@ -8,6 +8,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Sentry Bug Fixes (2026-03-17)
+
+#### Fixed
+- **Sentry zone mismatch** — Moved `WidgetsFlutterBinding.ensureInitialized()` inside Sentry's `appRunner` to match zones
+- **AudioService not initialized** — Added `audioServiceProvider.hasValue` guard to reader widgets (reader_audio_controls, reader_text_block)
+- **Reader 3.4px overflow** — Reduced excessive bottom padding (140px → 96px) in reader content area
+- **ref after dispose (session summary)** — Added `mounted` check before `ref.invalidate()` in vocabulary session save callback
+- **ref after dispose (activity completion)** — Wrapped `handleInlineActivityCompletion` with StateError catch for disposed widgets
+- **Inline activity 19px overflow** — Added `mainAxisSize: MainAxisSize.min` to activity wrapper Column
+
 ### Supabase Cloud Migration & Database Hardening (2026-03-16)
 
 #### Infrastructure

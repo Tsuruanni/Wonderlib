@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-16 (Supabase Cloud Migration, DB Hardening, Tech Debt Cleanup)
+Son güncelleme: 2026-03-17 (Sentry Bug Fixes, Supabase Cloud Migration, DB Hardening)
 
 ## Current Phase
 
@@ -144,6 +144,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Sentry Bug Fixes | 2026-03-17 | 6 bugs caught and fixed via Sentry: zone mismatch, AudioService init, reader overflow, ref-after-dispose (×2), activity overflow |
 | Supabase Cloud Migration | 2026-03-16 | Local Docker → remote cloud (eu-central-1), 69 migrations, 7 Edge Functions, full seed data |
 | Database Hardening | 2026-03-16 | 10 migrations: 5 security fixes, 3 integrity fixes, 2 performance optimizations |
 | Tech Debt Cleanup | 2026-03-16 | Sentry init, XP constants consolidation, league scheduler, CLAUDE.md update |

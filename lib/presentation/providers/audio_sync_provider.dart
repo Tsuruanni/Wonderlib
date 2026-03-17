@@ -475,8 +475,6 @@ final audioSyncControllerProvider =
   final audioService = ref.watch(audioServiceProvider).valueOrNull;
 
   if (audioService == null) {
-    // Return a dummy controller if audio service is not ready
-    // This shouldn't happen in practice, but handles the async initialization
     throw StateError('AudioService not initialized');
   }
 
