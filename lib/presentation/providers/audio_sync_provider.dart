@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../core/services/audio_service.dart';
+import '../../core/services/file_cache_service.dart';
 import '../../domain/entities/content/content_block.dart';
 
 /// Configuration for auto-play behavior
@@ -96,13 +97,15 @@ class AudioSyncState {
 /// Controller for audio sync playback with integrated auto-play
 class AudioSyncController extends StateNotifier<AudioSyncState> {
   AudioSyncController(
-    this._audioService, {
+    this._audioService,
+    this._fileCacheService, {
     this.autoPlayConfig = const AutoPlayConfig(),
   }) : super(const AudioSyncState()) {
     _subscribeToStreams();
   }
 
   final AudioService _audioService;
+  final FileCacheService _fileCacheService;
   final AutoPlayConfig autoPlayConfig;
 
   StreamSubscription<Duration>? _positionSubscription;
@@ -344,7 +347,13 @@ class AudioSyncController extends StateNotifier<AudioSyncState> {
       final needsReload = _currentAudioUrl != block.audioUrl;
       if (needsReload) {
         _currentAudioUrl = block.audioUrl;
-        await _audioService.player.setUrl(block.audioUrl!);
+        // Resolve through file cache — use local file if downloaded, else URL.
+        final resolved = await _fileCacheService.resolveUrl(block.audioUrl!);
+        if (resolved.startsWith('/')) {
+          await _audioService.player.setFilePath(resolved);
+        } else {
+          await _audioService.player.setUrl(resolved);
+        }
       }
 
       // Calculate duration for this block
@@ -478,7 +487,8 @@ final audioSyncControllerProvider =
     throw StateError('AudioService not initialized');
   }
 
-  final controller = AudioSyncController(audioService);
+  final fileCacheService = ref.watch(fileCacheServiceProvider);
+  final controller = AudioSyncController(audioService, fileCacheService);
 
   // Forward completion events to StateProvider for backwards compatibility
   final subscription = controller.onBlockCompleted.listen((blockId) {
