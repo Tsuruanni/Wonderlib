@@ -295,7 +295,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chapterAsync = ref.watch(chapterByIdProvider(widget.chapterId));
+    final chapterAsync = ref.watch(chapterByIdProvider((bookId: widget.bookId, chapterId: widget.chapterId)));
     final chaptersAsync = ref.watch(chaptersProvider(widget.bookId));
     final bookAsync = ref.watch(bookByIdProvider(widget.bookId));
     final settings = ref.watch(readerSettingsProvider);

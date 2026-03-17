@@ -7,7 +7,6 @@ import '../../domain/entities/chapter.dart';
 import '../../domain/entities/reading_progress.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
-import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
@@ -102,15 +101,13 @@ final chaptersProvider = FutureProvider.family<List<Chapter>, String>((ref, book
   );
 });
 
-/// Provides a single chapter by ID
-final chapterByIdProvider = FutureProvider.family<Chapter?, String>((ref, chapterId) async {
-  final useCase = ref.watch(getChapterByIdUseCaseProvider);
-  final result = await useCase(GetChapterByIdParams(chapterId: chapterId));
-  return result.fold(
-    (failure) => null,
-    (chapter) => chapter,
-  );
-});
+/// Provides a single chapter by ID, filtered from the already-loaded batch (no extra network call)
+final chapterByIdProvider = FutureProvider.family<Chapter?, ({String bookId, String chapterId})>(
+  (ref, params) async {
+    final chapters = await ref.watch(chaptersProvider(params.bookId).future);
+    return chapters.where((c) => c.id == params.chapterId).firstOrNull;
+  },
+);
 
 /// Provides reading progress for a book
 final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>((ref, bookId) async {
