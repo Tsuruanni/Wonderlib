@@ -8,12 +8,9 @@ import 'app/app.dart';
 import 'core/constants/env_constants.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Load environment variables
+  // Load env before Sentry (dotenv doesn't need Flutter binding)
   await dotenv.load(fileName: '.env');
 
-  // Initialize Sentry if DSN is configured
   final sentryDsn = EnvConstants.sentryDsn;
   if (sentryDsn.isNotEmpty) {
     await SentryFlutter.init(
@@ -31,6 +28,9 @@ Future<void> main() async {
 }
 
 Future<void> _initAndRunApp() async {
+  // Binding must be in the SAME zone as runApp (Sentry creates its own zone)
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Initialize Supabase
   await Supabase.initialize(
     url: EnvConstants.supabaseUrl,
