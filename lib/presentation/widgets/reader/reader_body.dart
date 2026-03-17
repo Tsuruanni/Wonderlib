@@ -155,8 +155,8 @@ class ReaderBody extends ConsumerWidget {
                       bestScore: bestQuizScore,
                     ),
 
-                  // Extra padding at bottom
-                  const SizedBox(height: 40),
+                  // Bottom breathing room (contentPadding already has 80px bottom)
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
