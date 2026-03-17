@@ -19,12 +19,21 @@ Future<void> main() async {
         options.environment = EnvConstants.environment;
         options.tracesSampleRate = 0.2;
         options.sendDefaultPii = false; // K-12 privacy
+        options.beforeSend = _filterSentryEvent;
       },
       appRunner: () => _initAndRunApp(),
     );
   } else {
     await _initAndRunApp();
   }
+}
+
+/// Filter out noisy Flutter errors that aren't actionable
+SentryEvent? _filterSentryEvent(SentryEvent event, Hint hint) {
+  final message = event.exceptions?.firstOrNull?.value ?? '';
+  // RenderFlex overflow is a layout warning, not a real crash
+  if (message.contains('RenderFlex overflowed')) return null;
+  return event;
 }
 
 Future<void> _initAndRunApp() async {
