@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../../../core/services/audio_service.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/reader_provider.dart';
 
@@ -16,6 +17,10 @@ class ReaderAudioControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Wait for AudioService to initialize before accessing audio controller
+    final audioReady = ref.watch(audioServiceProvider).hasValue;
+    if (!audioReady) return const SizedBox.shrink();
+
     final state = ref.watch(audioSyncControllerProvider);
 
     // Don't show if no audio is loaded

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/services/audio_service.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/content/content_block.dart';
 import '../../providers/audio_sync_provider.dart';
@@ -33,6 +34,15 @@ class ReaderTextBlock extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final text = block.text ?? '';
     if (text.isEmpty) return const SizedBox.shrink();
+
+    // Wait for AudioService before accessing audio controller
+    final audioReady = ref.watch(audioServiceProvider).hasValue;
+    if (!audioReady) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Text(text, style: TextStyle(fontSize: settings.fontSize)),
+      );
+    }
 
     // Watch audio state for this specific block
     final audioState = ref.watch(audioSyncControllerProvider);
