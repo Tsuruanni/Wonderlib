@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-17 (Sentry Bug Fixes, Supabase Cloud Migration, DB Hardening)
+Son güncelleme: 2026-03-17 (Vocabulary Algorithm Improvements, Sentry Bug Fixes, Supabase Cloud Migration)
 
 ## Current Phase
 
@@ -144,6 +144,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Vocabulary Algorithm Improvements | 2026-03-17 | SM2 interval growth fix, XP farming prevention (high-score delta), combo softening (-2 vs reset), matching partial credit, Faz 3 limit 3→5, adaptive skip removed |
 | Sentry Bug Fixes | 2026-03-17 | 6 bugs caught and fixed via Sentry: zone mismatch, AudioService init, reader overflow, ref-after-dispose (×2), activity overflow |
 | Supabase Cloud Migration | 2026-03-16 | Local Docker → remote cloud (eu-central-1), 69 migrations, 7 Edge Functions, full seed data |
 | Database Hardening | 2026-03-16 | 10 migrations: 5 security fixes, 3 integrity fixes, 2 performance optimizations |

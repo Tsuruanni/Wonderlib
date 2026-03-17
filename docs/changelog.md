@@ -8,6 +8,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Vocabulary Session Algorithm Improvements (2026-03-17)
+
+#### Fixed
+- **SM2 interval growth in sessions** — Strong words now use proper SM2 intervals (1d → 6d → 15d → mastered) instead of always resetting to 1 day. Words can now reach "mastered" status through vocabulary sessions.
+- **XP farming exploit** — Repeating the same word list no longer grants infinite XP. Only the improvement over previous best score is awarded (high-score delta system).
+- **Matching accuracy inflation** — Matching questions (4 words at once) now count as 1 question for accuracy calculation instead of 4, preventing the adaptive system from receiving inflated signals.
+
+#### Changed
+- **Combo system** — Wrong answers now reduce combo by 2 instead of resetting to 0, reducing the penalty for attempting harder production questions.
+- **Matching XP** — Partial credit for matching: 3/4 correct now earns proportional XP instead of 0.
+- **Faz 3 (Final) question limit** — Increased from 3 to 5, ensuring more weak words get tested before session ends.
+- **Adaptive word selection** — Removed `isPerformingWell` skip that could bypass recognition questions for untested words. All words must pass recognition before advancing to bridge/production.
+- **Summary screen** — Coins Earned now shows actual awarded XP (delta) from server response instead of client-side total.
+
+#### Removed
+- **"Practice Mistakes" button** — Removed from session summary screen; Faz 3's increased limit now handles weak word retesting within the session.
+
 ### Sentry Bug Fixes (2026-03-17)
 
 #### Fixed

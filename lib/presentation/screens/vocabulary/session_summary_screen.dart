@@ -32,6 +32,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   bool _saving = false;
   bool _saved = false;
   String? _surpriseStat;
+  int? _actualXpAwarded;
 
   @override
   void initState() {
@@ -114,7 +115,10 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(learningPathProvider);
         // Refresh user state so XP/level updates in navbar + triggers level-up celebration
         ref.read(userControllerProvider.notifier).refresh();
-        setState(() => _saved = true);
+        setState(() {
+          _saved = true;
+          _actualXpAwarded = savedResult.xpEarned;
+        });
       },
     );
   }
@@ -123,7 +127,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final session = ref.watch(vocabularySessionControllerProvider);
-    final controller = ref.read(vocabularySessionControllerProvider.notifier);
     final accuracy = session.correctCount + session.incorrectCount > 0
         ? (session.correctCount /
                 (session.correctCount + session.incorrectCount)) *
@@ -185,7 +188,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                       icon: Icons.monetization_on,
                       iconColor: Colors.amber,
                       label: 'Coins Earned',
-                      value: '+${session.xpEarned}',
+                      value: '+${_actualXpAwarded ?? session.xpEarned}',
                       delay: 400.ms,
                     ),
                     const SizedBox(width: 12),
@@ -280,37 +283,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                   ),
                 ).animate().fadeIn(delay: 1200.ms).moveY(begin: 40, end: 0),
 
-                // "Retry weak words" button
-                if (controller.wordsWeakCount > 0) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        final weakWordIds = session.words
-                            .where((w) => w.incorrectCount > 0)
-                            .map((w) => w.wordId)
-                            .toList();
-                        context.go(
-                          AppRoutes.vocabularySessionPath(widget.listId),
-                          extra: weakWordIds,
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        side: BorderSide(color: theme.colorScheme.error, width: 1.5),
-                        foregroundColor: theme.colorScheme.error,
-                      ),
-                      child: Text(
-                        'Practice Mistakes (${controller.wordsWeakCount})',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 1400.ms),
-                ],
 
                 const SizedBox(height: 20),
               ],

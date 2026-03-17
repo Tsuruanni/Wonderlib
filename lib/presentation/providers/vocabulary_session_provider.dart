@@ -269,8 +269,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       }
     }
 
-    // Update combo
-    final newCombo = isCorrect ? state.combo + 1 : 0;
+    // Update combo: wrong answer reduces by 2 instead of resetting
+    final newCombo = isCorrect ? state.combo + 1 : max<int>(0, state.combo - 2);
     final newMaxCombo = max<int>(newCombo, state.maxCombo);
 
     // Calculate XP with combo multiplier
@@ -354,9 +354,11 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     }
 
     final isAllCorrect = correctMatches == totalMatches;
-    final newCombo = isAllCorrect ? state.combo + 1 : 0;
-    final xpGained = isAllCorrect
-        ? QuestionType.matching.baseXP * max<int>(1, min<int>(newCombo, 5))
+    final newCombo = isAllCorrect ? state.combo + 1 : max<int>(0, state.combo - 2);
+    // Partial XP for matching: 3/4 correct still earns proportional XP
+    final comboMult = max<int>(1, min<int>(newCombo, 5));
+    final xpGained = correctMatches > 0
+        ? (QuestionType.matching.baseXP * comboMult * correctMatches) ~/ totalMatches
         : 0;
 
     // Add incorrect words to remediation
@@ -372,8 +374,9 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       combo: newCombo,
       maxCombo: max<int>(newCombo, state.maxCombo),
       xpEarned: state.xpEarned + xpGained,
-      correctCount: state.correctCount + correctMatches,
-      incorrectCount: state.incorrectCount + (totalMatches - correctMatches),
+      // Count matching as 1 question for accuracy (not 4)
+      correctCount: state.correctCount + (isAllCorrect ? 1 : 0),
+      incorrectCount: state.incorrectCount + (isAllCorrect ? 0 : 1),
       totalQuestionsAnswered: state.totalQuestionsAnswered + 1,
       remediationQueue: updatedRemediation,
       isShowingFeedback: true,
@@ -467,20 +470,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         .where((w) => w.masteryLevel == WordMasteryLevel.bridged)
         .toList();
 
-    // Adaptive: if performing well, skip recognition
-    if (state.isPerformingWell && needsBridge.isNotEmpty) {
-      return needsBridge[_random.nextInt(needsBridge.length)];
-    }
-    if (state.isPerformingWell && needsProduction.isNotEmpty) {
-      return needsProduction[_random.nextInt(needsProduction.length)];
-    }
-
-    // Adaptive: if struggling, prioritize recognition
-    if (state.isStruggling && needsRecognition.isNotEmpty) {
-      return needsRecognition[_random.nextInt(needsRecognition.length)];
-    }
-
-    // Normal: prioritize lower mastery levels
+    // Always prioritize lower mastery levels — every word must pass
+    // recognition before moving to bridge/production
     if (needsRecognition.isNotEmpty) {
       return needsRecognition[_random.nextInt(needsRecognition.length)];
     }
@@ -578,7 +569,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   }
 
   void _generateFinalQuestion() {
-    final targetFinalQuestions = min(3, state.weakWords.length);
+    final targetFinalQuestions = min(5, state.weakWords.length);
     if (state.finalQuestionsAsked >= targetFinalQuestions) {
       _completeSession();
       return;
