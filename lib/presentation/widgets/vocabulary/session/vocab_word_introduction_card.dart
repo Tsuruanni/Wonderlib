@@ -128,7 +128,11 @@ class _SpeakerButtonState extends State<_SpeakerButton> {
   @override
   void initState() {
     super.initState();
-    _tts.setLanguage('en-US');
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    await _tts.setLanguage('en-US');
     _tts.setCompletionHandler(() {
       if (mounted) setState(() => _isPlaying = false);
     });

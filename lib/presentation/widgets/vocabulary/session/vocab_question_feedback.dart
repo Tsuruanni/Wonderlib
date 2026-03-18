@@ -55,15 +55,21 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
         widget.questionType == QuestionType.pronunciation &&
         widget.targetWord != null) {
       _tts = FlutterTts();
-      _tts!.setLanguage('en-US');
-      _tts!.speak(widget.targetWord!);
+      _initAndSpeakTts(widget.targetWord!);
     }
+  }
+
+  Future<void> _initAndSpeakTts(String word) async {
+    await _tts!.setLanguage('en-US');
+    if (!mounted) return;
+    await _tts!.speak(word);
   }
 
   @override
   void dispose() {
     _autoDismissTimer?.cancel();
-    _tts?.stop();
+    // Do NOT call _tts?.stop() — shared platform TTS engine would kill
+    // the next question's audio during AnimatedSwitcher transition.
     super.dispose();
   }
 

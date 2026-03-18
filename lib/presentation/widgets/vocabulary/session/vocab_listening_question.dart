@@ -37,7 +37,7 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
     // Initialize TTS then auto-play
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _tts.setLanguage('en-US');
-      await _tts.awaitSpeakCompletion(true);
+      if (!mounted) return;
       _playAudio();
       if (isWriteMode) _focusNode.requestFocus();
     });
@@ -47,7 +47,9 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
 
   @override
   void dispose() {
-    _tts.stop();
+    // Do NOT call _tts.stop() here — AnimatedSwitcher keeps this widget alive
+    // during fade-out. stop() would kill the next question's TTS mid-word
+    // because all FlutterTts instances share the same platform TTS engine.
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
@@ -55,6 +57,7 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
   }
 
   Future<void> _playAudio() async {
+    if (!mounted) return;
     setState(() => _hasPlayedOnce = true);
     await _tts.speak(widget.question.targetWord);
   }

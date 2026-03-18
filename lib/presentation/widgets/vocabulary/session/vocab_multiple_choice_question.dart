@@ -28,7 +28,11 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
   @override
   void initState() {
     super.initState();
-    _tts.setLanguage('en-US');
+    _initTts();
+  }
+
+  Future<void> _initTts() async {
+    await _tts.setLanguage('en-US');
   }
 
   @override
