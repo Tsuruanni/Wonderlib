@@ -308,8 +308,9 @@ class _VocabularySessionScreenState
               targetWord: sessionState.currentQuestion?.type == QuestionType.matching
                   ? null
                   : sessionState.currentQuestion?.targetWord,
+              questionType: sessionState.currentQuestion?.type,
               // For feedback display, use the last gained XP
-              xpGained: sessionState.lastXPGained, 
+              xpGained: sessionState.lastXPGained,
               combo: sessionState.combo,
               onDismiss: controller.dismissFeedback,
             )
