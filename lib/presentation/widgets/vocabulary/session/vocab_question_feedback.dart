@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import '../../../../domain/entities/vocabulary_session.dart';
 import '../../common/feedback_animation.dart';
 
 /// Feedback overlay after answering: green check or red X with correct answer
@@ -11,6 +13,7 @@ class VocabQuestionFeedback extends StatefulWidget {
     required this.isCorrect,
     this.correctAnswer,
     this.targetWord,
+    this.questionType,
     this.xpGained = 0,
     this.combo = 0,
     this.comboWarning = false,
@@ -21,6 +24,7 @@ class VocabQuestionFeedback extends StatefulWidget {
   final bool isCorrect;
   final String? correctAnswer;
   final String? targetWord;
+  final QuestionType? questionType;
   final int xpGained;
   final int combo;
   final bool comboWarning;  // First miss: combo preserved but warned
@@ -33,6 +37,7 @@ class VocabQuestionFeedback extends StatefulWidget {
 
 class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
   Timer? _autoDismissTimer;
+  FlutterTts? _tts;
 
   @override
   void initState() {
@@ -44,11 +49,21 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
         if (mounted) widget.onDismiss();
       });
     }
+
+    // TTS for wrong pronunciation answers
+    if (!widget.isCorrect &&
+        widget.questionType == QuestionType.pronunciation &&
+        widget.targetWord != null) {
+      _tts = FlutterTts();
+      _tts!.setLanguage('en-US');
+      _tts!.speak(widget.targetWord!);
+    }
   }
 
   @override
   void dispose() {
     _autoDismissTimer?.cancel();
+    _tts?.stop();
     super.dispose();
   }
 

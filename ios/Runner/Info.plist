@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Owlio needs speech recognition to check your pronunciation</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Owlio needs microphone access for pronunciation exercises</string>
 </dict>
 </plist>

@@ -34,6 +34,7 @@ class VocabularySessionState {
     this.startTime,
     this.reinforceQuestionsAsked = 0,
     this.finalQuestionsAsked = 0,
+    this.micDisabledForSession = false,
   });
 
   final SessionPhase phase;
@@ -59,6 +60,7 @@ class VocabularySessionState {
   final DateTime? startTime;
   final int reinforceQuestionsAsked;
   final int finalQuestionsAsked;
+  final bool micDisabledForSession;
 
   /// Current pair of words being introduced (Faz 1)
   List<WordSessionState> get currentPair {
@@ -126,6 +128,7 @@ class VocabularySessionState {
     DateTime? startTime,
     int? reinforceQuestionsAsked,
     int? finalQuestionsAsked,
+    bool? micDisabledForSession,
   }) {
     return VocabularySessionState(
       phase: phase ?? this.phase,
@@ -151,6 +154,7 @@ class VocabularySessionState {
       startTime: startTime ?? this.startTime,
       reinforceQuestionsAsked: reinforceQuestionsAsked ?? this.reinforceQuestionsAsked,
       finalQuestionsAsked: finalQuestionsAsked ?? this.finalQuestionsAsked,
+      micDisabledForSession: micDisabledForSession ?? this.micDisabledForSession,
     );
   }
 }
@@ -186,6 +190,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       isShowingIntroduction: true,
       startTime: DateTime.now(),
     );
+  }
+
+  void disableMicForSession() {
+    state = state.copyWith(micDisabledForSession: true);
   }
 
   // ------------------------------------
@@ -303,7 +311,11 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     int xpGained = 0;
     if (isCorrect) {
       final comboMultiplier = min<int>(newCombo, 5); // Cap at x5
-      xpGained = question.type.baseXP * max<int>(1, comboMultiplier);
+      final baseXP = (question.type == QuestionType.pronunciation &&
+              state.micDisabledForSession)
+          ? QuestionType.spelling.baseXP
+          : question.type.baseXP;
+      xpGained = baseXP * max<int>(1, comboMultiplier);
     }
 
     // Add to remediation queue if wrong
@@ -560,6 +572,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         eligibleTypes = [
           QuestionType.spelling,
           QuestionType.listeningWrite,
+          if (!state.micDisabledForSession && word.word.length >= 3)
+            QuestionType.pronunciation,
           if (word.exampleSentence != null) QuestionType.sentenceGap,
         ];
         // If no production type available, fall back to bridge
@@ -627,6 +641,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     // Use production-level questions for final phase
     List<QuestionType> types = [
       QuestionType.spelling,
+      if (!state.micDisabledForSession && word.word.length >= 3)
+        QuestionType.pronunciation,
       if (word.exampleSentence != null) QuestionType.sentenceGap,
       QuestionType.scrambledLetters,
       QuestionType.wordWheel,
@@ -669,6 +685,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         return _buildListeningWrite(word);
       case QuestionType.sentenceGap:
         return _buildSentenceGap(word);
+      case QuestionType.pronunciation:
+        return _buildPronunciation(word);
     }
   }
 
@@ -793,6 +811,17 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       targetWord: word.word,
       targetMeaning: word.meaningTR,
       correctAnswer: word.word,
+    );
+  }
+
+  SessionQuestion _buildPronunciation(WordSessionState word) {
+    return SessionQuestion(
+      type: QuestionType.pronunciation,
+      targetWordId: word.wordId,
+      targetWord: word.word,
+      targetMeaning: word.meaningTR,
+      correctAnswer: word.word,
+      imageUrl: word.imageUrl,
     );
   }
 

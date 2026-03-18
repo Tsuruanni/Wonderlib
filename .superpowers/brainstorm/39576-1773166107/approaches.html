@@ -1,0 +1,80 @@
+<h2>Book JSON Import — Yaklaşım Seçenekleri</h2>
+<p class="subtitle">Admin panele JSON kitap import özelliği için 3 farklı mimari yaklaşım</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Tek Ekran — All-in-One</h3>
+      <p>Tek bir <code>BookJsonImportScreen</code> içinde her şey: dosya yükleme/yapıştırma, validation, preview, import.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Tek dosya, basit navigasyon</li>
+            <li>Mevcut import pattern'lerine en yakın (user_import, vocab_import)</li>
+            <li>Hızlı geliştirme</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Ekran karmaşıklaşabilir (validation + preview + import)</li>
+            <li>State yönetimi tek widget'ta yoğunlaşır</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Stepper / Wizard</h3>
+      <p>3 adımlı wizard: <strong>1)</strong> JSON gir (dosya/yapıştır) → <strong>2)</strong> Validation + Preview → <strong>3)</strong> Import sonucu. Flutter <code>Stepper</code> widget kullanır.</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Her adım ayrı ve net</li>
+            <li>Validate-first akışına doğal uyum</li>
+            <li>Kullanıcı nerede olduğunu bilir</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Daha fazla kod</li>
+            <li>Flutter Stepper widget bazen kısıtlayıcı</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Tek Ekran + Dialog</h3>
+      <p>Ana ekranda JSON giriş + validation. Import'u mevcut <code>CsvImportDialog</code> pattern'ine benzer bir dialog'da çalıştır (progress bar + sonuç).</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Mevcut admin panel pattern'iyle tutarlı</li>
+            <li>Dialog import sırasında sayfadan çıkmayı engeller</li>
+            <li>Preview ana ekranda, import dialog'da — sorumluluk ayrımı iyi</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Dialog içi progress için ayrı state gerekir</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="margin-top: 24px;"><strong>Önerim: B (Stepper)</strong> — Validate-first kararıyla en doğal eşleşen yaklaşım. Her adım izole ve test edilebilir.</p>

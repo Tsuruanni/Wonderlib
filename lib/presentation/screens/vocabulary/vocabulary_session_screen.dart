@@ -18,8 +18,10 @@ import '../../widgets/vocabulary/session/vocab_scrambled_letters_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 import '../../widgets/vocabulary/session/vocab_sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
+import '../../widgets/vocabulary/session/vocab_pronunciation_question.dart';
 import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_introduction_card.dart';
+import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -308,6 +310,7 @@ class _VocabularySessionScreenState
               targetWord: sessionState.currentQuestion?.type == QuestionType.matching
                   ? null
                   : sessionState.currentQuestion?.targetWord,
+              questionType: sessionState.currentQuestion?.type,
               xpGained: sessionState.lastXPGained,
               combo: sessionState.combo,
               comboWarning: !sessionState.lastAnswerCorrect && sessionState.comboWarningActive,
@@ -477,6 +480,14 @@ class _VocabularySessionScreenState
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.pronunciation:
+        return VocabPronunciationQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+          onMicDisabled: () => controller.disableMicForSession(),
         );
 
       case QuestionType.sentenceGap:

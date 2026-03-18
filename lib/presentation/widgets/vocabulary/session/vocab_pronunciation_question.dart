@@ -1,0 +1,334 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+
+import '../../../../domain/entities/vocabulary_session.dart';
+import 'vocab_question_container.dart';
+import 'vocab_question_image.dart';
+
+/// Pronunciation question: Image + TR meaning shown, say the English word.
+/// Falls back to spelling (TextField) when mic is unavailable.
+class VocabPronunciationQuestion extends StatefulWidget {
+  const VocabPronunciationQuestion({
+    super.key,
+    required this.question,
+    required this.onAnswer,
+    required this.onMicDisabled,
+  });
+
+  final SessionQuestion question;
+  final ValueChanged<String> onAnswer;
+  final VoidCallback onMicDisabled;
+
+  @override
+  State<VocabPronunciationQuestion> createState() =>
+      _VocabPronunciationQuestionState();
+}
+
+class _VocabPronunciationQuestionState
+    extends State<VocabPronunciationQuestion> {
+  bool _isFallbackMode = false;
+  bool _isListening = false;
+  bool _answered = false;
+  bool _sttAvailable = false;
+  String? _statusMessage;
+
+  final SpeechToText _stt = SpeechToText();
+  final _textController = TextEditingController();
+  final _focusNode = FocusNode();
+  Timer? _noResultTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _textController.addListener(_onTextChanged);
+    _initSpeech();
+  }
+
+  void _onTextChanged() => setState(() {});
+
+  Future<void> _initSpeech() async {
+    try {
+      final available = await _stt.initialize(
+        onError: (error) {
+          if (mounted && !_answered) {
+            _switchToFallback();
+          }
+        },
+      );
+      if (mounted) {
+        if (!available) {
+          _switchToFallback();
+        } else {
+          setState(() => _sttAvailable = true);
+        }
+      }
+    } catch (_) {
+      if (mounted) _switchToFallback();
+    }
+  }
+
+  void _switchToFallback() {
+    if (_isFallbackMode) return;
+    setState(() => _isFallbackMode = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+    widget.onMicDisabled();
+  }
+
+  void _startListening() async {
+    if (_answered || !_sttAvailable) return;
+    setState(() {
+      _isListening = true;
+      _statusMessage = null;
+    });
+    await _stt.listen(
+      localeId: 'en-US',
+      onResult: _onSpeechResult,
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.confirmation,
+      ),
+    );
+  }
+
+  void _stopListening() async {
+    await _stt.stop();
+    if (mounted) {
+      setState(() => _isListening = false);
+      _noResultTimer?.cancel();
+      _noResultTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!_answered && mounted) {
+          setState(() => _statusMessage = "Didn't catch that, try again");
+        }
+      });
+    }
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    if (!result.finalResult || _answered) return;
+    _noResultTimer?.cancel();
+
+    final recognizedWord = result.recognizedWords.trim().toLowerCase();
+
+    if (recognizedWord.isEmpty) {
+      setState(() => _statusMessage = "Didn't catch that, try again");
+      return;
+    }
+
+    setState(() => _answered = true);
+    HapticFeedback.lightImpact();
+    final correctAnswer = widget.question.correctAnswer.toLowerCase();
+
+    if (recognizedWord == correctAnswer) {
+      widget.onAnswer(widget.question.correctAnswer);
+    } else {
+      widget.onAnswer(recognizedWord);
+    }
+  }
+
+  void _submitSpelling() {
+    if (_answered || _textController.text.trim().isEmpty) return;
+    setState(() => _answered = true);
+    HapticFeedback.lightImpact();
+    widget.onAnswer(_textController.text.trim());
+  }
+
+  @override
+  void dispose() {
+    _stt.stop();
+    _noResultTimer?.cancel();
+    _textController.removeListener(_onTextChanged);
+    _textController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              _isFallbackMode ? 'Type the English word' : 'Say the English word',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          VocabQuestionContainer(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+            child: Column(
+              children: [
+                VocabQuestionImage(
+                  imageUrl: widget.question.imageUrl,
+                  size: 120,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Text(
+                    widget.question.targetMeaning,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          if (_isFallbackMode) _buildSpellingMode(theme) else _buildMicMode(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMicMode(ThemeData theme) {
+    return Column(
+      children: [
+        if (_statusMessage != null) ...[
+          Text(
+            _statusMessage!,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        GestureDetector(
+          onLongPressStart: (_) => _startListening(),
+          onLongPressEnd: (_) => _stopListening(),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: _isListening ? 100 : 80,
+            height: _isListening ? 100 : 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: _isListening
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.primaryContainer,
+              boxShadow: _isListening
+                  ? [
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Icon(
+              Icons.mic,
+              size: _isListening ? 44 : 36,
+              color: _isListening
+                  ? Colors.white
+                  : theme.colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        Text(
+          _isListening ? 'Listening...' : 'Hold to speak',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        TextButton(
+          onPressed: _answered ? null : _switchToFallback,
+          child: Text(
+            "Can't use microphone?",
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpellingMode(ThemeData theme) {
+    return Column(
+      children: [
+        TextField(
+          controller: _textController,
+          focusNode: _focusNode,
+          enabled: !_answered,
+          autocorrect: false,
+          textCapitalization: TextCapitalization.none,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Type answer...',
+            hintStyle: TextStyle(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+            ),
+            filled: true,
+            fillColor: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.5),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          ),
+          onSubmitted: (_) => _submitSpelling(),
+        ),
+
+        const SizedBox(height: 20),
+
+        if (!_answered)
+          FilledButton(
+            onPressed:
+                _textController.text.trim().isNotEmpty ? _submitSpelling : null,
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              'Check Answer',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+      ],
+    );
+  }
+}
