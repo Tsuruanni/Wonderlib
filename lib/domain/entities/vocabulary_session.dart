@@ -14,6 +14,7 @@ enum QuestionType {
   spelling,              // TR meaning given → type EN word
   listeningWrite,        // Audio plays → type the word
   sentenceGap,           // Fill the blank in a sentence
+  pronunciation,          // Say the word into microphone (production)
 }
 
 /// XP values per question type
@@ -32,6 +33,8 @@ extension QuestionTypeXP on QuestionType {
       case QuestionType.listeningWrite:
         return 25;
       case QuestionType.sentenceGap:
+        return 30;
+      case QuestionType.pronunciation:
         return 30;
     }
   }
@@ -52,6 +55,7 @@ extension QuestionTypeTier on QuestionType {
       case QuestionType.spelling:
       case QuestionType.listeningWrite:
       case QuestionType.sentenceGap:
+      case QuestionType.pronunciation:
         return QuestionTier.production;
     }
   }
