@@ -17,6 +17,7 @@ import '../../widgets/vocabulary/session/vocab_question_feedback.dart';
 import '../../widgets/vocabulary/session/vocab_scrambled_letters_question.dart';
 import '../../widgets/vocabulary/session/vocab_sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
+import '../../widgets/vocabulary/session/vocab_pronunciation_question.dart';
 import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_introduction_card.dart';
 
@@ -468,6 +469,14 @@ class _VocabularySessionScreenState
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.pronunciation:
+        return VocabPronunciationQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+          onMicDisabled: () => controller.disableMicForSession(),
         );
 
       case QuestionType.sentenceGap:
