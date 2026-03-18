@@ -469,18 +469,22 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
 
   void _generateReinforceQuestion() {
     // Check if we should transition to Final phase
-    final allTestedAtLeastOnce = state.words.every(
-      (w) => w.masteryLevel.index >= WordMasteryLevel.recognized.index,
+    // All words must reach at least bridged level (passed bridge questions)
+    // so that production-tier questions (spelling, pronunciation) get a chance
+    final allBridged = state.words.every(
+      (w) => w.masteryLevel.index >= WordMasteryLevel.bridged.index,
     );
-    final enoughQuestions = state.reinforceQuestionsAsked >= 10;
+    final minQuestions = state.words.length * 2 + 4; // ensure ~4 production Qs
+    final enoughQuestions = state.reinforceQuestionsAsked >= minQuestions;
 
-    if (allTestedAtLeastOnce && enoughQuestions) {
+    if (allBridged && enoughQuestions) {
       _transitionToFinal();
       return;
     }
 
-    // Also cap at ~14 reinforce questions to keep session length reasonable
-    if (state.reinforceQuestionsAsked >= 14) {
+    // Hard cap scales with word count to keep sessions reasonable
+    final hardCap = state.words.length * 3;
+    if (state.reinforceQuestionsAsked >= hardCap) {
       _transitionToFinal();
       return;
     }
