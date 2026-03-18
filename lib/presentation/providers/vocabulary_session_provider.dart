@@ -474,7 +474,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     final allBridged = state.words.every(
       (w) => w.masteryLevel.index >= WordMasteryLevel.bridged.index,
     );
-    final minQuestions = state.words.length * 2 + 4; // ensure ~4 production Qs
+    final minQuestions = state.words.length + 2; // bridge + a few production
     final enoughQuestions = state.reinforceQuestionsAsked >= minQuestions;
 
     if (allBridged && enoughQuestions) {
@@ -483,7 +483,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     }
 
     // Hard cap scales with word count to keep sessions reasonable
-    final hardCap = state.words.length * 3;
+    final hardCap = state.words.length * 2 + 5;
     if (state.reinforceQuestionsAsked >= hardCap) {
       _transitionToFinal();
       return;
@@ -530,8 +530,23 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         .where((w) => w.masteryLevel == WordMasteryLevel.bridged)
         .toList();
 
-    // Always prioritize lower mastery levels — every word must pass
-    // recognition before moving to bridge/production
+    // 70% of the time: pick from lowest mastery (strict progression)
+    // 30% of the time: pick from a higher tier for variety (interleaving)
+    // Interleaving mixes question types, keeping sessions engaging
+    // and improving retention through spaced, varied practice
+    final useInterleaving = _random.nextDouble() < 0.3;
+
+    if (useInterleaving) {
+      // Pick from the highest available tier for variety
+      if (needsProduction.isNotEmpty) {
+        return needsProduction[_random.nextInt(needsProduction.length)];
+      }
+      if (needsBridge.isNotEmpty) {
+        return needsBridge[_random.nextInt(needsBridge.length)];
+      }
+    }
+
+    // Default: prioritize lower mastery levels
     if (needsRecognition.isNotEmpty) {
       return needsRecognition[_random.nextInt(needsRecognition.length)];
     }
