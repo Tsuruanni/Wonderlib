@@ -516,6 +516,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       case WordMasteryLevel.recognized:
         eligibleTypes = [
           QuestionType.scrambledLetters,
+          QuestionType.wordWheel,
           if (state.words.length >= 4) QuestionType.matching,
         ];
         // If struggling, also allow easier types
@@ -533,7 +534,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         ];
         // If no production type available, fall back to bridge
         if (eligibleTypes.isEmpty) {
-          eligibleTypes = [QuestionType.scrambledLetters];
+          eligibleTypes = [QuestionType.scrambledLetters, QuestionType.wordWheel];
         }
     }
 
@@ -600,6 +601,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         QuestionType.pronunciation,
       if (word.exampleSentence != null) QuestionType.sentenceGap,
       QuestionType.scrambledLetters,
+      QuestionType.wordWheel,
     ];
 
     final type = types[_random.nextInt(types.length)];
@@ -632,6 +634,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         return _buildMatching(word);
       case QuestionType.scrambledLetters:
         return _buildScrambledLetters(word);
+      case QuestionType.wordWheel:
+        return _buildScrambledLetters(word, type: QuestionType.wordWheel);
       case QuestionType.spelling:
         return _buildSpelling(word);
       case QuestionType.listeningWrite:
@@ -731,7 +735,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     );
   }
 
-  SessionQuestion _buildScrambledLetters(WordSessionState word) {
+  SessionQuestion _buildScrambledLetters(WordSessionState word, {QuestionType type = QuestionType.scrambledLetters}) {
     final letters = word.word.split('');
     final scrambled = List<String>.from(letters);
 
@@ -744,7 +748,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     } while (scrambled.join() == word.word && word.word.length > 1 && attempts < 20);
 
     return SessionQuestion(
-      type: QuestionType.scrambledLetters,
+      type: type,
       targetWordId: word.wordId,
       targetWord: word.word,
       targetMeaning: word.meaningTR,

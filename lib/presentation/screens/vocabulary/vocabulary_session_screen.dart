@@ -20,6 +20,7 @@ import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
 import '../../widgets/vocabulary/session/vocab_pronunciation_question.dart';
 import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_introduction_card.dart';
+import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -460,6 +461,13 @@ class _VocabularySessionScreenState
 
       case QuestionType.scrambledLetters:
         return VocabScrambledLettersQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.wordWheel:
+        return VocabWordWheelQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),

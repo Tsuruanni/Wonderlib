@@ -11,6 +11,7 @@ enum QuestionType {
   listeningSelect,       // Audio plays → pick correct word (4 options)
   matching,              // Match 4 words ↔ 4 meanings
   scrambledLetters,      // Rearrange shuffled letter buttons
+  wordWheel,             // Circular drag-to-connect letter wheel
   spelling,              // TR meaning given → type EN word
   listeningWrite,        // Audio plays → type the word
   sentenceGap,           // Fill the blank in a sentence
@@ -28,6 +29,7 @@ extension QuestionTypeXP on QuestionType {
       case QuestionType.matching:
         return 15;
       case QuestionType.scrambledLetters:
+      case QuestionType.wordWheel:
         return 20;
       case QuestionType.spelling:
       case QuestionType.listeningWrite:
@@ -51,6 +53,7 @@ extension QuestionTypeTier on QuestionType {
         return QuestionTier.recognition;
       case QuestionType.matching:
       case QuestionType.scrambledLetters:
+      case QuestionType.wordWheel:
         return QuestionTier.bridge;
       case QuestionType.spelling:
       case QuestionType.listeningWrite:
