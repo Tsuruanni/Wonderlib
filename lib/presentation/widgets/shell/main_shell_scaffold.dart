@@ -16,16 +16,18 @@ class MainShellScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          border: Border(
-            top: BorderSide(color: AppColors.neutral, width: 2),
+      bottomNavigationBar: SafeArea(
+        // SafeArea outside Container so background extends to system inset
+        // but content stays in safe zone
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            border: Border(
+              top: BorderSide(color: AppColors.neutral, width: 2),
+            ),
           ),
-        ),
-        child: SafeArea( // Handle iPhone bottom safe area
           child: SizedBox(
-            height: 80, // Taller bar
+            height: 80,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

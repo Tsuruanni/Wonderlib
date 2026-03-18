@@ -35,7 +35,7 @@ class ClassListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Classes'),
+        title: const Text('Sınıflar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -44,7 +44,7 @@ class ClassListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/classes/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Class'),
+            label: const Text('Yeni Sınıf'),
           ),
           const SizedBox(width: 16),
         ],
@@ -68,14 +68,14 @@ class ClassListScreen extends ConsumerWidget {
                     data: (schools) => DropdownButtonFormField<String?>(
                       value: selectedSchool,
                       decoration: const InputDecoration(
-                        labelText: 'School',
+                        labelText: 'Okul',
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(),
                       ),
                       items: [
                         const DropdownMenuItem(
                           value: null,
-                          child: Text('All Schools'),
+                          child: Text('Tüm Okullar'),
                         ),
                         ...schools.map((school) => DropdownMenuItem(
                               value: school['id'] as String,
@@ -99,7 +99,7 @@ class ClassListScreen extends ConsumerWidget {
                       ref.read(classSchoolFilterProvider.notifier).state = null;
                     },
                     icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -121,7 +121,7 @@ class ClassListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No classes yet',
+                          'Henüz sınıf yok',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey.shade600,
@@ -131,7 +131,7 @@ class ClassListScreen extends ConsumerWidget {
                         FilledButton.icon(
                           onPressed: () => context.go('/classes/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Create your first class'),
+                          label: const Text('İlk sınıfınızı oluşturun'),
                         ),
                       ],
                     ),
@@ -160,11 +160,11 @@ class ClassListScreen extends ConsumerWidget {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(classesProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
@@ -190,7 +190,7 @@ class _ClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final schoolName = classItem['schools']?['name'] as String? ?? 'No School';
+    final schoolName = classItem['schools']?['name'] as String? ?? 'Okul Yok';
     final grade = classItem['grade'] as int?;
     final academicYear = classItem['academic_year'] as String?;
 
@@ -226,7 +226,7 @@ class _ClassCard extends StatelessWidget {
                   children: [
                     // Name
                     Text(
-                      classItem['name'] as String? ?? 'Unnamed Class',
+                      classItem['name'] as String? ?? 'İsimsiz Sınıf',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -252,12 +252,12 @@ class _ClassCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _Chip(
-                          label: '$studentCount students',
+                          label: '$studentCount öğrenci',
                           color: Colors.blue,
                         ),
                         if (grade != null)
                           _Chip(
-                            label: 'Grade $grade',
+                            label: '$grade. sınıf',
                             color: Colors.purple,
                           ),
                         if (academicYear != null)

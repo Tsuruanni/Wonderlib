@@ -37,7 +37,7 @@ class WordlistListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Word Lists'),
+        title: const Text('Kelime Listeleri'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -46,7 +46,7 @@ class WordlistListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/wordlists/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Word List'),
+            label: const Text('Yeni Kelime Listesi'),
           ),
           const SizedBox(width: 16),
         ],
@@ -71,12 +71,12 @@ class WordlistListScreen extends ConsumerWidget {
                     data: (units) => DropdownButtonFormField<String?>(
                       value: unitFilter,
                       decoration: const InputDecoration(
-                        labelText: 'Unit',
+                        labelText: 'Ünite',
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(),
                       ),
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('All Units')),
+                        const DropdownMenuItem(value: null, child: Text('Tüm Üniteler')),
                         ...units.map(
                           (unit) => DropdownMenuItem(
                             value: unit['id'] as String,
@@ -90,11 +90,11 @@ class WordlistListScreen extends ConsumerWidget {
                     ),
                     loading: () => const InputDecorator(
                       decoration: InputDecoration(
-                        labelText: 'Unit',
+                        labelText: 'Ünite',
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(),
                       ),
-                      child: Text('Loading...'),
+                      child: Text('Yükleniyor...'),
                     ),
                     error: (_, __) => const SizedBox.shrink(),
                   ),
@@ -108,7 +108,7 @@ class WordlistListScreen extends ConsumerWidget {
                       ref.read(wordlistUnitFilterProvider.notifier).state = null;
                     },
                     icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -130,7 +130,7 @@ class WordlistListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No word lists found',
+                          'Kelime listesi bulunamadı',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey.shade600,
@@ -140,7 +140,7 @@ class WordlistListScreen extends ConsumerWidget {
                         FilledButton.icon(
                           onPressed: () => context.go('/wordlists/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Create your first word list'),
+                          label: const Text('İlk kelime listenizi oluşturun'),
                         ),
                       ],
                     ),
@@ -173,21 +173,21 @@ class WordlistListScreen extends ConsumerWidget {
                           Padding(
                             padding: EdgeInsets.all(12),
                             child: Text(
-                              'Name',
+                              'Ad',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12),
                             child: Text(
-                              'Unit',
+                              'Ünite',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12),
                             child: Text(
-                              'Order',
+                              'Sıra',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -241,7 +241,7 @@ class WordlistListScreen extends ConsumerWidget {
                                       ),
                                     )
                                   : Text(
-                                      'Unassigned',
+                                      'Atanmamış',
                                       style: TextStyle(
                                         color: Colors.grey.shade400,
                                         fontSize: 12,
@@ -285,11 +285,11 @@ class WordlistListScreen extends ConsumerWidget {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(wordlistsProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),

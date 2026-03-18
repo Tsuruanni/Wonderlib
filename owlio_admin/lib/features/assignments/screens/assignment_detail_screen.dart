@@ -33,7 +33,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assignment Details'),
+        title: const Text('Ödev Detayları'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/assignments'),
@@ -50,7 +50,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
       body: detailAsync.when(
         data: (assignment) {
           if (assignment == null) {
-            return const Center(child: Text('Assignment not found'));
+            return const Center(child: Text('Ödev bulunamadı'));
           }
           return _buildContent(context, assignment);
         },
@@ -62,12 +62,12 @@ class AssignmentDetailScreen extends ConsumerWidget {
               Icon(Icons.error_outline,
                   size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('Hata: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () =>
                     ref.invalidate(assignmentDetailProvider(assignmentId)),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),
@@ -78,7 +78,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
 
   Widget _buildContent(
       BuildContext context, Map<String, dynamic> assignment) {
-    final title = assignment['title'] as String? ?? 'Untitled';
+    final title = assignment['title'] as String? ?? 'Başlıksız';
     final description = assignment['description'] as String?;
     final type =
         AssignmentType.fromDbValue(assignment['type'] as String? ?? 'book');
@@ -86,7 +86,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
     final teacherName = teacherData != null
         ? '${teacherData['first_name'] ?? ''} ${teacherData['last_name'] ?? ''}'
             .trim()
-        : 'Unknown';
+        : 'Bilinmiyor';
     final classData = assignment['classes'] as Map<String, dynamic>?;
     final className = classData?['name'] as String?;
     final startDate = DateTime.tryParse(assignment['start_date'] ?? '');
@@ -114,8 +114,8 @@ class AssignmentDetailScreen extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'This assignment was created by a teacher in the main app. '
-                    'This view is read-only.',
+                    'Bu ödev ana uygulamada bir öğretmen tarafından oluşturulmuştur. '
+                    'Bu görünüm salt okunurdur.',
                     style: TextStyle(color: Colors.blue.shade700),
                   ),
                 ),
@@ -174,7 +174,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
 
           // Students table
           Text(
-            'Students (${students.length})',
+            'Öğrenciler (${students.length})',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
@@ -184,7 +184,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No students assigned',
+                  'Atanmış öğrenci yok',
                   style: TextStyle(
                       fontSize: 16, color: Colors.grey.shade500),
                 ),
@@ -197,15 +197,15 @@ class AssignmentDetailScreen extends ConsumerWidget {
                 headingRowColor: WidgetStateColor.resolveWith(
                     (_) => Colors.grey.shade100),
                 columns: const [
-                  DataColumn(label: Text('Student')),
-                  DataColumn(label: Text('Status')),
+                  DataColumn(label: Text('Öğrenci')),
+                  DataColumn(label: Text('Durum')),
                   DataColumn(
-                      label: Text('Progress'),
+                      label: Text('İlerleme'),
                       numeric: true),
                   DataColumn(
-                      label: Text('Score'), numeric: true),
-                  DataColumn(label: Text('Started')),
-                  DataColumn(label: Text('Completed')),
+                      label: Text('Puan'), numeric: true),
+                  DataColumn(label: Text('Başlangıç')),
+                  DataColumn(label: Text('Tamamlanma')),
                 ],
                 rows: students.map((student) {
                   final profile =
@@ -213,7 +213,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
                   final name = profile != null
                       ? '${profile['first_name'] ?? ''} ${profile['last_name'] ?? ''}'
                           .trim()
-                      : 'Unknown';
+                      : 'Bilinmiyor';
                   final email =
                       profile?['email'] as String? ?? '';
                   final status = AssignmentStatus.fromDbValue(
@@ -266,21 +266,21 @@ class AssignmentDetailScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Assignment'),
+        title: const Text('Ödevi Sil'),
         content: const Text(
-          'Are you sure you want to delete this assignment? '
-          'All student progress for this assignment will also be deleted. '
-          'This action cannot be undone.',
+          'Bu ödevi silmek istediğinizden emin misiniz? '
+          'Bu ödeve ait tüm öğrenci ilerlemesi de silinecektir. '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -297,7 +297,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Assignment deleted')),
+          const SnackBar(content: Text('Ödev silindi')),
         );
         ref.invalidate(teacherAssignmentsProvider);
         context.go('/assignments');
@@ -306,7 +306,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Error: $e'), backgroundColor: Colors.red),
+              content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }

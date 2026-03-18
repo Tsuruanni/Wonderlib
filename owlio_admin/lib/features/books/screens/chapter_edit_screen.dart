@@ -116,7 +116,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
           // Refresh book data after chapter creation
           ref.invalidate(bookDetailProvider(widget.bookId));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chapter created successfully')),
+            const SnackBar(content: Text('Bölüm başarıyla oluşturuldu')),
           );
           context.go('/books/${widget.bookId}/chapters/${data['id']}');
         }
@@ -125,7 +125,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chapter saved successfully')),
+            const SnackBar(content: Text('Bölüm başarıyla kaydedildi')),
           );
           ref.invalidate(chapterDetailProvider(widget.chapterId!));
         }
@@ -134,7 +134,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -150,19 +150,19 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Chapter'),
+        title: const Text('Bölümü Sil'),
         content: const Text(
-          'Are you sure you want to delete this chapter? This action cannot be undone.',
+          'Bu bölümü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -178,14 +178,14 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
         // Refresh book data after deletion
         ref.invalidate(bookDetailProvider(widget.bookId));
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chapter deleted')),
+          const SnackBar(content: Text('Bölüm silindi')),
         );
         context.go('/books/${widget.bookId}');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -195,7 +195,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewChapter ? 'New Chapter' : 'Edit Chapter'),
+        title: Text(isNewChapter ? 'Yeni Bölüm' : 'Bölümü Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -223,7 +223,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewChapter ? 'Create' : 'Save'),
+                : Text(isNewChapter ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -231,8 +231,8 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
             ? TabBar(
                 controller: _tabController,
                 tabs: const [
-                  Tab(text: 'Details'),
-                  Tab(text: 'Content Blocks'),
+                  Tab(text: 'Detaylar'),
+                  Tab(text: 'İçerik Blokları'),
                 ],
               )
             : null,
@@ -263,7 +263,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chapter Details',
+                  'Bölüm Bilgileri',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 24),
@@ -272,12 +272,12 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
                 TextFormField(
                   controller: _titleController,
                   decoration: const InputDecoration(
-                    labelText: 'Title',
-                    hintText: 'Enter chapter title',
+                    labelText: 'Başlık',
+                    hintText: 'Bölüm başlığını girin',
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Title is required';
+                      return 'Başlık zorunludur';
                     }
                     return null;
                   },
@@ -301,7 +301,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Text(
-                                'Content Blocks',
+                                'İçerik Blokları',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF4F46E5),
@@ -310,8 +310,8 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
                               const SizedBox(height: 4),
                               Text(
                                 isNewChapter
-                                    ? 'Create the chapter first, then add content blocks from the "Content Blocks" tab.'
-                                    : 'Add and manage content blocks from the "Content Blocks" tab above.',
+                                    ? 'Önce bölümü oluşturun, ardından "İçerik Blokları" sekmesinden içerik blokları ekleyin.'
+                                    : 'Yukarıdaki "İçerik Blokları" sekmesinden içerik blokları ekleyin ve yönetin.',
                                 style: TextStyle(
                                   color: Colors.grey.shade700,
                                   fontSize: 13,
@@ -335,7 +335,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
   Widget _buildContentBlocksTab() {
     if (isNewChapter) {
       return const Center(
-        child: Text('Save the chapter first to add content blocks'),
+        child: Text('İçerik blokları eklemek için önce bölümü kaydedin'),
       );
     }
 

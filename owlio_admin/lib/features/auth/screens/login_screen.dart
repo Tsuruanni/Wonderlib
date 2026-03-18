@@ -53,7 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (role != UserRole.admin.dbValue && role != UserRole.head.dbValue) {
         await supabase.auth.signOut();
         setState(() {
-          _error = 'Access denied. Admin or Head Teacher role required.';
+          _error = 'Erişim reddedildi. Yönetici veya Baş Öğretmen rolü gerekli.';
         });
         return;
       }
@@ -94,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Owlio Admin',
+                  'Owlio Yönetici',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -103,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Content Management System',
+                  'İçerik Yönetim Sistemi',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey.shade600,
@@ -122,15 +122,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'E-posta',
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
+                            return 'E-posta adresinizi girin';
                           }
                           if (!value.contains('@')) {
-                            return 'Please enter a valid email';
+                            return 'Geçerli bir e-posta adresi girin';
                           }
                           return null;
                         },
@@ -140,12 +140,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         controller: _passwordController,
                         obscureText: true,
                         decoration: const InputDecoration(
-                          labelText: 'Password',
+                          labelText: 'Şifre',
                           prefixIcon: Icon(Icons.lock_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return 'Şifrenizi girin';
                           }
                           return null;
                         },
@@ -199,7 +199,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     color: Colors.white,
                                   ),
                                 )
-                              : const Text('Sign In'),
+                              : const Text('Giriş Yap'),
                         ),
                       ),
                     ],
@@ -210,7 +210,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Info text
                 Text(
-                  'Admin access only. Contact your administrator if you need access.',
+                  'Yalnızca yönetici erişimi. Erişim için yöneticinizle iletişime geçin.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.grey.shade500,

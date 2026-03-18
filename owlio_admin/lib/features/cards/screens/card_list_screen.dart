@@ -29,7 +29,7 @@ class CardListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Myth Cards'),
+        title: const Text('Efsane Kartları'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -38,7 +38,7 @@ class CardListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/cards/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Card'),
+            label: const Text('Yeni Kart'),
           ),
           const SizedBox(width: 16),
         ],
@@ -55,13 +55,13 @@ class CardListScreen extends ConsumerWidget {
                   child: DropdownButtonFormField<CardCategory?>(
                     value: categoryFilter,
                     decoration: const InputDecoration(
-                      labelText: 'Category',
+                      labelText: 'Kategori',
                       isDense: true,
                     ),
                     items: [
                       const DropdownMenuItem(
                         value: null,
-                        child: Text('All Categories'),
+                        child: Text('Tüm Kategoriler'),
                       ),
                       ...CardCategory.values.map((cat) => DropdownMenuItem(
                             value: cat,
@@ -82,7 +82,7 @@ class CardListScreen extends ConsumerWidget {
                           null;
                     },
                     icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -109,8 +109,8 @@ class CardListScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           categoryFilter != null
-                              ? 'No cards in this category'
-                              : 'No cards yet',
+                              ? 'Bu kategoride kart yok'
+                              : 'Henüz kart yok',
                           style: TextStyle(
                               fontSize: 18, color: Colors.grey.shade600),
                         ),
@@ -118,7 +118,7 @@ class CardListScreen extends ConsumerWidget {
                         FilledButton.icon(
                           onPressed: () => context.go('/cards/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Create your first card'),
+                          label: const Text('İlk kartınızı oluşturun'),
                         ),
                       ],
                     ),
@@ -153,11 +153,11 @@ class CardListScreen extends ConsumerWidget {
                     Icon(Icons.error_outline,
                         size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(mythCardsProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
@@ -179,7 +179,7 @@ class _MythCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardNo = card['card_no'] as String? ?? '';
-    final name = card['name'] as String? ?? 'Unknown';
+    final name = card['name'] as String? ?? 'Bilinmiyor';
     final category = CardCategory.fromDbValue(card['category'] as String? ?? '');
     final rarity = CardRarity.fromDbValue(card['rarity'] as String? ?? '');
     final power = card['power'] as int? ?? 0;
@@ -274,7 +274,7 @@ class _MythCardTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    'Inactive',
+                    'Pasif',
                     style: TextStyle(fontSize: 9, color: Colors.red.shade700),
                   ),
                 ),

@@ -158,6 +158,16 @@ lib/
 
 ---
 
+# 📖 Feature Documentation
+
+Before modifying any feature listed below, **read the corresponding documentation file first** to understand the full system (phases, algorithms, state management, XP logic, etc.).
+
+| Feature | Documentation | When to Read |
+|---------|--------------|--------------|
+| Vocabulary Sessions | `docs/vocabulary-session-system.md` | Any change to: question types, session algorithm, mastery levels, XP/combo system, SM2 logic, session providers, or session widgets |
+
+---
+
 # 🚀 New Feature Methodology
 
 When adding a new feature, **always follow this order**:

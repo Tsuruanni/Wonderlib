@@ -15,6 +15,7 @@ import '../../widgets/vocabulary/session/vocab_matching_question.dart';
 import '../../widgets/vocabulary/session/vocab_multiple_choice_question.dart';
 import '../../widgets/vocabulary/session/vocab_question_feedback.dart';
 import '../../widgets/vocabulary/session/vocab_scrambled_letters_question.dart';
+import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 import '../../widgets/vocabulary/session/vocab_sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
 import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
@@ -307,9 +308,10 @@ class _VocabularySessionScreenState
               targetWord: sessionState.currentQuestion?.type == QuestionType.matching
                   ? null
                   : sessionState.currentQuestion?.targetWord,
-              // For feedback display, use the last gained XP
-              xpGained: sessionState.lastXPGained, 
+              xpGained: sessionState.lastXPGained,
               combo: sessionState.combo,
+              comboWarning: !sessionState.lastAnswerCorrect && sessionState.comboWarningActive,
+              comboBroken: sessionState.lastComboBroken,
               onDismiss: controller.dismissFeedback,
             )
           : const SizedBox.shrink(),
@@ -458,6 +460,13 @@ class _VocabularySessionScreenState
 
       case QuestionType.scrambledLetters:
         return VocabScrambledLettersQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.wordWheel:
+        return VocabWordWheelQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),

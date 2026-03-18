@@ -28,7 +28,14 @@ final settingsProvider =
 });
 
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen({super.key});
+  final String title;
+  final List<String> categories;
+
+  const SettingsScreen({
+    required this.title,
+    required this.categories,
+    super.key,
+  });
 
   @override
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
@@ -36,10 +43,10 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryLabels = {
-    'xp': 'XP Rewards',
-    'progression': 'Level & Progression',
-    'game': 'Game Settings',
-    'app': 'App Configuration',
+    'xp': 'XP Ödülleri',
+    'progression': 'Seviye ve İlerleme',
+    'game': 'Oyun Ayarları',
+    'app': 'Uygulama Yapılandırması',
   };
 
   static const categoryIcons = {
@@ -56,8 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'app': Color(0xFF6B7280),
   };
 
-  // Order of categories
-  static const categoryOrder = ['xp', 'progression', 'game', 'app'];
+  List<String> get categoryOrder => widget.categories;
 
   final Map<String, TextEditingController> _controllers = {};
   final Set<String> _savingKeys = {};
@@ -88,7 +94,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$key updated'),
+            content: Text('$key güncellendi'),
             duration: const Duration(seconds: 1),
             behavior: SnackBarBehavior.floating,
             width: 200,
@@ -99,7 +105,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -132,7 +138,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(widget.title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -141,7 +147,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           TextButton.icon(
             onPressed: () => ref.invalidate(settingsProvider),
             icon: const Icon(Icons.refresh, size: 18),
-            label: const Text('Refresh'),
+            label: const Text('Yenile'),
           ),
           const SizedBox(width: 8),
         ],
@@ -160,7 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No settings found',
+                    'Ayar bulunamadı',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -168,7 +174,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Run the migration to create system_settings table',
+                    'system_settings tablosunu oluşturmak için migration çalıştırın',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -198,7 +204,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Changes are saved automatically. These settings are stored in the database but main app integration is not yet implemented.',
+                          'Değişiklikler otomatik kaydedilir. Bu ayarlar veritabanında saklanır ancak ana uygulama entegrasyonu henüz yapılmadı.',
                           style: TextStyle(color: Colors.blue.shade900),
                         ),
                       ),
@@ -225,11 +231,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('Hata: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(settingsProvider),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),

@@ -128,7 +128,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Yükleme hatası: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -170,28 +170,28 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
   Future<void> _handleSave() async {
     if (_schoolId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a school')),
+        const SnackBar(content: Text('Lütfen bir okul seçin')),
       );
       return;
     }
 
     if (_scopeType == _ScopeType.grade && _selectedGrade == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a grade')),
+        const SnackBar(content: Text('Lütfen bir sınıf seçin')),
       );
       return;
     }
 
     if (_scopeType == _ScopeType.classSpecific && _selectedClassId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a class')),
+        const SnackBar(content: Text('Lütfen bir şube seçin')),
       );
       return;
     }
 
     if (_selectedUnitIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one unit')),
+        const SnackBar(content: Text('Lütfen en az bir ünite seçin')),
       );
       return;
     }
@@ -232,7 +232,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                '${_selectedUnitIds.length} unit(s) assigned successfully'),
+                '${_selectedUnitIds.length} ünite başarıyla atandı'),
           ),
         );
         ref.invalidate(curriculumAssignmentsProvider);
@@ -241,7 +241,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -255,20 +255,20 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Assignments'),
+        title: const Text('Atamaları Sil'),
         content: Text(
-          'Remove all ${_existingAssignmentIds.length} unit assignment(s) for this scope? '
-          'Students will see all units again (default behavior).',
+          'Bu kapsam için ${_existingAssignmentIds.length} ünite atamasını kaldırmak istiyor musunuz? '
+          'Öğrenciler tekrar tüm üniteleri görecek (varsayılan davranış).',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete All'),
+            child: const Text('Tümünü Sil'),
           ),
         ],
       ),
@@ -285,7 +285,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Assignments deleted')),
+          const SnackBar(content: Text('Atamalar silindi')),
         );
         ref.invalidate(curriculumAssignmentsProvider);
         context.go('/curriculum');
@@ -293,7 +293,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -306,7 +306,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewAssignment ? 'New Assignment' : 'Edit Assignment'),
+        title: Text(isNewAssignment ? 'Yeni Atama' : 'Atamayı Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/curriculum'),
@@ -330,7 +330,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewAssignment ? 'Create' : 'Save'),
+                : Text(isNewAssignment ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -348,11 +348,11 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Assignment Scope',
+                        Text('Atama Kapsamı',
                             style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 8),
                         Text(
-                          'Select which students should see the assigned units.',
+                          'Atanan üniteleri hangi öğrencilerin göreceğini seçin.',
                           style: TextStyle(color: Colors.grey.shade600),
                         ),
                         const SizedBox(height: 24),
@@ -362,12 +362,12 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                           data: (schools) => DropdownButtonFormField<String?>(
                             value: _schoolId,
                             decoration: const InputDecoration(
-                              labelText: 'School *',
+                              labelText: 'Okul *',
                             ),
                             items: [
                               const DropdownMenuItem(
                                 value: null,
-                                child: Text('Select a school'),
+                                child: Text('Okul seçin'),
                               ),
                               ...schools.map((school) => DropdownMenuItem(
                                     value: school['id'] as String,
@@ -385,19 +385,19 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                           ),
                           loading: () => const LinearProgressIndicator(),
                           error: (_, __) =>
-                              const Text('Error loading schools'),
+                              const Text('Okullar yüklenirken hata'),
                         ),
                         const SizedBox(height: 24),
 
                         // Scope type radio buttons
-                        Text('Target',
+                        Text('Hedef',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 8),
                         _ScopeRadio(
                           value: _ScopeType.school,
                           groupValue: _scopeType,
-                          label: 'All School',
-                          description: 'All students in the school',
+                          label: 'Tüm Okul',
+                          description: 'Okuldaki tüm öğrenciler',
                           onChanged: (v) {
                             setState(() {
                               _scopeType = v!;
@@ -411,8 +411,8 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                         _ScopeRadio(
                           value: _ScopeType.grade,
                           groupValue: _scopeType,
-                          label: 'By Grade',
-                          description: 'All classes of a specific grade',
+                          label: 'Sınıfa Göre',
+                          description: 'Belirli bir sınıfın tüm şubeleri',
                           onChanged: (v) {
                             setState(() {
                               _scopeType = v!;
@@ -425,8 +425,8 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                         _ScopeRadio(
                           value: _ScopeType.classSpecific,
                           groupValue: _scopeType,
-                          label: 'By Class',
-                          description: 'A specific class/section only',
+                          label: 'Şubeye Göre',
+                          description: 'Sadece belirli bir şube',
                           onChanged: (v) {
                             setState(() {
                               _scopeType = v!;
@@ -443,15 +443,15 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                           DropdownButtonFormField<int?>(
                             value: _selectedGrade,
                             decoration: const InputDecoration(
-                              labelText: 'Grade *',
+                              labelText: 'Sınıf *',
                             ),
                             items: [
                               const DropdownMenuItem(
                                   value: null,
-                                  child: Text('Select grade')),
+                                  child: Text('Sınıf seçin')),
                               for (int i = 1; i <= 12; i++)
                                 DropdownMenuItem(
-                                    value: i, child: Text('Grade $i')),
+                                    value: i, child: Text('$i. Sınıf')),
                             ],
                             onChanged: (value) {
                               setState(() {
@@ -471,16 +471,16 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                     DropdownButtonFormField<String?>(
                                   value: _selectedClassId,
                                   decoration: const InputDecoration(
-                                    labelText: 'Class *',
+                                    labelText: 'Şube *',
                                   ),
                                   items: [
                                     const DropdownMenuItem(
                                         value: null,
-                                        child: Text('Select class')),
+                                        child: Text('Şube seçin')),
                                     ...classes.map((cls) => DropdownMenuItem(
                                           value: cls['id'] as String,
                                           child: Text(
-                                            '${cls['name']} (Grade ${cls['grade'] ?? '?'})',
+                                            '${cls['name']} (${cls['grade'] ?? '?'}. Sınıf)',
                                           ),
                                         )),
                                   ],
@@ -496,7 +496,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                 loading: () =>
                                     const LinearProgressIndicator(),
                                 error: (_, __) =>
-                                    const Text('Error loading classes'),
+                                    const Text('Şubeler yüklenirken hata'),
                               ),
 
                         // Load existing button for school scope
@@ -506,7 +506,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                             padding: const EdgeInsets.only(top: 16),
                             child: OutlinedButton(
                               onPressed: _loadScopeAssignments,
-                              child: const Text('Load existing assignments'),
+                              child: const Text('Mevcut atamaları yükle'),
                             ),
                           ),
 
@@ -531,7 +531,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                       size: 18, color: Colors.blue.shade700),
                                   const SizedBox(width: 8),
                                   Text(
-                                    '${_existingAssignmentIds.length} existing assignment(s) for this scope',
+                                    'Bu kapsam için ${_existingAssignmentIds.length} mevcut atama',
                                     style:
                                         TextStyle(color: Colors.blue.shade700),
                                   ),
@@ -562,7 +562,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Units (${_selectedUnitIds.length} selected)',
+                                'Üniteler (${_selectedUnitIds.length} seçili)',
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               // Select all / deselect all
@@ -584,8 +584,8 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                     _selectedUnitIds.length ==
                                             (unitsAsync.valueOrNull?.length ??
                                                 0)
-                                        ? 'Deselect All'
-                                        : 'Select All',
+                                        ? 'Seçimi Kaldır'
+                                        : 'Tümünü Seç',
                                   ),
                                 ),
                                 loading: () => const SizedBox.shrink(),
@@ -608,7 +608,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                           size: 48,
                                           color: Colors.grey.shade400),
                                       const SizedBox(height: 8),
-                                      Text('No vocabulary units found',
+                                      Text('Kelime ünitesi bulunamadı',
                                           style: TextStyle(
                                               color: Colors.grey.shade600)),
                                     ],
@@ -645,7 +645,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                       ),
                                     ),
                                     title: Text(
-                                      unit['name'] as String? ?? 'Unit',
+                                      unit['name'] as String? ?? 'Ünite',
                                       style: TextStyle(
                                         fontWeight: isSelected
                                             ? FontWeight.bold
@@ -653,7 +653,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                                       ),
                                     ),
                                     subtitle: Text(
-                                      'Order: ${unit['sort_order']}',
+                                      'Sıra: ${unit['sort_order']}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey.shade500,
@@ -666,7 +666,7 @@ class _CurriculumEditScreenState extends ConsumerState<CurriculumEditScreen> {
                             loading: () => const Center(
                                 child: CircularProgressIndicator()),
                             error: (error, _) =>
-                                Center(child: Text('Error: $error')),
+                                Center(child: Text('Hata: $error')),
                           ),
                         ),
                       ],

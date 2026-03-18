@@ -32,7 +32,7 @@ class UnitListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vocabulary Units'),
+        title: const Text('Kelime Üniteleri'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -41,7 +41,7 @@ class UnitListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/units/new'),
             icon: const Icon(Icons.add),
-            label: const Text('New Unit'),
+            label: const Text('Yeni Ünite'),
           ),
           const SizedBox(width: 16),
         ],
@@ -52,11 +52,11 @@ class UnitListScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Error: $e'),
+              Text('Hata: $e'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(unitsProvider),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),
@@ -69,12 +69,12 @@ class UnitListScreen extends ConsumerWidget {
                 children: [
                   Icon(Icons.folder_open, size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
-                  const Text('No units yet'),
+                  const Text('Henüz ünite yok'),
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () => context.go('/units/new'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create First Unit'),
+                    label: const Text('İlk Üniteyi Oluştur'),
                   ),
                 ],
               ),
@@ -88,12 +88,12 @@ class UnitListScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: DataTable(
                   columns: const [
-                    DataColumn(label: Text('Order')),
-                    DataColumn(label: Text('Icon')),
-                    DataColumn(label: Text('Name')),
-                    DataColumn(label: Text('Description')),
-                    DataColumn(label: Text('Active')),
-                    DataColumn(label: Text('Actions')),
+                    DataColumn(label: Text('Sıra')),
+                    DataColumn(label: Text('İkon')),
+                    DataColumn(label: Text('Ad')),
+                    DataColumn(label: Text('Açıklama')),
+                    DataColumn(label: Text('Aktif')),
+                    DataColumn(label: Text('İşlemler')),
                   ],
                   rows: units.map((unit) {
                     final color = _parseUnitColor(unit['color'] as String?);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:rive/rive.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
@@ -24,6 +25,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _useStudentNumber = false;
+
+  // Rive animation controllers (0.7 = 30% slower)
+  late final _owlAnim1 = SimpleAnimation('Timeline 1', autoplay: true);
+  late final _owlAnim2 = SimpleAnimation('Timeline 2', autoplay: true);
 
   @override
   void dispose() {
@@ -82,25 +87,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // --- Animated Header ---
                     const SizedBox(height: 20),
                     Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.menu_book_rounded,
-                          size: 80,
-                          color: AppColors.primary,
-                        ),
-                      )
-                          .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                          .scale(
-                            duration: 2000.ms,
-                            begin: const Offset(0.95, 0.95),
-                            end: const Offset(1.05, 1.05),
-                            curve: Curves.easeInOut,
+                      child: SizedBox(
+                        width: 220,
+                        height: 180,
+                        child: ClipRect(
+                          child: Transform.scale(
+                            scale: 1.6,
+                            child: RiveAnimation.asset(
+                              'assets/animations/mascot/flying-owl-mascot-animation.riv',
+                              fit: BoxFit.contain,
+                              controllers: [_owlAnim1, _owlAnim2],
+                              onInit: (_) {
+                                _owlAnim1.instance?.animation.speed = 0.7;
+                                _owlAnim2.instance?.animation.speed = 0.7;
+                              },
+                            ),
                           ),
+                        ),
+                      ),
                     ).animate().fadeIn().scale(delay: 200.ms),
 
                     const SizedBox(height: 24),
@@ -116,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ).animate().fadeIn(delay: 300.ms).moveY(begin: 10, end: 0),
                     
                     Text(
-                      'Learn English the fun way!',
+                      'Fly Through Stories, Glide Through Words.',
                       style: GoogleFonts.nunito(
                         fontSize: 18,
                         color: AppColors.neutralText,
@@ -248,20 +252,112 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      // Core accounts
                       Wrap(
                         alignment: WrapAlignment.center,
                         spacing: 8,
                         runSpacing: 8,
                         children: [
                           _DevChip(
-                            label: 'Student 1',
+                            label: 'Fresh (0 XP)',
                             onTap: () => _quickLogin('fresh@demo.com', 'Test1234'),
+                          ),
+                          _DevChip(
+                            label: 'Active (500 XP)',
+                            onTap: () => _quickLogin('active@demo.com', 'Test1234'),
+                          ),
+                          _DevChip(
+                            label: 'Advanced (5K)',
+                            onTap: () => _quickLogin('advanced@demo.com', 'Test1234'),
+                            color: AppColors.gemBlue,
                           ),
                           _DevChip(
                             label: 'Teacher',
                             onTap: () => _quickLogin('teacher@demo.com', 'Test1234'),
                             color: AppColors.secondary,
                           ),
+                          _DevChip(
+                            label: 'Admin',
+                            onTap: () => _quickLogin('admin@demo.com', 'Test1234'),
+                            color: AppColors.streakOrange,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          'CLASS 5-A',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _DevChip(label: 'Elif (8.2K)', onTap: () => _quickLogin('elif@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Ahmet (3.2K)', onTap: () => _quickLogin('ahmet@demo.com', 'Test1234')),
+                          _DevChip(label: 'Zeynep (1.8K)', onTap: () => _quickLogin('zeynep@demo.com', 'Test1234')),
+                          _DevChip(label: 'Can (12.5K)', onTap: () => _quickLogin('can@demo.com', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Selin (250)', onTap: () => _quickLogin('selin@demo.com', 'Test1234')),
+                          _DevChip(label: 'Emre (6.8K)', onTap: () => _quickLogin('emre@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Defne (950)', onTap: () => _quickLogin('defne@demo.com', 'Test1234')),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          'CLASS 5-B',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _DevChip(label: 'Berk (9.5K)', onTap: () => _quickLogin('berk@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Yagmur (4.2K)', onTap: () => _quickLogin('yagmur@demo.com', 'Test1234')),
+                          _DevChip(label: 'Arda (2.4K)', onTap: () => _quickLogin('arda@demo.com', 'Test1234')),
+                          _DevChip(label: 'Nil (7.4K)', onTap: () => _quickLogin('nil@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Mert (150)', onTap: () => _quickLogin('mert@demo.com', 'Test1234')),
+                          _DevChip(label: 'Deniz (5.8K)', onTap: () => _quickLogin('deniz@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Ece (1.2K)', onTap: () => _quickLogin('ece@demo.com', 'Test1234')),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          'CLASS 6-A',
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _DevChip(label: 'Ali (15K)', onTap: () => _quickLogin('ali@demo.com', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Irem (6.2K)', onTap: () => _quickLogin('irem@demo.com', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Burak (3.8K)', onTap: () => _quickLogin('burak@demo.com', 'Test1234')),
+                          _DevChip(label: 'Asya (11K)', onTap: () => _quickLogin('asya@demo.com', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Kerem (450)', onTap: () => _quickLogin('kerem@demo.com', 'Test1234')),
+                          _DevChip(label: 'Melis (2K)', onTap: () => _quickLogin('melis@demo.com', 'Test1234')),
                         ],
                       ),
                     ],

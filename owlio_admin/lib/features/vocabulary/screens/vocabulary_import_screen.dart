@@ -41,7 +41,7 @@ class VocabularyImportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import Vocabulary'),
+        title: const Text('Kelime İçe Aktar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/vocabulary'),
@@ -60,19 +60,19 @@ class VocabularyImportScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Import Vocabulary from CSV',
+                'CSV\'den Kelime İçe Aktar',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Upload a CSV file to bulk import or update vocabulary words.',
+                'Kelimeleri toplu olarak içe aktarmak veya güncellemek için CSV dosyası yükleyin.',
                 style: TextStyle(color: Colors.grey.shade600),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () => _showImportDialog(context, ref),
                 icon: const Icon(Icons.upload),
-                label: const Text('Select CSV File'),
+                label: const Text('CSV Dosyası Seç'),
               ),
               const SizedBox(height: 32),
 
@@ -92,7 +92,7 @@ class VocabularyImportScreen extends ConsumerWidget {
                         Icon(Icons.info_outline, color: Colors.green.shade700),
                         const SizedBox(width: 8),
                         Text(
-                          'CSV Format',
+                          'CSV Formatı',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green.shade900,
@@ -102,11 +102,11 @@ class VocabularyImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Required columns: word, meaning_tr',
+                      'Zorunlu sütunlar: word, meaning_tr',
                       style: TextStyle(color: Colors.green.shade900),
                     ),
                     Text(
-                      'Optional columns: phonetic, part_of_speech, meaning_en, level',
+                      'Opsiyonel sütunlar: phonetic, part_of_speech, meaning_en, level',
                       style: TextStyle(color: Colors.green.shade700),
                     ),
                     const SizedBox(height: 12),
@@ -129,7 +129,7 @@ class VocabularyImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Valid levels: ${validLevels.join(', ')}',
+                      'Geçerli seviyeler: ${validLevels.join(', ')}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.green.shade700,
@@ -137,7 +137,7 @@ class VocabularyImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Valid parts of speech: ${validPartsOfSpeech.join(', ')}',
+                      'Geçerli sözcük türleri: ${validPartsOfSpeech.join(', ')}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.green.shade700,
@@ -158,7 +158,7 @@ class VocabularyImportScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => CsvImportDialog(
-        title: 'Import Vocabulary',
+        title: 'Kelime İçe Aktar',
         expectedHeaders: expectedHeaders,
         requiredHeaders: requiredHeaders,
         processRow: (row) => _processRow(row, ref),
@@ -181,24 +181,24 @@ class VocabularyImportScreen extends ConsumerWidget {
 
     // Validate word
     if (word == null || word.isEmpty) {
-      return 'Word is required';
+      return 'Kelime zorunludur';
     }
 
     // Validate meaning_tr
     if (meaningTr == null || meaningTr.isEmpty) {
-      return 'Turkish meaning is required';
+      return 'Türkçe anlam zorunludur';
     }
 
     // Validate level if provided
     if (level != null && level.isNotEmpty && !validLevels.contains(level)) {
-      return 'Invalid level: $level (must be one of ${validLevels.join(', ')})';
+      return 'Geçersiz seviye: $level (${validLevels.join(', ')} olmalıdır)';
     }
 
     // Validate part_of_speech if provided
     if (partOfSpeech != null &&
         partOfSpeech.isNotEmpty &&
         !validPartsOfSpeech.contains(partOfSpeech)) {
-      return 'Invalid part of speech: $partOfSpeech';
+      return 'Geçersiz sözcük türü: $partOfSpeech';
     }
 
     // Check if word already exists

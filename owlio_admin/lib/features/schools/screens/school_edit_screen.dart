@@ -107,7 +107,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('School created successfully')),
+            const SnackBar(content: Text('Okul başarıyla oluşturuldu')),
           );
           ref.invalidate(schoolsProvider);
           context.go('/schools/${data['id']}');
@@ -117,7 +117,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('School saved successfully')),
+            const SnackBar(content: Text('Okul başarıyla kaydedildi')),
           );
           ref.invalidate(schoolDetailProvider(widget.schoolId!));
           ref.invalidate(schoolsProvider);
@@ -127,7 +127,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -143,21 +143,21 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete School'),
+        title: const Text('Okulu Sil'),
         content: const Text(
-          'Are you sure you want to delete this school? '
-          'This will also delete all associated classes and remove school assignments from users. '
-          'This action cannot be undone.',
+          'Bu okulu silmek istediğinizden emin misiniz? '
+          'Bu işlem tüm ilişkili sınıfları da silecek ve kullanıcılardan okul atamalarını kaldıracaktır. '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -171,7 +171,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('School deleted')),
+          const SnackBar(content: Text('Okul silindi')),
         );
         ref.invalidate(schoolsProvider);
         context.go('/schools');
@@ -179,7 +179,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -189,7 +189,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewSchool ? 'New School' : 'Edit School'),
+        title: Text(isNewSchool ? 'Yeni Okul' : 'Okulu Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/schools'),
@@ -213,7 +213,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewSchool ? 'Create' : 'Save'),
+                : Text(isNewSchool ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -228,7 +228,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'School Details',
+                      'Okul Bilgileri',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 24),
@@ -237,12 +237,12 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'School Name',
-                        hintText: 'Enter school name',
+                        labelText: 'Okul Adı',
+                        hintText: 'Okul adını girin',
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'School name is required';
+                          return 'Okul adı zorunludur';
                         }
                         return null;
                       },
@@ -256,17 +256,17 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                           child: TextFormField(
                             controller: _codeController,
                             decoration: const InputDecoration(
-                              labelText: 'School Code',
-                              hintText: 'Unique join code',
-                              helperText: 'Students and teachers use this code to join',
+                              labelText: 'Okul Kodu',
+                              hintText: 'Benzersiz katılım kodu',
+                              helperText: 'Öğrenci ve öğretmenler bu kodla katılır',
                             ),
                             textCapitalization: TextCapitalization.characters,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'School code is required';
+                                return 'Okul kodu zorunludur';
                               }
                               if (value.trim().length < 4) {
-                                return 'Code must be at least 4 characters';
+                                return 'Kod en az 4 karakter olmalıdır';
                               }
                               return null;
                             },
@@ -276,7 +276,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                         IconButton(
                           onPressed: _generateCode,
                           icon: const Icon(Icons.refresh),
-                          tooltip: 'Generate new code',
+                          tooltip: 'Yeni kod oluştur',
                         ),
                       ],
                     ),
@@ -286,7 +286,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                     TextFormField(
                       controller: _logoUrlController,
                       decoration: const InputDecoration(
-                        labelText: 'Logo URL',
+                        labelText: 'Logo URL\'si',
                         hintText: 'https://...',
                       ),
                     ),
@@ -296,7 +296,7 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                     DropdownButtonFormField<String>(
                       value: _status,
                       decoration: const InputDecoration(
-                        labelText: 'Status',
+                        labelText: 'Durum',
                       ),
                       items: _validStatuses.map((status) {
                         return DropdownMenuItem(
@@ -346,11 +346,11 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
   String _getStatusLabel(String status) {
     switch (status) {
       case 'active':
-        return 'Active';
+        return 'Aktif';
       case 'trial':
-        return 'Trial';
+        return 'Deneme';
       case 'suspended':
-        return 'Suspended';
+        return 'Askıya Alınmış';
       default:
         return status;
     }

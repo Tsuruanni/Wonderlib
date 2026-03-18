@@ -125,7 +125,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Book created successfully')),
+            const SnackBar(content: Text('Kitap başarıyla oluşturuldu')),
           );
           context.go('/books/${data['id']}');
         }
@@ -134,7 +134,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Book saved successfully')),
+            const SnackBar(content: Text('Kitap başarıyla kaydedildi')),
           );
           ref.invalidate(bookDetailProvider(widget.bookId!));
         }
@@ -143,7 +143,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -159,19 +159,19 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Book'),
+        title: const Text('Kitabı Sil'),
         content: const Text(
-          'Are you sure you want to delete this book? This action cannot be undone.',
+          'Bu kitabı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -185,14 +185,14 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Book deleted')),
+          const SnackBar(content: Text('Kitap silindi')),
         );
         context.go('/books');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -204,7 +204,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewBook ? 'New Book' : 'Edit Book'),
+        title: Text(isNewBook ? 'Yeni Kitap' : 'Kitabı Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/books'),
@@ -228,7 +228,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewBook ? 'Create' : 'Save'),
+                : Text(isNewBook ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -249,7 +249,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Book Details',
+                            'Kitap Bilgileri',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 24),
@@ -258,12 +258,12 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           TextFormField(
                             controller: _titleController,
                             decoration: const InputDecoration(
-                              labelText: 'Title',
-                              hintText: 'Enter book title',
+                              labelText: 'Başlık',
+                              hintText: 'Kitap başlığını girin',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Title is required';
+                                return 'Başlık zorunludur';
                               }
                               return null;
                             },
@@ -274,8 +274,8 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           TextFormField(
                             controller: _authorController,
                             decoration: const InputDecoration(
-                              labelText: 'Author',
-                              hintText: 'Enter author name',
+                              labelText: 'Yazar',
+                              hintText: 'Yazar adını girin',
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -284,8 +284,8 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           TextFormField(
                             controller: _descriptionController,
                             decoration: const InputDecoration(
-                              labelText: 'Description',
-                              hintText: 'Enter book description',
+                              labelText: 'Açıklama',
+                              hintText: 'Kitap açıklamasını girin',
                             ),
                             maxLines: 4,
                           ),
@@ -295,7 +295,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           TextFormField(
                             controller: _coverUrlController,
                             decoration: const InputDecoration(
-                              labelText: 'Cover Image URL',
+                              labelText: 'Kapak Resmi URL',
                               hintText: 'https://...',
                             ),
                           ),
@@ -305,7 +305,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           DropdownButtonFormField<String>(
                             value: _validLevels.contains(_level) ? _level : 'B1',
                             decoration: const InputDecoration(
-                              labelText: 'Level',
+                              labelText: 'Seviye',
                             ),
                             items: _validLevels.map((level) {
                               return DropdownMenuItem(
@@ -325,16 +325,16 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           TextFormField(
                             controller: _lexileController,
                             decoration: const InputDecoration(
-                              labelText: 'Lexile Score',
-                              hintText: 'e.g. 820',
-                              helperText: 'Typical range: 0–2000',
+                              labelText: 'Lexile Puanı',
+                              hintText: 'örn. 820',
+                              helperText: 'Tipik aralık: 0–2000',
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value != null && value.isNotEmpty) {
                                 final n = int.tryParse(value);
-                                if (n == null) return 'Enter a valid number';
-                                if (n < 0 || n > 2000) return 'Must be 0–2000';
+                                if (n == null) return 'Geçerli bir sayı girin';
+                                if (n < 0 || n > 2000) return '0–2000 arasında olmalı';
                               }
                               return null;
                             },
@@ -343,9 +343,9 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
                           // Published switch
                           SwitchListTile(
-                            title: const Text('Published'),
+                            title: const Text('Yayında'),
                             subtitle: const Text(
-                              'When enabled, the book will be visible to users',
+                              'Etkinleştirildiğinde kitap kullanıcılara görünür olur',
                             ),
                             value: _isPublished,
                             onChanged: (value) {
@@ -384,7 +384,7 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                             },
                             loading: () =>
                                 const Center(child: CircularProgressIndicator()),
-                            error: (e, _) => Center(child: Text('Error: $e')),
+                            error: (e, _) => Center(child: Text('Hata: $e')),
                           ) ??
                           const SizedBox.shrink(),
                     ),
@@ -416,7 +416,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
   Future<void> _extractVocabulary() async {
     if (widget.chapters.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No chapters to extract vocabulary from')),
+        const SnackBar(content: Text('Kelime çıkarılacak bölüm bulunamadı')),
       );
       return;
     }
@@ -433,10 +433,10 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('Extracting vocabulary from ${widget.chapters.length} chapters...'),
+            Text('${widget.chapters.length} bölümden kelime çıkarılıyor...'),
             const SizedBox(height: 8),
             Text(
-              'This may take a moment...',
+              'Bu biraz zaman alabilir...',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
           ],
@@ -475,7 +475,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
         if (mounted) Navigator.pop(context); // Close dialog
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No text content found in chapters')),
+            const SnackBar(content: Text('Bölümlerde metin içeriği bulunamadı')),
           );
         }
         return;
@@ -502,7 +502,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✓ ${words.length} words extracted, $savedCount saved to database'),
+              content: Text('✓ ${words.length} kelime çıkarıldı, $savedCount veritabanına kaydedildi'),
               backgroundColor: Colors.green,
             ),
           );
@@ -511,7 +511,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
         final error = response.data?['error'] ?? 'Unknown error';
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $error'), backgroundColor: Colors.red),
+            SnackBar(content: Text('Hata: $error'), backgroundColor: Colors.red),
           );
         }
       }
@@ -519,7 +519,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
       if (mounted) Navigator.pop(context); // Close loading dialog
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -543,13 +543,13 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Chapters (${widget.chapters.length})',
+                    'Bölümler (${widget.chapters.length})',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   FilledButton.icon(
                     onPressed: () => context.go('/books/${widget.bookId}/chapters/new'),
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add'),
+                    label: const Text('Ekle'),
                   ),
                 ],
               ),
@@ -566,7 +566,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.auto_awesome, size: 18),
-                  label: const Text('Extract All Vocabulary'),
+                  label: const Text('Tüm Kelimeleri Çıkar'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF4F46E5),
                     side: const BorderSide(color: Color(0xFF4F46E5)),
@@ -590,7 +590,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'No chapters yet',
+                        'Henüz bölüm yok',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
@@ -683,14 +683,14 @@ class _ChapterTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        chapter['title'] ?? 'Untitled Chapter',
+        chapter['title'] ?? 'Başlıksız Bölüm',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
       subtitle: Text(
         chapter['use_content_blocks'] == true
-            ? 'Content blocks'
-            : '${(chapter['content'] as String?)?.split(' ').length ?? 0} words',
+            ? 'İçerik blokları'
+            : '${(chapter['content'] as String?)?.split(' ').length ?? 0} kelime',
         style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
       ),
       trailing: ReorderableDragStartListener(

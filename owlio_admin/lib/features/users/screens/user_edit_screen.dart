@@ -154,7 +154,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User saved successfully')),
+          const SnackBar(content: Text('Kullanıcı başarıyla kaydedildi')),
         );
         ref.invalidate(userDetailProvider(widget.userId));
         ref.invalidate(usersProvider);
@@ -163,7 +163,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -179,20 +179,20 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reset Progress'),
+        title: const Text('İlerlemeyi Sıfırla'),
         content: const Text(
-          'Are you sure you want to reset this user\'s XP and level to 0? '
-          'This action cannot be undone.',
+          'Bu kullanıcının XP ve seviyesini sıfırlamak istediğinizden emin misiniz? '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('Reset'),
+            child: const Text('Sıfırla'),
           ),
         ],
       ),
@@ -210,14 +210,14 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Progress reset successfully')),
+          const SnackBar(content: Text('İlerleme başarıyla sıfırlandı')),
         );
         ref.invalidate(userDetailProvider(widget.userId));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -229,7 +229,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit User'),
+        title: const Text('Kullanıcı Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/users'),
@@ -247,16 +247,16 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                       color: Colors.white,
                     ),
                   )
-                : const Text('Save'),
+                : const Text('Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(icon: Icon(Icons.person), text: 'Profile'),
-            Tab(icon: Icon(Icons.trending_up), text: 'Progress'),
-            Tab(icon: Icon(Icons.style), text: 'Cards'),
+            Tab(icon: Icon(Icons.person), text: 'Profil'),
+            Tab(icon: Icon(Icons.trending_up), text: 'İlerleme'),
+            Tab(icon: Icon(Icons.style), text: 'Kartlar'),
           ],
         ),
       ),
@@ -295,8 +295,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'New users are created via Supabase Dashboard. '
-                      'This screen is for editing existing users only.',
+                      'Yeni kullanıcılar Supabase Dashboard üzerinden oluşturulur. '
+                      'Bu ekran yalnızca mevcut kullanıcıları düzenlemek içindir.',
                       style: TextStyle(color: Colors.blue.shade700),
                     ),
                   ),
@@ -306,7 +306,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             const SizedBox(height: 24),
 
             Text(
-              'User Details',
+              'Kullanıcı Bilgileri',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 24),
@@ -315,8 +315,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             TextFormField(
               controller: _emailController,
               decoration: const InputDecoration(
-                labelText: 'Email',
-                helperText: 'Email cannot be changed',
+                labelText: 'E-posta',
+                helperText: 'E-posta değiştirilemez',
               ),
               readOnly: true,
               enabled: false,
@@ -327,12 +327,12 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             TextFormField(
               controller: _firstNameController,
               decoration: const InputDecoration(
-                labelText: 'First Name',
-                hintText: 'Enter first name',
+                labelText: 'Ad',
+                hintText: 'Adını girin',
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'First name is required';
+                  return 'Ad zorunludur';
                 }
                 return null;
               },
@@ -343,12 +343,12 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             TextFormField(
               controller: _lastNameController,
               decoration: const InputDecoration(
-                labelText: 'Last Name',
-                hintText: 'Enter last name',
+                labelText: 'Soyad',
+                hintText: 'Soyadını girin',
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Last name is required';
+                  return 'Soyad zorunludur';
                 }
                 return null;
               },
@@ -359,7 +359,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             DropdownButtonFormField<String>(
               value: _role,
               decoration: const InputDecoration(
-                labelText: 'Role',
+                labelText: 'Rol',
               ),
               items: _validRoles.map((role) {
                 return DropdownMenuItem(
@@ -393,13 +393,13 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
               data: (schools) => DropdownButtonFormField<String?>(
                 value: _schoolId,
                 decoration: const InputDecoration(
-                  labelText: 'School',
-                  helperText: 'Required for students and teachers',
+                  labelText: 'Okul',
+                  helperText: 'Öğrenci ve öğretmenler için zorunludur',
                 ),
                 items: [
                   const DropdownMenuItem(
                     value: null,
-                    child: Text('No School'),
+                    child: Text('Okul Yok'),
                   ),
                   ...schools.map((school) => DropdownMenuItem(
                         value: school['id'] as String,
@@ -413,13 +413,13 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                   if ((_role == UserRole.student.dbValue ||
                           _role == UserRole.teacher.dbValue) &&
                       value == null) {
-                    return 'School is required for students and teachers';
+                    return 'Öğrenci ve öğretmenler için okul zorunludur';
                   }
                   return null;
                 },
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const Text('Error loading schools'),
+              error: (_, __) => const Text('Okullar yüklenirken hata oluştu'),
             ),
             const SizedBox(height: 16),
 
@@ -428,15 +428,15 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
               TextFormField(
                 controller: _studentNumberController,
                 decoration: const InputDecoration(
-                  labelText: 'Student Number',
-                  hintText: 'e.g., 2024001',
+                  labelText: 'Öğrenci Numarası',
+                  hintText: 'ör. 2024001',
                 ),
               ),
             const SizedBox(height: 32),
 
             // Danger zone
             Text(
-              'Danger Zone',
+              'Tehlikeli Bölge',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.red,
                   ),
@@ -445,7 +445,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             OutlinedButton.icon(
               onPressed: _handleResetProgress,
               icon: const Icon(Icons.refresh),
-              label: const Text('Reset XP & Progress'),
+              label: const Text('XP ve İlerlemeyi Sıfırla'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.orange,
                 side: const BorderSide(color: Colors.orange),
@@ -477,11 +477,11 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
       case 'admin':
         return 'Admin';
       case 'head':
-        return 'Head Teacher';
+        return 'Baş Öğretmen';
       case 'teacher':
-        return 'Teacher';
+        return 'Öğretmen';
       case 'student':
-        return 'Student';
+        return 'Öğrenci';
       default:
         return role;
     }
@@ -507,13 +507,13 @@ class _UserProgressTab extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Reading Progress
-          Text('Reading Progress',
+          Text('Okuma İlerlemesi',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           readingAsync.when(
             data: (progress) {
               if (progress.isEmpty) {
-                return _emptyState('No reading progress yet');
+                return _emptyState('Henüz okuma ilerlemesi yok');
               }
               return SizedBox(
                 width: double.infinity,
@@ -521,10 +521,10 @@ class _UserProgressTab extends ConsumerWidget {
                   headingRowColor: WidgetStateColor.resolveWith(
                       (_) => Colors.grey.shade100),
                   columns: const [
-                    DataColumn(label: Text('Book')),
-                    DataColumn(label: Text('Level')),
-                    DataColumn(label: Text('Progress'), numeric: true),
-                    DataColumn(label: Text('Last Read')),
+                    DataColumn(label: Text('Kitap')),
+                    DataColumn(label: Text('Seviye')),
+                    DataColumn(label: Text('İlerleme'), numeric: true),
+                    DataColumn(label: Text('Son Okuma')),
                   ],
                   rows: progress.map((p) {
                     final book =
@@ -548,18 +548,18 @@ class _UserProgressTab extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error: $e'),
+            error: (e, _) => Text('Hata: $e'),
           ),
           const SizedBox(height: 32),
 
           // Badges
-          Text('Badges Earned',
+          Text('Kazanılan Rozetler',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           badgesAsync.when(
             data: (badges) {
               if (badges.isEmpty) {
-                return _emptyState('No badges earned yet');
+                return _emptyState('Henüz kazanılan rozet yok');
               }
               return Wrap(
                 spacing: 12,
@@ -585,18 +585,18 @@ class _UserProgressTab extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error: $e'),
+            error: (e, _) => Text('Hata: $e'),
           ),
           const SizedBox(height: 32),
 
           // Quiz Results
-          Text('Quiz Results',
+          Text('Quiz Sonuçları',
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           quizAsync.when(
             data: (results) {
               if (results.isEmpty) {
-                return _emptyState('No quiz results yet');
+                return _emptyState('Henüz quiz sonucu yok');
               }
               return SizedBox(
                 width: double.infinity,
@@ -605,9 +605,9 @@ class _UserProgressTab extends ConsumerWidget {
                       (_) => Colors.grey.shade100),
                   columns: const [
                     DataColumn(label: Text('Quiz')),
-                    DataColumn(label: Text('Score'), numeric: true),
-                    DataColumn(label: Text('Passed')),
-                    DataColumn(label: Text('Date')),
+                    DataColumn(label: Text('Puan'), numeric: true),
+                    DataColumn(label: Text('Geçti')),
+                    DataColumn(label: Text('Tarih')),
                   ],
                   rows: results.map((r) {
                     final quiz =
@@ -635,7 +635,7 @@ class _UserProgressTab extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error: $e'),
+            error: (e, _) => Text('Hata: $e'),
           ),
         ],
       ),
@@ -704,7 +704,7 @@ class _UserCardsTab extends ConsumerWidget {
                 Icon(Icons.style_outlined,
                     size: 64, color: Colors.grey.shade400),
                 const SizedBox(height: 16),
-                Text('No cards collected yet',
+                Text('Henüz toplanan kart yok',
                     style:
                         TextStyle(fontSize: 16, color: Colors.grey.shade500)),
               ],
@@ -732,14 +732,14 @@ class _UserCardsTab extends ConsumerWidget {
               Row(
                 children: [
                   _StatCard(
-                    label: 'Total Cards',
+                    label: 'Toplam Kart',
                     value: '${cards.length}',
                     icon: Icons.style,
                     color: Colors.blue,
                   ),
                   const SizedBox(width: 16),
                   _StatCard(
-                    label: 'Unique Cards',
+                    label: 'Benzersiz Kart',
                     value: '$uniqueCount',
                     icon: Icons.grid_view,
                     color: Colors.purple,
@@ -795,7 +795,7 @@ class _UserCardsTab extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
+      error: (e, _) => Center(child: Text('Hata: $e')),
     );
   }
 

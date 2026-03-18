@@ -63,7 +63,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
 
     final file = result.files.first;
     if (file.bytes == null) {
-      setState(() => _validationError = 'Could not read file');
+      setState(() => _validationError = 'Dosya okunamadı');
       return;
     }
 
@@ -72,7 +72,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
       final csvData = const CsvToListConverter().convert(content);
 
       if (csvData.isEmpty) {
-        setState(() => _validationError = 'CSV file is empty');
+        setState(() => _validationError = 'CSV dosyası boş');
         return;
       }
 
@@ -85,8 +85,8 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
 
       if (missingHeaders.isNotEmpty) {
         setState(() {
-          _validationError = 'Missing required columns: ${missingHeaders.join(', ')}\n\n'
-              'Expected format: ${widget.expectedHeaders.join(',')}';
+          _validationError = 'Eksik zorunlu sütunlar: ${missingHeaders.join(', ')}\n\n'
+              'Beklenen format: ${widget.expectedHeaders.join(',')}';
           _csvData = null;
           _headers = null;
           _fileName = null;
@@ -102,7 +102,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
         _result = null;
       });
     } catch (e) {
-      setState(() => _validationError = 'Error parsing CSV: $e');
+      setState(() => _validationError = 'CSV ayrıştırma hatası: $e');
     }
   }
 
@@ -133,14 +133,14 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
       try {
         final error = await widget.processRow(rowMap);
         if (error != null) {
-          errors.add('Row ${i + 2}: $error');
+          errors.add('Satır ${i + 2}: $error');
         } else {
           // Check if it was an update or insert based on error message
           // For simplicity, count all as imported
           imported++;
         }
       } catch (e) {
-        errors.add('Row ${i + 2}: $e');
+        errors.add('Satır ${i + 2}: $e');
       }
 
       setState(() => _progress = (i + 1) / total);
@@ -201,13 +201,13 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                     }
                     Navigator.of(context).pop();
                   },
-                  child: Text(_result != null ? 'Close' : 'Cancel'),
+                  child: Text(_result != null ? 'Kapat' : 'İptal'),
                 ),
                 if (_csvData != null && _result == null && !_isImporting) ...[
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: _import,
-                    child: const Text('Import'),
+                    child: const Text('İçe Aktar'),
                   ),
                 ],
               ],
@@ -233,7 +233,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Expected CSV format:',
+                'Beklenen CSV formatı:',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               ),
               const SizedBox(height: 4),
@@ -247,7 +247,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Required: ${widget.requiredHeaders.join(', ')}',
+                'Zorunlu: ${widget.requiredHeaders.join(', ')}',
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
@@ -275,7 +275,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _fileName ?? 'Click to select CSV file',
+                    _fileName ?? 'CSV dosyası seçmek için tıklayın',
                     style: TextStyle(
                       color: _fileName != null ? Colors.black : Colors.grey.shade600,
                     ),
@@ -283,7 +283,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                   if (_csvData != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      '${_csvData!.length - 1} rows',
+                      '${_csvData!.length - 1} satır',
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                     ),
                   ],
@@ -329,7 +329,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
         LinearProgressIndicator(value: _progress),
         const SizedBox(height: 16),
         Text(
-          'Importing... ${(_progress * 100).toInt()}%',
+          'İçe aktarılıyor... ${(_progress * 100).toInt()}%',
           style: TextStyle(color: Colors.grey.shade600),
         ),
         const SizedBox(height: 20),
@@ -363,7 +363,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Import Complete',
+                      'İçe Aktarma Tamamlandı',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: result.hasErrors
@@ -373,7 +373,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${result.imported} imported successfully',
+                      '${result.imported} başarıyla içe aktarıldı',
                       style: TextStyle(
                         color: result.hasErrors
                             ? Colors.orange.shade700
@@ -382,7 +382,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
                     ),
                     if (result.hasErrors)
                       Text(
-                        '${result.errors.length} errors',
+                        '${result.errors.length} hata',
                         style: TextStyle(color: Colors.orange.shade700),
                       ),
                   ],
@@ -396,7 +396,7 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
         if (result.hasErrors) ...[
           const SizedBox(height: 16),
           Text(
-            'Errors:',
+            'Hatalar:',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.red.shade700,

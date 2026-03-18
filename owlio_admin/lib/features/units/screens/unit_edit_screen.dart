@@ -112,7 +112,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isNew ? 'Unit created!' : 'Unit updated!'),
+            content: Text(_isNew ? 'Ünite oluşturuldu!' : 'Ünite güncellendi!'),
           ),
         );
         context.go('/units');
@@ -120,7 +120,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -132,21 +132,21 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Unit'),
+        title: const Text('Üniteyi Sil'),
         content: const Text(
-          'This will remove the unit and its curriculum assignments. '
-          'Word lists assigned to this unit will become unassigned. '
-          'Are you sure?',
+          'Bu ünite ve müfredat atamaları kaldırılacaktır. '
+          'Bu üniteye atanan kelime listeleri atanmamış olacaktır. '
+          'Emin misiniz?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -163,14 +163,14 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unit deleted')),
+          const SnackBar(content: Text('Ünite silindi')),
         );
         context.go('/units');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -185,18 +185,18 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
       final unitAsync = ref.watch(unitDetailProvider(widget.unitId!));
       return unitAsync.when(
         loading: () => Scaffold(
-          appBar: AppBar(title: const Text('Edit Unit')),
+          appBar: AppBar(title: const Text('Üniteyi Düzenle')),
           body: const Center(child: CircularProgressIndicator()),
         ),
         error: (e, _) => Scaffold(
-          appBar: AppBar(title: const Text('Edit Unit')),
-          body: Center(child: Text('Error: $e')),
+          appBar: AppBar(title: const Text('Üniteyi Düzenle')),
+          body: Center(child: Text('Hata: $e')),
         ),
         data: (unit) {
           if (unit == null) {
             return Scaffold(
-              appBar: AppBar(title: const Text('Edit Unit')),
-              body: const Center(child: Text('Unit not found')),
+              appBar: AppBar(title: const Text('Üniteyi Düzenle')),
+              body: const Center(child: Text('Ünite bulunamadı')),
             );
           }
           _populateFields(unit);
@@ -213,7 +213,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isNew ? 'New Unit' : 'Edit Unit'),
+        title: Text(_isNew ? 'Yeni Ünite' : 'Üniteyi Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/units'),
@@ -223,7 +223,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
             TextButton.icon(
               onPressed: _isLoading ? null : _delete,
               icon: const Icon(Icons.delete, color: Colors.red),
-              label: const Text('Delete', style: TextStyle(color: Colors.red)),
+              label: const Text('Sil', style: TextStyle(color: Colors.red)),
             ),
           const SizedBox(width: 8),
           FilledButton(
@@ -234,7 +234,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(_isNew ? 'Create' : 'Save'),
+                : Text(_isNew ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -255,27 +255,27 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                     child: ListView(
                       children: [
                         Text(
-                          'Unit Details',
+                          'Ünite Detayları',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 24),
                         TextFormField(
                           controller: _nameController,
                           decoration: const InputDecoration(
-                            labelText: 'Name *',
-                            hintText: 'e.g. Animals, Food, Travel',
+                            labelText: 'Ad *',
+                            hintText: 'ör. Hayvanlar, Yiyecekler, Seyahat',
                             border: OutlineInputBorder(),
                           ),
                           validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Required' : null,
+                              v == null || v.trim().isEmpty ? 'Zorunlu' : null,
                           onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _descriptionController,
                           decoration: const InputDecoration(
-                            labelText: 'Description',
-                            hintText: 'Optional description',
+                            labelText: 'Açıklama',
+                            hintText: 'İsteğe bağlı açıklama',
                             border: OutlineInputBorder(),
                           ),
                           maxLines: 3,
@@ -287,14 +287,14 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                               child: TextFormField(
                                 controller: _sortOrderController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Sort Order *',
+                                  labelText: 'Sıralama *',
                                   hintText: '0',
                                   border: OutlineInputBorder(),
                                 ),
                                 keyboardType: TextInputType.number,
                                 validator: (v) =>
                                     int.tryParse(v ?? '') == null
-                                        ? 'Must be a number'
+                                        ? 'Sayı olmalıdır'
                                         : null,
                               ),
                             ),
@@ -303,7 +303,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                               child: TextFormField(
                                 controller: _colorController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Color (hex)',
+                                  labelText: 'Renk (hex)',
                                   hintText: '#58CC02',
                                   border: OutlineInputBorder(),
                                 ),
@@ -315,8 +315,8 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                               child: TextFormField(
                                 controller: _iconController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Icon (emoji)',
-                                  hintText: 'e.g. animals emoji',
+                                  labelText: 'İkon (emoji)',
+                                  hintText: 'ör. hayvan emojisi',
                                   border: OutlineInputBorder(),
                                 ),
                                 onChanged: (_) => setState(() {}),
@@ -326,9 +326,9 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                         ),
                         const SizedBox(height: 16),
                         SwitchListTile(
-                          title: const Text('Active'),
+                          title: const Text('Aktif'),
                           subtitle: const Text(
-                            'Inactive units are hidden from students',
+                            'Aktif olmayan üniteler öğrencilerden gizlenir',
                           ),
                           value: _isActive,
                           onChanged: (v) => setState(() => _isActive = v),
@@ -350,7 +350,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Preview',
+                        'Önizleme',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 24),
@@ -376,7 +376,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'UNIT ${_sortOrderController.text}',
+                                'ÜNİTE ${_sortOrderController.text}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w900,
@@ -394,7 +394,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                               ],
                               Text(
                                 _nameController.text.isEmpty
-                                    ? 'Unit Name'
+                                    ? 'Ünite Adı'
                                     : _nameController.text,
                                 style: const TextStyle(
                                   fontSize: 15,
@@ -421,7 +421,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                               SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'This unit is inactive and will not be visible to students.',
+                                  'Bu ünite aktif değil ve öğrencilere görünmeyecek.',
                                 ),
                               ),
                             ],

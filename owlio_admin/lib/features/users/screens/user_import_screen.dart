@@ -25,7 +25,7 @@ class UserImportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Import Users'),
+        title: const Text('Kullanıcıları İçe Aktar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/users'),
@@ -44,19 +44,19 @@ class UserImportScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Import Users from CSV',
+                'CSV\'den Kullanıcı İçe Aktar',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'Upload a CSV file to bulk import or update user profiles.',
+                'Kullanıcı profillerini toplu olarak içe aktarmak veya güncellemek için CSV dosyası yükleyin.',
                 style: TextStyle(color: Colors.grey.shade600),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () => _showImportDialog(context, ref),
                 icon: const Icon(Icons.upload),
-                label: const Text('Select CSV File'),
+                label: const Text('CSV Dosyası Seç'),
               ),
               const SizedBox(height: 32),
 
@@ -76,7 +76,7 @@ class UserImportScreen extends ConsumerWidget {
                         Icon(Icons.info_outline, color: Colors.blue.shade700),
                         const SizedBox(width: 8),
                         Text(
-                          'CSV Format',
+                          'CSV Formatı',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue.shade900,
@@ -86,11 +86,11 @@ class UserImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Required columns: email, role',
+                      'Zorunlu sütunlar: email, role',
                       style: TextStyle(color: Colors.blue.shade900),
                     ),
                     Text(
-                      'Optional columns: first_name, last_name, school_code, student_number',
+                      'Opsiyonel sütunlar: first_name, last_name, school_code, student_number',
                       style: TextStyle(color: Colors.blue.shade700),
                     ),
                     const SizedBox(height: 12),
@@ -113,7 +113,7 @@ class UserImportScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Valid roles: ${UserRole.values.map((r) => r.dbValue).join(', ')}',
+                      'Geçerli roller: ${UserRole.values.map((r) => r.dbValue).join(', ')}',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.blue.shade700,
@@ -134,7 +134,7 @@ class UserImportScreen extends ConsumerWidget {
       context: context,
       barrierDismissible: false,
       builder: (context) => CsvImportDialog(
-        title: 'Import Users',
+        title: 'Kullanıcıları İçe Aktar',
         expectedHeaders: expectedHeaders,
         requiredHeaders: requiredHeaders,
         processRow: (row) => _processRow(row, ref),
@@ -157,18 +157,18 @@ class UserImportScreen extends ConsumerWidget {
 
     // Validate email
     if (email == null || email.isEmpty) {
-      return 'Email is required';
+      return 'E-posta zorunludur';
     }
     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(email)) {
-      return 'Invalid email format: $email';
+      return 'Geçersiz e-posta formatı: $email';
     }
 
     // Validate role
     if (role == null || role.isEmpty) {
-      return 'Role is required';
+      return 'Rol zorunludur';
     }
     if (!UserRole.values.map((r) => r.dbValue).contains(role)) {
-      return 'Invalid role: $role (must be ${UserRole.values.map((r) => r.dbValue).join(', ')})';
+      return 'Geçersiz rol: $role (${UserRole.values.map((r) => r.dbValue).join(', ')} olmalıdır)';
     }
 
     // Look up school_id if school_code provided
@@ -181,7 +181,7 @@ class UserImportScreen extends ConsumerWidget {
           .maybeSingle();
 
       if (school == null) {
-        return 'School not found: $schoolCode';
+        return 'Okul bulunamadı: $schoolCode';
       }
       schoolId = school['id'] as String;
     }
@@ -209,7 +209,7 @@ class UserImportScreen extends ConsumerWidget {
     } else {
       // Cannot create auth user from admin panel
       // Just create the profile record - user will need to register
-      return 'User must register first. Profile with email $email not found.';
+      return 'Kullanıcı önce kayıt olmalıdır. $email e-postasıyla profil bulunamadı.';
     }
 
     return null; // Success

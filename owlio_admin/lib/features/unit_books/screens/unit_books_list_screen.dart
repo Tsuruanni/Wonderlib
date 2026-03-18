@@ -55,7 +55,7 @@ class UnitBooksListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Unit Book Assignments'),
+        title: const Text('Ünite Kitap Atamaları'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -64,7 +64,7 @@ class UnitBooksListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/unit-books/new'),
             icon: const Icon(Icons.add),
-            label: const Text('New Assignment'),
+            label: const Text('Yeni Atama'),
           ),
           const SizedBox(width: 16),
         ],
@@ -87,7 +87,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                       ),
                       initialValue: ref.watch(_unitFilterProvider),
                       decoration: const InputDecoration(
-                        labelText: 'Unit',
+                        labelText: 'Ünite',
                         border: OutlineInputBorder(),
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -95,7 +95,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                       items: [
                         const DropdownMenuItem(
                           value: null,
-                          child: Text('All Units'),
+                          child: Text('Tüm Üniteler'),
                         ),
                         ...units.map(
                           (u) => DropdownMenuItem(
@@ -108,7 +108,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                           ref.read(_unitFilterProvider.notifier).state = v,
                     ),
                     loading: () => const LinearProgressIndicator(),
-                    error: (_, __) => const Text('Error loading units'),
+                    error: (_, __) => const Text('Üniteler yüklenirken hata'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -122,7 +122,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                       ),
                       initialValue: ref.watch(_schoolFilterProvider),
                       decoration: const InputDecoration(
-                        labelText: 'School',
+                        labelText: 'Okul',
                         border: OutlineInputBorder(),
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -130,7 +130,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                       items: [
                         const DropdownMenuItem(
                           value: null,
-                          child: Text('All Schools'),
+                          child: Text('Tüm Okullar'),
                         ),
                         ...schools.map(
                           (s) => DropdownMenuItem(
@@ -143,7 +143,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                           ref.read(_schoolFilterProvider.notifier).state = v,
                     ),
                     loading: () => const LinearProgressIndicator(),
-                    error: (_, __) => const Text('Error loading schools'),
+                    error: (_, __) => const Text('Okullar yüklenirken hata'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -153,7 +153,7 @@ class UnitBooksListScreen extends ConsumerWidget {
                     ref.read(_schoolFilterProvider.notifier).state = null;
                   },
                   icon: const Icon(Icons.clear),
-                  label: const Text('Clear'),
+                  label: const Text('Temizle'),
                 ),
               ],
             ),
@@ -163,7 +163,7 @@ class UnitBooksListScreen extends ConsumerWidget {
               child: assignmentsAsync.when(
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(child: Text('Hata: $e')),
                 data: (assignments) {
                   if (assignments.isEmpty) {
                     return Center(
@@ -176,12 +176,12 @@ class UnitBooksListScreen extends ConsumerWidget {
                             color: Colors.grey.shade400,
                           ),
                           const SizedBox(height: 16),
-                          const Text('No book assignments yet'),
+                          const Text('Henüz kitap ataması yok'),
                           const SizedBox(height: 16),
                           FilledButton.icon(
                             onPressed: () => context.go('/unit-books/new'),
                             icon: const Icon(Icons.add),
-                            label: const Text('Create First Assignment'),
+                            label: const Text('İlk Atamayı Oluştur'),
                           ),
                         ],
                       ),
@@ -193,13 +193,13 @@ class UnitBooksListScreen extends ConsumerWidget {
                       width: double.infinity,
                       child: DataTable(
                         columns: const [
-                          DataColumn(label: Text('Unit')),
-                          DataColumn(label: Text('Book')),
-                          DataColumn(label: Text('Level')),
-                          DataColumn(label: Text('School')),
-                          DataColumn(label: Text('Scope')),
-                          DataColumn(label: Text('Order')),
-                          DataColumn(label: Text('Actions')),
+                          DataColumn(label: Text('Ünite')),
+                          DataColumn(label: Text('Kitap')),
+                          DataColumn(label: Text('Seviye')),
+                          DataColumn(label: Text('Okul')),
+                          DataColumn(label: Text('Kapsam')),
+                          DataColumn(label: Text('Sıra')),
+                          DataColumn(label: Text('İşlemler')),
                         ],
                         rows: assignments.map((a) {
                           final unitData =
@@ -215,13 +215,13 @@ class UnitBooksListScreen extends ConsumerWidget {
                           String scope;
                           Color scopeColor;
                           if (a['class_id'] != null && classData != null) {
-                            scope = 'Class: ${classData['name']}';
+                            scope = 'Sınıf: ${classData['name']}';
                             scopeColor = Colors.purple;
                           } else if (a['grade'] != null) {
-                            scope = 'Grade ${a['grade']}';
+                            scope = '${a['grade']}. Sınıf';
                             scopeColor = Colors.blue;
                           } else {
-                            scope = 'All School';
+                            scope = 'Tüm Okul';
                             scopeColor = Colors.green;
                           }
 
@@ -307,17 +307,17 @@ class UnitBooksListScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Assignment'),
-        content: const Text('Remove this book from the unit assignment?'),
+        title: const Text('Atamayı Sil'),
+        content: const Text('Bu kitabı ünite atamasından kaldırmak istiyor musunuz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -336,13 +336,13 @@ class UnitBooksListScreen extends ConsumerWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Assignment deleted')),
+          const SnackBar(content: Text('Atama silindi')),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }

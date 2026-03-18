@@ -116,7 +116,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Class created successfully')),
+            const SnackBar(content: Text('Sınıf başarıyla oluşturuldu')),
           );
           ref.invalidate(classesProvider);
           context.go('/classes/${data['id']}');
@@ -126,7 +126,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Class saved successfully')),
+            const SnackBar(content: Text('Sınıf başarıyla kaydedildi')),
           );
           ref.invalidate(classDetailProvider(widget.classId!));
           ref.invalidate(classesProvider);
@@ -136,7 +136,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -152,21 +152,21 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Class'),
+        title: const Text('Sınıfı Sil'),
         content: const Text(
-          'Are you sure you want to delete this class? '
-          'Students will be unassigned from this class. '
-          'This action cannot be undone.',
+          'Bu sınıfı silmek istediğinizden emin misiniz? '
+          'Öğrenciler bu sınıftan çıkarılacaktır. '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -180,7 +180,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Class deleted')),
+          const SnackBar(content: Text('Sınıf silindi')),
         );
         ref.invalidate(classesProvider);
         context.go('/classes');
@@ -188,7 +188,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -197,7 +197,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
   Future<void> _addStudent() async {
     if (_schoolId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a school first')),
+        const SnackBar(content: Text('Lütfen önce bir okul seçin')),
       );
       return;
     }
@@ -209,7 +209,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
     if (availableStudents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No available students to add')),
+        const SnackBar(content: Text('Eklenecek uygun öğrenci yok')),
       );
       return;
     }
@@ -217,7 +217,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     final selectedStudent = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Student'),
+        title: const Text('Öğrenci Ekle'),
         content: SizedBox(
           width: 400,
           height: 300,
@@ -241,7 +241,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
         ],
       ),
@@ -258,7 +258,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Student added to class')),
+          const SnackBar(content: Text('Öğrenci sınıfa eklendi')),
         );
         ref.invalidate(classDetailProvider(widget.classId!));
         ref.invalidate(availableStudentsProvider(_schoolId!));
@@ -267,7 +267,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -277,18 +277,18 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Student'),
+        title: const Text('Öğrenciyi Çıkar'),
         content: Text(
-          'Remove ${student['first_name']} ${student['last_name']} from this class?',
+          '${student['first_name']} ${student['last_name']} bu sınıftan çıkarılsın mı?',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
+            child: const Text('Çıkar'),
           ),
         ],
       ),
@@ -304,7 +304,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Student removed from class')),
+          const SnackBar(content: Text('Öğrenci sınıftan çıkarıldı')),
         );
         ref.invalidate(classDetailProvider(widget.classId!));
         if (_schoolId != null) {
@@ -315,7 +315,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -327,7 +327,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewClass ? 'New Class' : 'Edit Class'),
+        title: Text(isNewClass ? 'Yeni Sınıf' : 'Sınıf Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/classes'),
@@ -351,7 +351,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewClass ? 'Create' : 'Save'),
+                : Text(isNewClass ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -372,7 +372,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Class Details',
+                            'Sınıf Bilgileri',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 24),
@@ -381,12 +381,12 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
-                              labelText: 'Class Name',
-                              hintText: 'e.g., 5A, 7B, Advanced English',
+                              labelText: 'Sınıf Adı',
+                              hintText: 'ör. 5A, 7B, İleri İngilizce',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Class name is required';
+                                return 'Sınıf adı zorunludur';
                               }
                               return null;
                             },
@@ -398,12 +398,12 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                             data: (schools) => DropdownButtonFormField<String?>(
                               value: _schoolId,
                               decoration: const InputDecoration(
-                                labelText: 'School',
+                                labelText: 'Okul',
                               ),
                               items: [
                                 const DropdownMenuItem(
                                   value: null,
-                                  child: Text('Select a school'),
+                                  child: Text('Bir okul seçin'),
                                 ),
                                 ...schools.map((school) => DropdownMenuItem(
                                       value: school['id'] as String,
@@ -415,13 +415,13 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                               },
                               validator: (value) {
                                 if (value == null) {
-                                  return 'School is required';
+                                  return 'Okul zorunludur';
                                 }
                                 return null;
                               },
                             ),
                             loading: () => const LinearProgressIndicator(),
-                            error: (_, __) => const Text('Error loading schools'),
+                            error: (_, __) => const Text('Okullar yüklenirken hata oluştu'),
                           ),
                           const SizedBox(height: 16),
 
@@ -429,8 +429,8 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                           TextFormField(
                             controller: _gradeController,
                             decoration: const InputDecoration(
-                              labelText: 'Grade',
-                              hintText: 'e.g., 5, 7, 12',
+                              labelText: 'Sınıf Seviyesi',
+                              hintText: 'ör. 5, 7, 12',
                             ),
                             keyboardType: TextInputType.number,
                           ),
@@ -440,8 +440,8 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                           TextFormField(
                             controller: _academicYearController,
                             decoration: const InputDecoration(
-                              labelText: 'Academic Year',
-                              hintText: 'e.g., 2024-2025',
+                              labelText: 'Akademik Yıl',
+                              hintText: 'ör. 2024-2025',
                             ),
                           ),
                         ],
@@ -469,13 +469,13 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Students (${_students.length})',
+                                  'Öğrenciler (${_students.length})',
                                   style: Theme.of(context).textTheme.titleMedium,
                                 ),
                                 FilledButton.icon(
                                   onPressed: _addStudent,
                                   icon: const Icon(Icons.add, size: 18),
-                                  label: const Text('Add'),
+                                  label: const Text('Ekle'),
                                 ),
                               ],
                             ),
@@ -494,7 +494,7 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'No students yet',
+                                          'Henüz öğrenci yok',
                                           style: TextStyle(color: Colors.grey.shade600),
                                         ),
                                       ],

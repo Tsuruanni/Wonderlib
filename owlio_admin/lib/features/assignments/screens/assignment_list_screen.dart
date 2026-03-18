@@ -31,7 +31,7 @@ class AssignmentListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assignments'),
+        title: const Text('Ödevler'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -49,13 +49,13 @@ class AssignmentListScreen extends ConsumerWidget {
                   child: DropdownButtonFormField<AssignmentType?>(
                     value: typeFilter,
                     decoration: const InputDecoration(
-                      labelText: 'Type',
+                      labelText: 'Tür',
                       isDense: true,
                     ),
                     items: [
                       const DropdownMenuItem(
                         value: null,
-                        child: Text('All Types'),
+                        child: Text('Tüm Türler'),
                       ),
                       ...AssignmentType.values.map((t) => DropdownMenuItem(
                             value: t,
@@ -76,7 +76,7 @@ class AssignmentListScreen extends ConsumerWidget {
                           null;
                     },
                     icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -102,13 +102,13 @@ class AssignmentListScreen extends ConsumerWidget {
                             size: 64, color: Colors.grey.shade400),
                         const SizedBox(height: 16),
                         Text(
-                          'No assignments found',
+                          'Ödev bulunamadı',
                           style: TextStyle(
                               fontSize: 18, color: Colors.grey.shade600),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Assignments are created by teachers in the main app.',
+                          'Ödevler ana uygulamada öğretmenler tarafından oluşturulur.',
                           style: TextStyle(
                               fontSize: 14, color: Colors.grey.shade500),
                         ),
@@ -138,12 +138,12 @@ class AssignmentListScreen extends ConsumerWidget {
                     Icon(Icons.error_outline,
                         size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () =>
                           ref.invalidate(teacherAssignmentsProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
@@ -164,7 +164,7 @@ class _AssignmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = assignment['title'] as String? ?? 'Untitled';
+    final title = assignment['title'] as String? ?? 'Başlıksız';
     final type =
         AssignmentType.fromDbValue(assignment['type'] as String? ?? 'book');
     final teacherData =
@@ -172,9 +172,9 @@ class _AssignmentCard extends StatelessWidget {
     final teacherName = teacherData != null
         ? '${teacherData['first_name'] ?? ''} ${teacherData['last_name'] ?? ''}'
             .trim()
-        : 'Unknown';
+        : 'Bilinmiyor';
     final classData = assignment['classes'] as Map<String, dynamic>?;
-    final className = classData?['name'] as String? ?? 'No class';
+    final className = classData?['name'] as String? ?? 'Sınıf yok';
     final startDate = DateTime.tryParse(assignment['start_date'] ?? '');
     final dueDate = DateTime.tryParse(assignment['due_date'] ?? '');
     final isOverdue =
@@ -269,7 +269,7 @@ class _AssignmentCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'Overdue',
+                              'Süresi Geçmiş',
                               style: TextStyle(
                                   fontSize: 10, color: Colors.red.shade700),
                             ),

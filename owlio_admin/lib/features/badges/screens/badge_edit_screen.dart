@@ -39,11 +39,11 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   final _xpRewardController = TextEditingController();
 
   static final _conditionTypes = [
-    (BadgeConditionType.xpTotal.dbValue, 'Total XP Earned'),
-    (BadgeConditionType.streakDays.dbValue, 'Consecutive Days Active'),
-    (BadgeConditionType.booksCompleted.dbValue, 'Books Completed'),
-    (BadgeConditionType.vocabularyLearned.dbValue, 'Words Learned'),
-    (BadgeConditionType.perfectScores.dbValue, 'Perfect Activity Scores'),
+    (BadgeConditionType.xpTotal.dbValue, 'Toplam Kazanılan XP'),
+    (BadgeConditionType.streakDays.dbValue, 'Ardışık Aktif Gün'),
+    (BadgeConditionType.booksCompleted.dbValue, 'Tamamlanan Kitaplar'),
+    (BadgeConditionType.vocabularyLearned.dbValue, 'Öğrenilen Kelimeler'),
+    (BadgeConditionType.perfectScores.dbValue, 'Tam Puan Etkinlik Skorları'),
   ];
 
   static const _categories = ['achievement', 'streak', 'reading', 'vocabulary', 'special'];
@@ -133,7 +133,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Badge created successfully')),
+            const SnackBar(content: Text('Rozet başarıyla oluşturuldu')),
           );
           ref.invalidate(badgesProvider);
           context.go('/badges/${data['id']}');
@@ -143,7 +143,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Badge saved successfully')),
+            const SnackBar(content: Text('Rozet başarıyla kaydedildi')),
           );
           ref.invalidate(badgeDetailProvider(widget.badgeId!));
           ref.invalidate(badgesProvider);
@@ -153,7 +153,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -169,21 +169,21 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Badge'),
+        title: const Text('Rozeti Sil'),
         content: const Text(
-          'Are you sure you want to delete this badge? '
-          'Users who earned this badge will keep their records. '
-          'This action cannot be undone.',
+          'Bu rozeti silmek istediğinizden emin misiniz? '
+          'Bu rozeti kazanan kullanıcıların kayıtları korunacaktır. '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -197,7 +197,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Badge deleted')),
+          const SnackBar(content: Text('Rozet silindi')),
         );
         ref.invalidate(badgesProvider);
         context.go('/badges');
@@ -205,7 +205,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -215,7 +215,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewBadge ? 'New Badge' : 'Edit Badge'),
+        title: Text(isNewBadge ? 'Yeni Rozet' : 'Rozet Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/badges'),
@@ -239,7 +239,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewBadge ? 'Create' : 'Save'),
+                : Text(isNewBadge ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -260,7 +260,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Badge Details',
+                            'Rozet Bilgileri',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 24),
@@ -269,14 +269,14 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           TextFormField(
                             controller: _iconController,
                             decoration: const InputDecoration(
-                              labelText: 'Icon (Emoji)',
+                              labelText: 'İkon (Emoji)',
                               hintText: '🏆',
-                              helperText: 'Enter an emoji to represent this badge',
+                              helperText: 'Bu rozeti temsil edecek bir emoji girin',
                             ),
                             style: const TextStyle(fontSize: 24),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Icon is required';
+                                return 'İkon zorunludur';
                               }
                               return null;
                             },
@@ -287,13 +287,13 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
-                              labelText: 'Badge Name',
-                              hintText: 'e.g., First Steps',
+                              labelText: 'Rozet Adı',
+                              hintText: 'ör. İlk Adımlar',
                             ),
                             onChanged: (_) => _generateSlug(),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Badge name is required';
+                                return 'Rozet adı zorunludur';
                               }
                               return null;
                             },
@@ -305,12 +305,12 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                             controller: _slugController,
                             decoration: const InputDecoration(
                               labelText: 'Slug',
-                              hintText: 'first-steps',
-                              helperText: 'Auto-generated from name',
+                              hintText: 'ilk-adimlar',
+                              helperText: 'Addan otomatik oluşturulur',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Slug is required';
+                                return 'Slug zorunludur';
                               }
                               return null;
                             },
@@ -321,8 +321,8 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           TextFormField(
                             controller: _descriptionController,
                             decoration: const InputDecoration(
-                              labelText: 'Description',
-                              hintText: 'Describe what this badge represents',
+                              labelText: 'Açıklama',
+                              hintText: 'Bu rozetin neyi temsil ettiğini açıklayın',
                             ),
                             maxLines: 3,
                           ),
@@ -332,7 +332,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           DropdownButtonFormField<String>(
                             value: _category,
                             decoration: const InputDecoration(
-                              labelText: 'Category',
+                              labelText: 'Kategori',
                             ),
                             items: _categories.map((cat) {
                               return DropdownMenuItem(
@@ -349,7 +349,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           const SizedBox(height: 24),
 
                           Text(
-                            'Unlock Condition',
+                            'Açma Koşulu',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 16),
@@ -358,7 +358,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           DropdownButtonFormField<String>(
                             value: _conditionType,
                             decoration: const InputDecoration(
-                              labelText: 'Condition Type',
+                              labelText: 'Koşul Türü',
                             ),
                             items: _conditionTypes.map((type) {
                               return DropdownMenuItem(
@@ -378,17 +378,17 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           TextFormField(
                             controller: _conditionValueController,
                             decoration: InputDecoration(
-                              labelText: 'Condition Value',
-                              hintText: 'e.g., 100',
+                              labelText: 'Koşul Değeri',
+                              hintText: 'ör. 100',
                               helperText: _getConditionHelper(_conditionType),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Condition value is required';
+                                return 'Koşul değeri zorunludur';
                               }
                               if (int.tryParse(value) == null) {
-                                return 'Must be a number';
+                                return 'Sayı olmalıdır';
                               }
                               return null;
                             },
@@ -396,7 +396,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           const SizedBox(height: 24),
 
                           Text(
-                            'Reward',
+                            'Ödül',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 16),
@@ -405,17 +405,17 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           TextFormField(
                             controller: _xpRewardController,
                             decoration: const InputDecoration(
-                              labelText: 'XP Reward',
-                              hintText: 'e.g., 50',
-                              helperText: 'XP awarded when badge is earned',
+                              labelText: 'XP Ödülü',
+                              hintText: 'ör. 50',
+                              helperText: 'Rozet kazanıldığında verilen XP',
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'XP reward is required';
+                                return 'XP ödülü zorunludur';
                               }
                               if (int.tryParse(value) == null) {
-                                return 'Must be a number';
+                                return 'Sayı olmalıdır';
                               }
                               return null;
                             },
@@ -441,7 +441,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Preview',
+                          'Önizleme',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 16),
@@ -469,7 +469,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                                 const SizedBox(height: 16),
                                 Text(
                                   _nameController.text.isEmpty
-                                      ? 'Badge Name'
+                                      ? 'Rozet Adı'
                                       : _nameController.text,
                                   style: const TextStyle(
                                     fontSize: 18,
@@ -480,7 +480,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   _descriptionController.text.isEmpty
-                                      ? 'Badge description'
+                                      ? 'Rozet açıklaması'
                                       : _descriptionController.text,
                                   style: TextStyle(
                                     fontSize: 14,
@@ -522,15 +522,15 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   String _getConditionHelper(String type) {
     switch (type) {
       case 'xp_total':
-        return 'Total XP user must earn';
+        return 'Kullanıcının kazanması gereken toplam XP';
       case 'streak_days':
-        return 'Consecutive days of activity';
+        return 'Ardışık aktif gün sayısı';
       case 'books_completed':
-        return 'Number of books to complete';
+        return 'Tamamlanması gereken kitap sayısı';
       case 'vocabulary_learned':
-        return 'Number of words to learn';
+        return 'Öğrenilmesi gereken kelime sayısı';
       case 'perfect_scores':
-        return 'Perfect scores on activities';
+        return 'Etkinliklerde tam puan sayısı';
       default:
         return '';
     }

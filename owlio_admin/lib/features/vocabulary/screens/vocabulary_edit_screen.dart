@@ -133,7 +133,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Word created successfully')),
+            const SnackBar(content: Text('Kelime başarıyla oluşturuldu')),
           );
           ref.invalidate(vocabularyProvider);
           context.go('/vocabulary/${data['id']}');
@@ -143,7 +143,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Word saved successfully')),
+            const SnackBar(content: Text('Kelime başarıyla kaydedildi')),
           );
           ref.invalidate(wordDetailProvider(widget.wordId!));
           ref.invalidate(vocabularyProvider);
@@ -153,7 +153,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -169,20 +169,20 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Word'),
+        title: const Text('Kelimeyi Sil'),
         content: const Text(
-          'Are you sure you want to delete this word? '
-          'This action cannot be undone.',
+          'Bu kelimeyi silmek istediğinizden emin misiniz? '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -196,7 +196,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Word deleted')),
+          const SnackBar(content: Text('Kelime silindi')),
         );
         ref.invalidate(vocabularyProvider);
         context.go('/vocabulary');
@@ -204,7 +204,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -231,7 +231,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
       if (mounted) {
         setState(() => _isPlaying = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error playing audio: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Ses çalma hatası: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -242,11 +242,11 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Example Sentence'),
+        title: const Text('Örnek Cümle Ekle'),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
-            hintText: 'Enter example sentence',
+            hintText: 'Örnek cümle girin',
           ),
           maxLines: 3,
           autofocus: true,
@@ -254,11 +254,11 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Add'),
+            child: const Text('Ekle'),
           ),
         ],
       ),
@@ -275,7 +275,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewWord ? 'New Word' : 'Edit Word'),
+        title: Text(isNewWord ? 'Yeni Kelime' : 'Kelime Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/vocabulary'),
@@ -299,7 +299,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewWord ? 'Create' : 'Save'),
+                : Text(isNewWord ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -314,7 +314,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Word Details',
+                      'Kelime Bilgileri',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 24),
@@ -328,12 +328,12 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                           child: TextFormField(
                             controller: _wordController,
                             decoration: const InputDecoration(
-                              labelText: 'Word',
-                              hintText: 'Enter the word',
+                              labelText: 'Kelime',
+                              hintText: 'Kelimeyi girin',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Word is required';
+                                return 'Kelime zorunludur';
                               }
                               return null;
                             },
@@ -346,7 +346,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                           child: TextFormField(
                             controller: _phoneticController,
                             decoration: const InputDecoration(
-                              labelText: 'Phonetic',
+                              labelText: 'Fonetik',
                               hintText: '/fəˈnetɪk/',
                             ),
                           ),
@@ -362,7 +362,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                           child: DropdownButtonFormField<String>(
                             value: _partOfSpeech,
                             decoration: const InputDecoration(
-                              labelText: 'Part of Speech',
+                              labelText: 'Sözcük Türü',
                             ),
                             items: _partsOfSpeech.map((pos) {
                               return DropdownMenuItem(
@@ -384,7 +384,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                           child: DropdownButtonFormField<String>(
                             value: _level,
                             decoration: const InputDecoration(
-                              labelText: 'CEFR Level',
+                              labelText: 'CEFR Seviyesi',
                             ),
                             items: _levels.map((level) {
                               return DropdownMenuItem(
@@ -404,7 +404,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Meanings',
+                      'Anlamlar',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
@@ -413,13 +413,13 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                     TextFormField(
                       controller: _meaningTrController,
                       decoration: const InputDecoration(
-                        labelText: 'Meaning (Turkish)',
-                        hintText: 'Enter Turkish meaning',
+                        labelText: 'Anlam (Türkçe)',
+                        hintText: 'Türkçe anlamını girin',
                       ),
                       maxLines: 2,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Turkish meaning is required';
+                          return 'Türkçe anlam zorunludur';
                         }
                         return null;
                       },
@@ -430,8 +430,8 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                     TextFormField(
                       controller: _meaningEnController,
                       decoration: const InputDecoration(
-                        labelText: 'Meaning (English)',
-                        hintText: 'Enter English meaning (optional)',
+                        labelText: 'Anlam (İngilizce)',
+                        hintText: 'İngilizce anlamını girin (opsiyonel)',
                       ),
                       maxLines: 2,
                     ),
@@ -442,13 +442,13 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Example Sentences',
+                          'Örnek Cümleler',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         TextButton.icon(
                           onPressed: _addExampleSentence,
                           icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Add'),
+                          label: const Text('Ekle'),
                         ),
                       ],
                     ),
@@ -466,7 +466,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                             Icon(Icons.info_outline, color: Colors.grey.shade600),
                             const SizedBox(width: 12),
                             Text(
-                              'No example sentences yet',
+                              'Henüz örnek cümle yok',
                               style: TextStyle(color: Colors.grey.shade600),
                             ),
                           ],
@@ -494,7 +494,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                     const SizedBox(height: 24),
 
                     Text(
-                      'Media',
+                      'Medya',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
@@ -506,7 +506,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                           child: TextFormField(
                             controller: _audioUrlController,
                             decoration: const InputDecoration(
-                              labelText: 'Audio URL',
+                              labelText: 'Ses URL',
                               hintText: 'https://...',
                             ),
                           ),
@@ -526,7 +526,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                     TextFormField(
                       controller: _imageUrlController,
                       decoration: const InputDecoration(
-                        labelText: 'Image URL',
+                        labelText: 'Görsel URL',
                         hintText: 'https://...',
                       ),
                     ),

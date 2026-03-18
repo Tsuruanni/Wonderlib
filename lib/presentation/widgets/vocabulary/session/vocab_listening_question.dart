@@ -33,10 +33,11 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
   @override
   void initState() {
     super.initState();
-    _tts.setLanguage('en-US');
     _controller.addListener(_onTextChanged);
-    // Auto-play on first load
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Initialize TTS then auto-play
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _tts.setLanguage('en-US');
+      await _tts.awaitSpeakCompletion(true);
       _playAudio();
       if (isWriteMode) _focusNode.requestFocus();
     });

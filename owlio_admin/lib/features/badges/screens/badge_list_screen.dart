@@ -25,7 +25,7 @@ class BadgeListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Badges'),
+        title: const Text('Rozetler'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -34,7 +34,7 @@ class BadgeListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/badges/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Badge'),
+            label: const Text('Yeni Rozet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -53,7 +53,7 @@ class BadgeListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No badges yet',
+                    'Henüz rozet yok',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -63,7 +63,7 @@ class BadgeListScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: () => context.go('/badges/new'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create your first badge'),
+                    label: const Text('İlk rozetinizi oluşturun'),
                   ),
                 ],
               ),
@@ -95,11 +95,11 @@ class BadgeListScreen extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('Hata: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(badgesProvider),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),
@@ -121,7 +121,7 @@ class _BadgeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = badge['icon'] as String? ?? '🏆';
-    final name = badge['name'] as String? ?? 'Unnamed Badge';
+    final name = badge['name'] as String? ?? 'İsimsiz Rozet';
     final description = badge['description'] as String? ?? '';
     final conditionType = badge['condition_type'] as String? ?? '';
     final conditionValue = badge['condition_value'] as int? ?? 0;
@@ -205,13 +205,13 @@ class _BadgeCard extends StatelessWidget {
       case 'xp_total':
         return '$value XP';
       case 'streak_days':
-        return '$value days';
+        return '$value gün';
       case 'books_completed':
-        return '$value books';
+        return '$value kitap';
       case 'vocabulary_learned':
-        return '$value words';
+        return '$value kelime';
       case 'perfect_scores':
-        return '$value perfect';
+        return '$value tam puan';
       default:
         return type;
     }

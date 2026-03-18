@@ -25,7 +25,7 @@ class SchoolListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Schools'),
+        title: const Text('Okullar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -34,7 +34,7 @@ class SchoolListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/schools/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New School'),
+            label: const Text('Yeni Okul'),
           ),
           const SizedBox(width: 16),
         ],
@@ -53,7 +53,7 @@ class SchoolListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No schools yet',
+                    'Henüz okul yok',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -63,7 +63,7 @@ class SchoolListScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: () => context.go('/schools/new'),
                     icon: const Icon(Icons.add),
-                    label: const Text('Create your first school'),
+                    label: const Text('İlk okulunuzu oluşturun'),
                   ),
                 ],
               ),
@@ -92,11 +92,11 @@ class SchoolListScreen extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Error: $error'),
+              Text('Hata: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(schoolsProvider),
-                child: const Text('Retry'),
+                child: const Text('Tekrar Dene'),
               ),
             ],
           ),
@@ -154,7 +154,7 @@ class _SchoolCard extends StatelessWidget {
                   children: [
                     // Name
                     Text(
-                      school['name'] as String? ?? 'Unnamed School',
+                      school['name'] as String? ?? 'İsimsiz Okul',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -167,7 +167,7 @@ class _SchoolCard extends StatelessWidget {
                     // Code
                     if (code.isNotEmpty)
                       Text(
-                        'Code: $code',
+                        'Kod: $code',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -182,7 +182,7 @@ class _SchoolCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _Chip(
-                          label: '$studentCount students',
+                          label: '$studentCount öğrenci',
                           color: Colors.blue,
                         ),
                         _Chip(

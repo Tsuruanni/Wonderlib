@@ -81,7 +81,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vocabulary'),
+        title: const Text('Kelime Havuzu'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -90,13 +90,13 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
           OutlinedButton.icon(
             onPressed: () => context.go('/vocabulary/import'),
             icon: const Icon(Icons.upload, size: 18),
-            label: const Text('Import CSV'),
+            label: const Text('CSV İçe Aktar'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: () => context.go('/vocabulary/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Word'),
+            label: const Text('Yeni Kelime'),
           ),
           const SizedBox(width: 16),
         ],
@@ -120,7 +120,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: 'Search words...',
+                      hintText: 'Kelime ara...',
                       prefixIcon: const Icon(Icons.search),
                       border: const OutlineInputBorder(),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -149,12 +149,12 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                   child: DropdownButtonFormField<String?>(
                     value: levelFilter,
                     decoration: const InputDecoration(
-                      labelText: 'Level',
+                      labelText: 'Seviye',
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('All Levels')),
+                      const DropdownMenuItem(value: null, child: Text('Tüm Seviyeler')),
                       ...CEFRLevel.allValues.map((level) => DropdownMenuItem(
                             value: level,
                             child: Text(level),
@@ -191,7 +191,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No words found',
+                          'Kelime bulunamadı',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey.shade600,
@@ -201,7 +201,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                         FilledButton.icon(
                           onPressed: () => context.go('/vocabulary/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Add your first word'),
+                          label: const Text('İlk kelimenizi ekleyin'),
                         ),
                       ],
                     ),
@@ -217,11 +217,11 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Showing ${words.length} of $total words',
+                            '$total kelimeden ${words.length} tanesi gösteriliyor',
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                           Text(
-                            'Page ${currentPage + 1} of $totalPages',
+                            'Sayfa ${currentPage + 1} / $totalPages',
                             style: TextStyle(color: Colors.grey.shade600),
                           ),
                         ],
@@ -257,28 +257,28 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                                 Padding(
                                   padding: EdgeInsets.all(12),
                                   child: Text(
-                                    'Word',
+                                    'Kelime',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.all(12),
                                   child: Text(
-                                    'Type',
+                                    'Tür',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.all(12),
                                   child: Text(
-                                    'Meaning (TR)',
+                                    'Anlam (TR)',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.all(12),
                                   child: Text(
-                                    'Level',
+                                    'Seviye',
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
@@ -356,7 +356,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                             icon: const Icon(Icons.chevron_left),
                           ),
                           const SizedBox(width: 16),
-                          Text('Page ${currentPage + 1} of $totalPages'),
+                          Text('Sayfa ${currentPage + 1} / $totalPages'),
                           const SizedBox(width: 16),
                           IconButton(
                             onPressed: currentPage < totalPages - 1
@@ -380,11 +380,11 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(vocabularyProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),

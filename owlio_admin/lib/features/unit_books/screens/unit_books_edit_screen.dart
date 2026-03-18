@@ -186,7 +186,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading: $e')),
+          SnackBar(content: Text('Yükleme hatası: $e')),
         );
       }
     }
@@ -195,23 +195,23 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
   Future<void> _save() async {
     // Validation
     if (_unitId == null) {
-      _showError('Please select a unit');
+      _showError('Lütfen bir ünite seçin');
       return;
     }
     if (_schoolId == null) {
-      _showError('Please select a school');
+      _showError('Lütfen bir okul seçin');
       return;
     }
     if (_scopeType == _ScopeType.grade && _selectedGrade == null) {
-      _showError('Please select a grade');
+      _showError('Lütfen bir sınıf seçin');
       return;
     }
     if (_scopeType == _ScopeType.classSpecific && _selectedClassId == null) {
-      _showError('Please select a class');
+      _showError('Lütfen bir şube seçin');
       return;
     }
     if (_selectedBooks.isEmpty) {
-      _showError('Please select at least one book');
+      _showError('Lütfen en az bir kitap seçin');
       return;
     }
 
@@ -253,14 +253,14 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${_selectedBooks.length} book(s) assigned successfully',
+              '${_selectedBooks.length} kitap başarıyla atandı',
             ),
           ),
         );
         context.go('/unit-books');
       }
     } catch (e) {
-      _showError('Error: $e');
+      _showError('Hata: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -274,11 +274,11 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
 
   void _addBook(Map<String, dynamic> book) {
     if (_selectedBooks.length >= _maxBooks) {
-      _showError('Maximum $_maxBooks books per scope');
+      _showError('Kapsam başına en fazla $_maxBooks kitap');
       return;
     }
     if (_selectedBooks.any((b) => b['id'] == book['id'])) {
-      _showError('Book already selected');
+      _showError('Kitap zaten seçili');
       return;
     }
     setState(() => _selectedBooks.add(book));
@@ -303,7 +303,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Assign Books to Unit'),
+        title: const Text('Üniteye Kitap Ata'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/unit-books'),
@@ -317,7 +317,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Save'),
+                : const Text('Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -336,7 +336,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                   child: ListView(
                     children: [
                       Text(
-                        'Scope',
+                        'Kapsam',
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 24),
@@ -346,7 +346,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                         data: (units) => DropdownButtonFormField<String?>(
                           initialValue: _unitId,
                           decoration: const InputDecoration(
-                            labelText: 'Unit *',
+                            labelText: 'Ünite *',
                             border: OutlineInputBorder(),
                           ),
                           items: units
@@ -368,7 +368,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                           },
                         ),
                         loading: () => const LinearProgressIndicator(),
-                        error: (e, _) => Text('Error: $e'),
+                        error: (e, _) => Text('Hata: $e'),
                       ),
                       const SizedBox(height: 16),
 
@@ -377,7 +377,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                         data: (schools) => DropdownButtonFormField<String?>(
                           initialValue: _schoolId,
                           decoration: const InputDecoration(
-                            labelText: 'School *',
+                            labelText: 'Okul *',
                             border: OutlineInputBorder(),
                           ),
                           items: schools
@@ -396,13 +396,13 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                           },
                         ),
                         loading: () => const LinearProgressIndicator(),
-                        error: (e, _) => Text('Error: $e'),
+                        error: (e, _) => Text('Hata: $e'),
                       ),
                       const SizedBox(height: 24),
 
                       // Scope type
                       const Text(
-                        'Target',
+                        'Hedef',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
@@ -427,21 +427,21 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                         child: Column(
                           children: [
                             RadioListTile<_ScopeType>(
-                              title: const Text('All School'),
+                              title: const Text('Tüm Okul'),
                               subtitle:
-                                  const Text('All students in this school'),
+                                  const Text('Bu okuldaki tüm öğrenciler'),
                               value: _ScopeType.school,
                             ),
                             RadioListTile<_ScopeType>(
-                              title: const Text('By Grade'),
+                              title: const Text('Sınıfa Göre'),
                               subtitle: const Text(
-                                'All classes in a specific grade',
+                                'Belirli bir sınıfın tüm şubeleri',
                               ),
                               value: _ScopeType.grade,
                             ),
                             RadioListTile<_ScopeType>(
-                              title: const Text('By Class'),
-                              subtitle: const Text('A specific class only'),
+                              title: const Text('Şubeye Göre'),
+                              subtitle: const Text('Sadece belirli bir şube'),
                               value: _ScopeType.classSpecific,
                             ),
                           ],
@@ -455,14 +455,14 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                           key: ValueKey('grade_$_selectedGrade'),
                           initialValue: _selectedGrade,
                           decoration: const InputDecoration(
-                            labelText: 'Grade *',
+                            labelText: 'Sınıf *',
                             border: OutlineInputBorder(),
                           ),
                           items: List.generate(
                             12,
                             (i) => DropdownMenuItem(
                               value: i + 1,
-                              child: Text('Grade ${i + 1}'),
+                              child: Text('${i + 1}. Sınıf'),
                             ),
                           ),
                           onChanged: (v) {
@@ -489,7 +489,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                 key: ValueKey('class_$_selectedClassId'),
                                 initialValue: _selectedClassId,
                                 decoration: const InputDecoration(
-                                  labelText: 'Class *',
+                                  labelText: 'Şube *',
                                   border: OutlineInputBorder(),
                                 ),
                                 items: classes
@@ -497,7 +497,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                       (c) => DropdownMenuItem<String?>(
                                         value: c['id'] as String,
                                         child: Text(
-                                          '${c['name']} (Grade ${c['grade']})',
+                                          '${c['name']} (${c['grade']}. Sınıf)',
                                         ),
                                       ),
                                     )
@@ -512,7 +512,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                 },
                               ),
                               loading: () => const LinearProgressIndicator(),
-                              error: (e, _) => Text('Error: $e'),
+                              error: (e, _) => Text('Hata: $e'),
                             );
                           },
                         ),
@@ -526,7 +526,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                           child: OutlinedButton.icon(
                             onPressed: _loadExistingAssignments,
                             icon: const Icon(Icons.refresh),
-                            label: const Text('Load existing assignments'),
+                            label: const Text('Mevcut atamaları yükle'),
                           ),
                         ),
 
@@ -546,7 +546,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                 const Icon(Icons.info, color: Colors.blue),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '${_existingAssignmentIds.length} existing assignment(s) for this scope',
+                                  'Bu kapsam için ${_existingAssignmentIds.length} mevcut atama',
                                 ),
                               ],
                             ),
@@ -571,7 +571,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                       Row(
                         children: [
                           Text(
-                            'Books',
+                            'Kitaplar',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const Spacer(),
@@ -596,7 +596,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                               ? null
                               : () => _showBookPicker(context),
                           icon: const Icon(Icons.add),
-                          label: const Text('Add Book'),
+                          label: const Text('Kitap Ekle'),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -607,7 +607,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 32),
                           child: Center(
                             child: Text(
-                              'No books selected',
+                              'Kitap seçilmedi',
                               style: TextStyle(color: Colors.grey.shade500),
                             ),
                           ),
@@ -648,7 +648,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                   ),
                                   subtitle: Text(
                                     '${book['level'] ?? '-'} | '
-                                    '${book['chapter_count'] ?? 0} chapters',
+                                    '${book['chapter_count'] ?? 0} bölüm',
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                   trailing: IconButton(
@@ -683,7 +683,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           return AlertDialog(
-            title: const Text('Select Book'),
+            title: const Text('Kitap Seç'),
             content: SizedBox(
               width: 500,
               height: 400,
@@ -692,7 +692,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                   TextField(
                     controller: searchController,
                     decoration: const InputDecoration(
-                      hintText: 'Search books...',
+                      hintText: 'Kitap ara...',
                       prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),
                     ),
@@ -712,7 +712,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                             child: CircularProgressIndicator(),
                           ),
                           error: (e, _) => Center(
-                            child: Text('Error: $e'),
+                            child: Text('Hata: $e'),
                           ),
                           data: (books) {
                             // Filter out already selected books
@@ -726,7 +726,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
 
                             if (available.isEmpty) {
                               return const Center(
-                                child: Text('No matching books found'),
+                                child: Text('Eşleşen kitap bulunamadı'),
                               );
                             }
 
@@ -741,7 +741,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
                                   ),
                                   subtitle: Text(
                                     '${book['level'] ?? '-'} | '
-                                    '${book['chapter_count'] ?? 0} chapters',
+                                    '${book['chapter_count'] ?? 0} bölüm',
                                   ),
                                   onTap: () {
                                     _addBook(book);
@@ -761,7 +761,7 @@ class _UnitBooksEditScreenState extends ConsumerState<UnitBooksEditScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: const Text('İptal'),
               ),
             ],
           );

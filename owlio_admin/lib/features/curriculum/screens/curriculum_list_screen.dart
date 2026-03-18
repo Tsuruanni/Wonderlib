@@ -47,7 +47,7 @@ class CurriculumListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Unit Assignments'),
+        title: const Text('Ünite Atamaları'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -56,7 +56,7 @@ class CurriculumListScreen extends ConsumerWidget {
           FilledButton.icon(
             onPressed: () => context.go('/curriculum/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('New Assignment'),
+            label: const Text('Yeni Atama'),
           ),
           const SizedBox(width: 16),
         ],
@@ -81,14 +81,14 @@ class CurriculumListScreen extends ConsumerWidget {
                     data: (schools) => DropdownButtonFormField<String?>(
                       value: schoolFilter,
                       decoration: const InputDecoration(
-                        labelText: 'School',
+                        labelText: 'Okul',
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(),
                       ),
                       items: [
                         const DropdownMenuItem(
-                            value: null, child: Text('All Schools')),
+                            value: null, child: Text('Tüm Okullar')),
                         ...schools.map(
                           (school) => DropdownMenuItem(
                             value: school['id'] as String,
@@ -102,7 +102,7 @@ class CurriculumListScreen extends ConsumerWidget {
                       },
                     ),
                     loading: () => const LinearProgressIndicator(),
-                    error: (_, __) => const Text('Error loading schools'),
+                    error: (_, __) => const Text('Okullar yüklenirken hata'),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -113,16 +113,16 @@ class CurriculumListScreen extends ConsumerWidget {
                   child: DropdownButtonFormField<int?>(
                     value: gradeFilter,
                     decoration: const InputDecoration(
-                      labelText: 'Grade',
+                      labelText: 'Sınıf',
                       contentPadding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
                     items: [
                       const DropdownMenuItem(
-                          value: null, child: Text('All')),
+                          value: null, child: Text('Tümü')),
                       for (int i = 1; i <= 12; i++)
-                        DropdownMenuItem(value: i, child: Text('Grade $i')),
+                        DropdownMenuItem(value: i, child: Text('$i. Sınıf')),
                     ],
                     onChanged: (value) {
                       ref.read(curriculumGradeFilterProvider.notifier).state =
@@ -142,7 +142,7 @@ class CurriculumListScreen extends ConsumerWidget {
                           null;
                     },
                     icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -164,7 +164,7 @@ class CurriculumListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No unit assignments found',
+                          'Ünite ataması bulunamadı',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey.shade600,
@@ -174,7 +174,7 @@ class CurriculumListScreen extends ConsumerWidget {
                         FilledButton.icon(
                           onPressed: () => context.go('/curriculum/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Create your first assignment'),
+                          label: const Text('İlk atamanızı oluşturun'),
                         ),
                       ],
                     ),
@@ -207,22 +207,22 @@ class CurriculumListScreen extends ConsumerWidget {
                         children: const [
                           Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('Unit',
+                            child: Text('Ünite',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('School',
+                            child: Text('Okul',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('Scope',
+                            child: Text('Kapsam',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('Created',
+                            child: Text('Oluşturulma',
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           SizedBox(),
@@ -241,11 +241,11 @@ class CurriculumListScreen extends ConsumerWidget {
 
                         String scope;
                         if (cls != null) {
-                          scope = 'Class: ${cls['name']}';
+                          scope = 'Sınıf: ${cls['name']}';
                         } else if (grade != null) {
-                          scope = 'Grade $grade';
+                          scope = '$grade. Sınıf';
                         } else {
-                          scope = 'All School';
+                          scope = 'Tüm Okul';
                         }
 
                         return TableRow(
@@ -264,7 +264,7 @@ class CurriculumListScreen extends ConsumerWidget {
                                     ],
                                     Expanded(
                                       child: Text(
-                                        unit?['name'] ?? 'Unknown Unit',
+                                        unit?['name'] ?? 'Bilinmeyen Ünite',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w500,
                                           color: Color(0xFF4F46E5),
@@ -320,12 +320,12 @@ class CurriculumListScreen extends ConsumerWidget {
                     Icon(Icons.error_outline,
                         size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () =>
                           ref.invalidate(curriculumAssignmentsProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
@@ -352,9 +352,9 @@ class _ScopeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
-    if (scope.startsWith('Class')) {
+    if (scope.startsWith('Sınıf')) {
       color = Colors.purple;
-    } else if (scope.startsWith('Grade')) {
+    } else if (scope.contains('Sınıf')) {
       color = Colors.blue;
     } else {
       color = Colors.green;

@@ -155,8 +155,8 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(isNewList
-                ? 'Word list created successfully'
-                : 'Word list saved successfully'),
+                ? 'Kelime listesi oluşturuldu'
+                : 'Kelime listesi kaydedildi'),
           ),
         );
         ref.invalidate(wordlistsProvider);
@@ -170,7 +170,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('Hata: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -186,20 +186,20 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Word List'),
+        title: const Text('Kelime Listesini Sil'),
         content: const Text(
-          'Are you sure you want to delete this word list? '
-          'This action cannot be undone.',
+          'Bu kelime listesini silmek istediğinizden emin misiniz? '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -213,7 +213,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Word list deleted')),
+          const SnackBar(content: Text('Kelime listesi silindi')),
         );
         ref.invalidate(wordlistsProvider);
         context.go('/wordlists');
@@ -221,7 +221,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -238,7 +238,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           // Check if word already exists
           if (_wordItems.any((item) => item['id'] == word['id'])) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Word already in list')),
+              const SnackBar(content: Text('Kelime zaten listede')),
             );
             return;
           }
@@ -272,7 +272,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewList ? 'New Word List' : 'Edit Word List'),
+        title: Text(isNewList ? 'Yeni Kelime Listesi' : 'Kelime Listesini Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/wordlists'),
@@ -296,7 +296,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewList ? 'Create' : 'Save'),
+                : Text(isNewList ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -322,7 +322,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'List Details',
+                                  'Liste Detayları',
                                   style:
                                       Theme.of(context).textTheme.titleLarge,
                                 ),
@@ -332,13 +332,13 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                 TextFormField(
                                   controller: _nameController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Name',
-                                    hintText: 'e.g., Common A1 Words',
+                                    labelText: 'Ad',
+                                    hintText: 'ör. Yaygın A1 Kelimeler',
                                   ),
                                   validator: (value) {
                                     if (value == null ||
                                         value.trim().isEmpty) {
-                                      return 'Name is required';
+                                      return 'Ad zorunludur';
                                     }
                                     return null;
                                   },
@@ -349,15 +349,15 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                 TextFormField(
                                   controller: _descriptionController,
                                   decoration: const InputDecoration(
-                                    labelText: 'Description',
-                                    hintText: 'Describe this word list',
+                                    labelText: 'Açıklama',
+                                    hintText: 'Bu kelime listesini açıklayın',
                                   ),
                                   maxLines: 3,
                                 ),
                                 const SizedBox(height: 24),
 
                                 Text(
-                                  'Unit Assignment',
+                                  'Ünite Ataması',
                                   style:
                                       Theme.of(context).textTheme.titleLarge,
                                 ),
@@ -387,15 +387,15 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                             String?>(
                                           value: validUnitId,
                                           decoration: const InputDecoration(
-                                            labelText: 'Vocabulary Unit',
+                                            labelText: 'Kelime Ünitesi',
                                             hintText:
-                                                'Select a unit (optional)',
+                                                'Ünite seçin (isteğe bağlı)',
                                           ),
                                           items: [
                                             const DropdownMenuItem<String?>(
                                               value: null,
                                               child: Text(
-                                                  'No unit (unassigned)'),
+                                                  'Ünite yok (atanmamış)'),
                                             ),
                                             ...units.map((unit) {
                                               return DropdownMenuItem<
@@ -414,15 +414,15 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                       },
                                       loading: () => const InputDecorator(
                                         decoration: InputDecoration(
-                                          labelText: 'Vocabulary Unit',
+                                          labelText: 'Kelime Ünitesi',
                                         ),
-                                        child: Text('Loading units...'),
+                                        child: Text('Üniteler yükleniyor...'),
                                       ),
                                       error: (e, _) => InputDecorator(
                                         decoration: const InputDecoration(
-                                          labelText: 'Vocabulary Unit',
+                                          labelText: 'Kelime Ünitesi',
                                         ),
-                                        child: Text('Error: $e',
+                                        child: Text('Hata: $e',
                                             style: const TextStyle(
                                                 color: Colors.red)),
                                       ),
@@ -435,10 +435,10 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                 TextFormField(
                                   initialValue: _orderInUnit.toString(),
                                   decoration: const InputDecoration(
-                                    labelText: 'Order in Unit',
-                                    hintText: 'Display order (0, 1, 2...)',
+                                    labelText: 'Ünite İçi Sıra',
+                                    hintText: 'Gösterim sırası (0, 1, 2...)',
                                     helperText:
-                                        'Lower numbers appear first in the unit',
+                                        'Düşük numaralar ünitede önce görünür',
                                   ),
                                   keyboardType: TextInputType.number,
                                   onChanged: (value) {
@@ -474,7 +474,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Words (${_wordItems.length})',
+                                      'Kelimeler (${_wordItems.length})',
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleMedium,
@@ -483,7 +483,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                       onPressed: _showAddWordDialog,
                                       icon:
                                           const Icon(Icons.add, size: 18),
-                                      label: const Text('Add Word'),
+                                      label: const Text('Kelime Ekle'),
                                     ),
                                   ],
                                 ),
@@ -505,7 +505,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                             ),
                                             const SizedBox(height: 16),
                                             Text(
-                                              'No words yet',
+                                              'Henüz kelime yok',
                                               style: TextStyle(
                                                 color:
                                                     Colors.grey.shade600,
@@ -518,7 +518,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                               icon:
                                                   const Icon(Icons.add),
                                               label:
-                                                  const Text('Add Word'),
+                                                  const Text('Kelime Ekle'),
                                             ),
                                           ],
                                         ),
@@ -729,7 +729,7 @@ class _WordContentTable extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Content: $totalFilled/$totalFields fields ($pct%)',
+                  'İçerik: $totalFilled/$totalFields alan ($pct%)',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: allComplete
@@ -740,7 +740,7 @@ class _WordContentTable extends StatelessWidget {
                 if (!allComplete) ...[
                   const SizedBox(width: 12),
                   Text(
-                    '${missingWords.length} word(s) with missing fields',
+                    '${missingWords.length} kelimede eksik alan var',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey.shade600,
@@ -772,14 +772,14 @@ class _WordContentTable extends StatelessWidget {
                   dataTextStyle: const TextStyle(fontSize: 12),
                   columns: const [
                     DataColumn(label: Text('#')),
-                    DataColumn(label: Text('Word')),
+                    DataColumn(label: Text('Kelime')),
                     DataColumn(label: Text('TR')),
                     DataColumn(label: Text('EN')),
-                    DataColumn(label: Text('Phonetic')),
-                    DataColumn(label: Text('Audio')),
-                    DataColumn(label: Text('Image')),
-                    DataColumn(label: Text('Examples')),
-                    DataColumn(label: Text('Score')),
+                    DataColumn(label: Text('Fonetik')),
+                    DataColumn(label: Text('Ses')),
+                    DataColumn(label: Text('Görsel')),
+                    DataColumn(label: Text('Örnekler')),
+                    DataColumn(label: Text('Puan')),
                   ],
                   rows: List.generate(wordItems.length, (i) {
                     final w = wordItems[i];
@@ -913,7 +913,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
     final searchResults = ref.watch(wordlistWordSearchProvider(_searchQuery));
 
     return AlertDialog(
-      title: const Text('Add Word'),
+      title: const Text('Kelime Ekle'),
       content: SizedBox(
         width: 400,
         height: 400,
@@ -922,8 +922,8 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
             TextField(
               controller: widget.searchController,
               decoration: const InputDecoration(
-                labelText: 'Search vocabulary',
-                hintText: 'Type to search...',
+                labelText: 'Kelime ara',
+                hintText: 'Aramak için yazın...',
                 prefixIcon: Icon(Icons.search),
               ),
               autofocus: true,
@@ -938,7 +938,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                   if (_searchQuery.isEmpty) {
                     return Center(
                       child: Text(
-                        'Start typing to search',
+                        'Aramak için yazmaya başlayın',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     );
@@ -947,7 +947,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                   if (words.isEmpty) {
                     return Center(
                       child: Text(
-                        'No words found',
+                        'Kelime bulunamadı',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     );
@@ -974,7 +974,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(
-                  child: Text('Error: $error'),
+                  child: Text('Hata: $error'),
                 ),
               ),
             ),
@@ -984,7 +984,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const Text('İptal'),
         ),
       ],
     );

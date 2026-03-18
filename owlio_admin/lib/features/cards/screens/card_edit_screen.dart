@@ -144,7 +144,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card created successfully')),
+            const SnackBar(content: Text('Kart oluşturuldu')),
           );
           ref.invalidate(mythCardsProvider);
           context.go('/cards/${data['id']}');
@@ -157,7 +157,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Card saved successfully')),
+            const SnackBar(content: Text('Kart kaydedildi')),
           );
           ref.invalidate(cardDetailProvider(widget.cardId!));
           ref.invalidate(mythCardsProvider);
@@ -166,7 +166,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -180,21 +180,21 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Card'),
+        title: const Text('Kartı Sil'),
         content: const Text(
-          'Are you sure you want to delete this card? '
-          'Users who own this card will lose it. '
-          'This action cannot be undone.',
+          'Bu kartı silmek istediğinizden emin misiniz? '
+          'Bu karta sahip kullanıcılar kartı kaybedecektir. '
+          'Bu işlem geri alınamaz.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: const Text('İptal'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: const Text('Sil'),
           ),
         ],
       ),
@@ -211,7 +211,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Card deleted')),
+          const SnackBar(content: Text('Kart silindi')),
         );
         ref.invalidate(mythCardsProvider);
         context.go('/cards');
@@ -219,7 +219,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -229,7 +229,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewCard ? 'New Card' : 'Edit Card'),
+        title: Text(isNewCard ? 'Yeni Kart' : 'Kartı Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/cards'),
@@ -253,7 +253,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewCard ? 'Create' : 'Save'),
+                : Text(isNewCard ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -273,7 +273,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Card Details',
+                          Text('Kart Detayları',
                               style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 24),
 
@@ -281,16 +281,16 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _cardNoController,
                             decoration: const InputDecoration(
-                              labelText: 'Card Number',
+                              labelText: 'Kart Numarası',
                               hintText: 'M-001',
                               helperText: 'Format: M-XXX',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Card number is required';
+                                return 'Kart numarası zorunludur';
                               }
                               if (!RegExp(r'^M-\d{3}$').hasMatch(value.trim())) {
-                                return 'Must be in format M-XXX (e.g., M-001)';
+                                return 'M-XXX formatında olmalıdır (ör. M-001)';
                               }
                               return null;
                             },
@@ -301,12 +301,12 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
-                              labelText: 'Card Name',
-                              hintText: 'e.g., Fenrir the Wolf',
+                              labelText: 'Kart Adı',
+                              hintText: 'ör. Fenrir Kurt',
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Name is required';
+                                return 'Ad zorunludur';
                               }
                               return null;
                             },
@@ -317,7 +317,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           DropdownButtonFormField<CardCategory>(
                             value: _category,
                             decoration: const InputDecoration(
-                              labelText: 'Category',
+                              labelText: 'Kategori',
                             ),
                             items: CardCategory.values.map((cat) {
                               return DropdownMenuItem(
@@ -337,7 +337,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           DropdownButtonFormField<CardRarity>(
                             value: _rarity,
                             decoration: const InputDecoration(
-                              labelText: 'Rarity',
+                              labelText: 'Nadirlik',
                             ),
                             items: CardRarity.values.map((r) {
                               return DropdownMenuItem(
@@ -370,17 +370,17 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _powerController,
                             decoration: const InputDecoration(
-                              labelText: 'Power',
+                              labelText: 'Güç',
                               hintText: '10',
-                              helperText: 'Card power rating',
+                              helperText: 'Kart güç değeri',
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Power is required';
+                                return 'Güç zorunludur';
                               }
                               if (int.tryParse(value) == null) {
-                                return 'Must be a number';
+                                return 'Sayı olmalıdır';
                               }
                               return null;
                             },
@@ -391,7 +391,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _categoryIconController,
                             decoration: const InputDecoration(
-                              labelText: 'Category Icon (Emoji)',
+                              labelText: 'Kategori İkonu (Emoji)',
                               hintText: '🐺',
                             ),
                             style: const TextStyle(fontSize: 24),
@@ -402,8 +402,8 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _specialSkillController,
                             decoration: const InputDecoration(
-                              labelText: 'Special Skill',
-                              hintText: 'e.g., Shadow Strike',
+                              labelText: 'Özel Yetenek',
+                              hintText: 'ör. Gölge Saldırısı',
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -412,8 +412,8 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           TextFormField(
                             controller: _descriptionController,
                             decoration: const InputDecoration(
-                              labelText: 'Description',
-                              hintText: 'Card lore and description',
+                              labelText: 'Açıklama',
+                              hintText: 'Kart hikayesi ve açıklaması',
                             ),
                             maxLines: 4,
                           ),
@@ -421,9 +421,9 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
 
                           // Is Active
                           SwitchListTile(
-                            title: const Text('Active'),
+                            title: const Text('Aktif'),
                             subtitle: const Text(
-                                'Inactive cards are hidden from students'),
+                                'Aktif olmayan kartlar öğrencilerden gizlenir'),
                             value: _isActive,
                             onChanged: (value) {
                               setState(() => _isActive = value);
@@ -449,7 +449,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Preview',
+                        Text('Önizleme',
                             style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 16),
                         Center(
@@ -504,7 +504,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                                     // Name
                                     Text(
                                       _nameController.text.isEmpty
-                                          ? 'Card Name'
+                                          ? 'Kart Adı'
                                           : _nameController.text,
                                       style: const TextStyle(
                                         fontSize: 16,

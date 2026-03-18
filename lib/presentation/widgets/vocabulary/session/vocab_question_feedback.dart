@@ -13,6 +13,8 @@ class VocabQuestionFeedback extends StatefulWidget {
     this.targetWord,
     this.xpGained = 0,
     this.combo = 0,
+    this.comboWarning = false,
+    this.comboBroken = false,
     required this.onDismiss,
   });
 
@@ -21,6 +23,8 @@ class VocabQuestionFeedback extends StatefulWidget {
   final String? targetWord;
   final int xpGained;
   final int combo;
+  final bool comboWarning;  // First miss: combo preserved but warned
+  final bool comboBroken;   // Second miss: combo actually dropped
   final VoidCallback onDismiss;
 
   @override
@@ -105,31 +109,82 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                           color: colorScheme.primary,
                         ),
                       ).animate().fadeIn(duration: 300.ms).moveX(begin: 20, end: 0),
-                      if (!isCorrect && widget.correctAnswer != null) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              'Correct answer: ',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colorScheme.onSurface.withValues(alpha: 0.8),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                widget.correctAnswer!,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
+                      if (!isCorrect) ...[
+                        if (widget.correctAnswer != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                'Correct answer: ',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                              Expanded(
+                                child: Text(
+                                  widget.correctAnswer!,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        if (widget.comboWarning) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.orange.shade300),
                             ),
-                          ],
-                        ),
-                      ] else if (isCorrect) ...[
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Careful! x${widget.combo} combo at risk',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: Colors.orange.shade900,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).animate().shakeX(duration: 400.ms, hz: 3, amount: 2),
+                        ] else if (widget.comboBroken) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.red.shade300),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.local_fire_department, color: Colors.red.shade400, size: 18),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Combo broken! x${widget.combo}',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: Colors.red.shade700,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ).animate().fadeIn(duration: 300.ms),
+                        ],
+                      ] else ...[
                         const SizedBox(height: 4),
                         Row(
                           children: [

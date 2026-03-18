@@ -28,6 +28,8 @@ class VocabularySessionState {
     this.lastAnswerCorrect = false,
     this.lastCorrectAnswer,
     this.lastXPGained = 0,
+    this.comboWarningActive = false,
+    this.lastComboBroken = false,
     this.isSessionComplete = false,
     this.startTime,
     this.reinforceQuestionsAsked = 0,
@@ -51,6 +53,8 @@ class VocabularySessionState {
   final bool lastAnswerCorrect;
   final String? lastCorrectAnswer;
   final int lastXPGained;
+  final bool comboWarningActive; // true = next wrong will break combo
+  final bool lastComboBroken;    // true = combo just dropped this answer
   final bool isSessionComplete;
   final DateTime? startTime;
   final int reinforceQuestionsAsked;
@@ -115,6 +119,8 @@ class VocabularySessionState {
     bool? lastAnswerCorrect,
     String? lastCorrectAnswer,
     int? lastXPGained,
+    bool? comboWarningActive,
+    bool? lastComboBroken,
     bool clearLastCorrectAnswer = false,
     bool? isSessionComplete,
     DateTime? startTime,
@@ -139,6 +145,8 @@ class VocabularySessionState {
       lastAnswerCorrect: lastAnswerCorrect ?? this.lastAnswerCorrect,
       lastCorrectAnswer: clearLastCorrectAnswer ? null : (lastCorrectAnswer ?? this.lastCorrectAnswer),
       lastXPGained: clearLastCorrectAnswer ? 0 : (lastXPGained ?? this.lastXPGained),
+      comboWarningActive: comboWarningActive ?? this.comboWarningActive,
+      lastComboBroken: lastComboBroken ?? this.lastComboBroken,
       isSessionComplete: isSessionComplete ?? this.isSessionComplete,
       startTime: startTime ?? this.startTime,
       reinforceQuestionsAsked: reinforceQuestionsAsked ?? this.reinforceQuestionsAsked,
@@ -269,8 +277,26 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       }
     }
 
-    // Update combo: wrong answer reduces by 2 instead of resetting
-    final newCombo = isCorrect ? state.combo + 1 : max<int>(0, state.combo - 2);
+    // Update combo with warning system:
+    // First wrong while combo active → warning only, combo preserved
+    // Second wrong (warning active) → combo drops by 2
+    // Correct answer → combo+1, warning cleared
+    int newCombo;
+    bool newWarning;
+    bool broken = false;
+    if (isCorrect) {
+      newCombo = state.combo + 1;
+      newWarning = false;
+    } else if (state.combo >= 2 && !state.comboWarningActive) {
+      // First miss with active combo: warn but preserve
+      newCombo = state.combo;
+      newWarning = true;
+    } else {
+      // No combo or warning already shown: drop combo
+      broken = state.combo >= 2; // had a combo and it's dropping
+      newCombo = max<int>(0, state.combo - 2);
+      newWarning = false;
+    }
     final newMaxCombo = max<int>(newCombo, state.maxCombo);
 
     // Calculate XP with combo multiplier
@@ -292,6 +318,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       words: updatedWords,
       combo: newCombo,
       maxCombo: newMaxCombo,
+      comboWarningActive: newWarning,
+      lastComboBroken: broken,
       xpEarned: state.xpEarned + xpGained,
       correctCount: state.correctCount + (isCorrect ? 1 : 0),
       incorrectCount: state.incorrectCount + (isCorrect ? 0 : 1),
@@ -354,7 +382,21 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     }
 
     final isAllCorrect = correctMatches == totalMatches;
-    final newCombo = isAllCorrect ? state.combo + 1 : max<int>(0, state.combo - 2);
+    // Combo warning system (same as answerQuestion)
+    int newCombo;
+    bool newWarning;
+    bool broken = false;
+    if (isAllCorrect) {
+      newCombo = state.combo + 1;
+      newWarning = false;
+    } else if (state.combo >= 2 && !state.comboWarningActive) {
+      newCombo = state.combo;
+      newWarning = true;
+    } else {
+      broken = state.combo >= 2;
+      newCombo = max<int>(0, state.combo - 2);
+      newWarning = false;
+    }
     // Partial XP for matching: 3/4 correct still earns proportional XP
     final comboMult = max<int>(1, min<int>(newCombo, 5));
     final xpGained = correctMatches > 0
@@ -372,6 +414,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     state = state.copyWith(
       words: updatedWords,
       combo: newCombo,
+      comboWarningActive: newWarning,
+      lastComboBroken: broken,
       maxCombo: max<int>(newCombo, state.maxCombo),
       xpEarned: state.xpEarned + xpGained,
       // Count matching as 1 question for accuracy (not 4)
@@ -499,11 +543,12 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         eligibleTypes = [
           QuestionType.multipleChoice,
           QuestionType.reverseMultipleChoice,
-          if (word.audioUrl != null) QuestionType.listeningSelect,
+          QuestionType.listeningSelect,
         ];
       case WordMasteryLevel.recognized:
         eligibleTypes = [
           QuestionType.scrambledLetters,
+          QuestionType.wordWheel,
           if (state.words.length >= 4) QuestionType.matching,
         ];
         // If struggling, also allow easier types
@@ -514,12 +559,12 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       case WordMasteryLevel.produced:
         eligibleTypes = [
           QuestionType.spelling,
-          if (word.audioUrl != null) QuestionType.listeningWrite,
+          QuestionType.listeningWrite,
           if (word.exampleSentence != null) QuestionType.sentenceGap,
         ];
         // If no production type available, fall back to bridge
         if (eligibleTypes.isEmpty) {
-          eligibleTypes = [QuestionType.scrambledLetters];
+          eligibleTypes = [QuestionType.scrambledLetters, QuestionType.wordWheel];
         }
     }
 
@@ -584,6 +629,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       QuestionType.spelling,
       if (word.exampleSentence != null) QuestionType.sentenceGap,
       QuestionType.scrambledLetters,
+      QuestionType.wordWheel,
     ];
 
     final type = types[_random.nextInt(types.length)];
@@ -615,7 +661,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       case QuestionType.matching:
         return _buildMatching(word);
       case QuestionType.scrambledLetters:
-        return _buildScrambledLetters(word);
+      case QuestionType.wordWheel:
+        return _buildScrambledLetters(word, type: type);
       case QuestionType.spelling:
         return _buildSpelling(word);
       case QuestionType.listeningWrite:
@@ -713,7 +760,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     );
   }
 
-  SessionQuestion _buildScrambledLetters(WordSessionState word) {
+  SessionQuestion _buildScrambledLetters(
+    WordSessionState word, {
+    QuestionType type = QuestionType.scrambledLetters,
+  }) {
     final letters = word.word.split('');
     final scrambled = List<String>.from(letters);
 
@@ -726,7 +776,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     } while (scrambled.join() == word.word && word.word.length > 1 && attempts < 20);
 
     return SessionQuestion(
-      type: QuestionType.scrambledLetters,
+      type: type,
       targetWordId: word.wordId,
       targetWord: word.word,
       targetMeaning: word.meaningTR,

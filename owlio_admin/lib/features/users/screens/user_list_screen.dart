@@ -52,7 +52,7 @@ class UserListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: const Text('Kullanıcılar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -61,7 +61,7 @@ class UserListScreen extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => context.go('/users/import'),
             icon: const Icon(Icons.upload, size: 18),
-            label: const Text('Import CSV'),
+            label: const Text('CSV İçe Aktar'),
           ),
           const SizedBox(width: 16),
         ],
@@ -85,14 +85,14 @@ class UserListScreen extends ConsumerWidget {
                     data: (schools) => DropdownButtonFormField<String?>(
                       value: selectedSchool,
                       decoration: const InputDecoration(
-                        labelText: 'School',
+                        labelText: 'Okul',
                         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         border: OutlineInputBorder(),
                       ),
                       items: [
                         const DropdownMenuItem(
                           value: null,
-                          child: Text('All Schools'),
+                          child: Text('Tüm Okullar'),
                         ),
                         ...schools.map((school) => DropdownMenuItem(
                               value: school['id'] as String,
@@ -114,15 +114,15 @@ class UserListScreen extends ConsumerWidget {
                   child: DropdownButtonFormField<String?>(
                     value: selectedRole,
                     decoration: const InputDecoration(
-                      labelText: 'Role',
+                      labelText: 'Rol',
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       border: OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem(value: null, child: Text('All Roles')),
-                      DropdownMenuItem(value: UserRole.student.dbValue, child: const Text('Student')),
-                      DropdownMenuItem(value: UserRole.teacher.dbValue, child: const Text('Teacher')),
-                      DropdownMenuItem(value: UserRole.head.dbValue, child: const Text('Head Teacher')),
+                      const DropdownMenuItem(value: null, child: Text('Tüm Roller')),
+                      DropdownMenuItem(value: UserRole.student.dbValue, child: const Text('Öğrenci')),
+                      DropdownMenuItem(value: UserRole.teacher.dbValue, child: const Text('Öğretmen')),
+                      DropdownMenuItem(value: UserRole.head.dbValue, child: const Text('Baş Öğretmen')),
                       DropdownMenuItem(value: UserRole.admin.dbValue, child: const Text('Admin')),
                     ],
                     onChanged: (value) {
@@ -140,7 +140,7 @@ class UserListScreen extends ConsumerWidget {
                       ref.read(roleFilterProvider.notifier).state = null;
                     },
                     icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Clear'),
+                    label: const Text('Temizle'),
                   ),
               ],
             ),
@@ -162,7 +162,7 @@ class UserListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No users found',
+                          'Kullanıcı bulunamadı',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.grey.shade600,
@@ -170,7 +170,7 @@ class UserListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Create users via Supabase Dashboard',
+                          'Supabase Dashboard üzerinden kullanıcı oluşturun',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade500,
@@ -200,11 +200,11 @@ class UserListScreen extends ConsumerWidget {
                   children: [
                     Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
-                    Text('Error: $error'),
+                    Text('Hata: $error'),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(usersProvider),
-                      child: const Text('Retry'),
+                      child: const Text('Tekrar Dene'),
                     ),
                   ],
                 ),
@@ -359,11 +359,11 @@ class _UserCard extends StatelessWidget {
       case 'admin':
         return 'Admin';
       case 'head':
-        return 'Head Teacher';
+        return 'Baş Öğretmen';
       case 'teacher':
-        return 'Teacher';
+        return 'Öğretmen';
       case 'student':
-        return 'Student';
+        return 'Öğrenci';
       default:
         return role;
     }
