@@ -49,6 +49,7 @@ class _VocabularySessionScreenState
   bool? _currentMascotCorrect;
   int _lastFeedbackQuestion = -1;
   bool _hasShownHalfway = false;
+  bool _halfwayPending = false;
   int? _halfwayQuestionIndex;
 
   // Combo milestone mascot state
@@ -56,6 +57,7 @@ class _VocabularySessionScreenState
   String? _comboMilestoneAsset;
   String? _comboMilestoneText;
   int _lastComboMilestoneShown = 0; // highest milestone shown so far
+  bool _comboMilestonePending = false; // waiting for next question to show
 
   @override
   void initState() {
@@ -149,31 +151,39 @@ class _VocabularySessionScreenState
     // Halfway encouragement — show during the NEXT question after progress crosses 50%
     if (progress >= 0.5 && !_hasShownHalfway) {
       _hasShownHalfway = true;
-      // Target the next question (current one is being answered/feedback shown)
-      _halfwayQuestionIndex = sessionState.questionIndex + 1;
+      _halfwayPending = true;
+    }
+    if (_halfwayPending && !sessionState.isShowingFeedback) {
+      _halfwayPending = false;
+      _halfwayQuestionIndex = sessionState.questionIndex;
     }
     final showHalfwayMascot = _halfwayQuestionIndex != null &&
         sessionState.questionIndex == _halfwayQuestionIndex;
 
     // Combo milestone mascots — trigger on 5, 10, 15 combo
     final combo = sessionState.combo;
-    if (combo >= 5 && _lastComboMilestoneShown < 5 && sessionState.lastAnswerCorrect) {
+    if (combo >= 5 && _lastComboMilestoneShown < 5) {
       _lastComboMilestoneShown = 5;
-      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/baloncuk-owl-mascot.riv';
       _comboMilestoneText = '5x Combo!\nNice streak!';
     }
-    if (combo >= 10 && _lastComboMilestoneShown < 10 && sessionState.lastAnswerCorrect) {
+    if (combo >= 10 && _lastComboMilestoneShown < 10) {
       _lastComboMilestoneShown = 10;
-      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/kalplibalon-owl-mascot.riv';
       _comboMilestoneText = '10x Combo!\nUnstoppable!';
     }
-    if (combo >= 15 && _lastComboMilestoneShown < 15 && sessionState.lastAnswerCorrect) {
+    if (combo >= 15 && _lastComboMilestoneShown < 15) {
       _lastComboMilestoneShown = 15;
-      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
       _comboMilestoneText = '15x Combo!\nYou are legendary!';
+    }
+    // When pending and feedback is dismissed (new question visible), lock to this question
+    if (_comboMilestonePending && !sessionState.isShowingFeedback) {
+      _comboMilestonePending = false;
+      _comboMilestoneQuestionIndex = sessionState.questionIndex;
     }
     final showComboMascot = _comboMilestoneQuestionIndex != null &&
         sessionState.questionIndex == _comboMilestoneQuestionIndex;
