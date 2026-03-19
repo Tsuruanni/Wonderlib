@@ -107,6 +107,7 @@ class _PathNodeState extends State<PathNode>
   void _showProgressSheet(BuildContext context, WordListWithProgress wlp) {
     final progress = wlp.progress!;
     final id = wlp.wordList.id;
+    final isPerfect = progress.bestAccuracy != null && progress.bestAccuracy! >= 100;
 
     showModalBottomSheet(
       context: context,
@@ -197,67 +198,99 @@ class _PathNodeState extends State<PathNode>
                 ),
               ],
 
-              // XP encouragement
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.2),
+              if (isPerfect) ...[
+                // Perfect score — mastered message
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.green.withValues(alpha: 0.3),
+                    ),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: AppColors.primary, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        progress.bestScore != null && progress.bestScore! > 0
-                            ? 'Beat ${progress.bestScore} coins to earn more!'
-                            : 'Play again to earn coins!',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.check_circle_rounded,
+                          color: Colors.green, size: 22),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Perfect! You\'ve mastered this set',
                         style: GoogleFonts.nunito(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                          color: Colors.green.shade800,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Practice Again button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(sheetContext).pop();
-                    context.push(AppRoutes.vocabularySessionPath(id));
-                  },
-                  icon: const Icon(Icons.replay_rounded),
-                  label: Text(
-                    'Practice Again',
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: widget.unitColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                    ],
                   ),
                 ),
-              ),
+              ] else ...[
+                // Coin encouragement + Practice Again button
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded,
+                          color: AppColors.primary, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          progress.bestScore != null && progress.bestScore! > 0
+                              ? 'Beat ${progress.bestScore} coins to earn more!'
+                              : 'Play again to earn coins!',
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Practice Again button
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push(AppRoutes.vocabularySessionPath(id));
+                    },
+                    icon: const Icon(Icons.replay_rounded),
+                    label: Text(
+                      'Practice Again',
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: widget.unitColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         );
