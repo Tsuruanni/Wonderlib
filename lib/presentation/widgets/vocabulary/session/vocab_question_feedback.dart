@@ -250,7 +250,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                                   ),
                                 ),
                               ],
-                            ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.2, end: 0),
+                            ).animate().fadeIn(duration: 200.ms).slideX(begin: -0.2, end: 0),
                             if (widget.combo >= 2) ...[
                               const SizedBox(width: 12),
                               Container(
@@ -268,7 +268,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                              ).animate().scale(delay: 200.ms, curve: Curves.elasticOut),
+                              ).animate().scale(curve: Curves.elasticOut),
                             ],
                           ],
                         ),
@@ -302,8 +302,8 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                               ],
                             ),
                           ).animate()
-                              .fadeIn(delay: 300.ms)
-                              .scaleXY(begin: 0.8, end: 1.0, delay: 300.ms, curve: Curves.elasticOut),
+                              .fadeIn(duration: 200.ms)
+                              .scaleXY(begin: 0.8, end: 1.0, duration: 300.ms, curve: Curves.elasticOut),
                         ],
                       ],
                     ],
