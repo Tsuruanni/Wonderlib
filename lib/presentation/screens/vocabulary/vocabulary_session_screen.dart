@@ -179,16 +179,16 @@ class _VocabularySessionScreenState
     if (combo >= 5 && _lastComboMilestoneShown < 5) {
       _lastComboMilestoneShown = 5;
       _comboMilestonePending = true;
-      _comboMilestoneAsset = 'assets/animations/mascot/baloncuk-owl-mascot.riv';
+      _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
       _comboMilestoneText = '5x Combo!\nNice streak!';
-      _comboMilestoneSize = 169; // 130 * 1.3
+      _comboMilestoneSize = 130;
     }
     if (combo >= 10 && _lastComboMilestoneShown < 10) {
       _lastComboMilestoneShown = 10;
       _comboMilestonePending = true;
-      _comboMilestoneAsset = 'assets/animations/mascot/kalplibalon-owl-mascot.riv';
+      _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
       _comboMilestoneText = '10x Combo!\nUnstoppable!';
-      _comboMilestoneSize = 156; // 130 * 1.2
+      _comboMilestoneSize = 130;
     }
     if (combo >= 15 && _lastComboMilestoneShown < 15) {
       _lastComboMilestoneShown = 15;
@@ -666,10 +666,7 @@ class _EncouragementMascot extends StatelessWidget {
               ),
             ),
           ],
-        )
-            .animate()
-            .fadeIn(delay: 400.ms, duration: 300.ms)
-            .slideY(begin: 0.3, end: 0, delay: 400.ms),
+        ),
 
         const SizedBox(height: 2),
 
@@ -687,8 +684,8 @@ class _EncouragementMascot extends StatelessWidget {
       ],
     )
         .animate()
-        .fadeIn(duration: 400.ms)
-        .slideY(begin: 0.5, end: 0, curve: Curves.easeOutBack);
+        .fadeIn(duration: 200.ms)
+        .slideY(begin: 0.2, end: 0, duration: 200.ms, curve: Curves.easeOut);
   }
 }
 
