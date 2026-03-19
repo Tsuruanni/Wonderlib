@@ -49,6 +49,7 @@ class _VocabularySessionScreenState
   bool? _currentMascotCorrect;
   int _lastFeedbackQuestion = -1;
   bool _hasShownHalfway = false;
+  int? _halfwayQuestionIndex;
 
   @override
   void initState() {
@@ -139,10 +140,13 @@ class _VocabularySessionScreenState
     final estimatedTotal = sessionState.words.length * 2 + 4; // rough estimate
     final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
 
-    // Halfway encouragement — show once when progress crosses 50%
+    // Halfway encouragement — show only during the question when progress crosses 50%
     if (progress >= 0.5 && !_hasShownHalfway) {
       _hasShownHalfway = true;
+      _halfwayQuestionIndex = sessionState.questionIndex;
     }
+    final showHalfwayMascot = _halfwayQuestionIndex != null &&
+        sessionState.questionIndex == _halfwayQuestionIndex;
 
     return Scaffold(
       body: Stack(
@@ -281,8 +285,8 @@ class _VocabularySessionScreenState
               ),
             ),
 
-          // Halfway encouragement mascot with speech bubble
-          if (_hasShownHalfway && !sessionState.isSessionComplete)
+          // Halfway encouragement mascot with speech bubble (one question only)
+          if (showHalfwayMascot)
             Positioned(
               bottom: 8,
               right: 8,
@@ -526,55 +530,70 @@ class _VocabularySessionScreenState
 }
 
 /// Halfway encouragement — balloon owl mascot with speech bubble.
-/// Appears at bottom-right, stays visible without blocking interaction.
+/// Appears at bottom-right for one question only, doesn't block interaction.
 class _HalfwayMascot extends StatelessWidget {
   const _HalfwayMascot({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bubbleColor = theme.colorScheme.primaryContainer;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        // Speech bubble
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+        // Speech bubble with tail pointing to mascot
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: bubbleColor,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.shadow.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Text(
-            'Halfway there!\nKeep going!',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.w700,
-              height: 1.3,
+              child: Text(
+                'Halfway there!\nKeep going!',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-            textAlign: TextAlign.center,
-          ),
+            // Bubble tail — bottom-left pointing down-right toward mascot
+            Positioned(
+              bottom: -8,
+              right: 20,
+              child: CustomPaint(
+                size: const Size(16, 10),
+                painter: _BubbleTailPainter(color: bubbleColor),
+              ),
+            ),
+          ],
         )
             .animate()
             .fadeIn(delay: 400.ms, duration: 300.ms)
             .slideY(begin: 0.3, end: 0, delay: 400.ms),
 
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
 
-        // Balloon owl mascot
+        // Balloon owl mascot — 130px (30% bigger than 100)
         SizedBox(
-          width: 100,
-          height: 100,
+          width: 130,
+          height: 130,
           child: MascotOverlay(
             asset: 'assets/animations/mascot/balloon-owl-mascot.riv',
-            size: 100,
+            size: 130,
             freeze: false,
             exitSlide: false,
           ),
@@ -585,4 +604,24 @@ class _HalfwayMascot extends StatelessWidget {
         .fadeIn(duration: 400.ms)
         .slideY(begin: 0.5, end: 0, curve: Curves.easeOutBack);
   }
+}
+
+/// Paints a small triangle tail for the speech bubble
+class _BubbleTailPainter extends CustomPainter {
+  _BubbleTailPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
