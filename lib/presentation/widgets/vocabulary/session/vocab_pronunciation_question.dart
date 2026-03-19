@@ -152,10 +152,16 @@ class _VocabPronunciationQuestionState
       return;
     }
 
-    // All attempts used → incorrect
-    setState(() => _answered = true);
-    HapticFeedback.lightImpact();
-    widget.onAnswer(recognizedWord ?? '');
+    // All attempts used → fall back to spelling mode
+    setState(() {
+      _isFallbackMode = true;
+      _statusMessage = "Try typing instead";
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+    // Note: do NOT call onMicDisabled here — this is a per-question fallback,
+    // not a session-level mic disable. Pronunciation can still appear next time.
   }
 
   void _submitSpelling() {

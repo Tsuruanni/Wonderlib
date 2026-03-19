@@ -5,13 +5,11 @@ class VocabSessionProgressBar extends StatelessWidget {
   const VocabSessionProgressBar({
     super.key,
     required this.progress,
-    required this.xpEarned,
     this.comboActive = false,
   });
 
   /// Progress from 0.0 to 1.0
   final double progress;
-  final int xpEarned;
   final bool comboActive;
 
   @override

@@ -22,7 +22,6 @@ import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
 import '../../widgets/vocabulary/session/vocab_pronunciation_question.dart';
 import '../../widgets/vocabulary/session/vocab_spelling_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_introduction_card.dart';
-import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 
 class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
@@ -166,7 +165,6 @@ class _VocabularySessionScreenState
                         Expanded(
                           child: VocabSessionProgressBar(
                             progress: progress,
-                            xpEarned: sessionState.xpEarned,
                             comboActive: sessionState.combo >= 2,
                           ),
                         ),

@@ -5,12 +5,10 @@ class VocabQuestionContainer extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24),
-    this.title,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final Widget? title;
 
   @override
   Widget build(BuildContext context) {
@@ -33,27 +31,9 @@ class VocabQuestionContainer extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (title != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 24, left: 24, right: 24),
-              child: DefaultTextStyle(
-                style: theme.textTheme.titleLarge!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,
-                ),
-                child: title!,
-              ),
-            ),
-          ],
-          Padding(
-            padding: padding,
-            child: child,
-          ),
-        ],
+      child: Padding(
+        padding: padding,
+        child: child,
       ),
     );
   }

@@ -438,9 +438,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       isShowingFeedback: true,
       lastAnswerCorrect: isAllCorrect,
       lastXPGained: xpGained,
-      reinforceQuestionsAsked: state.phase == SessionPhase.reinforce
-          ? state.reinforceQuestionsAsked + 1
-          : state.reinforceQuestionsAsked,
+      // Note: reinforceQuestionsAsked is incremented at question GENERATION time
+      // in _generateReinforceQuestion, not here — to avoid double-counting.
     );
   }
 
@@ -708,8 +707,9 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       case QuestionType.listeningSelect:
         return _buildListeningSelect(word);
       case QuestionType.imageMatch:
-        // imageMatch is only built inline in _generateExplorePairQuestion
-        // but needs a case here for exhaustiveness
+        // imageMatch is only built inline in _generateExplorePairQuestion.
+        // This case exists for switch exhaustiveness but should never be reached.
+        assert(false, 'imageMatch should not be built via _buildQuestion');
         return _buildMultipleChoice(word, reverse: false);
       case QuestionType.matching:
         return _buildMatching(word);
