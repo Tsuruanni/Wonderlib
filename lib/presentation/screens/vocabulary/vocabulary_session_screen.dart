@@ -644,10 +644,10 @@ class _EncouragementMascot extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            // Bubble tail pointing down-right toward mascot
+            // Bubble tail — starts from bottom-left, points down-right toward mascot
             Positioned(
               bottom: -8,
-              right: 20,
+              left: 20,
               child: CustomPaint(
                 size: const Size(16, 10),
                 painter: _BubbleTailPainter(color: bubbleColor),
