@@ -86,41 +86,70 @@ class _VocabPronunciationQuestionState
     widget.onMicDisabled();
   }
 
-  void _startListening() async {
-    if (_answered || !_sttAvailable || _waitingForResult) return;
-    setState(() {
-      _isListening = true;
-      _statusMessage = null;
-    });
-    await _stt.listen(
-      localeId: 'en-US',
-      onResult: _onSpeechResult,
-      listenOptions: SpeechListenOptions(
-        listenMode: ListenMode.confirmation,
-      ),
-    );
-  }
+  void _toggleListening() async {
+    if (_answered) return;
 
-  void _stopListening() async {
-    await _stt.stop();
-    if (mounted) {
+    if (_isListening) {
+      // Stop listening — wait for final result
+      await _stt.stop();
+      if (mounted) {
+        setState(() => _isListening = false);
+        // Fallback timeout if no final result arrives
+        _noResultTimer?.cancel();
+        _noResultTimer = Timer(const Duration(milliseconds: 3000), () {
+          if (!_answered && _waitingForResult && mounted) {
+            _handleAttemptResult(null);
+          }
+        });
+      }
+    } else {
+      // Start listening
+      if (!_sttAvailable) return;
       setState(() {
-        _isListening = false;
+        _isListening = true;
         _waitingForResult = true;
+        _statusMessage = null;
       });
-      // Timeout: if no result arrives within 800ms, count as failed attempt
-      _noResultTimer?.cancel();
-      _noResultTimer = Timer(const Duration(milliseconds: 800), () {
-        if (!_answered && _waitingForResult && mounted) {
-          _handleAttemptResult(null); // null = no result
+      try {
+        await _stt.listen(
+          localeId: 'en-US',
+          onResult: _onSpeechResult,
+          listenOptions: SpeechListenOptions(
+            listenMode: ListenMode.dictation,
+            cancelOnError: true,
+            autoPunctuation: false,
+          ),
+        );
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isListening = false;
+            _waitingForResult = false;
+          });
+          _handleAttemptResult(null);
         }
-      });
+      }
     }
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    if (!result.finalResult || _answered || !_waitingForResult) return;
+    if (_answered) return;
+
+    debugPrint('STT result: "${result.recognizedWords}" final=${result.finalResult} conf=${result.confidence}');
+
+    if (!result.finalResult) {
+      // Show partial result as status
+      final partial = result.recognizedWords.trim();
+      if (partial.isNotEmpty && mounted) {
+        setState(() => _statusMessage = 'Hearing: "$partial"');
+      }
+      return;
+    }
+
+    // Final result
     _noResultTimer?.cancel();
+    _waitingForResult = false;
+    if (mounted) setState(() => _isListening = false);
 
     final recognizedWord = result.recognizedWords.trim().toLowerCase();
     _handleAttemptResult(recognizedWord.isEmpty ? null : recognizedWord);
@@ -249,15 +278,17 @@ class _VocabPronunciationQuestionState
           Text(
             _statusMessage!,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.error,
+              color: _statusMessage!.startsWith('Hearing')
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.error,
             ),
           ),
           const SizedBox(height: 12),
         ],
 
+        // Tap to start/stop recording
         GestureDetector(
-          onLongPressStart: (_) => _startListening(),
-          onLongPressEnd: (_) => _stopListening(),
+          onTap: _toggleListening,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             width: _isListening ? 100 : 80,
@@ -278,7 +309,7 @@ class _VocabPronunciationQuestionState
                   : null,
             ),
             child: Icon(
-              Icons.mic,
+              _isListening ? Icons.stop : Icons.mic,
               size: _isListening ? 44 : 36,
               color: _isListening
                   ? Colors.white
@@ -291,10 +322,10 @@ class _VocabPronunciationQuestionState
 
         Text(
           _isListening
-              ? 'Listening...'
+              ? 'Listening... tap to stop'
               : _attemptsUsed == 0
-                  ? 'Hold to speak'
-                  : 'Hold to try again',
+                  ? 'Tap to speak'
+                  : 'Tap to try again',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
