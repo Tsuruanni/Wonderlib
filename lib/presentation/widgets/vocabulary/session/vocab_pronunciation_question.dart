@@ -142,6 +142,20 @@ class _VocabPronunciationQuestionState
       final partial = result.recognizedWords.trim();
       if (partial.isNotEmpty && mounted) {
         setState(() => _statusMessage = 'Hearing: "$partial"');
+
+        // Auto-accept if partial already matches the correct answer
+        final correctAnswer = widget.question.correctAnswer.toLowerCase();
+        if (partial.toLowerCase() == correctAnswer) {
+          _stt.stop();
+          _noResultTimer?.cancel();
+          _waitingForResult = false;
+          setState(() {
+            _isListening = false;
+            _answered = true;
+          });
+          HapticFeedback.lightImpact();
+          widget.onAnswer(widget.question.correctAnswer);
+        }
       }
       return;
     }
