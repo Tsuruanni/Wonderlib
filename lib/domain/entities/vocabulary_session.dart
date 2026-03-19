@@ -16,7 +16,7 @@ enum QuestionType {
   spelling,              // TR meaning given → type EN word
   listeningWrite,        // Audio plays → type the word
   sentenceGap,           // Fill the blank in a sentence
-  pronunciation,          // Say the word into microphone (production)
+  pronunciation,          // Say the word — recall + speak into microphone (production)
 }
 
 /// XP values per question type

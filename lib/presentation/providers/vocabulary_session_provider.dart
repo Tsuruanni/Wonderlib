@@ -477,7 +477,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   void _generateReinforceQuestion() {
     // Check if we should transition to Final phase
     // All words must reach at least bridged level (passed bridge questions)
-    // so that production-tier questions (spelling, pronunciation) get a chance
+    // so that production-tier questions (spelling, say-the-word) get a chance
     final allBridged = state.words.every(
       (w) => w.masteryLevel.index >= WordMasteryLevel.bridged.index,
     );

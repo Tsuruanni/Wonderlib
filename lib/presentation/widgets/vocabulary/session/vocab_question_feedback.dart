@@ -76,7 +76,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
       });
     }
 
-    // TTS for wrong pronunciation answers
+    // TTS for wrong "say the word" answers
     if (!widget.isCorrect &&
         widget.questionType == QuestionType.pronunciation &&
         widget.targetWord != null) {

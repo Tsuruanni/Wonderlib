@@ -9,7 +9,7 @@ import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
 
-/// Pronunciation question: Image + TR meaning shown, say the English word.
+/// "Say the word" question: Image + TR meaning shown, student says the English word.
 /// Falls back to spelling (TextField) when mic is unavailable.
 class VocabPronunciationQuestion extends StatefulWidget {
   const VocabPronunciationQuestion({
@@ -204,7 +204,7 @@ class _VocabPronunciationQuestionState
       _focusNode.requestFocus();
     });
     // Note: do NOT call onMicDisabled here — this is a per-question fallback,
-    // not a session-level mic disable. Pronunciation can still appear next time.
+    // not a session-level mic disable. "Say the word" can still appear next time.
   }
 
   void _submitSpelling() {
