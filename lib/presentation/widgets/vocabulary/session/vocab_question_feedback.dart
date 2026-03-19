@@ -138,7 +138,9 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                'Correct answer: ',
+                                widget.questionType == QuestionType.imageMatch
+                                    ? 'That was: '
+                                    : 'Correct answer: ',
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: colorScheme.onSurface.withValues(alpha: 0.8),
                                   fontWeight: FontWeight.bold,
