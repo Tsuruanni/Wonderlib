@@ -103,8 +103,19 @@ class _VocabularySessionScreenState
       return;
     }
 
+    // Precache all word images so they're instant when questions appear
+    _precacheWordImages(words);
+
     ref.read(vocabularySessionControllerProvider.notifier).startSession(words);
     setState(() => _initialized = true);
+  }
+
+  void _precacheWordImages(List<VocabularyWord> words) {
+    for (final word in words) {
+      if (word.imageUrl != null && word.imageUrl!.isNotEmpty) {
+        precacheImage(NetworkImage(word.imageUrl!), context);
+      }
+    }
   }
 
   @override
