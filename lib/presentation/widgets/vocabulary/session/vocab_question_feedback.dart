@@ -35,17 +35,43 @@ class VocabQuestionFeedback extends StatefulWidget {
   State<VocabQuestionFeedback> createState() => _VocabQuestionFeedbackState();
 }
 
+/// Combo milestone thresholds with celebration data
+enum _ComboMilestone {
+  nice(5, 'NICE STREAK!', Icons.local_fire_department, [Color(0xFFFF8A65), Color(0xFFFF7043)]),
+  unstoppable(10, 'UNSTOPPABLE!', Icons.bolt, [Color(0xFFFFB300), Color(0xFFFF8F00)]),
+  legendary(15, 'LEGENDARY!', Icons.stars, [Color(0xFFAB47BC), Color(0xFF7B1FA2)]);
+
+  const _ComboMilestone(this.threshold, this.text, this.icon, this.colors);
+  final int threshold;
+  final String text;
+  final IconData icon;
+  final List<Color> colors;
+}
+
 class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
   Timer? _autoDismissTimer;
   FlutterTts? _tts;
+
+  /// Returns the milestone if combo is exactly at a threshold
+  _ComboMilestone? get _comboMilestone {
+    if (!widget.isCorrect) return null;
+    for (final m in _ComboMilestone.values.reversed) {
+      if (widget.combo == m.threshold) return m;
+    }
+    return null;
+  }
 
   @override
   void initState() {
     super.initState();
 
     // Auto-dismiss for correct answers after delay
+    // Longer delay for combo milestones so student can see the celebration
     if (widget.isCorrect) {
-      _autoDismissTimer = Timer(const Duration(milliseconds: 2200), () {
+      final delay = _comboMilestone != null
+          ? const Duration(milliseconds: 3200)
+          : const Duration(milliseconds: 2200);
+      _autoDismissTimer = Timer(delay, () {
         if (mounted) widget.onDismiss();
       });
     }
@@ -246,6 +272,39 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             ],
                           ],
                         ),
+                        // Combo milestone celebration
+                        if (_comboMilestone != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _comboMilestone!.colors,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(_comboMilestone!.icon, color: Colors.white, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _comboMilestone!.text,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(_comboMilestone!.icon, color: Colors.white, size: 20),
+                              ],
+                            ),
+                          ).animate()
+                              .fadeIn(delay: 300.ms)
+                              .scaleXY(begin: 0.8, end: 1.0, delay: 300.ms, curve: Curves.elasticOut),
+                        ],
                       ],
                     ],
                   ),
