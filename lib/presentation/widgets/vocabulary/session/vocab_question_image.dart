@@ -6,7 +6,7 @@ class VocabQuestionImage extends StatelessWidget {
   const VocabQuestionImage({
     super.key,
     required this.imageUrl,
-    this.size = 80,
+    this.size = 140,
   });
 
   final String? imageUrl;

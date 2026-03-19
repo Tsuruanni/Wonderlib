@@ -151,7 +151,7 @@ class _VocabWordWheelQuestionState extends State<VocabWordWheelQuestion> {
                 // Show image if available, otherwise fall back to TR meaning
                 if (widget.question.imageUrl != null) ...[
                   VocabQuestionImage(
-                      imageUrl: widget.question.imageUrl, size: 100),
+                      imageUrl: widget.question.imageUrl, size: 140),
                 ] else ...[
                   Container(
                     padding:

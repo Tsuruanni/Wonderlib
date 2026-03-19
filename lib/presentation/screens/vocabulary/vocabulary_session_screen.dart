@@ -199,7 +199,7 @@ class _VocabularySessionScreenState
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   // Main content area
                   Expanded(
@@ -380,16 +380,16 @@ class _VocabularySessionScreenState
       key: ValueKey('intro_${sessionState.introductionPairIndex}'),
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 4),
           child: Text(
-            'Learn these words (${sessionState.introductionPairIndex + 1}/${sessionState.totalPairs})',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+            '${sessionState.introductionPairIndex + 1}/${sessionState.totalPairs}',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
             ),
           ),
         ),
         ...pair.map((word) => Expanded(child: VocabWordIntroductionCard(word: word))),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: SizedBox(

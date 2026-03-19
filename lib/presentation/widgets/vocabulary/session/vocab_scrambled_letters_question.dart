@@ -94,7 +94,7 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
             child: Column(
               children: [
                 // Image + Hint
-                VocabQuestionImage(imageUrl: widget.question.imageUrl, size: 72),
+                VocabQuestionImage(imageUrl: widget.question.imageUrl, size: 120),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

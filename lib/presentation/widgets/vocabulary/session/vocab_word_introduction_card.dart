@@ -35,29 +35,28 @@ class VocabWordIntroductionCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Image -- hero element
+            // Image -- hero element, fills most of the card
             Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 140, maxWidth: 140),
-                child: VocabQuestionImage(imageUrl: word.imageUrl, size: 140),
-              ),
+              flex: 3,
+              child: VocabQuestionImage(imageUrl: word.imageUrl, size: 200),
             ),
 
-            const SizedBox(height: 14),
+            const SizedBox(height: 10),
 
-            // Word + speaker
+            // Word + speaker + meaning — single row
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
               children: [
+                _SpeakerButton(word: word.word),
+                const SizedBox(width: 4),
                 Flexible(
                   child: Text(
                     word.word,
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: theme.colorScheme.onSurface,
                     ),
@@ -65,40 +64,36 @@ class VocabWordIntroductionCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 6),
-                _SpeakerButton(word: word.word),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // Turkish meaning pill
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                word.meaningTR,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
+                const SizedBox(width: 8),
+                Text(
+                  '—',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    word.meaningTR,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
 
             // Example sentence
             if (word.exampleSentence != null) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               Text(
                 '"${word.exampleSentence}"',
-                style: theme.textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.bodySmall?.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.50),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
                   height: 1.3,
                 ),
                 maxLines: 2,

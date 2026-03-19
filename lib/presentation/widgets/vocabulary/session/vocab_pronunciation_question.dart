@@ -176,7 +176,6 @@ class _VocabPronunciationQuestionState
               children: [
                 VocabQuestionImage(
                   imageUrl: widget.question.imageUrl,
-                  size: 120,
                 ),
                 const SizedBox(height: 16),
                 Container(
