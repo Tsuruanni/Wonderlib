@@ -10,6 +10,7 @@ import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/vocabulary_mascot_overlay.dart';
+import '../../widgets/vocabulary/session/vocab_image_match_question.dart';
 import '../../widgets/vocabulary/session/vocab_listening_question.dart';
 import '../../widgets/vocabulary/session/vocab_matching_question.dart';
 import '../../widgets/vocabulary/session/vocab_multiple_choice_question.dart';
@@ -435,6 +436,13 @@ class _VocabularySessionScreenState
       case QuestionType.listeningSelect:
       case QuestionType.listeningWrite:
         return VocabListeningQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.imageMatch:
+        return VocabImageMatchQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),

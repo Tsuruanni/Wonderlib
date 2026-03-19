@@ -707,6 +707,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         return _buildMultipleChoice(word, reverse: true);
       case QuestionType.listeningSelect:
         return _buildListeningSelect(word);
+      case QuestionType.imageMatch:
+        // imageMatch is only built inline in _generateExplorePairQuestion
+        // but needs a case here for exhaustiveness
+        return _buildMultipleChoice(word, reverse: false);
       case QuestionType.matching:
         return _buildMatching(word);
       case QuestionType.scrambledLetters:
@@ -915,39 +919,73 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       );
     }
 
-    // 2-option MC from the pair
+    // 2-option question from the pair — randomly pick from 4 types
     final targetIdx = _random.nextInt(2);
     final target = pair[targetIdx];
     final other = pair[1 - targetIdx];
 
-    // Vary question style by pair index
-    final useImageStyle = state.introductionPairIndex % 2 == 0;
+    // Available explore question types (avoid repeating last type)
+    final exploreTypes = [
+      QuestionType.multipleChoice,
+      QuestionType.reverseMultipleChoice,
+      QuestionType.listeningSelect,
+      if (target.imageUrl != null && other.imageUrl != null)
+        QuestionType.imageMatch,
+    ];
+    final type = _pickAvoidingRepeat(exploreTypes);
 
-    if (useImageStyle) {
-      // EN word → pick Turkish meaning (2 options)
-      final options = [target.meaningTR, other.meaningTR]..shuffle(_random);
-      return SessionQuestion(
-        type: QuestionType.multipleChoice,
-        targetWordId: target.wordId,
-        targetWord: target.word,
-        targetMeaning: target.meaningTR,
-        correctAnswer: target.meaningTR,
-        options: options,
-        imageUrl: target.imageUrl,
-        audioUrl: target.audioUrl,
-      );
-    } else {
-      // Audio / listening style — play audio, pick word
-      final options = [target.word, other.word]..shuffle(_random);
-      return SessionQuestion(
-        type: QuestionType.listeningSelect,
-        targetWordId: target.wordId,
-        targetWord: target.word,
-        targetMeaning: target.meaningTR,
-        correctAnswer: target.word,
-        options: options,
-        audioUrl: target.audioUrl,
-      );
+    switch (type) {
+      case QuestionType.reverseMultipleChoice:
+        // TR meaning → pick EN word (2 options)
+        final options = [target.word, other.word]..shuffle(_random);
+        return SessionQuestion(
+          type: QuestionType.reverseMultipleChoice,
+          targetWordId: target.wordId,
+          targetWord: target.word,
+          targetMeaning: target.meaningTR,
+          correctAnswer: target.word,
+          options: options,
+          imageUrl: target.imageUrl,
+        );
+
+      case QuestionType.listeningSelect:
+        // Audio plays → pick EN word (2 options)
+        final options = [target.word, other.word]..shuffle(_random);
+        return SessionQuestion(
+          type: QuestionType.listeningSelect,
+          targetWordId: target.wordId,
+          targetWord: target.word,
+          targetMeaning: target.meaningTR,
+          correctAnswer: target.word,
+          options: options,
+          audioUrl: target.audioUrl,
+        );
+
+      case QuestionType.imageMatch:
+        // EN word shown → pick correct image (2 options)
+        final options = [target.imageUrl!, other.imageUrl!]..shuffle(_random);
+        return SessionQuestion(
+          type: QuestionType.imageMatch,
+          targetWordId: target.wordId,
+          targetWord: target.word,
+          targetMeaning: target.meaningTR,
+          correctAnswer: target.imageUrl!,
+          options: options,
+        );
+
+      default:
+        // multipleChoice: EN word → pick TR meaning (2 options)
+        final options = [target.meaningTR, other.meaningTR]..shuffle(_random);
+        return SessionQuestion(
+          type: QuestionType.multipleChoice,
+          targetWordId: target.wordId,
+          targetWord: target.word,
+          targetMeaning: target.meaningTR,
+          correctAnswer: target.meaningTR,
+          options: options,
+          imageUrl: target.imageUrl,
+          audioUrl: target.audioUrl,
+        );
     }
   }
 

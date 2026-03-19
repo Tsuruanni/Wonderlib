@@ -9,6 +9,7 @@ enum QuestionType {
   multipleChoice,        // EN word → pick TR meaning (4 options)
   reverseMultipleChoice, // TR meaning → pick EN word (4 options)
   listeningSelect,       // Audio plays → pick correct word (4 options)
+  imageMatch,            // EN word shown → pick correct image (2 options)
   matching,              // Match 4 words ↔ 4 meanings
   scrambledLetters,      // Rearrange shuffled letter buttons
   wordWheel,             // Circular drag-to-connect letter wheel
@@ -25,6 +26,7 @@ extension QuestionTypeXP on QuestionType {
       case QuestionType.multipleChoice:
       case QuestionType.reverseMultipleChoice:
       case QuestionType.listeningSelect:
+      case QuestionType.imageMatch:
         return 10;
       case QuestionType.matching:
         return 15;
@@ -50,6 +52,7 @@ extension QuestionTypeTier on QuestionType {
       case QuestionType.multipleChoice:
       case QuestionType.reverseMultipleChoice:
       case QuestionType.listeningSelect:
+      case QuestionType.imageMatch:
         return QuestionTier.recognition;
       case QuestionType.matching:
       case QuestionType.scrambledLetters:
@@ -183,7 +186,7 @@ class SessionQuestion extends Equatable {
   final String targetWord;
   final String targetMeaning;
   final String correctAnswer;
-  final List<String>? options;         // For MC / listening select
+  final List<String>? options;         // For MC / listening select / image match (URLs)
   final String? sentence;              // For sentence gap
   final String? audioUrl;              // For listening questions
   final String? imageUrl;              // For visual support
