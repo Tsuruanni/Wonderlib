@@ -62,21 +62,6 @@ class _VocabularySessionScreenState
     super.dispose();
   }
 
-  void _showHalfwayEncouragement() {
-    final overlay = OverlayEntry(
-      builder: (context) => _HalfwayOverlay(
-        onDismiss: () {},
-      ),
-    );
-
-    Overlay.of(context).insert(overlay);
-
-    // Auto-remove after 2 seconds
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      if (overlay.mounted) overlay.remove();
-    });
-  }
-
   void _playFeedbackSound(bool isCorrect) {
     _audioPlayer
         .setAsset('assets/sounds/${isCorrect ? 'correctvoc' : 'falsevoc'}.mp3')
@@ -155,11 +140,8 @@ class _VocabularySessionScreenState
     final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
 
     // Halfway encouragement — show once when progress crosses 50%
-    if (progress >= 0.5 && !_hasShownHalfway && !sessionState.isShowingFeedback) {
+    if (progress >= 0.5 && !_hasShownHalfway) {
       _hasShownHalfway = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _showHalfwayEncouragement();
-      });
     }
 
     return Scaffold(
@@ -295,6 +277,18 @@ class _VocabularySessionScreenState
                   size: 257.0,
                   slideRight: true,
                   playDuration: const Duration(milliseconds: 800),
+                ),
+              ),
+            ),
+
+          // Halfway encouragement mascot with speech bubble
+          if (_hasShownHalfway && !sessionState.isSessionComplete)
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: IgnorePointer(
+                child: _HalfwayMascot(
+                  key: const ValueKey('halfway_mascot'),
                 ),
               ),
             ),
@@ -531,63 +525,64 @@ class _VocabularySessionScreenState
   }
 }
 
-/// Halfway encouragement overlay — briefly shown at 50% progress
-class _HalfwayOverlay extends StatelessWidget {
-  const _HalfwayOverlay({required this.onDismiss});
-  final VoidCallback onDismiss;
+/// Halfway encouragement — balloon owl mascot with speech bubble.
+/// Appears at bottom-right, stays visible without blocking interaction.
+class _HalfwayMascot extends StatelessWidget {
+  const _HalfwayMascot({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Positioned.fill(
-      child: IgnorePointer(
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 40),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4CAF50), Color(0xFF2E7D32)],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        // Speech bubble
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.shadow.withValues(alpha: 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
+            ],
+          ),
+          child: Text(
+            'Halfway there!\nKeep going!',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onPrimaryContainer,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.emoji_events, color: Colors.amber, size: 40),
-                const SizedBox(height: 8),
-                Text(
-                  'Halfway there!',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "You're doing great, keep going!",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-              ],
-            ),
-          )
-              .animate()
-              .fadeIn(duration: const Duration(milliseconds: 300))
-              .scaleXY(begin: 0.8, end: 1.0, curve: Curves.elasticOut)
-              .then(delay: const Duration(milliseconds: 1400))
-              .fadeOut(duration: const Duration(milliseconds: 300)),
+            textAlign: TextAlign.center,
+          ),
+        )
+            .animate()
+            .fadeIn(delay: 400.ms, duration: 300.ms)
+            .slideY(begin: 0.3, end: 0, delay: 400.ms),
+
+        const SizedBox(height: 4),
+
+        // Balloon owl mascot
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: MascotOverlay(
+            asset: 'assets/animations/mascot/balloon-owl-mascot.riv',
+            size: 100,
+            freeze: false,
+            exitSlide: false,
+          ),
         ),
-      ),
-    );
+      ],
+    )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .slideY(begin: 0.5, end: 0, curve: Curves.easeOutBack);
   }
 }
