@@ -161,19 +161,19 @@ class _VocabularySessionScreenState
       _lastComboMilestoneShown = 5;
       _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
       _comboMilestoneAsset = 'assets/animations/mascot/baloncuk-owl-mascot.riv';
-      _comboMilestoneText = '5x Combo!';
+      _comboMilestoneText = '5x Combo!\nNice streak!';
     }
     if (combo >= 10 && _lastComboMilestoneShown < 10 && sessionState.lastAnswerCorrect) {
       _lastComboMilestoneShown = 10;
       _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
       _comboMilestoneAsset = 'assets/animations/mascot/kalplibalon-owl-mascot.riv';
-      _comboMilestoneText = '10x Combo!';
+      _comboMilestoneText = '10x Combo!\nUnstoppable!';
     }
     if (combo >= 15 && _lastComboMilestoneShown < 15 && sessionState.lastAnswerCorrect) {
       _lastComboMilestoneShown = 15;
       _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
       _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
-      _comboMilestoneText = '15x Combo!';
+      _comboMilestoneText = '15x Combo!\nYou are legendary!';
     }
     final showComboMascot = _comboMilestoneQuestionIndex != null &&
         sessionState.questionIndex == _comboMilestoneQuestionIndex;
