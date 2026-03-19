@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -227,6 +228,47 @@ class _PathNodeState extends State<PathNode>
                       ),
                     ],
                   ),
+                ),
+
+                // Word list
+                const SizedBox(height: 16),
+                Consumer(
+                  builder: (context, ref, _) {
+                    final wordsAsync = ref.watch(wordsForListProvider(id));
+                    return wordsAsync.when(
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                      data: (words) {
+                        if (words.isEmpty) return const SizedBox.shrink();
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.center,
+                          children: words.map((w) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: widget.unitColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: widget.unitColor.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              w.word,
+                              style: GoogleFonts.nunito(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: widget.unitColor,
+                              ),
+                            ),
+                          )).toList(),
+                        );
+                      },
+                    );
+                  },
                 ),
               ] else ...[
                 // Coin encouragement + Practice Again button
