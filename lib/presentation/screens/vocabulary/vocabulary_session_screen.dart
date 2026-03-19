@@ -140,10 +140,11 @@ class _VocabularySessionScreenState
     final estimatedTotal = sessionState.words.length * 2 + 4; // rough estimate
     final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
 
-    // Halfway encouragement — show only during the question when progress crosses 50%
+    // Halfway encouragement — show during the NEXT question after progress crosses 50%
     if (progress >= 0.5 && !_hasShownHalfway) {
       _hasShownHalfway = true;
-      _halfwayQuestionIndex = sessionState.questionIndex;
+      // Target the next question (current one is being answered/feedback shown)
+      _halfwayQuestionIndex = sessionState.questionIndex + 1;
     }
     final showHalfwayMascot = _halfwayQuestionIndex != null &&
         sessionState.questionIndex == _halfwayQuestionIndex;
