@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
 
 import '../../../app/router.dart';
 import '../../../domain/entities/vocabulary_session.dart';
@@ -34,11 +35,24 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   String? _surpriseStat;
   int? _actualXpAwarded;
 
+  AudioPlayer? _victoryPlayer;
+
   @override
   void initState() {
     super.initState();
+    _playVictorySound();
     _maybeSurprise();
     _saveSession();
+  }
+
+  Future<void> _playVictorySound() async {
+    try {
+      _victoryPlayer = AudioPlayer();
+      await _victoryPlayer!.setAsset('assets/sounds/victory.mp3');
+      await _victoryPlayer!.play();
+    } catch (_) {
+      // Sound is enhancement, not critical
+    }
   }
 
   void _maybeSurprise() {
@@ -121,6 +135,12 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         });
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _victoryPlayer?.dispose();
+    super.dispose();
   }
 
   @override

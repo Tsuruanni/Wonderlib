@@ -30,16 +30,22 @@ class VocabPronunciationQuestion extends StatefulWidget {
 
 class _VocabPronunciationQuestionState
     extends State<VocabPronunciationQuestion> {
+  static const _maxAttempts = 3;
+
   bool _isFallbackMode = false;
   bool _isListening = false;
   bool _answered = false;
   bool _sttAvailable = false;
+  bool _waitingForResult = false; // true between stop and result/timeout
+  int _attemptsUsed = 0;
   String? _statusMessage;
 
   final SpeechToText _stt = SpeechToText();
   final _textController = TextEditingController();
   final _focusNode = FocusNode();
   Timer? _noResultTimer;
+
+  int get _attemptsLeft => _maxAttempts - _attemptsUsed;
 
   @override
   void initState() {
@@ -81,7 +87,7 @@ class _VocabPronunciationQuestionState
   }
 
   void _startListening() async {
-    if (_answered || !_sttAvailable) return;
+    if (_answered || !_sttAvailable || _waitingForResult) return;
     setState(() {
       _isListening = true;
       _statusMessage = null;
@@ -98,36 +104,58 @@ class _VocabPronunciationQuestionState
   void _stopListening() async {
     await _stt.stop();
     if (mounted) {
-      setState(() => _isListening = false);
+      setState(() {
+        _isListening = false;
+        _waitingForResult = true;
+      });
+      // Timeout: if no result arrives within 800ms, count as failed attempt
       _noResultTimer?.cancel();
-      _noResultTimer = Timer(const Duration(milliseconds: 500), () {
-        if (!_answered && mounted) {
-          setState(() => _statusMessage = "Didn't catch that, try again");
+      _noResultTimer = Timer(const Duration(milliseconds: 800), () {
+        if (!_answered && _waitingForResult && mounted) {
+          _handleAttemptResult(null); // null = no result
         }
       });
     }
   }
 
   void _onSpeechResult(SpeechRecognitionResult result) {
-    if (!result.finalResult || _answered) return;
+    if (!result.finalResult || _answered || !_waitingForResult) return;
     _noResultTimer?.cancel();
 
     final recognizedWord = result.recognizedWords.trim().toLowerCase();
+    _handleAttemptResult(recognizedWord.isEmpty ? null : recognizedWord);
+  }
 
-    if (recognizedWord.isEmpty) {
-      setState(() => _statusMessage = "Didn't catch that, try again");
+  void _handleAttemptResult(String? recognizedWord) {
+    _waitingForResult = false;
+    _attemptsUsed++;
+
+    final correctAnswer = widget.question.correctAnswer.toLowerCase();
+
+    // Correct answer on any attempt → success
+    if (recognizedWord != null && recognizedWord == correctAnswer) {
+      setState(() => _answered = true);
+      HapticFeedback.lightImpact();
+      widget.onAnswer(widget.question.correctAnswer);
       return;
     }
 
+    // Still have attempts left → show retry message
+    if (_attemptsLeft > 0) {
+      setState(() {
+        if (recognizedWord == null) {
+          _statusMessage = "Didn't catch that. Try again ($_attemptsLeft left)";
+        } else {
+          _statusMessage = 'Heard "$recognizedWord" — try again ($_attemptsLeft left)';
+        }
+      });
+      return;
+    }
+
+    // All attempts used → incorrect
     setState(() => _answered = true);
     HapticFeedback.lightImpact();
-    final correctAnswer = widget.question.correctAnswer.toLowerCase();
-
-    if (recognizedWord == correctAnswer) {
-      widget.onAnswer(widget.question.correctAnswer);
-    } else {
-      widget.onAnswer(recognizedWord);
-    }
+    widget.onAnswer(recognizedWord ?? '');
   }
 
   void _submitSpelling() {
@@ -256,11 +284,26 @@ class _VocabPronunciationQuestionState
         const SizedBox(height: 8),
 
         Text(
-          _isListening ? 'Listening...' : 'Hold to speak',
+          _isListening
+              ? 'Listening...'
+              : _attemptsUsed == 0
+                  ? 'Hold to speak'
+                  : 'Hold to try again',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
+
+        if (_attemptsUsed > 0 && !_answered) ...[
+          const SizedBox(height: 4),
+          Text(
+            '$_attemptsLeft attempt${_attemptsLeft == 1 ? '' : 's'} left',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: theme.colorScheme.error.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
 
         const SizedBox(height: 24),
 
