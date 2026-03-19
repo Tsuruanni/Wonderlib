@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/letter_tap_sound_service.dart';
+import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
-import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Scrambled letters: tap letters in correct order to spell the word
 class VocabScrambledLettersQuestion extends StatefulWidget {
@@ -24,9 +25,16 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
   final List<String> _selectedLetters = [];
   final List<int> _usedIndices = [];
   bool _answered = false;
+  final _tapSound = LetterTapSoundService();
 
   List<String> get letters => widget.question.scrambledLetters ?? [];
   String get correctWord => widget.question.correctAnswer;
+
+  @override
+  void dispose() {
+    _tapSound.dispose();
+    super.dispose();
+  }
 
   void _tapLetter(int index) {
     if (_answered || _usedIndices.contains(index)) return;
@@ -37,6 +45,7 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
     });
 
     HapticFeedback.selectionClick();
+    _tapSound.playTap(_selectedLetters.length - 1);
 
     // Auto-submit when all letters selected
     if (_selectedLetters.length == letters.length) {

@@ -3,9 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../../core/services/letter_tap_sound_service.dart';
+import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
-import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Word wheel: circular letter layout with drag-to-connect gesture.
 /// User drags between letters arranged in a circle to spell the word.
@@ -28,12 +29,19 @@ class _VocabWordWheelQuestionState extends State<VocabWordWheelQuestion> {
   bool _answered = false;
   bool _isDragging = false;
   Offset? _currentDragPosition;
+  final _tapSound = LetterTapSoundService();
 
   // Letter positions (computed in layout)
   final Map<int, Offset> _letterCenters = {};
 
   List<String> get letters => widget.question.scrambledLetters ?? [];
   String get correctWord => widget.question.correctAnswer;
+
+  @override
+  void dispose() {
+    _tapSound.dispose();
+    super.dispose();
+  }
 
   static const double _circleRadius = 110.0;
   static const double _tileRadius = 28.0;
@@ -50,6 +58,7 @@ class _VocabWordWheelQuestionState extends State<VocabWordWheelQuestion> {
         _currentDragPosition = details.localPosition;
       });
       HapticFeedback.selectionClick();
+      _tapSound.playTap(0);
     }
   }
 
@@ -61,6 +70,7 @@ class _VocabWordWheelQuestionState extends State<VocabWordWheelQuestion> {
     if (hit != null && !_selectedIndices.contains(hit)) {
       setState(() => _selectedIndices.add(hit));
       HapticFeedback.selectionClick();
+      _tapSound.playTap(_selectedIndices.length - 1);
     }
   }
 
@@ -101,6 +111,7 @@ class _VocabWordWheelQuestionState extends State<VocabWordWheelQuestion> {
 
     setState(() => _selectedIndices.add(index));
     HapticFeedback.selectionClick();
+    _tapSound.playTap(_selectedIndices.length - 1);
 
     if (_selectedIndices.length == letters.length) {
       _submit();
