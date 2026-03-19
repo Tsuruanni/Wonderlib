@@ -315,7 +315,7 @@ class _SessionStatsCard extends StatelessWidget {
           if (progress.bestScore != null)
             _MiniStat(
               value: '${progress.bestScore}',
-              label: 'Top XP',
+              label: 'Top Coin',
               icon: Icons.bolt_rounded,
             ),
         ],

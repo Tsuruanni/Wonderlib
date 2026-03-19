@@ -172,7 +172,7 @@ class _PathNodeState extends State<PathNode>
                       _SheetStat(
                         icon: Icons.bolt_rounded,
                         value: '${progress.bestScore}',
-                        label: 'Top XP',
+                        label: 'Top Coin',
                       ),
                   ],
                 ),
@@ -217,8 +217,8 @@ class _PathNodeState extends State<PathNode>
                     Expanded(
                       child: Text(
                         progress.bestScore != null && progress.bestScore! > 0
-                            ? 'Beat ${progress.bestScore} XP to earn more!'
-                            : 'Play again to earn XP!',
+                            ? 'Beat ${progress.bestScore} coins to earn more!'
+                            : 'Play again to earn coins!',
                         style: GoogleFonts.nunito(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

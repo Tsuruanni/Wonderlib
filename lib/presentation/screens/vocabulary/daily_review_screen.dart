@@ -170,7 +170,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     const Icon(Icons.bolt_rounded, color: AppColors.streakOrange, size: 32),
                     const SizedBox(width: 8),
                     Text(
-                      '+$xpEarned XP',
+                      '+$xpEarned Coins',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w900,
                         fontSize: 24,
