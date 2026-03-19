@@ -79,7 +79,7 @@ class _VocabSentenceGapQuestionState extends State<VocabSentenceGapQuestion> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                VocabQuestionImage(imageUrl: widget.question.imageUrl, size: 120),
+                VocabQuestionImage(imageUrl: widget.question.imageUrl),
                 const SizedBox(height: 12),
                 Text(
                   widget.question.targetMeaning,

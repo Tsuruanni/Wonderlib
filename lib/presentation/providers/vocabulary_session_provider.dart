@@ -830,6 +830,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       targetWord: word.word,
       targetMeaning: word.meaningTR,
       correctAnswer: word.word,
+      imageUrl: word.imageUrl,
     );
   }
 
@@ -852,6 +853,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       targetMeaning: word.meaningTR,
       correctAnswer: word.word,
       audioUrl: word.audioUrl,
+      imageUrl: word.imageUrl,
     );
   }
 
@@ -870,6 +872,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       targetMeaning: word.meaningTR,
       correctAnswer: word.word,
       sentence: gapSentence,
+      imageUrl: word.imageUrl,
     );
   }
 
