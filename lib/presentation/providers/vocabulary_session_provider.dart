@@ -601,8 +601,22 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         }
     }
 
-    final type = eligibleTypes[_random.nextInt(eligibleTypes.length)];
+    final type = _pickAvoidingRepeat(eligibleTypes);
     return _buildQuestion(type, word);
+  }
+
+  /// Pick a random type from the list, avoiding the same type as the current question.
+  /// Falls back to any type if only one option is available.
+  QuestionType _pickAvoidingRepeat(List<QuestionType> types) {
+    if (types.length <= 1) return types.first;
+
+    final lastType = state.currentQuestion?.type;
+    if (lastType == null) return types[_random.nextInt(types.length)];
+
+    // Filter out the last type, pick from remaining
+    final filtered = types.where((t) => t != lastType).toList();
+    if (filtered.isEmpty) return types[_random.nextInt(types.length)];
+    return filtered[_random.nextInt(filtered.length)];
   }
 
   SessionQuestion _generateRemediationQuestion(WordSessionState word) {
@@ -667,7 +681,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       QuestionType.wordWheel,
     ];
 
-    final type = types[_random.nextInt(types.length)];
+    final type = _pickAvoidingRepeat(types);
     final question = _buildQuestion(type, word);
 
     state = state.copyWith(
