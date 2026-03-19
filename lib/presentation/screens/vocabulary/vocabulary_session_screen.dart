@@ -51,6 +51,12 @@ class _VocabularySessionScreenState
   bool _hasShownHalfway = false;
   int? _halfwayQuestionIndex;
 
+  // Combo milestone mascot state
+  int? _comboMilestoneQuestionIndex;
+  String? _comboMilestoneAsset;
+  String? _comboMilestoneText;
+  int _lastComboMilestoneShown = 0; // highest milestone shown so far
+
   @override
   void initState() {
     super.initState();
@@ -148,6 +154,29 @@ class _VocabularySessionScreenState
     }
     final showHalfwayMascot = _halfwayQuestionIndex != null &&
         sessionState.questionIndex == _halfwayQuestionIndex;
+
+    // Combo milestone mascots — trigger on 5, 10, 15 combo
+    final combo = sessionState.combo;
+    if (combo >= 5 && _lastComboMilestoneShown < 5 && sessionState.lastAnswerCorrect) {
+      _lastComboMilestoneShown = 5;
+      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestoneAsset = 'assets/animations/mascot/baloncuk-owl-mascot.riv';
+      _comboMilestoneText = '5x Combo!';
+    }
+    if (combo >= 10 && _lastComboMilestoneShown < 10 && sessionState.lastAnswerCorrect) {
+      _lastComboMilestoneShown = 10;
+      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestoneAsset = 'assets/animations/mascot/kalplibalon-owl-mascot.riv';
+      _comboMilestoneText = '10x Combo!';
+    }
+    if (combo >= 15 && _lastComboMilestoneShown < 15 && sessionState.lastAnswerCorrect) {
+      _lastComboMilestoneShown = 15;
+      _comboMilestoneQuestionIndex = sessionState.questionIndex + 1;
+      _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
+      _comboMilestoneText = '15x Combo!';
+    }
+    final showComboMascot = _comboMilestoneQuestionIndex != null &&
+        sessionState.questionIndex == _comboMilestoneQuestionIndex;
 
     return Scaffold(
       body: Stack(
@@ -292,8 +321,24 @@ class _VocabularySessionScreenState
               bottom: 8,
               right: 8,
               child: IgnorePointer(
-                child: _HalfwayMascot(
+                child: _EncouragementMascot(
                   key: const ValueKey('halfway_mascot'),
+                  asset: 'assets/animations/mascot/balloon-owl-mascot.riv',
+                  text: 'Halfway there!\nKeep going!',
+                ),
+              ),
+            ),
+
+          // Combo milestone mascot — visible while answering, hides on feedback
+          if (showComboMascot && !sessionState.isShowingFeedback && _comboMilestoneAsset != null)
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: IgnorePointer(
+                child: _EncouragementMascot(
+                  key: ValueKey('combo_mascot_$_lastComboMilestoneShown'),
+                  asset: _comboMilestoneAsset!,
+                  text: _comboMilestoneText!,
                 ),
               ),
             ),
@@ -530,10 +575,17 @@ class _VocabularySessionScreenState
   }
 }
 
-/// Halfway encouragement — balloon owl mascot with speech bubble.
+/// Encouragement mascot with speech bubble — used for halfway and combo milestones.
 /// Appears at bottom-right for one question only, doesn't block interaction.
-class _HalfwayMascot extends StatelessWidget {
-  const _HalfwayMascot({super.key});
+class _EncouragementMascot extends StatelessWidget {
+  const _EncouragementMascot({
+    super.key,
+    required this.asset,
+    required this.text,
+  });
+
+  final String asset;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -562,7 +614,7 @@ class _HalfwayMascot extends StatelessWidget {
                 ],
               ),
               child: Text(
-                'Halfway there!\nKeep going!',
+                text,
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w700,
@@ -571,7 +623,7 @@ class _HalfwayMascot extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            // Bubble tail — bottom-left pointing down-right toward mascot
+            // Bubble tail pointing down-right toward mascot
             Positioned(
               bottom: -8,
               right: 20,
@@ -588,12 +640,12 @@ class _HalfwayMascot extends StatelessWidget {
 
         const SizedBox(height: 2),
 
-        // Balloon owl mascot — 130px (30% bigger than 100)
+        // Mascot animation — 130px
         SizedBox(
           width: 130,
           height: 130,
           child: MascotOverlay(
-            asset: 'assets/animations/mascot/balloon-owl-mascot.riv',
+            asset: asset,
             size: 130,
             freeze: false,
             exitSlide: false,
