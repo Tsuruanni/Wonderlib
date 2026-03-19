@@ -339,7 +339,12 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       remediationQueue: updatedRemediation,
       isShowingFeedback: true,
       lastAnswerCorrect: isCorrect,
-      lastCorrectAnswer: isCorrect ? null : question.correctAnswer,
+      // For imageMatch, correctAnswer is an image URL — show the word instead
+      lastCorrectAnswer: isCorrect
+          ? null
+          : question.type == QuestionType.imageMatch
+              ? question.targetWord
+              : question.correctAnswer,
       lastXPGained: xpGained,
     );
   }
