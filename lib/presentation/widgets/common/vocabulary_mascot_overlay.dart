@@ -137,7 +137,6 @@ class _MascotOverlayState extends State<MascotOverlay> {
       height: size,
       child: RiveAnimation.asset(
         widget.asset,
-        artboard: 'Artboard',
         fit: BoxFit.contain,
         onInit: (artboard) {
           artboard.fills.clear();

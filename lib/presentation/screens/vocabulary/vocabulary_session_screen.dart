@@ -197,6 +197,7 @@ class _VocabularySessionScreenState
     if (_comboMilestonePending && !sessionState.isShowingFeedback) {
       _comboMilestonePending = false;
       _comboMascotVisible = true;
+      _halfwayVisible = false; // combo takes priority over halfway
     }
     // Hide when student answers the next question
     if (_comboMascotVisible && sessionState.isShowingFeedback) {
