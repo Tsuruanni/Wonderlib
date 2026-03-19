@@ -285,8 +285,8 @@ class _VocabularySessionScreenState
               ),
             ),
 
-          // Halfway encouragement mascot with speech bubble (one question only)
-          if (showHalfwayMascot)
+          // Halfway encouragement mascot — visible while answering, hides on feedback
+          if (showHalfwayMascot && !sessionState.isShowingFeedback)
             Positioned(
               bottom: 8,
               right: 8,
