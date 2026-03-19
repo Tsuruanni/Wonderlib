@@ -56,6 +56,7 @@ class _VocabularySessionScreenState
   // Combo milestone mascot state
   String? _comboMilestoneAsset;
   String? _comboMilestoneText;
+  double _comboMilestoneSize = 130;
   int _lastComboMilestoneShown = 0;
   bool _comboMilestonePending = false;
   bool _comboMascotVisible = false;
@@ -180,18 +181,21 @@ class _VocabularySessionScreenState
       _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/baloncuk-owl-mascot.riv';
       _comboMilestoneText = '5x Combo!\nNice streak!';
+      _comboMilestoneSize = 169; // 130 * 1.3
     }
     if (combo >= 10 && _lastComboMilestoneShown < 10) {
       _lastComboMilestoneShown = 10;
       _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/kalplibalon-owl-mascot.riv';
       _comboMilestoneText = '10x Combo!\nUnstoppable!';
+      _comboMilestoneSize = 156; // 130 * 1.2
     }
     if (combo >= 15 && _lastComboMilestoneShown < 15) {
       _lastComboMilestoneShown = 15;
       _comboMilestonePending = true;
       _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
       _comboMilestoneText = '15x Combo!\nYou are legendary!';
+      _comboMilestoneSize = 130;
     }
     // Show combo mascot when pending clears (feedback dismissed)
     if (_comboMilestonePending && !sessionState.isShowingFeedback) {
@@ -365,6 +369,7 @@ class _VocabularySessionScreenState
                   key: ValueKey('combo_mascot_$_lastComboMilestoneShown'),
                   asset: _comboMilestoneAsset!,
                   text: _comboMilestoneText!,
+                  size: _comboMilestoneSize,
                 ),
               ),
             ),
@@ -608,10 +613,12 @@ class _EncouragementMascot extends StatelessWidget {
     super.key,
     required this.asset,
     required this.text,
+    this.size = 130,
   });
 
   final String asset;
   final String text;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -666,13 +673,13 @@ class _EncouragementMascot extends StatelessWidget {
 
         const SizedBox(height: 2),
 
-        // Mascot animation — 130px
+        // Mascot animation
         SizedBox(
-          width: 130,
-          height: 130,
+          width: size,
+          height: size,
           child: MascotOverlay(
             asset: asset,
-            size: 130,
+            size: size,
             freeze: false,
             exitSlide: false,
           ),
