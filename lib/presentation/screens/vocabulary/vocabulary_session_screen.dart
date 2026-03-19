@@ -48,16 +48,17 @@ class _VocabularySessionScreenState
   String? _currentMascotAsset;
   bool? _currentMascotCorrect;
   int _lastFeedbackQuestion = -1;
+  // Halfway mascot state
   bool _hasShownHalfway = false;
   bool _halfwayPending = false;
-  int? _halfwayQuestionIndex;
+  bool _halfwayVisible = false;
 
   // Combo milestone mascot state
-  int? _comboMilestoneQuestionIndex;
   String? _comboMilestoneAsset;
   String? _comboMilestoneText;
-  int _lastComboMilestoneShown = 0; // highest milestone shown so far
-  bool _comboMilestonePending = false; // waiting for next question to show
+  int _lastComboMilestoneShown = 0;
+  bool _comboMilestonePending = false;
+  bool _comboMascotVisible = false;
 
   @override
   void initState() {
@@ -159,17 +160,18 @@ class _VocabularySessionScreenState
     final estimatedTotal = sessionState.words.length * 2 + 4; // rough estimate
     final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
 
-    // Halfway encouragement — show during the NEXT question after progress crosses 50%
+    // Halfway encouragement — visible for one question after progress crosses 50%
     if (progress >= 0.5 && !_hasShownHalfway) {
       _hasShownHalfway = true;
       _halfwayPending = true;
     }
     if (_halfwayPending && !sessionState.isShowingFeedback) {
       _halfwayPending = false;
-      _halfwayQuestionIndex = sessionState.questionIndex;
+      _halfwayVisible = true;
     }
-    final showHalfwayMascot = _halfwayQuestionIndex != null &&
-        sessionState.questionIndex == _halfwayQuestionIndex;
+    if (_halfwayVisible && sessionState.isShowingFeedback) {
+      _halfwayVisible = false; // hide when student answers
+    }
 
     // Combo milestone mascots — trigger on 5, 10, 15 combo
     final combo = sessionState.combo;
@@ -191,13 +193,15 @@ class _VocabularySessionScreenState
       _comboMilestoneAsset = 'assets/animations/mascot/lovely-owl-mascot.riv';
       _comboMilestoneText = '15x Combo!\nYou are legendary!';
     }
-    // When pending and feedback is dismissed (new question visible), lock to this question
+    // Show combo mascot when pending clears (feedback dismissed)
     if (_comboMilestonePending && !sessionState.isShowingFeedback) {
       _comboMilestonePending = false;
-      _comboMilestoneQuestionIndex = sessionState.questionIndex;
+      _comboMascotVisible = true;
     }
-    final showComboMascot = _comboMilestoneQuestionIndex != null &&
-        sessionState.questionIndex == _comboMilestoneQuestionIndex;
+    // Hide when student answers the next question
+    if (_comboMascotVisible && sessionState.isShowingFeedback) {
+      _comboMascotVisible = false;
+    }
 
     return Scaffold(
       body: Stack(
@@ -336,8 +340,8 @@ class _VocabularySessionScreenState
               ),
             ),
 
-          // Halfway encouragement mascot — visible while answering, hides on feedback
-          if (showHalfwayMascot && !sessionState.isShowingFeedback)
+          // Halfway encouragement mascot
+          if (_halfwayVisible)
             Positioned(
               bottom: 8,
               right: 8,
@@ -350,8 +354,8 @@ class _VocabularySessionScreenState
               ),
             ),
 
-          // Combo milestone mascot — visible while answering, hides on feedback
-          if (showComboMascot && !sessionState.isShowingFeedback && _comboMilestoneAsset != null)
+          // Combo milestone mascot
+          if (_comboMascotVisible && _comboMilestoneAsset != null)
             Positioned(
               bottom: 8,
               right: 8,
