@@ -6,13 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../app/theme.dart';
+import '../../providers/repository_providers.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/game_button.dart';
@@ -107,6 +107,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       // Refresh learning path so DR node shows as complete
       ref.invalidate(todayReviewSessionProvider);
       ref.invalidate(learningPathProvider);
+      // Invalidate wordbank providers so Word Bank sees updated review dates
+      ref.invalidate(userVocabularyProgressProvider);
+      ref.invalidate(learnedWordsWithDetailsProvider);
       if (!mounted) return;
       _showCompletionDialog(state: state, xpEarned: null);
       return;
@@ -125,6 +128,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
+    // Invalidate wordbank providers so Word Bank sees updated review dates
+    ref.invalidate(userVocabularyProgressProvider);
+    ref.invalidate(learnedWordsWithDetailsProvider);
+    // Refresh user state so XP/coins updates in navbar + triggers level-up
+    ref.read(userControllerProvider.notifier).refresh();
+    // Invalidate leaderboard so rank reflects new XP
+    ref.invalidate(leaderboardEntriesProvider);
 
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
@@ -135,7 +145,6 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
   /// so the completed DR stays at the same place in the path.
   Future<void> _saveDrPosition() async {
     try {
-      // Find the DR node's current position from the path
       final pathUnits = ref.read(learningPathProvider).valueOrNull;
       if (pathUnits == null) return;
 
@@ -155,12 +164,11 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       final userId = ref.read(currentUserIdProvider);
       if (userId == null) return;
 
-      // Update path_position on today's session row (must complete before invalidation)
-      await Supabase.instance.client
-          .from('daily_review_sessions')
-          .update({'path_position': drPosition})
-          .eq('user_id', userId)
-          .eq('session_date', DateTime.now().toIso8601String().substring(0, 10));
+      final repo = ref.read(vocabularyRepositoryProvider);
+      await repo.saveDailyReviewPosition(
+        userId: userId,
+        pathPosition: drPosition,
+      );
     } catch (_) {
       // Non-critical
     }

@@ -418,6 +418,7 @@ Future<void> _handleInlineActivityCompletionImpl(
     // Invalidate providers so new words appear in Word Bank and Daily Review
     ref.invalidate(dailyReviewWordsProvider);
     ref.invalidate(userVocabularyProgressProvider);
+    ref.invalidate(learnedWordsWithDetailsProvider);
   }
 
   // Notify caller

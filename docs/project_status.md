@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-17 (Vocabulary Algorithm Improvements, Sentry Bug Fixes, Supabase Cloud Migration)
+Son güncelleme: 2026-03-20 (SM-2 Consolidation, Stale State Fixes, Practice Screen Removal)
 
 ## Current Phase
 
@@ -138,12 +138,14 @@ See: CLAUDE.md for architecture guidelines
 | ~~XP constants overlap~~ | ~~Medium~~ | ✅ Consolidated into AppConfig.xpRewards |
 | ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
 | ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
+| Server-side SM-2 mismatch | Medium | `complete_vocabulary_session` RPC uses different SM-2 formula than client (flat +0.02 ease vs quality-based, rep=1 vs rep=0 start). Needs migration to align with `SM2.calculateNextReview()` |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| SM-2 Consolidation & Stale State Fixes | 2026-03-20 | SM-2 centralized to `sm2_algorithm.dart`, Easy/Good/Hard differentiation, first-answer-wins DR, wordbank+leaderboard+navbar refresh fixes, practice screen removed, double-tap guard, mastered reset |
 | Vocabulary Algorithm Improvements | 2026-03-17 | SM2 interval growth fix, XP farming prevention (high-score delta), combo softening (-2 vs reset), matching partial credit, Faz 3 limit 3→5, adaptive skip removed |
 | Sentry Bug Fixes | 2026-03-17 | 6 bugs caught and fixed via Sentry: zone mismatch, AudioService init, reader overflow, ref-after-dispose (×2), activity overflow |
 | Supabase Cloud Migration | 2026-03-16 | Local Docker → remote cloud (eu-central-1), 69 migrations, 7 Edge Functions, full seed data |

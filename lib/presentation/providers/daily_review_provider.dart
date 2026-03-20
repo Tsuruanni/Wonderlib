@@ -68,6 +68,8 @@ class DailyReviewState {
     this.currentIndex = 0,
     this.correctCount = 0,
     this.incorrectCount = 0,
+    this.firstPassCorrectCount = 0,
+    this.firstPassIncorrectCount = 0,
     this.responses = const [],
     this.sessionResult,
     this.requeueCount = const {},
@@ -81,6 +83,8 @@ class DailyReviewState {
   final int currentIndex;
   final int correctCount;
   final int incorrectCount;
+  final int firstPassCorrectCount;
+  final int firstPassIncorrectCount;
   final List<SM2Response> responses;
   final DailyReviewResult? sessionResult;
   final Map<String, int> requeueCount;
@@ -93,8 +97,8 @@ class DailyReviewState {
           ? words[currentIndex]
           : null;
   double get accuracy =>
-      (correctCount + incorrectCount) > 0
-          ? correctCount / (correctCount + incorrectCount)
+      (firstPassCorrectCount + firstPassIncorrectCount) > 0
+          ? firstPassCorrectCount / (firstPassCorrectCount + firstPassIncorrectCount)
           : 0.0;
   int get totalReviewed => correctCount + incorrectCount;
 
@@ -114,6 +118,8 @@ class DailyReviewState {
     int? currentIndex,
     int? correctCount,
     int? incorrectCount,
+    int? firstPassCorrectCount,
+    int? firstPassIncorrectCount,
     List<SM2Response>? responses,
     DailyReviewResult? sessionResult,
     Map<String, int>? requeueCount,
@@ -127,6 +133,8 @@ class DailyReviewState {
       currentIndex: currentIndex ?? this.currentIndex,
       correctCount: correctCount ?? this.correctCount,
       incorrectCount: incorrectCount ?? this.incorrectCount,
+      firstPassCorrectCount: firstPassCorrectCount ?? this.firstPassCorrectCount,
+      firstPassIncorrectCount: firstPassIncorrectCount ?? this.firstPassIncorrectCount,
       responses: responses ?? this.responses,
       sessionResult: sessionResult ?? this.sessionResult,
       requeueCount: requeueCount ?? this.requeueCount,
@@ -148,6 +156,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     required this.getWordsForListUseCase,
   }) : super(const DailyReviewState());
 
+  bool _isProcessingAnswer = false;
   final String userId;
   final GetDueForReviewUseCase getDueForReviewUseCase;
   final GetWordProgressUseCase getWordProgressUseCase;
@@ -306,43 +315,49 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
 
   /// Answer current word with SM2 response
   ///
-  /// Re-queue logic: When user answers "Hard" (dontKnow), the word is
-  /// appended to the end of the queue (max 2 re-queues per word).
-  /// The DB is NOT updated during re-queue — only on the final answer
-  /// or when max re-queues are exhausted.
+  /// First-answer-wins: The FIRST response for each word is written to DB
+  /// immediately. If the user said "Hard", the word is re-queued for
+  /// reinforcement (max 2 times), but subsequent answers do NOT update
+  /// the SM-2 progress — the first impression is what counts.
   Future<void> answerWord(SM2Response response) async {
+    if (_isProcessingAnswer) return;
     final currentWord = state.currentWord;
     if (currentWord == null) return;
+    _isProcessingAnswer = true;
 
     final isCorrect = response != SM2Response.dontKnow;
     final newCorrectCount = state.correctCount + (isCorrect ? 1 : 0);
     final newIncorrectCount = state.incorrectCount + (isCorrect ? 0 : 1);
 
-    // Re-queue: "bilmiyorum" → append word to end, skip DB write
-    if (!isCorrect) {
-      final wordId = currentWord.id;
-      final timesRequeued = state.requeueCount[wordId] ?? 0;
+    final wordId = currentWord.id;
+    final timesRequeued = state.requeueCount[wordId] ?? 0;
+    final isRequeued = timesRequeued > 0;
 
-      if (timesRequeued < 2) {
-        // Append to end, do NOT write to DB (progressMap stays original)
-        state = state.copyWith(
-          words: [...state.words, currentWord],
-          requeueCount: {...state.requeueCount, wordId: timesRequeued + 1},
-          currentIndex: state.currentIndex + 1,
-          incorrectCount: newIncorrectCount,
-          correctCount: newCorrectCount,
-          responses: [...state.responses, response],
-        );
-        return;
-      }
-      // Max re-queues exhausted → fall through to normal DB write
+    // Re-queued word: skip DB write (first answer already saved).
+    // Just advance and optionally re-queue again.
+    if (isRequeued) {
+      final shouldRequeue = !isCorrect && timesRequeued < 2;
+      state = state.copyWith(
+        words: shouldRequeue ? [...state.words, currentWord] : null,
+        requeueCount: shouldRequeue
+            ? {...state.requeueCount, wordId: timesRequeued + 1}
+            : null,
+        currentIndex: state.currentIndex + 1,
+        correctCount: newCorrectCount,
+        incorrectCount: newIncorrectCount,
+        responses: [...state.responses, response],
+      );
+      return;
     }
 
-    // Normal flow: write to DB (correct answer OR max re-queue exceeded)
-    // progressMap[wordId] holds the ORIGINAL value (never updated during re-queue)
-    final currentProgress = state.progressMap[currentWord.id];
+    // First time seeing this word: write to DB immediately.
+    final newFirstCorrect = state.firstPassCorrectCount + (isCorrect ? 1 : 0);
+    final newFirstIncorrect = state.firstPassIncorrectCount + (isCorrect ? 0 : 1);
+
+    final currentProgress = state.progressMap[wordId];
     if (currentProgress != null) {
-      final updatedProgress = currentProgress.calculateNextReview(
+      final updatedProgress = SM2.calculateNextReview(
+        currentProgress,
         response.toQuality(),
       );
 
@@ -351,33 +366,44 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
       );
 
       final newProgressMap = Map<String, VocabularyProgress>.from(state.progressMap);
-      newProgressMap[currentWord.id] = updatedProgress;
+      newProgressMap[wordId] = updatedProgress;
 
+      // If Hard, re-queue for reinforcement (but SM-2 is already saved)
+      final shouldRequeue = !isCorrect;
       state = state.copyWith(
         progressMap: newProgressMap,
+        words: shouldRequeue ? [...state.words, currentWord] : null,
+        requeueCount: shouldRequeue
+            ? {...state.requeueCount, wordId: 1}
+            : null,
+        currentIndex: state.currentIndex + 1,
         correctCount: newCorrectCount,
         incorrectCount: newIncorrectCount,
+        firstPassCorrectCount: newFirstCorrect,
+        firstPassIncorrectCount: newFirstIncorrect,
         responses: [...state.responses, response],
-        currentIndex: state.currentIndex + 1,
       );
     } else {
       state = state.copyWith(
         correctCount: newCorrectCount,
         incorrectCount: newIncorrectCount,
+        firstPassCorrectCount: newFirstCorrect,
+        firstPassIncorrectCount: newFirstIncorrect,
         responses: [...state.responses, response],
         currentIndex: state.currentIndex + 1,
       );
     }
+    _isProcessingAnswer = false;
   }
 
-  /// Complete session and award XP
+  /// Complete session and award XP (uses first-pass counts only)
   Future<DailyReviewResult?> completeSession() async {
     final result = await completeDailyReviewUseCase(
       CompleteDailyReviewParams(
         userId: userId,
         wordsReviewed: state.originalWordCount,
-        correctCount: state.correctCount,
-        incorrectCount: state.incorrectCount,
+        correctCount: state.firstPassCorrectCount,
+        incorrectCount: state.firstPassIncorrectCount,
       ),
     );
 

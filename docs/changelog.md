@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### SM-2 Consolidation & Stale State Fixes (2026-03-20)
+
+#### Fixed
+- **Wordbank not refreshing** — Words added via "I didn't know this" or vocab sessions were not appearing in Word Bank until app restart. Added `learnedWordsWithDetailsProvider` + `userVocabularyProgressProvider` invalidation to all write paths (reader popup, session summary, daily review, inline activities).
+- **Leaderboard stale after XP earned** — League rankings didn't update after vocab sessions or daily review. Added `leaderboardEntriesProvider` invalidation after XP awards.
+- **Daily Review navbar XP not updating** — `userControllerProvider.refresh()` was missing from `_completeSession()`, so coins/level stayed stale until user tapped "Continue".
+- **SM-2 Easy/Good/Hard gave identical intervals** — Standard SM-2 gives the same 1-day interval for all buttons on first review. Modified to Anki-style: Easy=4d, Good=1d, Hard=reset on first review; Easy=10d, Good=6d on second.
+- **Daily Review "last answer wins"** — Re-queued hard words could be overridden by a later Good/Easy answer. Changed to "first-answer-wins": first response is saved to DB, re-queue is reinforcement only.
+- **"I didn't know this" didn't reset mastered words** — Clicking on a mastered word only updated `next_review_at` without resetting status. Now fully resets to `learning` state (rep=0, ease=2.5).
+- **Daily Review XP inflation** — `correctCount`/`incorrectCount` included re-queued word responses, inflating XP. Added `firstPassCorrectCount`/`firstPassIncorrectCount` for accurate XP calculation.
+- **Double-tap on Daily Review buttons** — No concurrency guard on `answerWord()`. Added `_isProcessingAnswer` flag.
+- **Direct Supabase call in screen** — `_saveDrPosition()` in `daily_review_screen.dart` bypassed Clean Architecture. Moved to `VocabularyRepository.saveDailyReviewPosition()`.
+- **Batch add didn't reset mastered words** — `addWordsToVocabularyBatch` with `immediate=true` only updated review date. Now resets full SM-2 state.
+
+#### Changed
+- **SM-2 algorithm centralized** — Moved `calculateNextReview()` from `VocabularyProgress` entity to `SM2` utility class in `sm2_algorithm.dart`. Entity is now a pure data holder.
+
+#### Removed
+- **Practice screen** — Removed `_FlashcardPracticeScreen` (I Know / Don't Know buttons) from Word Bank. It had no DB integration — answers were purely local with no SM-2 updates.
+- **VocabularyReviewController** — Removed unused controller and state class that powered the Practice screen.
+
 ### Vocabulary Session Algorithm Improvements (2026-03-17)
 
 #### Fixed

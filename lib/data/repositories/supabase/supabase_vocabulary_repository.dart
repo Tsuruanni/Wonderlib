@@ -346,12 +346,19 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .maybeSingle();
 
       if (existing != null) {
-        // If immediate requested and word exists, update next_review_at to now
         if (immediate) {
+          // User explicitly said "I didn't know this" — reset SM-2 progress
+          // so the word re-enters the learning cycle, even if it was mastered.
           final now = DateTime.now();
           final updated = await _supabase
               .from(DbTables.vocabularyProgress)
-              .update({'next_review_at': now.toIso8601String()})
+              .update({
+                'next_review_at': now.toIso8601String(),
+                'status': 'learning',
+                'repetitions': 0,
+                'interval_days': 1,
+                'ease_factor': 2.5,
+              })
               .eq('user_id', userId)
               .eq('word_id', wordId)
               .select()
@@ -522,11 +529,17 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
           .map((e) => e['word_id'] as String)
           .toSet();
 
-      // If immediate, update existing words' next_review_at to now
+      // If immediate, reset existing words so they re-enter learning cycle
       if (immediate && existingWordIds.isNotEmpty) {
         await _supabase
             .from(DbTables.vocabularyProgress)
-            .update({'next_review_at': now.toIso8601String()})
+            .update({
+              'next_review_at': now.toIso8601String(),
+              'status': 'learning',
+              'repetitions': 0,
+              'interval_days': 1,
+              'ease_factor': 2.5,
+            })
             .eq('user_id', userId)
             .inFilter('word_id', existingWordIds.toList());
       }
@@ -675,6 +688,26 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         onConflict: 'user_id,unit_id,node_type',
       );
 
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> saveDailyReviewPosition({
+    required String userId,
+    required int pathPosition,
+  }) async {
+    try {
+      final today = DateTime.now().toIso8601String().substring(0, 10);
+      await _supabase
+          .from(DbTables.dailyReviewSessions)
+          .update({'path_position': pathPosition})
+          .eq('user_id', userId)
+          .eq('session_date', today);
       return const Right(null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));

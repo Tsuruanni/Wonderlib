@@ -14,6 +14,7 @@ import '../../../domain/usecases/student_assignment/get_active_assignments_useca
 import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -131,8 +132,13 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(userWordListProgressProvider);
         ref.invalidate(wordListsWithProgressProvider);
         ref.invalidate(learningPathProvider);
+        // Invalidate wordbank providers so Word Bank sees updated words
+        ref.invalidate(userVocabularyProgressProvider);
+        ref.invalidate(learnedWordsWithDetailsProvider);
         // Refresh user state so XP/level updates in navbar + triggers level-up celebration
         ref.read(userControllerProvider.notifier).refresh();
+        // Invalidate leaderboard so rank reflects new XP
+        ref.invalidate(leaderboardEntriesProvider);
         // Complete any vocabulary assignments for this word list
         _completeVocabularyAssignment(accuracy);
         setState(() {

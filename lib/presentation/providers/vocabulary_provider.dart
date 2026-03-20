@@ -18,9 +18,7 @@ import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
-import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
-import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
@@ -258,127 +256,6 @@ class VocabularyStats {
 
   int get inProgressCount => learningCount + reviewingCount;
 }
-
-// ============================================
-// VOCABULARY REVIEW CONTROLLER
-// ============================================
-
-/// Vocabulary review controller
-class VocabularyReviewController extends StateNotifier<VocabularyReviewState> {
-
-  VocabularyReviewController(this._ref)
-      : super(const VocabularyReviewState());
-  final Ref _ref;
-
-  Future<void> loadReviewSession() async {
-    state = state.copyWith(isLoading: true);
-
-    final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) {
-      state = state.copyWith(isLoading: false);
-      return;
-    }
-
-    final dueUseCase = _ref.read(getDueForReviewUseCaseProvider);
-    final newUseCase = _ref.read(getNewWordsUseCaseProvider);
-
-    // Get due words and new words
-    final dueResult = await dueUseCase(GetDueForReviewParams(userId: userId));
-    final newResult = await newUseCase(GetNewWordsParams(userId: userId, limit: 5));
-
-    final dueWords = dueResult.fold((f) => <VocabularyWord>[], (w) => w);
-    final newWords = newResult.fold((f) => <VocabularyWord>[], (w) => w);
-
-    final allWords = [...dueWords, ...newWords];
-
-    state = state.copyWith(
-      isLoading: false,
-      words: allWords,
-      currentIndex: 0,
-      correctCount: 0,
-      incorrectCount: 0,
-    );
-  }
-
-  Future<void> answerWord(int quality) async {
-    final userId = _ref.read(currentUserIdProvider);
-    if (userId == null || state.currentWord == null) return;
-
-    final getProgressUseCase = _ref.read(getWordProgressUseCaseProvider);
-    final updateProgressUseCase = _ref.read(updateWordProgressUseCaseProvider);
-
-    // Get current progress
-    final progressResult = await getProgressUseCase(GetWordProgressParams(
-      userId: userId,
-      wordId: state.currentWord!.id,
-    ),);
-
-    final progress = progressResult.fold((f) => null, (p) => p);
-    if (progress == null) return;
-
-    // Calculate next review
-    final updatedProgress = progress.calculateNextReview(quality);
-    await updateProgressUseCase(UpdateWordProgressParams(progress: updatedProgress));
-
-    // Update state
-    state = state.copyWith(
-      correctCount: quality >= 3 ? state.correctCount + 1 : state.correctCount,
-      incorrectCount: quality < 3 ? state.incorrectCount + 1 : state.incorrectCount,
-      currentIndex: state.currentIndex + 1,
-    );
-  }
-
-  void reset() {
-    state = const VocabularyReviewState();
-  }
-}
-
-class VocabularyReviewState {
-
-  const VocabularyReviewState({
-    this.isLoading = false,
-    this.words = const [],
-    this.currentIndex = 0,
-    this.correctCount = 0,
-    this.incorrectCount = 0,
-  });
-  final bool isLoading;
-  final List<VocabularyWord> words;
-  final int currentIndex;
-  final int correctCount;
-  final int incorrectCount;
-
-  VocabularyWord? get currentWord =>
-      currentIndex < words.length ? words[currentIndex] : null;
-
-  bool get isComplete => currentIndex >= words.length && words.isNotEmpty;
-
-  double get accuracy =>
-      (correctCount + incorrectCount) > 0
-          ? correctCount / (correctCount + incorrectCount)
-          : 0;
-
-  VocabularyReviewState copyWith({
-    bool? isLoading,
-    List<VocabularyWord>? words,
-    int? currentIndex,
-    int? correctCount,
-    int? incorrectCount,
-  }) {
-    return VocabularyReviewState(
-      isLoading: isLoading ?? this.isLoading,
-      words: words ?? this.words,
-      currentIndex: currentIndex ?? this.currentIndex,
-      correctCount: correctCount ?? this.correctCount,
-      incorrectCount: incorrectCount ?? this.incorrectCount,
-    );
-  }
-}
-
-final vocabularyReviewControllerProvider =
-    StateNotifierProvider.autoDispose<VocabularyReviewController, VocabularyReviewState>((ref) {
-  return VocabularyReviewController(ref);
-});
 
 // ============================================
 // WORD LIST PROVIDERS (using UseCases)
@@ -994,6 +871,8 @@ Future<VocabularyActionResult> addWordToVocabulary(
     (_) {
       // Invalidate so Word Bank and Daily Review see the new word
       ref.invalidate(userVocabularyProgressProvider);
+      ref.invalidate(learnedWordsWithDetailsProvider);
+      ref.invalidate(dailyReviewWordsProvider);
       return const VocabularyActionResult(success: true);
     },
   );
