@@ -110,15 +110,15 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       return;
     }
 
+    // Record DR completion in path tracking (independent of XP session)
+    await _recordDrCompletion();
+
     // Daily review: record session + earn XP
     final result = await ref
         .read(dailyReviewControllerProvider.notifier)
         .completeSession();
 
     if (result == null || !mounted) return;
-
-    // Record DR completion in path_daily_review_completions for learning path tracking
-    await _recordDrCompletion();
 
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
@@ -132,56 +132,76 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       final userId = ref.read(currentUserIdProvider);
       if (userId == null) return;
 
-      // Find the first scope_learning_path_unit for the current user's active path
-      // We need any valid scope_lp_unit_id. Get it from the learning path data.
-      final learningPaths = ref.read(learningPathProvider).valueOrNull;
-      if (learningPaths == null || learningPaths.isEmpty) return;
-
-      // Find the unit that has the pending DR
-      String? scopeLpUnitId;
-      int drPosition = 0;
-      for (final unit in learningPaths) {
-        for (final item in unit.items) {
-          if (item is PathDailyReviewItem && !item.isComplete) {
-            // We need the scope_lp_unit_id, but PathUnitData only has unit.id
-            // Use unit.id as a lookup key — query scope_learning_path_units
-            scopeLpUnitId = unit.unit.id; // We'll look it up below
-            drPosition = item.sortOrder;
-            break;
-          }
-        }
-        if (scopeLpUnitId != null) break;
-      }
-
-      if (scopeLpUnitId == null) return;
-
-      // Look up the actual scope_learning_path_unit ID from the DB
       final supabase = Supabase.instance.client;
+
+      // Find all scope_learning_path_units for the user's assigned paths
+      // Use the user's school/grade/class to find matching scope paths
+      final userProfile = await supabase
+          .from('profiles')
+          .select('school_id, class_id')
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (userProfile == null || userProfile['school_id'] == null) return;
+
+      final schoolId = userProfile['school_id'] as String;
+      final classId = userProfile['class_id'] as String?;
+
+      // Get scope learning paths for this user's school
+      var pathQuery = supabase
+          .from(DbTables.scopeLearningPaths)
+          .select('id')
+          .eq('school_id', schoolId);
+
+      final scopePaths = await pathQuery;
+      if ((scopePaths as List).isEmpty) return;
+
+      final scopePathIds = scopePaths.map((p) => p['id'] as String).toList();
+
+      // Get all scope_learning_path_units for these paths
       final scopeUnits = await supabase
           .from(DbTables.scopeLearningPathUnits)
-          .select('id')
-          .eq('unit_id', scopeLpUnitId)
+          .select('id, unit_id')
+          .inFilter('scope_learning_path_id', scopePathIds)
           .limit(1);
 
-      if (scopeUnits.isEmpty) return;
+      if ((scopeUnits as List).isEmpty) return;
 
-      final actualScopeLpUnitId = scopeUnits[0]['id'] as String;
+      // Use the first scope_lp_unit for DR tracking
+      final scopeLpUnitId = scopeUnits[0]['id'] as String;
 
-      // Insert completion record (upsert to handle duplicate day)
+      // Find DR position from the current path data
+      int drPosition = 0;
+      final learningPaths = ref.read(learningPathProvider).valueOrNull;
+      if (learningPaths != null) {
+        for (final unit in learningPaths) {
+          for (final item in unit.items) {
+            if (item is PathDailyReviewItem && !item.isComplete) {
+              drPosition = item.sortOrder;
+              break;
+            }
+          }
+        }
+      }
+
+      // Insert completion record
       await supabase
           .from(DbTables.pathDailyReviewCompletions)
           .upsert({
             'user_id': userId,
-            'scope_lp_unit_id': actualScopeLpUnitId,
+            'scope_lp_unit_id': scopeLpUnitId,
             'position': drPosition,
             'completed_at': DateTime.now().toIso8601String().substring(0, 10),
           }, onConflict: 'user_id,scope_lp_unit_id,completed_at');
 
-      // Invalidate providers so path refreshes
+      // Invalidate all related providers so path refreshes
       ref.invalidate(pathDailyReviewsProvider);
+      ref.invalidate(totalDueWordsForReviewProvider);
       ref.invalidate(learningPathProvider);
-    } catch (_) {
-      // DR completion tracking is non-critical — don't block the flow
+    } catch (e) {
+      // Log error but don't block the flow
+      // ignore: avoid_print
+      print('DR completion tracking error: $e');
     }
   }
 
