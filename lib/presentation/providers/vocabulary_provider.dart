@@ -704,7 +704,8 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         }
       }
 
-      // Sort books by sort_order
+      // Sort rows and books by sort_order
+      rows.sort((a, b) => a.orderInUnit.compareTo(b.orderInUnit));
       booksWithProgress.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
       result.add(PathUnitData(
