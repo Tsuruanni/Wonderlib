@@ -732,6 +732,19 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final progressMap = {for (final p in progressList) p.wordListId: p};
   final wordListMap = {for (final wl in allLists) wl.id: wl};
 
+  // --- Daily Review: fetch once, inject once ---
+  DailyReviewSession? todaySession;
+  int dailyReviewDueCount = 0;
+  try {
+    todaySession = await ref.watch(todayReviewSessionProvider.future);
+    dailyReviewDueCount = await ref
+        .watch(totalDueWordsForReviewProvider.future)
+        .catchError((_) => 0);
+  } catch (_) {}
+  final drDoneToday = todaySession != null;
+  final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
+  bool drInjected = false; // only inject DR once across all units
+
   final result = <PathUnitData>[];
 
   for (final path in learningPaths) {
@@ -795,46 +808,40 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         }
       }
 
-      // --- Daily Review injection ---
-      // Uses existing todayReviewSessionProvider (reads daily_review_sessions table)
-      DailyReviewSession? todaySession;
-      int dailyReviewDueCount = 0;
-      try {
-        todaySession = await ref.watch(todayReviewSessionProvider.future);
-        dailyReviewDueCount = await ref
-            .watch(totalDueWordsForReviewProvider.future)
-            .catchError((_) => 0);
-      } catch (_) {
-        // DR injection is non-critical — if providers fail, skip DR
-      }
-      final drDoneToday = todaySession != null;
-      final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
+      // --- Daily Review injection (only once across all units) ---
+      if (!drInjected && (drNeeded || drDoneToday)) {
+        // Check if this unit has incomplete non-exempt items (DR belongs here)
+        final hasIncompleteHere = items.any((item) {
+          final isExempt = item is PathBookItem && path.booksExemptFromLock;
+          return !isExempt && !item.isComplete;
+        });
 
-      // Show DR node if needed OR if already done today (so student sees the completed node)
-      if (drNeeded || drDoneToday) {
-        int drSortOrder;
+        if (hasIncompleteHere || drDoneToday) {
+          int drSortOrder;
 
-        if (drDoneToday && todaySession!.pathPosition != null) {
-          // Completed DR: use the saved position (stays fixed)
-          drSortOrder = todaySession.pathPosition!;
-        } else {
-          // Pending DR: position before the first incomplete non-exempt item
-          drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
-          for (int i = 0; i < items.length; i++) {
-            final item = items[i];
-            final isExempt = item is PathBookItem && path.booksExemptFromLock;
-            if (!isExempt && !item.isComplete) {
-              drSortOrder = item.sortOrder;
-              break;
+          if (drDoneToday && todaySession!.pathPosition != null) {
+            // Completed DR: use the saved position (stays fixed)
+            drSortOrder = todaySession.pathPosition!;
+          } else {
+            // Pending DR: position before the first incomplete non-exempt item
+            drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
+            for (int i = 0; i < items.length; i++) {
+              final item = items[i];
+              final isExempt = item is PathBookItem && path.booksExemptFromLock;
+              if (!isExempt && !item.isComplete) {
+                drSortOrder = item.sortOrder;
+                break;
+              }
             }
           }
-        }
 
-        items.add(PathDailyReviewItem(
-          sortOrder: drSortOrder,
-          completedAt: drDoneToday ? todaySession!.completedAt : null,
-          isCompleted: drDoneToday,
-        ));
+          items.add(PathDailyReviewItem(
+            sortOrder: drSortOrder,
+            completedAt: drDoneToday ? todaySession!.completedAt : null,
+            isCompleted: drDoneToday,
+          ));
+          drInjected = true; // Don't inject again in other units
+        }
       }
 
       // Re-sort: DR items come before other items with the same sortOrder
