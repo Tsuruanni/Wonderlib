@@ -6,9 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../app/theme.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -113,9 +117,72 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     if (result == null || !mounted) return;
 
+    // Record DR completion in path_daily_review_completions for learning path tracking
+    await _recordDrCompletion();
+
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
+  }
+
+  /// Records daily review completion in path_daily_review_completions
+  /// and invalidates the learning path provider so the DR node shows as complete.
+  Future<void> _recordDrCompletion() async {
+    try {
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) return;
+
+      // Find the first scope_learning_path_unit for the current user's active path
+      // We need any valid scope_lp_unit_id. Get it from the learning path data.
+      final learningPaths = ref.read(learningPathProvider).valueOrNull;
+      if (learningPaths == null || learningPaths.isEmpty) return;
+
+      // Find the unit that has the pending DR
+      String? scopeLpUnitId;
+      int drPosition = 0;
+      for (final unit in learningPaths) {
+        for (final item in unit.items) {
+          if (item is PathDailyReviewItem && !item.isComplete) {
+            // We need the scope_lp_unit_id, but PathUnitData only has unit.id
+            // Use unit.id as a lookup key — query scope_learning_path_units
+            scopeLpUnitId = unit.unit.id; // We'll look it up below
+            drPosition = item.sortOrder;
+            break;
+          }
+        }
+        if (scopeLpUnitId != null) break;
+      }
+
+      if (scopeLpUnitId == null) return;
+
+      // Look up the actual scope_learning_path_unit ID from the DB
+      final supabase = Supabase.instance.client;
+      final scopeUnits = await supabase
+          .from(DbTables.scopeLearningPathUnits)
+          .select('id')
+          .eq('unit_id', scopeLpUnitId)
+          .limit(1);
+
+      if (scopeUnits.isEmpty) return;
+
+      final actualScopeLpUnitId = scopeUnits[0]['id'] as String;
+
+      // Insert completion record (upsert to handle duplicate day)
+      await supabase
+          .from(DbTables.pathDailyReviewCompletions)
+          .upsert({
+            'user_id': userId,
+            'scope_lp_unit_id': actualScopeLpUnitId,
+            'position': drPosition,
+            'completed_at': DateTime.now().toIso8601String().substring(0, 10),
+          }, onConflict: 'user_id,scope_lp_unit_id,completed_at');
+
+      // Invalidate providers so path refreshes
+      ref.invalidate(pathDailyReviewsProvider);
+      ref.invalidate(learningPathProvider);
+    } catch (_) {
+      // DR completion tracking is non-critical — don't block the flow
+    }
   }
 
   void _showCompletionDialog({
