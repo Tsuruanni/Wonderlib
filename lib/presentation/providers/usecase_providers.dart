@@ -30,7 +30,6 @@ import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
-import '../../domain/usecases/book/get_unit_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
@@ -102,6 +101,7 @@ import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_assigned_vocabulary_units_usecase.dart';
+import '../../domain/usecases/wordlist/get_user_learning_paths_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
@@ -171,10 +171,6 @@ final getRecommendedBooksUseCaseProvider = Provider((ref) {
 
 final getCompletedBookIdsUseCaseProvider = Provider((ref) {
   return GetCompletedBookIdsUseCase(ref.watch(bookRepositoryProvider));
-});
-
-final getUnitBooksUseCaseProvider = Provider((ref) {
-  return GetUnitBooksUseCase(ref.watch(bookRepositoryProvider));
 });
 
 // ============================================
@@ -362,6 +358,10 @@ final completeNodeUseCaseProvider = Provider((ref) {
 
 final getAssignedVocabularyUnitsUseCaseProvider = Provider((ref) {
   return GetAssignedVocabularyUnitsUseCase(ref.watch(wordListRepositoryProvider));
+});
+
+final getUserLearningPathsUseCaseProvider = Provider<GetUserLearningPathsUseCase>((ref) {
+  return GetUserLearningPathsUseCase(ref.watch(wordListRepositoryProvider));
 });
 
 final getAllWordListsUseCaseProvider = Provider((ref) {

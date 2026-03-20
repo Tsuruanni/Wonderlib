@@ -1,13 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/book.dart';
-import '../../domain/entities/unit_book.dart';
+import '../../domain/entities/learning_path.dart';
+import '../../domain/entities/learning_path_item.dart';
 import 'book_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
-import '../../domain/usecases/book/get_unit_books_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
+import '../../domain/usecases/wordlist/get_user_learning_paths_usecase.dart';
 import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
@@ -25,7 +27,6 @@ import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
-import '../../domain/usecases/wordlist/get_assigned_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -548,14 +549,16 @@ const allSpecialNodeTypes = ['daily_review', 'game', 'treasure'];
 /// A book assigned to a unit with its reading completion status.
 class UnitBookWithProgress {
   const UnitBookWithProgress({
-    required this.unitBook,
+    required this.bookId,
     required this.book,
     required this.isCompleted,
+    required this.sortOrder,
   });
 
-  final UnitBook unitBook;
+  final String bookId;
   final Book book;
   final bool isCompleted;
+  final int sortOrder;
 }
 
 /// One unit in the learning path (header + rows of word lists + books)
@@ -588,15 +591,15 @@ class PathUnitData {
     completedNodeTypes.containsAll(allSpecialNodeTypes);
 }
 
-/// Vocabulary units filtered by curriculum assignments.
-/// Returns ALL units if no assignments exist for the user's school.
-final vocabularyUnitsProvider = FutureProvider<List<VocabularyUnit>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-
-  final useCase = ref.watch(getAssignedVocabularyUnitsUseCaseProvider);
-  final result = await useCase(GetAssignedUnitsParams(userId: userId));
-  return result.fold((f) => [], (units) => units);
+/// Fetches all learning paths for the current user.
+/// Replaces the old vocabularyUnitsProvider + unitBooksProvider combination.
+/// Returns hierarchical data: learning paths → units → items (word lists + books, interleaved by sort_order).
+final userLearningPathsProvider = FutureProvider<List<LearningPath>>((ref) async {
+  final user = ref.watch(currentUserProvider).value;
+  if (user == null) return [];
+  final useCase = ref.watch(getUserLearningPathsUseCaseProvider);
+  final result = await useCase(GetUserLearningPathsParams(userId: user.id));
+  return result.fold((_) => [], (paths) => paths);
 });
 
 /// Node completions for the current user (Set of "unitId:nodeType" for fast lookup)
@@ -620,105 +623,97 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   );
 });
 
-/// Unit books for current user (scoped by school/grade/class).
-/// Returns `Map<unitId, List<UnitBook>>` for fast lookup.
-final unitBooksProvider = FutureProvider<Map<String, List<UnitBook>>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return {};
-
-  final useCase = ref.watch(getUnitBooksUseCaseProvider);
-  final result = await useCase(GetUnitBooksParams(userId: userId));
-
-  return result.fold(
-    (failure) => {},
-    (books) {
-      final map = <String, List<UnitBook>>{};
-      for (final b in books) {
-        map.putIfAbsent(b.unitId, () => []).add(b);
-      }
-      return map;
-    },
-  );
-});
-
-/// Complete learning path: units + word lists + progress + node completions + books
+/// Complete learning path: units + word lists + progress + node completions + books.
+///
+/// Data flow:
+/// 1. userLearningPathsProvider → gives us learning paths → units → items (IDs + types + sort_order)
+/// 2. For word list items: match with allWordListsProvider data + userWordListProgressProvider
+/// 3. For book items: fetch book details via bookByIdProvider + completedBookIdsProvider
+/// 4. Build PathUnitData / PathRowData structures compatible with existing widgets
+///
+/// Items are ordered by sort_order from the RPC. Word lists and books are interleaved
+/// but separated into `rows` and `books` in PathUnitData for widget compatibility.
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
-  final units = await ref.watch(vocabularyUnitsProvider.future);
+  final learningPaths = await ref.watch(userLearningPathsProvider.future);
   final allLists = await ref.watch(allWordListsProvider.future);
   final progressList = await ref.watch(userWordListProgressProvider.future);
   final nodeCompletions = await ref.watch(nodeCompletionsProvider.future);
-  final unitBooksMap = await ref.watch(unitBooksProvider.future);
   final completedBookIds = await ref.watch(completedBookIdsProvider.future);
 
-  if (units.isEmpty) return [];
+  if (learningPaths.isEmpty) return [];
 
-  // Build progress lookup
+  // Build lookup maps
   final progressMap = {for (final p in progressList) p.wordListId: p};
+  final wordListMap = {for (final wl in allLists) wl.id: wl};
 
-  // Filter to path lists only (unitId != null) and group by unit
-  final listsByUnit = <String, List<WordList>>{};
-  for (final list in allLists) {
-    if (list.unitId != null) {
-      listsByUnit.putIfAbsent(list.unitId!, () => []).add(list);
-    }
-  }
-
-  // Collect all book IDs we need to fetch details for
-  final allBookIds = <String>{};
-  for (final books in unitBooksMap.values) {
-    for (final b in books) {
-      allBookIds.add(b.bookId);
-    }
-  }
-
-  // Fetch book details for all assigned books
-  final bookDetailsMap = <String, Book>{};
-  for (final bookId in allBookIds) {
-    final bookAsync = await ref.watch(bookByIdProvider(bookId).future);
-    if (bookAsync != null) {
-      bookDetailsMap[bookId] = bookAsync;
-    }
-  }
-
-  // Build path structure
   final result = <PathUnitData>[];
-  for (final unit in units) {
-    final unitLists = listsByUnit[unit.id] ?? [];
-    if (unitLists.isEmpty) continue;
 
-    // Each word list gets its own row — linear path
-    unitLists.sort((a, b) => (a.orderInUnit ?? 0).compareTo(b.orderInUnit ?? 0));
-    final rows = unitLists
-        .map((list) => PathRowData(
-              orderInUnit: list.orderInUnit ?? 0,
-              items: [WordListWithProgress(wordList: list, progress: progressMap[list.id])],
-            ),)
-        .toList();
+  for (final path in learningPaths) {
+    for (final lpUnit in path.units) {
+      if (lpUnit.items.isEmpty) continue;
 
-    // Build book list with progress
-    final unitBooks = unitBooksMap[unit.id] ?? [];
-    final booksWithProgress = <UnitBookWithProgress>[];
-    for (final ub in unitBooks) {
-      final book = bookDetailsMap[ub.bookId];
-      if (book != null) {
-        booksWithProgress.add(
-          UnitBookWithProgress(
-            unitBook: ub,
-            book: book,
-            isCompleted: completedBookIds.contains(ub.bookId),
-          ),
-        );
+      // Create a VocabularyUnit from LearningPathUnit data
+      // (widgets like PathUnitBanner expect VocabularyUnit)
+      final vocabUnit = VocabularyUnit(
+        id: lpUnit.unitId,
+        name: lpUnit.unitName,
+        sortOrder: lpUnit.sortOrder,
+        color: lpUnit.unitColor,
+        icon: lpUnit.unitIcon,
+        createdAt: DateTime.now(), // not available from RPC, not used by widgets
+        updatedAt: DateTime.now(),
+      );
+
+      // Separate items into word lists and books, maintaining sort_order
+      final wordListItems = <LearningPathItem>[];
+      final bookItems = <LearningPathItem>[];
+
+      for (final item in lpUnit.items) {
+        if (item.itemType == LearningPathItemType.wordList) {
+          wordListItems.add(item);
+        } else if (item.itemType == LearningPathItemType.book) {
+          bookItems.add(item);
+        }
       }
-    }
 
-    result.add(
-    PathUnitData(
-      unit: unit,
-      rows: rows,
-      books: booksWithProgress,
-      completedNodeTypes: nodeCompletions[unit.id] ?? {},
-    ),
-  );
+      // Build word list rows (each word list = one row, ordered by sort_order)
+      final rows = <PathRowData>[];
+      for (final item in wordListItems) {
+        final wordList = wordListMap[item.itemId];
+        if (wordList == null) continue;
+        rows.add(PathRowData(
+          orderInUnit: item.sortOrder,
+          items: [WordListWithProgress(
+            wordList: wordList,
+            progress: progressMap[item.itemId],
+          )],
+        ));
+      }
+
+      // Build book list with progress
+      final booksWithProgress = <UnitBookWithProgress>[];
+      for (final item in bookItems) {
+        final book = await ref.watch(bookByIdProvider(item.itemId).future);
+        if (book != null) {
+          booksWithProgress.add(UnitBookWithProgress(
+            bookId: item.itemId,
+            book: book,
+            isCompleted: completedBookIds.contains(item.itemId),
+            sortOrder: item.sortOrder,
+          ));
+        }
+      }
+
+      // Sort books by sort_order
+      booksWithProgress.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+
+      result.add(PathUnitData(
+        unit: vocabUnit,
+        rows: rows,
+        books: booksWithProgress,
+        completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
+      ));
+    }
   }
 
   return result;
