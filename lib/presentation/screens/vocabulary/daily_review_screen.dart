@@ -120,7 +120,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     if (result == null || !mounted) return;
 
     // Save DR position to daily_review_sessions so it stays fixed in the path
-    _saveDrPosition();
+    await _saveDrPosition();
 
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
@@ -133,7 +133,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
   /// Saves the DR injection position to daily_review_sessions.path_position
   /// so the completed DR stays at the same place in the path.
-  void _saveDrPosition() {
+  Future<void> _saveDrPosition() async {
     try {
       // Find the DR node's current position from the path
       final pathUnits = ref.read(learningPathProvider).valueOrNull;
@@ -155,13 +155,12 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       final userId = ref.read(currentUserIdProvider);
       if (userId == null) return;
 
-      // Update path_position on today's session row (fire and forget)
-      Supabase.instance.client
+      // Update path_position on today's session row (must complete before invalidation)
+      await Supabase.instance.client
           .from('daily_review_sessions')
           .update({'path_position': drPosition})
           .eq('user_id', userId)
-          .eq('session_date', DateTime.now().toIso8601String().substring(0, 10))
-          .then((_) {});
+          .eq('session_date', DateTime.now().toIso8601String().substring(0, 10));
     } catch (_) {
       // Non-critical
     }
