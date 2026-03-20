@@ -796,7 +796,6 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
 
       // --- Daily Review injection ---
       // Uses existing todayReviewSessionProvider (reads daily_review_sessions table)
-      // No new tables or RPCs needed.
       final todaySession = await ref.watch(todayReviewSessionProvider.future);
       final dailyReviewDueCount = await ref
           .watch(totalDueWordsForReviewProvider.future)
@@ -806,20 +805,27 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
 
       // Show DR node if needed OR if already done today (so student sees the completed node)
       if (drNeeded || drDoneToday) {
-        // Position: just before the first incomplete non-exempt item
-        int drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
-        for (int i = 0; i < items.length; i++) {
-          final item = items[i];
-          final isExempt = item is PathBookItem && path.booksExemptFromLock;
-          if (!isExempt && !item.isComplete) {
-            drSortOrder = item.sortOrder;
-            break;
+        int drSortOrder;
+
+        if (drDoneToday && todaySession!.pathPosition != null) {
+          // Completed DR: use the saved position (stays fixed)
+          drSortOrder = todaySession.pathPosition!;
+        } else {
+          // Pending DR: position before the first incomplete non-exempt item
+          drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
+          for (int i = 0; i < items.length; i++) {
+            final item = items[i];
+            final isExempt = item is PathBookItem && path.booksExemptFromLock;
+            if (!isExempt && !item.isComplete) {
+              drSortOrder = item.sortOrder;
+              break;
+            }
           }
         }
 
         items.add(PathDailyReviewItem(
           sortOrder: drSortOrder,
-          completedAt: drDoneToday ? DateTime.now() : null,
+          completedAt: drDoneToday ? todaySession!.completedAt : null,
           isCompleted: drDoneToday,
         ));
       }

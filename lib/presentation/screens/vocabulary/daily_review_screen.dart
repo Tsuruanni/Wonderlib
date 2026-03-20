@@ -6,9 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../../app/theme.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -116,6 +119,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     if (result == null || !mounted) return;
 
+    // Save DR position to daily_review_sessions so it stays fixed in the path
+    _saveDrPosition();
+
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
@@ -123,6 +129,42 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
+  }
+
+  /// Saves the DR injection position to daily_review_sessions.path_position
+  /// so the completed DR stays at the same place in the path.
+  void _saveDrPosition() {
+    try {
+      // Find the DR node's current position from the path
+      final pathUnits = ref.read(learningPathProvider).valueOrNull;
+      if (pathUnits == null) return;
+
+      int? drPosition;
+      for (final unit in pathUnits) {
+        for (final item in unit.items) {
+          if (item is PathDailyReviewItem && !item.isComplete) {
+            drPosition = item.sortOrder;
+            break;
+          }
+        }
+        if (drPosition != null) break;
+      }
+
+      if (drPosition == null) return;
+
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) return;
+
+      // Update path_position on today's session row (fire and forget)
+      Supabase.instance.client
+          .from('daily_review_sessions')
+          .update({'path_position': drPosition})
+          .eq('user_id', userId)
+          .eq('session_date', DateTime.now().toIso8601String().substring(0, 10))
+          .then((_) {});
+    } catch (_) {
+      // Non-critical
+    }
   }
 
   void _showCompletionDialog({

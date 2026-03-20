@@ -12,6 +12,7 @@ class DailyReviewSession extends Equatable {
     required this.xpEarned,
     required this.isPerfect,
     required this.completedAt,
+    this.pathPosition,
   });
 
   final String id;
@@ -23,6 +24,7 @@ class DailyReviewSession extends Equatable {
   final int xpEarned;
   final bool isPerfect;
   final DateTime completedAt;
+  final int? pathPosition;
 
   /// Calculate accuracy as a percentage (0.0 - 1.0)
   double get accuracy =>
@@ -42,6 +44,7 @@ class DailyReviewSession extends Equatable {
         xpEarned,
         isPerfect,
         completedAt,
+        pathPosition,
       ];
 }
 

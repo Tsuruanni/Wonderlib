@@ -12,6 +12,7 @@ class DailyReviewSessionModel {
     required this.xpEarned,
     required this.isPerfect,
     required this.completedAt,
+    this.pathPosition,
   });
 
   factory DailyReviewSessionModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +26,7 @@ class DailyReviewSessionModel {
       xpEarned: json['xp_earned'] as int? ?? 0,
       isPerfect: json['is_perfect'] as bool? ?? false,
       completedAt: DateTime.parse(json['completed_at'] as String),
+      pathPosition: json['path_position'] as int?,
     );
   }
 
@@ -39,6 +41,7 @@ class DailyReviewSessionModel {
       xpEarned: entity.xpEarned,
       isPerfect: entity.isPerfect,
       completedAt: entity.completedAt,
+      pathPosition: entity.pathPosition,
     );
   }
 
@@ -51,6 +54,7 @@ class DailyReviewSessionModel {
   final int xpEarned;
   final bool isPerfect;
   final DateTime completedAt;
+  final int? pathPosition;
 
   Map<String, dynamic> toJson() {
     return {
@@ -77,6 +81,7 @@ class DailyReviewSessionModel {
       xpEarned: xpEarned,
       isPerfect: isPerfect,
       completedAt: completedAt,
+      pathPosition: pathPosition,
     );
   }
 }

@@ -397,6 +397,7 @@ class PathDailyReviewNode extends StatelessWidget {
           _showLockedSnackbar(context);
           return;
         }
+        if (isComplete) return; // Already done today
         // Navigate to daily review
         context.push(AppRoutes.vocabularyDailyReview);
       },
