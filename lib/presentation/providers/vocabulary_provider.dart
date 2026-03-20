@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/book.dart';
 import '../../domain/entities/learning_path.dart';
 import 'book_provider.dart';
+import 'daily_review_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
@@ -565,6 +567,35 @@ class PathBookItem extends PathItemData {
   bool get isComplete => bookWithProgress.isCompleted;
 }
 
+class PathGameItem extends PathItemData {
+  const PathGameItem({required super.sortOrder, required this.isCompleted});
+  final bool isCompleted;
+
+  @override
+  bool get isComplete => isCompleted;
+}
+
+class PathTreasureItem extends PathItemData {
+  const PathTreasureItem({required super.sortOrder, required this.isCompleted});
+  final bool isCompleted;
+
+  @override
+  bool get isComplete => isCompleted;
+}
+
+class PathDailyReviewItem extends PathItemData {
+  const PathDailyReviewItem({
+    required super.sortOrder,
+    required this.completedAt,
+    required this.isCompleted,
+  });
+  final DateTime? completedAt;
+  final bool isCompleted;
+
+  @override
+  bool get isComplete => isCompleted;
+}
+
 /// Node types for special path nodes (flipbook removed — replaced by book nodes)
 const allSpecialNodeTypes = ['daily_review', 'game', 'treasure'];
 
@@ -599,16 +630,16 @@ class PathUnitData {
   final bool sequentialLock;
   final bool booksExemptFromLock;
 
-  /// Whether every required item AND special node is complete.
+  /// Whether every required item is complete.
   /// Books exempt from lock are excluded from the "required" check.
+  /// Daily review is a daily gate, not a progression requirement — excluded.
   bool get isAllComplete {
-    final requiredItems = items.where(
-      (i) => !(i is PathBookItem && booksExemptFromLock),
-    );
-    final specialComplete = completedNodeTypes.containsAll(
-      const {'daily_review', 'game', 'treasure'},
-    );
-    return requiredItems.every((i) => i.isComplete) && specialComplete;
+    final requiredItems = items.where((i) {
+      if (i is PathBookItem && booksExemptFromLock) return false;
+      if (i is PathDailyReviewItem) return false; // DR is a daily gate, not a progression requirement
+      return true;
+    });
+    return requiredItems.every((i) => i.isComplete);
   }
 }
 
@@ -678,6 +709,35 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   );
 });
 
+/// Daily review completion data
+class DrCompletion {
+  const DrCompletion({
+    required this.scopeLpUnitId,
+    required this.position,
+    required this.completedAt,
+  });
+
+  final String scopeLpUnitId;
+  final int position;
+  final DateTime completedAt;
+}
+
+/// Fetches daily review completion history for current user
+final pathDailyReviewsProvider = FutureProvider<List<DrCompletion>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+  final supabase = Supabase.instance.client;
+  final response = await supabase.rpc(
+    RpcFunctions.getPathDailyReviews,
+    params: {'p_user_id': userId},
+  );
+  return (response as List).map((r) => DrCompletion(
+    scopeLpUnitId: r['scope_lp_unit_id'] as String,
+    position: r['position'] as int,
+    completedAt: DateTime.parse(r['completed_at'] as String),
+  ),).toList();
+});
+
 /// Complete learning path: units + unified items list + progress + node completions.
 ///
 /// Data flow:
@@ -719,7 +779,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         updatedAt: DateTime.now(),
       );
 
-      // Build unified items list (word lists and books interleaved by sort_order)
+      // Build unified items list (word lists, books, game, treasure interleaved by sort_order)
       final items = <PathItemData>[];
       for (final item in lpUnit.items) {
         if (item.itemType == LearningPathItemType.wordList) {
@@ -749,9 +809,66 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
               ),
             );
           }
+        } else if (item.itemType == LearningPathItemType.game) {
+          final isCompleted = nodeCompletions[lpUnit.unitId]?.contains('game') ?? false;
+          items.add(PathGameItem(
+            sortOrder: item.sortOrder,
+            isCompleted: isCompleted,
+          ),);
+        } else if (item.itemType == LearningPathItemType.treasure) {
+          final isCompleted = nodeCompletions[lpUnit.unitId]?.contains('treasure') ?? false;
+          items.add(PathTreasureItem(
+            sortOrder: item.sortOrder,
+            isCompleted: isCompleted,
+          ),);
         }
       }
 
+      // --- Daily Review injection ---
+      final drHistory = await ref.watch(pathDailyReviewsProvider.future);
+
+      // Check if today's DR is needed
+      final today = DateTime.now();
+      final dailyReviewDueCount = await ref
+          .watch(totalDueWordsForReviewProvider.future)
+          .catchError((_) => 0);
+      final doneToday = drHistory.any(
+        (dr) =>
+            dr.completedAt.year == today.year &&
+            dr.completedAt.month == today.month &&
+            dr.completedAt.day == today.day,
+      );
+      final needsDr = !doneToday && dailyReviewDueCount >= minDailyReviewCount;
+
+      if (needsDr) {
+        // Find position: just before the first locked non-exempt item
+        final tempLocks = calculateLocks(
+          items: items,
+          sequentialLock: path.sequentialLock,
+          booksExemptFromLock: path.booksExemptFromLock,
+          isUnitLocked: false, // calculate as if unit is unlocked to find the right position
+        );
+
+        int drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
+        for (int i = 0; i < items.length; i++) {
+          if (tempLocks[i]) {
+            drSortOrder = items[i].sortOrder;
+            break;
+          }
+        }
+
+        // Only add if there isn't already a pending DR
+        final hasPendingDr = items.any((i) => i is PathDailyReviewItem && !i.isComplete);
+        if (!hasPendingDr) {
+          items.add(PathDailyReviewItem(
+            sortOrder: drSortOrder,
+            completedAt: null,
+            isCompleted: false,
+          ),);
+        }
+      }
+
+      // Re-sort
       items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
       result.add(
