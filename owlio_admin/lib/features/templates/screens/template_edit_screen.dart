@@ -26,6 +26,8 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
   List<LearningPathUnitData> _units = [];
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _sequentialLock = true;
+  bool _booksExemptFromLock = true;
 
   bool get _isNew => widget.templateId == null;
 
@@ -63,6 +65,8 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
 
       _nameController.text = template['name'] as String? ?? '';
       _descriptionController.text = template['description'] as String? ?? '';
+      _sequentialLock = template['sequential_lock'] as bool? ?? true;
+      _booksExemptFromLock = template['books_exempt_from_lock'] as bool? ?? true;
 
       // 2. Fetch template units
       final unitsResponse = await supabase
@@ -205,6 +209,8 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           'id': templateId,
           'name': name,
           'description': description.isEmpty ? null : description,
+          'sequential_lock': _sequentialLock,
+          'books_exempt_from_lock': _booksExemptFromLock,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         });
@@ -216,6 +222,8 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
             .update({
               'name': name,
               'description': description.isEmpty ? null : description,
+              'sequential_lock': _sequentialLock,
+              'books_exempt_from_lock': _booksExemptFromLock,
               'updated_at': DateTime.now().toIso8601String(),
             })
             .eq('id', templateId);
@@ -418,6 +426,25 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
               ),
               maxLines: 3,
             ),
+            const SizedBox(height: 24),
+            Text('İlerleme Ayarları', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              title: const Text('Sıralı ilerleme'),
+              subtitle: const Text('Önceki tamamlanmadan sonraki açılmaz'),
+              value: _sequentialLock,
+              onChanged: (v) => setState(() {
+                _sequentialLock = v;
+                if (!v) _booksExemptFromLock = true;
+              }),
+            ),
+            if (_sequentialLock)
+              SwitchListTile(
+                title: const Text('Kitapları hariç tut'),
+                subtitle: const Text('Kitaplar her zaman erişilebilir'),
+                value: _booksExemptFromLock,
+                onChanged: (v) => setState(() => _booksExemptFromLock = v),
+              ),
             const SizedBox(height: 32),
 
             // Content section
