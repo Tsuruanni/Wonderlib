@@ -121,6 +121,14 @@ class StudentAssignment extends Equatable {
     return null;
   }
 
+  /// Get word list ID if this is a vocabulary assignment
+  String? get wordListId {
+    if (type == StudentAssignmentType.vocabulary) {
+      return contentConfig['wordListId'] as String?;
+    }
+    return null;
+  }
+
   /// Get chapter IDs if this is a book assignment
   List<String> get chapterIds {
     if (type == StudentAssignmentType.book || type == StudentAssignmentType.mixed) {
