@@ -239,6 +239,34 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
     _notifyChange(units);
   }
 
+  void _addGameNode(int unitIndex) {
+    final units = List<LearningPathUnitData>.from(widget.units);
+    final items = List<LearningPathItemData>.from(units[unitIndex].items);
+    items.add(LearningPathItemData(
+      itemType: LearningPathItemType.game.dbValue,
+      itemId: 'game_${DateTime.now().millisecondsSinceEpoch}',
+      itemName: 'Oyun',
+      sortOrder: items.length,
+    ));
+    _reassignItemSortOrders(items);
+    units[unitIndex] = units[unitIndex].copyWith(items: items);
+    _notifyChange(units);
+  }
+
+  void _addTreasureNode(int unitIndex) {
+    final units = List<LearningPathUnitData>.from(widget.units);
+    final items = List<LearningPathItemData>.from(units[unitIndex].items);
+    items.add(LearningPathItemData(
+      itemType: LearningPathItemType.treasure.dbValue,
+      itemId: 'treasure_${DateTime.now().millisecondsSinceEpoch}',
+      itemName: 'Hazine',
+      sortOrder: items.length,
+    ));
+    _reassignItemSortOrders(items);
+    units[unitIndex] = units[unitIndex].copyWith(items: items);
+    _notifyChange(units);
+  }
+
   // --- Exclude ID helpers ---
 
   Set<String> get _selectedUnitIds =>
@@ -422,6 +450,22 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
                       textStyle: const TextStyle(fontSize: 13),
                     ),
                   ),
+                  TextButton.icon(
+                    onPressed: () => _addGameNode(unitIndex),
+                    icon: const Icon(Icons.sports_esports, size: 16),
+                    label: const Text('Oyun Ekle'),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _addTreasureNode(unitIndex),
+                    icon: const Icon(Icons.card_giftcard, size: 16),
+                    label: const Text('Hazine Ekle'),
+                    style: TextButton.styleFrom(
+                      textStyle: const TextStyle(fontSize: 13),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -487,7 +531,30 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
   }) {
     final item = widget.units[unitIndex].items[itemIndex];
     final isWordList = item.itemType == LearningPathItemType.wordList.dbValue;
+    final isBook = item.itemType == LearningPathItemType.book.dbValue;
+    final isGame = item.itemType == LearningPathItemType.game.dbValue;
+    final isTreasure = item.itemType == LearningPathItemType.treasure.dbValue;
     final isExpanded = _expandedWordLists.contains(item.itemId);
+
+    // Choose avatar background color and emoji based on item type
+    Color avatarBgColor;
+    String avatarEmoji;
+    if (isWordList) {
+      avatarBgColor = Colors.orange.shade100;
+      avatarEmoji = '📝';
+    } else if (isBook) {
+      avatarBgColor = Colors.blue.shade100;
+      avatarEmoji = '📖';
+    } else if (isGame) {
+      avatarBgColor = Colors.purple.shade100;
+      avatarEmoji = '🎮';
+    } else if (isTreasure) {
+      avatarBgColor = Colors.amber.shade100;
+      avatarEmoji = '🎁';
+    } else {
+      avatarBgColor = Colors.grey.shade100;
+      avatarEmoji = '❓';
+    }
 
     return Column(
       key: key,
@@ -504,11 +571,9 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
               if (!widget.readOnly) const SizedBox(width: 4),
               CircleAvatar(
                 radius: 12,
-                backgroundColor: isWordList
-                    ? Colors.orange.shade100
-                    : Colors.blue.shade100,
+                backgroundColor: avatarBgColor,
                 child: Text(
-                  isWordList ? '📝' : '📖',
+                  avatarEmoji,
                   style: const TextStyle(fontSize: 12),
                 ),
               ),

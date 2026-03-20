@@ -159,6 +159,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             final itemType = itemRow['item_type'] as String;
             final isWordList =
                 itemType == LearningPathItemType.wordList.dbValue;
+            final isBook = itemType == LearningPathItemType.book.dbValue;
 
             String itemId;
             String itemName;
@@ -170,13 +171,20 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
               itemId = itemRow['word_list_id'] as String;
               itemName = wlData['name'] as String? ?? '';
               subtitle = '${wlData['word_count'] ?? 0} kelime';
-            } else {
+            } else if (isBook) {
               final bookData =
                   itemRow['books'] as Map<String, dynamic>? ?? {};
               itemId = itemRow['book_id'] as String;
               itemName = bookData['title'] as String? ?? '';
               subtitle =
                   '${bookData['level'] ?? '-'} \u00b7 ${bookData['chapter_count'] ?? 0} b\u00f6l\u00fcm';
+            } else {
+              // game or treasure — no FK references
+              itemId = itemRow['id'] as String;
+              itemName = itemType == LearningPathItemType.game.dbValue
+                  ? 'Oyun'
+                  : 'Hazine';
+              subtitle = null;
             }
 
             items.add(LearningPathItemData(
@@ -459,13 +467,14 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           final item = unit.items[j];
           final isWordList =
               item.itemType == LearningPathItemType.wordList.dbValue;
+          final isBook = item.itemType == LearningPathItemType.book.dbValue;
 
           await supabase.from(DbTables.scopeUnitItems).insert({
             'id': const Uuid().v4(),
             'scope_lp_unit_id': scopeUnitId,
             'item_type': item.itemType,
             'word_list_id': isWordList ? item.itemId : null,
-            'book_id': isWordList ? null : item.itemId,
+            'book_id': isBook ? item.itemId : null,
             'sort_order': j,
           });
         }

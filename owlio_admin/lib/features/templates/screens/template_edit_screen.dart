@@ -131,13 +131,20 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
             } catch (_) {
               // Word preview is optional, ignore errors
             }
-          } else {
+          } else if (itemType == LearningPathItemType.book.dbValue) {
             final bookData =
                 itemRow['books'] as Map<String, dynamic>? ?? {};
             itemId = itemRow['book_id'] as String;
             itemName = bookData['title'] as String? ?? '';
             subtitle =
                 '${bookData['level'] ?? '-'} · ${bookData['chapter_count'] ?? 0} bölüm';
+          } else {
+            // game or treasure — no FK references
+            itemId = itemRow['id'] as String;
+            itemName = itemType == LearningPathItemType.game.dbValue
+                ? 'Oyun'
+                : 'Hazine';
+            subtitle = null;
           }
 
           items.add(LearningPathItemData(
@@ -252,13 +259,14 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           final item = unit.items[j];
           final isWordList =
               item.itemType == LearningPathItemType.wordList.dbValue;
+          final isBook = item.itemType == LearningPathItemType.book.dbValue;
 
           await supabase.from(DbTables.learningPathTemplateItems).insert({
             'id': const Uuid().v4(),
             'template_unit_id': templateUnitId,
             'item_type': item.itemType,
             'word_list_id': isWordList ? item.itemId : null,
-            'book_id': isWordList ? null : item.itemId,
+            'book_id': isBook ? item.itemId : null,
             'sort_order': j,
           });
         }
