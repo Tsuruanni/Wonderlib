@@ -34,6 +34,9 @@ Replace the separate Curriculum + Unit Books screens with a **template-based lea
 | Item ordering within unit | Single sort_order, mixed types | Word lists and books freely interleaved |
 | Multiple paths per scope | Yes, via scope_learning_paths | A school can use "Oxford Discover 1" + "Cambridge English 1" simultaneously |
 | Backward compatibility | Not needed | Project is in development/test phase, no production users |
+| Scope resolution for multiple paths | Union of all matching scopes | Student sees all learning paths from class + grade + school-wide scopes combined |
+| FK integrity for polymorphic items | Two nullable FK columns with CHECK | Ensures referential integrity for both word_list_id and book_id |
+| Template apply operation | Server-side RPC (transactional) | Atomicity — partial apply cannot leave broken state |
 
 ## Database Schema
 
@@ -52,6 +55,11 @@ CREATE TABLE learning_path_templates (
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Trigger for updated_at
+CREATE TRIGGER update_learning_path_templates_updated_at
+  BEFORE UPDATE ON learning_path_templates
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- Units within a template (ordered)
 CREATE TABLE learning_path_template_units (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -61,15 +69,26 @@ CREATE TABLE learning_path_template_units (
   UNIQUE(template_id, unit_id)
 );
 
+CREATE INDEX idx_lp_template_units_template ON learning_path_template_units(template_id);
+
 -- Items (word lists + books) within each template unit (ordered, interleaved)
+-- Uses two nullable FK columns instead of polymorphic item_id for referential integrity
 CREATE TABLE learning_path_template_items (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   template_unit_id UUID NOT NULL REFERENCES learning_path_template_units(id) ON DELETE CASCADE,
   item_type        VARCHAR(20) NOT NULL CHECK (item_type IN ('word_list', 'book')),
-  item_id          UUID NOT NULL,
+  word_list_id     UUID REFERENCES word_lists(id) ON DELETE CASCADE,
+  book_id          UUID REFERENCES books(id) ON DELETE CASCADE,
   sort_order       INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(template_unit_id, item_type, item_id)
+  CHECK (
+    (item_type = 'word_list' AND word_list_id IS NOT NULL AND book_id IS NULL) OR
+    (item_type = 'book' AND book_id IS NOT NULL AND word_list_id IS NULL)
+  ),
+  UNIQUE(template_unit_id, word_list_id) WHERE word_list_id IS NOT NULL,
+  UNIQUE(template_unit_id, book_id) WHERE book_id IS NOT NULL
 );
+
+CREATE INDEX idx_lp_template_items_unit ON learning_path_template_items(template_unit_id);
 ```
 
 #### Scope Side (applied to school/grade/class)
@@ -90,6 +109,16 @@ CREATE TABLE scope_learning_paths (
   CHECK (NOT (grade IS NOT NULL AND class_id IS NOT NULL))
 );
 
+-- Trigger for updated_at
+CREATE TRIGGER update_scope_learning_paths_updated_at
+  BEFORE UPDATE ON scope_learning_paths
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+-- Indexes for scope resolution (matching existing patterns)
+CREATE INDEX idx_scope_lp_school ON scope_learning_paths(school_id);
+CREATE INDEX idx_scope_lp_school_grade ON scope_learning_paths(school_id, grade) WHERE grade IS NOT NULL;
+CREATE INDEX idx_scope_lp_class ON scope_learning_paths(class_id) WHERE class_id IS NOT NULL;
+
 -- Units within an applied learning path (ordered)
 CREATE TABLE scope_learning_path_units (
   id                     UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -99,15 +128,47 @@ CREATE TABLE scope_learning_path_units (
   UNIQUE(scope_learning_path_id, unit_id)
 );
 
+CREATE INDEX idx_scope_lp_units_path ON scope_learning_path_units(scope_learning_path_id);
+
 -- Items (word lists + books) within each scope unit (ordered, interleaved)
 CREATE TABLE scope_unit_items (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   scope_lp_unit_id UUID NOT NULL REFERENCES scope_learning_path_units(id) ON DELETE CASCADE,
   item_type        VARCHAR(20) NOT NULL CHECK (item_type IN ('word_list', 'book')),
-  item_id          UUID NOT NULL,
+  word_list_id     UUID REFERENCES word_lists(id) ON DELETE CASCADE,
+  book_id          UUID REFERENCES books(id) ON DELETE CASCADE,
   sort_order       INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(scope_lp_unit_id, item_type, item_id)
+  CHECK (
+    (item_type = 'word_list' AND word_list_id IS NOT NULL AND book_id IS NULL) OR
+    (item_type = 'book' AND book_id IS NOT NULL AND word_list_id IS NULL)
+  ),
+  UNIQUE(scope_lp_unit_id, word_list_id) WHERE word_list_id IS NOT NULL,
+  UNIQUE(scope_lp_unit_id, book_id) WHERE book_id IS NOT NULL
 );
+
+CREATE INDEX idx_scope_unit_items_unit ON scope_unit_items(scope_lp_unit_id);
+```
+
+### RLS Policies
+
+All 6 new tables:
+
+```sql
+ALTER TABLE <table_name> ENABLE ROW LEVEL SECURITY;
+
+-- Admin full access (role = 'admin' or 'head_teacher')
+CREATE POLICY "admin_full_access" ON <table_name>
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role IN ('admin', 'head_teacher'))
+  );
+
+-- Authenticated read for mobile app (scope tables only)
+CREATE POLICY "authenticated_select" ON scope_learning_paths
+  FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_select" ON scope_learning_path_units
+  FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_select" ON scope_unit_items
+  FOR SELECT USING (auth.role() = 'authenticated');
 ```
 
 ### Tables Removed
@@ -121,14 +182,16 @@ CREATE TABLE scope_unit_items (
 
 | Table | Change |
 |-------|--------|
-| `word_lists.unit_id` | Made nullable. No longer the source of truth for unit membership. |
+| `word_lists.unit_id` | Already nullable. No schema change needed. Application code stops treating it as source of truth. |
 
 ### Cascade Delete Chains
 
 ```
 Template deleted → template_units deleted → template_items deleted
 Scope learning path deleted → scope_lp_units deleted → scope_unit_items deleted
-Vocabulary unit deleted → removed from all templates and scopes
+Vocabulary unit deleted → removed from all templates and scopes (via CASCADE)
+Word list deleted → removed from all template_items and scope_unit_items (via word_list_id CASCADE)
+Book deleted → removed from all template_items and scope_unit_items (via book_id CASCADE)
 ```
 
 ### Symmetric Structure
@@ -147,11 +210,12 @@ learning_path_templates     ↔     scope_learning_paths
 - `get_assigned_vocabulary_units(p_user_id)` — replaced by new RPC
 - `get_user_unit_books(p_user_id)` — replaced by new RPC
 
-### New
+### New: `get_user_learning_paths`
 
 ```sql
--- Returns the complete learning path structure for a user
--- Cascading scope resolution: class → grade → school
+-- Returns the complete learning path structure for a user.
+-- Scope resolution: UNION of all matching scopes (class + grade + school-wide).
+-- A 5th grader in class 5-A sees: class 5-A paths + grade 5 paths + school-wide paths.
 get_user_learning_paths(p_user_id UUID)
 RETURNS TABLE (
   learning_path_id   UUID,
@@ -167,6 +231,25 @@ RETURNS TABLE (
   item_sort_order    INTEGER
 )
 ```
+
+Scope resolution strategy: **Union of all matching scopes.** The student sees all learning paths from their class-specific scope + grade-level scope + school-wide scope. This allows a school to assign a common base path to all students while adding specialized paths per grade or class.
+
+### New: `apply_learning_path_template`
+
+```sql
+-- Atomically copies a template's content into scope tables.
+-- Returns the created scope_learning_path id.
+apply_learning_path_template(
+  p_template_id UUID,
+  p_school_id   UUID,
+  p_grade       INTEGER DEFAULT NULL,
+  p_class_id    UUID DEFAULT NULL,
+  p_user_id     UUID  -- assigned_by
+)
+RETURNS UUID
+```
+
+Server-side transaction ensures atomicity — all-or-nothing copy from template to scope tables.
 
 ## Admin Panel UI
 
@@ -207,7 +290,7 @@ Description:   [...]
 - Add book: search dialog across published books
 - Remove: detaches from template (does not delete the underlying entity)
 
-### Screen 3: Learning Path Assignment (`/assignments`)
+### Screen 3: Learning Path Assignment (`/learning-path-assignments`)
 
 Single-page scope-based assignment with inline editing:
 
@@ -233,7 +316,7 @@ Assigned Learning Paths:
 **Features:**
 - Scope selection at top (school + target type + grade/class)
 - Selecting a scope loads existing assignments from scope_learning_paths
-- "Apply Template" copies template content into scope tables as independent data
+- "Apply Template" calls `apply_learning_path_template` RPC (atomic copy)
 - Full inline editing (same tree-view component as template editor)
 - Multiple learning paths per scope, drag-drop reorderable
 - "Empty Learning Path" creates a blank path for manual composition
@@ -256,6 +339,8 @@ Both template edit and assignment screens use the same tree-view widget. Paramet
 | Ünite Atamaları | Öğrenme Yolu Şablonları |
 | Ünite Kitapları | Öğrenme Yolu Ataması |
 
+Dashboard file: `features/dashboard/screens/dashboard_screen.dart` (lines 157-169)
+
 ### Router Changes
 
 | Removed | Added |
@@ -263,8 +348,10 @@ Both template edit and assignment screens use the same tree-view widget. Paramet
 | `/curriculum` | `/templates` |
 | `/curriculum/new` | `/templates/new` |
 | `/curriculum/:id` | `/templates/:id` |
-| `/unit-books` | `/assignments` |
+| `/unit-books` | `/learning-path-assignments` |
 | `/unit-books/new` | (not needed, single-page) |
+
+Note: `/assignments` is already used by teacher assignments (AssignmentListScreen). Using `/learning-path-assignments` to avoid collision.
 
 ### Admin Files Removed
 
@@ -273,13 +360,17 @@ Both template edit and assignment screens use the same tree-view widget. Paramet
 - `features/unit_books/screens/unit_books_list_screen.dart`
 - `features/unit_books/screens/unit_books_edit_screen.dart`
 
+### Admin Word List Editor Impact
+
+The word list edit screen (`features/wordlists/screens/wordlist_edit_screen.dart`) currently writes `unit_id` and `order_in_unit` to `word_lists`. The "Ünite Ataması" section of this screen should be removed since unit membership is now defined by templates/scopes, not by the word list's own `unit_id` field.
+
 ## Mobile App Changes
 
 ### Entity Changes
 
 | Entity | Change |
 |--------|--------|
-| `word_list.dart` | `unitId` becomes nullable |
+| `word_list.dart` | `unitId` and `orderInUnit` fields remain but are no longer used for learning path construction |
 | `unit_book.dart` | Replaced by generic `LearningPathItem` entity |
 | New: `learning_path.dart` | Top-level learning path entity (id, name, sortOrder) |
 
@@ -287,8 +378,16 @@ Both template edit and assignment screens use the same tree-view widget. Paramet
 
 | File | Change |
 |------|--------|
-| `supabase_word_list_repository.dart` | `getAssignedVocabularyUnits` → calls new RPC |
+| `supabase_word_list_repository.dart` | `getAssignedVocabularyUnits` → calls new `get_user_learning_paths` RPC |
 | `supabase_book_repository.dart` | `getUnitBooks` → removed, handled by new RPC |
+| `cached_book_repository.dart` | Remove `getUnitBooks` cache wrapper |
+
+### UseCase Changes
+
+| File | Change |
+|------|--------|
+| `get_assigned_vocabulary_units_usecase.dart` | Replaced by new `get_user_learning_paths_usecase.dart` |
+| `get_unit_books_usecase.dart` | Removed — handled by unified use case |
 
 ### Provider Changes
 
@@ -298,6 +397,28 @@ Both template edit and assignment screens use the same tree-view widget. Paramet
 | `unitBooksProvider` | Removed — items come from unified provider |
 | `learningPathProvider` | Restructured to handle multiple learning paths + mixed items |
 | `allWordListsProvider` | No longer filters by `unitId != null` |
+
+### Widget Changes
+
+| Widget | Change |
+|--------|--------|
+| `learning_path.dart` | Renders multiple learning paths (top-level grouping) |
+| `path_special_nodes.dart` | `PathBookNode` updated to work with `LearningPathItem` |
+| `path_row.dart` | `PathRowData` updated for mixed item types |
+
+### Model Changes
+
+| Model | Change |
+|-------|--------|
+| `unit_book_model.dart` | Replaced by `learning_path_item_model.dart` |
+| `word_list_model.dart` | `unitId`/`orderInUnit` deserialization remains but not used for path |
+
+### Screen Changes
+
+| Screen | Change |
+|--------|--------|
+| `vocabulary_hub_screen.dart` | Minor — reads from updated `learningPathProvider` |
+| `session_summary_screen.dart` | References to `learningPathProvider` may need update |
 
 ### New RPC Consumption
 
@@ -326,6 +447,18 @@ static const scopeLearningPathUnits = 'scope_learning_path_units';
 static const scopeUnitItems = 'scope_unit_items';
 ```
 
+### New Enum in shared package
+
+```dart
+enum LearningPathItemType {
+  wordList('word_list'),
+  book('book');
+
+  final String dbValue;
+  const LearningPathItemType(this.dbValue);
+}
+```
+
 ### Removed Constants
 
 ```dart
@@ -338,21 +471,26 @@ static const getUserUnitBooks = 'get_user_unit_books';
 static const getAssignedVocabularyUnits = 'get_assigned_vocabulary_units';
 ```
 
-### New RPC Constant
+### New RPC Constants
 
 ```dart
 static const getUserLearningPaths = 'get_user_learning_paths';
+static const applyLearningPathTemplate = 'apply_learning_path_template';
 ```
 
 ## File Impact Summary
 
 | Layer | Files Affected | Action |
 |-------|---------------|--------|
-| SQL Migrations | 2 new | Create tables + RPC, drop old tables + RPCs |
-| Shared Package | 2 | Add new constants, remove old |
-| Admin Panel | 4 removed, 5+ new | New template + assignment screens |
+| SQL Migrations | 2 new | Create tables + RPCs + RLS + indexes, drop old tables + RPCs |
+| Shared Package | 2 + 1 new enum | Add new constants + enum, remove old |
+| Admin Panel | 4 removed, 6+ new | New template + assignment screens + shared tree-view widget |
+| Admin Panel (modified) | 2 | Dashboard card updates, word list editor cleanup |
 | Mobile Entities | 3 | Update/create entities |
-| Mobile Repositories | 2 | Update to use new RPC |
-| Mobile Providers | 1 critical | Restructure learningPathProvider |
-| Mobile Widgets | 2 | Minor — reads from providers |
-| **Total** | ~19 files | |
+| Mobile Models | 2 | Update/create models |
+| Mobile Repositories | 3 | Update to use new RPC |
+| Mobile UseCases | 2 removed, 1 new | Unified learning paths use case |
+| Mobile Providers | 2 | Restructure learningPathProvider + usecase_providers |
+| Mobile Widgets | 3 | learning_path, path_special_nodes, path_row |
+| Mobile Screens | 2 | vocabulary_hub, session_summary |
+| **Total** | ~25 files | |
