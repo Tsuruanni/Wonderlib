@@ -101,6 +101,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       if (widget.unitId != null) {
         await completePathNode(ref, widget.unitId!, 'daily_review');
       }
+      // Refresh learning path so DR node shows as complete
+      ref.invalidate(todayReviewSessionProvider);
+      ref.invalidate(learningPathProvider);
       if (!mounted) return;
       _showCompletionDialog(state: state, xpEarned: null);
       return;

@@ -397,8 +397,8 @@ class PathDailyReviewNode extends StatelessWidget {
           _showLockedSnackbar(context);
           return;
         }
-        // Navigate to unit review (even if already complete — allow re-review)
-        context.push(AppRoutes.vocabularyUnitReviewPath(unitId));
+        // Navigate to daily review
+        context.push(AppRoutes.vocabularyDailyReview);
       },
     );
   }
