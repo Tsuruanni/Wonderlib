@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
-import '../../curriculum/screens/curriculum_edit_screen.dart';
+import '../../../core/providers/shared_providers.dart';
 
 /// Provider for unit filter
 final wordlistUnitFilterProvider = StateProvider<String?>((ref) => null);

@@ -23,12 +23,11 @@ import '../features/vocabulary/screens/vocabulary_list_screen.dart';
 import '../features/wordlists/screens/wordlist_edit_screen.dart';
 import '../features/wordlists/screens/wordlist_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
-import '../features/curriculum/screens/curriculum_edit_screen.dart';
-import '../features/curriculum/screens/curriculum_list_screen.dart';
 import '../features/units/screens/unit_list_screen.dart';
 import '../features/units/screens/unit_edit_screen.dart';
-import '../features/unit_books/screens/unit_books_list_screen.dart';
-import '../features/unit_books/screens/unit_books_edit_screen.dart';
+import '../features/templates/screens/template_list_screen.dart';
+import '../features/templates/screens/template_edit_screen.dart';
+import '../features/learning_path_assignments/screens/assignment_screen.dart';
 import '../features/quizzes/screens/book_quiz_edit_screen.dart';
 import '../features/quizzes/screens/quiz_question_edit_screen.dart';
 import '../features/cards/screens/card_list_screen.dart';
@@ -217,21 +216,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           listId: state.pathParameters['listId'],
         ),
       ),
-      // Curriculum Assignments
-      GoRoute(
-        path: '/curriculum',
-        builder: (context, state) => const CurriculumListScreen(),
-      ),
-      GoRoute(
-        path: '/curriculum/new',
-        builder: (context, state) => const CurriculumEditScreen(),
-      ),
-      GoRoute(
-        path: '/curriculum/:assignmentId',
-        builder: (context, state) => CurriculumEditScreen(
-          assignmentId: state.pathParameters['assignmentId'],
-        ),
-      ),
       // Units
       GoRoute(
         path: '/units',
@@ -247,14 +231,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           unitId: state.pathParameters['unitId'],
         ),
       ),
-      // Unit Book Assignments
+      // Learning Path Templates
       GoRoute(
-        path: '/unit-books',
-        builder: (context, state) => const UnitBooksListScreen(),
+        path: '/templates',
+        builder: (context, state) => const TemplateListScreen(),
       ),
       GoRoute(
-        path: '/unit-books/new',
-        builder: (context, state) => const UnitBooksEditScreen(),
+        path: '/templates/new',
+        builder: (context, state) => const TemplateEditScreen(),
+      ),
+      GoRoute(
+        path: '/templates/:templateId',
+        builder: (context, state) => TemplateEditScreen(
+          templateId: state.pathParameters['templateId'],
+        ),
+      ),
+      // Learning Path Assignments
+      GoRoute(
+        path: '/learning-path-assignments',
+        builder: (context, state) => const AssignmentScreen(),
       ),
       // Teacher Assignments (read-only)
       GoRoute(

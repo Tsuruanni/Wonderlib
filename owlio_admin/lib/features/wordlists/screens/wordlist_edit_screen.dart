@@ -5,7 +5,6 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
-import '../../curriculum/screens/curriculum_edit_screen.dart';
 import 'wordlist_list_screen.dart';
 
 /// Provider for loading a single word list with its items (full word details)
@@ -52,8 +51,6 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   final _descriptionController = TextEditingController();
   final _searchController = TextEditingController();
 
-  String? _unitId;
-  int _orderInUnit = 0;
   List<Map<String, dynamic>> _wordItems = [];
   bool _isLoading = false;
   bool _isSaving = false;
@@ -91,8 +88,6 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           (a, b) => (a['order_index'] as int).compareTo(b['order_index'] as int));
 
       setState(() {
-        _unitId = wordlist['unit_id'] as String?;
-        _orderInUnit = (wordlist['order_in_unit'] as int?) ?? 0;
         _wordItems = List<Map<String, dynamic>>.from(wordItems);
         _isLoading = false;
       });
@@ -120,8 +115,6 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       final data = {
         'name': _nameController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'unit_id': _unitId,
-        'order_in_unit': _orderInUnit,
         'is_system': true,
       };
 
@@ -353,98 +346,6 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                     hintText: 'Bu kelime listesini açıklayın',
                                   ),
                                   maxLines: 3,
-                                ),
-                                const SizedBox(height: 24),
-
-                                Text(
-                                  'Ünite Ataması',
-                                  style:
-                                      Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Unit dropdown
-                                Consumer(
-                                  builder: (context, ref, _) {
-                                    final unitsAsync = ref
-                                        .watch(allVocabularyUnitsProvider);
-                                    return unitsAsync.when(
-                                      data: (units) {
-                                        final validUnitId = units.any(
-                                                (u) => u['id'] == _unitId)
-                                            ? _unitId
-                                            : null;
-                                        if (validUnitId != _unitId) {
-                                          WidgetsBinding.instance
-                                              .addPostFrameCallback((_) {
-                                            if (mounted) {
-                                              setState(() =>
-                                                  _unitId = validUnitId);
-                                            }
-                                          });
-                                        }
-                                        return DropdownButtonFormField<
-                                            String?>(
-                                          value: validUnitId,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Kelime Ünitesi',
-                                            hintText:
-                                                'Ünite seçin (isteğe bağlı)',
-                                          ),
-                                          items: [
-                                            const DropdownMenuItem<String?>(
-                                              value: null,
-                                              child: Text(
-                                                  'Ünite yok (atanmamış)'),
-                                            ),
-                                            ...units.map((unit) {
-                                              return DropdownMenuItem<
-                                                  String?>(
-                                                value: unit['id'] as String,
-                                                child: Text(
-                                                  '${unit['sort_order']}. ${unit['name']}',
-                                                ),
-                                              );
-                                            }),
-                                          ],
-                                          onChanged: (value) {
-                                            setState(() => _unitId = value);
-                                          },
-                                        );
-                                      },
-                                      loading: () => const InputDecorator(
-                                        decoration: InputDecoration(
-                                          labelText: 'Kelime Ünitesi',
-                                        ),
-                                        child: Text('Üniteler yükleniyor...'),
-                                      ),
-                                      error: (e, _) => InputDecorator(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Kelime Ünitesi',
-                                        ),
-                                        child: Text('Hata: $e',
-                                            style: const TextStyle(
-                                                color: Colors.red)),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Order in unit
-                                TextFormField(
-                                  initialValue: _orderInUnit.toString(),
-                                  decoration: const InputDecoration(
-                                    labelText: 'Ünite İçi Sıra',
-                                    hintText: 'Gösterim sırası (0, 1, 2...)',
-                                    helperText:
-                                        'Düşük numaralar ünitede önce görünür',
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (value) {
-                                    _orderInUnit =
-                                        int.tryParse(value) ?? 0;
-                                  },
                                 ),
                               ],
                             ),
