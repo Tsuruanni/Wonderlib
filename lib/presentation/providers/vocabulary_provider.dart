@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/book.dart';
+import '../../domain/entities/daily_review_session.dart';
 import '../../domain/entities/learning_path.dart';
 import 'book_provider.dart';
 import 'daily_review_provider.dart';
@@ -796,10 +797,16 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
 
       // --- Daily Review injection ---
       // Uses existing todayReviewSessionProvider (reads daily_review_sessions table)
-      final todaySession = await ref.watch(todayReviewSessionProvider.future);
-      final dailyReviewDueCount = await ref
-          .watch(totalDueWordsForReviewProvider.future)
-          .catchError((_) => 0);
+      DailyReviewSession? todaySession;
+      int dailyReviewDueCount = 0;
+      try {
+        todaySession = await ref.watch(todayReviewSessionProvider.future);
+        dailyReviewDueCount = await ref
+            .watch(totalDueWordsForReviewProvider.future)
+            .catchError((_) => 0);
+      } catch (_) {
+        // DR injection is non-critical — if providers fail, skip DR
+      }
       final drDoneToday = todaySession != null;
       final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
 
