@@ -70,7 +70,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           .select(
               'id, unit_id, sort_order, vocabulary_units(id, name, icon, color)')
           .eq('template_id', widget.templateId!)
-          .order('sort_order');
+          .order('sort_order', ascending: true);
 
       final units = <LearningPathUnitData>[];
 
@@ -87,7 +87,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
                 'word_lists(id, name, word_count), '
                 'books(id, title, level, chapter_count)')
             .eq('template_unit_id', templateUnitId)
-            .order('sort_order');
+            .order('sort_order', ascending: true);
 
         final items = <LearningPathItemData>[];
 
