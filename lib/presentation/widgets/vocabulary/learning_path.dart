@@ -187,128 +187,61 @@ class LearningPath extends ConsumerWidget {
                 ),
               ),
             );
+
+          case PathGameItem(:final isCompleted):
+            nodes.add(
+              Positioned(
+                top: y,
+                left: 0,
+                right: 0,
+                child: PathGameNode(
+                  globalRowIndex: globalRowIndex,
+                  isLocked: isItemLocked,
+                  isComplete: isCompleted,
+                  isActive: isActive,
+                  onComplete: () => completePathNode(ref, unit.unit.id, 'game'),
+                ),
+              ),
+            );
+
+          case PathTreasureItem(:final isCompleted):
+            nodes.add(
+              Positioned(
+                top: y,
+                left: 0,
+                right: 0,
+                child: PathTreasureNode(
+                  isUnitComplete: isCompleted,
+                  globalRowIndex: globalRowIndex,
+                  isLocked: isItemLocked,
+                  isActive: isActive,
+                  onComplete: () => completePathNode(ref, unit.unit.id, 'treasure'),
+                ),
+              ),
+            );
+
+          case PathDailyReviewItem(:final isCompleted):
+            nodes.add(
+              Positioned(
+                top: y,
+                left: 0,
+                right: 0,
+                child: PathDailyReviewNode(
+                  globalRowIndex: globalRowIndex,
+                  unitId: unit.unit.id,
+                  isLocked: false, // DR gate is never locked — it IS the gate
+                  isComplete: isCompleted,
+                  isActive: !isCompleted && !foundActive,
+                ),
+              ),
+            );
+            if (!isCompleted && !foundActive) foundActive = true;
         }
 
         y += 80.0;
         prevNodeCenterXs = currentNodeCenterXs;
         globalRowIndex++;
       }
-
-      // --- Sequential special node locking ---
-      // "allRequiredDone" checks items that participate in locking (exempt books excluded)
-      final allRequiredDone = unit.items
-          .where((i) => !(i is PathBookItem && unit.booksExemptFromLock))
-          .every((i) => i.isComplete);
-      final reviewDone = unit.completedNodeTypes.contains('daily_review');
-      final gameDone = unit.completedNodeTypes.contains('game');
-      final treasureDone = unit.completedNodeTypes.contains('treasure');
-
-      final reviewLocked = isUnitLocked || !allRequiredDone;
-      final gameLocked = isUnitLocked || !reviewDone;
-      final treasureLocked = isUnitLocked || !gameDone;
-
-      // Active detection for special nodes
-      bool reviewActive = false;
-      bool gameActive = false;
-      bool treasureActive = false;
-
-      if (!foundActive && !reviewLocked && !reviewDone) {
-        reviewActive = true;
-        foundActive = true;
-      }
-      if (!foundActive && !gameLocked && !gameDone) {
-        gameActive = true;
-        foundActive = true;
-      }
-      if (!foundActive && !treasureLocked && !treasureDone) {
-        treasureActive = true;
-        foundActive = true;
-      }
-
-      // Connector from last item to Daily Review
-      final preReviewComplete = allRequiredDone && !isUnitLocked;
-
-      // --- Daily Review Node ---
-      y = _addSpecialNode(
-        nodes: nodes,
-        connectors: connectors,
-        pathPoints: pathPoints,
-        prevCenterXs: prevNodeCenterXs,
-        globalRowIndex: globalRowIndex,
-        screenWidth: screenWidth,
-        y: y,
-        connectorCompleted: preReviewComplete,
-        builder: (idx) => PathDailyReviewNode(
-          globalRowIndex: idx,
-          unitId: unit.unit.id,
-          isLocked: reviewLocked,
-          isComplete: reviewDone,
-          isActive: reviewActive,
-        ),
-      );
-      prevNodeCenterXs = _nodeCenterXs(globalRowIndex: globalRowIndex, screenWidth: screenWidth);
-      globalRowIndex++;
-
-      // --- Game Node ---
-      y = _addSpecialNode(
-        nodes: nodes,
-        connectors: connectors,
-        pathPoints: pathPoints,
-        prevCenterXs: prevNodeCenterXs,
-        globalRowIndex: globalRowIndex,
-        screenWidth: screenWidth,
-        y: y,
-        connectorCompleted: reviewDone && !isUnitLocked,
-        builder: (idx) => PathGameNode(
-          globalRowIndex: idx,
-          isLocked: gameLocked,
-          isComplete: gameDone,
-          isActive: gameActive,
-          onComplete: () => completePathNode(ref, unit.unit.id, 'game'),
-        ),
-      );
-      prevNodeCenterXs = _nodeCenterXs(globalRowIndex: globalRowIndex, screenWidth: screenWidth);
-      globalRowIndex++;
-
-      // --- Treasure Chest ---
-      final treasureCenterXs = _nodeCenterXs(
-        globalRowIndex: globalRowIndex,
-        screenWidth: screenWidth,
-      );
-      if (treasureCenterXs.isNotEmpty) {
-        addPathPoint(treasureCenterXs[0], y + 36 + 50);
-      }
-
-      connectors.add(
-        Positioned(
-          top: y,
-          left: 0,
-          right: 0,
-          child: PathConnector(
-            startXs: prevNodeCenterXs,
-            endXs: treasureCenterXs,
-            isCompleted: gameDone && !isUnitLocked,
-          ),
-        ),
-      );
-      y += 36;
-      nodes.add(
-        Positioned(
-          top: y,
-          left: 0,
-          right: 0,
-          child: PathTreasureNode(
-            isUnitComplete: unit.isAllComplete,
-            globalRowIndex: globalRowIndex,
-            isLocked: treasureLocked,
-            isActive: treasureActive,
-            onComplete: () => completePathNode(ref, unit.unit.id, 'treasure'),
-          ),
-        ),
-      );
-      y += 80;
-      prevNodeCenterXs = treasureCenterXs;
-      globalRowIndex++;
     }
 
     return Padding(
@@ -334,52 +267,6 @@ class LearningPath extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// Helper to add a special node with connector.
-  /// Returns the updated y position.
-  double _addSpecialNode({
-    required List<Widget> nodes,
-    required List<Widget> connectors,
-    required List<Offset> pathPoints,
-    required List<double> prevCenterXs,
-    required int globalRowIndex,
-    required double screenWidth,
-    required double y,
-    required Widget Function(int globalRowIndex) builder,
-    bool connectorCompleted = false,
-  }) {
-    final centerXs = _nodeCenterXs(
-      globalRowIndex: globalRowIndex,
-      screenWidth: screenWidth,
-    );
-    if (centerXs.isNotEmpty) {
-      pathPoints.add(Offset(centerXs[0], y + 36 + 28));
-    }
-
-    connectors.add(
-      Positioned(
-        top: y,
-        left: 0,
-        right: 0,
-        child: PathConnector(
-          startXs: prevCenterXs,
-          endXs: centerXs,
-          isCompleted: connectorCompleted,
-        ),
-      ),
-    );
-    y += 36;
-    nodes.add(
-      Positioned(
-        top: y,
-        left: 0,
-        right: 0,
-        child: builder(globalRowIndex),
-      ),
-    );
-    y += 80;
-    return y;
   }
 
   /// Returns the node center X position for a single-node row.

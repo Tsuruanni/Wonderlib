@@ -18,7 +18,7 @@ enum LabelPosition { below, left, right }
 /// A single node on the learning path representing one word list.
 /// Shows a 3D circle with icon, crown badge (if complete), stars (if started),
 /// bounce animation + "START" pill (if active), and press-down feedback.
-class PathNode extends StatefulWidget {
+class PathNode extends ConsumerStatefulWidget {
   const PathNode({
     super.key,
     required this.wordListWithProgress,
@@ -38,10 +38,10 @@ class PathNode extends StatefulWidget {
   final LabelPosition labelPosition;
 
   @override
-  State<PathNode> createState() => _PathNodeState();
+  ConsumerState<PathNode> createState() => _PathNodeState();
 }
 
-class _PathNodeState extends State<PathNode>
+class _PathNodeState extends ConsumerState<PathNode>
     with SingleTickerProviderStateMixin {
   AnimationController? _bounceController;
   late Animation<double> _bounceAnimation;
@@ -85,6 +85,33 @@ class _PathNodeState extends State<PathNode>
   void _handleTap(BuildContext context) {
     if (widget.isLocked) {
       showAppSnackBar(context, 'Complete previous steps to unlock!');
+      return;
+    }
+
+    // Check if daily review gate is active
+    final drNeeded = ref.read(dailyReviewNeededProvider).valueOrNull ?? false;
+    if (drNeeded) {
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Daily Review'),
+          content: const Text('Complete your daily word review first!'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.push(AppRoutes.vocabularyDailyReview);
+              },
+              child: const Text('Go to Daily Review'),
+            ),
+          ],
+        ),
+      );
       return;
     }
 

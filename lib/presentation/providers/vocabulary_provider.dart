@@ -941,6 +941,20 @@ final wordsLearnedTodayProvider = FutureProvider<int>((ref) async {
 });
 
 // ============================================
+// DAILY REVIEW GATE
+// ============================================
+
+/// Whether a daily review gate is active in the learning path.
+/// Returns true when any unit has a pending (incomplete) PathDailyReviewItem.
+/// Used by PathNode to block word list navigation until DR is done.
+final dailyReviewNeededProvider = FutureProvider<bool>((ref) async {
+  final pathUnits = await ref.watch(learningPathProvider.future);
+  return pathUnits.any(
+    (unit) => unit.items.any((i) => i is PathDailyReviewItem && !i.isComplete),
+  );
+});
+
+// ============================================
 // VOCABULARY ACTIONS
 // ============================================
 
