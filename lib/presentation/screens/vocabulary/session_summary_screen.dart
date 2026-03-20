@@ -8,7 +8,11 @@ import 'package:just_audio/just_audio.dart';
 
 import '../../../app/router.dart';
 import '../../../domain/entities/vocabulary_session.dart';
+import '../../../domain/entities/student_assignment.dart';
+import '../../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
+import '../../providers/student_assignment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
@@ -129,12 +133,48 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(learningPathProvider);
         // Refresh user state so XP/level updates in navbar + triggers level-up celebration
         ref.read(userControllerProvider.notifier).refresh();
+        // Complete any vocabulary assignments for this word list
+        _completeVocabularyAssignment(accuracy);
         setState(() {
           _saved = true;
           _actualXpAwarded = savedResult.xpEarned;
         });
       },
     );
+  }
+
+  Future<void> _completeVocabularyAssignment(double accuracy) async {
+    try {
+      final userId = ref.read(currentUserIdProvider);
+      if (userId == null) return;
+
+      final getActiveAssignmentsUseCase = ref.read(getActiveAssignmentsUseCaseProvider);
+      final result = await getActiveAssignmentsUseCase(
+        GetActiveAssignmentsParams(studentId: userId),
+      );
+
+      final assignments = result.fold(
+        (failure) => <StudentAssignment>[],
+        (assignments) => assignments,
+      );
+
+      for (final assignment in assignments) {
+        if (assignment.wordListId == widget.listId &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          final completeAssignmentUseCase = ref.read(completeAssignmentUseCaseProvider);
+          await completeAssignmentUseCase(CompleteAssignmentParams(
+            studentId: userId,
+            assignmentId: assignment.assignmentId,
+            score: accuracy,
+          ),);
+          ref.invalidate(studentAssignmentsProvider);
+          ref.invalidate(activeAssignmentsProvider);
+          ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        }
+      }
+    } catch (e) {
+      debugPrint('Assignment completion failed: $e');
+    }
   }
 
   @override
