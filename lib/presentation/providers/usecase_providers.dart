@@ -100,7 +100,6 @@ import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
-import '../../domain/usecases/wordlist/get_assigned_vocabulary_units_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_learning_paths_usecase.dart';
 import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
@@ -355,10 +354,6 @@ final completeNodeUseCaseProvider = Provider((ref) {
 // ============================================
 // WORD LIST USE CASES
 // ============================================
-
-final getAssignedVocabularyUnitsUseCaseProvider = Provider((ref) {
-  return GetAssignedVocabularyUnitsUseCase(ref.watch(wordListRepositoryProvider));
-});
 
 final getUserLearningPathsUseCaseProvider = Provider<GetUserLearningPathsUseCase>((ref) {
   return GetUserLearningPathsUseCase(ref.watch(wordListRepositoryProvider));

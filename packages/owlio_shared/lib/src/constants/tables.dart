@@ -66,9 +66,6 @@ abstract class DbTables {
   // Assignments
   static const assignments = 'assignments';
   static const assignmentStudents = 'assignment_students';
-  static const unitBookAssignments = 'unit_book_assignments';
-  static const unitCurriculumAssignments = 'unit_curriculum_assignments';
-
   // Settings
   static const systemSettings = 'system_settings';
 }

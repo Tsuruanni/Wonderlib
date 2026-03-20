@@ -44,45 +44,6 @@ class SupabaseWordListRepository implements WordListRepository {
   }
 
   @override
-  Future<Either<Failure, List<VocabularyUnit>>> getAssignedVocabularyUnits(
-    String userId,
-  ) async {
-    try {
-      // Call RPC to resolve which units this user can access
-      final rpcResponse = await _supabase.rpc(
-        RpcFunctions.getAssignedVocabularyUnits,
-        params: {'p_user_id': userId},
-      );
-
-      final unitIds = (rpcResponse as List)
-          .map((row) => row['unit_id'] as String)
-          .toList();
-
-      if (unitIds.isEmpty) {
-        return const Right([]);
-      }
-
-      // Fetch full unit details for the assigned IDs
-      final unitsResponse = await _supabase
-          .from(DbTables.vocabularyUnits)
-          .select()
-          .inFilter('id', unitIds)
-          .eq('is_active', true)
-          .order('sort_order', ascending: true);
-
-      final units = (unitsResponse as List)
-          .map((json) => VocabularyUnitModel.fromJson(json).toEntity())
-          .toList();
-
-      return Right(units);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,
     bool? isSystem,
