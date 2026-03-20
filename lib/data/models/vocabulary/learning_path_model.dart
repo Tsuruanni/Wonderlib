@@ -15,6 +15,8 @@ class LearningPathModel {
           id: lpId,
           name: row['learning_path_name'] as String,
           sortOrder: row['lp_sort_order'] as int,
+          sequentialLock: row['sequential_lock'] as bool? ?? true,
+          booksExemptFromLock: row['books_exempt_from_lock'] as bool? ?? true,
         ),
       );
 
@@ -49,6 +51,8 @@ class LearningPathModel {
             id: pb.id,
             name: pb.name,
             sortOrder: pb.sortOrder,
+            sequentialLock: pb.sequentialLock,
+            booksExemptFromLock: pb.booksExemptFromLock,
             units: pb.units.values
                 .map(
                   (ub) => LearningPathUnit(
@@ -70,11 +74,19 @@ class LearningPathModel {
 }
 
 class _PathBuilder {
-  _PathBuilder({required this.id, required this.name, required this.sortOrder});
+  _PathBuilder({
+    required this.id,
+    required this.name,
+    required this.sortOrder,
+    required this.sequentialLock,
+    required this.booksExemptFromLock,
+  });
 
   final String id;
   final String name;
   final int sortOrder;
+  final bool sequentialLock;
+  final bool booksExemptFromLock;
   final Map<String, _UnitBuilder> units = {};
 }
 
