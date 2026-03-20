@@ -3,7 +3,6 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/book.dart';
 import '../../domain/entities/learning_path.dart';
-import '../../domain/entities/learning_path_item.dart';
 import 'book_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
@@ -536,11 +535,34 @@ class VocabularyHubStats {
 // LEARNING PATH PROVIDERS
 // ============================================
 
-/// One row in the learning path (always exactly 1 word list — linear path)
-class PathRowData {
-  const PathRowData({required this.orderInUnit, required this.items});
-  final int orderInUnit;
-  final List<WordListWithProgress> items;
+/// Sealed hierarchy for items in a learning path unit.
+/// Each item is either a word list or a book, with a sort order for interleaving.
+sealed class PathItemData {
+  const PathItemData({required this.sortOrder});
+  final int sortOrder;
+  bool get isComplete;
+}
+
+class PathWordListItem extends PathItemData {
+  const PathWordListItem({
+    required super.sortOrder,
+    required this.wordListWithProgress,
+  });
+  final WordListWithProgress wordListWithProgress;
+
+  @override
+  bool get isComplete => wordListWithProgress.isComplete;
+}
+
+class PathBookItem extends PathItemData {
+  const PathBookItem({
+    required super.sortOrder,
+    required this.bookWithProgress,
+  });
+  final UnitBookWithProgress bookWithProgress;
+
+  @override
+  bool get isComplete => bookWithProgress.isCompleted;
 }
 
 /// Node types for special path nodes (flipbook removed — replaced by book nodes)
@@ -561,34 +583,67 @@ class UnitBookWithProgress {
   final int sortOrder;
 }
 
-/// One unit in the learning path (header + rows of word lists + books)
+/// One unit in the learning path (header + unified items list)
 class PathUnitData {
   const PathUnitData({
     required this.unit,
-    required this.rows,
-    this.books = const [],
-    this.completedNodeTypes = const {},
+    required this.items,
+    required this.completedNodeTypes,
+    required this.sequentialLock,
+    required this.booksExemptFromLock,
   });
 
   final VocabularyUnit unit;
-  final List<PathRowData> rows;
-  final List<UnitBookWithProgress> books;
+  final List<PathItemData> items;
   final Set<String> completedNodeTypes;
+  final bool sequentialLock;
+  final bool booksExemptFromLock;
 
-  /// Whether ALL word lists in this unit are complete.
-  bool get isAllListsComplete => rows.every(
-    (row) => row.items.every((item) => item.isComplete),
-  );
+  /// Whether every required item AND special node is complete.
+  /// Books exempt from lock are excluded from the "required" check.
+  bool get isAllComplete {
+    final requiredItems = items.where(
+      (i) => !(i is PathBookItem && booksExemptFromLock),
+    );
+    final specialComplete = completedNodeTypes.containsAll(
+      const {'daily_review', 'game', 'treasure'},
+    );
+    return requiredItems.every((i) => i.isComplete) && specialComplete;
+  }
+}
 
-  /// Whether ALL assigned books in this unit are complete (or no books assigned).
-  bool get isAllBooksComplete =>
-    books.isEmpty || books.every((b) => b.isCompleted);
+/// Calculate lock state for each item in a unit.
+///
+/// When [sequentialLock] is true, each non-exempt item is locked until
+/// the previous non-exempt item is complete.
+/// Books are exempt from sequential lock when [booksExemptFromLock] is true.
+/// If [isUnitLocked] is true, all items are locked.
+List<bool> calculateLocks({
+  required List<PathItemData> items,
+  required bool sequentialLock,
+  required bool booksExemptFromLock,
+  required bool isUnitLocked,
+}) {
+  if (isUnitLocked) return List.filled(items.length, true);
+  if (!sequentialLock) return List.filled(items.length, false);
 
-  /// Whether every word list, book, AND special node is complete.
-  bool get isAllComplete =>
-    isAllListsComplete &&
-    isAllBooksComplete &&
-    completedNodeTypes.containsAll(allSpecialNodeTypes);
+  final locks = List.filled(items.length, false);
+  bool previousNonExemptCompleted = true;
+
+  for (int i = 0; i < items.length; i++) {
+    final item = items[i];
+    final isExemptBook = item is PathBookItem && booksExemptFromLock;
+
+    if (isExemptBook) {
+      locks[i] = false;
+    } else {
+      locks[i] = !previousNonExemptCompleted;
+      if (!locks[i]) {
+        previousNonExemptCompleted = item.isComplete;
+      }
+    }
+  }
+  return locks;
 }
 
 /// Fetches all learning paths for the current user.
@@ -623,16 +678,16 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   );
 });
 
-/// Complete learning path: units + word lists + progress + node completions + books.
+/// Complete learning path: units + unified items list + progress + node completions.
 ///
 /// Data flow:
 /// 1. userLearningPathsProvider → gives us learning paths → units → items (IDs + types + sort_order)
 /// 2. For word list items: match with allWordListsProvider data + userWordListProgressProvider
 /// 3. For book items: fetch book details via bookByIdProvider + completedBookIdsProvider
-/// 4. Build PathUnitData / PathRowData structures compatible with existing widgets
+/// 4. Build PathUnitData with a single unified items list (PathItemData sealed hierarchy)
 ///
 /// Items are ordered by sort_order from the RPC. Word lists and books are interleaved
-/// but separated into `rows` and `books` in PathUnitData for widget compatibility.
+/// in a single list for correct rendering order.
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final learningPaths = await ref.watch(userLearningPathsProvider.future);
   final allLists = await ref.watch(allWordListsProvider.future);
@@ -664,56 +719,50 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         updatedAt: DateTime.now(),
       );
 
-      // Separate items into word lists and books, maintaining sort_order
-      final wordListItems = <LearningPathItem>[];
-      final bookItems = <LearningPathItem>[];
-
+      // Build unified items list (word lists and books interleaved by sort_order)
+      final items = <PathItemData>[];
       for (final item in lpUnit.items) {
         if (item.itemType == LearningPathItemType.wordList) {
-          wordListItems.add(item);
+          final wordList = wordListMap[item.itemId];
+          if (wordList == null) continue;
+          items.add(
+            PathWordListItem(
+              sortOrder: item.sortOrder,
+              wordListWithProgress: WordListWithProgress(
+                wordList: wordList,
+                progress: progressMap[item.itemId],
+              ),
+            ),
+          );
         } else if (item.itemType == LearningPathItemType.book) {
-          bookItems.add(item);
+          final book = await ref.watch(bookByIdProvider(item.itemId).future);
+          if (book != null) {
+            items.add(
+              PathBookItem(
+                sortOrder: item.sortOrder,
+                bookWithProgress: UnitBookWithProgress(
+                  bookId: item.itemId,
+                  book: book,
+                  isCompleted: completedBookIds.contains(item.itemId),
+                  sortOrder: item.sortOrder,
+                ),
+              ),
+            );
+          }
         }
       }
 
-      // Build word list rows (each word list = one row, ordered by sort_order)
-      final rows = <PathRowData>[];
-      for (final item in wordListItems) {
-        final wordList = wordListMap[item.itemId];
-        if (wordList == null) continue;
-        rows.add(PathRowData(
-          orderInUnit: item.sortOrder,
-          items: [WordListWithProgress(
-            wordList: wordList,
-            progress: progressMap[item.itemId],
-          )],
-        ));
-      }
+      items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
-      // Build book list with progress
-      final booksWithProgress = <UnitBookWithProgress>[];
-      for (final item in bookItems) {
-        final book = await ref.watch(bookByIdProvider(item.itemId).future);
-        if (book != null) {
-          booksWithProgress.add(UnitBookWithProgress(
-            bookId: item.itemId,
-            book: book,
-            isCompleted: completedBookIds.contains(item.itemId),
-            sortOrder: item.sortOrder,
-          ));
-        }
-      }
-
-      // Sort rows and books by sort_order
-      rows.sort((a, b) => a.orderInUnit.compareTo(b.orderInUnit));
-      booksWithProgress.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-
-      result.add(PathUnitData(
-        unit: vocabUnit,
-        rows: rows,
-        books: booksWithProgress,
-        completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
-      ));
+      result.add(
+        PathUnitData(
+          unit: vocabUnit,
+          items: items,
+          completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
+          sequentialLock: path.sequentialLock,
+          booksExemptFromLock: path.booksExemptFromLock,
+        ),
+      );
     }
   }
 
