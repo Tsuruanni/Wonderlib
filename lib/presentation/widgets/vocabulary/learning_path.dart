@@ -100,9 +100,17 @@ class LearningPath extends ConsumerWidget {
       prevNodeCenterXs = unitCenterXs;
       globalRowIndex++;
 
-      // --- Word rows (sequential locking within unit) ---
-      for (int rowIdx = 0; rowIdx < unit.rows.length; rowIdx++) {
-        final row = unit.rows[rowIdx];
+      // --- Unified items loop (word lists + books, interleaved by sort_order) ---
+      final locks = calculateLocks(
+        items: unit.items,
+        sequentialLock: unit.sequentialLock,
+        booksExemptFromLock: unit.booksExemptFromLock,
+        isUnitLocked: isUnitLocked,
+      );
+
+      for (int itemIdx = 0; itemIdx < unit.items.length; itemIdx++) {
+        final item = unit.items[itemIdx];
+        final isItemLocked = locks[itemIdx];
 
         final currentNodeCenterXs = _nodeCenterXs(
           globalRowIndex: globalRowIndex,
@@ -113,17 +121,21 @@ class LearningPath extends ConsumerWidget {
           addPathPoint(currentNodeCenterXs[0], y + 40 + 36);
         }
 
-        // Sequential lock: row N locked until row N-1 is complete
-        final isRowLocked = isUnitLocked ||
-            (rowIdx > 0 && !unit.rows[rowIdx - 1].items.every((i) => i.isComplete));
+        // Active detection — first unlocked + incomplete node in the path
+        bool isActive = false;
+        if (!foundActive && !isItemLocked && !item.isComplete) {
+          isActive = true;
+          foundActive = true;
+        }
 
+        // Connector from previous node
         bool prevCompleted;
-        if (isRowLocked) {
+        if (isItemLocked) {
           prevCompleted = false;
-        } else if (rowIdx == 0) {
+        } else if (itemIdx == 0) {
           prevCompleted = unitIdx > 0 ? units[unitIdx - 1].isAllComplete : false;
         } else {
-          prevCompleted = unit.rows[rowIdx - 1].items.every((i) => i.isComplete);
+          prevCompleted = !isItemLocked;
         }
 
         connectors.add(
@@ -140,92 +152,58 @@ class LearningPath extends ConsumerWidget {
         );
         y += 36;
 
-        // Active detection — first unlocked + incomplete node in the path
-        final activeFlags = <bool>[];
-        for (final item in row.items) {
-          if (!isRowLocked && !foundActive && !item.isComplete) {
-            activeFlags.add(true);
-            foundActive = true;
-          } else {
-            activeFlags.add(false);
-          }
+        // Render based on item type
+        switch (item) {
+          case PathWordListItem(:final wordListWithProgress):
+            nodes.add(
+              Positioned(
+                top: y,
+                left: 0,
+                right: 0,
+                child: PathRow(
+                  wordListWithProgress: wordListWithProgress,
+                  globalRowIndex: globalRowIndex,
+                  unitColor: unit.unit.parsedColor,
+                  isActive: isActive,
+                  isLocked: isItemLocked,
+                  canStartNewList: canStartNewList,
+                ),
+              ),
+            );
+
+          case PathBookItem(:final bookWithProgress):
+            nodes.add(
+              Positioned(
+                top: y,
+                left: 0,
+                right: 0,
+                child: PathBookNode(
+                  globalRowIndex: globalRowIndex,
+                  bookTitle: bookWithProgress.book.title,
+                  bookId: bookWithProgress.bookId,
+                  isLocked: isItemLocked,
+                  isComplete: bookWithProgress.isCompleted,
+                  isActive: isActive,
+                ),
+              ),
+            );
         }
 
-        nodes.add(
-          Positioned(
-            top: y,
-            left: 0,
-            right: 0,
-            child: PathRow(
-              row: row,
-              globalRowIndex: globalRowIndex,
-              unitColor: unit.unit.parsedColor,
-              activeFlags: activeFlags,
-              isLocked: isRowLocked,
-              canStartNewList: canStartNewList,
-            ),
-          ),
-        );
         y += 80.0;
-
         prevNodeCenterXs = currentNodeCenterXs;
         globalRowIndex++;
       }
 
       // --- Sequential special node locking ---
-      final allListsDone = unit.isAllListsComplete;
-      final allBooksDone = unit.isAllBooksComplete;
+      // "allRequiredDone" checks items that participate in locking (exempt books excluded)
+      final allRequiredDone = unit.items
+          .where((i) => !(i is PathBookItem && unit.booksExemptFromLock))
+          .every((i) => i.isComplete);
       final reviewDone = unit.completedNodeTypes.contains('daily_review');
       final gameDone = unit.completedNodeTypes.contains('game');
       final treasureDone = unit.completedNodeTypes.contains('treasure');
 
-      // Previous node completion for connector coloring
-      final lastListComplete = allListsDone && !isUnitLocked;
-
-      // --- Book Nodes (replace Flipbook) ---
-      for (int bookIdx = 0; bookIdx < unit.books.length; bookIdx++) {
-        final bookData = unit.books[bookIdx];
-
-        // Lock: first book needs all lists done, subsequent books need previous book done
-        final isBookLocked = isUnitLocked ||
-            (bookIdx == 0 ? !allListsDone : !unit.books[bookIdx - 1].isCompleted);
-
-        // Active detection
-        bool isBookActive = false;
-        if (!foundActive && !isBookLocked && !bookData.isCompleted) {
-          isBookActive = true;
-          foundActive = true;
-        }
-
-        // Connector coloring
-        final bookConnectorComplete = bookIdx == 0
-            ? lastListComplete
-            : unit.books[bookIdx - 1].isCompleted && !isUnitLocked;
-
-        y = _addSpecialNode(
-          nodes: nodes,
-          connectors: connectors,
-          pathPoints: pathPoints,
-          prevCenterXs: prevNodeCenterXs,
-          globalRowIndex: globalRowIndex,
-          screenWidth: screenWidth,
-          y: y,
-          connectorCompleted: bookConnectorComplete,
-          builder: (idx) => PathBookNode(
-            globalRowIndex: idx,
-            bookTitle: bookData.book.title,
-            bookId: bookData.book.id,
-            isLocked: isBookLocked,
-            isComplete: bookData.isCompleted,
-            isActive: isBookActive,
-          ),
-        );
-        prevNodeCenterXs = _nodeCenterXs(globalRowIndex: globalRowIndex, screenWidth: screenWidth);
-        globalRowIndex++;
-      }
-
-      // Review depends on books (or word lists if no books)
-      final reviewLocked = isUnitLocked || !allBooksDone;
+      final reviewLocked = isUnitLocked || !allRequiredDone;
       final gameLocked = isUnitLocked || !reviewDone;
       final treasureLocked = isUnitLocked || !gameDone;
 
@@ -247,10 +225,8 @@ class LearningPath extends ConsumerWidget {
         foundActive = true;
       }
 
-      // Connector from last book (or last word list) to Daily Review
-      final preReviewComplete = unit.books.isNotEmpty
-          ? allBooksDone && !isUnitLocked
-          : lastListComplete;
+      // Connector from last item to Daily Review
+      final preReviewComplete = allRequiredDone && !isUnitLocked;
 
       // --- Daily Review Node ---
       y = _addSpecialNode(

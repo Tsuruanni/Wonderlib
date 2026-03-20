@@ -9,25 +9,25 @@ import 'path_node.dart';
 class PathRow extends StatelessWidget {
   const PathRow({
     super.key,
-    required this.row,
+    required this.wordListWithProgress,
     required this.globalRowIndex,
     required this.unitColor,
-    required this.activeFlags,
+    this.isActive = false,
     this.isLocked = false,
     this.canStartNewList = true,
   });
 
-  final PathRowData row;
+  final WordListWithProgress wordListWithProgress;
   final int globalRowIndex;
   final Color unitColor;
-  final List<bool> activeFlags;
+  final bool isActive;
   final bool isLocked;
   final bool canStartNewList;
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final item = row.items.first;
+    final item = wordListWithProgress;
 
     final amplitude = screenWidth * 0.2;
     final sineOffset = sin(globalRowIndex * pi / 3) * amplitude;
@@ -36,7 +36,7 @@ class PathRow extends StatelessWidget {
 
     final nodeLeft =
         _nodeLeft(screenWidth: screenWidth, labelPosition: labelPosition);
-    final isActive = activeFlags.isNotEmpty && activeFlags[0];
+    final isActive = this.isActive;
     return SizedBox(
       height: 80.0,
       child: Stack(
