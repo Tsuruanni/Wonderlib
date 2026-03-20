@@ -378,10 +378,9 @@ class _AssignmentDetailContent extends ConsumerWidget {
                     title: 'Complete vocabulary practice',
                     subtitle: 'Learn and review words',
                     color: Colors.purple,
-                    onTap: () {
-                      // Navigate to vocabulary
-                      context.go(AppRoutes.vocabulary);
-                    },
+                    onTap: assignment.wordListId != null
+                        ? () => _startVocabulary(context, ref, assignment)
+                        : null,
                   ),
                 ],
               ],
@@ -424,6 +423,27 @@ class _AssignmentDetailContent extends ConsumerWidget {
     }
   }
 
+  void _startVocabulary(BuildContext context, WidgetRef ref, StudentAssignment assignment) async {
+    if (assignment.wordListId == null) return;
+
+    // Start the assignment if not started
+    if (assignment.status == StudentAssignmentStatus.pending) {
+      final userId = ref.read(currentUserIdProvider);
+      if (userId != null) {
+        final useCase = ref.read(startAssignmentUseCaseProvider);
+        await useCase(StartAssignmentParams(
+          studentId: userId,
+          assignmentId: assignment.assignmentId,
+        ),);
+        ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        ref.invalidate(studentAssignmentsProvider);
+      }
+    }
+
+    if (context.mounted) {
+      context.go(AppRoutes.vocabularyListPath(assignment.wordListId!));
+    }
+  }
 }
 
 class _ContentCard extends StatelessWidget {
