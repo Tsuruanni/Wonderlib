@@ -1,6 +1,8 @@
 enum LearningPathItemType {
   wordList('word_list', 'Word List'),
-  book('book', 'Book');
+  book('book', 'Book'),
+  game('game', 'Game'),
+  treasure('treasure', 'Treasure');
 
   final String dbValue;
   final String displayName;
