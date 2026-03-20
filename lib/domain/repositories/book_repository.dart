@@ -5,7 +5,6 @@ import '../entities/activity.dart';
 import '../entities/book.dart';
 import '../entities/chapter.dart';
 import '../entities/reading_progress.dart';
-import '../entities/unit_book.dart';
 
 abstract class BookRepository {
   Future<Either<Failure, List<Book>>> getBooks({
@@ -83,7 +82,4 @@ abstract class BookRepository {
 
   /// Count words read today (from completed chapters)
   Future<Either<Failure, int>> getWordsReadTodayCount(String userId);
-
-  /// Gets books assigned to vocabulary units for a user (scoped by school/grade/class)
-  Future<Either<Failure, List<UnitBook>>> getUnitBooks(String userId);
 }

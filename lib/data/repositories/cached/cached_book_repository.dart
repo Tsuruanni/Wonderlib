@@ -8,7 +8,6 @@ import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/reading_progress.dart';
-import '../../../domain/entities/unit_book.dart';
 import '../../../domain/repositories/book_repository.dart';
 import '../supabase/supabase_book_repository.dart';
 
@@ -537,11 +536,6 @@ class CachedBookRepository implements BookRepository {
   @override
   Future<Either<Failure, int>> getWordsReadTodayCount(String userId) {
     return _remoteRepo.getWordsReadTodayCount(userId);
-  }
-
-  @override
-  Future<Either<Failure, List<UnitBook>>> getUnitBooks(String userId) {
-    return _remoteRepo.getUnitBooks(userId);
   }
 
   // ===========================================================================

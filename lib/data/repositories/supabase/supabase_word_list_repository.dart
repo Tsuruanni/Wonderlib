@@ -3,11 +3,13 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/learning_path.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/entities/vocabulary_session.dart';
 import '../../../domain/entities/vocabulary_unit.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/word_list_repository.dart';
+import '../../models/vocabulary/learning_path_model.dart';
 import '../../models/vocabulary/vocabulary_session_model.dart';
 import '../../models/vocabulary/vocabulary_unit_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
@@ -359,6 +361,24 @@ class SupabaseWordListRepository implements WordListRepository {
           .eq('word_list_id', listId);
 
       return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<LearningPath>>> getUserLearningPaths(
+    String userId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getUserLearningPaths,
+        params: {'p_user_id': userId},
+      );
+      final rows = List<Map<String, dynamic>>.from(response as List);
+      return Right(LearningPathModel.fromRpcRows(rows));
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

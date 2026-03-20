@@ -7,13 +7,11 @@ import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/reading_progress.dart';
-import '../../../domain/entities/unit_book.dart';
 import '../../../domain/repositories/book_repository.dart';
 import '../../models/activity/inline_activity_model.dart';
 import '../../models/book/book_model.dart';
 import '../../models/book/chapter_model.dart';
 import '../../models/book/reading_progress_model.dart';
-import '../../models/book/unit_book_model.dart';
 
 class SupabaseBookRepository implements BookRepository {
   SupabaseBookRepository({SupabaseClient? supabase})
@@ -601,33 +599,6 @@ class SupabaseBookRepository implements BookRepository {
       );
     } catch (_) {
       // Non-critical - swallow errors. Don't block chapter completion.
-    }
-  }
-
-  // ============================================
-  // UNIT BOOK ASSIGNMENTS
-  // ============================================
-
-  @override
-  Future<Either<Failure, List<UnitBook>>> getUnitBooks(String userId) async {
-    try {
-      final response = await _supabase.rpc(
-        RpcFunctions.getUserUnitBooks,
-        params: {'p_user_id': userId},
-      );
-
-      final books = (response as List)
-          .map(
-            (json) =>
-                UnitBookModel.fromJson(json as Map<String, dynamic>).toEntity(),
-          )
-          .toList();
-
-      return Right(books);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
     }
   }
 

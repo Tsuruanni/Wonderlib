@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
+import '../entities/learning_path.dart';
 import '../entities/vocabulary.dart';
 import '../entities/vocabulary_session.dart';
 import '../entities/vocabulary_unit.dart';
@@ -73,4 +74,9 @@ abstract class WordListRepository {
     required String userId,
     required String listId,
   });
+
+  /// Get learning paths with units and items for a user (resolved by school/grade/class)
+  Future<Either<Failure, List<LearningPath>>> getUserLearningPaths(
+    String userId,
+  );
 }
