@@ -6,13 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:owlio_shared/owlio_shared.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../app/theme.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -110,9 +106,6 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       return;
     }
 
-    // Record DR completion in path tracking (independent of XP session)
-    await _recordDrCompletion();
-
     // Daily review: record session + earn XP
     final result = await ref
         .read(dailyReviewControllerProvider.notifier)
@@ -120,89 +113,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     if (result == null || !mounted) return;
 
+    // Invalidate providers so learning path refreshes (DR node shows as complete)
+    ref.invalidate(todayReviewSessionProvider);
+    ref.invalidate(learningPathProvider);
+
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
-  }
-
-  /// Records daily review completion in path_daily_review_completions
-  /// and invalidates the learning path provider so the DR node shows as complete.
-  Future<void> _recordDrCompletion() async {
-    try {
-      final userId = ref.read(currentUserIdProvider);
-      if (userId == null) return;
-
-      final supabase = Supabase.instance.client;
-
-      // Find all scope_learning_path_units for the user's assigned paths
-      // Use the user's school/grade/class to find matching scope paths
-      final userProfile = await supabase
-          .from('profiles')
-          .select('school_id, class_id')
-          .eq('id', userId)
-          .maybeSingle();
-
-      if (userProfile == null || userProfile['school_id'] == null) return;
-
-      final schoolId = userProfile['school_id'] as String;
-      final classId = userProfile['class_id'] as String?;
-
-      // Get scope learning paths for this user's school
-      var pathQuery = supabase
-          .from(DbTables.scopeLearningPaths)
-          .select('id')
-          .eq('school_id', schoolId);
-
-      final scopePaths = await pathQuery;
-      if ((scopePaths as List).isEmpty) return;
-
-      final scopePathIds = scopePaths.map((p) => p['id'] as String).toList();
-
-      // Get all scope_learning_path_units for these paths
-      final scopeUnits = await supabase
-          .from(DbTables.scopeLearningPathUnits)
-          .select('id, unit_id')
-          .inFilter('scope_learning_path_id', scopePathIds)
-          .limit(1);
-
-      if ((scopeUnits as List).isEmpty) return;
-
-      // Use the first scope_lp_unit for DR tracking
-      final scopeLpUnitId = scopeUnits[0]['id'] as String;
-
-      // Find DR position from the current path data
-      int drPosition = 0;
-      final learningPaths = ref.read(learningPathProvider).valueOrNull;
-      if (learningPaths != null) {
-        for (final unit in learningPaths) {
-          for (final item in unit.items) {
-            if (item is PathDailyReviewItem && !item.isComplete) {
-              drPosition = item.sortOrder;
-              break;
-            }
-          }
-        }
-      }
-
-      // Insert completion record
-      await supabase
-          .from(DbTables.pathDailyReviewCompletions)
-          .upsert({
-            'user_id': userId,
-            'scope_lp_unit_id': scopeLpUnitId,
-            'position': drPosition,
-            'completed_at': DateTime.now().toIso8601String().substring(0, 10),
-          }, onConflict: 'user_id,scope_lp_unit_id,completed_at');
-
-      // Invalidate all related providers so path refreshes
-      ref.invalidate(pathDailyReviewsProvider);
-      ref.invalidate(totalDueWordsForReviewProvider);
-      ref.invalidate(learningPathProvider);
-    } catch (e) {
-      // Log error but don't block the flow
-      // ignore: avoid_print
-      print('DR completion tracking error: $e');
-    }
   }
 
   void _showCompletionDialog({

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/entities/book.dart';
 import '../../domain/entities/learning_path.dart';
@@ -709,35 +708,6 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   );
 });
 
-/// Daily review completion data
-class DrCompletion {
-  const DrCompletion({
-    required this.scopeLpUnitId,
-    required this.position,
-    required this.completedAt,
-  });
-
-  final String scopeLpUnitId;
-  final int position;
-  final DateTime completedAt;
-}
-
-/// Fetches daily review completion history for current user
-final pathDailyReviewsProvider = FutureProvider<List<DrCompletion>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-  final supabase = Supabase.instance.client;
-  final response = await supabase.rpc(
-    RpcFunctions.getPathDailyReviews,
-    params: {'p_user_id': userId},
-  );
-  return (response as List).map((r) => DrCompletion(
-    scopeLpUnitId: r['scope_lp_unit_id'] as String,
-    position: r['position'] as int,
-    completedAt: DateTime.parse(r['completed_at'] as String),
-  ),).toList();
-});
-
 /// Complete learning path: units + unified items list + progress + node completions.
 ///
 /// Data flow:
@@ -825,23 +795,18 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
       }
 
       // --- Daily Review injection ---
-      final drHistory = await ref.watch(pathDailyReviewsProvider.future);
-
-      // Check if today's DR is needed
-      final today = DateTime.now();
+      // Uses existing todayReviewSessionProvider (reads daily_review_sessions table)
+      // No new tables or RPCs needed.
+      final todaySession = await ref.watch(todayReviewSessionProvider.future);
       final dailyReviewDueCount = await ref
           .watch(totalDueWordsForReviewProvider.future)
           .catchError((_) => 0);
-      final doneToday = drHistory.any(
-        (dr) =>
-            dr.completedAt.year == today.year &&
-            dr.completedAt.month == today.month &&
-            dr.completedAt.day == today.day,
-      );
-      final needsDr = !doneToday && dailyReviewDueCount >= minDailyReviewCount;
+      final drDoneToday = todaySession != null;
+      final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
 
-      if (needsDr) {
-        // Find position: just before the first incomplete non-exempt item
+      // Show DR node if needed OR if already done today (so student sees the completed node)
+      if (drNeeded || drDoneToday) {
+        // Position: just before the first incomplete non-exempt item
         int drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
         for (int i = 0; i < items.length; i++) {
           final item = items[i];
@@ -852,22 +817,17 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
           }
         }
 
-        // Only add if there isn't already a pending DR
-        final hasPendingDr = items.any((i) => i is PathDailyReviewItem && !i.isComplete);
-        if (!hasPendingDr) {
-          items.add(PathDailyReviewItem(
-            sortOrder: drSortOrder,
-            completedAt: null,
-            isCompleted: false,
-          ),);
-        }
+        items.add(PathDailyReviewItem(
+          sortOrder: drSortOrder,
+          completedAt: drDoneToday ? DateTime.now() : null,
+          isCompleted: drDoneToday,
+        ));
       }
 
       // Re-sort: DR items come before other items with the same sortOrder
       items.sort((a, b) {
         final cmp = a.sortOrder.compareTo(b.sortOrder);
         if (cmp != 0) return cmp;
-        // DR comes first at same position
         if (a is PathDailyReviewItem && b is! PathDailyReviewItem) return -1;
         if (b is PathDailyReviewItem && a is! PathDailyReviewItem) return 1;
         return 0;
