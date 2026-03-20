@@ -614,49 +614,78 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
 // PICKER DIALOGS
 // ============================================
 
-/// Shows a dialog to select a vocabulary unit.
+/// Shows a dialog to create a new vocabulary unit inline.
+/// Creates the unit in vocabulary_units table and returns it.
 void showUnitPicker(
   BuildContext context,
   WidgetRef ref, {
   required Set<String> excludeIds,
   required Function(Map<String, dynamic>) onSelect,
 }) {
-  final searchController = TextEditingController();
+  final nameController = TextEditingController();
+  final iconController = TextEditingController(text: '📚');
+  var selectedColor = '#58CC02';
+  var isSaving = false;
+
+  final colors = [
+    '#58CC02', '#1CB0F6', '#CE82FF', '#FF9600',
+    '#FF4B4B', '#2B70C9', '#00CD9C', '#F5C400',
+  ];
 
   showDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialogState) {
         return AlertDialog(
-          title: const Text('Ünite Seç'),
+          title: const Text('Yeni Ünite Oluştur'),
           content: SizedBox(
-            width: 500,
-            height: 400,
+            width: 400,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextField(
-                  controller: searchController,
+                  controller: nameController,
                   decoration: const InputDecoration(
-                    hintText: 'Ünite ara...',
-                    prefixIcon: Icon(Icons.search),
+                    labelText: 'Ünite Adı *',
+                    hintText: 'ör. Unit 1: Animals',
                     border: OutlineInputBorder(),
                   ),
-                  onChanged: (_) => setDialogState(() {}),
+                  autofocus: true,
                 ),
                 const SizedBox(height: 16),
-                Expanded(
-                  child: Consumer(
-                    builder: (context, ref, _) {
-                      return _UnitPickerList(
-                        searchQuery: searchController.text.trim(),
-                        excludeIds: excludeIds,
-                        onSelect: (unit) {
-                          onSelect(unit);
-                          Navigator.pop(ctx);
-                        },
-                      );
-                    },
+                TextField(
+                  controller: iconController,
+                  decoration: const InputDecoration(
+                    labelText: 'İkon (emoji)',
+                    border: OutlineInputBorder(),
                   ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Renk',
+                    style: TextStyle(fontSize: 12, color: Colors.grey)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: colors.map((hex) {
+                    final color = parseHexColor(hex);
+                    final isSelected = hex == selectedColor;
+                    return GestureDetector(
+                      onTap: () =>
+                          setDialogState(() => selectedColor = hex),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: Colors.black, width: 2)
+                              : null,
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
@@ -666,75 +695,76 @@ void showUnitPicker(
               onPressed: () => Navigator.pop(ctx),
               child: const Text('İptal'),
             ),
+            FilledButton(
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      final name = nameController.text.trim();
+                      if (name.isEmpty) return;
+
+                      setDialogState(() => isSaving = true);
+
+                      try {
+                        final supabase = ref.read(supabaseClientProvider);
+                        // Get next sort_order
+                        final existing = await supabase
+                            .from(DbTables.vocabularyUnits)
+                            .select('sort_order')
+                            .order('sort_order', ascending: false)
+                            .limit(1);
+                        final nextOrder = existing.isNotEmpty
+                            ? (existing[0]['sort_order'] as int) + 1
+                            : 0;
+
+                        // Create the unit
+                        final response = await supabase
+                            .from(DbTables.vocabularyUnits)
+                            .insert({
+                              'name': name,
+                              'icon': iconController.text.trim().isEmpty
+                                  ? '📚'
+                                  : iconController.text.trim(),
+                              'color': selectedColor,
+                              'sort_order': nextOrder,
+                              'is_active': true,
+                            })
+                            .select()
+                            .single();
+
+                        ref.invalidate(_activeUnitsProvider);
+
+                        if (ctx.mounted) {
+                          onSelect(response);
+                          Navigator.pop(ctx);
+                        }
+                      } catch (e) {
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(
+                              content: Text('Hata: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          setDialogState(() => isSaving = false);
+                        }
+                      }
+                    },
+              child: isSaving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Oluştur'),
+            ),
           ],
         );
       },
     ),
   );
-}
-
-/// Internal widget for unit picker list (uses ConsumerWidget for Supabase access).
-class _UnitPickerList extends ConsumerWidget {
-  const _UnitPickerList({
-    required this.searchQuery,
-    required this.excludeIds,
-    required this.onSelect,
-  });
-
-  final String searchQuery;
-  final Set<String> excludeIds;
-  final Function(Map<String, dynamic>) onSelect;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final asyncUnits = ref.watch(_activeUnitsProvider);
-
-    return asyncUnits.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Hata: $e')),
-      data: (units) {
-        var filtered = units
-            .where((u) => !excludeIds.contains(u['id'] as String))
-            .toList();
-
-        if (searchQuery.isNotEmpty) {
-          final q = searchQuery.toLowerCase();
-          filtered = filtered
-              .where((u) =>
-                  (u['name'] as String? ?? '').toLowerCase().contains(q))
-              .toList();
-        }
-
-        if (filtered.isEmpty) {
-          return const Center(child: Text('Ünite bulunamadı'));
-        }
-
-        return ListView.builder(
-          itemCount: filtered.length,
-          itemBuilder: (context, index) {
-            final unit = filtered[index];
-            final color = parseHexColor(unit['color'] as String?);
-            return ListTile(
-              leading: CircleAvatar(
-                radius: 16,
-                backgroundColor: color.withAlpha(50),
-                child: Text(
-                  unit['icon'] as String? ?? '📚',
-                  style: const TextStyle(fontSize: 14),
-                ),
-              ),
-              title: Text(unit['name'] as String? ?? ''),
-              subtitle: Text(
-                'Sıra: ${unit['sort_order'] ?? 0}',
-                style: const TextStyle(fontSize: 12),
-              ),
-              onTap: () => onSelect(unit),
-            );
-          },
-        );
-      },
-    );
-  }
 }
 
 /// Shows a dialog to select a word list.
