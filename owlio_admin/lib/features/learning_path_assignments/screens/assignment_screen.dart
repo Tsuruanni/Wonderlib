@@ -51,6 +51,8 @@ class _ScopeLearningPathData {
   String? templateId;
   int sortOrder;
   List<LearningPathUnitData> units;
+  bool sequentialLock;
+  bool booksExemptFromLock;
 
   _ScopeLearningPathData({
     this.id,
@@ -58,6 +60,8 @@ class _ScopeLearningPathData {
     this.templateId,
     required this.sortOrder,
     required this.units,
+    this.sequentialLock = true,
+    this.booksExemptFromLock = true,
   });
 }
 
@@ -105,7 +109,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // Build query for scope_learning_paths matching current scope
       var query = supabase
           .from(DbTables.scopeLearningPaths)
-          .select('id, name, template_id, sort_order')
+          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock')
           .eq('school_id', _schoolId!);
 
       if (_scopeType == _ScopeType.grade) {
@@ -202,6 +206,8 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           templateId: pathRow['template_id'] as String?,
           sortOrder: pathRow['sort_order'] as int? ?? 0,
           units: units,
+          sequentialLock: pathRow['sequential_lock'] as bool? ?? true,
+          booksExemptFromLock: pathRow['books_exempt_from_lock'] as bool? ?? true,
         ));
       }
 
@@ -477,6 +483,30 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Kaydetme hatas\u0131: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  // ============================================
+  // UPDATE LOCK SETTINGS
+  // ============================================
+
+  Future<void> _updateLockSettings(_ScopeLearningPathData lp) async {
+    if (lp.id == null) return;
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      await supabase
+          .from(DbTables.scopeLearningPaths)
+          .update({
+            'sequential_lock': lp.sequentialLock,
+            'books_exempt_from_lock': lp.booksExemptFromLock,
+          })
+          .eq('id', lp.id!);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -910,6 +940,31 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
               showWordPreview: false,
             ),
           ),
+
+          // Lock settings
+          const Divider(height: 1),
+          SwitchListTile(
+            title: const Text('Sıralı ilerleme'),
+            subtitle: const Text('Önceki tamamlanmadan sonraki açılmaz'),
+            value: path.sequentialLock,
+            onChanged: (v) {
+              setState(() {
+                _learningPaths[pathIndex].sequentialLock = v;
+                if (!v) _learningPaths[pathIndex].booksExemptFromLock = true;
+              });
+              _updateLockSettings(_learningPaths[pathIndex]);
+            },
+          ),
+          if (path.sequentialLock)
+            SwitchListTile(
+              title: const Text('Kitapları hariç tut'),
+              subtitle: const Text('Kitaplar her zaman erişilebilir'),
+              value: path.booksExemptFromLock,
+              onChanged: (v) {
+                setState(() => _learningPaths[pathIndex].booksExemptFromLock = v);
+                _updateLockSettings(_learningPaths[pathIndex]);
+              },
+            ),
         ],
       ),
     );
