@@ -41,6 +41,10 @@ abstract class RpcFunctions {
   static const getUserWeeklySchoolPosition = 'get_user_weekly_school_position';
   static const processWeeklyLeagueReset = 'process_weekly_league_reset';
 
+  // Learning paths
+  static const getUserLearningPaths = 'get_user_learning_paths';
+  static const applyLearningPathTemplate = 'apply_learning_path_template';
+
   // Teacher
   static const getTeacherStats = 'get_teacher_stats';
   static const getClassesWithStats = 'get_classes_with_stats';

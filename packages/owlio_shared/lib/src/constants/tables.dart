@@ -53,6 +53,16 @@ abstract class DbTables {
   static const packPurchases = 'pack_purchases';
   static const dailyQuestPackClaims = 'daily_quest_pack_claims';
 
+  // Learning path templates
+  static const learningPathTemplates = 'learning_path_templates';
+  static const learningPathTemplateUnits = 'learning_path_template_units';
+  static const learningPathTemplateItems = 'learning_path_template_items';
+
+  // Learning path scope assignments
+  static const scopeLearningPaths = 'scope_learning_paths';
+  static const scopeLearningPathUnits = 'scope_learning_path_units';
+  static const scopeUnitItems = 'scope_unit_items';
+
   // Assignments
   static const assignments = 'assignments';
   static const assignmentStudents = 'assignment_students';

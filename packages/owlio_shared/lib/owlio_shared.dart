@@ -16,3 +16,4 @@ export 'src/enums/card_rarity.dart';
 export 'src/enums/card_category.dart';
 export 'src/enums/word_list_category.dart';
 export 'src/enums/league_tier.dart';
+export 'src/enums/learning_path_item_type.dart';
