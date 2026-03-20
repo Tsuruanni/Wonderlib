@@ -841,18 +841,13 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
       final needsDr = !doneToday && dailyReviewDueCount >= minDailyReviewCount;
 
       if (needsDr) {
-        // Find position: just before the first locked non-exempt item
-        final tempLocks = calculateLocks(
-          items: items,
-          sequentialLock: path.sequentialLock,
-          booksExemptFromLock: path.booksExemptFromLock,
-          isUnitLocked: false, // calculate as if unit is unlocked to find the right position
-        );
-
+        // Find position: just before the first incomplete non-exempt item
         int drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
         for (int i = 0; i < items.length; i++) {
-          if (tempLocks[i]) {
-            drSortOrder = items[i].sortOrder;
+          final item = items[i];
+          final isExempt = item is PathBookItem && path.booksExemptFromLock;
+          if (!isExempt && !item.isComplete) {
+            drSortOrder = item.sortOrder;
             break;
           }
         }
@@ -868,8 +863,15 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         }
       }
 
-      // Re-sort
-      items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      // Re-sort: DR items come before other items with the same sortOrder
+      items.sort((a, b) {
+        final cmp = a.sortOrder.compareTo(b.sortOrder);
+        if (cmp != 0) return cmp;
+        // DR comes first at same position
+        if (a is PathDailyReviewItem && b is! PathDailyReviewItem) return -1;
+        if (b is PathDailyReviewItem && a is! PathDailyReviewItem) return 1;
+        return 0;
+      });
 
       result.add(
         PathUnitData(
