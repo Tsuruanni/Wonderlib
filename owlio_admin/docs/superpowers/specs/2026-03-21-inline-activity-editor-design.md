@@ -87,22 +87,29 @@ Appears on `word_translation`, `find_words`, and `matching` forms. NOT on `true_
 
 **Inline word creation:**
 - If the typed word doesn't exist, show "Add [word]" option in dropdown
-- Creates a minimal `vocabulary_words` row: only `word` field filled, `source = 'activity'`
-- Other fields (translation, phonetic, CEFR level, etc.) left null — to be completed later in vocabulary management screen
-- Returns the new UUID immediately for use in the activity
+- A mini-dialog asks for `word` + `meaning_tr` (both required — `meaning_tr` is NOT NULL in DB)
+- Creates a `vocabulary_words` row with `word`, `meaning_tr`, `source = 'activity'`
+- Other fields (phonetic, CEFR level, example sentences, etc.) left null — to be completed later in vocabulary management screen
+- If the same word+meaning_tr already exists (unique index), returns the existing UUID instead of inserting
+- Returns the UUID immediately for use in the activity
 
 ### 5. Save Flow
 
 1. Admin fills form, clicks "Save"
 2. Validation runs — errors shown if invalid
-3. If new vocabulary words were typed inline, INSERT them into `vocabulary_words` first (with `source = 'activity'`)
-4. INSERT into `inline_activities`: `chapter_id`, `type`, `content` (JSONB), `vocabulary_words` (UUID[]), `xp_reward: 5`
+3. If new vocabulary words were typed inline, INSERT/lookup them in `vocabulary_words` first (with `source = 'activity'`)
+4. INSERT into `inline_activities`: `chapter_id`, `type`, `content` (JSONB), `vocabulary_words` (TEXT[] of UUID strings), `xp_reward: 5`, `after_paragraph_index: 0` (legacy field, required NOT NULL)
 5. UPDATE `content_blocks` row: set `activity_id` to the new `inline_activities.id`
 6. Card collapses to read-only view showing activity summary
 
+**Atomicity note:** Steps 3-5 are not wrapped in a DB transaction (Supabase PostgREST limitation). If step 5 fails, cleanup: delete the `inline_activities` row from step 4. Vocabulary words from step 3 are harmless if orphaned (they exist independently).
+
 **Edit flow:** Same form, pre-populated with existing data. UPDATE instead of INSERT on `inline_activities`.
 
-**Delete flow:** When an activity block is deleted, also DELETE the linked `inline_activities` row (currently orphaned due to ON DELETE SET NULL).
+**Delete flow:** When an activity block is deleted:
+1. Read `activity_id` from the content block
+2. Delete the `content_blocks` row
+3. If `activity_id` was set, DELETE the `inline_activities` row by that ID
 
 ### 6. Read-Only View (collapsed)
 
@@ -127,9 +134,7 @@ COMMENT ON COLUMN vocabulary_words.source IS 'Origin of the word: manual, import
 
 Existing rows get `'manual'`. CSV import updated to write `'import'`. Activity editor writes `'activity'`.
 
-### No other schema changes needed
-
-`inline_activities` and `content_blocks` tables already have all required columns.
+No other schema changes needed. `inline_activities` and `content_blocks` tables already have all required columns. Note: `after_paragraph_index` is NOT NULL on `inline_activities` — the editor writes `0` as a placeholder (legacy field, unused by block-based reader).
 
 ---
 
@@ -148,6 +153,7 @@ Existing rows get `'manual'`. CSV import updated to write `'import'`. Activity e
 | `content_block_editor.dart` | Add activity type forms, save/edit/delete logic, vocabulary autocomplete |
 | `vocabulary_list_screen.dart` | Source badge, default sort by created_at DESC |
 | `vocabulary_edit_screen.dart` | Show source field (read-only) |
+| `vocabulary_import_screen.dart` | Write `source: 'import'` on CSV imports |
 | New migration file | `source` column on `vocabulary_words` |
 
 ---
@@ -156,6 +162,5 @@ Existing rows get `'manual'`. CSV import updated to write `'import'`. Activity e
 
 - XP configuration per activity (fixed at 5)
 - SM-2 algorithm display/configuration (handled by daily review system)
-- `after_paragraph_index` field (legacy, unused by block-based reader)
 - Activity reuse across chapters (1:1 relationship maintained)
 - Bulk activity creation/import changes
