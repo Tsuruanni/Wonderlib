@@ -66,6 +66,8 @@ class _ContentBlockList extends ConsumerStatefulWidget {
 class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
   late List<Map<String, dynamic>> _localBlocks;
   bool _isGeneratingChapterAudio = false;
+  // Preserve activity type metadata across DB refreshes (blockId → activityType)
+  final Map<String, String> _blockActivityTypes = {};
 
   @override
   void initState() {
@@ -77,7 +79,15 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
   void didUpdateWidget(covariant _ContentBlockList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.blocks != oldWidget.blocks) {
-      _localBlocks = List.from(widget.blocks);
+      // Re-inject local-only _activityType metadata after DB refresh
+      _localBlocks = widget.blocks.map((block) {
+        final blockId = block['id'] as String?;
+        final activityType = blockId != null ? _blockActivityTypes[blockId] : null;
+        if (activityType != null && block['type'] == 'activity') {
+          return {...block, '_activityType': activityType};
+        }
+        return Map<String, dynamic>.from(block);
+      }).toList();
     }
   }
 
@@ -109,6 +119,11 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
       ...insertData,
       if (activityType != null) '_activityType': activityType,
     };
+
+    // Persist activity type metadata so it survives DB refresh
+    if (activityType != null) {
+      _blockActivityTypes[newBlockId] = activityType;
+    }
 
     setState(() {
       _localBlocks = [..._localBlocks, localBlock];
@@ -567,7 +582,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
                     ),
                   ),
                 ],
-                if (type == 'activity' && (widget.block['activity_id'] as String?) == null && !_isEditing) ...[
+                if (type == 'activity' && (widget.block['activity_id'] as String?) == null && _cancelledNewActivity && !_isEditing) ...[
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
