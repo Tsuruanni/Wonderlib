@@ -14,7 +14,7 @@ final bookDetailProvider =
       .from(DbTables.books)
       .select('*, chapters(*)')
       .eq('id', bookId)
-      .order('order_index', referencedTable: 'chapters')
+      .order('order_index', ascending: true, referencedTable: 'chapters')
       .maybeSingle();
 
   return response;
@@ -683,7 +683,7 @@ class _ChapterTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        chapter['title'] ?? 'Başlıksız Bölüm',
+        'Chapter ${index + 1}: ${chapter['title'] ?? 'Başlıksız Bölüm'}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
