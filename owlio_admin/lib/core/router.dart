@@ -22,7 +22,6 @@ import '../features/wordlists/screens/wordlist_edit_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/templates/screens/template_list_screen.dart';
 import '../features/templates/screens/template_edit_screen.dart';
-import '../features/learning_path_assignments/screens/assignment_list_screen.dart';
 import '../features/learning_path_assignments/screens/assignment_screen.dart';
 import '../features/quizzes/screens/book_quiz_edit_screen.dart';
 import '../features/quizzes/screens/quiz_question_edit_screen.dart';
@@ -193,10 +192,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           listId: state.pathParameters['listId'],
         ),
       ),
-      // Learning Path Templates
+      // Learning Paths (templates + assignments)
+      GoRoute(
+        path: '/learning-paths',
+        builder: (context, state) => const LearningPathsScreen(),
+      ),
       GoRoute(
         path: '/templates',
-        builder: (context, state) => const TemplateListScreen(),
+        builder: (context, state) => const LearningPathsScreen(),
       ),
       GoRoute(
         path: '/templates/new',
@@ -208,11 +211,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           templateId: state.pathParameters['templateId'],
         ),
       ),
-      // Learning Path Assignments
-      GoRoute(
-        path: '/learning-path-assignments',
-        builder: (context, state) => const LpAssignmentListScreen(),
-      ),
+      // Learning Path Assignments (create only — list is inside /learning-paths tab)
       GoRoute(
         path: '/learning-path-assignments/new',
         builder: (context, state) => const AssignmentScreen(),

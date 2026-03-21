@@ -36,23 +36,18 @@ class ChapterEditScreen extends ConsumerStatefulWidget {
   ConsumerState<ChapterEditScreen> createState() => _ChapterEditScreenState();
 }
 
-class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
 
   bool _isLoading = false;
   bool _isSaving = false;
 
-  // Always use content blocks - plain text option removed
-
   bool get isNewChapter => widget.chapterId == null;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     if (!isNewChapter) {
       _loadChapter();
     }
@@ -72,7 +67,6 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
 
   @override
   void dispose() {
-    _tabController.dispose();
     _titleController.dispose();
     super.dispose();
   }
@@ -85,7 +79,6 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
     try {
       final supabase = ref.read(supabaseClientProvider);
 
-      // Get current max order_index for this book
       int orderIndex = 0;
       if (isNewChapter) {
         final maxOrder = await supabase
@@ -113,10 +106,9 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
         await supabase.from(DbTables.chapters).insert(data);
 
         if (mounted) {
-          // Refresh book data after chapter creation
           ref.invalidate(bookDetailProvider(widget.bookId));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bölüm başarıyla oluşturuldu')),
+            const SnackBar(content: Text('Bölüm oluşturuldu')),
           );
           context.go('/books/${widget.bookId}/chapters/${data['id']}');
         }
@@ -125,7 +117,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bölüm başarıyla kaydedildi')),
+            const SnackBar(content: Text('Bölüm kaydedildi')),
           );
           ref.invalidate(chapterDetailProvider(widget.chapterId!));
         }
@@ -133,16 +125,11 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -175,7 +162,6 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
       await supabase.from(DbTables.chapters).delete().eq('id', widget.chapterId!);
 
       if (mounted) {
-        // Refresh book data after deletion
         ref.invalidate(bookDetailProvider(widget.bookId));
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Bölüm silindi')),
@@ -199,7 +185,6 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // Refresh book data when going back
             ref.invalidate(bookDetailProvider(widget.bookId));
             context.go('/books/${widget.bookId}');
           },
@@ -227,121 +212,70 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen>
           ),
           const SizedBox(width: 16),
         ],
-        bottom: !isNewChapter
-            ? TabBar(
-                controller: _tabController,
-                tabs: const [
-                  Tab(text: 'Detaylar'),
-                  Tab(text: 'İçerik Blokları'),
-                ],
-              )
-            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : isNewChapter
-              ? _buildDetailsTab()
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildDetailsTab(),
-                    _buildContentBlocksTab(),
-                  ],
-                ),
-    );
-  }
-
-  Widget _buildDetailsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 800),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          : Column(
               children: [
-                Text(
-                  'Bölüm Bilgileri',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 24),
-
-                // Title
-                TextFormField(
-                  controller: _titleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Başlık',
-                    hintText: 'Bölüm başlığını girin',
+                // Title field at top
+                Container(
+                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                    ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Başlık zorunludur';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Content blocks info
-                Card(
-                  color: const Color(0xFF4F46E5).withValues(alpha: 0.05),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.auto_awesome,
-                          color: Color(0xFF4F46E5),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'İçerik Blokları',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4F46E5),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                isNewChapter
-                                    ? 'Önce bölümü oluşturun, ardından "İçerik Blokları" sekmesinden içerik blokları ekleyin.'
-                                    : 'Yukarıdaki "İçerik Blokları" sekmesinden içerik blokları ekleyin ve yönetin.',
-                                style: TextStyle(
-                                  color: Colors.grey.shade700,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                  child: Form(
+                    key: _formKey,
+                    child: TextFormField(
+                      controller: _titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Bölüm Başlığı',
+                        hintText: 'Bölüm başlığını girin',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Başlık zorunludur';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ),
+
+                // Content blocks (only for existing chapters)
+                if (!isNewChapter)
+                  Expanded(
+                    child: ContentBlockEditor(
+                      chapterId: widget.chapterId!,
+                      onRefresh: () =>
+                          ref.invalidate(chapterDetailProvider(widget.chapterId!)),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.article_outlined,
+                              size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Önce bölümü oluşturun, ardından içerik blokları ekleyin',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContentBlocksTab() {
-    if (isNewChapter) {
-      return const Center(
-        child: Text('İçerik blokları eklemek için önce bölümü kaydedin'),
-      );
-    }
-
-    return ContentBlockEditor(
-      chapterId: widget.chapterId!,
-      onRefresh: () => ref.invalidate(chapterDetailProvider(widget.chapterId!)),
     );
   }
 }

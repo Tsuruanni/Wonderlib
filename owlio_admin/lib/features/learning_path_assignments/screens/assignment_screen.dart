@@ -588,7 +588,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/learning-path-assignments'),
+          onPressed: () => context.go('/learning-paths'),
         ),
         title: const Text('Yeni Öğrenme Yolu Ataması'),
       ),

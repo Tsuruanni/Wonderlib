@@ -281,7 +281,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
                 Text(_isNew ? 'Şablon oluşturuldu!' : 'Şablon güncellendi!'),
           ),
         );
-        context.go('/templates');
+        context.go('/learning-paths');
       }
     } catch (e) {
       if (mounted) {
@@ -338,7 +338,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Şablon silindi')),
         );
-        context.go('/templates');
+        context.go('/learning-paths');
       }
     } catch (e) {
       if (mounted) {
@@ -363,7 +363,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           title: const Text('Şablon Düzenle'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/templates'),
+            onPressed: () => context.go('/learning-paths'),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -374,7 +374,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/templates'),
+          onPressed: () => context.go('/learning-paths'),
         ),
         title: Text(
           _isNew

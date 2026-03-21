@@ -8,19 +8,40 @@ import '../../../core/supabase_client.dart';
 /// Provider for school filter
 final schoolFilterProvider = StateProvider<String?>((ref) => null);
 
+/// Provider for class filter
+final classFilterProvider = StateProvider<String?>((ref) => null);
+
 /// Provider for role filter
 final roleFilterProvider = StateProvider<String?>((ref) => null);
+
+/// Classes for selected school (for filter dropdown)
+final _filterClassesProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>(
+        (ref, schoolId) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final response = await supabase
+      .from(DbTables.classes)
+      .select('id, name, grade')
+      .eq('school_id', schoolId)
+      .order('grade')
+      .order('name');
+  return List<Map<String, dynamic>>.from(response);
+});
 
 /// Provider for loading all users with filters
 final usersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final schoolFilter = ref.watch(schoolFilterProvider);
+  final classFilter = ref.watch(classFilterProvider);
   final roleFilter = ref.watch(roleFilterProvider);
 
-  var query = supabase.from(DbTables.profiles).select('*, schools(name)');
+  var query = supabase.from(DbTables.profiles).select('*, schools(name), classes(name, grade)');
 
   if (schoolFilter != null) {
     query = query.eq('school_id', schoolFilter);
+  }
+  if (classFilter != null) {
+    query = query.eq('class_id', classFilter);
   }
   if (roleFilter != null) {
     query = query.eq('role', roleFilter);
@@ -48,6 +69,7 @@ class UserListScreen extends ConsumerWidget {
     final usersAsync = ref.watch(usersProvider);
     final schoolsAsync = ref.watch(allSchoolsProvider);
     final selectedSchool = ref.watch(schoolFilterProvider);
+    final selectedClass = ref.watch(classFilterProvider);
     final selectedRole = ref.watch(roleFilterProvider);
 
     return Scaffold(
@@ -101,6 +123,7 @@ class UserListScreen extends ConsumerWidget {
                       ],
                       onChanged: (value) {
                         ref.read(schoolFilterProvider.notifier).state = value;
+                        ref.read(classFilterProvider.notifier).state = null;
                       },
                     ),
                     loading: () => const SizedBox.shrink(),
@@ -108,6 +131,36 @@ class UserListScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
+
+                // Class filter (only when school is selected)
+                if (selectedSchool != null)
+                  Expanded(
+                    child: ref.watch(_filterClassesProvider(selectedSchool)).when(
+                      data: (classes) => DropdownButtonFormField<String?>(
+                        value: selectedClass,
+                        decoration: const InputDecoration(
+                          labelText: 'Sınıf',
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('Tüm Sınıflar')),
+                          ...classes.map((cls) => DropdownMenuItem(
+                                value: cls['id'] as String,
+                                child: Text(
+                                  '${cls['name']} (${cls['grade'] ?? '?'}. Sınıf)',
+                                ),
+                              )),
+                        ],
+                        onChanged: (value) {
+                          ref.read(classFilterProvider.notifier).state = value;
+                        },
+                      ),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+                  ),
+                if (selectedSchool != null) const SizedBox(width: 16),
 
                 // Role filter
                 Expanded(
@@ -133,10 +186,11 @@ class UserListScreen extends ConsumerWidget {
                 const SizedBox(width: 16),
 
                 // Clear filters
-                if (selectedSchool != null || selectedRole != null)
+                if (selectedSchool != null || selectedClass != null || selectedRole != null)
                   TextButton.icon(
                     onPressed: () {
                       ref.read(schoolFilterProvider.notifier).state = null;
+                      ref.read(classFilterProvider.notifier).state = null;
                       ref.read(roleFilterProvider.notifier).state = null;
                     },
                     icon: const Icon(Icons.clear, size: 18),
