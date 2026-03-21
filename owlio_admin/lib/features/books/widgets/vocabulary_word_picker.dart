@@ -212,11 +212,14 @@ class _VocabularyWordPickerState extends ConsumerState<VocabularyWordPicker> {
     try {
       final supabase = ref.read(supabaseClientProvider);
 
-      // Check if word+meaning_tr already exists (unique index is LOWER(word), meaning_tr)
+      // Normalize word to lowercase (DB unique index uses LOWER(word))
+      final normalizedWord = wordText.toLowerCase();
+
+      // Check if word+meaning_tr already exists
       final existing = await supabase
           .from(DbTables.vocabularyWords)
           .select('id, word, meaning_tr')
-          .eq('word', wordText)
+          .eq('word', normalizedWord)
           .eq('meaning_tr', meaningTr)
           .maybeSingle();
 
@@ -230,7 +233,7 @@ class _VocabularyWordPickerState extends ConsumerState<VocabularyWordPicker> {
       final newId = uuid.v4();
       await supabase.from(DbTables.vocabularyWords).insert({
         'id': newId,
-        'word': wordText,
+        'word': normalizedWord,
         'meaning_tr': meaningTr,
         'source': 'activity',
       });

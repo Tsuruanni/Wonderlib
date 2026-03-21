@@ -440,6 +440,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
   bool _isSaving = false;
   Map<String, dynamic>? _loadedActivity;
   Future<Map<String, dynamic>?>? _activityFuture;
+  bool _cancelledNewActivity = false;
 
   @override
   void initState() {
@@ -603,7 +604,10 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
                   IconButton(
                     icon: const Icon(Icons.edit, size: 18),
                     tooltip: 'Düzenle',
-                    onPressed: () => setState(() => _isEditing = true),
+                    onPressed: () => setState(() {
+                      _isEditing = true;
+                      _cancelledNewActivity = false;
+                    }),
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete, size: 18),
@@ -739,8 +743,8 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
       case 'activity':
         final activityId = widget.block['activity_id'] as String?;
 
-        // If editing or new (no activity_id), show the editor
-        if (_isEditing || activityId == null) {
+        // If editing or new (no activity_id and not cancelled), show the editor
+        if (_isEditing || (activityId == null && !_cancelledNewActivity)) {
           final activityType = widget.block['_activityType'] as String?
               ?? _loadedActivity?['type'] as String?
               ?? 'true_false';
@@ -756,12 +760,15 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
               });
               widget.onRefresh();
             },
-            onCancel: () => setState(() => _isEditing = false),
+            onCancel: () => setState(() {
+              _isEditing = false;
+              if (activityId == null) _cancelledNewActivity = true;
+            }),
           );
         }
 
         // Read-only view: use cached future to avoid re-fetching on every build
-        _activityFuture ??= _loadActivity(activityId);
+        _activityFuture ??= _loadActivity(activityId!);
         return FutureBuilder<Map<String, dynamic>?>(
           future: _activityFuture,
           builder: (context, snapshot) {
