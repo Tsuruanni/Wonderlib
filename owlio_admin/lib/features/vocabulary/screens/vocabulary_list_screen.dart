@@ -63,7 +63,7 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   }
 
   final response =
-      await query.order('word').range(offset, offset + pageSize - 1);
+      await query.order('created_at', ascending: false).range(offset, offset + pageSize - 1);
   final countResult = await countQuery.count(CountOption.exact);
 
   return {
@@ -491,12 +491,28 @@ class _VocabularyTab extends ConsumerWidget {
           onTap: () => context.go('/vocabulary/${w['id']}'),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Text(
-              w['word'] ?? '',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF4F46E5),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  w['word'] ?? '',
+                  style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF4F46E5)),
+                ),
+                if (w['source'] == 'activity') ...[
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Text(
+                      'AKTİVİTEDEN EKLENDİ',
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Colors.purple),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
