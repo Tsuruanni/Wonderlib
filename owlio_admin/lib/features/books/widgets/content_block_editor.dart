@@ -341,10 +341,12 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
                   PopupMenuItem(value: 'find_words', child: ListTile(leading: Icon(Icons.search), title: Text('Find Words'), dense: true)),
                   PopupMenuItem(value: 'matching', child: ListTile(leading: Icon(Icons.compare_arrows), title: Text('Matching'), dense: true)),
                 ],
-                child: FilledButton.tonalIcon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.quiz, size: 18),
-                  label: const Text('Aktivite'),
+                child: IgnorePointer(
+                  child: FilledButton.tonalIcon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.quiz, size: 18),
+                    label: const Text('Aktivite'),
+                  ),
                 ),
               ),
             ],
