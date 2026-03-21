@@ -63,6 +63,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
   bool _isSaving = false;
   bool _isPlaying = false;
   bool _isGenerating = false;
+  String _source = 'manual';
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 
@@ -93,6 +94,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
         _exampleSentences = List<String>.from(word['example_sentences'] ?? []);
         _audioStartMs = word['audio_start_ms'] as int?;
         _audioEndMs = word['audio_end_ms'] as int?;
+        _source = word['source'] as String? ?? 'manual';
         _isLoading = false;
       });
     } else {
@@ -400,6 +402,36 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 24),
+
+                    if (!isNewWord && _source != 'manual') ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _source == 'activity' ? Colors.purple.withValues(alpha: 0.1) : Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _source == 'activity' ? Icons.quiz : Icons.upload,
+                              size: 16,
+                              color: _source == 'activity' ? Colors.purple : Colors.blue,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _source == 'activity' ? 'Aktiviteden eklendi' : 'CSV\'den içe aktarıldı',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: _source == 'activity' ? Colors.purple : Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,

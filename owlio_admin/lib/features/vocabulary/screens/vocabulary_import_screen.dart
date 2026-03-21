@@ -224,6 +224,7 @@ class VocabularyImportScreen extends ConsumerWidget {
     } else {
       // Insert new word
       data['id'] = const Uuid().v4();
+      data['source'] = 'import';
       await supabase.from(DbTables.vocabularyWords).insert(data);
     }
 
