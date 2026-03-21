@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_image.dart';
 
@@ -51,7 +52,12 @@ class VocabWordIntroductionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _SpeakerButton(word: word.word),
+                _SpeakerButton(
+                  word: word.word,
+                  audioUrl: word.audioUrl,
+                  audioStartMs: word.audioStartMs,
+                  audioEndMs: word.audioEndMs,
+                ),
                 const SizedBox(width: 4),
                 Flexible(
                   child: Text(
@@ -109,8 +115,16 @@ class VocabWordIntroductionCard extends StatelessWidget {
 }
 
 class _SpeakerButton extends StatefulWidget {
-  const _SpeakerButton({required this.word});
+  const _SpeakerButton({
+    required this.word,
+    this.audioUrl,
+    this.audioStartMs,
+    this.audioEndMs,
+  });
   final String word;
+  final String? audioUrl;
+  final int? audioStartMs;
+  final int? audioEndMs;
 
   @override
   State<_SpeakerButton> createState() => _SpeakerButtonState();
@@ -118,12 +132,19 @@ class _SpeakerButton extends StatefulWidget {
 
 class _SpeakerButtonState extends State<_SpeakerButton> {
   final FlutterTts _tts = FlutterTts();
+  final WordAudioPlayer _wordPlayer = WordAudioPlayer();
   bool _isPlaying = false;
+
+  bool get _hasSegmentAudio =>
+      widget.audioUrl != null &&
+      widget.audioUrl!.isNotEmpty &&
+      widget.audioStartMs != null &&
+      widget.audioEndMs != null;
 
   @override
   void initState() {
     super.initState();
-    _initTts();
+    if (!_hasSegmentAudio) _initTts();
   }
 
   Future<void> _initTts() async {
@@ -135,15 +156,23 @@ class _SpeakerButtonState extends State<_SpeakerButton> {
 
   @override
   void dispose() {
-    // Do NOT call _tts.stop() here -- AnimatedSwitcher keeps this widget alive
-    // during fade-out. If the next question is a VocabListeningQuestion, its TTS
-    // starts before this dispose runs, and stop() would kill it mid-word.
+    _wordPlayer.dispose();
     super.dispose();
   }
 
   Future<void> _speak() async {
     setState(() => _isPlaying = true);
-    await _tts.speak(widget.word);
+
+    if (_hasSegmentAudio) {
+      await _wordPlayer.play(
+        audioUrl: widget.audioUrl!,
+        startMs: widget.audioStartMs!,
+        endMs: widget.audioEndMs!,
+      );
+      if (mounted) setState(() => _isPlaying = false);
+    } else {
+      await _tts.speak(widget.word);
+    }
   }
 
   @override

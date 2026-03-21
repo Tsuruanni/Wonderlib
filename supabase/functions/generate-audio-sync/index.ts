@@ -107,15 +107,45 @@ Deno.serve(async (req) => {
       console.warn("No timestamp data in response, word timings will be empty");
     }
 
-    // 3. Update database with audio URL and word timings
+    // 3. Download audio and upload to Supabase Storage
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log("Downloading audio from Fal.ai...");
+    const audioResponse = await fetch(falData.audio.url);
+    const audioBlob = await audioResponse.arrayBuffer();
+    const audioBytes = new Uint8Array(audioBlob);
+
+    const STORAGE_BUCKET = "chapter-audio";
+    await supabase.storage.createBucket(STORAGE_BUCKET, {
+      public: true,
+      fileSizeLimit: 104857600,
+    }).catch(() => {});
+
+    const fileName = `blocks/${blockId}.mp3`;
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(fileName, audioBytes, {
+        contentType: "audio/mpeg",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload audio: ${uploadError.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(fileName);
+    const storageAudioUrl = publicUrlData.publicUrl;
+    console.log("Uploaded to Storage:", storageAudioUrl);
+
+    // 4. Update database with Storage URL and word timings
     const { error: updateError } = await supabase
       .from("content_blocks")
       .update({
-        audio_url: falData.audio.url,
+        audio_url: storageAudioUrl,
         word_timings: wordTimings,
         updated_at: new Date().toISOString(),
       })
@@ -131,7 +161,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        audioUrl: falData.audio.url,
+        audioUrl: storageAudioUrl,
         wordTimings: wordTimings,
         wordCount: wordTimings.length,
       }),

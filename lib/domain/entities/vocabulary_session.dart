@@ -98,6 +98,8 @@ class WordSessionState extends Equatable {
     this.meaningEN,
     this.imageUrl,
     this.audioUrl,
+    this.audioStartMs,
+    this.audioEndMs,
     this.exampleSentence,
     this.phonetic,
     this.masteryLevel = WordMasteryLevel.unseen,
@@ -113,6 +115,8 @@ class WordSessionState extends Equatable {
   final String? meaningEN;
   final String? imageUrl;
   final String? audioUrl;
+  final int? audioStartMs;
+  final int? audioEndMs;
   final String? exampleSentence;
   final String? phonetic;
   final WordMasteryLevel masteryLevel;
@@ -144,6 +148,8 @@ class WordSessionState extends Equatable {
       meaningEN: meaningEN,
       imageUrl: imageUrl,
       audioUrl: audioUrl,
+      audioStartMs: audioStartMs,
+      audioEndMs: audioEndMs,
       exampleSentence: exampleSentence,
       phonetic: phonetic,
       masteryLevel: masteryLevel ?? this.masteryLevel,
@@ -157,7 +163,7 @@ class WordSessionState extends Equatable {
   @override
   List<Object?> get props => [
         wordId, word, meaningTR, meaningEN, imageUrl, audioUrl,
-        exampleSentence, phonetic, masteryLevel, correctCount,
+        audioStartMs, audioEndMs, exampleSentence, phonetic, masteryLevel, correctCount,
         incorrectCount, isFirstTryPerfect, needsRemediation,
       ];
 }
@@ -175,6 +181,8 @@ class SessionQuestion extends Equatable {
     this.options,
     this.sentence,
     this.audioUrl,
+    this.audioStartMs,
+    this.audioEndMs,
     this.imageUrl,
     this.matchingPairs,
     this.scrambledLetters,
@@ -189,6 +197,8 @@ class SessionQuestion extends Equatable {
   final List<String>? options;         // For MC / listening select / image match (URLs)
   final String? sentence;              // For sentence gap
   final String? audioUrl;              // For listening questions
+  final int? audioStartMs;             // Segment start in batch audio
+  final int? audioEndMs;               // Segment end in batch audio
   final String? imageUrl;              // For visual support
   final List<SessionMatchingPair>? matchingPairs; // For matching questions
   final List<String>? scrambledLetters;    // For scrambled letters
@@ -198,7 +208,7 @@ class SessionQuestion extends Equatable {
   @override
   List<Object?> get props => [
         type, targetWordId, targetWord, targetMeaning, correctAnswer,
-        options, sentence, audioUrl, imageUrl, matchingPairs,
+        options, sentence, audioUrl, audioStartMs, audioEndMs, imageUrl, matchingPairs,
         scrambledLetters, isRemediation,
       ];
 }

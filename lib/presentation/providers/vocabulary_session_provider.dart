@@ -179,6 +179,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       meaningEN: w.meaningEN,
       imageUrl: w.imageUrl,
       audioUrl: w.audioUrl,
+      audioStartMs: w.audioStartMs,
+      audioEndMs: w.audioEndMs,
       exampleSentence: w.exampleSentence,
       phonetic: w.phonetic,
     )).toList();
@@ -643,6 +645,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       options: options,
       imageUrl: word.imageUrl,
       audioUrl: word.audioUrl,
+      audioStartMs: word.audioStartMs,
+      audioEndMs: word.audioEndMs,
       isRemediation: true,
     );
   }
@@ -769,6 +773,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       options: options,
       imageUrl: word.imageUrl,
       audioUrl: word.audioUrl,
+      audioStartMs: word.audioStartMs,
+      audioEndMs: word.audioEndMs,
     );
   }
 
@@ -798,6 +804,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       correctAnswer: word.word,
       options: options,
       audioUrl: word.audioUrl,
+      audioStartMs: word.audioStartMs,
+      audioEndMs: word.audioEndMs,
     );
   }
 
@@ -879,6 +887,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       targetMeaning: word.meaningTR,
       correctAnswer: word.word,
       audioUrl: word.audioUrl,
+      audioStartMs: word.audioStartMs,
+      audioEndMs: word.audioEndMs,
       imageUrl: word.imageUrl,
     );
   }
@@ -924,6 +934,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         options: options,
         imageUrl: word.imageUrl,
         audioUrl: word.audioUrl,
+        audioStartMs: word.audioStartMs,
+        audioEndMs: word.audioEndMs,
       );
     }
 
@@ -967,6 +979,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
           correctAnswer: target.word,
           options: options,
           audioUrl: target.audioUrl,
+          audioStartMs: target.audioStartMs,
+          audioEndMs: target.audioEndMs,
         );
 
       case QuestionType.imageMatch:
@@ -993,6 +1007,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
           options: options,
           imageUrl: target.imageUrl,
           audioUrl: target.audioUrl,
+          audioStartMs: target.audioStartMs,
+          audioEndMs: target.audioEndMs,
         );
     }
   }

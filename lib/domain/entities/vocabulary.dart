@@ -11,6 +11,8 @@ class VocabularyWord extends Equatable {
     this.meaningEN,
     this.exampleSentences = const [],
     this.audioUrl,
+    this.audioStartMs,
+    this.audioEndMs,
     this.imageUrl,
     this.level,
     this.categories = const [],
@@ -28,6 +30,8 @@ class VocabularyWord extends Equatable {
   final String? meaningEN;
   final List<String> exampleSentences; // Up to 2 example sentences
   final String? audioUrl;
+  final int? audioStartMs;
+  final int? audioEndMs;
   final String? imageUrl;
   final String? level;
   final List<String> categories;
@@ -38,6 +42,7 @@ class VocabularyWord extends Equatable {
   final String? sourceBookTitle; // Joined from books table
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
+  bool get hasAudioSegment => hasAudio && audioStartMs != null && audioEndMs != null;
   bool get hasImage => imageUrl != null && imageUrl!.isNotEmpty;
   bool get hasExamples => exampleSentences.isNotEmpty;
   bool get hasSynonyms => synonyms.isNotEmpty;
@@ -56,6 +61,8 @@ class VocabularyWord extends Equatable {
         meaningEN,
         exampleSentences,
         audioUrl,
+        audioStartMs,
+        audioEndMs,
         imageUrl,
         level,
         categories,

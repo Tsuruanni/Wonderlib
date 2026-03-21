@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
+import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Multiple choice question: EN->TR or TR->EN with 2-4 options
@@ -24,6 +25,7 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
   String? _selectedAnswer;
   bool _answered = false;
   final FlutterTts _tts = FlutterTts();
+  final WordAudioPlayer _wordPlayer = WordAudioPlayer();
 
   @override
   void initState() {
@@ -35,10 +37,24 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
     await _tts.setLanguage('en-US');
   }
 
+  Future<void> _speakWord(SessionQuestion q) async {
+    if (q.audioUrl != null &&
+        q.audioUrl!.isNotEmpty &&
+        q.audioStartMs != null &&
+        q.audioEndMs != null) {
+      await _wordPlayer.play(
+        audioUrl: q.audioUrl!,
+        startMs: q.audioStartMs!,
+        endMs: q.audioEndMs!,
+      );
+    } else {
+      await _tts.speak(q.targetWord);
+    }
+  }
+
   @override
   void dispose() {
-    // Do NOT call _tts.stop() here -- AnimatedSwitcher keeps this widget alive
-    // during fade-out, and stop() would kill the next question's TTS mid-word.
+    _wordPlayer.dispose();
     super.dispose();
   }
 
@@ -94,7 +110,7 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
                   children: [
                     if (!isReverse)
                       IconButton(
-                        onPressed: () => _tts.speak(q.targetWord),
+                        onPressed: () => _speakWord(q),
                         icon: Icon(Icons.volume_up_rounded, color: theme.colorScheme.primary),
                         style: IconButton.styleFrom(
                           backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),

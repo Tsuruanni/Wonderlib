@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'vocab_question_container.dart';
+import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 
 /// Listening question: audio plays, user selects or types the answer
@@ -22,6 +23,7 @@ class VocabListeningQuestion extends StatefulWidget {
 
 class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
   final FlutterTts _tts = FlutterTts();
+  final WordAudioPlayer _wordPlayer = WordAudioPlayer();
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   bool _answered = false;
@@ -53,13 +55,29 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
+    _wordPlayer.dispose();
     super.dispose();
   }
+
+  bool get _hasSegmentAudio =>
+      widget.question.audioUrl != null &&
+      widget.question.audioUrl!.isNotEmpty &&
+      widget.question.audioStartMs != null &&
+      widget.question.audioEndMs != null;
 
   Future<void> _playAudio() async {
     if (!mounted) return;
     setState(() => _hasPlayedOnce = true);
-    await _tts.speak(widget.question.targetWord);
+
+    if (_hasSegmentAudio) {
+      await _wordPlayer.play(
+        audioUrl: widget.question.audioUrl!,
+        startMs: widget.question.audioStartMs!,
+        endMs: widget.question.audioEndMs!,
+      );
+    } else {
+      await _tts.speak(widget.question.targetWord);
+    }
   }
 
   void _handleSelect(String option) {

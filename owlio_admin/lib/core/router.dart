@@ -13,20 +13,16 @@ import '../features/schools/screens/school_list_screen.dart';
 import '../features/users/screens/user_edit_screen.dart';
 import '../features/users/screens/user_import_screen.dart';
 import '../features/users/screens/user_list_screen.dart';
-import '../features/classes/screens/class_edit_screen.dart';
-import '../features/classes/screens/class_list_screen.dart';
 import '../features/badges/screens/badge_edit_screen.dart';
 import '../features/badges/screens/badge_list_screen.dart';
 import '../features/vocabulary/screens/vocabulary_edit_screen.dart';
 import '../features/vocabulary/screens/vocabulary_import_screen.dart';
 import '../features/vocabulary/screens/vocabulary_list_screen.dart';
 import '../features/wordlists/screens/wordlist_edit_screen.dart';
-import '../features/wordlists/screens/wordlist_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
-import '../features/units/screens/unit_list_screen.dart';
-import '../features/units/screens/unit_edit_screen.dart';
 import '../features/templates/screens/template_list_screen.dart';
 import '../features/templates/screens/template_edit_screen.dart';
+import '../features/learning_path_assignments/screens/assignment_list_screen.dart';
 import '../features/learning_path_assignments/screens/assignment_screen.dart';
 import '../features/quizzes/screens/book_quiz_edit_screen.dart';
 import '../features/quizzes/screens/quiz_question_edit_screen.dart';
@@ -152,21 +148,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           userId: state.pathParameters['userId']!,
         ),
       ),
-      // Classes
-      GoRoute(
-        path: '/classes',
-        builder: (context, state) => const ClassListScreen(),
-      ),
-      GoRoute(
-        path: '/classes/new',
-        builder: (context, state) => const ClassEditScreen(),
-      ),
-      GoRoute(
-        path: '/classes/:classId',
-        builder: (context, state) => ClassEditScreen(
-          classId: state.pathParameters['classId'],
-        ),
-      ),
       // Badges
       GoRoute(
         path: '/badges',
@@ -201,11 +182,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           wordId: state.pathParameters['wordId'],
         ),
       ),
-      // Word Lists
-      GoRoute(
-        path: '/wordlists',
-        builder: (context, state) => const WordlistListScreen(),
-      ),
+      // Word Lists (edit only — list is inside /vocabulary tab)
       GoRoute(
         path: '/wordlists/new',
         builder: (context, state) => const WordlistEditScreen(),
@@ -214,21 +191,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/wordlists/:listId',
         builder: (context, state) => WordlistEditScreen(
           listId: state.pathParameters['listId'],
-        ),
-      ),
-      // Units
-      GoRoute(
-        path: '/units',
-        builder: (context, state) => const UnitListScreen(),
-      ),
-      GoRoute(
-        path: '/units/new',
-        builder: (context, state) => const UnitEditScreen(),
-      ),
-      GoRoute(
-        path: '/units/:unitId',
-        builder: (context, state) => UnitEditScreen(
-          unitId: state.pathParameters['unitId'],
         ),
       ),
       // Learning Path Templates
@@ -249,6 +211,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Learning Path Assignments
       GoRoute(
         path: '/learning-path-assignments',
+        builder: (context, state) => const LpAssignmentListScreen(),
+      ),
+      GoRoute(
+        path: '/learning-path-assignments/new',
         builder: (context, state) => const AssignmentScreen(),
       ),
       // Teacher Assignments (read-only)
@@ -277,20 +243,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           cardId: state.pathParameters['cardId'],
         ),
       ),
-      // XP Ayarları
+      // Ayarlar (XP + Uygulama)
       GoRoute(
-        path: '/xp-settings',
+        path: '/settings',
         builder: (context, state) => const SettingsScreen(
-          title: 'XP Ayarları',
-          categories: ['xp', 'progression', 'game'],
-        ),
-      ),
-      // Uygulama Ayarları
-      GoRoute(
-        path: '/app-settings',
-        builder: (context, state) => const SettingsScreen(
-          title: 'Uygulama Ayarları',
-          categories: ['app'],
+          title: 'Ayarlar',
+          categories: ['xp', 'progression', 'game', 'app'],
         ),
       ),
     ],

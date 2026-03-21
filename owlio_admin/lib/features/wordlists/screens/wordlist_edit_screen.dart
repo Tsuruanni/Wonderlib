@@ -5,7 +5,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
-import 'wordlist_list_screen.dart';
+import '../../vocabulary/screens/vocabulary_list_screen.dart';
 
 /// Provider for loading a single word list with its items (full word details)
 final wordlistDetailProvider =
@@ -54,6 +54,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   List<Map<String, dynamic>> _wordItems = [];
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isGeneratingAudio = false;
 
   bool get isNewList => widget.listId == null;
 
@@ -175,6 +176,49 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     }
   }
 
+  Future<void> _generateWordlistAudio() async {
+    if (widget.listId == null || _wordItems.isEmpty) return;
+
+    setState(() => _isGeneratingAudio = true);
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final response = await supabase.functions.invoke(
+        'generate-wordlist-audio',
+        body: {'wordListId': widget.listId},
+      );
+
+      if (response.status != 200) {
+        throw Exception(
+            response.data?['error'] ?? 'Failed to generate audio');
+      }
+
+      final wordsProcessed = response.data?['wordsProcessed'] ?? 0;
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$wordsProcessed kelime için ses üretildi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        ref.invalidate(wordlistDetailProvider(widget.listId!));
+        ref.invalidate(wordlistsProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ses üretme hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingAudio = false);
+    }
+  }
+
   Future<void> _handleDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -209,7 +253,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           const SnackBar(content: Text('Kelime listesi silindi')),
         );
         ref.invalidate(wordlistsProvider);
-        context.go('/wordlists');
+        context.go('/vocabulary');
       }
     } catch (e) {
       if (mounted) {
@@ -268,9 +312,22 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
         title: Text(isNewList ? 'Yeni Kelime Listesi' : 'Kelime Listesini Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/wordlists'),
+          onPressed: () => context.go('/vocabulary'),
         ),
         actions: [
+          if (!isNewList && _wordItems.isNotEmpty)
+            OutlinedButton.icon(
+              onPressed: _isGeneratingAudio ? null : _generateWordlistAudio,
+              icon: _isGeneratingAudio
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.volume_up, size: 18),
+              label: Text(_isGeneratingAudio ? 'Üretiliyor...' : 'Sesleri Üret'),
+            ),
+          const SizedBox(width: 8),
           if (!isNewList)
             IconButton(
               icon: const Icon(Icons.delete_outline),

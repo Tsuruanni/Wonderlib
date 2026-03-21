@@ -5,12 +5,12 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
 
-/// Provider for loading all schools with student count
+/// Provider for loading all schools with student and class counts
 final schoolsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final response = await supabase
       .from(DbTables.schools)
-      .select('*, profiles(count)')
+      .select('*, profiles(count), classes(count)')
       .order('created_at', ascending: false);
 
   return List<Map<String, dynamic>>.from(response);
@@ -25,7 +25,7 @@ class SchoolListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Okullar'),
+        title: const Text('Okullar & Sınıflar'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -76,10 +76,12 @@ class SchoolListScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final school = schools[index];
               final studentCount = school['profiles']?[0]?['count'] ?? 0;
+              final classCount = school['classes']?[0]?['count'] ?? 0;
 
               return _SchoolCard(
                 school: school,
                 studentCount: studentCount,
+                classCount: classCount,
                 onTap: () => context.go('/schools/${school['id']}'),
               );
             },
@@ -110,11 +112,13 @@ class _SchoolCard extends StatelessWidget {
   const _SchoolCard({
     required this.school,
     required this.studentCount,
+    required this.classCount,
     required this.onTap,
   });
 
   final Map<String, dynamic> school;
   final int studentCount;
+  final int classCount;
   final VoidCallback onTap;
 
   @override
@@ -181,6 +185,10 @@ class _SchoolCard extends StatelessWidget {
                       spacing: 8,
                       runSpacing: 4,
                       children: [
+                        _Chip(
+                          label: '$classCount sınıf',
+                          color: Colors.teal,
+                        ),
                         _Chip(
                           label: '$studentCount öğrenci',
                           color: Colors.blue,

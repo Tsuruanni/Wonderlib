@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -15,6 +16,8 @@ part 'file_cache_service.g.dart';
 /// Metadata (url → local_path mapping) is tracked in sqflite via
 /// [BookCacheStore]. Files are stored under:
 ///   `<ApplicationDocumentsDirectory>/book_cache/<bookId>/<md5(url)>.<ext>`
+///
+/// On web, all caching is disabled and remote URLs are returned as-is.
 class FileCacheService {
   FileCacheService(this._cacheStore);
 
@@ -38,6 +41,9 @@ class FileCacheService {
     String bookId,
     String fileType,
   ) async {
+    // File caching not available on web
+    if (kIsWeb) return remoteUrl;
+
     // 1. Check DB cache
     final cached = await _cacheStore.getLocalFilePath(remoteUrl);
     if (cached != null) {
@@ -84,6 +90,7 @@ class FileCacheService {
   /// Returns the local path if cached and present on disk, otherwise returns
   /// the original [remoteUrl] unchanged.
   Future<String> resolveUrl(String remoteUrl) async {
+    if (kIsWeb) return remoteUrl;
     final cached = await _cacheStore.getLocalFilePath(remoteUrl);
     if (cached != null && File(cached).existsSync()) {
       return cached;
@@ -96,6 +103,7 @@ class FileCacheService {
   /// DB records are cascade-deleted by [BookCacheStore.deleteBook] via the
   /// `cached_files` FK; this method only removes the filesystem files.
   Future<void> deleteBookFiles(String bookId) async {
+    if (kIsWeb) return;
     final base = await _baseDir;
     final bookDir = Directory(p.join(base.path, bookId));
     if (bookDir.existsSync()) {

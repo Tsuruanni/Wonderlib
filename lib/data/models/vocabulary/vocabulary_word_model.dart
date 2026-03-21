@@ -12,6 +12,8 @@ class VocabularyWordModel {
     this.meaningEN,
     this.exampleSentences = const [],
     this.audioUrl,
+    this.audioStartMs,
+    this.audioEndMs,
     this.imageUrl,
     this.level,
     this.categories = const [],
@@ -39,6 +41,8 @@ class VocabularyWordModel {
       meaningEN: json['meaning_en'] as String?,
       exampleSentences: _parseStringList(json['example_sentences']),
       audioUrl: json['audio_url'] as String?,
+      audioStartMs: json['audio_start_ms'] as int?,
+      audioEndMs: json['audio_end_ms'] as int?,
       imageUrl: json['image_url'] as String?,
       level: json['level'] as String?,
       categories: _parseStringList(json['categories']),
@@ -60,6 +64,8 @@ class VocabularyWordModel {
       meaningEN: entity.meaningEN,
       exampleSentences: entity.exampleSentences,
       audioUrl: entity.audioUrl,
+      audioStartMs: entity.audioStartMs,
+      audioEndMs: entity.audioEndMs,
       imageUrl: entity.imageUrl,
       level: entity.level,
       categories: entity.categories,
@@ -78,6 +84,8 @@ class VocabularyWordModel {
   final String? meaningEN;
   final List<String> exampleSentences;
   final String? audioUrl;
+  final int? audioStartMs;
+  final int? audioEndMs;
   final String? imageUrl;
   final String? level;
   final List<String> categories;
@@ -97,6 +105,8 @@ class VocabularyWordModel {
       'meaning_en': meaningEN,
       'example_sentences': exampleSentences,
       'audio_url': audioUrl,
+      'audio_start_ms': audioStartMs,
+      'audio_end_ms': audioEndMs,
       'image_url': imageUrl,
       'level': level,
       'categories': categories,
@@ -117,6 +127,8 @@ class VocabularyWordModel {
       meaningEN: meaningEN,
       exampleSentences: exampleSentences,
       audioUrl: audioUrl,
+      audioStartMs: audioStartMs,
+      audioEndMs: audioEndMs,
       imageUrl: imageUrl,
       level: level,
       categories: categories,

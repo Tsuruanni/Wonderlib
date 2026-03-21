@@ -144,6 +144,37 @@ Deno.serve(async (req) => {
       throw new Error("No audio URL in Fal AI response");
     }
 
+    // 3b. Download audio and upload to Supabase Storage
+    console.log("Downloading audio from Fal.ai...");
+    const audioResponse = await fetch(falData.audio.url);
+    const audioBlob = await audioResponse.arrayBuffer();
+    const audioBytes = new Uint8Array(audioBlob);
+
+    const STORAGE_BUCKET = "chapter-audio";
+    await supabase.storage.createBucket(STORAGE_BUCKET, {
+      public: true,
+      fileSizeLimit: 104857600, // 100MB
+    }).catch(() => {}); // Ignore if exists
+
+    const fileName = `${chapterId}.mp3`;
+    const { error: uploadError } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(fileName, audioBytes, {
+        contentType: "audio/mpeg",
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error("Storage upload error:", uploadError);
+      throw new Error(`Failed to upload audio: ${uploadError.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(fileName);
+    const storageAudioUrl = publicUrlData.publicUrl;
+    console.log("Uploaded to Storage:", storageAudioUrl);
+
     // 4. Merge all timestamp data
     let mergedTimestamps: TimestampData | null = null;
     if (falData.timestamps && falData.timestamps.length > 0) {
@@ -183,7 +214,7 @@ Deno.serve(async (req) => {
       const { error: updateError } = await supabase
         .from("content_blocks")
         .update({
-          audio_url: falData.audio.url,
+          audio_url: storageAudioUrl,
           word_timings: blockWordTimings,
           audio_start_ms: audioStartMs,
           audio_end_ms: audioEndMs,
@@ -211,7 +242,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        audioUrl: falData.audio.url,
+        audioUrl: storageAudioUrl,
         blocksProcessed: results.length,
         results,
       }),

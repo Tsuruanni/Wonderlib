@@ -57,9 +57,12 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
   String _partOfSpeech = 'noun';
   String _level = 'B1';
   List<String> _exampleSentences = [];
+  int? _audioStartMs;
+  int? _audioEndMs;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isPlaying = false;
+  bool _isGenerating = false;
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 
@@ -88,6 +91,8 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
         _partOfSpeech = word['part_of_speech'] ?? 'noun';
         _level = word['level'] ?? 'B1';
         _exampleSentences = List<String>.from(word['example_sentences'] ?? []);
+        _audioStartMs = word['audio_start_ms'] as int?;
+        _audioEndMs = word['audio_end_ms'] as int?;
         _isLoading = false;
       });
     } else {
@@ -219,8 +224,24 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
         setState(() => _isPlaying = false);
       } else {
         setState(() => _isPlaying = true);
-        await _audioPlayer.setUrl(_audioUrlController.text);
+
+        final uri = Uri.parse(_audioUrlController.text);
+
+        // Use ClippingAudioSource for segment playback
+        if (_audioStartMs != null && _audioEndMs != null) {
+          await _audioPlayer.setAudioSource(
+            ClippingAudioSource(
+              child: AudioSource.uri(uri),
+              start: Duration(milliseconds: _audioStartMs!),
+              end: Duration(milliseconds: _audioEndMs! + 200),
+            ),
+          );
+        } else {
+          await _audioPlayer.setUrl(_audioUrlController.text);
+        }
+
         await _audioPlayer.play();
+
         _audioPlayer.playerStateStream.listen((state) {
           if (state.processingState == ProcessingState.completed) {
             if (mounted) setState(() => _isPlaying = false);
@@ -234,6 +255,67 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
           SnackBar(content: Text('Ses çalma hatası: $e'), backgroundColor: Colors.red),
         );
       }
+    }
+  }
+
+  Future<void> _generateWithAI() async {
+    final word = _wordController.text.trim();
+    if (word.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Önce kelimeyi girin')),
+      );
+      return;
+    }
+
+    setState(() => _isGenerating = true);
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final response = await supabase.functions.invoke(
+        'generate-word-data',
+        body: {'word': word},
+      );
+
+      if (response.status != 200) {
+        final error = response.data?['error'] ?? 'Bilinmeyen hata';
+        throw Exception(error);
+      }
+
+      final data = response.data as Map<String, dynamic>;
+
+      if (mounted) {
+        setState(() {
+          _phoneticController.text = data['phonetic'] as String? ?? '';
+          _meaningTrController.text = data['meaning_tr'] as String? ?? '';
+          _meaningEnController.text = data['meaning_en'] as String? ?? '';
+
+          final pos = data['part_of_speech'] as String? ?? '';
+          if (_partsOfSpeech.contains(pos)) {
+            _partOfSpeech = pos;
+          }
+
+          final sentences = data['example_sentences'] as List<dynamic>? ?? [];
+          _exampleSentences = sentences
+              .map((s) => s.toString())
+              .where((s) => s.isNotEmpty)
+              .toList();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('AI ile dolduruldu — kontrol edip kaydedin')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('AI hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGenerating = false);
     }
   }
 
@@ -337,6 +419,26 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                               }
                               return null;
                             },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // AI fill button
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: FilledButton.tonalIcon(
+                            onPressed: _isGenerating ? null : _generateWithAI,
+                            icon: _isGenerating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.auto_awesome, size: 18),
+                            label: Text(_isGenerating
+                                ? 'Oluşturuluyor...'
+                                : 'AI ile Doldur'),
                           ),
                         ),
                         const SizedBox(width: 16),
