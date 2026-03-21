@@ -4,6 +4,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
+import 'activity_editor.dart';
 
 /// Provider for loading content blocks for a chapter
 final contentBlocksProvider =
@@ -80,7 +81,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
     }
   }
 
-  Future<void> _addBlock(String type) async {
+  Future<void> _addBlock(String type, {String? activityType}) async {
     final supabase = ref.read(supabaseClientProvider);
 
     int newOrderIndex = 0;
@@ -94,19 +95,27 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
     }
 
     final newBlockId = const Uuid().v4();
-    final newBlock = {
+
+    // DB payload — only real columns
+    final insertData = {
       'id': newBlockId,
       'chapter_id': widget.chapterId,
       'order_index': newOrderIndex,
       'type': type,
     };
 
+    // Local copy — includes UI-only metadata (NOT sent to DB)
+    final localBlock = {
+      ...insertData,
+      if (activityType != null) '_activityType': activityType,
+    };
+
     setState(() {
-      _localBlocks = [..._localBlocks, newBlock];
+      _localBlocks = [..._localBlocks, localBlock];
     });
 
     try {
-      await supabase.from(DbTables.contentBlocks).insert(newBlock);
+      await supabase.from(DbTables.contentBlocks).insert(insertData);
       widget.onRefresh();
     } catch (e) {
       setState(() {
@@ -144,6 +153,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
 
     final deletedBlock = _localBlocks.where((b) => b['id'] == blockId).firstOrNull;
     if (deletedBlock == null) return;
+    final activityId = deletedBlock['activity_id'] as String?;
     setState(() {
       _localBlocks = _localBlocks.where((b) => b['id'] != blockId).toList();
     });
@@ -151,6 +161,10 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       await supabase.from(DbTables.contentBlocks).delete().eq('id', blockId);
+      // Also delete linked inline_activities row
+      if (activityId != null) {
+        await supabase.from(DbTables.inlineActivities).delete().eq('id', activityId);
+      }
       widget.onRefresh();
     } catch (e) {
       setState(() {
@@ -319,10 +333,19 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
                 label: const Text('Görsel'),
               ),
               const SizedBox(width: 8),
-              FilledButton.tonalIcon(
-                onPressed: () => _addBlock('activity'),
-                icon: const Icon(Icons.quiz, size: 18),
-                label: const Text('Aktivite'),
+              PopupMenuButton<String>(
+                onSelected: (type) => _addBlock('activity', activityType: type),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: 'true_false', child: ListTile(leading: Icon(Icons.check_circle_outline), title: Text('True/False'), dense: true)),
+                  PopupMenuItem(value: 'word_translation', child: ListTile(leading: Icon(Icons.translate), title: Text('Word Translation'), dense: true)),
+                  PopupMenuItem(value: 'find_words', child: ListTile(leading: Icon(Icons.search), title: Text('Find Words'), dense: true)),
+                  PopupMenuItem(value: 'matching', child: ListTile(leading: Icon(Icons.compare_arrows), title: Text('Matching'), dense: true)),
+                ],
+                child: FilledButton.tonalIcon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.quiz, size: 18),
+                  label: const Text('Aktivite'),
+                ),
               ),
             ],
           ),
@@ -377,6 +400,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
                       key: ValueKey(block['id']),
                       block: block,
                       index: index,
+                      chapterId: widget.chapterId,
                       onDelete: () => _deleteBlock(block['id'] as String),
                       onRefresh: widget.onRefresh,
                     );
@@ -393,12 +417,14 @@ class _BlockCard extends ConsumerStatefulWidget {
     super.key,
     required this.block,
     required this.index,
+    required this.chapterId,
     required this.onDelete,
     required this.onRefresh,
   });
 
   final Map<String, dynamic> block;
   final int index;
+  final String chapterId;
   final VoidCallback onDelete;
   final VoidCallback onRefresh;
 
@@ -412,6 +438,8 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
   final _captionController = TextEditingController();
   bool _isEditing = false;
   bool _isSaving = false;
+  Map<String, dynamic>? _loadedActivity;
+  Future<Map<String, dynamic>?>? _activityFuture;
 
   @override
   void initState() {
@@ -536,8 +564,26 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
                     ),
                   ),
                 ],
+                if (type == 'activity' && (widget.block['activity_id'] as String?) == null && !_isEditing) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.warning_amber, size: 12, color: Colors.orange),
+                        SizedBox(width: 4),
+                        Text('Not configured', style: TextStyle(fontSize: 10, color: Colors.orange)),
+                      ],
+                    ),
+                  ),
+                ],
                 const Spacer(),
-                if (_isEditing) ...[
+                if (_isEditing && type != 'activity') ...[
                   TextButton(
                     onPressed: () => setState(() => _isEditing = false),
                     child: const Text('İptal'),
@@ -692,58 +738,103 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
 
       case 'activity':
         final activityId = widget.block['activity_id'] as String?;
+
+        // If editing or new (no activity_id), show the editor
+        if (_isEditing || activityId == null) {
+          final activityType = widget.block['_activityType'] as String?
+              ?? _loadedActivity?['type'] as String?
+              ?? 'true_false';
+          return ActivityEditor(
+            chapterId: widget.chapterId,
+            blockId: widget.block['id'] as String,
+            activityType: activityType,
+            existingActivity: _loadedActivity,
+            onSaved: () {
+              setState(() {
+                _isEditing = false;
+                _activityFuture = null; // invalidate cache
+              });
+              widget.onRefresh();
+            },
+            onCancel: () => setState(() => _isEditing = false),
+          );
+        }
+
+        // Read-only view: use cached future to avoid re-fetching on every build
+        _activityFuture ??= _loadActivity(activityId);
         return FutureBuilder<Map<String, dynamic>?>(
-          future: activityId != null ? _loadActivity(activityId) : Future.value(null),
+          future: _activityFuture,
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
             final activity = snapshot.data;
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.purple.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.purple.withValues(alpha: 0.2)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.quiz, color: Colors.purple.shade400),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: activity != null
-                            ? Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    activity['title'] as String? ?? 'Aktivite',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    'Tür: ${activity['type'] ?? 'bilinmiyor'}',
-                                    style: TextStyle(
-                                        fontSize: 12, color: Colors.grey.shade600),
-                                  ),
-                                ],
-                              )
-                            : Text(
-                                activityId != null
-                                    ? 'Aktivite ID: $activityId'
-                                    : 'Aktivite atanmamış',
-                                style: TextStyle(color: Colors.grey.shade600),
-                              ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
+            if (activity == null) {
+              return const Text('Activity not found');
+            }
+            _loadedActivity = activity;
+            return _buildActivitySummary(activity);
           },
         );
 
       default:
         return Text('Bilinmeyen blok türü: $type');
     }
+  }
+
+  Widget _buildActivitySummary(Map<String, dynamic> activity) {
+    final type = activity['type'] as String? ?? '';
+    final content = activity['content'] as Map<String, dynamic>? ?? {};
+    final vocabWords = (activity['vocabulary_words'] as List<dynamic>?)?.length ?? 0;
+
+    String summary;
+    switch (type) {
+      case 'true_false':
+        summary = content['statement'] as String? ?? '';
+      case 'word_translation':
+        summary = '${content['word'] ?? ''} → ${content['correct_answer'] ?? ''}';
+      case 'find_words':
+        summary = content['instruction'] as String? ?? '';
+      case 'matching':
+        final pairs = (content['pairs'] as List<dynamic>?)?.length ?? 0;
+        summary = '${content['instruction'] ?? ''} ($pairs pairs)';
+      default:
+        summary = 'Unknown type';
+    }
+
+    final typeLabel = type.replaceAll('_', ' ').split(' ').map(
+      (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : ''
+    ).join(' ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.purple.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.purple.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.purple.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(typeLabel, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.purple)),
+            ),
+            if (vocabWords > 0) ...[
+              const SizedBox(width: 8),
+              Text('$vocabWords vocab words', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+            ],
+          ]),
+          const SizedBox(height: 8),
+          Text(summary, maxLines: 2, overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
   }
 
   Future<Map<String, dynamic>?> _loadActivity(String activityId) async {
@@ -786,13 +877,21 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
   }
 
   String _getTypeName(String type) {
+    if (type == 'activity') {
+      final activityType = widget.block['_activityType'] as String?
+          ?? _loadedActivity?['type'] as String?;
+      if (activityType != null) {
+        return activityType.replaceAll('_', ' ').split(' ').map(
+          (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : ''
+        ).join(' ');
+      }
+      return 'Aktivite';
+    }
     switch (type) {
       case 'text':
         return 'Metin';
       case 'image':
         return 'Görsel';
-      case 'activity':
-        return 'Aktivite';
       default:
         return 'Bilinmiyor';
     }
