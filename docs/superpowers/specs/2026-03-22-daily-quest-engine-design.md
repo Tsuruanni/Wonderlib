@@ -49,13 +49,15 @@ INSERT INTO daily_quests (quest_type, title, icon, goal_value, reward_type, rewa
 | `id` | UUID PK DEFAULT gen_random_uuid() | |
 | `user_id` | UUID NOT NULL FK → profiles ON DELETE CASCADE | |
 | `quest_id` | UUID NOT NULL FK → daily_quests ON DELETE CASCADE | |
-| `completion_date` | DATE NOT NULL | Istanbul timezone date |
-| `reward_claimed` | BOOLEAN DEFAULT false | Whether reward was collected |
+| `completion_date` | DATE NOT NULL | UTC or Istanbul depending on quest type |
 | `created_at` | TIMESTAMPTZ DEFAULT NOW() | |
 
 UNIQUE: `(user_id, quest_id, completion_date)` — one completion per quest per day.
+INDEX: `(user_id, completion_date)` — for efficient daily lookups.
 
-RLS: SELECT own rows. INSERT/UPDATE via RPC only.
+RLS: SELECT own rows (`user_id = auth.uid()`). INSERT via SECURITY DEFINER RPCs only.
+
+**Auto-completion:** When `get_daily_quest_progress` detects a quest's `current_value >= goal_value`, it auto-inserts into `daily_quest_completions` and auto-awards the reward. No manual per-quest claim needed. Users only manually claim the all-quests bonus.
 
 #### New table: `daily_quest_bonus_claims` — all-quests-complete bonus
 
@@ -72,20 +74,20 @@ RLS: SELECT own rows. INSERT via RPC only.
 
 ### Timezone
 
-All "today" calculations use Istanbul timezone (UTC+3):
+**Hybrid approach** — existing `daily_chapter_reads.read_date` and `daily_review_sessions.session_date` were written using `CURRENT_DATE` (UTC). Changing this retroactively would break existing data. Strategy:
 
-```sql
--- Istanbul today helper (used in all RPCs)
-(NOW() AT TIME ZONE 'Europe/Istanbul')::DATE
-```
+- `daily_review` quest: uses `session_date = CURRENT_DATE` (UTC, matches existing convention)
+- `read_words` quest: uses `read_date = CURRENT_DATE` (UTC, matches existing convention)
+- `correct_answers` quest: uses `answered_at >= istanbul_today_start_utc` (Istanbul timezone offset applied to UTC timestamp column)
+- New tables (`daily_quest_completions`, `daily_quest_bonus_claims`): use `(NOW() AT TIME ZONE 'Europe/Istanbul')::DATE` for `completion_date` / `claim_date`
 
-DB timestamps remain UTC. Only date comparisons use Istanbul offset.
+Istanbul midnight in UTC: `date_trunc('day', NOW() AT TIME ZONE 'Europe/Istanbul') AT TIME ZONE 'Europe/Istanbul'`
 
-Istanbul midnight in UTC: `date_trunc('day', NOW() AT TIME ZONE 'Europe/Istanbul') AT TIME ZONE 'Europe/Istanbul'` — returns UTC timestamp of Istanbul midnight.
+**Note:** This means quests 1-2 reset at UTC midnight (03:00 Istanbul) and quest 3 resets at Istanbul midnight (00:00 Istanbul). This is the same inconsistency as before, but now documented. Fixing it fully requires migrating `daily_chapter_reads` and `daily_review_sessions` to Istanbul dates, which is deferred.
 
 ### RPC: `get_daily_quest_progress`
 
-Single RPC returns all quest definitions + today's progress for a user:
+SECURITY DEFINER. Single RPC returns all quest definitions + today's progress, and **auto-completes** quests when goal is met.
 
 ```sql
 CREATE FUNCTION get_daily_quest_progress(p_user_id UUID)
@@ -99,52 +101,46 @@ RETURNS TABLE(
   is_completed BOOLEAN,
   reward_type VARCHAR,
   reward_amount INT,
-  reward_claimed BOOLEAN
+  reward_awarded BOOLEAN
 )
 ```
 
-Logic per `quest_type`:
-- `daily_review`: `current_value = 1` if EXISTS `daily_review_sessions WHERE user_id AND session_date = istanbul_today`, else `0`
-- `read_words`: `current_value = COALESCE(SUM(chapters.word_count), 0)` from `daily_chapter_reads WHERE read_date = istanbul_today`
+**Auth check:** `IF auth.uid() != p_user_id THEN RAISE EXCEPTION 'unauthorized';`
+
+Logic per `quest_type` (today = `CURRENT_DATE` for review/reading, Istanbul offset for answers):
+- `daily_review`: `current_value = 1` if EXISTS `daily_review_sessions WHERE user_id AND session_date = CURRENT_DATE`, else `0`
+- `read_words`: `current_value = COALESCE(SUM(chapters.word_count), 0)` from `daily_chapter_reads WHERE read_date = CURRENT_DATE`. Chapters with NULL word_count contribute 0.
 - `correct_answers`: `current_value = COUNT(*)` from `inline_activity_results WHERE user_id AND is_correct = true AND answered_at >= istanbul_today_start_utc`
 
 `is_completed`: `current_value >= goal_value`
-`reward_claimed`: EXISTS in `daily_quest_completions WHERE quest_id AND user_id AND completion_date = istanbul_today`
+`reward_awarded`: EXISTS in `daily_quest_completions WHERE quest_id AND user_id AND completion_date = today`
+
+**Auto-completion logic:** For each quest where `is_completed = true` AND `reward_awarded = false`:
+1. INSERT into `daily_quest_completions` (ON CONFLICT DO NOTHING for idempotency)
+2. Award reward: `xp` → `award_xp_transaction(p_user_id, amount, 'daily_quest', quest_id, title)`, `coins` → `award_coins(p_user_id, amount, 'daily_quest', quest_id)`, `card_pack` → `UPDATE profiles SET unopened_packs = unopened_packs + amount`
 
 Only returns `is_active = true` quests, ordered by `sort_order`.
 
-### RPC: `claim_quest_reward`
-
-```sql
-CREATE FUNCTION claim_quest_reward(p_user_id UUID, p_quest_id UUID)
-RETURNS JSONB
-```
-
-Logic:
-1. Lock profiles row `FOR UPDATE`
-2. Verify quest exists and is_active
-3. Verify quest is completed (re-check progress)
-4. Check not already claimed today (UNIQUE constraint)
-5. INSERT into `daily_quest_completions` (completion_date = istanbul_today, reward_claimed = true)
-6. Award reward based on `reward_type`:
-   - `xp` → call `award_xp_transaction(p_user_id, reward_amount, 'daily_quest', quest_id, quest_title)`
-   - `coins` → INSERT into `coin_logs` + UPDATE `profiles.coins`
-   - `card_pack` → UPDATE `profiles.unopened_packs += reward_amount`
-7. Return `{ success: true, reward_type, reward_amount }`
-
 ### RPC: `claim_daily_bonus`
+
+SECURITY DEFINER. Manual claim for the all-quests-complete bonus (card pack).
 
 ```sql
 CREATE FUNCTION claim_daily_bonus(p_user_id UUID)
 RETURNS JSONB
 ```
 
+**Auth check:** `IF auth.uid() != p_user_id THEN RAISE EXCEPTION 'unauthorized';`
+
 Logic:
-1. Verify ALL active quests are completed and reward_claimed today
-2. Check not already claimed today (UNIQUE on `daily_quest_bonus_claims`)
-3. INSERT into `daily_quest_bonus_claims`
-4. UPDATE `profiles.unopened_packs += 1`
-5. Return `{ success: true, unopened_packs: N }`
+1. Lock profiles row `FOR UPDATE`
+2. Verify ALL active quests have a `daily_quest_completions` row for today
+3. Check not already claimed today (UNIQUE on `daily_quest_bonus_claims`)
+4. INSERT into `daily_quest_bonus_claims` (claim_date = today)
+5. UPDATE `profiles.unopened_packs += 1`
+6. Return `{ success: true, unopened_packs: N }`
+
+Note: Per-quest rewards are auto-awarded by `get_daily_quest_progress`. This RPC only handles the bonus.
 
 ### Clean Architecture
 
@@ -158,13 +154,11 @@ lib/domain/entities/daily_quest.dart
 
 lib/domain/repositories/daily_quest_repository.dart
   - getDailyQuestProgress(userId) → Either<Failure, List<DailyQuestProgress>>
-  - claimQuestReward(userId, questId) → Either<Failure, QuestRewardResult>
   - claimDailyBonus(userId) → Either<Failure, DailyBonusResult>
   - hasDailyBonusClaimed(userId) → Either<Failure, bool>
 
 lib/domain/usecases/daily_quest/
   - GetDailyQuestProgressUseCase
-  - ClaimQuestRewardUseCase
   - ClaimDailyBonusUseCase
   - HasDailyBonusClaimedUseCase
 ```
@@ -196,6 +190,12 @@ lib/presentation/widgets/home/daily_quest_list.dart (replaces daily_tasks_list.d
   - Bonus row at bottom: locked/claimable/claimed states
   - Teacher assignments still rendered above quests
 ```
+
+### Providers to Migrate
+
+- `currentStreakProvider` (in `daily_goal_provider.dart`) → move to `daily_quest_provider.dart` (simple derived provider from `userControllerProvider`)
+- `wordsReadTodayProvider` (in `book_provider.dart`) → delete (only consumed by old daily_goal_provider; progress now computed server-side)
+- `correctAnswersTodayProvider` (in `book_provider.dart`) → delete (same reason)
 
 ### Files to Delete
 
@@ -232,7 +232,7 @@ lib/presentation/widgets/home/daily_quest_list.dart (replaces daily_tasks_list.d
 |-------|----------|-----------------|
 | Chapter read complete | `book_provider.dart` | `dailyQuestProgressProvider` |
 | Correct activity answer | `reader_provider.dart` | `dailyQuestProgressProvider` |
-| Daily review complete | `daily_review_provider.dart` | `dailyQuestProgressProvider` |
+| Daily review complete | `daily_review_screen.dart` + `daily_review_provider.dart` | `dailyQuestProgressProvider` |
 | Quest reward claimed | `daily_quest_list.dart` | `dailyQuestProgressProvider` + `userControllerProvider` |
 | Bonus claimed | `daily_quest_list.dart` | `dailyQuestProgressProvider` + `dailyBonusClaimedProvider` + `userControllerProvider` |
 
