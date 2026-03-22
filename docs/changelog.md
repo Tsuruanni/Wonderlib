@@ -8,6 +8,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Admin Panel: Inline Activity Editor (2026-03-21)
+
+#### Added
+- **Inline activity editor** — Full CRUD for 4 activity types (True/False, Word Translation, Select Multiple, Matching) directly in the content block editor
+- **Vocab-driven activity creation** — Word Translation and Matching activities auto-populate from vocabulary word selection; translation/meaning editable
+- **Vocabulary word picker** — Autocomplete search widget with inline word creation (word + meaning_tr), creates `vocabulary_words` rows with `source: 'activity'`
+- **Source tracking for vocabulary words** — New `source` column (`manual`, `import`, `activity`) with badge display ("AKTİVİTEDEN EKLENDİ") in vocab list
+- **Chapter numbering** — Chapter list now shows "Chapter N:" prefix for clarity
+
+#### Fixed
+- **Activity block PopupMenuButton** — Wrapped in IgnorePointer to prevent tap interception
+- **Activity type preservation** — `_blockActivityTypes` map survives DB refresh in content block editor
+- **Case-insensitive word duplicate check** — Normalized to lowercase matching DB unique index
+- **Word translation options shuffle** — Correct answer no longer always appears last
+
+### Admin Panel: Recent Activity Page (2026-03-22)
+
+#### Added
+- **Recent Activity dashboard page** — `/recent-activity` with 2 summary cards + 10 section cards showing latest data across all major tables
+- **Summary cards** — Today's active users (distinct from xp_logs) + this week's total XP
+- **10 data sections** — Books, chapters, vocabulary, activities, assignments, new users, active users, activity results, reading progress, XP logs
+- **Dedicated detail pages** — `/recent-activity/:sectionKey` with paginated lists (50 per page, load more)
+- **Admin RLS policies** — SELECT access granted on `inline_activity_results`, `reading_progress`, `xp_logs` for admin users
+
+### Admin Panel: Collectibles & Card Images (2026-03-22)
+
+#### Added
+- **Collectibles page** — Merged Badges + Myth Cards into tabbed `/collectibles` screen with compact grids (5-col badges, 6-col cards)
+- **Card images in Supabase Storage** — 95 PNGs uploaded to `card-images` bucket, `image_url` column added to `myth_cards`
+- **Card image upload** — File picker → Supabase Storage upload in card edit screen with preview
+- **Dashboard simplified** — 5-column grid, removed standalone Ödevler + Mitoloji Kartları cards, added Son Etkinlikler + Koleksiyon cards
+
 ### SM-2 Consolidation & Stale State Fixes (2026-03-20)
 
 #### Fixed

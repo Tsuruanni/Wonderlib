@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-20 (SM-2 Consolidation, Stale State Fixes, Practice Screen Removal)
+Son güncelleme: 2026-03-22 (Inline Activity Editor, Recent Activity Page, Collectibles Merge, Card Image Storage)
 
 ## Current Phase
 
@@ -80,8 +80,13 @@ See: CLAUDE.md for architecture guidelines
 - [x] Lexile score support (full-stack: DB, entity, model, admin, main app display)
 - [x] Book Quiz system (5 question types, Clean Architecture, admin quiz editor)
 - [x] Admin Panel RBAC (role-based access control, two-layer defense)
-- [x] Admin Myth Cards CRUD (card list + edit with rarity preview)
+- [x] Admin Myth Cards CRUD (card list + edit with rarity preview + image upload)
 - [x] Admin Assignments Viewer (read-only teacher assignments + student progress)
+- [x] Inline Activity Editor (full CRUD for 4 activity types in content block editor)
+- [x] Recent Activity Dashboard (12 sections with pagination detail pages)
+- [x] Collectibles merged screen (badges + myth cards tabbed view)
+- [x] Card images migrated to Supabase Storage (95 PNGs, `image_url` column)
+- [x] Vocabulary source tracking (`source` column: manual/import/activity)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] League system (weekly tier-based competition within schools)
@@ -96,6 +101,7 @@ See: CLAUDE.md for architecture guidelines
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
+| Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 
 ## Deferred
 

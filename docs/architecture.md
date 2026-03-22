@@ -312,6 +312,7 @@ Update UI, show notifications
 - `vocabulary_words` - Word definitions (supports multiple meanings per word)
   - `source_book_id` - FK to books for meaning attribution
   - `part_of_speech` - Grammatical classification
+  - `source` - Origin tracking: `manual`, `import`, `activity`
   - UNIQUE constraint on `(word, meaning_tr)` for deduplication
 - `vocabulary_units` - Admin-created unit groupings for learning path
   - `sort_order` - Display order in path
@@ -342,7 +343,7 @@ Update UI, show notifications
 - `league_history` - Weekly league tier changes (promotion/demotion tracking)
 
 ### Card Collection
-- `myth_cards` - Card catalog (96 mythology cards)
+- `myth_cards` - Card catalog (96 mythology cards, `image_url` from Supabase Storage `card-images` bucket)
 - `user_cards` - Owned cards per user
 - `user_card_stats` - Collection stats (pity counter, total packs)
 - `pack_purchases` - Pack purchase history
@@ -366,6 +367,22 @@ Update UI, show notifications
 - School code + credentials for login
 - Tokens stored in secure storage
 - Auto-refresh on expiry
+
+## Admin Panel (owlio_admin/)
+
+Separate Flutter web project for content management.
+
+### Key Features
+- **Content Block Editor** — Visual chapter editor with text, image, and inline activity blocks (drag-reorder)
+- **Inline Activity Editor** — Vocab-driven forms for 4 activity types (True/False, Word Translation, Select Multiple, Matching)
+- **Vocabulary Management** — Word CRUD with AI generation, CSV import, source tracking
+- **Recent Activity** — Dashboard page with 10 data sections + paginated detail pages
+- **Collectibles** — Tabbed Badges + Myth Cards with image upload to Supabase Storage
+- **Learning Path Templates** — Template creation and school/class assignment
+
+### Storage
+- Card images: Supabase Storage `card-images` bucket (public, 95 PNGs)
+- All other media: URL-referenced (Supabase Storage or external)
 
 ## Offline Strategy
 
