@@ -186,6 +186,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/learning-paths'),
                   ),
                   _DashboardCard(
+                    icon: Icons.timeline,
+                    title: 'Son Etkinlikler',
+                    description: 'Son eklenen içerikler ve kullanıcı aktivitesi',
+                    color: const Color(0xFF0891B2),
+                    onTap: () => context.go('/recent-activity'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.assignment,
                     title: 'Ödevler',
                     description: 'Öğretmen ödevlerini görüntüle',
