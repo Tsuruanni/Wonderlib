@@ -1,4 +1,6 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -42,6 +44,8 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
   bool _isActive = true;
   bool _isLoading = false;
   bool _isSaving = false;
+  bool _isUploading = false;
+  String? _imageUrl;
 
   bool get isNewCard => widget.cardId == null;
 
@@ -94,6 +98,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
             CardCategory.fromDbValue(card['category'] as String? ?? '');
         _rarity = CardRarity.fromDbValue(card['rarity'] as String? ?? '');
         _isActive = card['is_active'] as bool? ?? true;
+        _imageUrl = card['image_url'] as String?;
         _isLoading = false;
       });
     } else {
@@ -136,6 +141,7 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
             ? null
             : _categoryIconController.text.trim(),
         'is_active': _isActive,
+        if (_imageUrl != null) 'image_url': _imageUrl,
       };
 
       if (isNewCard) {
@@ -222,6 +228,55 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
           SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
         );
       }
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    if (file.bytes == null) return;
+
+    setState(() => _isUploading = true);
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final cardName = _nameController.text.trim().isNotEmpty
+          ? _nameController.text.trim()
+          : 'card_${const Uuid().v4().substring(0, 8)}';
+      final ext = file.extension ?? 'png';
+      final storagePath = '$cardName.$ext';
+
+      await supabase.storage.from('card-images').uploadBinary(
+            storagePath,
+            file.bytes!,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      final publicUrl = supabase.storage
+          .from('card-images')
+          .getPublicUrl(storagePath);
+
+      setState(() => _imageUrl = publicUrl);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Görsel yüklendi')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Yükleme hatası: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
     }
   }
 
@@ -419,6 +474,68 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                           ),
                           const SizedBox(height: 16),
 
+                          // Image
+                          const SizedBox(height: 8),
+                          Text('Kart Görseli',
+                              style: Theme.of(context).textTheme.titleMedium),
+                          const SizedBox(height: 12),
+                          if (_imageUrl != null && _imageUrl!.isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                _imageUrl!,
+                                height: 150,
+                                width: 150,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  height: 150,
+                                  width: 150,
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(Icons.broken_image, size: 48),
+                                ),
+                              ),
+                            )
+                          else
+                            Container(
+                              height: 100,
+                              width: 150,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.image_not_supported,
+                                    size: 32, color: Colors.grey),
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _isUploading ? null : _uploadImage,
+                            icon: _isUploading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.upload, size: 18),
+                            label: Text(_isUploading
+                                ? 'Yükleniyor...'
+                                : _imageUrl != null
+                                    ? 'Görseli Değiştir'
+                                    : 'Görsel Yükle'),
+                          ),
+                          if (_imageUrl != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              _imageUrl!,
+                              style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+
                           // Is Active
                           SwitchListTile(
                             title: const Text('Aktif'),
@@ -479,27 +596,21 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 12),
-                                    // Icon
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: BoxDecoration(
-                                        color: _rarityColor(_rarity)
-                                            .withValues(alpha: 0.1),
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          _categoryIconController
-                                                  .text.isEmpty
-                                              ? '🃏'
-                                              : _categoryIconController.text,
-                                          style:
-                                              const TextStyle(fontSize: 32),
+                                    // Image or Icon
+                                    if (_imageUrl != null && _imageUrl!.isNotEmpty)
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          _imageUrl!,
+                                          width: 120,
+                                          height: 120,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              _emojiPreview(_categoryIconController.text, _rarity),
                                         ),
-                                      ),
-                                    ),
+                                      )
+                                    else
+                                      _emojiPreview(_categoryIconController.text, _rarity),
                                     const SizedBox(height: 12),
                                     // Name
                                     Text(
@@ -587,6 +698,23 @@ class _CardEditScreenState extends ConsumerState<CardEditScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  static Widget _emojiPreview(String text, CardRarity rarity) {
+    return Container(
+      width: 64,
+      height: 64,
+      decoration: BoxDecoration(
+        color: _rarityColor(rarity).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Center(
+        child: Text(
+          text.isEmpty ? '🃏' : text,
+          style: const TextStyle(fontSize: 32),
+        ),
+      ),
     );
   }
 
