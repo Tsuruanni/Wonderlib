@@ -23,92 +23,92 @@ final recentActivityProvider =
         .from(DbTables.xpLogs)
         .select('user_id')
         .gte('created_at', todayStart)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 1: summary - week's total XP
     supabase
         .from(DbTables.xpLogs)
-        .select('xp_amount')
+        .select('amount')
         .gte('created_at', weekAgo)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 2: Son Eklenen Kitaplar
     supabase
         .from(DbTables.books)
         .select('id, title, level, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 3: Son Eklenen Bölümler
     supabase
         .from(DbTables.chapters)
         .select('id, title, created_at, books(title)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 4: Son Eklenen Kelimeler
     supabase
         .from(DbTables.vocabularyWords)
         .select('id, word, meaning_tr, source, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 5: Son Eklenen Aktiviteler
     supabase
         .from(DbTables.inlineActivities)
         .select('id, type, created_at, chapters(title)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 6: Son Ödevler
     supabase
         .from(DbTables.scopeLearningPaths)
         .select('id, created_at, learning_path_templates(name)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 7: Son Eklenen Kullanıcılar
     supabase
         .from(DbTables.profiles)
-        .select('id, display_name, role, created_at')
+        .select('id, first_name, last_name, role, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 8: Son Aktif Kullanıcılar
     supabase
         .from(DbTables.profiles)
-        .select('id, display_name, last_sign_in_at')
-        .not('last_sign_in_at', 'is', null)
-        .order('last_sign_in_at', ascending: false)
+        .select('id, first_name, last_name, last_activity_date')
+        .not('last_activity_date', 'is', null)
+        .order('last_activity_date', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 9: Son Tamamlanan Aktiviteler
     supabase
         .from(DbTables.inlineActivityResults)
         .select(
-            'id, is_correct, answered_at, profiles(display_name), inline_activities(type)')
+            'id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
         .order('answered_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 10: Son Okuma İlerlemeleri
     supabase
         .from(DbTables.readingProgress)
-        .select('id, updated_at, profiles(display_name), chapters(title)')
+        .select('id, updated_at, profiles(first_name, last_name), chapters(title)')
         .order('updated_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
     // 11: Son XP Kazanımları
     supabase
         .from(DbTables.xpLogs)
-        .select('id, xp_amount, source, created_at, profiles(display_name)')
+        .select('id, amount, source, created_at, profiles(first_name, last_name)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
+        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
   ]);
 
   // Process summaries
   final todayUsers =
       results[0].map((r) => r['user_id']).toSet().length;
   final weeklyXp = results[1]
-      .fold<int>(0, (sum, r) => sum + (r['xp_amount'] as int? ?? 0));
+      .fold<int>(0, (sum, r) => sum + (r['amount'] as int? ?? 0));
 
   return {
     'todayUsers': todayUsers,
@@ -617,7 +617,7 @@ class _NewUserRow extends StatelessWidget {
     return ListTile(
       dense: true,
       title: Text(
-        item['display_name'] ?? '',
+        _fullName(item),
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
       trailing: Row(
@@ -644,11 +644,11 @@ class _ActiveUserRow extends StatelessWidget {
     return ListTile(
       dense: true,
       title: Text(
-        item['display_name'] ?? '',
+        _fullName(item),
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
       trailing: Text(
-        _relativeDate(item['last_sign_in_at']),
+        _relativeDate(item['last_activity_date']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
@@ -661,7 +661,7 @@ class _ActivityResultRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentName = item['profiles']?['display_name'] ?? '';
+    final studentName = _fullName(item['profiles']);
     final activityType = item['inline_activities']?['type'];
     final isCorrect = item['is_correct'] == true;
     return ListTile(
@@ -700,7 +700,7 @@ class _ReadingProgressRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentName = item['profiles']?['display_name'] ?? '';
+    final studentName = _fullName(item['profiles']);
     final chapterTitle = item['chapters']?['title'] ?? '';
     return ListTile(
       dense: true,
@@ -738,8 +738,8 @@ class _XpLogRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentName = item['profiles']?['display_name'] ?? '';
-    final xpAmount = item['xp_amount'] as int? ?? 0;
+    final studentName = _fullName(item['profiles']);
+    final xpAmount = item['amount'] as int? ?? 0;
     final source = item['source'] ?? '';
     return ListTile(
       dense: true,
@@ -783,6 +783,13 @@ class _XpLogRow extends StatelessWidget {
 // ============================================
 // HELPERS
 // ============================================
+
+String _fullName(dynamic item) {
+  if (item == null) return '';
+  final first = item['first_name'] as String? ?? '';
+  final last = item['last_name'] as String? ?? '';
+  return '$first $last'.trim();
+}
 
 String _relativeDate(String? dateStr) {
   if (dateStr == null) return '';
