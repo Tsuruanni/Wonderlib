@@ -7,7 +7,7 @@ import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart'
 import '../../domain/usecases/user/update_user_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import 'auth_provider.dart';
-import 'book_provider.dart';
+import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
@@ -385,9 +385,9 @@ Future<void> _handleInlineActivityCompletionImpl(
     (isNew) => isNew,
   );
 
-  // Refresh daily goal (correct answers count)
+  // Refresh daily quest progress
   if (isNewCompletion) {
-    ref.invalidate(correctAnswersTodayProvider);
+    ref.invalidate(dailyQuestProgressProvider);
   }
 
   // Award XP for new completions

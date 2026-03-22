@@ -11,7 +11,7 @@ import '../../providers/book_quiz_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
-import '../../widgets/home/daily_goal_widget.dart';
+import '../../widgets/home/daily_quest_widget.dart';
 
 
 class HomeScreen extends ConsumerWidget {
@@ -43,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // --- Daily Tasks Section ---
-                  const DailyGoalWidget(),
+                  const DailyQuestWidget(),
                   const SizedBox(height: 16),
 
                   // --- Daily Vocabulary Review ---

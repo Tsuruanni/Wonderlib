@@ -13,10 +13,9 @@ import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
-import '../../domain/usecases/reading/get_words_read_today_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
-import '../../domain/usecases/activity/get_correct_answers_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
+import 'daily_quest_provider.dart';
 import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
@@ -178,7 +177,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       // Invalidate providers to refresh UI
       _ref.invalidate(readingProgressProvider(bookId));
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
-      _ref.invalidate(wordsReadTodayProvider); // Refresh daily goal
+      _ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
 
       // Award XP for new chapter completion
       if (!wasAlreadyCompleted) {
@@ -414,28 +413,3 @@ final hasReadTodayProvider = FutureProvider<bool>((ref) async {
   );
 });
 
-/// Words read today (for daily task)
-final wordsReadTodayProvider = FutureProvider<int>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return 0;
-
-  final useCase = ref.watch(getWordsReadTodayUseCaseProvider);
-  final result = await useCase(GetWordsReadTodayParams(userId: userId));
-  return result.fold(
-    (failure) => 0,
-    (count) => count,
-  );
-});
-
-/// Correct answers today (for daily task)
-final correctAnswersTodayProvider = FutureProvider<int>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return 0;
-
-  final useCase = ref.watch(getCorrectAnswersTodayUseCaseProvider);
-  final result = await useCase(GetCorrectAnswersTodayParams(userId: userId));
-  return result.fold(
-    (failure) => 0,
-    (count) => count,
-  );
-});

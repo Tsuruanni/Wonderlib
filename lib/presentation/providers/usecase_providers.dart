@@ -52,8 +52,6 @@ import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/get_user_coins_usecase.dart';
 import '../../domain/usecases/card/buy_pack_usecase.dart';
-import '../../domain/usecases/card/claim_daily_quest_pack_usecase.dart';
-import '../../domain/usecases/card/has_daily_quest_pack_claimed_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
 import '../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
@@ -620,14 +618,6 @@ final getUserCoinsUseCaseProvider = Provider((ref) {
 
 final buyPackUseCaseProvider = Provider((ref) {
   return BuyPackUseCase(ref.watch(cardRepositoryProvider));
-});
-
-final claimDailyQuestPackUseCaseProvider = Provider((ref) {
-  return ClaimDailyQuestPackUseCase(ref.watch(cardRepositoryProvider));
-});
-
-final hasDailyQuestPackClaimedUseCaseProvider = Provider((ref) {
-  return HasDailyQuestPackClaimedUseCase(ref.watch(cardRepositoryProvider));
 });
 
 // ============================================

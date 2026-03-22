@@ -11,6 +11,7 @@ import '../../providers/repository_providers.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/daily_quest_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
@@ -128,6 +129,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
+    ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
     // Invalidate wordbank providers so Word Bank sees updated review dates
     ref.invalidate(userVocabularyProgressProvider);
     ref.invalidate(learnedWordsWithDetailsProvider);
