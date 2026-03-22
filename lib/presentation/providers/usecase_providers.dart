@@ -114,6 +114,9 @@ import '../../domain/usecases/book_quiz/get_quiz_for_book_usecase.dart';
 import '../../domain/usecases/book_quiz/get_student_quiz_results_usecase.dart';
 import '../../domain/usecases/book_quiz/submit_quiz_result_usecase.dart';
 import '../../domain/usecases/settings/get_system_settings_usecase.dart';
+import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
+import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
+import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
 import 'repository_providers.dart';
 
 // ============================================
@@ -649,4 +652,20 @@ final getBestQuizResultUseCaseProvider = Provider((ref) {
 
 final getStudentQuizResultsUseCaseProvider = Provider((ref) {
   return GetStudentQuizResultsUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+// ============================================
+// DAILY QUEST USE CASES
+// ============================================
+
+final getDailyQuestProgressUseCaseProvider = Provider((ref) {
+  return GetDailyQuestProgressUseCase(ref.watch(dailyQuestRepositoryProvider));
+});
+
+final claimDailyBonusUseCaseProvider = Provider((ref) {
+  return ClaimDailyBonusUseCase(ref.watch(dailyQuestRepositoryProvider));
+});
+
+final hasDailyBonusClaimedUseCaseProvider = Provider((ref) {
+  return HasDailyBonusClaimedUseCase(ref.watch(dailyQuestRepositoryProvider));
 });
