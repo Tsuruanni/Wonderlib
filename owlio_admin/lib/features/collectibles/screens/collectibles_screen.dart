@@ -330,6 +330,7 @@ class _CompactMythCard extends StatelessWidget {
     final name = card['name'] as String? ?? '';
     final rarity = CardRarity.fromDbValue(card['rarity'] as String? ?? '');
     final power = card['power'] as int? ?? 0;
+    final imageUrl = card['image_url'] as String?;
     final categoryIcon = card['category_icon'] as String? ?? '🃏';
     final isActive = card['is_active'] as bool? ?? true;
 
@@ -341,65 +342,84 @@ class _CompactMythCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(cardNo,
-                      style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.bold)),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: _rarityColor(rarity).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Image or emoji fallback
+            Expanded(
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Text(categoryIcon,
+                            style: const TextStyle(fontSize: 28)),
+                      ),
+                    )
+                  : Center(
+                      child: Text(categoryIcon,
+                          style: const TextStyle(fontSize: 28)),
                     ),
-                    child: Text(rarity.label,
-                        style: TextStyle(
-                            fontSize: 8,
-                            color: _rarityColor(rarity),
-                            fontWeight: FontWeight.w600)),
+            ),
+            // Info bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+              color: Colors.black.withValues(alpha: 0.03),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(name,
+                            style: const TextStyle(
+                                fontSize: 10, fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 3, vertical: 1),
+                        decoration: BoxDecoration(
+                          color:
+                              _rarityColor(rarity).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Text(rarity.label,
+                            style: TextStyle(
+                                fontSize: 7,
+                                color: _rarityColor(rarity),
+                                fontWeight: FontWeight.w600)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(cardNo,
+                          style: TextStyle(
+                              fontSize: 8, color: Colors.grey.shade500)),
+                      const Spacer(),
+                      Icon(Icons.bolt,
+                          size: 9, color: Colors.amber.shade700),
+                      Text('$power',
+                          style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade700)),
+                      if (!isActive) ...[
+                        const SizedBox(width: 4),
+                        Text('Pasif',
+                            style: TextStyle(
+                                fontSize: 7,
+                                color: Colors.red.shade600)),
+                      ],
+                    ],
                   ),
                 ],
               ),
-              const Spacer(),
-              Center(
-                child: Text(categoryIcon,
-                    style: const TextStyle(fontSize: 28)),
-              ),
-              const Spacer(),
-              Text(name,
-                  style: const TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Icon(Icons.bolt, size: 10, color: Colors.amber.shade700),
-                  Text('$power',
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber.shade700)),
-                  if (!isActive) ...[
-                    const Spacer(),
-                    Text('Pasif',
-                        style:
-                            TextStyle(fontSize: 8, color: Colors.red.shade600)),
-                  ],
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
