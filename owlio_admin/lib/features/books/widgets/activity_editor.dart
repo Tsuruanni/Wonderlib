@@ -214,7 +214,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
         };
       case 'word_translation':
         final correctAnswer = _wtTranslationController.text.trim();
-        final opts = {..._wtOptions, correctAnswer}.toList();
+        final opts = {..._wtOptions, correctAnswer}.toList()..shuffle();
         return {
           'word': _wtWord,
           'correct_answer': correctAnswer,
