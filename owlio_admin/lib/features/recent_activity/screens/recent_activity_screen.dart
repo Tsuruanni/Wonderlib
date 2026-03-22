@@ -291,6 +291,7 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF059669),
                       items: activityResults,
                       itemBuilder: (item) => _ActivityResultRow(item: item),
+                      viewAllRoute: '/users',
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -299,6 +300,7 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF4F46E5),
                       items: readingProgress,
                       itemBuilder: (item) => _ReadingProgressRow(item: item),
+                      viewAllRoute: '/users',
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -307,6 +309,7 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFFF59E0B),
                       items: xpLogs,
                       itemBuilder: (item) => _XpLogRow(item: item),
+                      viewAllRoute: '/users',
                     ),
                   ],
                 ),
