@@ -126,10 +126,10 @@ class DashboardScreen extends ConsumerWidget {
             const SizedBox(height: 32),
             Expanded(
               child: GridView.count(
-                crossAxisCount: 3,
+                crossAxisCount: 5,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 1.5,
+                childAspectRatio: 1.2,
                 children: [
                   _DashboardCard(
                     icon: Icons.menu_book,
@@ -191,13 +191,6 @@ class DashboardScreen extends ConsumerWidget {
                     description: 'Son eklenen içerikler ve kullanıcı aktivitesi',
                     color: const Color(0xFF0891B2),
                     onTap: () => context.go('/recent-activity'),
-                  ),
-                  _DashboardCard(
-                    icon: Icons.assignment,
-                    title: 'Ödevler',
-                    description: 'Öğretmen ödevlerini görüntüle',
-                    color: const Color(0xFFDB2777),
-                    onTap: () => context.go('/assignments'),
                   ),
                   _DashboardCard(
                     icon: Icons.style,
