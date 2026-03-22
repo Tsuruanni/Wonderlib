@@ -23,55 +23,55 @@ final recentActivityProvider =
         .from(DbTables.xpLogs)
         .select('user_id')
         .gte('created_at', todayStart)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 1: summary - week's total XP
     supabase
         .from(DbTables.xpLogs)
         .select('amount')
         .gte('created_at', weekAgo)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 2: Son Eklenen Kitaplar
     supabase
         .from(DbTables.books)
         .select('id, title, level, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 3: Son Eklenen Bölümler
     supabase
         .from(DbTables.chapters)
         .select('id, title, created_at, books(title)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 4: Son Eklenen Kelimeler
     supabase
         .from(DbTables.vocabularyWords)
         .select('id, word, meaning_tr, source, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 5: Son Eklenen Aktiviteler
     supabase
         .from(DbTables.inlineActivities)
         .select('id, type, created_at, chapters(title)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 6: Son Ödevler
     supabase
         .from(DbTables.scopeLearningPaths)
         .select('id, created_at, learning_path_templates(name)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 7: Son Eklenen Kullanıcılar
     supabase
         .from(DbTables.profiles)
         .select('id, first_name, last_name, role, created_at')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 8: Son Aktif Kullanıcılar
     supabase
         .from(DbTables.profiles)
@@ -79,7 +79,7 @@ final recentActivityProvider =
         .not('last_activity_date', 'is', null)
         .order('last_activity_date', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 9: Son Tamamlanan Aktiviteler
     supabase
         .from(DbTables.inlineActivityResults)
@@ -87,21 +87,21 @@ final recentActivityProvider =
             'id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
         .order('answered_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 10: Son Okuma İlerlemeleri
     supabase
         .from(DbTables.readingProgress)
         .select('id, updated_at, profiles(first_name, last_name), chapters(title)')
         .order('updated_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 11: Son XP Kazanımları
     supabase
         .from(DbTables.xpLogs)
         .select('id, amount, source, created_at, profiles(first_name, last_name)')
         .order('created_at', ascending: false)
         .limit(10)
-        .then<List<dynamic>>((v) => v, onError: (e) { debugPrint('RECENT_ACTIVITY_ERROR: $e'); return <dynamic>[]; }),
+        .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
   ]);
 
   // Process summaries
