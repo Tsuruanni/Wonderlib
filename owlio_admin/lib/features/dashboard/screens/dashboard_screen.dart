@@ -157,11 +157,11 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   _DashboardCard(
                     icon: Icons.emoji_events,
-                    title: 'Rozetler',
-                    description: 'Başarı rozeti yönetimi',
+                    title: 'Koleksiyon',
+                    description: 'Rozetler ve mitoloji kartları',
                     color: const Color(0xFFF59E0B),
                     stat: stats['badges'],
-                    onTap: () => context.go('/badges'),
+                    onTap: () => context.go('/collectibles'),
                   ),
                   _DashboardCard(
                     icon: Icons.abc,
@@ -191,13 +191,6 @@ class DashboardScreen extends ConsumerWidget {
                     description: 'Son eklenen içerikler ve kullanıcı aktivitesi',
                     color: const Color(0xFF0891B2),
                     onTap: () => context.go('/recent-activity'),
-                  ),
-                  _DashboardCard(
-                    icon: Icons.style,
-                    title: 'Mitoloji Kartları',
-                    description: 'Mitoloji kartı yönetimi',
-                    color: const Color(0xFFD97706),
-                    onTap: () => context.go('/cards'),
                   ),
                   _DashboardCard(
                     icon: Icons.settings,

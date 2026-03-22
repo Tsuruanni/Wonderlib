@@ -14,7 +14,7 @@ import '../features/users/screens/user_edit_screen.dart';
 import '../features/users/screens/user_import_screen.dart';
 import '../features/users/screens/user_list_screen.dart';
 import '../features/badges/screens/badge_edit_screen.dart';
-import '../features/badges/screens/badge_list_screen.dart';
+import '../features/collectibles/screens/collectibles_screen.dart';
 import '../features/vocabulary/screens/vocabulary_edit_screen.dart';
 import '../features/vocabulary/screens/vocabulary_import_screen.dart';
 import '../features/vocabulary/screens/vocabulary_list_screen.dart';
@@ -25,7 +25,6 @@ import '../features/templates/screens/template_edit_screen.dart';
 import '../features/learning_path_assignments/screens/assignment_screen.dart';
 import '../features/quizzes/screens/book_quiz_edit_screen.dart';
 import '../features/quizzes/screens/quiz_question_edit_screen.dart';
-import '../features/cards/screens/card_list_screen.dart';
 import '../features/cards/screens/card_edit_screen.dart';
 import '../features/assignments/screens/assignment_list_screen.dart';
 import '../features/assignments/screens/assignment_detail_screen.dart';
@@ -159,10 +158,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           userId: state.pathParameters['userId']!,
         ),
       ),
-      // Badges
+      // Collectibles (Badges + Myth Cards)
+      GoRoute(
+        path: '/collectibles',
+        builder: (context, state) => const CollectiblesScreen(),
+      ),
       GoRoute(
         path: '/badges',
-        builder: (context, state) => const BadgeListScreen(),
+        builder: (context, state) => const CollectiblesScreen(initialTab: 0),
       ),
       GoRoute(
         path: '/badges/new',
@@ -239,10 +242,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           assignmentId: state.pathParameters['assignmentId']!,
         ),
       ),
-      // Myth Cards
       GoRoute(
         path: '/cards',
-        builder: (context, state) => const CardListScreen(),
+        builder: (context, state) => const CollectiblesScreen(initialTab: 1),
       ),
       GoRoute(
         path: '/cards/new',
