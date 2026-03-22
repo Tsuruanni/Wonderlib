@@ -353,7 +353,7 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 'true_false', child: ListTile(leading: Icon(Icons.check_circle_outline), title: Text('True/False'), dense: true)),
                   PopupMenuItem(value: 'word_translation', child: ListTile(leading: Icon(Icons.translate), title: Text('Word Translation'), dense: true)),
-                  PopupMenuItem(value: 'find_words', child: ListTile(leading: Icon(Icons.search), title: Text('Find Words'), dense: true)),
+                  PopupMenuItem(value: 'find_words', child: ListTile(leading: Icon(Icons.checklist), title: Text('Select Multiple'), dense: true)),
                   PopupMenuItem(value: 'matching', child: ListTile(leading: Icon(Icons.compare_arrows), title: Text('Matching'), dense: true)),
                 ],
                 child: IgnorePointer(
@@ -826,9 +826,11 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
         summary = 'Unknown type';
     }
 
-    final typeLabel = type.replaceAll('_', ' ').split(' ').map(
-      (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : ''
-    ).join(' ');
+    final typeLabel = type == 'find_words'
+        ? 'Select Multiple'
+        : type.replaceAll('_', ' ').split(' ').map(
+            (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : ''
+          ).join(' ');
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -905,6 +907,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
       final activityType = widget.block['_activityType'] as String?
           ?? _loadedActivity?['type'] as String?;
       if (activityType != null) {
+        if (activityType == 'find_words') return 'Select Multiple';
         return activityType.replaceAll('_', ' ').split(' ').map(
           (w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : ''
         ).join(' ');

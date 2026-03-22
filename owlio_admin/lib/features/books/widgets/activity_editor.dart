@@ -62,6 +62,10 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
   @override
   void initState() {
     super.initState();
+    // Default instruction for new matching activities
+    if (widget.existingActivity == null && widget.activityType == 'matching') {
+      _instructionController.text = 'Match each word with its meaning.';
+    }
     if (widget.existingActivity != null) {
       final content =
           widget.existingActivity!['content'] as Map<String, dynamic>;
@@ -87,7 +91,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           _fwCorrectAnswers =
               Set<String>.from(content['correct_answers'] ?? []);
         case 'matching':
-          _instructionController.text = content['instruction'] ?? '';
+          _instructionController.text = content['instruction'] ?? 'Match each word with its meaning.';
           final pairs = (content['pairs'] as List<dynamic>? ?? []);
           // Rebuild matching words from pairs + vocab IDs
           for (int i = 0; i < pairs.length; i++) {
