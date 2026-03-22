@@ -162,12 +162,13 @@ class RecentActivityScreen extends ConsumerWidget {
             ],
           ),
         ),
-        data: (data) => _buildBody(context, data),
+        data: (data) => _buildBody(context, ref, data),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildBody(BuildContext context, WidgetRef ref, Map<String, dynamic> data) {
+    final supabase = ref.read(supabaseClientProvider);
     final todayUsers = data['todayUsers'] as int? ?? 0;
     final weeklyXp = data['weeklyXp'] as int? ?? 0;
     final books = data['books'] as List? ?? [];
@@ -223,7 +224,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF4F46E5),
                       items: books,
                       itemBuilder: (item) => _BookRow(item: item),
-                      viewAllRoute: '/books',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.books)
+                          .select('id, title, level, created_at')
+                          .order('created_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -232,6 +236,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF0EA5E9),
                       items: chapters,
                       itemBuilder: (item) => _ChapterRow(item: item),
+                      fetchAll: () async => await supabase
+                          .from(DbTables.chapters)
+                          .select('id, title, created_at, books(title)')
+                          .order('created_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -240,7 +248,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF059669),
                       items: words,
                       itemBuilder: (item) => _WordRow(item: item),
-                      viewAllRoute: '/vocabulary',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.vocabularyWords)
+                          .select('id, word, meaning_tr, source, created_at')
+                          .order('created_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -249,6 +260,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF7C3AED),
                       items: activities,
                       itemBuilder: (item) => _ActivityRow(item: item),
+                      fetchAll: () async => await supabase
+                          .from(DbTables.inlineActivities)
+                          .select('id, type, created_at, chapters(title)')
+                          .order('created_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -257,7 +272,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFFEA580C),
                       items: assignments,
                       itemBuilder: (item) => _AssignmentRow(item: item),
-                      viewAllRoute: '/learning-paths',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.scopeLearningPaths)
+                          .select('id, created_at, learning_path_templates(name)')
+                          .order('created_at', ascending: false),
                     ),
                   ],
                 ),
@@ -273,7 +291,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF7C3AED),
                       items: newUsers,
                       itemBuilder: (item) => _NewUserRow(item: item),
-                      viewAllRoute: '/users',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.profiles)
+                          .select('id, first_name, last_name, role, created_at')
+                          .order('created_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -282,7 +303,11 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF0EA5E9),
                       items: activeUsers,
                       itemBuilder: (item) => _ActiveUserRow(item: item),
-                      viewAllRoute: '/users',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.profiles)
+                          .select('id, first_name, last_name, last_activity_date')
+                          .not('last_activity_date', 'is', null)
+                          .order('last_activity_date', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -291,7 +316,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF059669),
                       items: activityResults,
                       itemBuilder: (item) => _ActivityResultRow(item: item),
-                      viewAllRoute: '/users',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.inlineActivityResults)
+                          .select('id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
+                          .order('answered_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -300,7 +328,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFF4F46E5),
                       items: readingProgress,
                       itemBuilder: (item) => _ReadingProgressRow(item: item),
-                      viewAllRoute: '/users',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.readingProgress)
+                          .select('id, updated_at, profiles(first_name, last_name), chapters(title)')
+                          .order('updated_at', ascending: false),
                     ),
                     const SizedBox(height: 16),
                     _SectionCard(
@@ -309,7 +340,10 @@ class RecentActivityScreen extends ConsumerWidget {
                       color: const Color(0xFFF59E0B),
                       items: xpLogs,
                       itemBuilder: (item) => _XpLogRow(item: item),
-                      viewAllRoute: '/users',
+                      fetchAll: () async => await supabase
+                          .from(DbTables.xpLogs)
+                          .select('id, amount, source, created_at, profiles(first_name, last_name)')
+                          .order('created_at', ascending: false),
                     ),
                   ],
                 ),
@@ -387,14 +421,14 @@ class _SummaryCard extends StatelessWidget {
 // SECTION CARD
 // ============================================
 
-class _SectionCard extends StatelessWidget {
+class _SectionCard extends StatefulWidget {
   const _SectionCard({
     required this.title,
     required this.icon,
     required this.color,
     required this.items,
     required this.itemBuilder,
-    this.viewAllRoute,
+    this.fetchAll,
   });
 
   final String title;
@@ -402,10 +436,41 @@ class _SectionCard extends StatelessWidget {
   final Color color;
   final List<dynamic> items;
   final Widget Function(dynamic item) itemBuilder;
-  final String? viewAllRoute;
+  /// When provided, "Tümünü Gör" button appears. Callback fetches all records.
+  final Future<List<dynamic>> Function()? fetchAll;
+
+  @override
+  State<_SectionCard> createState() => _SectionCardState();
+}
+
+class _SectionCardState extends State<_SectionCard> {
+  bool _expanded = false;
+  bool _loading = false;
+  List<dynamic>? _allItems;
+
+  Future<void> _handleViewAll() async {
+    if (_expanded) {
+      setState(() => _expanded = false);
+      return;
+    }
+    setState(() => _loading = true);
+    try {
+      final all = await widget.fetchAll!();
+      setState(() {
+        _allItems = all;
+        _expanded = true;
+      });
+    } catch (e) {
+      debugPrint('FETCH_ALL_ERROR: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final displayItems = _expanded ? (_allItems ?? widget.items) : widget.items;
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -417,28 +482,33 @@ class _SectionCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
             child: Row(
               children: [
-                Icon(icon, color: color, size: 20),
+                Icon(widget.icon, color: widget.color, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    title,
+                    widget.title,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                if (viewAllRoute != null)
+                if (widget.fetchAll != null)
                   TextButton(
-                    onPressed: () => context.go(viewAllRoute!),
-                    child: const Text('Tümünü Gör'),
+                    onPressed: _loading ? null : _handleViewAll,
+                    child: _loading
+                        ? const SizedBox(
+                            width: 14, height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_expanded ? 'Daha Az' : 'Tümünü Gör'),
                   ),
               ],
             ),
           ),
           const Divider(height: 1),
           // Body
-          if (items.isEmpty)
+          if (displayItems.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
               child: Center(
@@ -449,12 +519,27 @@ class _SectionCard extends StatelessWidget {
               ),
             )
           else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (_, index) => itemBuilder(items[index]),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: _expanded ? 500 : double.infinity,
+              ),
+              child: ListView.separated(
+                shrinkWrap: !_expanded,
+                physics: _expanded
+                    ? const AlwaysScrollableScrollPhysics()
+                    : const NeverScrollableScrollPhysics(),
+                itemCount: displayItems.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, index) => widget.itemBuilder(displayItems[index]),
+              ),
+            ),
+          if (_expanded && displayItems.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: Text(
+                '${displayItems.length} kayıt',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              ),
             ),
         ],
       ),
