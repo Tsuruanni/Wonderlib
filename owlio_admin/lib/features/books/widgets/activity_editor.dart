@@ -23,7 +23,7 @@ class ActivityEditor extends ConsumerStatefulWidget {
   /// The InlineActivityType dbValue string: 'true_false', 'word_translation', 'find_words', 'matching'
   final String activityType;
 
-  /// If editing, the existing inline_activities row (Map with keys: id, type, content, vocabulary_words, etc.)
+  /// If editing, the existing inline_activities row
   final Map<String, dynamic>? existingActivity;
 
   final VoidCallback onSaved;
@@ -41,25 +41,23 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
   final _statementController = TextEditingController();
   bool _correctAnswer = true;
 
-  // Word Translation
-  final _wordController = TextEditingController();
-  final _translationController = TextEditingController();
-  List<String> _options = [];
-  final _optionInputController = TextEditingController();
+  // Word Translation — driven by vocab word selection
+  String? _wtWordId; // selected vocabulary word ID
+  String _wtWord = ''; // word text (read-only, from vocab)
+  final _wtTranslationController = TextEditingController(); // editable
+  List<String> _wtOptions = []; // distractor options
+  final _wtOptionInputController = TextEditingController();
 
-  // Find Words
+  // Find Words — no vocabulary connection
   final _instructionController = TextEditingController();
   List<String> _fwOptions = [];
   Set<String> _fwCorrectAnswers = {};
   final _fwOptionInputController = TextEditingController();
 
-  // Matching
-  List<Map<String, String>> _pairs = [];
-  List<TextEditingController> _leftControllers = [];
-  List<TextEditingController> _rightControllers = [];
-
-  // Vocabulary words (shared across word_translation, find_words, matching)
-  List<String> _vocabularyWordIds = [];
+  // Matching — driven by vocab word selection
+  // Each entry: {id: vocabWordId, word: String, meaning: String (editable)}
+  List<Map<String, String>> _matchingWords = [];
+  List<TextEditingController> _matchingMeaningControllers = [];
 
   @override
   void initState() {
@@ -67,14 +65,22 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
     if (widget.existingActivity != null) {
       final content =
           widget.existingActivity!['content'] as Map<String, dynamic>;
+      final vocabIds = List<String>.from(
+        (widget.existingActivity!['vocabulary_words'] as List<dynamic>?)
+                ?.map((e) => e.toString()) ??
+            [],
+      );
       switch (widget.activityType) {
         case 'true_false':
           _statementController.text = content['statement'] ?? '';
           _correctAnswer = content['correct_answer'] ?? true;
         case 'word_translation':
-          _wordController.text = content['word'] ?? '';
-          _translationController.text = content['correct_answer'] ?? '';
-          _options = List<String>.from(content['options'] ?? []);
+          _wtWord = content['word'] ?? '';
+          _wtTranslationController.text = content['correct_answer'] ?? '';
+          _wtOptions = List<String>.from(content['options'] ?? []);
+          // Remove the correct answer from distractor options
+          _wtOptions.remove(_wtTranslationController.text);
+          _wtWordId = vocabIds.isNotEmpty ? vocabIds.first : null;
         case 'find_words':
           _instructionController.text = content['instruction'] ?? '';
           _fwOptions = List<String>.from(content['options'] ?? []);
@@ -82,22 +88,17 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
               Set<String>.from(content['correct_answers'] ?? []);
         case 'matching':
           _instructionController.text = content['instruction'] ?? '';
-          _pairs = (content['pairs'] as List<dynamic>? ?? [])
-              .map(
-                (p) => {
-                  'left': p['left'] as String? ?? '',
-                  'right': p['right'] as String? ?? '',
-                },
-              )
-              .toList();
-      }
-      _vocabularyWordIds = List<String>.from(
-        (widget.existingActivity!['vocabulary_words'] as List<dynamic>?)
-                ?.map((e) => e.toString()) ??
-            [],
-      );
-      if (widget.activityType == 'matching') {
-        _syncMatchingControllers();
+          final pairs = (content['pairs'] as List<dynamic>? ?? []);
+          // Rebuild matching words from pairs + vocab IDs
+          for (int i = 0; i < pairs.length; i++) {
+            final p = pairs[i] as Map<String, dynamic>;
+            _matchingWords.add({
+              'id': i < vocabIds.length ? vocabIds[i] : '',
+              'word': p['left'] as String? ?? '',
+              'meaning': p['right'] as String? ?? '',
+            });
+          }
+          _syncMatchingMeaningControllers();
       }
     }
   }
@@ -105,61 +106,52 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
   @override
   void dispose() {
     _statementController.dispose();
-    _wordController.dispose();
-    _translationController.dispose();
-    _optionInputController.dispose();
+    _wtTranslationController.dispose();
+    _wtOptionInputController.dispose();
     _instructionController.dispose();
     _fwOptionInputController.dispose();
-    for (final c in _leftControllers) {
-      c.dispose();
-    }
-    for (final c in _rightControllers) {
+    for (final c in _matchingMeaningControllers) {
       c.dispose();
     }
     super.dispose();
   }
 
-  void _syncMatchingControllers() {
-    for (final c in _leftControllers) {
+  // --- Matching helpers ---
+
+  void _syncMatchingMeaningControllers() {
+    for (final c in _matchingMeaningControllers) {
       c.dispose();
     }
-    for (final c in _rightControllers) {
-      c.dispose();
-    }
-    _leftControllers =
-        _pairs.map((p) => TextEditingController(text: p['left'])).toList();
-    _rightControllers =
-        _pairs.map((p) => TextEditingController(text: p['right'])).toList();
-    for (int i = 0; i < _pairs.length; i++) {
-      _leftControllers[i]
-          .addListener(() => _pairs[i]['left'] = _leftControllers[i].text);
-      _rightControllers[i]
-          .addListener(() => _pairs[i]['right'] = _rightControllers[i].text);
+    _matchingMeaningControllers = _matchingWords
+        .map((w) => TextEditingController(text: w['meaning']))
+        .toList();
+    for (int i = 0; i < _matchingWords.length; i++) {
+      _matchingMeaningControllers[i].addListener(
+        () => _matchingWords[i]['meaning'] =
+            _matchingMeaningControllers[i].text,
+      );
     }
   }
 
-  void _addPair() {
+  void _removeMatchingWord(int index) {
     setState(() {
-      _pairs.add({'left': '', 'right': ''});
-      _syncMatchingControllers();
+      _matchingWords.removeAt(index);
+      _syncMatchingMeaningControllers();
     });
   }
 
-  void _removePair(int index) {
+  // --- Word Translation helpers ---
+
+  void _addWtOption() {
+    final text = _wtOptionInputController.text.trim();
+    if (text.isEmpty || _wtOptions.contains(text)) return;
     setState(() {
-      _pairs.removeAt(index);
-      _syncMatchingControllers();
+      _wtOptions.add(text);
+      _wtOptionInputController.clear();
     });
   }
 
-  void _addOption() {
-    final text = _optionInputController.text.trim();
-    if (text.isEmpty || _options.contains(text)) return;
-    setState(() {
-      _options.add(text);
-      _optionInputController.clear();
-    });
-  }
+  // --- Find Words helpers ---
 
   void _addFwOption() {
     final text = _fwOptionInputController.text.trim();
@@ -170,6 +162,8 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
     });
   }
 
+  // --- Validation ---
+
   String? _validate() {
     switch (widget.activityType) {
       case 'true_false':
@@ -177,12 +171,11 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           return 'Statement is required';
         }
       case 'word_translation':
-        if (_wordController.text.trim().isEmpty) return 'Word is required';
-        if (_translationController.text.trim().isEmpty) {
+        if (_wtWordId == null) return 'Select a vocabulary word';
+        if (_wtTranslationController.text.trim().isEmpty) {
           return 'Translation is required';
         }
-        final allOptions = {..._options, _translationController.text.trim()};
-        if (allOptions.length < 2) {
+        if (_wtOptions.isEmpty) {
           return 'At least 1 distractor option required';
         }
       case 'find_words':
@@ -200,16 +193,17 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
         if (_instructionController.text.trim().isEmpty) {
           return 'Instruction is required';
         }
-        if (_pairs.length < 2) return 'At least 2 pairs required';
-        for (final p in _pairs) {
-          if ((p['left'] ?? '').trim().isEmpty ||
-              (p['right'] ?? '').trim().isEmpty) {
-            return 'All pair fields must be filled';
+        if (_matchingWords.length < 2) return 'At least 2 words required';
+        for (final w in _matchingWords) {
+          if ((w['meaning'] ?? '').trim().isEmpty) {
+            return 'All meaning fields must be filled';
           }
         }
     }
     return null;
   }
+
+  // --- Build content JSONB ---
 
   Map<String, dynamic> _buildContent() {
     switch (widget.activityType) {
@@ -219,10 +213,11 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           'correct_answer': _correctAnswer,
         };
       case 'word_translation':
-        final opts = {..._options, _translationController.text.trim()}.toList();
+        final correctAnswer = _wtTranslationController.text.trim();
+        final opts = {..._wtOptions, correctAnswer}.toList();
         return {
-          'word': _wordController.text.trim(),
-          'correct_answer': _translationController.text.trim(),
+          'word': _wtWord,
+          'correct_answer': correctAnswer,
           'options': opts,
         };
       case 'find_words':
@@ -234,19 +229,35 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
       case 'matching':
         return {
           'instruction': _instructionController.text.trim(),
-          'pairs': _pairs
-              .map(
-                (p) => {
-                  'left': (p['left'] ?? '').trim(),
-                  'right': (p['right'] ?? '').trim(),
-                },
-              )
+          'pairs': _matchingWords
+              .map((w) => {
+                    'left': (w['word'] ?? '').trim(),
+                    'right': (w['meaning'] ?? '').trim(),
+                  })
               .toList(),
         };
       default:
         return {};
     }
   }
+
+  // --- Vocabulary word IDs for save ---
+
+  List<String> _getVocabularyWordIds() {
+    switch (widget.activityType) {
+      case 'word_translation':
+        return _wtWordId != null ? [_wtWordId!] : [];
+      case 'matching':
+        return _matchingWords
+            .where((w) => (w['id'] ?? '').isNotEmpty)
+            .map((w) => w['id']!)
+            .toList();
+      default:
+        return [];
+    }
+  }
+
+  // --- Save ---
 
   Future<void> _handleSave() async {
     final error = _validate();
@@ -261,6 +272,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
 
     final supabase = ref.read(supabaseClientProvider);
     final content = _buildContent();
+    final vocabIds = _getVocabularyWordIds();
     final isEdit = widget.existingActivity != null;
     String activityId = '';
 
@@ -270,7 +282,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
         await supabase.from(DbTables.inlineActivities).update({
           'type': widget.activityType,
           'content': content,
-          'vocabulary_words': _vocabularyWordIds,
+          'vocabulary_words': vocabIds,
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('id', activityId);
       } else {
@@ -280,11 +292,10 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           'chapter_id': widget.chapterId,
           'type': widget.activityType,
           'content': content,
-          'vocabulary_words': _vocabularyWordIds,
+          'vocabulary_words': vocabIds,
           'xp_reward': 5,
           'after_paragraph_index': 0,
         });
-        // Link to content block
         await supabase.from(DbTables.contentBlocks).update({
           'activity_id': activityId,
           'updated_at': DateTime.now().toIso8601String(),
@@ -292,7 +303,6 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
       }
       widget.onSaved();
     } catch (e) {
-      // Rollback: if we inserted a new activity but the content_blocks update failed
       if (!isEdit && activityId.isNotEmpty) {
         try {
           await supabase
@@ -307,6 +317,10 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
     }
   }
 
+  // =============================================
+  // FORM BUILDERS
+  // =============================================
+
   Widget _buildTrueFalseForm() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -320,7 +334,8 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           ),
         ),
         const SizedBox(height: 12),
-        const Text('Correct Answer', style: TextStyle(fontWeight: FontWeight.w500)),
+        const Text('Correct Answer',
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
         SegmentedButton<bool>(
           segments: const [
@@ -328,9 +343,8 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
             ButtonSegment(value: false, label: Text('False')),
           ],
           selected: {_correctAnswer},
-          onSelectionChanged: (selection) {
-            setState(() => _correctAnswer = selection.first);
-          },
+          onSelectionChanged: (s) =>
+              setState(() => _correctAnswer = s.first),
         ),
       ],
     );
@@ -340,65 +354,109 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: _wordController,
-          decoration: const InputDecoration(
-            labelText: 'Word',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _translationController,
-          decoration: const InputDecoration(
-            labelText: 'Correct Answer (Translation)',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Distractor Options',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        // Vocab word picker — single select
+        const Text('Select Vocabulary Word',
+            style: TextStyle(fontWeight: FontWeight.w500)),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: _options.map((opt) {
-            return Chip(
-              label: Text(opt),
-              onDeleted: () => setState(() => _options.remove(opt)),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _optionInputController,
-                decoration: const InputDecoration(
-                  hintText: 'Add distractor option...',
-                  border: OutlineInputBorder(),
-                  isDense: true,
-                ),
-                onSubmitted: (_) => _addOption(),
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton.filled(
-              onPressed: _addOption,
-              icon: const Icon(Icons.add),
-              tooltip: 'Add option',
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
         VocabularyWordPicker(
-          selectedWordIds: _vocabularyWordIds,
-          onChanged: (ids) => setState(() => _vocabularyWordIds = ids),
+          selectedWordIds: _wtWordId != null ? [_wtWordId!] : [],
+          onChanged: (ids) async {
+            if (ids.isEmpty) {
+              setState(() {
+                _wtWordId = null;
+                _wtWord = '';
+                _wtTranslationController.clear();
+              });
+              return;
+            }
+            // Load word details for the newly selected word
+            final newId = ids.last;
+            if (newId == _wtWordId) return;
+            final supabase = ref.read(supabaseClientProvider);
+            final word = await supabase
+                .from(DbTables.vocabularyWords)
+                .select('id, word, meaning_tr')
+                .eq('id', newId)
+                .maybeSingle();
+            if (word != null && mounted) {
+              setState(() {
+                _wtWordId = newId;
+                _wtWord = word['word'] as String? ?? '';
+                _wtTranslationController.text =
+                    word['meaning_tr'] as String? ?? '';
+              });
+            }
+          },
         ),
+        if (_wtWord.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          // Word (read-only)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.abc, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(_wtWord,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Translation (editable)
+          TextField(
+            controller: _wtTranslationController,
+            decoration: const InputDecoration(
+              labelText: 'Translation (editable)',
+              helperText: 'Auto-filled from vocabulary. You can simplify it.',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Distractor options
+          const Text('Distractor Options',
+              style: TextStyle(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: _wtOptions.map((opt) {
+              return Chip(
+                label: Text(opt),
+                onDeleted: () => setState(() => _wtOptions.remove(opt)),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _wtOptionInputController,
+                  decoration: const InputDecoration(
+                    hintText: 'Add distractor option...',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onSubmitted: (_) => _addWtOption(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: _addWtOption,
+                icon: const Icon(Icons.add),
+                tooltip: 'Add option',
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -471,11 +529,6 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        VocabularyWordPicker(
-          selectedWordIds: _vocabularyWordIds,
-          onChanged: (ids) => setState(() => _vocabularyWordIds = ids),
-        ),
       ],
     );
   }
@@ -491,59 +544,112 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 12),
-        const Text('Pairs', style: TextStyle(fontWeight: FontWeight.w500)),
-        const SizedBox(height: 8),
-        ...List.generate(_pairs.length, (i) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _leftControllers[i],
-                    decoration: InputDecoration(
-                      labelText: 'Left ${i + 1}',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.arrow_forward, size: 18, color: Colors.grey),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _rightControllers[i],
-                    decoration: InputDecoration(
-                      labelText: 'Right ${i + 1}',
-                      border: const OutlineInputBorder(),
-                      isDense: true,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => _removePair(i),
-                  icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-                  tooltip: 'Remove pair',
-                ),
-              ],
-            ),
-          );
-        }),
-        TextButton.icon(
-          onPressed: _addPair,
-          icon: const Icon(Icons.add),
-          label: const Text('Add Pair'),
-        ),
         const SizedBox(height: 16),
+        // Vocab word picker for adding words to matching
+        const Text('Add Vocabulary Words',
+            style: TextStyle(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
         VocabularyWordPicker(
-          selectedWordIds: _vocabularyWordIds,
-          onChanged: (ids) => setState(() => _vocabularyWordIds = ids),
+          selectedWordIds:
+              _matchingWords.map((w) => w['id'] ?? '').where((id) => id.isNotEmpty).toList(),
+          onChanged: (ids) async {
+            // Find newly added IDs
+            final currentIds =
+                _matchingWords.map((w) => w['id']).toSet();
+            final newIds =
+                ids.where((id) => !currentIds.contains(id)).toList();
+            // Find removed IDs
+            final removedIds =
+                currentIds.where((id) => id != null && id.isNotEmpty && !ids.contains(id)).toSet();
+
+            if (removedIds.isNotEmpty) {
+              setState(() {
+                _matchingWords.removeWhere(
+                    (w) => removedIds.contains(w['id']));
+                _syncMatchingMeaningControllers();
+              });
+            }
+
+            if (newIds.isNotEmpty) {
+              final supabase = ref.read(supabaseClientProvider);
+              final response = await supabase
+                  .from(DbTables.vocabularyWords)
+                  .select('id, word, meaning_tr')
+                  .inFilter('id', newIds);
+              final rows = List<Map<String, dynamic>>.from(response);
+              if (mounted) {
+                setState(() {
+                  for (final row in rows) {
+                    _matchingWords.add({
+                      'id': row['id'] as String,
+                      'word': row['word'] as String? ?? '',
+                      'meaning': row['meaning_tr'] as String? ?? '',
+                    });
+                  }
+                  _syncMatchingMeaningControllers();
+                });
+              }
+            }
+          },
         ),
+        if (_matchingWords.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          const Text('Pairs (meaning is editable)',
+              style: TextStyle(fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          ...List.generate(_matchingWords.length, (i) {
+            final w = _matchingWords[i];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  // Word (read-only)
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Text(w['word'] ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward,
+                      size: 18, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  // Meaning (editable)
+                  Expanded(
+                    child: TextField(
+                      controller: _matchingMeaningControllers[i],
+                      decoration: InputDecoration(
+                        labelText: 'Meaning ${i + 1}',
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _removeMatchingWord(i),
+                    icon: const Icon(Icons.remove_circle_outline,
+                        color: Colors.red),
+                    tooltip: 'Remove',
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
       ],
     );
   }
+
+  // =============================================
+  // BUILD
+  // =============================================
 
   @override
   Widget build(BuildContext context) {
@@ -560,10 +666,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
         if (_error != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text(_error!, style: const TextStyle(color: Colors.red)),
           ),
         const SizedBox(height: 16),
         Row(
