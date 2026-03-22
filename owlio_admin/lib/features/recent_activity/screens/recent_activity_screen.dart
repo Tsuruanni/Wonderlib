@@ -167,8 +167,7 @@ class RecentActivityScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef ref, Map<String, dynamic> data) {
-    final supabase = ref.read(supabaseClientProvider);
+  Widget _buildBody(BuildContext context, WidgetRef _, Map<String, dynamic> data) {
     final todayUsers = data['todayUsers'] as int? ?? 0;
     final weeklyXp = data['weeklyXp'] as int? ?? 0;
     final books = data['books'] as List? ?? [];
@@ -203,7 +202,7 @@ class RecentActivityScreen extends ConsumerWidget {
                 child: _SummaryCard(
                   icon: Icons.bolt,
                   color: const Color(0xFFF59E0B),
-                  value: _formatNumber(weeklyXp),
+                  value: formatNumber(weeklyXp),
                   label: 'Bu Hafta Toplam XP',
                 ),
               ),
@@ -218,65 +217,15 @@ class RecentActivityScreen extends ConsumerWidget {
               Expanded(
                 child: Column(
                   children: [
-                    _SectionCard(
-                      title: 'Son Eklenen Kitaplar',
-                      icon: Icons.menu_book,
-                      color: const Color(0xFF4F46E5),
-                      items: books,
-                      itemBuilder: (item) => _BookRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.books)
-                          .select('id, title, level, created_at')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Eklenen Kitaplar', icon: Icons.menu_book, color: const Color(0xFF4F46E5), items: books, itemBuilder: (item) => BookRow(item: item), sectionKey: 'books'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Eklenen Bölümler',
-                      icon: Icons.article,
-                      color: const Color(0xFF0EA5E9),
-                      items: chapters,
-                      itemBuilder: (item) => _ChapterRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.chapters)
-                          .select('id, title, created_at, books(title)')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Eklenen Bölümler', icon: Icons.article, color: const Color(0xFF0EA5E9), items: chapters, itemBuilder: (item) => ChapterRow(item: item), sectionKey: 'chapters'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Eklenen Kelimeler',
-                      icon: Icons.abc,
-                      color: const Color(0xFF059669),
-                      items: words,
-                      itemBuilder: (item) => _WordRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.vocabularyWords)
-                          .select('id, word, meaning_tr, source, created_at')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Eklenen Kelimeler', icon: Icons.abc, color: const Color(0xFF059669), items: words, itemBuilder: (item) => WordRow(item: item), sectionKey: 'words'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Eklenen Aktiviteler',
-                      icon: Icons.quiz,
-                      color: const Color(0xFF7C3AED),
-                      items: activities,
-                      itemBuilder: (item) => _ActivityRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.inlineActivities)
-                          .select('id, type, created_at, chapters(title)')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Eklenen Aktiviteler', icon: Icons.quiz, color: const Color(0xFF7C3AED), items: activities, itemBuilder: (item) => ActivityRow(item: item), sectionKey: 'activities'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Ödevler',
-                      icon: Icons.route,
-                      color: const Color(0xFFEA580C),
-                      items: assignments,
-                      itemBuilder: (item) => _AssignmentRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.scopeLearningPaths)
-                          .select('id, created_at, learning_path_templates(name)')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Ödevler', icon: Icons.route, color: const Color(0xFFEA580C), items: assignments, itemBuilder: (item) => AssignmentRow(item: item), sectionKey: 'assignments'),
                   ],
                 ),
               ),
@@ -285,66 +234,15 @@ class RecentActivityScreen extends ConsumerWidget {
               Expanded(
                 child: Column(
                   children: [
-                    _SectionCard(
-                      title: 'Son Eklenen Kullanıcılar',
-                      icon: Icons.person_add,
-                      color: const Color(0xFF7C3AED),
-                      items: newUsers,
-                      itemBuilder: (item) => _NewUserRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.profiles)
-                          .select('id, first_name, last_name, role, created_at')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Eklenen Kullanıcılar', icon: Icons.person_add, color: const Color(0xFF7C3AED), items: newUsers, itemBuilder: (item) => NewUserRow(item: item), sectionKey: 'newUsers'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Aktif Kullanıcılar',
-                      icon: Icons.people,
-                      color: const Color(0xFF0EA5E9),
-                      items: activeUsers,
-                      itemBuilder: (item) => _ActiveUserRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.profiles)
-                          .select('id, first_name, last_name, last_activity_date')
-                          .not('last_activity_date', 'is', null)
-                          .order('last_activity_date', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Aktif Kullanıcılar', icon: Icons.people, color: const Color(0xFF0EA5E9), items: activeUsers, itemBuilder: (item) => ActiveUserRow(item: item), sectionKey: 'activeUsers'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Tamamlanan Aktiviteler',
-                      icon: Icons.check_circle,
-                      color: const Color(0xFF059669),
-                      items: activityResults,
-                      itemBuilder: (item) => _ActivityResultRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.inlineActivityResults)
-                          .select('id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
-                          .order('answered_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Tamamlanan Aktiviteler', icon: Icons.check_circle, color: const Color(0xFF059669), items: activityResults, itemBuilder: (item) => ActivityResultRow(item: item), sectionKey: 'activityResults'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son Okuma İlerlemeleri',
-                      icon: Icons.auto_stories,
-                      color: const Color(0xFF4F46E5),
-                      items: readingProgress,
-                      itemBuilder: (item) => _ReadingProgressRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.readingProgress)
-                          .select('id, updated_at, profiles(first_name, last_name), chapters(title)')
-                          .order('updated_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son Okuma İlerlemeleri', icon: Icons.auto_stories, color: const Color(0xFF4F46E5), items: readingProgress, itemBuilder: (item) => ReadingProgressRow(item: item), sectionKey: 'readingProgress'),
                     const SizedBox(height: 16),
-                    _SectionCard(
-                      title: 'Son XP Kazanımları',
-                      icon: Icons.bolt,
-                      color: const Color(0xFFF59E0B),
-                      items: xpLogs,
-                      itemBuilder: (item) => _XpLogRow(item: item),
-                      fetchAll: () async => await supabase
-                          .from(DbTables.xpLogs)
-                          .select('id, amount, source, created_at, profiles(first_name, last_name)')
-                          .order('created_at', ascending: false),
-                    ),
+                    _SectionCard(title: 'Son XP Kazanımları', icon: Icons.bolt, color: const Color(0xFFF59E0B), items: xpLogs, itemBuilder: (item) => XpLogRow(item: item), sectionKey: 'xpLogs'),
                   ],
                 ),
               ),
@@ -421,14 +319,14 @@ class _SummaryCard extends StatelessWidget {
 // SECTION CARD
 // ============================================
 
-class _SectionCard extends StatefulWidget {
+class _SectionCard extends StatelessWidget {
   const _SectionCard({
     required this.title,
     required this.icon,
     required this.color,
     required this.items,
     required this.itemBuilder,
-    this.fetchAll,
+    this.sectionKey,
   });
 
   final String title;
@@ -436,41 +334,11 @@ class _SectionCard extends StatefulWidget {
   final Color color;
   final List<dynamic> items;
   final Widget Function(dynamic item) itemBuilder;
-  /// When provided, "Tümünü Gör" button appears. Callback fetches all records.
-  final Future<List<dynamic>> Function()? fetchAll;
-
-  @override
-  State<_SectionCard> createState() => _SectionCardState();
-}
-
-class _SectionCardState extends State<_SectionCard> {
-  bool _expanded = false;
-  bool _loading = false;
-  List<dynamic>? _allItems;
-
-  Future<void> _handleViewAll() async {
-    if (_expanded) {
-      setState(() => _expanded = false);
-      return;
-    }
-    setState(() => _loading = true);
-    try {
-      final all = await widget.fetchAll!();
-      setState(() {
-        _allItems = all;
-        _expanded = true;
-      });
-    } catch (e) {
-      debugPrint('FETCH_ALL_ERROR: $e');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
+  /// When provided, "Tümünü Gör" navigates to detail page with pagination.
+  final String? sectionKey;
 
   @override
   Widget build(BuildContext context) {
-    final displayItems = _expanded ? (_allItems ?? widget.items) : widget.items;
-
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -482,33 +350,29 @@ class _SectionCardState extends State<_SectionCard> {
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
             child: Row(
               children: [
-                Icon(widget.icon, color: widget.color, size: 20),
+                Icon(icon, color: color, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    widget.title,
+                    title,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                if (widget.fetchAll != null)
+                if (sectionKey != null)
                   TextButton(
-                    onPressed: _loading ? null : _handleViewAll,
-                    child: _loading
-                        ? const SizedBox(
-                            width: 14, height: 14,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_expanded ? 'Daha Az' : 'Tümünü Gör'),
+                    onPressed: () =>
+                        context.go('/recent-activity/$sectionKey'),
+                    child: const Text('Tümünü Gör'),
                   ),
               ],
             ),
           ),
           const Divider(height: 1),
           // Body
-          if (displayItems.isEmpty)
+          if (items.isEmpty)
             const Padding(
               padding: EdgeInsets.all(24),
               child: Center(
@@ -519,27 +383,12 @@ class _SectionCardState extends State<_SectionCard> {
               ),
             )
           else
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: _expanded ? 500 : double.infinity,
-              ),
-              child: ListView.separated(
-                shrinkWrap: !_expanded,
-                physics: _expanded
-                    ? const AlwaysScrollableScrollPhysics()
-                    : const NeverScrollableScrollPhysics(),
-                itemCount: displayItems.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
-                itemBuilder: (_, index) => widget.itemBuilder(displayItems[index]),
-              ),
-            ),
-          if (_expanded && displayItems.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: Text(
-                '${displayItems.length} kayıt',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-              ),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (_, index) => itemBuilder(items[index]),
             ),
         ],
       ),
@@ -551,8 +400,8 @@ class _SectionCardState extends State<_SectionCard> {
 // ROW WIDGETS
 // ============================================
 
-class _BookRow extends StatelessWidget {
-  const _BookRow({required this.item});
+class BookRow extends StatelessWidget {
+  const BookRow({required this.item});
   final dynamic item;
 
   @override
@@ -566,10 +415,10 @@ class _BookRow extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _levelBadge(item['level']),
+          levelBadge(item['level']),
           const SizedBox(width: 8),
           Text(
-            _relativeDate(item['created_at']),
+            relativeDate(item['created_at']),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
         ],
@@ -578,8 +427,8 @@ class _BookRow extends StatelessWidget {
   }
 }
 
-class _ChapterRow extends StatelessWidget {
-  const _ChapterRow({required this.item});
+class ChapterRow extends StatelessWidget {
+  const ChapterRow({required this.item});
   final dynamic item;
 
   @override
@@ -595,15 +444,15 @@ class _ChapterRow extends StatelessWidget {
           ? Text(bookTitle, style: TextStyle(fontSize: 11, color: Colors.grey.shade500))
           : null,
       trailing: Text(
-        _relativeDate(item['created_at']),
+        relativeDate(item['created_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _WordRow extends StatelessWidget {
-  const _WordRow({required this.item});
+class WordRow extends StatelessWidget {
+  const WordRow({required this.item});
   final dynamic item;
 
   @override
@@ -632,10 +481,10 @@ class _WordRow extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _sourceBadge(item['source']),
+          sourceBadge(item['source']),
           const SizedBox(width: 8),
           Text(
-            _relativeDate(item['created_at']),
+            relativeDate(item['created_at']),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
         ],
@@ -644,8 +493,8 @@ class _WordRow extends StatelessWidget {
   }
 }
 
-class _ActivityRow extends StatelessWidget {
-  const _ActivityRow({required this.item});
+class ActivityRow extends StatelessWidget {
+  const ActivityRow({required this.item});
   final dynamic item;
 
   @override
@@ -655,7 +504,7 @@ class _ActivityRow extends StatelessWidget {
       dense: true,
       title: Row(
         children: [
-          _activityTypeBadge(item['type']),
+          activityTypeBadge(item['type']),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -667,15 +516,15 @@ class _ActivityRow extends StatelessWidget {
         ],
       ),
       trailing: Text(
-        _relativeDate(item['created_at']),
+        relativeDate(item['created_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _AssignmentRow extends StatelessWidget {
-  const _AssignmentRow({required this.item});
+class AssignmentRow extends StatelessWidget {
+  const AssignmentRow({required this.item});
   final dynamic item;
 
   @override
@@ -689,15 +538,15 @@ class _AssignmentRow extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
       trailing: Text(
-        _relativeDate(item['created_at']),
+        relativeDate(item['created_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _NewUserRow extends StatelessWidget {
-  const _NewUserRow({required this.item});
+class NewUserRow extends StatelessWidget {
+  const NewUserRow({required this.item});
   final dynamic item;
 
   @override
@@ -705,16 +554,16 @@ class _NewUserRow extends StatelessWidget {
     return ListTile(
       dense: true,
       title: Text(
-        _fullName(item),
+        fullName(item),
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _roleBadge(item['role']),
+          roleBadge(item['role']),
           const SizedBox(width: 8),
           Text(
-            _relativeDate(item['created_at']),
+            relativeDate(item['created_at']),
             style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
         ],
@@ -723,8 +572,8 @@ class _NewUserRow extends StatelessWidget {
   }
 }
 
-class _ActiveUserRow extends StatelessWidget {
-  const _ActiveUserRow({required this.item});
+class ActiveUserRow extends StatelessWidget {
+  const ActiveUserRow({required this.item});
   final dynamic item;
 
   @override
@@ -732,24 +581,24 @@ class _ActiveUserRow extends StatelessWidget {
     return ListTile(
       dense: true,
       title: Text(
-        _fullName(item),
+        fullName(item),
         style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
       trailing: Text(
-        _relativeDate(item['last_activity_date']),
+        relativeDate(item['last_activity_date']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _ActivityResultRow extends StatelessWidget {
-  const _ActivityResultRow({required this.item});
+class ActivityResultRow extends StatelessWidget {
+  const ActivityResultRow({required this.item});
   final dynamic item;
 
   @override
   Widget build(BuildContext context) {
-    final studentName = _fullName(item['profiles']);
+    final studentName = fullName(item['profiles']);
     final activityType = item['inline_activities']?['type'];
     final isCorrect = item['is_correct'] == true;
     return ListTile(
@@ -765,7 +614,7 @@ class _ActivityResultRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _activityTypeBadge(activityType),
+          activityTypeBadge(activityType),
           const SizedBox(width: 6),
           Icon(
             isCorrect ? Icons.check_circle : Icons.cancel,
@@ -775,20 +624,20 @@ class _ActivityResultRow extends StatelessWidget {
         ],
       ),
       trailing: Text(
-        _relativeDate(item['answered_at']),
+        relativeDate(item['answered_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _ReadingProgressRow extends StatelessWidget {
-  const _ReadingProgressRow({required this.item});
+class ReadingProgressRow extends StatelessWidget {
+  const ReadingProgressRow({required this.item});
   final dynamic item;
 
   @override
   Widget build(BuildContext context) {
-    final studentName = _fullName(item['profiles']);
+    final studentName = fullName(item['profiles']);
     final chapterTitle = item['chapters']?['title'] ?? '';
     return ListTile(
       dense: true,
@@ -813,20 +662,20 @@ class _ReadingProgressRow extends StatelessWidget {
         ],
       ),
       trailing: Text(
-        _relativeDate(item['updated_at']),
+        relativeDate(item['updated_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
   }
 }
 
-class _XpLogRow extends StatelessWidget {
-  const _XpLogRow({required this.item});
+class XpLogRow extends StatelessWidget {
+  const XpLogRow({required this.item});
   final dynamic item;
 
   @override
   Widget build(BuildContext context) {
-    final studentName = _fullName(item['profiles']);
+    final studentName = fullName(item['profiles']);
     final xpAmount = item['amount'] as int? ?? 0;
     final source = item['source'] ?? '';
     return ListTile(
@@ -861,7 +710,7 @@ class _XpLogRow extends StatelessWidget {
         ],
       ),
       trailing: Text(
-        _relativeDate(item['created_at']),
+        relativeDate(item['created_at']),
         style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
       ),
     );
@@ -872,14 +721,14 @@ class _XpLogRow extends StatelessWidget {
 // HELPERS
 // ============================================
 
-String _fullName(dynamic item) {
+String fullName(dynamic item) {
   if (item == null) return '';
   final first = item['first_name'] as String? ?? '';
   final last = item['last_name'] as String? ?? '';
   return '$first $last'.trim();
 }
 
-String _relativeDate(String? dateStr) {
+String relativeDate(String? dateStr) {
   if (dateStr == null) return '';
   final date = DateTime.tryParse(dateStr);
   if (date == null) return '';
@@ -891,13 +740,13 @@ String _relativeDate(String? dateStr) {
   return '${date.day}.${date.month}.${date.year}';
 }
 
-String _formatNumber(int n) {
+String formatNumber(int n) {
   if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
   if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
   return n.toString();
 }
 
-Widget _levelBadge(String? level) {
+Widget levelBadge(String? level) {
   final color = switch (level) {
     'A1' => Colors.green,
     'A2' => Colors.teal,
@@ -924,7 +773,7 @@ Widget _levelBadge(String? level) {
   );
 }
 
-Widget _sourceBadge(String? source) {
+Widget sourceBadge(String? source) {
   final isActivity = source == 'activity';
   final color = isActivity ? Colors.purple : Colors.blue;
   final label = isActivity ? 'AKTİVİTE' : 'CSV';
@@ -945,7 +794,7 @@ Widget _sourceBadge(String? source) {
   );
 }
 
-Widget _activityTypeBadge(String? type) {
+Widget activityTypeBadge(String? type) {
   final label = switch (type) {
     'true_false' => 'True/False',
     'word_translation' => 'Word Translation',
@@ -970,7 +819,7 @@ Widget _activityTypeBadge(String? type) {
   );
 }
 
-Widget _roleBadge(String? role) {
+Widget roleBadge(String? role) {
   final color = switch (role) {
     'admin' => Colors.red,
     'teacher' => Colors.blue,

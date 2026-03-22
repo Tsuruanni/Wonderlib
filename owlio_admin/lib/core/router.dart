@@ -30,6 +30,7 @@ import '../features/cards/screens/card_edit_screen.dart';
 import '../features/assignments/screens/assignment_list_screen.dart';
 import '../features/assignments/screens/assignment_detail_screen.dart';
 import '../features/recent_activity/screens/recent_activity_screen.dart';
+import '../features/recent_activity/screens/recent_activity_detail_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -70,6 +71,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/recent-activity',
         builder: (context, state) => const RecentActivityScreen(),
+      ),
+      GoRoute(
+        path: '/recent-activity/:sectionKey',
+        builder: (context, state) => RecentActivityDetailScreen(
+          sectionKey: state.pathParameters['sectionKey']!,
+        ),
       ),
       GoRoute(
         path: '/books',
