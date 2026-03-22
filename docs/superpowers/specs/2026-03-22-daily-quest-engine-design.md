@@ -59,6 +59,8 @@ RLS: SELECT own rows (`user_id = auth.uid()`). INSERT via SECURITY DEFINER RPCs 
 
 **Auto-completion:** When `get_daily_quest_progress` detects a quest's `current_value >= goal_value`, it auto-inserts into `daily_quest_completions` and auto-awards the reward. No manual per-quest claim needed. Users only manually claim the all-quests bonus.
 
+The RPC returns a `newly_completed` boolean per quest (true if this call triggered the auto-completion). The client uses this to show a quest completion popup.
+
 #### New table: `daily_quest_bonus_claims` — all-quests-complete bonus
 
 | Column | Type | Description |
@@ -101,7 +103,8 @@ RETURNS TABLE(
   is_completed BOOLEAN,
   reward_type VARCHAR,
   reward_amount INT,
-  reward_awarded BOOLEAN
+  reward_awarded BOOLEAN,
+  newly_completed BOOLEAN
 )
 ```
 
@@ -141,6 +144,20 @@ Logic:
 6. Return `{ success: true, unopened_packs: N }`
 
 Note: Per-quest rewards are auto-awarded by `get_daily_quest_progress`. This RPC only handles the bonus.
+
+### Quest Completion Popup
+
+When `dailyQuestProgressProvider` returns data with `newly_completed = true` for any quest, a popup/dialog is shown — similar to the level-up popup pattern already in the app.
+
+**Popup content:**
+- Quest icon + title ("Answer 5 questions ✅")
+- Reward: "+20 XP earned!" or "+10 coins earned!"
+- If ALL quests are now complete: additional message "All quests complete! Claim your Mythic Pack bonus!" with animated gift icon
+- Dismiss button
+
+**Trigger location:** `daily_quest_widget.dart` — listens to `dailyQuestProgressProvider` and shows popup when newly_completed quests are detected. Uses `ref.listen` pattern (fires on change, not on initial load) to avoid showing popup on every home screen visit.
+
+**File:** `lib/presentation/widgets/home/quest_completion_dialog.dart` — reusable dialog widget.
 
 ### Clean Architecture
 
@@ -182,7 +199,10 @@ lib/presentation/providers/daily_quest_provider.dart
   - dailyBonusClaimedProvider (FutureProvider, calls HasDailyBonusClaimedUseCase)
 
 lib/presentation/widgets/home/daily_quest_widget.dart (replaces daily_goal_widget.dart)
-  - Loading/error wrapper
+  - Loading/error wrapper + ref.listen for newly_completed popup trigger
+
+lib/presentation/widgets/home/quest_completion_dialog.dart (new)
+  - Quest completion popup dialog
 
 lib/presentation/widgets/home/daily_quest_list.dart (replaces daily_tasks_list.dart)
   - Renders quest rows from provider data
