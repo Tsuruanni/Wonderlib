@@ -20,6 +20,18 @@ final bookDetailProvider =
   return response;
 });
 
+/// Provider for checking if a book has a quiz
+final bookQuizSummaryProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>((ref, bookId) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final response = await supabase
+      .from(DbTables.bookQuizzes)
+      .select('id, passing_score, total_points, is_published, book_quiz_questions(id)')
+      .eq('book_id', bookId)
+      .maybeSingle();
+  return response;
+});
+
 class BookEditScreen extends ConsumerStatefulWidget {
   const BookEditScreen({super.key, this.bookId});
 
@@ -531,9 +543,107 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
 
   @override
   Widget build(BuildContext context) {
+    final quizAsync = ref.watch(bookQuizSummaryProvider(widget.bookId));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Quiz section
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Quiz',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              quizAsync.when(
+                loading: () => const SizedBox(
+                  height: 40,
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                error: (e, _) => Text('Hata: $e', style: TextStyle(color: Colors.red.shade600)),
+                data: (quiz) {
+                  if (quiz != null) {
+                    final questions = (quiz['book_quiz_questions'] as List?) ?? [];
+                    final passingScore = quiz['passing_score'] ?? 70;
+                    final isPublished = quiz['is_published'] ?? false;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5).withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: const Color(0xFF4F46E5).withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                                child: const Icon(Icons.quiz, size: 18, color: Color(0xFF4F46E5)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${questions.length} soru · %$passingScore geçme notu',
+                                      style: Theme.of(context).textTheme.bodyMedium,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      isPublished ? 'Yayında' : 'Taslak',
+                                      style: TextStyle(
+                                        color: isPublished ? Colors.green.shade600 : Colors.orange.shade600,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () => context.go('/books/${widget.bookId}/quiz'),
+                            icon: const Icon(Icons.edit, size: 18),
+                            label: const Text('Quiz Düzenle'),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => context.go('/books/${widget.bookId}/quiz'),
+                        icon: const Icon(Icons.quiz, size: 18),
+                        label: const Text('Quiz Oluştur'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF4F46E5),
+                          side: const BorderSide(color: Color(0xFF4F46E5)),
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
