@@ -23,6 +23,7 @@ class SystemSettingsModel {
     required this.minAppVersion,
     required this.featureWordLists,
     required this.featureAchievements,
+    required this.debugDateOffset,
   });
 
   final int xpChapterComplete;
@@ -45,6 +46,7 @@ class SystemSettingsModel {
   final String minAppVersion;
   final bool featureWordLists;
   final bool featureAchievements;
+  final int debugDateOffset;
 
   /// Parse from database rows (key-value pairs)
   factory SystemSettingsModel.fromRows(List<Map<String, dynamic>> rows) {
@@ -79,6 +81,7 @@ class SystemSettingsModel {
       minAppVersion: m['min_app_version']?.toString() ?? '1.0.0',
       featureWordLists: _toBool(m['feature_word_lists'], true),
       featureAchievements: _toBool(m['feature_achievements'], true),
+      debugDateOffset: _toInt(m['debug_date_offset'], 0),
     );
   }
 
@@ -104,6 +107,7 @@ class SystemSettingsModel {
         minAppVersion: '1.0.0',
         featureWordLists: true,
         featureAchievements: true,
+        debugDateOffset: 0,
       );
 
   /// Convert to entity
@@ -128,6 +132,7 @@ class SystemSettingsModel {
         minAppVersion: minAppVersion,
         featureWordLists: featureWordLists,
         featureAchievements: featureAchievements,
+        debugDateOffset: debugDateOffset,
       );
 
   /// Create model from entity
@@ -153,6 +158,7 @@ class SystemSettingsModel {
         minAppVersion: e.minAppVersion,
         featureWordLists: e.featureWordLists,
         featureAchievements: e.featureAchievements,
+        debugDateOffset: e.debugDateOffset,
       );
 
   // Helper: Parse JSONB value (removes quotes, converts types)

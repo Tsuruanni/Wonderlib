@@ -28,6 +28,7 @@ class SystemSettings extends Equatable {
     this.minAppVersion = '1.0.0',
     this.featureWordLists = true,
     this.featureAchievements = true,
+    this.debugDateOffset = 0,
   });
 
   // XP Rewards
@@ -58,6 +59,9 @@ class SystemSettings extends Equatable {
   final bool featureWordLists;
   final bool featureAchievements;
 
+  // Debug
+  final int debugDateOffset;
+
   /// Default settings (fallback when database is unavailable)
   factory SystemSettings.defaults() => const SystemSettings();
 
@@ -83,5 +87,6 @@ class SystemSettings extends Equatable {
         minAppVersion,
         featureWordLists,
         featureAchievements,
+        debugDateOffset,
       ];
 }

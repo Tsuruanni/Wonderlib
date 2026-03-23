@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/utils/app_clock.dart';
 import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/usecase.dart';
 import 'usecase_providers.dart';
@@ -14,9 +15,13 @@ final systemSettingsProvider = FutureProvider<SystemSettings>((ref) async {
   return result.fold(
     (failure) {
       debugPrint('Failed to load system settings: ${failure.message}');
+      AppClock.setOffset(0);
       return SystemSettings.defaults();
     },
-    (settings) => settings,
+    (settings) {
+      AppClock.setOffset(settings.debugDateOffset);
+      return settings;
+    },
   );
 });
 
