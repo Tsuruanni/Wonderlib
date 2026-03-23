@@ -134,9 +134,9 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (failure) {
         state = AsyncValue.error(failure.message, StackTrace.current);
       },
-      (user) {
+      (user) async {
         state = AsyncValue.data(user);
-        _updateStreakIfNeeded(user);
+        await _updateStreakIfNeeded(user);
         _checkLeagueTierChange(oldUser, user);
       },
     );
