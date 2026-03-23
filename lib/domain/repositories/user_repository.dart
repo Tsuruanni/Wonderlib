@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/leaderboard_entry.dart';
+import '../entities/streak_result.dart';
 import '../entities/user.dart';
 
 abstract class UserRepository {
@@ -11,7 +12,9 @@ abstract class UserRepository {
 
   Future<Either<Failure, User>> addXP(String userId, int amount);
 
-  Future<Either<Failure, User>> updateStreak(String userId);
+  Future<Either<Failure, StreakResult>> updateStreak(String userId);
+
+  Future<Either<Failure, BuyFreezeResult>> buyStreakFreeze(String userId);
 
   Future<Either<Failure, Map<String, dynamic>>> getUserStats(String userId);
 

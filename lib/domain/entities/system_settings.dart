@@ -16,6 +16,8 @@ class SystemSettings extends Equatable {
     // Progression
     this.maxStreakMultiplier = 2.0,
     this.streakBonusIncrement = 0.1,
+    this.streakFreezePrice = 50,
+    this.streakFreezeMax = 2,
     this.dailyXpCap = 1000,
     // Game
     this.defaultTimeLimit = 60,
@@ -41,6 +43,8 @@ class SystemSettings extends Equatable {
   // Progression
   final double maxStreakMultiplier;
   final double streakBonusIncrement;
+  final int streakFreezePrice;
+  final int streakFreezeMax;
   final int dailyXpCap;
 
   // Game
@@ -69,6 +73,8 @@ class SystemSettings extends Equatable {
         xpAssignmentComplete,
         maxStreakMultiplier,
         streakBonusIncrement,
+        streakFreezePrice,
+        streakFreezeMax,
         dailyXpCap,
         defaultTimeLimit,
         hintPenaltyPercent,

@@ -19,6 +19,7 @@ class User extends Equatable {
     this.level = 1,
     this.currentStreak = 0,
     this.longestStreak = 0,
+    this.streakFreezeCount = 0,
     this.lastActivityDate,
     this.settings = const {},
     this.leagueTier = LeagueTier.bronze,
@@ -40,6 +41,7 @@ class User extends Equatable {
   final int level;
   final int currentStreak;
   final int longestStreak;
+  final int streakFreezeCount;
   final DateTime? lastActivityDate;
   final Map<String, dynamic> settings;
   final LeagueTier leagueTier;
@@ -72,6 +74,7 @@ class User extends Equatable {
     int? level,
     int? currentStreak,
     int? longestStreak,
+    int? streakFreezeCount,
     DateTime? lastActivityDate,
     Map<String, dynamic>? settings,
     LeagueTier? leagueTier,
@@ -94,6 +97,7 @@ class User extends Equatable {
       level: level ?? this.level,
       currentStreak: currentStreak ?? this.currentStreak,
       longestStreak: longestStreak ?? this.longestStreak,
+      streakFreezeCount: streakFreezeCount ?? this.streakFreezeCount,
       lastActivityDate: lastActivityDate ?? this.lastActivityDate,
       settings: settings ?? this.settings,
       leagueTier: leagueTier ?? this.leagueTier,
@@ -119,6 +123,7 @@ class User extends Equatable {
         level,
         currentStreak,
         longestStreak,
+        streakFreezeCount,
         lastActivityDate,
         settings,
         leagueTier,
