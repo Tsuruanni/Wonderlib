@@ -10,11 +10,21 @@ class StreakStatusDialog extends StatelessWidget {
     required this.currentStreak,
     required this.longestStreak,
     required this.activeDates,
+    required this.streakFreezeCount,
+    required this.streakFreezeMax,
+    required this.streakFreezePrice,
+    required this.userCoins,
+    this.onBuyFreeze,
   });
 
   final int currentStreak;
   final int longestStreak;
   final List<DateTime> activeDates;
+  final int streakFreezeCount;
+  final int streakFreezeMax;
+  final int streakFreezePrice;
+  final int userCoins;
+  final VoidCallback? onBuyFreeze;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +135,53 @@ class StreakStatusDialog extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            // Streak Freeze Section
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.ac_unit, color: Colors.blue.shade400, size: 24),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Streak Freezes: $streakFreezeCount/$streakFreezeMax',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (streakFreezeCount < streakFreezeMax)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: userCoins >= streakFreezePrice ? onBuyFreeze : null,
+                  icon: const Icon(Icons.ac_unit, size: 18),
+                  label: Text('Buy Freeze ($streakFreezePrice coins)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue.shade600,
+                    side: BorderSide(color: Colors.blue.shade300),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            if (streakFreezeCount >= streakFreezeMax)
+              Text(
+                'Max freezes reached',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey,
+                ),
+              ),
+            const SizedBox(height: 16),
 
             // Close Button
             SizedBox(

@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../domain/entities/system_settings.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
 import 'streak_status_dialog.dart';
 
@@ -17,6 +19,7 @@ class TopNavbar extends ConsumerWidget {
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
     final activityHistoryAsync = ref.watch(activityHistoryProvider);
+    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
 
     final streak = user?.currentStreak ?? 0;
     final coins = user?.coins ?? 0;
@@ -59,6 +62,14 @@ class TopNavbar extends ConsumerWidget {
                     currentStreak: user.currentStreak,
                     longestStreak: user.longestStreak,
                     activeDates: activityHistory,
+                    streakFreezeCount: user.streakFreezeCount,
+                    streakFreezeMax: settings.streakFreezeMax,
+                    streakFreezePrice: settings.streakFreezePrice,
+                    userCoins: user.coins,
+                    onBuyFreeze: () {
+                      Navigator.of(context).pop();
+                      ref.read(userControllerProvider.notifier).buyStreakFreeze();
+                    },
                   ),
                 );
               }
