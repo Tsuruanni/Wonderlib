@@ -18,7 +18,6 @@ class TopNavbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
-    final activityHistoryAsync = ref.watch(activityHistoryProvider);
     final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
 
     final streak = user?.currentStreak ?? 0;
@@ -53,15 +52,12 @@ class TopNavbar extends ConsumerWidget {
           GestureDetector(
             onTap: () {
               if (user != null) {
-                // Fetch activity history
-                final activityHistory = activityHistoryAsync.valueOrNull ?? [];
-                
                 showDialog(
                   context: context,
                   builder: (context) => StreakStatusDialog(
                     currentStreak: user.currentStreak,
                     longestStreak: user.longestStreak,
-                    activeDates: activityHistory,
+                    freezesConsumed: 0, // manual tap = no recent freeze event
                     streakFreezeCount: user.streakFreezeCount,
                     streakFreezeMax: settings.streakFreezeMax,
                     streakFreezePrice: settings.streakFreezePrice,

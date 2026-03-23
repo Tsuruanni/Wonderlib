@@ -9,7 +9,7 @@ class StreakStatusDialog extends StatelessWidget {
     super.key,
     required this.currentStreak,
     required this.longestStreak,
-    required this.activeDates,
+    required this.freezesConsumed,
     required this.streakFreezeCount,
     required this.streakFreezeMax,
     required this.streakFreezePrice,
@@ -19,7 +19,7 @@ class StreakStatusDialog extends StatelessWidget {
 
   final int currentStreak;
   final int longestStreak;
-  final List<DateTime> activeDates;
+  final int freezesConsumed;
   final int streakFreezeCount;
   final int streakFreezeMax;
   final int streakFreezePrice;
@@ -222,38 +222,46 @@ class StreakStatusDialog extends StatelessWidget {
       return monday.add(Duration(days: index));
     });
 
-    // Normalize active dates to avoid time mismatch
-    final normalizedActiveDates = activeDates.map((d) => DateTime(d.year, d.month, d.day)).toSet();
+    // Build sets for each day type from streak data:
+    // Login days: today + streak window going back from today (excluding freeze gaps)
+    // Freeze days: the days right before today that were covered by freezes
+    // Example: streak=5, freezesConsumed=2, today=Friday
+    //   → freeze days: Wed, Thu (2 days before today)
+    //   → login days: Mon, Tue (streak days before freeze gap) + Fri (today)
+    final freezeDays = <DateTime>{};
+    final loginDays = <DateTime>{};
 
-    // Infer frozen days: past days with no activity but within streak window.
-    // If the streak is longer than the active days this week, the gap days were frozen.
-    final pastDaysThisWeek = weekDays.where((d) => !d.isAfter(today)).toList();
-    final activePastDays = pastDaysThisWeek.where((d) => normalizedActiveDates.contains(d)).length;
-    final inactivePastDays = pastDaysThisWeek.length - activePastDays;
-    // If streak >= past days count, inactive past days must be frozen
-    final hasFrozenDays = currentStreak >= pastDaysThisWeek.length && inactivePastDays > 0;
+    // Today is always a login day (we just logged in)
+    loginDays.add(today);
+
+    // Freeze days = immediately before today
+    for (int i = 1; i <= freezesConsumed; i++) {
+      freezeDays.add(today.subtract(Duration(days: i)));
+    }
+
+    // Login days = streak days before the freeze gap
+    // Total streak days (excluding today) = currentStreak - 1
+    // Of those, freezesConsumed were frozen, rest were login days
+    final loginDaysBeforeFreeze = currentStreak - 1 - freezesConsumed;
+    final firstDayAfterFreeze = freezesConsumed + 1; // offset from today
+    for (int i = 0; i < loginDaysBeforeFreeze; i++) {
+      loginDays.add(today.subtract(Duration(days: firstDayAfterFreeze + i)));
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: weekDays.map((date) {
         final isFuture = date.isAfter(today);
-        final isActive = normalizedActiveDates.contains(DateTime(date.year, date.month, date.day));
-        final isFrozen = !isFuture && !isActive && hasFrozenDays;
+        final isToday = date == today;
+        final isLogin = loginDays.contains(date);
+        final isFrozen = freezeDays.contains(date);
 
-        // English day names
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        final isToday = date == today;
-
-        // Determine icon color — all use fire icon
-        // Today: always orange (even if no activity yet)
-        // Active: orange
-        // Frozen: blue (freeze preserved the streak)
-        // Future: faded
-        // Missed: grey
+        // Color: login=orange, frozen=blue, future=faded, missed=grey
         Color iconColor;
-        if (isToday || isActive) {
+        if (isLogin) {
           iconColor = AppColors.streakOrange;
         } else if (isFrozen) {
           iconColor = Colors.blue.shade400;

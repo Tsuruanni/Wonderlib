@@ -48,8 +48,9 @@ final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref
 final streakEventProvider = StateProvider<StreakResult?>((ref) => null);
 
 /// Triggers the daily streak status dialog (full dialog, once per day on app open).
-/// Set to true after streak check completes on first load. Reset to null after shown.
-final showDailyStreakDialogProvider = StateProvider<bool?>((ref) => null);
+/// Contains the StreakResult so the dialog can show freeze info.
+/// Set after streak check completes on first load. Reset to null after shown.
+final showDailyStreakDialogProvider = StateProvider<StreakResult?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -101,6 +102,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     }, fireImmediately: true,);
   }
   final Ref _ref;
+  StreakResult? _lastStreakResult;
 
   Future<void> _loadUserById(String userId) async {
     final oldUser = state.valueOrNull;
@@ -147,11 +149,9 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     // This ensures streak broken/freeze notifications show immediately on launch.
     await updateStreak();
 
-    // Show daily streak dialog if no streak event was triggered.
-    // If streakEventProvider has a value, the event dialog will show instead.
-    if (_ref.read(streakEventProvider) == null) {
-      _ref.read(showDailyStreakDialogProvider.notifier).state = true;
-    }
+    // Show daily streak dialog — pass StreakResult for freeze info in calendar.
+    // If streakEventProvider has a value, event dialog shows first, then daily dialog.
+    _ref.read(showDailyStreakDialogProvider.notifier).state = _lastStreakResult;
   }
 
   Future<void> addXP(int amount) async {
@@ -202,11 +202,12 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     result.fold(
       (failure) => null,
       (streakResult) async {
+        _lastStreakResult = streakResult;
+
         // Silent re-fetch profile (no loading state flash)
         final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
         final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
         userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
-        _ref.invalidate(activityHistoryProvider);
 
         // Fire streak event if anything notable happened
         if (streakResult.hasEvent) {

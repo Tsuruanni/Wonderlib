@@ -40,9 +40,9 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       }
     });
 
-    ref.listen<bool?>(showDailyStreakDialogProvider, (previous, next) {
-      if (next == true) {
-        _showDailyStreakDialog(ref);
+    ref.listen<StreakResult?>(showDailyStreakDialogProvider, (previous, next) {
+      if (next != null) {
+        _showDailyStreakDialog(ref, next);
       }
     });
 
@@ -62,7 +62,7 @@ class LevelUpCelebrationListener extends ConsumerWidget {
     });
   }
 
-  void _showDailyStreakDialog(WidgetRef ref) {
+  void _showDailyStreakDialog(WidgetRef ref, StreakResult streakResult) {
     final ctx = rootNavigatorKey.currentContext;
     if (ctx == null) return;
 
@@ -70,7 +70,6 @@ class LevelUpCelebrationListener extends ConsumerWidget {
     if (user == null) return;
 
     final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
-    final activityHistory = ref.read(activityHistoryProvider).valueOrNull ?? [];
 
     showDialog(
       context: ctx,
@@ -78,7 +77,7 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       builder: (context) => StreakStatusDialog(
         currentStreak: user.currentStreak,
         longestStreak: user.longestStreak,
-        activeDates: activityHistory,
+        freezesConsumed: streakResult.freezesConsumed,
         streakFreezeCount: user.streakFreezeCount,
         streakFreezeMax: settings.streakFreezeMax,
         streakFreezePrice: settings.streakFreezePrice,
