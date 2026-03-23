@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Quest Engine (2026-03-22/23)
+
+#### Added
+- **DB-driven quest system** — Replaced hardcoded 3-quest daily goals with `daily_quests` table, `daily_quest_completions`, and `daily_quest_bonus_claims`. Admin can change goals/rewards via DB (Phase 2: admin UI).
+- **Auto-completion with rewards** — `get_daily_quest_progress` RPC auto-completes quests and awards per-quest rewards (XP, coins, or card packs) when goal is met. No manual per-quest claim needed.
+- **Quest completion popup** — Dialog shown when quests are newly completed, similar to level-up popup. Uses `ref.listen` pattern.
+- **All-quests bonus** — Card pack awarded when all daily quests complete. Manual claim via `claim_daily_bonus` RPC with row-level locking.
+- **Daily review edge case** — When no vocabulary words are due for review, the daily review quest auto-completes (nothing to do = success).
+- **Clean Architecture** — Full stack: entity (`DailyQuest`, `DailyQuestProgress`), repository interface, 3 use cases, model, Supabase repository, providers, widgets.
+
+#### Changed
+- **Quest types updated** — `read_words` (unreliable word_count) → `read_chapters` (count daily reads); `correct_answers` (depends on activities) → `vocab_session` (count vocabulary sessions).
+- **Vocabulary session invalidation** — `session_summary_screen.dart` now invalidates `dailyQuestProgressProvider` on session completion.
+
+#### Fixed
+- **Ambiguous column reference** — RPC `RETURNS TABLE` column names clashed with subquery table columns. Added explicit table aliases (`drs`, `iar`, `dqc`).
+- **UI language** — Translated all quest UI strings from Turkish to English.
+
+#### Removed
+- **Old daily goal system** — Deleted `daily_goal_provider.dart`, `daily_goal_widget.dart`, `daily_tasks_list.dart`, `DailyGoalConfig`, `wordsReadTodayProvider`, `correctAnswersTodayProvider`, and 2 orphaned use case files.
+
 ### Admin Panel: Inline Activity Editor (2026-03-21)
 
 #### Added

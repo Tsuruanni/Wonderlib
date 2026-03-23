@@ -347,8 +347,15 @@ Update UI, show notifications
 - `user_cards` - Owned cards per user
 - `user_card_stats` - Collection stats (pity counter, total packs)
 - `pack_purchases` - Pack purchase history
-- `daily_quest_pack_claims` - Daily quest reward claims
+- `daily_quest_pack_claims` - Daily quest reward claims (legacy, replaced by bonus_claims)
 - `coin_logs` - Coin transaction history
+
+### Daily Quests
+- `daily_quests` - Quest definitions (type, goal, reward, active flag). DB-driven, admin-configurable.
+- `daily_quest_completions` - Per-quest daily completion records with auto-awarded rewards
+- `daily_quest_bonus_claims` - All-quests-complete bonus (card pack) claims
+- RPCs: `get_daily_quest_progress` (auto-completes + awards), `claim_daily_bonus`
+- Quest types: `daily_review` (1 session), `read_chapters` (3 chapters), `vocab_session` (1 session)
 
 ### Assignments
 - `assignments` - Teacher-created tasks

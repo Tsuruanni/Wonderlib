@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-22 (Inline Activity Editor, Recent Activity Page, Collectibles Merge, Card Image Storage)
+Son güncelleme: 2026-03-23 (Daily Quest Engine, Quest Types Update, Review Edge Case)
 
 ## Current Phase
 
@@ -87,6 +87,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Collectibles merged screen (badges + myth cards tabbed view)
 - [x] Card images migrated to Supabase Storage (95 PNGs, `image_url` column)
 - [x] Vocabulary source tracking (`source` column: manual/import/activity)
+- [x] Daily Quest Engine (DB-driven quests, auto-completion, per-quest rewards, popup)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] League system (weekly tier-based competition within schools)
@@ -102,6 +103,7 @@ See: CLAUDE.md for architecture guidelines
 |------|----------|--------|-------|
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
+| Admin Quest Dashboard (Phase 2) | - | Pending | CRUD for daily_quests, completion stats, analytics |
 
 ## Deferred
 
