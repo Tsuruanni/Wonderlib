@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
+import '../../../domain/entities/streak_result.dart';
 import '../../providers/user_provider.dart';
+import 'streak_event_dialog.dart';
 
 /// Shows a celebration dialog when user levels up
 /// Listens to levelUpEventProvider and displays appropriate celebration
@@ -29,6 +31,12 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       }
     });
 
+    ref.listen<StreakResult?>(streakEventProvider, (previous, next) {
+      if (next != null && next.hasEvent) {
+        _showStreakEvent(ref, next);
+      }
+    });
+
     return child;
   }
 
@@ -42,6 +50,18 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       builder: (context) => _LevelUpDialog(event: event),
     ).then((_) {
       ref.read(levelUpEventProvider.notifier).state = null;
+    });
+  }
+
+  void _showStreakEvent(WidgetRef ref, StreakResult result) {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+    showDialog(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (context) => StreakEventDialog(result: result),
+    ).then((_) {
+      ref.read(streakEventProvider.notifier).state = null;
     });
   }
 
