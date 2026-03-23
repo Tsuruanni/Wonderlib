@@ -244,24 +244,24 @@ class StreakStatusDialog extends StatelessWidget {
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        // Determine icon and color
-        IconData icon;
+        final isToday = date == today;
+
+        // Determine icon color — all use fire icon
+        // Today: always orange (even if no activity yet)
+        // Active: orange
+        // Frozen: blue (freeze preserved the streak)
+        // Future: faded
+        // Missed: grey
         Color iconColor;
-        if (isActive) {
-          icon = Icons.local_fire_department_rounded;
+        if (isToday || isActive) {
           iconColor = AppColors.streakOrange;
         } else if (isFrozen) {
-          icon = Icons.ac_unit;
           iconColor = Colors.blue.shade400;
         } else if (isFuture) {
-          icon = Icons.local_fire_department_rounded;
           iconColor = AppColors.neutral.withValues(alpha: 0.2);
         } else {
-          icon = Icons.local_fire_department_rounded;
           iconColor = AppColors.neutral.withValues(alpha: 0.5);
         }
-
-        final isToday = date == today;
 
         return Column(
           children: [
@@ -278,7 +278,7 @@ class StreakStatusDialog extends StatelessWidget {
               Icon(Icons.arrow_drop_down, color: AppColors.streakOrange, size: 16)
             else
               const SizedBox(height: 16),
-            Icon(icon, color: iconColor, size: 32),
+            Icon(Icons.local_fire_department_rounded, color: iconColor, size: 32),
           ],
         );
       }).toList(),
