@@ -137,11 +137,10 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> _updateStreakIfNeeded(User user) async {
-    // Only update if user has never had activity (streak = 0, no last activity date)
-    // This avoids unnecessary DB calls on every app open
-    if (user.currentStreak == 0 && user.lastActivityDate == null) {
-      await updateStreak();
-    }
+    // Check streak on every app open (like Duolingo).
+    // RPC is idempotent — same-day calls return no-op.
+    // This ensures streak broken/freeze notifications show immediately on launch.
+    await updateStreak();
   }
 
   Future<void> addXP(int amount) async {
