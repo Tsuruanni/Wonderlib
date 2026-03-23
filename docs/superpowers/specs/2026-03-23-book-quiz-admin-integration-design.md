@@ -38,7 +38,7 @@ Add a **Quiz section** above the chapters list inside the right panel's `_Chapte
 - **Quiz exists:** Shows a summary card with question count, passing score, published status, and "Quiz Düzenle" (`FilledButton`) navigating to `/books/$bookId/quiz`
 - **No quiz:** Shows "Quiz Oluştur" (`OutlinedButton.icon` with `Icons.quiz`) navigating to `/books/$bookId/quiz` (the quiz edit screen already handles creation)
 
-**Visual placement:** Above the "Bölümler" header, separated by a divider. Uses the same indigo accent (`Color(0xFF4F46E5)`) and card styling as the rest of the admin panel.
+**Visual placement:** Inserted as the first child in the `_ChaptersList` `Column`, before the existing `Padding` block that contains the "Bölümler" header and vocabulary extraction button (line 537). Separated from the chapters section by a `Divider`. Uses the same indigo accent (`Color(0xFF4F46E5)`) and card styling as the rest of the admin panel.
 
 ### Files Changed
 - `owlio_admin/lib/features/books/screens/book_edit_screen.dart` — add quiz section to `_ChaptersList`
@@ -58,10 +58,11 @@ Add a **Quiz section** above the chapters list inside the right panel's `_Chapte
 ### Design
 1. Add `'quiz_pass': 20` to `AppConfig.xpRewards` map
 2. Replace the hardcoded `20` with `AppConfig.xpRewards['quiz_pass']!`
+3. Update the misleading comment from `// Book completion XP` to `// Quiz pass XP`
 
 ### Files Changed
 - `lib/core/config/app_config.dart` — add `'quiz_pass': 20` entry
-- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — use `AppConfig.xpRewards['quiz_pass']!`
+- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — use `AppConfig.xpRewards['quiz_pass']!` + fix comment
 
 ---
 
@@ -98,14 +99,19 @@ This is not atomic — concurrent requests can produce duplicate attempt numbers
      BEFORE INSERT ON book_quiz_results
      FOR EACH ROW
      EXECUTE FUNCTION set_quiz_attempt_number();
+
+   -- Safety net: prevent duplicate attempt numbers even under concurrent inserts
+   ALTER TABLE book_quiz_results
+     ADD CONSTRAINT uq_quiz_attempt UNIQUE (user_id, quiz_id, attempt_number);
    ```
-2. **Remove client-side COUNT** from `submitQuizResult` in `supabase_book_quiz_repository.dart`
-3. **Remove `attempt_number` from `toInsertJson()`** in `BookQuizResultModel` (trigger handles it)
+2. **Remove client-side COUNT** (lines 60-64) and the explicit `insertData['attempt_number'] = attemptNumber;` patch (line 69) from `submitQuizResult` in `supabase_book_quiz_repository.dart`
+3. **Remove `'attempt_number': attemptNumber`** from `toInsertJson()` in `BookQuizResultModel` (trigger handles it)
 4. The INSERT...RETURNING will include the trigger-set `attempt_number`, so the parsed response still has the correct value
+5. The UNIQUE constraint ensures that even under rare concurrent inserts, one will fail rather than producing duplicate attempt numbers
 
 ### Files Changed
-- `supabase/migrations/20260323000001_quiz_attempt_number_trigger.sql` — new migration
-- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — remove COUNT logic
+- `supabase/migrations/20260323000012_quiz_attempt_number_trigger.sql` — new migration (trigger + UNIQUE constraint)
+- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — remove COUNT logic + remove `insertData['attempt_number']` patch
 - `lib/data/models/book_quiz/book_quiz_result_model.dart` — remove `attempt_number` from `toInsertJson()`
 
 ---
@@ -116,9 +122,9 @@ This is not atomic — concurrent requests can produce duplicate attempt numbers
 |------|--------|
 | `owlio_admin/lib/features/books/screens/book_edit_screen.dart` | Quiz section in right panel |
 | `lib/core/config/app_config.dart` | Add `quiz_pass` XP key |
-| `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` | Use AppConfig XP + remove COUNT |
-| `lib/data/models/book_quiz/book_quiz_result_model.dart` | Remove attempt_number from insert |
-| `supabase/migrations/20260323000001_quiz_attempt_number_trigger.sql` | BEFORE INSERT trigger |
+| `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` | Use AppConfig XP + fix comment + remove COUNT + remove attempt_number patch |
+| `lib/data/models/book_quiz/book_quiz_result_model.dart` | Remove attempt_number from toInsertJson() |
+| `supabase/migrations/20260323000012_quiz_attempt_number_trigger.sql` | BEFORE INSERT trigger + UNIQUE constraint |
 
 ---
 
