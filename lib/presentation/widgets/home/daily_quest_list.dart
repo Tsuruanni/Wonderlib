@@ -60,7 +60,7 @@ class _DailyQuestListState extends ConsumerState<DailyQuestList> {
           setState(() => _justClaimed = true);
           ref.invalidate(dailyQuestProgressProvider);
           ref.invalidate(dailyBonusClaimedProvider);
-          ref.read(userControllerProvider.notifier).refresh();
+          ref.read(userControllerProvider.notifier).refreshProfileOnly();
         }
       },
     );

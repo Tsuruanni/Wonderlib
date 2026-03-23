@@ -359,7 +359,7 @@ class _LeagueTierChangeDialogState extends State<_LeagueTierChangeDialog>
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
-                          isPromotion ? Icons.arrow_forward : Icons.arrow_forward,
+                          isPromotion ? Icons.arrow_forward : Icons.arrow_downward,
                           color: Colors.white,
                         ),
                       ),

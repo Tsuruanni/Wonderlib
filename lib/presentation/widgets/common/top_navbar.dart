@@ -19,6 +19,8 @@ class TopNavbar extends ConsumerWidget {
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
     final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+    // Pre-warm loginDatesProvider so calendar data is ready when fire icon is tapped
+    final calendarDaysAsync = ref.watch(loginDatesProvider);
 
     final streak = user?.currentStreak ?? 0;
     final coins = user?.coins ?? 0;
@@ -52,7 +54,7 @@ class TopNavbar extends ConsumerWidget {
           GestureDetector(
             onTap: () {
               if (user != null) {
-                final calendarDays = ref.read(loginDatesProvider).valueOrNull ?? {};
+                final calendarDays = calendarDaysAsync.valueOrNull ?? {};
                 showDialog(
                   context: context,
                   builder: (context) => StreakStatusDialog(

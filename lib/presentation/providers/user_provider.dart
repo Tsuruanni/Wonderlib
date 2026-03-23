@@ -174,9 +174,13 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> _updateStreakIfNeeded(User user) async {
-    // Check streak on every app open (like Duolingo).
-    // RPC is idempotent — same-day calls return no-op.
-    // This ensures streak broken/freeze notifications show immediately on launch.
+    // Skip if already updated today (avoids redundant RPC on same-day re-opens)
+    final today = AppClock.today();
+    final lastActivity = user.lastActivityDate;
+    if (lastActivity != null && DateTime(lastActivity.year, lastActivity.month, lastActivity.day) == today) {
+      return;
+    }
+    // First open of the day — check streak (broken/freeze/milestone notifications)
     await updateStreak();
   }
 
