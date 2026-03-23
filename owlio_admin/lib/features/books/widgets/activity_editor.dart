@@ -297,7 +297,6 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           'type': widget.activityType,
           'content': content,
           'vocabulary_words': vocabIds,
-          'xp_reward': 5,
           'after_paragraph_index': 0,
         });
         await supabase.from(DbTables.contentBlocks).update({
