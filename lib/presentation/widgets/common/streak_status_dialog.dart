@@ -239,14 +239,14 @@ class StreakStatusDialog extends StatelessWidget {
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        // In streak window + logged in → orange (login day)
+        // Logged in → orange (always, even if streak broke after)
         // In streak window + NOT logged in → blue (freeze saved)
-        // Outside streak window, past → grey
         // Future → faded
+        // Rest → grey
         Color iconColor;
-        if (inStreakWindow && didLogin) {
+        if (didLogin) {
           iconColor = AppColors.streakOrange;
-        } else if (inStreakWindow && !didLogin) {
+        } else if (inStreakWindow) {
           iconColor = Colors.blue.shade400;
         } else if (isFuture) {
           iconColor = AppColors.neutral.withValues(alpha: 0.2);
