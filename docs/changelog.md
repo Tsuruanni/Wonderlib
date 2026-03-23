@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Book Quiz Admin Integration & Dynamic XP Settings (2026-03-23)
+
+#### Added
+- **Admin quiz navigation** — Book editor right panel now shows a Quiz section above chapters. Displays quiz summary (question count, passing score, publish status) if exists, or "Create Quiz" button if not. Navigates to existing quiz editor routes.
+- **`xp_quiz_pass` setting** — New system_settings entry for admin-configurable quiz pass XP (default 20)
+- **`xpQuizPass` in SystemSettings** — Entity and model support for the new setting
+
+#### Changed
+- **XP values now read from SystemSettings at runtime** — `book_provider.dart` reads `xpChapterComplete`/`xpBookComplete` from `systemSettingsProvider` instead of hardcoded `AppConfig.xpRewards`. Admin panel XP changes now take effect at runtime.
+- **Quiz XP moved from repository to controller** — `_handleQuizPassed` no longer awards XP/badges. `BookQuizController.submitQuiz` now handles this via `userControllerProvider.addXP()` with dynamic `SystemSettings.xpQuizPass`.
+- **`attempt_number` now set by DB trigger** — `BEFORE INSERT` trigger on `book_quiz_results` replaces client-side COUNT query. UNIQUE constraint on `(user_id, quiz_id, attempt_number)` prevents duplicates under concurrent inserts.
+
+#### Removed
+- **`AppConfig.xpRewards` map** — Dead code. All XP values now come from SystemSettings.
+- **15 unused system_settings entries** — `xp_activity_complete`, `xp_activity_perfect`, `xp_word_learned`, `xp_word_mastered`, `xp_streak_bonus_day`, `xp_assignment_complete`, `max_streak_multiplier`, `streak_bonus_increment`, `daily_xp_cap`, `default_time_limit`, `hint_penalty_percent`, `skip_penalty_percent`, `maintenance_mode`, `min_app_version`, `feature_word_lists`, `feature_achievements`. None had runtime consumers.
+- **SystemSettings trimmed 21→6 fields** — Entity/Model only contains actively used settings. Admin panel auto-adapts (reads from DB dynamically).
+- **AppConfig gamification constants** — `maxStreakMultiplier`, `streakBonusIncrement`, `dailyXPCap` removed (unused).
+
+#### Infrastructure
+- **4 new DB migrations** — `20260323000012` (quiz attempt trigger), `20260323000013` (xp_quiz_pass insert), `20260323000014` (delete 15 unused settings)
+
 ### Admin Quest Dashboard (2026-03-23)
 
 #### Added

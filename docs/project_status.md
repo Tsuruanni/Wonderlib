@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-23 (Admin Quest Dashboard, Streak Freeze & Milestones, Debug Time Offset)
+Son güncelleme: 2026-03-23 (Book Quiz Admin Integration, Dynamic XP Settings, SystemSettings Cleanup)
 
 ## Current Phase
 
@@ -91,6 +91,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Quest Dashboard (Phase 2 — inline editing, completion stats)
 - [x] Streak Freeze & Milestones (buy/consume freezes, milestone XP, event dialogs, login tracking)
 - [x] Debug Time Offset (system-wide app_current_date/app_now, AppClock, admin-configurable)
+- [x] Book Quiz Admin Integration (admin navigation, atomic attempt_number, dynamic XP)
+- [x] Dynamic XP Settings (all XP reads from system_settings, 15 unused settings removed)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] League system (weekly tier-based competition within schools)
@@ -104,6 +106,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
+| Type-Based XP + Combo Refactor | - | Spec done | Replace per-activity and hardcoded vocab XP with admin-configurable type-based settings. Combo → session-end bonus. |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 
@@ -145,7 +148,7 @@ See: CLAUDE.md for architecture guidelines
 | ~~Race conditions in upserts~~ | ~~High~~ | ✅ Check-then-act replaced with atomic upsert in 3 repos |
 | ~~Hard-coded table/RPC strings~~ | ~~Medium~~ | ✅ All 13 repos use DbTables/RpcFunctions constants |
 | ~~RLS INSERT too permissive~~ | ~~Critical~~ | ✅ user_badges + xp_logs + coin_logs restricted to auth.uid() |
-| ~~XP constants overlap~~ | ~~Medium~~ | ✅ Consolidated into AppConfig.xpRewards |
+| ~~XP constants overlap~~ | ~~Medium~~ | ✅ All XP reads from SystemSettings (DB). AppConfig.xpRewards removed. |
 | ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
 | ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
 | Server-side SM-2 mismatch | Medium | `complete_vocabulary_session` RPC uses different SM-2 formula than client (flat +0.02 ease vs quality-based, rep=1 vs rep=0 start). Needs migration to align with `SM2.calculateNextReview()` |
@@ -155,6 +158,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Book Quiz Admin Integration | 2026-03-23 | Admin quiz navigation, DB trigger for atomic attempt_number, dynamic XP from SystemSettings |
+| Dynamic XP & Settings Cleanup | 2026-03-23 | All XP reads from system_settings DB, 15 unused settings removed, SystemSettings 21→6 fields, AppConfig.xpRewards deleted |
 | Admin Quest Dashboard | 2026-03-23 | Phase 2: quest list screen with inline editing + completion stats, dashboard card |
 | Streak Freeze & Milestones | 2026-03-23 | Freeze purchase/consumption, milestone XP, tiered event notifications, daily_logins table, login-based streak, calendar visualization |
 | Debug Time Offset | 2026-03-23 | app_current_date/app_now helpers, AppClock utility, 8 RPCs + 7 Flutter files updated, admin-configurable offset |
