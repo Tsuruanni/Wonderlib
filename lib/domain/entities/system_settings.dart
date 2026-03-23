@@ -8,6 +8,21 @@ class SystemSettings extends Equatable {
     this.xpChapterComplete = 50,
     this.xpBookComplete = 200,
     this.xpQuizPass = 20,
+    // Inline Activity XP (per type)
+    this.xpInlineTrueFalse = 25,
+    this.xpInlineWordTranslation = 25,
+    this.xpInlineFindWords = 25,
+    this.xpInlineMatching = 25,
+    // Vocab Question Type XP
+    this.xpVocabMultipleChoice = 10,
+    this.xpVocabMatching = 15,
+    this.xpVocabScrambledLetters = 20,
+    this.xpVocabSpelling = 25,
+    this.xpVocabSentenceGap = 30,
+    // Combo & Session Bonuses
+    this.comboBonusXp = 5,
+    this.xpVocabSessionBonus = 10,
+    this.xpVocabPerfectBonus = 20,
     // Streak
     this.streakFreezePrice = 50,
     this.streakFreezeMax = 2,
@@ -19,6 +34,24 @@ class SystemSettings extends Equatable {
   final int xpChapterComplete;
   final int xpBookComplete;
   final int xpQuizPass;
+
+  // Inline Activity XP (per type)
+  final int xpInlineTrueFalse;
+  final int xpInlineWordTranslation;
+  final int xpInlineFindWords;
+  final int xpInlineMatching;
+
+  // Vocab Question Type XP
+  final int xpVocabMultipleChoice;
+  final int xpVocabMatching;
+  final int xpVocabScrambledLetters;
+  final int xpVocabSpelling;
+  final int xpVocabSentenceGap;
+
+  // Combo & Session Bonuses
+  final int comboBonusXp;
+  final int xpVocabSessionBonus;
+  final int xpVocabPerfectBonus;
 
   // Streak
   final int streakFreezePrice;
@@ -35,6 +68,18 @@ class SystemSettings extends Equatable {
         xpChapterComplete,
         xpBookComplete,
         xpQuizPass,
+        xpInlineTrueFalse,
+        xpInlineWordTranslation,
+        xpInlineFindWords,
+        xpInlineMatching,
+        xpVocabMultipleChoice,
+        xpVocabMatching,
+        xpVocabScrambledLetters,
+        xpVocabSpelling,
+        xpVocabSentenceGap,
+        comboBonusXp,
+        xpVocabSessionBonus,
+        xpVocabPerfectBonus,
         streakFreezePrice,
         streakFreezeMax,
         debugDateOffset,
