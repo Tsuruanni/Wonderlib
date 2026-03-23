@@ -298,7 +298,7 @@ class _BonusRow extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Bonus alındı! +1 paket',
+                'Bonus claimed! +1 pack',
                 style: GoogleFonts.nunito(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -375,7 +375,7 @@ class _BonusRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ödülünü Al!',
+                      'Claim Reward!',
                       style: GoogleFonts.nunito(
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
@@ -384,7 +384,7 @@ class _BonusRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Tüm görevleri tamamladın! Kart paketini al',
+                      'All quests complete! Claim your card pack',
                       style: GoogleFonts.nunito(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -426,7 +426,7 @@ class _BonusRow extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Tüm görevleri tamamla → Kart Paketi',
+              'Complete all quests → Card Pack',
               style: GoogleFonts.nunito(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

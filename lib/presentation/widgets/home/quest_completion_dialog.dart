@@ -41,7 +41,7 @@ class QuestCompletionDialog extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Görev Tamamlandı!',
+              'Quest Complete!',
               style: GoogleFonts.nunito(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -73,7 +73,7 @@ class QuestCompletionDialog extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Tüm görevler tamamlandı! Bonus kart paketini al!',
+                      'All quests complete! Claim your bonus card pack!',
                       style: GoogleFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -100,7 +100,7 @@ class QuestCompletionDialog extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Tamam',
+              'OK',
               style: GoogleFonts.nunito(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
@@ -182,15 +182,15 @@ class _QuestRewardRow extends StatelessWidget {
   (String, Color) _rewardTextAndColor(DailyQuest quest) {
     return switch (quest.rewardType) {
       QuestRewardType.xp => (
-          '+${quest.rewardAmount} XP kazanıldı!',
+          '+${quest.rewardAmount} XP earned!',
           AppColors.primary,
         ),
       QuestRewardType.coins => (
-          '+${quest.rewardAmount} coin kazanıldı!',
+          '+${quest.rewardAmount} coins earned!',
           AppColors.wasp,
         ),
       QuestRewardType.cardPack => (
-          '+${quest.rewardAmount} kart paketi kazanıldı!',
+          '+${quest.rewardAmount} card pack earned!',
           AppColors.cardEpic,
         ),
     };
