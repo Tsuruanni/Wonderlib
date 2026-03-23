@@ -261,6 +261,8 @@ class StreakStatusDialog extends StatelessWidget {
           iconColor = AppColors.neutral.withValues(alpha: 0.5);
         }
 
+        final isToday = date == today;
+
         return Column(
           children: [
             Text(
@@ -268,10 +270,14 @@ class StreakStatusDialog extends StatelessWidget {
               style: GoogleFonts.nunito(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutralText,
+                color: isToday ? AppColors.streakOrange : AppColors.neutralText,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
+            if (isToday)
+              Icon(Icons.arrow_drop_down, color: AppColors.streakOrange, size: 16)
+            else
+              const SizedBox(height: 16),
             Icon(icon, color: iconColor, size: 32),
           ],
         );

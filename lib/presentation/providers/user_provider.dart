@@ -47,6 +47,10 @@ final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref
 /// Provider for streak events (milestone, freeze-saved, streak-broken)
 final streakEventProvider = StateProvider<StreakResult?>((ref) => null);
 
+/// Triggers the daily streak status dialog (full dialog, once per day on app open).
+/// Set to true after streak check completes on first load. Reset to null after shown.
+final showDailyStreakDialogProvider = StateProvider<bool?>((ref) => null);
+
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
@@ -92,6 +96,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         _ref.read(levelUpEventProvider.notifier).state = null;
         _ref.read(leagueTierChangeEventProvider.notifier).state = null;
         _ref.read(streakEventProvider.notifier).state = null;
+        _ref.read(showDailyStreakDialogProvider.notifier).state = null;
       }
     }, fireImmediately: true,);
   }
@@ -141,6 +146,12 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     // RPC is idempotent — same-day calls return no-op.
     // This ensures streak broken/freeze notifications show immediately on launch.
     await updateStreak();
+
+    // Show daily streak dialog if no streak event was triggered.
+    // If streakEventProvider has a value, the event dialog will show instead.
+    if (_ref.read(streakEventProvider) == null) {
+      _ref.read(showDailyStreakDialogProvider.notifier).state = true;
+    }
   }
 
   Future<void> addXP(int amount) async {

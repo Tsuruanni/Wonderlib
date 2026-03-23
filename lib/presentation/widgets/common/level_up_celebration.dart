@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
+import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/streak_result.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
 import 'streak_event_dialog.dart';
+import 'streak_status_dialog.dart';
 
 /// Shows a celebration dialog when user levels up
 /// Listens to levelUpEventProvider and displays appropriate celebration
@@ -37,6 +40,12 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       }
     });
 
+    ref.listen<bool?>(showDailyStreakDialogProvider, (previous, next) {
+      if (next == true) {
+        _showDailyStreakDialog(ref);
+      }
+    });
+
     return child;
   }
 
@@ -50,6 +59,37 @@ class LevelUpCelebrationListener extends ConsumerWidget {
       builder: (context) => _LevelUpDialog(event: event),
     ).then((_) {
       ref.read(levelUpEventProvider.notifier).state = null;
+    });
+  }
+
+  void _showDailyStreakDialog(WidgetRef ref) {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+
+    final user = ref.read(userControllerProvider).valueOrNull;
+    if (user == null) return;
+
+    final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+    final activityHistory = ref.read(activityHistoryProvider).valueOrNull ?? [];
+
+    showDialog(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (context) => StreakStatusDialog(
+        currentStreak: user.currentStreak,
+        longestStreak: user.longestStreak,
+        activeDates: activityHistory,
+        streakFreezeCount: user.streakFreezeCount,
+        streakFreezeMax: settings.streakFreezeMax,
+        streakFreezePrice: settings.streakFreezePrice,
+        userCoins: user.coins,
+        onBuyFreeze: () {
+          Navigator.of(context).pop();
+          ref.read(userControllerProvider.notifier).buyStreakFreeze();
+        },
+      ),
+    ).then((_) {
+      ref.read(showDailyStreakDialogProvider.notifier).state = null;
     });
   }
 
