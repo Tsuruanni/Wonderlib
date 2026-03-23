@@ -3,6 +3,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../domain/entities/streak_result.dart';
 import '../../../domain/entities/user.dart' as domain;
@@ -246,7 +247,7 @@ class SupabaseUserRepository implements UserRepository {
   @override
   Future<Either<Failure, List<DateTime>>> getLast7DaysActivity(String userId) async {
     try {
-      final now = DateTime.now();
+      final now = AppClock.now();
       final sevenDaysAgo =
           now.subtract(const Duration(days: 7)).toIso8601String().split('T').first;
 
