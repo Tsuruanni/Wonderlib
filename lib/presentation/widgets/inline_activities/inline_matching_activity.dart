@@ -19,6 +19,7 @@ class InlineMatchingActivity extends StatefulWidget {
     required this.onAnswer,
     this.isCompleted = false,
     this.wasCorrect,
+    this.xpValue = 25,
   });
 
   final InlineActivity activity;
@@ -26,6 +27,7 @@ class InlineMatchingActivity extends StatefulWidget {
   final void Function(bool isCorrect, List<String> wordsLearned) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
+  final int xpValue;
 
   @override
   State<InlineMatchingActivity> createState() => _InlineMatchingActivityState();
@@ -286,7 +288,7 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
             top: 10,
             right: 0,
             child: XPBadge(
-              xp: widget.activity.xpReward,
+              xp: widget.xpValue,
               onComplete: () {
                 if (mounted) {
                   setState(() => _showXPAnimation = false);

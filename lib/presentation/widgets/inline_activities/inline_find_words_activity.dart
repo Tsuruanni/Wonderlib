@@ -16,6 +16,7 @@ class InlineFindWordsActivity extends StatefulWidget {
     required this.onAnswer,
     this.isCompleted = false,
     this.wasCorrect,
+    this.xpValue = 25,
   });
 
   final InlineActivity activity;
@@ -23,6 +24,7 @@ class InlineFindWordsActivity extends StatefulWidget {
   final void Function(bool isCorrect, List<String> wordsLearned) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
+  final int xpValue;
 
   @override
   State<InlineFindWordsActivity> createState() => _InlineFindWordsActivityState();
@@ -174,7 +176,7 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
             top: 10,
             right: 0,
             child: XPBadge(
-              xp: widget.activity.xpReward,
+              xp: widget.xpValue,
               onComplete: () {
                 if (mounted) {
                   setState(() => _showXPAnimation = false);

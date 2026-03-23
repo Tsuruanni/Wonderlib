@@ -19,6 +19,7 @@ class InlineTrueFalseActivity extends StatefulWidget {
     required this.onAnswer,
     this.isCompleted = false,
     this.wasCorrect,
+    this.xpValue = 25,
   });
 
   final InlineActivity activity;
@@ -26,6 +27,7 @@ class InlineTrueFalseActivity extends StatefulWidget {
   final void Function(bool isCorrect) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
+  final int xpValue;
 
   @override
   State<InlineTrueFalseActivity> createState() => _InlineTrueFalseActivityState();
@@ -156,7 +158,7 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
             top: 10,
             right: 0,
             child: XPBadge(
-              xp: widget.activity.xpReward,
+              xp: widget.xpValue,
               onComplete: () {
                 if (mounted) {
                   setState(() => _showXPAnimation = false);

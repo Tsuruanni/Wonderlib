@@ -155,6 +155,7 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect) {
             _handleActivityAnswer(activity, isCorrect, []);
           },
@@ -166,6 +167,7 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },
@@ -177,6 +179,7 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },
@@ -188,6 +191,7 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },

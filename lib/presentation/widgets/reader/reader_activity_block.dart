@@ -89,6 +89,7 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect) {
             _handleActivityAnswer(ref, activity, isCorrect, []);
           },
@@ -100,6 +101,7 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
@@ -111,6 +113,7 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
@@ -122,6 +125,7 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
+          xpValue: getInlineActivityXP(ref, activity.type),
           onAnswer: (isCorrect, wordsLearned) {
             _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
