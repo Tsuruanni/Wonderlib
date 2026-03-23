@@ -23,8 +23,7 @@ class InlineMatchingActivity extends StatefulWidget {
 
   final InlineActivity activity;
   final ReaderSettings settings;
-  final void Function(bool isCorrect, int xpEarned, List<String> wordsLearned)
-      onAnswer;
+  final void Function(bool isCorrect, List<String> wordsLearned) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
 
@@ -182,7 +181,6 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
       if (mounted) {
         widget.onAnswer(
           isCorrect,
-          isCorrect ? widget.activity.xpReward : 0,
           widget.activity.vocabularyWords,
         );
       }

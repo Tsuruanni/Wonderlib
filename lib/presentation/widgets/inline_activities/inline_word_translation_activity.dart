@@ -23,7 +23,7 @@ class InlineWordTranslationActivity extends StatefulWidget {
 
   final InlineActivity activity;
   final ReaderSettings settings;
-  final void Function(bool isCorrect, int xpEarned, List<String> wordsLearned) onAnswer;
+  final void Function(bool isCorrect, List<String> wordsLearned) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
 
@@ -85,7 +85,6 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
         if (mounted) {
           widget.onAnswer(
             true,
-            widget.activity.xpReward,
             widget.activity.vocabularyWords,
           );
         }
@@ -94,7 +93,7 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
       // Wrong answer - still call onAnswer to mark activity complete and allow progression
       Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
-          widget.onAnswer(false, 0, widget.activity.vocabularyWords);
+          widget.onAnswer(false, widget.activity.vocabularyWords);
         }
       });
     }

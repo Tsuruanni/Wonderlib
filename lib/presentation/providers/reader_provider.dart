@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/chapter.dart';
+import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
@@ -9,6 +11,7 @@ import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import 'auth_provider.dart';
 import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
+import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
 import 'vocabulary_provider.dart';
@@ -323,6 +326,21 @@ final chapterInitializedProvider = StateProvider.autoDispose<bool>((ref) => fals
 // ============================================
 // INLINE ACTIVITY COMPLETION HANDLER
 // ============================================
+
+/// Get inline activity XP from settings based on activity type
+int getInlineActivityXP(WidgetRef ref, InlineActivityType type) {
+  final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+  switch (type) {
+    case InlineActivityType.trueFalse:
+      return settings.xpInlineTrueFalse;
+    case InlineActivityType.wordTranslation:
+      return settings.xpInlineWordTranslation;
+    case InlineActivityType.findWords:
+      return settings.xpInlineFindWords;
+    case InlineActivityType.matching:
+      return settings.xpInlineMatching;
+  }
+}
 
 /// Handles inline activity completion - saves to DB, awards XP, adds words to vocabulary
 Future<void> handleInlineActivityCompletion(
