@@ -130,16 +130,23 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final useCase = _ref.read(getUserByIdUseCaseProvider);
     final result = await useCase(GetUserByIdParams(userId: userId));
 
-    result.fold(
-      (failure) {
-        state = AsyncValue.error(failure.message, StackTrace.current);
-      },
-      (user) async {
-        state = AsyncValue.data(user);
-        await _updateStreakIfNeeded(user);
-        _checkLeagueTierChange(oldUser, user);
-      },
-    );
+    final user = result.fold((failure) {
+      state = AsyncValue.error(failure.message, StackTrace.current);
+      return null;
+    }, (user) => user);
+
+    if (user == null) return;
+
+    // Run streak check BEFORE setting state — this updates DB + re-fetches profile
+    await _updateStreakIfNeeded(user);
+
+    // Now read the fully updated profile (streak check already set state via updateStreak)
+    // If updateStreak didn't run or failed, set state with the initial profile
+    if (!state.hasValue || state.valueOrNull == null) {
+      state = AsyncValue.data(user);
+    }
+
+    _checkLeagueTierChange(oldUser, state.valueOrNull ?? user);
   }
 
   void _checkLeagueTierChange(User? oldUser, User newUser) {
