@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../core/config/app_config.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/book_quiz.dart';
 import '../../../domain/repositories/book_quiz_repository.dart';
@@ -130,18 +129,6 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
           .eq('user_id', userId)
           .eq('book_id', bookId);
 
-      // Award XP for first-time quiz passing
-      try {
-        await _supabase.rpc(RpcFunctions.awardXpTransaction, params: {
-          'p_user_id': userId,
-          'p_amount': AppConfig.xpRewards['quiz_pass']!, // Quiz pass XP
-        });
-        await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
-          'p_user_id': userId,
-        });
-      } catch (e) {
-        debugPrint('BookQuiz: XP/badge award failed (non-critical): $e');
-      }
     } catch (e) {
       debugPrint('BookQuiz: _handleQuizPassed error: $e');
     }

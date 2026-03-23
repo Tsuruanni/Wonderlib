@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/book_quiz.dart';
+import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
 import '../../domain/usecases/book_quiz/get_best_quiz_result_usecase.dart';
 import '../../domain/usecases/book_quiz/get_quiz_for_book_usecase.dart';
@@ -9,7 +10,9 @@ import '../../domain/usecases/book_quiz/get_student_quiz_results_usecase.dart';
 import '../../domain/usecases/book_quiz/submit_quiz_result_usecase.dart';
 import 'auth_provider.dart';
 import 'book_provider.dart';
+import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 /// Whether a book has a published quiz
 final bookHasQuizProvider =
@@ -105,7 +108,7 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
     final useCase = _ref.read(submitQuizResultUseCaseProvider);
     final either = await useCase(SubmitQuizResultParams(result: result));
 
-    return either.fold(
+    final savedResult = either.fold(
       (failure) {
         debugPrint('BookQuizController: submit failed: ${failure.message}');
         if (mounted) {
@@ -128,6 +131,14 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
         return savedResult;
       },
     );
+
+    // Award XP for passing quiz (addXP also triggers badge check)
+    if (savedResult != null && savedResult.isPassing) {
+      final settings = _ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+      await _ref.read(userControllerProvider.notifier).addXP(settings.xpQuizPass);
+    }
+
+    return savedResult;
   }
 
   void reset() {
