@@ -266,7 +266,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(
           title: 'Ayarlar',
-          categories: ['xp', 'progression', 'game', 'app'],
+          categories: ['xp', 'xp_inline', 'xp_vocab', 'xp_bonus', 'progression', 'game', 'app'],
         ),
       ),
     ],

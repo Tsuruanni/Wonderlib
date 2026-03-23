@@ -43,7 +43,10 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryLabels = {
-    'xp': 'XP Ödülleri',
+    'xp': 'Genel XP',
+    'xp_inline': 'Inline Activity XP',
+    'xp_vocab': 'Vocab Session XP',
+    'xp_bonus': 'Session & Combo Bonuses',
     'progression': 'Seviye ve İlerleme',
     'game': 'Oyun Ayarları',
     'app': 'Uygulama Yapılandırması',
@@ -51,6 +54,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   static const categoryIcons = {
     'xp': Icons.star,
+    'xp_inline': Icons.extension_rounded,
+    'xp_vocab': Icons.school,
+    'xp_bonus': Icons.local_fire_department_rounded,
     'progression': Icons.trending_up,
     'game': Icons.games,
     'app': Icons.settings_applications,
@@ -58,6 +64,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   static const categoryColors = {
     'xp': Color(0xFFF59E0B),
+    'xp_inline': Color(0xFFEC4899),
+    'xp_vocab': Color(0xFF10B981),
+    'xp_bonus': Color(0xFFEF4444),
     'progression': Color(0xFF8B5CF6),
     'game': Color(0xFF3B82F6),
     'app': Color(0xFF6B7280),
