@@ -9,7 +9,6 @@ class StreakStatusDialog extends StatelessWidget {
     super.key,
     required this.currentStreak,
     required this.longestStreak,
-    required this.freezesConsumed,
     required this.streakFreezeCount,
     required this.streakFreezeMax,
     required this.streakFreezePrice,
@@ -19,7 +18,6 @@ class StreakStatusDialog extends StatelessWidget {
 
   final int currentStreak;
   final int longestStreak;
-  final int freezesConsumed;
   final int streakFreezeCount;
   final int streakFreezeMax;
   final int streakFreezePrice;
@@ -222,30 +220,11 @@ class StreakStatusDialog extends StatelessWidget {
       return monday.add(Duration(days: index));
     });
 
-    // Build sets for each day type from streak data:
-    // Login days: today + streak window going back from today (excluding freeze gaps)
-    // Freeze days: the days right before today that were covered by freezes
-    // Example: streak=5, freezesConsumed=2, today=Friday
-    //   → freeze days: Wed, Thu (2 days before today)
-    //   → login days: Mon, Tue (streak days before freeze gap) + Fri (today)
-    final freezeDays = <DateTime>{};
-    final loginDays = <DateTime>{};
-
-    // Today is always a login day (we just logged in)
-    loginDays.add(today);
-
-    // Freeze days = immediately before today
-    for (int i = 1; i <= freezesConsumed; i++) {
-      freezeDays.add(today.subtract(Duration(days: i)));
-    }
-
-    // Login days = streak days before the freeze gap
-    // Total streak days (excluding today) = currentStreak - 1
-    // Of those, freezesConsumed were frozen, rest were login days
-    final loginDaysBeforeFreeze = currentStreak - 1 - freezesConsumed;
-    final firstDayAfterFreeze = freezesConsumed + 1; // offset from today
-    for (int i = 0; i < loginDaysBeforeFreeze; i++) {
-      loginDays.add(today.subtract(Duration(days: firstDayAfterFreeze + i)));
+    // Streak window: last N days ending at today are "active" (login days)
+    // currentStreak includes today, so streak days = today, today-1, ..., today-(streak-1)
+    final streakDays = <DateTime>{};
+    for (int i = 0; i < currentStreak; i++) {
+      streakDays.add(today.subtract(Duration(days: i)));
     }
 
     return Row(
@@ -253,18 +232,15 @@ class StreakStatusDialog extends StatelessWidget {
       children: weekDays.map((date) {
         final isFuture = date.isAfter(today);
         final isToday = date == today;
-        final isLogin = loginDays.contains(date);
-        final isFrozen = freezeDays.contains(date);
+        final isStreakDay = streakDays.contains(date);
 
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        // Color: login=orange, frozen=blue, future=faded, missed=grey
+        // Color: streak day = orange, future = faded, missed = grey
         Color iconColor;
-        if (isLogin) {
+        if (isStreakDay) {
           iconColor = AppColors.streakOrange;
-        } else if (isFrozen) {
-          iconColor = Colors.blue.shade400;
         } else if (isFuture) {
           iconColor = AppColors.neutral.withValues(alpha: 0.2);
         } else {

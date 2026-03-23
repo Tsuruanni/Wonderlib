@@ -57,7 +57,6 @@ class TopNavbar extends ConsumerWidget {
                   builder: (context) => StreakStatusDialog(
                     currentStreak: user.currentStreak,
                     longestStreak: user.longestStreak,
-                    freezesConsumed: 0, // manual tap = no recent freeze event
                     streakFreezeCount: user.streakFreezeCount,
                     streakFreezeMax: settings.streakFreezeMax,
                     streakFreezePrice: settings.streakFreezePrice,

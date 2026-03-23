@@ -47,10 +47,6 @@ final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref
 /// Provider for streak events (milestone, freeze-saved, streak-broken)
 final streakEventProvider = StateProvider<StreakResult?>((ref) => null);
 
-/// Triggers the daily streak status dialog (full dialog, once per day on app open).
-/// Contains the StreakResult so the dialog can show freeze info.
-/// Set after streak check completes on first load. Reset to null after shown.
-final showDailyStreakDialogProvider = StateProvider<StreakResult?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -97,12 +93,10 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         _ref.read(levelUpEventProvider.notifier).state = null;
         _ref.read(leagueTierChangeEventProvider.notifier).state = null;
         _ref.read(streakEventProvider.notifier).state = null;
-        _ref.read(showDailyStreakDialogProvider.notifier).state = null;
       }
     }, fireImmediately: true,);
   }
   final Ref _ref;
-  StreakResult? _lastStreakResult;
 
   Future<void> _loadUserById(String userId) async {
     final oldUser = state.valueOrNull;
@@ -148,10 +142,6 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     // RPC is idempotent — same-day calls return no-op.
     // This ensures streak broken/freeze notifications show immediately on launch.
     await updateStreak();
-
-    // Show daily streak dialog — pass StreakResult for freeze info in calendar.
-    // If streakEventProvider has a value, event dialog shows first, then daily dialog.
-    _ref.read(showDailyStreakDialogProvider.notifier).state = _lastStreakResult;
   }
 
   Future<void> addXP(int amount) async {
@@ -202,8 +192,6 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     result.fold(
       (failure) => null,
       (streakResult) async {
-        _lastStreakResult = streakResult;
-
         // Silent re-fetch profile (no loading state flash)
         final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
         final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
