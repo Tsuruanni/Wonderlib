@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../app/router.dart';
+import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/entities/vocabulary_session.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
@@ -380,7 +382,8 @@ class _VocabularySessionScreenState
 
   void _handleAnswer(VocabularySessionController controller, String answer) {
     FocusScope.of(context).unfocus(); // Dismiss keyboard
-    controller.answerQuestion(answer);
+    final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+    controller.answerQuestion(answer, settings: settings);
   }
 
   Widget _buildFooter(
@@ -558,11 +561,13 @@ class _VocabularySessionScreenState
           }) {
             // Matching doesn't use keyboard, but good to unfocus anyway
             FocusScope.of(context).unfocus();
+            final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
             controller.answerMatchingQuestion(
               correctMatches: correctMatches,
               totalMatches: totalMatches,
               correctWordIds: correctWordIds,
               incorrectWordIds: incorrectWordIds,
+              settings: settings,
             );
           },
         );
