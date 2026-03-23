@@ -134,7 +134,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     ref.invalidate(userVocabularyProgressProvider);
     ref.invalidate(learnedWordsWithDetailsProvider);
     // Refresh user state so XP/coins updates in navbar + triggers level-up
-    ref.read(userControllerProvider.notifier).refresh();
+    ref.read(userControllerProvider.notifier).refreshProfileOnly();
     // Invalidate leaderboard so rank reflects new XP
     ref.invalidate(leaderboardEntriesProvider);
 
@@ -271,7 +271,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                   ref.invalidate(todayReviewSessionProvider);
                   ref.invalidate(dailyReviewWordsProvider);
                 }
-                ref.read(userControllerProvider.notifier).refresh();
+                ref.read(userControllerProvider.notifier).refreshProfileOnly();
               },
               variant: GameButtonVariant.primary,
             ),

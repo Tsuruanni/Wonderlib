@@ -395,10 +395,9 @@ Future<void> _handleInlineActivityCompletionImpl(
   if (isNewCompletion && xpEarned > 0) {
     ref.read(sessionXPProvider.notifier).addXP(xpEarned);
     await ref.read(userControllerProvider.notifier).addXP(xpEarned);
-  } else if (isNewCompletion) {
-    // Update streak even without XP (wrong answer still counts as daily activity)
-    await ref.read(userControllerProvider.notifier).updateStreak();
   }
+  // Note: streak is updated on app open (_updateStreakIfNeeded), not per-activity.
+  // No need to call updateStreak() here — it was already done at launch.
 
   // Add words to vocabulary
   if (wordsLearned.isNotEmpty) {

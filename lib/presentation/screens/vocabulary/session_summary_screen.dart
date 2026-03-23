@@ -137,7 +137,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         ref.invalidate(userVocabularyProgressProvider);
         ref.invalidate(learnedWordsWithDetailsProvider);
         // Refresh user state so XP/level updates in navbar + triggers level-up celebration
-        ref.read(userControllerProvider.notifier).refresh();
+        ref.read(userControllerProvider.notifier).refreshProfileOnly();
         // Invalidate leaderboard so rank reflects new XP
         ref.invalidate(leaderboardEntriesProvider);
         // Refresh daily quest progress (vocab_session quest)

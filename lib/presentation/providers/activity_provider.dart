@@ -161,7 +161,7 @@ class ActivitySessionController extends StateNotifier<ActivitySessionState> {
     final activityResult = submitResult.fold((_) => null, (r) => r)!;
 
     // Refresh user data to update XP/coins in UI
-    await _ref.read(userControllerProvider.notifier).refresh();
+    await _ref.read(userControllerProvider.notifier).refreshProfileOnly();
 
     state = state.copyWith(
       isSubmitting: false,

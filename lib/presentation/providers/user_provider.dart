@@ -190,32 +190,34 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     debugPrint('🔄 addXP: awarding $amount XP to $userId');
     final result = await useCase(AddXPParams(userId: userId, amount: amount));
 
-    final succeeded = result.fold(
+    final user = result.fold(
       (failure) {
         debugPrint('❌ addXP FAILED: ${failure.message}');
-        return false;
+        return null;
       },
-      (user) {
-        debugPrint('✅ addXP SUCCESS: new XP=${user.xp}, level=${user.level}');
-        state = AsyncValue.data(user);
-        _ref.invalidate(activityHistoryProvider);
-
-        // Check for level up
-        if (user.level > oldLevel) {
-          _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
-            oldLevel: oldLevel,
-            newLevel: user.level,
-          );
-        }
-        return true;
-      },
+      (user) => user,
     );
 
-    // Update streak only when XP was successfully awarded
-    // DB function handles "once per day" logic automatically
-    if (succeeded) {
-      await updateStreak();
+    if (user == null) return;
+
+    debugPrint('✅ addXP SUCCESS: new XP=${user.xp}, level=${user.level}');
+    state = AsyncValue.data(user);
+    _ref.invalidate(activityHistoryProvider);
+
+    // Check for level up
+    if (user.level > oldLevel) {
+      _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
+        oldLevel: oldLevel,
+        newLevel: user.level,
+      );
     }
+
+    // Note: NOT calling updateStreak() here.
+    // Server-side RPCs (complete_daily_review, complete_vocabulary_session)
+    // already call PERFORM update_user_streak() internally.
+    // The streak was already updated on app open via _updateStreakIfNeeded.
+    // Calling it again would be idempotent but would suppress event dialogs
+    // (second same-day call returns no events).
   }
 
   Future<void> updateStreak() async {
@@ -225,21 +227,20 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final useCase = _ref.read(updateStreakUseCaseProvider);
     final result = await useCase(UpdateStreakParams(userId: userId));
 
-    result.fold(
-      (failure) => null,
-      (streakResult) async {
-        // Silent re-fetch profile (no loading state flash)
-        final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
-        final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
-        userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
-        _ref.invalidate(loginDatesProvider);
+    // FIX: Extract from fold to properly await — Either.fold is not async-aware
+    final streakResult = result.fold<StreakResult?>((f) => null, (r) => r);
+    if (streakResult == null) return;
 
-        // Fire streak event if anything notable happened
-        if (streakResult.hasEvent) {
-          _ref.read(streakEventProvider.notifier).state = streakResult;
-        }
-      },
-    );
+    // Re-fetch profile with updated streak data
+    final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
+    final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
+    userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
+    _ref.invalidate(loginDatesProvider);
+
+    // Fire streak event if anything notable happened
+    if (streakResult.hasEvent) {
+      _ref.read(streakEventProvider.notifier).state = streakResult;
+    }
   }
 
   Future<bool> buyStreakFreeze() async {
@@ -249,30 +250,45 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final useCase = _ref.read(buyStreakFreezeUseCaseProvider);
     final result = await useCase(BuyStreakFreezeParams(userId: userId));
 
-    return result.fold(
-      (failure) => false,
-      (buyResult) async {
-        // Silent re-fetch profile to update freeze count and coins
-        final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
-        final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
-        userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
-        return true;
+    // FIX: Extract from fold to properly await
+    final buyResult = result.fold<BuyFreezeResult?>((f) => null, (r) => r);
+    if (buyResult == null) return false;
+
+    // Re-fetch profile to update freeze count and coins
+    final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
+    final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
+    userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
+    return true;
+  }
+
+  /// Refresh profile without triggering streak check.
+  /// Use after vocab sessions, daily reviews, etc. where the server-side RPC
+  /// already called update_user_streak internally.
+  Future<void> refreshProfileOnly() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return;
+
+    final oldLevel = state.valueOrNull?.level ?? 1;
+
+    final useCase = _ref.read(getUserByIdUseCaseProvider);
+    final result = await useCase(GetUserByIdParams(userId: userId));
+    result.fold(
+      (_) => null,
+      (user) {
+        state = AsyncValue.data(user);
+        if (user.level > oldLevel) {
+          _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
+            oldLevel: oldLevel,
+            newLevel: user.level,
+          );
+        }
       },
     );
   }
 
+  /// Full refresh with streak check. Only use for app-level refresh (pull-to-refresh etc.)
   Future<void> refresh() async {
-    final oldLevel = state.valueOrNull?.level ?? 1;
-
     await _loadUser();
-
-    final newUser = state.valueOrNull;
-    if (newUser != null && newUser.level > oldLevel) {
-      _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
-        oldLevel: oldLevel,
-        newLevel: newUser.level,
-      );
-    }
   }
 }
 

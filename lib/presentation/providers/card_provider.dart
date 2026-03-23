@@ -233,7 +233,7 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
       },
       (buyResult) {
         // Refresh user data to update coin/pack counts
-        _ref.read(userControllerProvider.notifier).refresh();
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
         state = state.copyWith(
           phase: PackOpeningPhase.idle,
           buySuccess: true,
@@ -303,7 +303,7 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
     state = const PackOpeningState();
     _ref.invalidate(userCardsProvider);
     _ref.invalidate(userCardStatsProvider);
-    _ref.read(userControllerProvider.notifier).refresh();
+    _ref.read(userControllerProvider.notifier).refreshProfileOnly();
   }
 }
 
