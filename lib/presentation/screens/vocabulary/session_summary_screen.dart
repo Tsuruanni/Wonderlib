@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../app/router.dart';
+import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/vocabulary_session.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
@@ -14,6 +15,7 @@ import '../../../domain/usecases/student_assignment/get_active_assignments_useca
 import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/usecase_providers.dart';
@@ -40,6 +42,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   bool _saved = false;
   String? _surpriseStat;
   int? _actualXpAwarded;
+  int _comboBonus = 0;
 
   AudioPlayer? _victoryPlayer;
 
@@ -87,6 +90,10 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
       return;
     }
 
+    final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+    final comboBonus = session.maxCombo * settings.comboBonusXp;
+    setState(() => _comboBonus = comboBonus);
+
     final wordResults = controller.buildWordResults();
     final accuracy = session.correctCount + session.incorrectCount > 0
         ? (session.correctCount /
@@ -103,7 +110,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             incorrectCount: session.incorrectCount,
             accuracy: accuracy,
             maxCombo: session.maxCombo,
-            xpEarned: session.xpEarned,
+            xpEarned: session.xpEarned + comboBonus,
             durationSeconds: session.durationSeconds,
             wordsStrong: controller.wordsStrongCount,
             wordsWeak: controller.wordsWeakCount,
@@ -257,7 +264,8 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                       icon: Icons.monetization_on,
                       iconColor: Colors.amber,
                       label: 'Coins Earned',
-                      value: '+${_actualXpAwarded ?? session.xpEarned}',
+                      value: '+${_actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
+                      subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,
                       delay: 400.ms,
                     ),
                     const SizedBox(width: 12),
@@ -376,6 +384,7 @@ class _StatCard extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
+    this.subtitle,
     required this.delay,
   });
 
@@ -383,6 +392,7 @@ class _StatCard extends StatelessWidget {
   final Color iconColor;
   final String label;
   final String value;
+  final String? subtitle;
   final Duration delay;
 
   @override
@@ -408,6 +418,16 @@ class _StatCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
+            if (subtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                subtitle!,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: iconColor.withValues(alpha: 0.8),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
             Text(
               label,
               style: theme.textTheme.labelMedium?.copyWith(
