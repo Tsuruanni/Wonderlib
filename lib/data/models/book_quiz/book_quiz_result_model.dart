@@ -93,7 +93,6 @@ class BookQuizResultModel {
       'is_passing': isPassing,
       'answers': answers,
       'time_spent': timeSpent,
-      'attempt_number': attemptNumber,
       'completed_at': completedAt.toIso8601String(),
     };
   }

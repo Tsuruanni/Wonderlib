@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/config/app_config.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/book_quiz.dart';
 import '../../../domain/repositories/book_quiz_repository.dart';
@@ -55,18 +56,9 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
     BookQuizResult result,
   ) async {
     try {
-      // Calculate attempt number
-      final countResponse = await _supabase
-          .from(DbTables.bookQuizResults)
-          .select('id')
-          .eq('user_id', result.userId)
-          .eq('quiz_id', result.quizId);
-      final attemptNumber = (countResponse as List).length + 1;
-
-      // Insert result
+      // Insert result (attempt_number set by DB trigger)
       final model = BookQuizResultModel.fromEntity(result);
       final insertData = model.toInsertJson();
-      insertData['attempt_number'] = attemptNumber;
 
       final response = await _supabase
           .from(DbTables.bookQuizResults)
@@ -142,7 +134,7 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
       try {
         await _supabase.rpc(RpcFunctions.awardXpTransaction, params: {
           'p_user_id': userId,
-          'p_amount': 20, // Book completion XP
+          'p_amount': AppConfig.xpRewards['quiz_pass']!, // Quiz pass XP
         });
         await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
           'p_user_id': userId,
