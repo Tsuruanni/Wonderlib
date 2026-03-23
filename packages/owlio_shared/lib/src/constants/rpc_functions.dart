@@ -27,6 +27,7 @@ abstract class RpcFunctions {
   static const hasDailyQuestPackClaimed = 'has_daily_quest_pack_claimed';
   static const getDailyQuestProgress = 'get_daily_quest_progress';
   static const claimDailyBonus = 'claim_daily_bonus';
+  static const getQuestCompletionStats = 'get_quest_completion_stats';
 
   // Leaderboard (total XP)
   static const getClassLeaderboard = 'get_class_leaderboard';
