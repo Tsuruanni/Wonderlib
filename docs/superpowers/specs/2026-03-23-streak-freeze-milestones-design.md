@@ -234,7 +234,7 @@ Three dialog variants triggered by `streakEventProvider`:
 
 Priority: milestone > freeze-saved > streak-broken (one per session).
 
-Triggered from `home_screen.dart` via `ref.listen(streakEventProvider)`.
+Triggered from `LevelUpCelebrationListener` in `level_up_celebration.dart` via `ref.listen(streakEventProvider)`. This follows the existing pattern for level-up and league tier change event dialogs.
 
 #### Provider registration
 
@@ -275,7 +275,7 @@ Triggered from `home_screen.dart` via `ref.listen(streakEventProvider)`.
 | `lib/presentation/providers/user_provider.dart` | `streakEventProvider`, updated `updateStreak()`, new `buyStreakFreeze()` |
 | `lib/presentation/providers/usecase_providers.dart` | Register `BuyStreakFreezeUseCase` |
 | `lib/presentation/widgets/common/streak_status_dialog.dart` | Freeze section + buy button |
-| `lib/presentation/screens/home/home_screen.dart` | `ref.listen(streakEventProvider)` → show event dialogs |
+| `lib/presentation/widgets/common/level_up_celebration.dart` | Add `ref.listen(streakEventProvider)` → show streak event dialogs |
 | `lib/core/services/edge_function_service.dart` | Delete `checkStreak()` and old `StreakResult` |
 | `lib/core/constants/app_constants.dart` | Delete `streakResetHours` |
 | `packages/owlio_shared/lib/src/constants/rpc_functions.dart` | Add `buyStreakFreeze` |
