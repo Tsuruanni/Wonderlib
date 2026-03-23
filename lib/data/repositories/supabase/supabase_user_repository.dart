@@ -112,6 +112,7 @@ class SupabaseUserRepository implements UserRepository {
       return Right(StreakResult(
         newStreak: row['new_streak'] as int? ?? 0,
         longestStreak: row['longest_streak'] as int? ?? 0,
+        previousStreak: row['previous_streak'] as int? ?? 0,
         streakBroken: row['streak_broken'] as bool? ?? false,
         streakExtended: row['streak_extended'] as bool? ?? false,
         freezeUsed: row['freeze_used'] as bool? ?? false,

@@ -11,11 +11,12 @@ class StreakEventDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Priority: milestone > freeze-saved > streak-broken
     if (result.milestoneBonusXp > 0) {
       return _buildMilestoneDialog(context);
     } else if (result.freezeUsed && !result.streakBroken) {
       return _buildFreezeSavedDialog(context);
-    } else if (result.streakBroken) {
+    } else if (result.streakBroken && result.previousStreak >= 3) {
       return _buildStreakBrokenDialog(context);
     }
     return const SizedBox.shrink();
@@ -44,16 +45,37 @@ class StreakEventDialog extends StatelessWidget {
   }
 
   Widget _buildStreakBrokenDialog(BuildContext context) {
-    final message = result.freezesConsumed > 0
-        ? 'Your ${result.freezesConsumed} freeze${result.freezesConsumed == 1 ? '' : 's'} covered ${result.freezesConsumed} day${result.freezesConsumed == 1 ? '' : 's'}, but you were away too long.'
-        : 'Start building again!';
+    final prev = result.previousStreak;
+
+    // Tiered messages based on how long the broken streak was
+    String title;
+    String subtitle;
+
+    if (prev <= 6) {
+      title = 'Welcome Back!';
+      subtitle = 'Start a new streak today.';
+    } else if (prev <= 9) {
+      title = 'Your $prev-day streak ended';
+      subtitle = 'You can build it again!';
+    } else if (prev <= 20) {
+      title = 'Your $prev-day streak was broken';
+      subtitle = "Don't give up!";
+    } else {
+      title = 'Your $prev-day streak was broken';
+      subtitle = 'That was impressive — you can do it again!';
+    }
+
+    // Add freeze info if partial freeze was consumed
+    if (result.freezesConsumed > 0) {
+      subtitle += '\n\nYour ${result.freezesConsumed} freeze${result.freezesConsumed == 1 ? '' : 's'} covered ${result.freezesConsumed} day${result.freezesConsumed == 1 ? '' : 's'}, but you were away too long.';
+    }
 
     return _buildDialog(
       context,
       icon: Icons.local_fire_department_rounded,
       iconColor: Colors.grey.shade400,
-      title: 'Streak Broken',
-      subtitle: message,
+      title: title,
+      subtitle: subtitle,
       subtitleColor: Colors.grey.shade600,
     );
   }

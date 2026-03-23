@@ -4,6 +4,7 @@ class StreakResult extends Equatable {
   const StreakResult({
     required this.newStreak,
     required this.longestStreak,
+    this.previousStreak = 0,
     this.streakBroken = false,
     this.streakExtended = false,
     this.freezeUsed = false,
@@ -14,6 +15,7 @@ class StreakResult extends Equatable {
 
   final int newStreak;
   final int longestStreak;
+  final int previousStreak;
   final bool streakBroken;
   final bool streakExtended;
   final bool freezeUsed;
@@ -21,11 +23,13 @@ class StreakResult extends Equatable {
   final int freezesRemaining;
   final int milestoneBonusXp;
 
-  bool get hasEvent => milestoneBonusXp > 0 || freezeUsed || streakBroken;
+  /// Show event dialog? Milestone and freeze always. Streak broken only if >= 3 days.
+  bool get hasEvent =>
+      milestoneBonusXp > 0 || freezeUsed || (streakBroken && previousStreak >= 3);
 
   @override
   List<Object?> get props => [
-        newStreak, longestStreak, streakBroken, streakExtended,
+        newStreak, longestStreak, previousStreak, streakBroken, streakExtended,
         freezeUsed, freezesConsumed, freezesRemaining, milestoneBonusXp,
       ];
 }
