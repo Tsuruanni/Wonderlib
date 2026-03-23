@@ -18,8 +18,8 @@ abstract class AppConstants {
   static const apiTimeoutSeconds = 30;
   static const syncTimeoutSeconds = 60;
 
-  // XP values → use AppConfig.xpRewards (single source of truth)
-  // See: lib/core/config/app_config.dart
+  // XP values → managed via system_settings table (admin panel configurable)
+  // See: SystemSettings entity + systemSettingsProvider
 
   // Activity thresholds
   static const minimumPassScore = 60.0;

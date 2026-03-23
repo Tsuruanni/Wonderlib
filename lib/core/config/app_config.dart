@@ -61,18 +61,8 @@ class AppConfig {
   /// Daily XP cap (prevents gaming the system)
   static const int dailyXPCap = 1000;
 
-  /// XP rewards for different actions
-  static const Map<String, int> xpRewards = {
-    'chapter_complete': 50,
-    'activity_complete': 20,
-    'activity_perfect': 30,
-    'word_learned': 5,
-    'word_mastered': 15,
-    'book_complete': 200,
-    'streak_bonus_day': 10,
-    'assignment_complete': 100,
-    'quiz_pass': 20,
-  };
+  // XP rewards → managed via system_settings table (admin panel configurable)
+  // See: SystemSettings entity + systemSettingsProvider
 
   // ============================================
   // Activities & Games
