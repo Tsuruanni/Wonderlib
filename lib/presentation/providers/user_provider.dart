@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../domain/entities/streak_result.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
+import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
@@ -41,6 +43,9 @@ class LeagueTierChangeEvent {
 
 /// Provider for league tier change events
 final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref) => null);
+
+/// Provider for streak events (milestone, freeze-saved, streak-broken)
+final streakEventProvider = StateProvider<StreakResult?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -86,6 +91,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         state = const AsyncValue.data(null);
         _ref.read(levelUpEventProvider.notifier).state = null;
         _ref.read(leagueTierChangeEventProvider.notifier).state = null;
+        _ref.read(streakEventProvider.notifier).state = null;
       }
     }, fireImmediately: true,);
   }
@@ -185,9 +191,36 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
     result.fold(
       (failure) => null,
-      (user) {
-        state = AsyncValue.data(user);
+      (streakResult) async {
+        // Silent re-fetch profile (no loading state flash)
+        final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
+        final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
+        userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
         _ref.invalidate(activityHistoryProvider);
+
+        // Fire streak event if anything notable happened
+        if (streakResult.hasEvent) {
+          _ref.read(streakEventProvider.notifier).state = streakResult;
+        }
+      },
+    );
+  }
+
+  Future<bool> buyStreakFreeze() async {
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return false;
+
+    final useCase = _ref.read(buyStreakFreezeUseCaseProvider);
+    final result = await useCase(BuyStreakFreezeParams(userId: userId));
+
+    return result.fold(
+      (failure) => false,
+      (buyResult) async {
+        // Silent re-fetch profile to update freeze count and coins
+        final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
+        final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
+        userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
+        return true;
       },
     );
   }
