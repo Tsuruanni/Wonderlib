@@ -9,7 +9,7 @@ class StreakStatusDialog extends StatelessWidget {
     super.key,
     required this.currentStreak,
     required this.longestStreak,
-    required this.loginDates,
+    required this.calendarDays,
     required this.streakFreezeCount,
     required this.streakFreezeMax,
     required this.streakFreezePrice,
@@ -19,7 +19,8 @@ class StreakStatusDialog extends StatelessWidget {
 
   final int currentStreak;
   final int longestStreak;
-  final List<DateTime> loginDates;
+  /// Map of date → is_freeze (true = freeze day, false = login day)
+  final Map<DateTime, bool> calendarDays;
   final int streakFreezeCount;
   final int streakFreezeMax;
   final int streakFreezePrice;
@@ -214,39 +215,25 @@ class StreakStatusDialog extends StatelessWidget {
 
   Widget _buildWeekRow() {
     final today = AppClock.today();
-
-    // Find Monday of this week
     final monday = today.subtract(Duration(days: today.weekday - 1));
     final weekDays = List.generate(7, (index) => monday.add(Duration(days: index)));
-
-    // Streak window: last currentStreak days ending at today
-    final streakDays = <DateTime>{};
-    for (int i = 0; i < currentStreak; i++) {
-      streakDays.add(today.subtract(Duration(days: i)));
-    }
-
-    // Normalize login dates
-    final logins = loginDates.map((d) => DateTime(d.year, d.month, d.day)).toSet();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: weekDays.map((date) {
         final isFuture = date.isAfter(today);
         final isToday = date == today;
-        final inStreakWindow = streakDays.contains(date);
-        final didLogin = logins.contains(date);
+        final isFreeze = calendarDays[date] == true;
+        final isLogin = calendarDays[date] == false;
 
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        // Logged in → orange (always, even if streak broke after)
-        // In streak window + NOT logged in → blue (freeze saved)
-        // Future → faded
-        // Rest → grey
+        // Login → orange | Freeze → blue | Future → faded | Rest → grey
         Color iconColor;
-        if (didLogin) {
+        if (isLogin) {
           iconColor = AppColors.streakOrange;
-        } else if (inStreakWindow) {
+        } else if (isFreeze) {
           iconColor = Colors.blue.shade400;
         } else if (isFuture) {
           iconColor = AppColors.neutral.withValues(alpha: 0.2);

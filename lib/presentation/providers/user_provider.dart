@@ -77,10 +77,11 @@ final activityHistoryProvider = FutureProvider<List<DateTime>>((ref) async {
   );
 });
 
-/// Login dates for streak calendar (from daily_logins table)
-final loginDatesProvider = FutureProvider<List<DateTime>>((ref) async {
+/// Login/freeze dates for streak calendar (from daily_logins table)
+/// Returns map: date → is_freeze (true = freeze day, false = login day)
+final loginDatesProvider = FutureProvider<Map<DateTime, bool>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
+  if (userId == null) return {};
 
   try {
     final today = AppClock.today();
@@ -88,15 +89,18 @@ final loginDatesProvider = FutureProvider<List<DateTime>>((ref) async {
 
     final response = await Supabase.instance.client
         .from(DbTables.dailyLogins)
-        .select('login_date')
+        .select('login_date, is_freeze')
         .eq('user_id', userId)
         .gte('login_date', monday.toIso8601String().split('T').first);
 
-    return (response as List).map((row) {
-      return DateTime.parse(row['login_date'] as String);
-    }).toList();
+    final map = <DateTime, bool>{};
+    for (final row in response as List) {
+      final date = DateTime.parse(row['login_date'] as String);
+      map[DateTime(date.year, date.month, date.day)] = row['is_freeze'] as bool? ?? false;
+    }
+    return map;
   } catch (_) {
-    return [];
+    return {};
   }
 });
 

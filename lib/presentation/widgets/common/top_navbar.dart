@@ -52,13 +52,13 @@ class TopNavbar extends ConsumerWidget {
           GestureDetector(
             onTap: () {
               if (user != null) {
-                final logins = ref.read(loginDatesProvider).valueOrNull ?? [];
+                final calendarDays = ref.read(loginDatesProvider).valueOrNull ?? {};
                 showDialog(
                   context: context,
                   builder: (context) => StreakStatusDialog(
                     currentStreak: user.currentStreak,
                     longestStreak: user.longestStreak,
-                    loginDates: logins,
+                    calendarDays: calendarDays,
                     streakFreezeCount: user.streakFreezeCount,
                     streakFreezeMax: settings.streakFreezeMax,
                     streakFreezePrice: settings.streakFreezePrice,
