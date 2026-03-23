@@ -13,6 +13,7 @@ class SystemSettings extends Equatable {
     this.xpBookComplete = 200,
     this.xpStreakBonusDay = 10,
     this.xpAssignmentComplete = 100,
+    this.xpQuizPass = 20,
     // Progression
     this.maxStreakMultiplier = 2.0,
     this.streakBonusIncrement = 0.1,
@@ -40,6 +41,7 @@ class SystemSettings extends Equatable {
   final int xpBookComplete;
   final int xpStreakBonusDay;
   final int xpAssignmentComplete;
+  final int xpQuizPass;
 
   // Progression
   final double maxStreakMultiplier;
@@ -75,6 +77,7 @@ class SystemSettings extends Equatable {
         xpBookComplete,
         xpStreakBonusDay,
         xpAssignmentComplete,
+        xpQuizPass,
         maxStreakMultiplier,
         streakBonusIncrement,
         streakFreezePrice,

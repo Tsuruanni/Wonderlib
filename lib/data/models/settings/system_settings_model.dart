@@ -11,6 +11,7 @@ class SystemSettingsModel {
     required this.xpBookComplete,
     required this.xpStreakBonusDay,
     required this.xpAssignmentComplete,
+    required this.xpQuizPass,
     required this.maxStreakMultiplier,
     required this.streakBonusIncrement,
     required this.streakFreezePrice,
@@ -34,6 +35,7 @@ class SystemSettingsModel {
   final int xpBookComplete;
   final int xpStreakBonusDay;
   final int xpAssignmentComplete;
+  final int xpQuizPass;
   final double maxStreakMultiplier;
   final double streakBonusIncrement;
   final int streakFreezePrice;
@@ -69,6 +71,7 @@ class SystemSettingsModel {
       xpBookComplete: _toInt(m['xp_book_complete'], 200),
       xpStreakBonusDay: _toInt(m['xp_streak_bonus_day'], 10),
       xpAssignmentComplete: _toInt(m['xp_assignment_complete'], 100),
+      xpQuizPass: _toInt(m['xp_quiz_pass'], 20),
       maxStreakMultiplier: _toDouble(m['max_streak_multiplier'], 2.0),
       streakBonusIncrement: _toDouble(m['streak_bonus_increment'], 0.1),
       streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
@@ -95,6 +98,7 @@ class SystemSettingsModel {
         xpBookComplete: 200,
         xpStreakBonusDay: 10,
         xpAssignmentComplete: 100,
+        xpQuizPass: 20,
         maxStreakMultiplier: 2.0,
         streakBonusIncrement: 0.1,
         streakFreezePrice: 50,
@@ -120,6 +124,7 @@ class SystemSettingsModel {
         xpBookComplete: xpBookComplete,
         xpStreakBonusDay: xpStreakBonusDay,
         xpAssignmentComplete: xpAssignmentComplete,
+        xpQuizPass: xpQuizPass,
         maxStreakMultiplier: maxStreakMultiplier,
         streakBonusIncrement: streakBonusIncrement,
         streakFreezePrice: streakFreezePrice,
@@ -146,6 +151,7 @@ class SystemSettingsModel {
         xpBookComplete: e.xpBookComplete,
         xpStreakBonusDay: e.xpStreakBonusDay,
         xpAssignmentComplete: e.xpAssignmentComplete,
+        xpQuizPass: e.xpQuizPass,
         maxStreakMultiplier: e.maxStreakMultiplier,
         streakBonusIncrement: e.streakBonusIncrement,
         streakFreezePrice: e.streakFreezePrice,
