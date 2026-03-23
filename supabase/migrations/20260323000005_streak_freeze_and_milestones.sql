@@ -12,6 +12,8 @@ INSERT INTO system_settings (key, value, category, description) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- 3. Modified update_user_streak with freeze + milestones
+-- Must DROP first because return type changed (new columns added)
+DROP FUNCTION IF EXISTS update_user_streak(UUID);
 CREATE OR REPLACE FUNCTION update_user_streak(p_user_id UUID)
 RETURNS TABLE(
     new_streak INTEGER,
