@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../core/utils/app_clock.dart';
+
 class VocabularyWord extends Equatable {
 
   const VocabularyWord({
@@ -103,7 +105,7 @@ class VocabularyProgress extends Equatable {
 
   bool get isDueForReview {
     if (nextReviewAt == null) return true;
-    return DateTime.now().isAfter(nextReviewAt!);
+    return AppClock.now().isAfter(nextReviewAt!);
   }
 
   bool get isMastered => status == VocabularyStatus.mastered;

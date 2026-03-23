@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../core/utils/app_clock.dart';
+
 // Re-export shared enums with student-facing typedefs for backwards compat.
 // Both teacher and student sides now use the same underlying enum.
 typedef StudentAssignmentStatus = AssignmentStatus;
@@ -100,15 +102,15 @@ class StudentAssignment extends Equatable {
 
   bool get isOverdue =>
       status != StudentAssignmentStatus.completed &&
-      DateTime.now().isAfter(dueDate);
+      AppClock.now().isAfter(dueDate);
 
   bool get isActive =>
-      DateTime.now().isAfter(startDate) && DateTime.now().isBefore(dueDate);
+      AppClock.now().isAfter(startDate) && AppClock.now().isBefore(dueDate);
 
-  bool get isUpcoming => DateTime.now().isBefore(startDate);
+  bool get isUpcoming => AppClock.now().isBefore(startDate);
 
   int get daysRemaining {
-    final now = DateTime.now();
+    final now = AppClock.now();
     if (now.isAfter(dueDate)) return 0;
     return dueDate.difference(now).inDays;
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
+import '../../../core/utils/app_clock.dart';
 
 class StreakStatusDialog extends StatelessWidget {
   const StreakStatusDialog({
@@ -212,8 +213,7 @@ class StreakStatusDialog extends StatelessWidget {
   }
 
   Widget _buildWeekRow() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = AppClock.today();
 
     // Find Monday of this week
     final monday = today.subtract(Duration(days: today.weekday - 1));

@@ -14,6 +14,8 @@ import 'package:owlio/presentation/providers/student_assignment_provider.dart';
 import 'package:owlio/presentation/providers/usecase_providers.dart';
 import 'package:owlio/presentation/providers/user_provider.dart';
 
+import '../../../core/utils/app_clock.dart';
+
 /// Renders the unified daily quest card: teacher assignments + quest rows +
 /// bonus reward row.
 class DailyQuestList extends ConsumerStatefulWidget {
@@ -604,7 +606,7 @@ class _AssignmentQuestRow extends StatelessWidget {
 
   String _buildDueText(StudentAssignment a) {
     if (a.status == StudentAssignmentStatus.completed) return 'Completed';
-    final daysLeft = a.dueDate.difference(DateTime.now()).inDays;
+    final daysLeft = a.dueDate.difference(AppClock.now()).inDays;
     if (daysLeft < 0) return 'Overdue';
     if (daysLeft == 0) return 'Due today';
     if (daysLeft == 1) return '1 day left';

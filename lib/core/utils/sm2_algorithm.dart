@@ -1,4 +1,5 @@
 import '../../domain/entities/vocabulary.dart';
+import 'app_clock.dart';
 
 /// User's response to a flashcard
 enum SM2Response {
@@ -109,8 +110,8 @@ class SM2 {
       easeFactor: newEaseFactor,
       intervalDays: newInterval,
       repetitions: newRepetitions,
-      nextReviewAt: DateTime.now().add(Duration(days: newInterval)),
-      lastReviewedAt: DateTime.now(),
+      nextReviewAt: AppClock.now().add(Duration(days: newInterval)),
+      lastReviewedAt: AppClock.now(),
       createdAt: progress.createdAt,
     );
   }

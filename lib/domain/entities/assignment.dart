@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../core/utils/app_clock.dart';
+
 export 'package:owlio_shared/src/enums/assignment_type.dart';
 export 'package:owlio_shared/src/enums/assignment_status.dart';
 
@@ -39,10 +41,10 @@ class Assignment extends Equatable {
   double get completionRate =>
       totalStudents > 0 ? (completedStudents / totalStudents) * 100 : 0;
 
-  bool get isOverdue => DateTime.now().isAfter(dueDate);
+  bool get isOverdue => AppClock.now().isAfter(dueDate);
   bool get isActive =>
-      DateTime.now().isAfter(startDate) && DateTime.now().isBefore(dueDate);
-  bool get isUpcoming => DateTime.now().isBefore(startDate);
+      AppClock.now().isAfter(startDate) && AppClock.now().isBefore(dueDate);
+  bool get isUpcoming => AppClock.now().isBefore(startDate);
 
   @override
   List<Object?> get props => [id, teacherId, classId, className, type, title, description, contentConfig, startDate, dueDate, createdAt, totalStudents, completedStudents];

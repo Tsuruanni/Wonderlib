@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/utils/app_clock.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -229,8 +230,7 @@ class _WordCard extends StatelessWidget {
   }
 
   String _formatNextReview(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = AppClock.today();
     final reviewDay = DateTime(date.year, date.month, date.day);
     final diff = reviewDay.difference(today).inDays;
 
