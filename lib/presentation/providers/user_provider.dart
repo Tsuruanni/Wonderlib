@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
+import '../../core/utils/app_clock.dart';
 import '../../domain/entities/streak_result.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
@@ -73,6 +75,29 @@ final activityHistoryProvider = FutureProvider<List<DateTime>>((ref) async {
     (failure) => [],
     (dates) => dates,
   );
+});
+
+/// Login dates for streak calendar (from daily_logins table)
+final loginDatesProvider = FutureProvider<List<DateTime>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  try {
+    final today = AppClock.today();
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+
+    final response = await Supabase.instance.client
+        .from(DbTables.dailyLogins)
+        .select('login_date')
+        .eq('user_id', userId)
+        .gte('login_date', monday.toIso8601String().split('T').first);
+
+    return (response as List).map((row) {
+      return DateTime.parse(row['login_date'] as String);
+    }).toList();
+  } catch (_) {
+    return [];
+  }
 });
 
 /// User controller for XP and streak updates
@@ -196,6 +221,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
         final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
         userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
+        _ref.invalidate(loginDatesProvider);
 
         // Fire streak event if anything notable happened
         if (streakResult.hasEvent) {

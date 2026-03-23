@@ -55,6 +55,7 @@ abstract class DbTables {
   static const dailyQuests = 'daily_quests';
   static const dailyQuestCompletions = 'daily_quest_completions';
   static const dailyQuestBonusClaims = 'daily_quest_bonus_claims';
+  static const dailyLogins = 'daily_logins';
 
   // Learning path templates
   static const learningPathTemplates = 'learning_path_templates';
