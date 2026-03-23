@@ -52,15 +52,6 @@ class AppConfig {
   // Gamification
   // ============================================
 
-  /// Maximum streak bonus multiplier
-  static const double maxStreakMultiplier = 2.0;
-
-  /// Streak bonus increment per day
-  static const double streakBonusIncrement = 0.1;
-
-  /// Daily XP cap (prevents gaming the system)
-  static const int dailyXPCap = 1000;
-
   // XP rewards → managed via system_settings table (admin panel configurable)
   // See: SystemSettings entity + systemSettingsProvider
 
