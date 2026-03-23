@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rive/rive.dart';
 
 import '../../../app/theme.dart';
 
@@ -58,21 +57,6 @@ class StreakStatusDialog extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-
-            // Balloon Owl Mascot
-            SizedBox(
-              height: 280,
-              width: 280,
-              child: RiveAnimation.asset(
-                'assets/animations/mascot/balloon-owl-mascot.riv',
-                artboard: 'Artboard',
-                stateMachines: const ['State Machine 1'],
-                fit: BoxFit.contain,
-                onInit: (artboard) => artboard.fills.clear(),
-              ),
-            ),
-
-            const SizedBox(height: 8),
 
             // Title
             Text(
@@ -230,7 +214,7 @@ class StreakStatusDialog extends StatelessWidget {
   Widget _buildWeekRow() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Find Monday of this week
     final monday = today.subtract(Duration(days: today.weekday - 1));
 
@@ -241,24 +225,40 @@ class StreakStatusDialog extends StatelessWidget {
     // Normalize active dates to avoid time mismatch
     final normalizedActiveDates = activeDates.map((d) => DateTime(d.year, d.month, d.day)).toSet();
 
+    // Infer frozen days: past days with no activity but within streak window.
+    // If the streak is longer than the active days this week, the gap days were frozen.
+    final pastDaysThisWeek = weekDays.where((d) => !d.isAfter(today)).toList();
+    final activePastDays = pastDaysThisWeek.where((d) => normalizedActiveDates.contains(d)).length;
+    final inactivePastDays = pastDaysThisWeek.length - activePastDays;
+    // If streak >= past days count, inactive past days must be frozen
+    final hasFrozenDays = currentStreak >= pastDaysThisWeek.length && inactivePastDays > 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: weekDays.map((date) {
         final isFuture = date.isAfter(today);
         final isActive = normalizedActiveDates.contains(DateTime(date.year, date.month, date.day));
-        
+        final isFrozen = !isFuture && !isActive && hasFrozenDays;
+
         // English day names
         final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         final label = dayNames[date.weekday - 1];
 
-        // Determine icon color
+        // Determine icon and color
+        IconData icon;
         Color iconColor;
         if (isActive) {
-          iconColor = AppColors.streakOrange; // Active day
+          icon = Icons.local_fire_department_rounded;
+          iconColor = AppColors.streakOrange;
+        } else if (isFrozen) {
+          icon = Icons.ac_unit;
+          iconColor = Colors.blue.shade400;
         } else if (isFuture) {
-          iconColor = AppColors.neutral.withValues(alpha: 0.2); // Future day (faded)
+          icon = Icons.local_fire_department_rounded;
+          iconColor = AppColors.neutral.withValues(alpha: 0.2);
         } else {
-          iconColor = AppColors.neutral.withValues(alpha: 0.5); // Missed day (grey)
+          icon = Icons.local_fire_department_rounded;
+          iconColor = AppColors.neutral.withValues(alpha: 0.5);
         }
 
         return Column(
@@ -272,11 +272,7 @@ class StreakStatusDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Icon(
-              Icons.local_fire_department_rounded,
-              color: iconColor,
-              size: 32,
-            ),
+            Icon(icon, color: iconColor, size: 32),
           ],
         );
       }).toList(),
