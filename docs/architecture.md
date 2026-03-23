@@ -179,6 +179,7 @@ readeng_admin/                 # Admin panel (separate Flutter web project)
 │       ├── classes/           # Class management
 │       ├── curriculum/        # Unit curriculum assignments
 │       ├── dashboard/         # Overview with feature cards
+│       ├── quests/            # Daily quest management (inline editing + stats)
 │       ├── gallery/           # Media gallery
 │       ├── quizzes/           # Book quiz + question editing
 │       ├── schools/           # School management
@@ -351,11 +352,21 @@ Update UI, show notifications
 - `coin_logs` - Coin transaction history
 
 ### Daily Quests
-- `daily_quests` - Quest definitions (type, goal, reward, active flag). DB-driven, admin-configurable.
+- `daily_quests` - Quest definitions (type, goal, reward, active flag). DB-driven, admin-configurable via `/quests` in admin panel.
 - `daily_quest_completions` - Per-quest daily completion records with auto-awarded rewards
 - `daily_quest_bonus_claims` - All-quests-complete bonus (card pack) claims
-- RPCs: `get_daily_quest_progress` (auto-completes + awards), `claim_daily_bonus`
+- RPCs: `get_daily_quest_progress` (auto-completes + awards), `claim_daily_bonus`, `get_quest_completion_stats` (admin)
 - Quest types: `daily_review` (1 session), `read_chapters` (3 chapters), `vocab_session` (1 session)
+
+### Streak & Login Tracking
+- `daily_logins` - Records each day a user logged in (`login_date`, `is_freeze` flag). Used for streak calendar visualization.
+- `profiles.streak_freeze_count` - Number of streak freezes the user currently holds (max configurable via `system_settings`)
+- RPCs: `update_user_streak` (login-based, freeze consumption, milestone XP, daily_logins insert), `buy_streak_freeze`
+- Milestones: 7/14/30/60/100 days → 50/100/200/400/1000 XP bonus
+
+### Debug Infrastructure
+- `app_current_date()` / `app_now()` — PostgreSQL helper functions reading `debug_date_offset` from `system_settings`. All business-logic RPCs use these instead of `CURRENT_DATE`/`NOW()`.
+- `AppClock` — Flutter static utility applying the same offset client-side. Used in SM2 algorithm, assignment status, vocabulary due checks, streak calendar.
 
 ### Assignments
 - `assignments` - Teacher-created tasks

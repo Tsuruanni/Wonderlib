@@ -8,6 +8,50 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Admin Quest Dashboard (2026-03-23)
+
+#### Added
+- **Quest management screen** — `/quests` route in admin panel with card-per-quest layout for inline editing of quest goals, rewards, active status, and sort order
+- **Completion stats** — `get_quest_completion_stats` RPC shows today's completion count and 7-day average per quest
+- **Dashboard card** — "Daily Quests" card on admin dashboard with active quest count
+
+### Streak Freeze & Milestones (2026-03-23)
+
+#### Added
+- **Streak freeze system** — Users can buy up to 2 streak freezes (50 coins each, configurable via admin settings). Freezes are consumed automatically when a day is missed, preserving the streak.
+- **Streak milestones** — Bonus XP at 7/14/30/60/100-day streaks (50/100/200/400/1000 XP), awarded via `award_xp_transaction` inside `update_user_streak` RPC
+- **Streak event notifications** — Three dialog types on app open: milestone celebration, freeze-saved confirmation, tiered streak-broken messages (0-2 days: silent, 3-6: "Welcome Back!", 7-9: encouraging, 10-20: supportive, 21+: respectful)
+- **Login tracking** — `daily_logins` table records each login date with `is_freeze` flag for calendar visualization
+- **Streak calendar** — Fire icon tap shows weekly calendar with orange (login), blue (freeze), grey (inactive), faded (future) days. Today marked with arrow indicator.
+- **Buy freeze UI** — Freeze count + buy button in streak dialog, disabled at max capacity or insufficient coins
+- **`buy_streak_freeze` RPC** — Uses `spend_coins_transaction` for atomic coin deduction, reads price/max from `system_settings`
+- **`previous_streak` in RPC** — `update_user_streak` now returns the streak value before it was broken, enabling tiered notification messages
+
+#### Changed
+- **Streak is now login-based** — Streak updates on app open only (not per-activity). Server-side `PERFORM update_user_streak()` removed from `complete_daily_review` and `complete_vocabulary_session` RPCs.
+- **`refreshProfileOnly()` method** — New method on UserController for post-action profile refresh without triggering streak check. All callers (activity, vocab, review, cards, quest bonus) migrated.
+- **Same-day guard** — `_updateStreakIfNeeded` skips RPC if `lastActivityDate` is already today
+
+#### Fixed
+- **async-in-fold bug** — `Either.fold` with async lambdas was dropping Futures. Profile re-fetch and event dialogs were unreliable. Extracted async body outside fold.
+- **Double streak call** — `addXP()` no longer calls `updateStreak()` after XP award (server-side RPCs already handled it). Removed redundant call from `reader_provider` too.
+- **Stale data flash** — Profile stays in loading state until streak check completes, preventing blue→orange calendar flash.
+
+#### Removed
+- **Rive mascot** from streak dialog (user preference)
+- **Old `StreakResult`** from `edge_function_service.dart` and `checkStreak()` method (replaced by domain-layer entity)
+- **`streakResetHours`** from `AppConstants` (dead config)
+
+### Debug Time Offset (2026-03-23)
+
+#### Added
+- **`app_current_date()` / `app_now()`** — PostgreSQL helper functions that add `debug_date_offset` (from `system_settings`) to `CURRENT_DATE`/`NOW()`. All 8 business-logic RPCs updated to use these instead of raw time functions.
+- **`AppClock` utility** — Flutter static utility (`AppClock.now()`, `AppClock.today()`) that shifts `DateTime.now()` by the same offset. Used in SM2 algorithm, assignment status, vocabulary due checks, streak calendar, and quest display.
+- **Admin-configurable** — `debug_date_offset` setting in `system_settings` (app category). Set to 0 for production, non-zero for testing.
+
+#### Fixed
+- **JSONB cast bug** — `system_settings.value` is JSONB type. Direct `::INT` cast failed. Fixed with `(value#>>'{}')::INT` to extract scalar as text first.
+
 ### Daily Quest Engine (2026-03-22/23)
 
 #### Added

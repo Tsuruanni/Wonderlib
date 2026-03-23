@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-23 (Daily Quest Engine, Quest Types Update, Review Edge Case)
+Son güncelleme: 2026-03-23 (Admin Quest Dashboard, Streak Freeze & Milestones, Debug Time Offset)
 
 ## Current Phase
 
@@ -88,6 +88,9 @@ See: CLAUDE.md for architecture guidelines
 - [x] Card images migrated to Supabase Storage (95 PNGs, `image_url` column)
 - [x] Vocabulary source tracking (`source` column: manual/import/activity)
 - [x] Daily Quest Engine (DB-driven quests, auto-completion, per-quest rewards, popup)
+- [x] Admin Quest Dashboard (Phase 2 — inline editing, completion stats)
+- [x] Streak Freeze & Milestones (buy/consume freezes, milestone XP, event dialogs, login tracking)
+- [x] Debug Time Offset (system-wide app_current_date/app_now, AppClock, admin-configurable)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] League system (weekly tier-based competition within schools)
@@ -103,7 +106,6 @@ See: CLAUDE.md for architecture guidelines
 |------|----------|--------|-------|
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
-| Admin Quest Dashboard (Phase 2) | - | Pending | CRUD for daily_quests, completion stats, analytics |
 
 ## Deferred
 
@@ -153,6 +155,9 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Admin Quest Dashboard | 2026-03-23 | Phase 2: quest list screen with inline editing + completion stats, dashboard card |
+| Streak Freeze & Milestones | 2026-03-23 | Freeze purchase/consumption, milestone XP, tiered event notifications, daily_logins table, login-based streak, calendar visualization |
+| Debug Time Offset | 2026-03-23 | app_current_date/app_now helpers, AppClock utility, 8 RPCs + 7 Flutter files updated, admin-configurable offset |
 | SM-2 Consolidation & Stale State Fixes | 2026-03-20 | SM-2 centralized to `sm2_algorithm.dart`, Easy/Good/Hard differentiation, first-answer-wins DR, wordbank+leaderboard+navbar refresh fixes, practice screen removed, double-tap guard, mastered reset |
 | Vocabulary Algorithm Improvements | 2026-03-17 | SM2 interval growth fix, XP farming prevention (high-score delta), combo softening (-2 vs reset), matching partial credit, Faz 3 limit 3→5, adaptive skip removed |
 | Sentry Bug Fixes | 2026-03-17 | 6 bugs caught and fixed via Sentry: zone mismatch, AudioService init, reader overflow, ref-after-dispose (×2), activity overflow |
