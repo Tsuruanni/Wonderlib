@@ -30,9 +30,6 @@ abstract class AppConstants {
   static const minEaseFactor = 1.3;
   static const maxInterval = 365;
 
-  // Streak
-  static const streakResetHours = 48;
-
   // Card System
   static const packCost = 100;
   static const cardsPerPack = 3;

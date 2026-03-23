@@ -42,29 +42,6 @@ class EdgeFunctionService {
     }
   }
 
-  /// Check and update user streak via edge function
-  /// Returns streak info and any bonus XP earned
-  Future<StreakResult> checkStreak({required String userId}) async {
-    try {
-      final response = await _supabase.functions.invoke(
-        'check-streak',
-        body: {'userId': userId},
-      );
-
-      if (response.status != 200) {
-        throw EdgeFunctionException(
-          'Failed to check streak: ${response.data?['error'] ?? 'Unknown error'}',
-        );
-      }
-
-      final data = response.data as Map<String, dynamic>;
-      return StreakResult.fromJson(data);
-    } catch (e) {
-      if (e is EdgeFunctionException) rethrow;
-      throw EdgeFunctionException('Failed to call check-streak: $e');
-    }
-  }
-
   /// Extract vocabulary words from text using Gemini AI
   /// Returns list of extracted words with definitions
   Future<ExtractVocabularyResult> extractVocabulary({
@@ -164,39 +141,6 @@ class BadgeEarned {
   final String badgeId;
   final String badgeName;
   final int xpReward;
-}
-
-/// Result of streak check
-class StreakResult {
-
-  const StreakResult({
-    required this.success,
-    this.streak = 0,
-    this.longestStreak = 0,
-    this.streakBroken = false,
-    this.streakExtended = false,
-    this.bonusXp = 0,
-    this.error,
-  });
-
-  factory StreakResult.fromJson(Map<String, dynamic> json) {
-    return StreakResult(
-      success: json['success'] as bool? ?? false,
-      streak: json['streak'] as int? ?? 0,
-      longestStreak: json['longestStreak'] as int? ?? 0,
-      streakBroken: json['streakBroken'] as bool? ?? false,
-      streakExtended: json['streakExtended'] as bool? ?? false,
-      bonusXp: json['bonusXp'] as int? ?? 0,
-      error: json['error'] as String?,
-    );
-  }
-  final bool success;
-  final int streak;
-  final int longestStreak;
-  final bool streakBroken;
-  final bool streakExtended;
-  final int bonusXp;
-  final String? error;
 }
 
 /// Result from vocabulary extraction
