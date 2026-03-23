@@ -23,6 +23,7 @@ final dashboardStatsProvider =
     supabase.from(DbTables.wordLists).select().eq('is_system', true).count(CountOption.exact),
     supabase.from(DbTables.learningPathTemplates).select().count(CountOption.exact),
     supabase.from(DbTables.scopeLearningPaths).select().count(CountOption.exact),
+    supabase.from(DbTables.dailyQuests).select().eq('is_active', true).count(CountOption.exact),
   ]);
 
   return {
@@ -34,6 +35,7 @@ final dashboardStatsProvider =
     'wordlists': results[5].count,
     'templates': results[6].count,
     'assignments': results[7].count,
+    'quests': results[8].count,
   };
 });
 
@@ -191,6 +193,14 @@ class DashboardScreen extends ConsumerWidget {
                     description: 'Son eklenen içerikler ve kullanıcı aktivitesi',
                     color: const Color(0xFF0891B2),
                     onTap: () => context.go('/recent-activity'),
+                  ),
+                  _DashboardCard(
+                    icon: Icons.bolt,
+                    title: 'Daily Quests',
+                    description: 'Quest goals, rewards, and completion stats',
+                    color: const Color(0xFFF97316),
+                    stat: stats['quests'],
+                    onTap: () => context.go('/quests'),
                   ),
                   _DashboardCard(
                     icon: Icons.settings,
