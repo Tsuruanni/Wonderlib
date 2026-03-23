@@ -13,6 +13,8 @@ class SystemSettingsModel {
     required this.xpAssignmentComplete,
     required this.maxStreakMultiplier,
     required this.streakBonusIncrement,
+    required this.streakFreezePrice,
+    required this.streakFreezeMax,
     required this.dailyXpCap,
     required this.defaultTimeLimit,
     required this.hintPenaltyPercent,
@@ -33,6 +35,8 @@ class SystemSettingsModel {
   final int xpAssignmentComplete;
   final double maxStreakMultiplier;
   final double streakBonusIncrement;
+  final int streakFreezePrice;
+  final int streakFreezeMax;
   final int dailyXpCap;
   final int defaultTimeLimit;
   final int hintPenaltyPercent;
@@ -65,6 +69,8 @@ class SystemSettingsModel {
       xpAssignmentComplete: _toInt(m['xp_assignment_complete'], 100),
       maxStreakMultiplier: _toDouble(m['max_streak_multiplier'], 2.0),
       streakBonusIncrement: _toDouble(m['streak_bonus_increment'], 0.1),
+      streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
+      streakFreezeMax: _toInt(m['streak_freeze_max'], 2),
       dailyXpCap: _toInt(m['daily_xp_cap'], 1000),
       defaultTimeLimit: _toInt(m['default_time_limit'], 60),
       hintPenaltyPercent: _toInt(m['hint_penalty_percent'], 10),
@@ -88,6 +94,8 @@ class SystemSettingsModel {
         xpAssignmentComplete: 100,
         maxStreakMultiplier: 2.0,
         streakBonusIncrement: 0.1,
+        streakFreezePrice: 50,
+        streakFreezeMax: 2,
         dailyXpCap: 1000,
         defaultTimeLimit: 60,
         hintPenaltyPercent: 10,
@@ -110,6 +118,8 @@ class SystemSettingsModel {
         xpAssignmentComplete: xpAssignmentComplete,
         maxStreakMultiplier: maxStreakMultiplier,
         streakBonusIncrement: streakBonusIncrement,
+        streakFreezePrice: streakFreezePrice,
+        streakFreezeMax: streakFreezeMax,
         dailyXpCap: dailyXpCap,
         defaultTimeLimit: defaultTimeLimit,
         hintPenaltyPercent: hintPenaltyPercent,
@@ -133,6 +143,8 @@ class SystemSettingsModel {
         xpAssignmentComplete: e.xpAssignmentComplete,
         maxStreakMultiplier: e.maxStreakMultiplier,
         streakBonusIncrement: e.streakBonusIncrement,
+        streakFreezePrice: e.streakFreezePrice,
+        streakFreezeMax: e.streakFreezeMax,
         dailyXpCap: e.dailyXpCap,
         defaultTimeLimit: e.defaultTimeLimit,
         hintPenaltyPercent: e.hintPenaltyPercent,

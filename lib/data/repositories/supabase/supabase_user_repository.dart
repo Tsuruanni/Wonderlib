@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
+import '../../../domain/entities/streak_result.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/user_repository.dart';
 import '../../models/user/leaderboard_entry_model.dart';
@@ -91,27 +92,63 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, domain.User>> updateStreak(String userId) async {
+  Future<Either<Failure, StreakResult>> updateStreak(String userId) async {
     try {
-      // Use stored function for atomic streak calculation
-      await _supabase.rpc(RpcFunctions.updateUserStreak, params: {
+      final response = await _supabase.rpc(RpcFunctions.updateUserStreak, params: {
         'p_user_id': userId,
-      },);
+      });
 
-      // Check for new badges (including streak badges)
       await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
         'p_user_id': userId,
-      },);
+      });
 
-      // Fetch updated user
-      final response = await _supabase
-          .from(DbTables.profiles)
-          .select()
-          .eq('id', userId)
-          .single();
+      final List rows = response is List ? response : [response];
+      if (rows.isEmpty) {
+        return const Left(ServerFailure('No streak result returned'));
+      }
 
-      return Right(UserModel.fromJson(response).toEntity());
+      final row = rows.first as Map<String, dynamic>;
+      return Right(StreakResult(
+        newStreak: row['new_streak'] as int? ?? 0,
+        longestStreak: row['longest_streak'] as int? ?? 0,
+        streakBroken: row['streak_broken'] as bool? ?? false,
+        streakExtended: row['streak_extended'] as bool? ?? false,
+        freezeUsed: row['freeze_used'] as bool? ?? false,
+        freezesConsumed: row['freezes_consumed'] as int? ?? 0,
+        freezesRemaining: row['freezes_remaining'] as int? ?? 0,
+        milestoneBonusXp: row['milestone_bonus_xp'] as int? ?? 0,
+      ));
     } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, BuyFreezeResult>> buyStreakFreeze(String userId) async {
+    try {
+      final response = await _supabase.rpc(RpcFunctions.buyStreakFreeze, params: {
+        'p_user_id': userId,
+      });
+
+      final List rows = response is List ? response : [response];
+      if (rows.isEmpty) {
+        return const Left(ServerFailure('No result returned'));
+      }
+
+      final row = rows.first as Map<String, dynamic>;
+      return Right(BuyFreezeResult(
+        freezeCount: row['freeze_count'] as int? ?? 0,
+        coinsRemaining: row['coins_remaining'] as int? ?? 0,
+      ));
+    } on PostgrestException catch (e) {
+      if (e.message.contains('max_freezes_reached')) {
+        return const Left(ServerFailure('Maximum streak freezes reached'));
+      }
+      if (e.message.contains('insufficient_coins')) {
+        return const Left(ServerFailure('Not enough coins'));
+      }
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));

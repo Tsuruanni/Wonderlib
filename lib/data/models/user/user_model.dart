@@ -21,6 +21,7 @@ class UserModel {
     this.level = 1,
     this.currentStreak = 0,
     this.longestStreak = 0,
+    this.streakFreezeCount = 0,
     this.lastActivityDate,
     this.settings = const {},
     this.leagueTier = LeagueTier.bronze,
@@ -45,6 +46,7 @@ class UserModel {
       level: json['level'] as int? ?? 1,
       currentStreak: json['current_streak'] as int? ?? 0,
       longestStreak: json['longest_streak'] as int? ?? 0,
+      streakFreezeCount: json['streak_freeze_count'] as int? ?? 0,
       lastActivityDate: json['last_activity_date'] != null
           ? DateTime.parse(json['last_activity_date'] as String)
           : null,
@@ -72,6 +74,7 @@ class UserModel {
       level: entity.level,
       currentStreak: entity.currentStreak,
       longestStreak: entity.longestStreak,
+      streakFreezeCount: entity.streakFreezeCount,
       lastActivityDate: entity.lastActivityDate,
       settings: entity.settings,
       leagueTier: entity.leagueTier,
@@ -94,6 +97,7 @@ class UserModel {
   final int level;
   final int currentStreak;
   final int longestStreak;
+  final int streakFreezeCount;
   final DateTime? lastActivityDate;
   final Map<String, dynamic> settings;
   final LeagueTier leagueTier;
@@ -117,6 +121,7 @@ class UserModel {
       'level': level,
       'current_streak': currentStreak,
       'longest_streak': longestStreak,
+      'streak_freeze_count': streakFreezeCount,
       'last_activity_date': lastActivityDate?.toIso8601String(),
       'settings': settings,
       'created_at': createdAt.toIso8601String(),
@@ -151,6 +156,7 @@ class UserModel {
       level: level,
       currentStreak: currentStreak,
       longestStreak: longestStreak,
+      streakFreezeCount: streakFreezeCount,
       lastActivityDate: lastActivityDate,
       settings: settings,
       leagueTier: leagueTier,
