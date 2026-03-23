@@ -71,6 +71,7 @@ class AppConfig {
     'book_complete': 200,
     'streak_bonus_day': 10,
     'assignment_complete': 100,
+    'quiz_pass': 20,
   };
 
   // ============================================
