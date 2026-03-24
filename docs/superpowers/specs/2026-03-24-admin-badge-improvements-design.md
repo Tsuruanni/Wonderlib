@@ -31,7 +31,12 @@ ALTER TABLE badges ADD CONSTRAINT badges_condition_type_check
 
 **Shared Package:** Remove `dailyLogin('daily_login')` from `BadgeConditionType` enum in `packages/owlio_shared/lib/src/enums/badge_condition_type.dart`.
 
-**Impact:** Zero — no badge uses this type, no code evaluates it, no screen references it.
+**Main App Cleanup (required for compile):**
+- `lib/data/models/badge/badge_model.dart` — remove `daily_login` case from `parseConditionType` switch and `dailyLogin` case from `conditionTypeToString` switch. Also replace both methods with calls to the shared enum's `fromDbValue()` / `.dbValue` to eliminate duplication.
+- `lib/data/repositories/supabase/supabase_badge_repository.dart` — remove `BadgeConditionType.dailyLogin` case from `checkEarnableBadges` switch.
+- `test/fixtures/badge_fixtures.dart` — change `'condition_type': 'daily_login'` to `'condition_type': 'xp_total'` in `minimalBadgeJson()`.
+
+**Impact:** No badge uses this type, no user data references it. Only code cleanup required for compile.
 
 ### 2. Add `levelCompleted` to Admin Form
 
@@ -41,7 +46,14 @@ Add to `_conditionTypes` list in `badge_edit_screen.dart`:
 (BadgeConditionType.levelCompleted.dbValue, 'Ulaşılan Seviye'),
 ```
 
-Also add to `_categories` list: `'level'`, `'activities'`, `'xp'` (currently missing from the category dropdown but used in seed data).
+Update `_categories` list to include all categories used in seed data. Final list:
+```dart
+static const _categories = [
+  'achievement', 'streak', 'reading', 'vocabulary',
+  'activities', 'xp', 'level', 'special',
+];
+```
+Note: `activities`, `xp`, `level` are used in seed data but missing from the current dropdown. `achievement` and `special` are kept as valid general-purpose categories. This also fixes a pre-existing bug: editing badges with `category = 'level'` (e.g., "Level 5", "Level 10") crashes the dropdown because the value is not in the list.
 
 ### 3. Extract Shared Badge Helper
 
@@ -55,7 +67,9 @@ String getConditionLabel(String type, int value);
 String getConditionHelper(String type);
 ```
 
-Both cover all 6 condition types (after `dailyLogin` removal).
+Both must cover all 6 remaining condition types (after `dailyLogin` removal), including `level_completed` which the current duplicated functions are missing. New cases:
+- Label: `'level_completed'` → `'$value seviye'`
+- Helper: `'level_completed'` → `'Ulaşılması gereken seviye'`
 
 **Files to update:**
 - `badge_list_screen.dart` — remove `_getConditionLabel`, import helper
@@ -65,6 +79,21 @@ Both cover all 6 condition types (after `dailyLogin` removal).
 ### 4. Per-Badge Statistics on Edit Screen
 
 Add an "Earned By" section to the badge edit screen's preview panel (right column, below existing preview card).
+
+**RLS Prerequisite:** The `user_badges` and `profiles` tables lack admin SELECT policies. The migration must add:
+
+```sql
+-- Admin can view all user_badges for per-badge stats
+CREATE POLICY "Admin can view all user badges"
+  ON user_badges FOR SELECT
+  USING (is_admin());
+
+-- Admin can view all profiles (if not already covered)
+-- Check existing policies first; profiles may already have admin SELECT
+CREATE POLICY "Admin can view all profiles"
+  ON profiles FOR SELECT
+  USING (is_admin());
+```
 
 **Provider:**
 
@@ -106,25 +135,43 @@ Insert 3 new badges to align with streak milestones:
 | 60 | 400 | Streak Hero | 750 |
 | 100 | 1000 | Streak Immortal | 1500 |
 
+**SQL INSERT:**
+
+```sql
+INSERT INTO badges (name, slug, description, icon, category, condition_type, condition_value, xp_reward)
+VALUES
+  ('Streak Warrior', 'streak-warrior', 'Maintain a 14-day reading streak', '🔥', 'streak', 'streak_days', 14, 150),
+  ('Streak Hero', 'streak-hero', 'Maintain a 60-day reading streak', '🔥', 'streak', 'streak_days', 60, 750),
+  ('Streak Immortal', 'streak-immortal', 'Maintain a 100-day reading streak', '🔥', 'streak', 'streak_days', 100, 1500)
+ON CONFLICT (slug) DO NOTHING;
+```
+
 No changes needed to `check_and_award_badges` — it already evaluates `streak_days` against `current_streak`.
 
 ## Files Changed
 
 ### New Files
-- `supabase/migrations/YYYYMMDD_admin_badge_improvements.sql` — CHECK constraint update + new badge inserts
+- `supabase/migrations/YYYYMMDD_admin_badge_improvements.sql` — CHECK constraint update, RLS policies, new badge inserts
 - `owlio_admin/lib/core/utils/badge_helpers.dart` — shared helper functions
 
-### Modified Files
-- `packages/owlio_shared/lib/src/enums/badge_condition_type.dart` — remove `dailyLogin`
-- `owlio_admin/lib/features/badges/screens/badge_edit_screen.dart` — add `levelCompleted` to dropdown, add categories, add earned-by section, use shared helper
+### Modified Files (Admin Panel)
+- `owlio_admin/lib/features/badges/screens/badge_edit_screen.dart` — add `levelCompleted` to dropdown, fix categories, add earned-by section, use shared helper
 - `owlio_admin/lib/features/badges/screens/badge_list_screen.dart` — use shared helper
 - `owlio_admin/lib/features/collectibles/screens/collectibles_screen.dart` — use shared helper
+
+### Modified Files (Shared Package)
+- `packages/owlio_shared/lib/src/enums/badge_condition_type.dart` — remove `dailyLogin`
+
+### Modified Files (Main App — dailyLogin cleanup)
+- `lib/data/models/badge/badge_model.dart` — remove `daily_login`/`dailyLogin` switch cases, replace with shared enum methods
+- `lib/data/repositories/supabase/supabase_badge_repository.dart` — remove `BadgeConditionType.dailyLogin` case
+- `test/fixtures/badge_fixtures.dart` — fix `daily_login` test fixture
 
 ### Not Changed
 - `check_and_award_badges` SQL function (already handles `streak_days`)
 - `update_user_streak` SQL function (milestone system untouched)
-- Main app Flutter code (badge display, profile screens)
 - `StreakEventDialog` (streak notification UI)
+- Main app presentation layer (badge display, profile screens)
 
 ## Verification
 
@@ -139,6 +186,6 @@ cd .. && dart analyze lib/
 supabase db push --dry-run
 
 # No references to dailyLogin remain
-grep -r "dailyLogin\|daily_login" packages/owlio_shared/lib/ owlio_admin/lib/ lib/
-# Expected: zero matches (except possibly in migration history files)
+grep -r "dailyLogin\|daily_login" packages/owlio_shared/lib/ owlio_admin/lib/ lib/ test/
+# Expected: zero matches (migration SQL history files are exempt)
 ```
