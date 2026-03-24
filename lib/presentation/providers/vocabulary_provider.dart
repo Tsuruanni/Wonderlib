@@ -17,7 +17,7 @@ import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
-import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_by_ids_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
 import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
@@ -160,17 +160,22 @@ final learnedWordsWithDetailsProvider = FutureProvider<List<UserVocabularyItem>>
   final progressList = await ref.watch(userVocabularyProgressProvider.future);
   if (progressList.isEmpty) return [];
 
-  final getWordUseCase = ref.watch(getWordByIdUseCaseProvider);
-  final items = <UserVocabularyItem>[];
+  // Batch fetch all words in a single query (instead of N sequential calls)
+  final wordIds = progressList.map((p) => p.wordId).toList();
+  final getWordsUseCase = ref.watch(getWordsByIdsUseCaseProvider);
+  final result = await getWordsUseCase(GetWordsByIdsParams(ids: wordIds));
 
+  final wordMap = result.fold(
+    (_) => <String, VocabularyWord>{},
+    (words) => {for (final w in words) w.id: w},
+  );
+
+  final items = <UserVocabularyItem>[];
   for (final progress in progressList) {
-    final result = await getWordUseCase(
-      GetWordByIdParams(wordId: progress.wordId),
-    );
-    result.fold(
-      (_) {}, // skip words not found in vocabulary_words table
-      (word) => items.add(UserVocabularyItem(word: word, progress: progress)),
-    );
+    final word = wordMap[progress.wordId];
+    if (word != null) {
+      items.add(UserVocabularyItem(word: word, progress: progress));
+    }
   }
 
   return items;
@@ -597,11 +602,26 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
 /// Items are ordered by sort_order from the RPC. Word lists and books are interleaved
 /// in a single list for correct rendering order.
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
-  final learningPaths = await ref.watch(userLearningPathsProvider.future);
-  final allLists = await ref.watch(allWordListsProvider.future);
-  final progressList = await ref.watch(userWordListProgressProvider.future);
-  final nodeCompletions = await ref.watch(nodeCompletionsProvider.future);
-  final completedBookIds = await ref.watch(completedBookIdsProvider.future);
+  // Fetch all independent providers in parallel (not sequentially)
+  final futures = await Future.wait([
+    ref.watch(userLearningPathsProvider.future),       // [0]
+    ref.watch(allWordListsProvider.future),             // [1]
+    ref.watch(userWordListProgressProvider.future),     // [2]
+    ref.watch(nodeCompletionsProvider.future),          // [3]
+    ref.watch(completedBookIdsProvider.future),         // [4]
+    ref.watch(todayReviewSessionProvider.future)        // [5]
+        .catchError((_) => null),
+    ref.watch(totalDueWordsForReviewProvider.future)    // [6]
+        .catchError((_) => 0),
+  ]);
+
+  final learningPaths = futures[0] as List<LearningPath>;
+  final allLists = futures[1] as List<WordList>;
+  final progressList = futures[2] as List<UserWordListProgress>;
+  final nodeCompletions = futures[3] as Map<String, Set<String>>;
+  final completedBookIds = futures[4] as Set<String>;
+  final todaySession = futures[5] as DailyReviewSession?;
+  final dailyReviewDueCount = futures[6] as int;
 
   if (learningPaths.isEmpty) return [];
 
@@ -609,18 +629,30 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final progressMap = {for (final p in progressList) p.wordListId: p};
   final wordListMap = {for (final wl in allLists) wl.id: wl};
 
-  // --- Daily Review: fetch once, inject once ---
-  DailyReviewSession? todaySession;
-  int dailyReviewDueCount = 0;
-  try {
-    todaySession = await ref.watch(todayReviewSessionProvider.future);
-    dailyReviewDueCount = await ref
-        .watch(totalDueWordsForReviewProvider.future)
-        .catchError((_) => 0);
-  } catch (_) {}
+  // --- Daily Review ---
   final drDoneToday = todaySession != null;
   final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
   bool drInjected = false; // only inject DR once across all units
+
+  // Pre-fetch all book items in parallel (avoid N+1 sequential fetches in the loop)
+  final allBookIds = <String>{};
+  for (final path in learningPaths) {
+    for (final lpUnit in path.units) {
+      for (final item in lpUnit.items) {
+        if (item.itemType == LearningPathItemType.book) {
+          allBookIds.add(item.itemId);
+        }
+      }
+    }
+  }
+  final bookFutures = allBookIds.map(
+    (id) => ref.watch(bookByIdProvider(id).future).then((b) => MapEntry(id, b)),
+  );
+  final bookEntries = await Future.wait(bookFutures);
+  final bookMap = {
+    for (final e in bookEntries)
+      if (e.value != null) e.key: e.value!,
+  };
 
   final result = <PathUnitData>[];
 
@@ -656,7 +688,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
             ),
           );
         } else if (item.itemType == LearningPathItemType.book) {
-          final book = await ref.watch(bookByIdProvider(item.itemId).future);
+          final book = bookMap[item.itemId];
           if (book != null) {
             items.add(
               PathBookItem(

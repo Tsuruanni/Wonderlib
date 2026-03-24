@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/leaderboard_entry.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_total_position_usecase.dart';
 import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart'
@@ -96,9 +97,16 @@ final currentUserPositionProvider =
 /// Combined leaderboard state for display.
 final leaderboardDisplayProvider =
     FutureProvider.autoDispose<LeaderboardDisplayState>((ref) async {
-  final entries = await ref.watch(leaderboardEntriesProvider.future);
-  final userPosition = await ref.watch(currentUserPositionProvider.future);
-  final currentUser = await ref.watch(currentUserProvider.future);
+  // Fetch all independent providers in parallel
+  final results = await Future.wait([
+    ref.watch(leaderboardEntriesProvider.future),
+    ref.watch(currentUserPositionProvider.future),
+    ref.watch(currentUserProvider.future),
+  ]);
+
+  final entries = results[0] as List<LeaderboardEntry>;
+  final userPosition = results[1] as LeaderboardEntry?;
+  final currentUser = results[2] as User?;
 
   final scope = ref.watch(leaderboardScopeProvider);
 

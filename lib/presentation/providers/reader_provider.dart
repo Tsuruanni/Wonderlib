@@ -7,7 +7,7 @@ import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
-import '../../domain/usecases/vocabulary/add_word_to_vocabulary_usecase.dart';
+import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import 'auth_provider.dart';
 import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
@@ -421,16 +421,14 @@ Future<void> _handleInlineActivityCompletionImpl(
   if (wordsLearned.isNotEmpty) {
     ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
 
-    final addWordUseCase = ref.read(addWordToVocabularyUseCaseProvider);
-    for (final wordId in wordsLearned) {
-      await addWordUseCase(
-        AddWordToVocabularyParams(
-          userId: userId,
-          wordId: wordId,
-          immediate: !isCorrect,
-        ),
-      );
-    }
+    final addWordsBatchUseCase = ref.read(addWordsBatchUseCaseProvider);
+    await addWordsBatchUseCase(
+      AddWordsBatchParams(
+        userId: userId,
+        wordIds: wordsLearned,
+        immediate: !isCorrect,
+      ),
+    );
 
     // Invalidate providers so new words appear in Word Bank and Daily Review
     ref.invalidate(dailyReviewWordsProvider);

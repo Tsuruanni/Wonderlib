@@ -88,6 +88,8 @@ import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_by_ids_usecase.dart';
+import '../../domain/usecases/vocabulary/get_word_progress_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
@@ -285,6 +287,10 @@ final getWordByIdUseCaseProvider = Provider((ref) {
   return GetWordByIdUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
+final getWordsByIdsUseCaseProvider = Provider((ref) {
+  return GetWordsByIdsUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
 final searchWordsUseCaseProvider = Provider((ref) {
   return SearchWordsUseCase(ref.watch(vocabularyRepositoryProvider));
 });
@@ -295,6 +301,10 @@ final getUserVocabularyProgressUseCaseProvider = Provider((ref) {
 
 final getWordProgressUseCaseProvider = Provider((ref) {
   return GetWordProgressUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final getWordProgressBatchUseCaseProvider = Provider((ref) {
+  return GetWordProgressBatchUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 final updateWordProgressUseCaseProvider = Provider((ref) {

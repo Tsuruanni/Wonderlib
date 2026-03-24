@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
+Son güncelleme: 2026-03-24 (Performance parallel data fetching, admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
 
 ## Current Phase
 
@@ -159,12 +159,14 @@ See: CLAUDE.md for architecture guidelines
 | ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
 | ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
 | Server-side SM-2 mismatch | Medium | `complete_vocabulary_session` RPC uses different SM-2 formula than client (flat +0.02 ease vs quality-based, rep=1 vs rep=0 start). Needs migration to align with `SM2.calculateNextReview()` |
+| N+1 in assignmentSyncProvider | Low | Sequential per-assignment progress check (1-3 items, runs once on sync) |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Performance: Parallel Data Fetching | 2026-03-24 | 7 N+1/sequential fixes across vocabulary hub, word bank, daily review, reader, leaderboard. 2 new batch repository methods + use cases. |
 | Type-Based XP + Combo Refactor | 2026-03-24 | 12 new settings, inline XP from settings, vocab flat XP, combo session-end bonus, RPC reads bonuses from DB |
 | Notification Settings + Streak Extended | 2026-03-24 | Daily "Day X!" dialog, 7 notification toggles in system_settings, settings-aware event gating |
 | Admin Notification Gallery | 2026-03-24 | Dedicated /notifications page with 6 preview cards + toggles, dashboard card |

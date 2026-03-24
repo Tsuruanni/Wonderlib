@@ -46,7 +46,7 @@ class MainShellScaffold extends StatelessWidget {
                   color: AppColors.secondary, // Different color for varying sections? Or uniform? Let's use uniform for now via argument or defaults
                 ),
                 _NavButton(
-                  icon: Icons.sort_by_alpha_rounded,
+                  icon: Icons.route_rounded,
                   label: 'VOCAB',
                   isSelected: navigationShell.currentIndex == 2,
                   onTap: () => _onTap(context, 2),

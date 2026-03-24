@@ -8,6 +8,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Performance: Parallel Data Fetching (2026-03-24)
+
+#### Fixed
+- **Vocabulary Hub N+1 query** — `learningPathProvider` was making 7+ sequential Supabase calls then N additional sequential book fetches. Now uses `Future.wait` for parallel provider fetches and pre-batches all book lookups before the loop.
+- **Word Bank N+1 query** — `learnedWordsWithDetailsProvider` was fetching each word individually (50-200 sequential calls). Replaced with single `getWordsByIds` batch query using `.inFilter()`.
+- **Daily Review N+1 query** — `loadSession()` and `loadUnitReviewSession()` were fetching progress per-word (up to 100 sequential calls). Replaced with single `getWordProgressBatch` batch query.
+- **Inline activity word add** — Per-word vocabulary insert loop replaced with existing `addWordsToVocabularyBatch` method.
+- **Teacher leaderboard** — Sequential per-class student fetch replaced with `Future.wait` parallel fetch.
+- **Leaderboard display** — 3 independent provider awaits parallelized with `Future.wait`.
+
+#### Added
+- **`getWordsByIds` repository method** — Batch fetch words by ID list in a single query (`.inFilter('id', ids)`).
+- **`getWordProgressBatch` repository method** — Batch fetch vocabulary progress for multiple words in a single query.
+- **`GetWordsByIdsUseCase`** and **`GetWordProgressBatchUseCase`** — Clean Architecture use cases for the new batch methods.
+
+#### Changed
+- **Top navbar** — UK flag replaced with 🇬🇧→🇹🇷 language direction indicator.
+- **Vocab nav icon** — Changed from `sort_by_alpha` to `route` icon.
+
 ### Admin Badge Improvements (2026-03-24)
 
 #### Added
