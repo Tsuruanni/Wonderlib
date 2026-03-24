@@ -21,10 +21,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identityController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _useStudentNumber = false;
 
   // Rive animation controllers (0.7 = 30% slower)
   late final _owlAnim1 = SimpleAnimation('Timeline 1', autoplay: true);
@@ -32,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identityController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -42,20 +41,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     context.unfocus();
 
-    final authController = ref.read(authControllerProvider.notifier);
+    final input = _identityController.text.trim();
+    final password = _passwordController.text;
 
-    bool success;
-    if (_useStudentNumber) {
-      success = await authController.signInWithStudentNumber(
-        studentNumber: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    } else {
-      success = await authController.signInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    }
+    // @ detection: contains @ → email, otherwise → username (synthetic email)
+    final email = input.contains('@') ? input : '$input@owlio.local';
+
+    final authController = ref.read(authControllerProvider.notifier);
+    final success = await authController.signInWithEmail(
+      email: email,
+      password: password,
+    );
 
     if (!success && mounted) {
       final error = ref.read(authControllerProvider).error;
@@ -132,61 +128,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 48),
 
                     // --- Form Fields ---
-                    // Toggle
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.neutral.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.neutral, width: 2),
-                          ),
-                          child: Row(
-                            children: [
-                              _buildToggleOption(
-                                'Email', 
-                                Icons.email_rounded, 
-                                !_useStudentNumber,
-                              ),
-                              _buildToggleOption(
-                                'Student #', 
-                                Icons.badge_rounded, 
-                                _useStudentNumber,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ).animate().fadeIn(delay: 500.ms),
-                    const SizedBox(height: 24),
-
-                    // Inputs
                     TextFormField(
-                      controller: _emailController,
-                      keyboardType: _useStudentNumber
-                          ? TextInputType.number
-                          : TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: _useStudentNumber ? 'Student Number' : 'Email',
+                      controller: _identityController,
+                      keyboardType: TextInputType.text,
+                      decoration: const InputDecoration(
+                        labelText: 'Username or Email',
                         prefixIcon: Icon(
-                          _useStudentNumber
-                              ? Icons.badge_rounded
-                              : Icons.email_rounded,
+                          Icons.person_rounded,
                           color: AppColors.neutralText,
                         ),
                       ),
                       validator: (value) {
                         if (value.isNullOrEmpty) {
-                          return _useStudentNumber
-                              ? 'Enter your number'
-                              : 'Enter your email';
-                        }
-                        if (!_useStudentNumber && !value!.isValidEmail) {
-                          return 'Invalid email address';
+                          return 'Enter your username or email';
                         }
                         return null;
                       },
-                    ).animate().fadeIn(delay: 600.ms),
+                    ).animate().fadeIn(delay: 500.ms),
                     const SizedBox(height: 16),
 
                     TextFormField(
@@ -371,62 +329,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildToggleOption(String label, IconData icon, bool isSelected) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _useStudentNumber = label == 'Student #';
-            _emailController.clear();
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(14), // Slightly less than outer
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isSelected ? AppColors.primary : AppColors.neutralText,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label.toUpperCase(),
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? AppColors.primary : AppColors.neutralText,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _quickLogin(String email, String password) async {
+  /// Quick login for dev shortcuts — works with both usernames and emails
+  /// since _login() handles @ detection automatically.
+  Future<void> _quickLogin(String identity, String password) async {
     setState(() {
-      _useStudentNumber = false;
-      _emailController.text = email;
+      _identityController.text = identity;
       _passwordController.text = password;
     });
-    // Add small delay to visualize the autofill
     await Future.delayed(const Duration(milliseconds: 200));
     await _login();
   }
