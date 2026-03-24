@@ -10,17 +10,17 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/level_helper.dart';
 import '../../../domain/entities/badge.dart';
+import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/card_provider.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../providers/daily_review_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
-import '../../../domain/entities/daily_review_session.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
