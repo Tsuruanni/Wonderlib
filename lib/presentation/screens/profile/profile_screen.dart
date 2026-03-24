@@ -16,8 +16,11 @@ import '../../providers/badge_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/daily_review_provider.dart';
+import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
+import '../../../domain/entities/daily_review_session.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -679,14 +682,250 @@ class _BadgeRow extends StatelessWidget {
 
 class _ReadingStatsSection extends ConsumerWidget {
   const _ReadingStatsSection();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(userStatsProvider);
+
+    return statsAsync.when(
+      loading: () => const SizedBox(height: 80),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (stats) {
+        final booksCompleted = stats['books_completed'] as int? ?? 0;
+        final chaptersCompleted = stats['chapters_completed'] as int? ?? 0;
+        final readingTimeMin = stats['total_reading_time'] as int? ?? 0;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.neutral, width: 2),
+            boxShadow: [
+              BoxShadow(
+                  color: AppColors.neutral, offset: const Offset(0, 3)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.auto_stories_rounded,
+                      size: 22, color: AppColors.secondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Reading Stats',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.menu_book_rounded,
+                      value: '$booksCompleted',
+                      label: 'Books',
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.bookmark_rounded,
+                      value: '$chaptersCompleted',
+                      label: 'Chapters',
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.schedule_rounded,
+                      value: _formatTime(readingTimeMin),
+                      label: 'Reading',
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatTime(int minutes) {
+    if (minutes < 60) return '${minutes}m';
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+    if (mins == 0) return '${hours}h';
+    return '${hours}h ${mins}m';
+  }
 }
 
 class _VocabularyStatsSection extends ConsumerWidget {
   const _VocabularyStatsSection();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final vocabAsync = ref.watch(vocabularyStatsSimpleProvider);
+
+    return vocabAsync.when(
+      loading: () => const SizedBox(height: 80),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (stats) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.neutral, width: 2),
+            boxShadow: [
+              BoxShadow(
+                  color: AppColors.neutral, offset: const Offset(0, 3)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.translate_rounded,
+                      size: 22, color: AppColors.gemBlue),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vocabulary',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.check_circle_rounded,
+                      value: '${stats.masteredCount}',
+                      label: 'Mastered',
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.loop_rounded,
+                      value: '${stats.inProgressCount}',
+                      label: 'Learning',
+                      color: AppColors.streakOrange,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MiniStat(
+                      icon: Icons.fiber_new_rounded,
+                      value: '${stats.newCount}',
+                      label: 'New',
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Word Bank shortcut
+              PressableScale(
+                onTap: () => context.push(AppRoutes.wordBank),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.gemBlue.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.library_books_rounded,
+                          size: 18, color: AppColors.gemBlue),
+                      const SizedBox(width: 8),
+                      Text(
+                        'My Word Bank',
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: AppColors.gemBlue,
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.chevron_right_rounded,
+                          size: 18, color: AppColors.gemBlue),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 22, color: color),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: AppColors.black,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              color: AppColors.neutralText,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DailyReviewProfileCard extends ConsumerWidget {
