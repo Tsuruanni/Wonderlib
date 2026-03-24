@@ -308,6 +308,35 @@ Return new XP, level, badges
 Update UI, show notifications
 ```
 
+### 4. In-App Notification System
+
+All notifications are event-driven dialog popups. No push notifications, no notification inbox.
+
+```
+UserController (addXP/updateStreak)
+        │
+        ▼ sets StateProvider<Event?>
+   ┌────┴──────────────────────────┐
+   │  levelUpEventProvider         │
+   │  leagueTierChangeEventProvider│
+   │  streakEventProvider          │
+   │  badgeEarnedEventProvider     │
+   └────┬──────────────────────────┘
+        │
+        ▼ ref.listen in
+  LevelUpCelebrationListener (app.dart root)
+        │
+        ▼ dialog queue (one at a time)
+   ┌────┴──────────────────────────┐
+   │  1. Level Up Dialog           │
+   │  2. League Change Dialog      │
+   │  3. Streak Event Dialog       │
+   │  4. Badge Earned Dialog       │
+   └───────────────────────────────┘
+```
+
+**Admin control:** All notification types are toggleable via `system_settings` table (`notif_*` keys). Admin manages them at `/notifications` in the admin panel.
+
 ## Database Schema (Key Tables)
 
 ### Core Entities

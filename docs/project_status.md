@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Type-based XP, notification settings, notification gallery, username auth)
+Son güncelleme: 2026-03-24 (Admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
 
 ## Current Phase
 
@@ -99,6 +99,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
+- [x] Admin Badge Improvements (dailyLogin removal, missing condition types, shared helper, per-badge stats, 3 new streak badges)
+- [x] Badge Earned Notification (dialog with icon/name/XP, dialog queue, admin toggle, badge check at controller level)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)

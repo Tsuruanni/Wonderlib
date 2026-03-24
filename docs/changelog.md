@@ -8,6 +8,43 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Admin Badge Improvements (2026-03-24)
+
+#### Added
+- **3 new streak badges** — Streak Warrior (14 days, +150 XP), Streak Hero (60 days, +750 XP), Streak Immortal (100 days, +1500 XP). Aligned with existing streak milestone XP bonuses.
+- **Per-badge earned-by stats** — Badge edit screen now shows which students earned the badge and when (admin panel).
+- **`levelCompleted` condition type** — Added to admin badge form dropdown (was in DB but missing from UI).
+- **Missing categories** — `activities`, `xp`, `level` added to admin badge category dropdown (fixes crash when editing existing badges with these categories).
+
+#### Changed
+- **Shared badge helper** — Extracted duplicated `_getConditionLabel` / `_getConditionHelper` from 3 admin files into `owlio_admin/lib/core/utils/badge_helpers.dart`.
+
+#### Removed
+- **`dailyLogin` condition type** — Removed from shared enum, DB CHECK constraint, and all app code. Was never evaluated; `streak_days` covers the same use case.
+
+#### Infrastructure
+- **1 DB migration** — `20260325000003` (CHECK constraint update + 3 badge INSERTs)
+- **Spec:** `docs/superpowers/specs/2026-03-24-admin-badge-improvements-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-admin-badge-improvements.md`
+
+### Badge Earned Notification (2026-03-24)
+
+#### Added
+- **Badge earned dialog** — Animated celebration dialog shown when students earn badges. Single badge: large icon + name + XP. Multiple badges: list layout. Uses amber/gold theme.
+- **Dialog queue system** — `LevelUpCelebrationListener` converted to `ConsumerStatefulWidget` with a queue that shows dialogs one at a time (level up → streak → badge), preventing overlap.
+- **`BadgeEarned` entity + `CheckAndAwardBadgesUseCase`** — New domain layer plumbing for badge check results.
+- **`notif_badge_earned` admin toggle** — Admin can enable/disable badge notifications. Card with preview added to notification gallery.
+- **`badge_icon` in RPC return** — `check_and_award_badges` now returns the badge emoji icon alongside name and XP.
+
+#### Changed
+- **Badge check moved to UserController** — Removed from 3 repository call sites, now called centrally in `UserController.addXP()` and `updateStreak()`. Covers all XP-granting paths automatically.
+- **Profile refresh after badge XP** — `refreshProfileOnly()` called after badge award to prevent stale XP display.
+
+#### Infrastructure
+- **1 DB migration** — `20260325000004` (DROP+CREATE RPC with icon + notif setting)
+- **Spec:** `docs/superpowers/specs/2026-03-24-badge-earned-notification-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-badge-earned-notification.md`
+
 ### Type-Based XP + Combo Refactor (2026-03-24)
 
 #### Added
