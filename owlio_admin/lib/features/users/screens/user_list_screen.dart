@@ -285,6 +285,7 @@ class _UserCard extends StatelessWidget {
     final firstName = user['first_name'] as String? ?? '';
     final lastName = user['last_name'] as String? ?? '';
     final email = user['email'] as String? ?? '';
+    final username = user['username'] as String?;
     final role = user['role'] as String? ?? 'student';
     final schoolName = user['schools']?['name'] as String?;
     final xp = user['xp'] as int? ?? 0;
@@ -333,8 +334,17 @@ class _UserCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
 
-                    // Email
-                    if (fullName.isNotEmpty)
+                    // Username or email
+                    if (username != null)
+                      Text(
+                        '@$username',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      )
+                    else if (fullName.isNotEmpty && email.isNotEmpty)
                       Text(
                         email,
                         style: TextStyle(
