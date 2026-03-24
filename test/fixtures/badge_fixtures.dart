@@ -82,7 +82,7 @@ class BadgeFixtures {
         'id': 'badge-minimal',
         'name': 'Simple Badge',
         'slug': 'simple-badge',
-        'condition_type': 'daily_login',
+        'condition_type': 'xp_total',
         'condition_value': 1,
         'created_at': '2024-01-01T00:00:00Z',
       };

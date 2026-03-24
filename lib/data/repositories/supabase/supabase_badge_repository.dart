@@ -202,9 +202,6 @@ class SupabaseBadgeRepository implements BadgeRepository {
             canEarn = perfectCount >= badge.conditionValue;
           case BadgeConditionType.levelCompleted:
             canEarn = level >= badge.conditionValue;
-          case BadgeConditionType.dailyLogin:
-            // Daily login tracked via streak - user is active now
-            canEarn = currentStreak >= badge.conditionValue;
         }
 
         if (canEarn) {
