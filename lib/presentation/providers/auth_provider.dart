@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_constants.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
-import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'repository_providers.dart';
 import 'usecase_providers.dart';
@@ -85,32 +84,7 @@ class AuthController extends StateNotifier<AuthState> {
   AuthController(this._ref) : super(const AuthState());
   final Ref _ref;
 
-  /// Sign in with student number (globally unique)
-  Future<bool> signInWithStudentNumber({
-    required String studentNumber,
-    required String password,
-  }) async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    final useCase = _ref.read(signInWithStudentNumberUseCaseProvider);
-    final result = await useCase(SignInWithStudentNumberParams(
-      studentNumber: studentNumber,
-      password: password,
-    ),);
-
-    return result.fold(
-      (failure) {
-        state = state.copyWith(isLoading: false, error: failure.message);
-        return false;
-      },
-      (user) {
-        state = state.copyWith(isLoading: false, user: user);
-        return true;
-      },
-    );
-  }
-
-  /// Sign in with email (for teachers/admins or students who prefer email)
+  /// Sign in with email or synthetic email (username@owlio.local)
   Future<bool> signInWithEmail({
     required String email,
     required String password,

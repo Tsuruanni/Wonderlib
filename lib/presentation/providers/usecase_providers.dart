@@ -21,7 +21,6 @@ import '../../domain/usecases/student_assignment/get_student_assignments_usecase
 import '../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
-import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
@@ -124,10 +123,6 @@ import 'repository_providers.dart';
 
 final signInWithEmailUseCaseProvider = Provider((ref) {
   return SignInWithEmailUseCase(ref.watch(authRepositoryProvider));
-});
-
-final signInWithStudentNumberUseCaseProvider = Provider((ref) {
-  return SignInWithStudentNumberUseCase(ref.watch(authRepositoryProvider));
 });
 
 final signOutUseCaseProvider = Provider((ref) {
