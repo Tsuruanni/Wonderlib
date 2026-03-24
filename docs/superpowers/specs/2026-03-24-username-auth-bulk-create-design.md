@@ -65,11 +65,11 @@
 
 ### C. Password Generation
 
-**Format:** English word (3-4 chars) + 2-3 digit number
+**Format:** English word (3-4 chars) + 3 digit number (always 3 digits to guarantee 6+ char minimum — Supabase Auth requires minimum 6)
 
 **Word list (~30 words):** `owl`, `fox`, `sun`, `cat`, `dog`, `bee`, `sky`, `ice`, `red`, `pen`, `cup`, `hat`, `map`, `box`, `key`, `gem`, `fin`, `pod`, `ray`, `dew`, `elm`, `oak`, `fig`, `ant`, `bat`, `elk`, `cod`, `ram`, `yak`, `emu`
 
-**Examples:** `fox47`, `owl193`, `cat82`, `sun04`
+**Examples:** `fox047`, `owl193`, `cat082`, `sun214`
 
 **Generated in Edge Function** (not in DB). Returned in response for admin to download. Not stored anywhere in plaintext — Supabase Auth stores the hash.
 
@@ -105,7 +105,17 @@ BEGIN
     )
   );
 
-  -- Find highest existing number for this base
+  -- Strip non-alphanumeric chars (handles names with periods, hyphens, etc.)
+  v_base := regexp_replace(v_base, '[^a-z0-9]', '', 'g');
+
+  -- Safety: if base is empty after sanitization, use 'user'
+  IF v_base = '' THEN
+    v_base := 'user';
+  END IF;
+
+  -- Find highest existing number for this base (with advisory lock to prevent race conditions)
+  PERFORM pg_advisory_xact_lock(hashtext(v_base));
+
   SELECT MAX(
     CAST(substring(username FROM length(v_base) + 1) AS INT)
   ) INTO v_max_num
@@ -118,7 +128,9 @@ END;
 $$ LANGUAGE plpgsql;
 ```
 
-#### D3. Migrate existing students
+**Concurrency safety:** Uses `pg_advisory_xact_lock` on the base string hash. If two concurrent requests try to generate a username for the same base (e.g., two "Mesut Yılmaz" in a bulk CSV), they will be serialized. The lock is released when the transaction commits.
+
+#### D3. Migrate existing students — profiles
 
 ```sql
 -- Generate usernames for all existing students who don't have one
@@ -138,6 +150,25 @@ BEGIN
   END LOOP;
 END $$;
 ```
+
+#### D4. Migrate existing students — auth.users email
+
+Existing students have real emails in `auth.users` (e.g., `fresh@demo.com`). After username generation, their `auth.users.email` must be updated to `username@owlio.local` so the new login flow works.
+
+**This requires a one-time Edge Function or script using service_role key:**
+
+```typescript
+// For each student with a username:
+// 1. Read username from profiles
+// 2. auth.admin.updateUserById(id, { email: `${username}@owlio.local` })
+// 3. Clear profiles.email to NULL (no longer needed for students)
+```
+
+**IMPORTANT:** This is a destructive migration — existing students will no longer be able to log in with their old email. Must be deployed together with the Flutter login change (Step 5 in Migration Strategy).
+
+#### D5. Update `safe_profiles` view
+
+Add `username` to the `safe_profiles` view so it's visible in leaderboard/peer queries. Username is not sensitive — it's a public identifier like a gamertag.
 
 ---
 
@@ -159,12 +190,14 @@ END $$;
 ```
 
 **Flow per student:**
-1. Look up class by `class_name` + `school_id` — if not found, create it
-2. Call `generate_username(first_name, last_name)` via DB
-3. Generate random password (word + digits)
+1. Look up class by `class_name` + `school_id` (WHERE `academic_year IS NULL`) — if not found, create it
+2. Call `generate_username(first_name, last_name)` via DB (inside a transaction for advisory lock)
+3. Generate random password (word + 3 digits, e.g., `fox047`)
 4. `auth.admin.createUser({ email: username@owlio.local, password, email_confirm: true, user_metadata: { first_name, last_name, role: 'student' } })`
-5. DB trigger auto-creates profile row
-6. `UPDATE profiles SET username, school_id, class_id WHERE id = new_user.id`
+5. DB trigger auto-creates profile row (with synthetic email in `profiles.email`)
+6. `UPDATE profiles SET username, school_id, class_id, email = NULL WHERE id = new_user.id` (clear synthetic email from profiles — it's only needed in `auth.users`)
+
+**Note on `profiles.email`:** The `handle_new_user` trigger copies `auth.users.email` into `profiles.email`. For students, this would be the synthetic email (`mesyil1@owlio.local`). Step 6 sets `profiles.email = NULL` for students to avoid leaking the internal pattern. Teachers keep their real email.
 
 **Response:**
 ```json
@@ -179,6 +212,10 @@ END $$;
 ```
 
 **Error handling:** Per-row — one failure doesn't stop others. Partial success is normal.
+
+**Batch size limit:** Maximum 200 students per request. Admin panel splits larger CSVs into batches of 200. This prevents Edge Function timeout (Supabase Pro tier: 150s).
+
+**Duplicate detection:** Before creating, check if `(first_name, last_name, school_id, class_id)` combination already exists in profiles. If found, skip with a warning in the errors array (not a hard failure).
 
 **Also used for single student creation** (array of 1) **and single teacher creation:**
 ```json
@@ -265,9 +302,12 @@ Future<void> _login(String input, String password) async {
 ```
 
 - Input label: "Username or Email"
+- Input trimmed before processing (prevents `mesyil1@` edge case)
 - Remove student/teacher tabs
 - Remove student_number references from login flow
 - `student_number` field stays in profiles table (display-only, not used for auth)
+
+**Code cleanup:** Remove `SignInWithStudentNumberUseCase`, `AuthRepository.signInWithStudentNumber()`, and related code in `supabase_auth_repository.dart` — no longer needed.
 
 ---
 
@@ -275,7 +315,8 @@ Future<void> _login(String input, String password) async {
 
 When a class name from CSV doesn't exist for the selected school:
 
-- Edge Function creates the class: `INSERT INTO classes (school_id, name) VALUES (school_id, class_name)`
+- Edge Function looks up class: `SELECT id FROM classes WHERE school_id = $1 AND name = $2 AND academic_year IS NULL LIMIT 1`
+- If not found, creates: `INSERT INTO classes (school_id, name) VALUES (school_id, class_name) RETURNING id`
 - No additional admin action needed
 - Tekli oluşturmada dropdown includes "Yeni sınıf ekle" option with text input
 
@@ -303,11 +344,15 @@ No changes needed to this Edge Function.
 
 ## Migration Strategy
 
-1. Deploy DB migration (add `username` column + `generate_username()` function)
-2. Run existing student migration (generate usernames for current students)
+1. Deploy DB migration (add `username` column + `generate_username()` function + `safe_profiles` view update)
+2. Run existing student migration — generate usernames in `profiles` (D3)
 3. Deploy `bulk-create-students` Edge Function
 4. Deploy admin panel changes (new creation screen, remove old import)
-5. Deploy Flutter app login change
+5. **Atomic deploy (together):**
+   a. Run existing student auth email migration (D4) — updates `auth.users.email` to `username@owlio.local`
+   b. Deploy Flutter app login change
 6. Communicate to existing students: "Your new username is X" (admin can see in panel)
 
-**Steps 4 and 5 should be deployed together** to avoid a window where old login is removed but usernames aren't communicated yet.
+**Steps 5a and 5b MUST be deployed together.** After 5a, old email login breaks. After 5b, new username login works. If there's a gap, students can't log in.
+
+Steps 1-4 are safe to deploy incrementally — they don't break existing login.
