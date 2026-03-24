@@ -18,6 +18,13 @@ class SystemSettingsModel {
     required this.comboBonusXp,
     required this.xpVocabSessionBonus,
     required this.xpVocabPerfectBonus,
+    required this.notifStreakExtended,
+    required this.notifStreakBroken,
+    required this.notifStreakBrokenMin,
+    required this.notifMilestone,
+    required this.notifLevelUp,
+    required this.notifLeagueChange,
+    required this.notifFreezeSaved,
     required this.streakFreezePrice,
     required this.streakFreezeMax,
     required this.debugDateOffset,
@@ -38,6 +45,13 @@ class SystemSettingsModel {
   final int comboBonusXp;
   final int xpVocabSessionBonus;
   final int xpVocabPerfectBonus;
+  final bool notifStreakExtended;
+  final bool notifStreakBroken;
+  final int notifStreakBrokenMin;
+  final bool notifMilestone;
+  final bool notifLevelUp;
+  final bool notifLeagueChange;
+  final bool notifFreezeSaved;
   final int streakFreezePrice;
   final int streakFreezeMax;
   final int debugDateOffset;
@@ -70,6 +84,13 @@ class SystemSettingsModel {
       comboBonusXp: _toInt(m['combo_bonus_xp'], 5),
       xpVocabSessionBonus: _toInt(m['xp_vocab_session_bonus'], 10),
       xpVocabPerfectBonus: _toInt(m['xp_vocab_perfect_bonus'], 20),
+      notifStreakExtended: _toBool(m['notif_streak_extended'], true),
+      notifStreakBroken: _toBool(m['notif_streak_broken'], true),
+      notifStreakBrokenMin: _toInt(m['notif_streak_broken_min'], 3),
+      notifMilestone: _toBool(m['notif_milestone'], true),
+      notifLevelUp: _toBool(m['notif_level_up'], true),
+      notifLeagueChange: _toBool(m['notif_league_change'], true),
+      notifFreezeSaved: _toBool(m['notif_freeze_saved'], true),
       streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
       streakFreezeMax: _toInt(m['streak_freeze_max'], 2),
       debugDateOffset: _toInt(m['debug_date_offset'], 0),
@@ -93,6 +114,13 @@ class SystemSettingsModel {
         comboBonusXp: 5,
         xpVocabSessionBonus: 10,
         xpVocabPerfectBonus: 20,
+        notifStreakExtended: true,
+        notifStreakBroken: true,
+        notifStreakBrokenMin: 3,
+        notifMilestone: true,
+        notifLevelUp: true,
+        notifLeagueChange: true,
+        notifFreezeSaved: true,
         streakFreezePrice: 50,
         streakFreezeMax: 2,
         debugDateOffset: 0,
@@ -115,6 +143,13 @@ class SystemSettingsModel {
         comboBonusXp: comboBonusXp,
         xpVocabSessionBonus: xpVocabSessionBonus,
         xpVocabPerfectBonus: xpVocabPerfectBonus,
+        notifStreakExtended: notifStreakExtended,
+        notifStreakBroken: notifStreakBroken,
+        notifStreakBrokenMin: notifStreakBrokenMin,
+        notifMilestone: notifMilestone,
+        notifLevelUp: notifLevelUp,
+        notifLeagueChange: notifLeagueChange,
+        notifFreezeSaved: notifFreezeSaved,
         streakFreezePrice: streakFreezePrice,
         streakFreezeMax: streakFreezeMax,
         debugDateOffset: debugDateOffset,
@@ -138,6 +173,13 @@ class SystemSettingsModel {
         comboBonusXp: e.comboBonusXp,
         xpVocabSessionBonus: e.xpVocabSessionBonus,
         xpVocabPerfectBonus: e.xpVocabPerfectBonus,
+        notifStreakExtended: e.notifStreakExtended,
+        notifStreakBroken: e.notifStreakBroken,
+        notifStreakBrokenMin: e.notifStreakBrokenMin,
+        notifMilestone: e.notifMilestone,
+        notifLevelUp: e.notifLevelUp,
+        notifLeagueChange: e.notifLeagueChange,
+        notifFreezeSaved: e.notifFreezeSaved,
         streakFreezePrice: e.streakFreezePrice,
         streakFreezeMax: e.streakFreezeMax,
         debugDateOffset: e.debugDateOffset,
@@ -157,6 +199,13 @@ class SystemSettingsModel {
     if (v is int) return v;
     if (v is double) return v.toInt();
     if (v is String) return int.tryParse(v) ?? defaultValue;
+    return defaultValue;
+  }
+
+  static bool _toBool(dynamic v, bool defaultValue) {
+    if (v == null) return defaultValue;
+    if (v is bool) return v;
+    if (v is String) return v == 'true';
     return defaultValue;
   }
 }

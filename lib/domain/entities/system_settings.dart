@@ -23,6 +23,14 @@ class SystemSettings extends Equatable {
     this.comboBonusXp = 5,
     this.xpVocabSessionBonus = 10,
     this.xpVocabPerfectBonus = 20,
+    // Notifications
+    this.notifStreakExtended = true,
+    this.notifStreakBroken = true,
+    this.notifStreakBrokenMin = 3,
+    this.notifMilestone = true,
+    this.notifLevelUp = true,
+    this.notifLeagueChange = true,
+    this.notifFreezeSaved = true,
     // Streak
     this.streakFreezePrice = 50,
     this.streakFreezeMax = 2,
@@ -53,6 +61,15 @@ class SystemSettings extends Equatable {
   final int xpVocabSessionBonus;
   final int xpVocabPerfectBonus;
 
+  // Notifications
+  final bool notifStreakExtended;
+  final bool notifStreakBroken;
+  final int notifStreakBrokenMin;
+  final bool notifMilestone;
+  final bool notifLevelUp;
+  final bool notifLeagueChange;
+  final bool notifFreezeSaved;
+
   // Streak
   final int streakFreezePrice;
   final int streakFreezeMax;
@@ -80,6 +97,13 @@ class SystemSettings extends Equatable {
         comboBonusXp,
         xpVocabSessionBonus,
         xpVocabPerfectBonus,
+        notifStreakExtended,
+        notifStreakBroken,
+        notifStreakBrokenMin,
+        notifMilestone,
+        notifLevelUp,
+        notifLeagueChange,
+        notifFreezeSaved,
         streakFreezePrice,
         streakFreezeMax,
         debugDateOffset,
