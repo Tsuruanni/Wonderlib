@@ -21,6 +21,9 @@
 **DB Migration:** Update CHECK constraint on `badges.condition_type` to remove `'daily_login'`.
 
 ```sql
+-- Verify actual constraint name first:
+-- SELECT conname FROM pg_constraint WHERE conrelid = 'badges'::regclass AND contype = 'c';
+-- Expected: badges_condition_type_check (auto-generated from table_column_check pattern)
 ALTER TABLE badges DROP CONSTRAINT IF EXISTS badges_condition_type_check;
 ALTER TABLE badges ADD CONSTRAINT badges_condition_type_check
   CHECK (condition_type IN (
@@ -80,20 +83,7 @@ Both must cover all 6 remaining condition types (after `dailyLogin` removal), in
 
 Add an "Earned By" section to the badge edit screen's preview panel (right column, below existing preview card).
 
-**RLS Prerequisite:** The `user_badges` and `profiles` tables lack admin SELECT policies. The migration must add:
-
-```sql
--- Admin can view all user_badges for per-badge stats
-CREATE POLICY "Admin can view all user badges"
-  ON user_badges FOR SELECT
-  USING (is_admin());
-
--- Admin can view all profiles (if not already covered)
--- Check existing policies first; profiles may already have admin SELECT
-CREATE POLICY "Admin can view all profiles"
-  ON profiles FOR SELECT
-  USING (is_admin());
-```
+**RLS Note:** Both `user_badges` and `profiles` are already accessible to admins via school-scoped SELECT policies (all users share the same school). No additional RLS migration needed — the existing "Users can view schoolmate badges" and "Users can view profiles in their school" policies cover admin access.
 
 **Provider:**
 
@@ -102,7 +92,7 @@ final badgeEarnedByProvider = FutureProvider.family<List<Map<String, dynamic>>, 
   final supabase = ref.watch(supabaseClientProvider);
   return await supabase
     .from(DbTables.userBadges)
-    .select('earned_at, profiles(id, display_name)')
+    .select('earned_at, profiles(id, first_name, last_name)')
     .eq('badge_id', badgeId)
     .order('earned_at', ascending: false);
 });
@@ -110,7 +100,7 @@ final badgeEarnedByProvider = FutureProvider.family<List<Map<String, dynamic>>, 
 
 **UI:**
 - Header: "Kazanan Ogrenciler (N)"
-- List: display_name + earned_at date for each student
+- List: "${first_name} ${last_name}" + earned_at date for each student
 - Empty state: "Henuz kimse kazanmadi"
 - Only shown when editing existing badge (not on create)
 
@@ -151,7 +141,7 @@ No changes needed to `check_and_award_badges` — it already evaluates `streak_d
 ## Files Changed
 
 ### New Files
-- `supabase/migrations/YYYYMMDD_admin_badge_improvements.sql` — CHECK constraint update, RLS policies, new badge inserts
+- `supabase/migrations/YYYYMMDD_admin_badge_improvements.sql` — CHECK constraint update + new badge inserts
 - `owlio_admin/lib/core/utils/badge_helpers.dart` — shared helper functions
 
 ### Modified Files (Admin Panel)
