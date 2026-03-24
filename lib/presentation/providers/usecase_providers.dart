@@ -40,6 +40,7 @@ import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/badge/award_badge_usecase.dart';
+import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
 import '../../domain/usecases/badge/check_earnable_badges_usecase.dart';
 import '../../domain/usecases/badge/get_all_badges_usecase.dart';
 import '../../domain/usecases/badge/get_badge_by_id_usecase.dart';
@@ -410,6 +411,10 @@ final checkEarnableBadgesUseCaseProvider = Provider((ref) {
 
 final getRecentlyEarnedUseCaseProvider = Provider((ref) {
   return GetRecentlyEarnedUseCase(ref.watch(badgeRepositoryProvider));
+});
+
+final checkAndAwardBadgesUseCaseProvider = Provider((ref) {
+  return CheckAndAwardBadgesUseCase(ref.watch(badgeRepositoryProvider));
 });
 
 // ============================================

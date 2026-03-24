@@ -4,9 +4,11 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../core/utils/app_clock.dart';
+import '../../domain/entities/badge_earned.dart';
 import '../../domain/entities/streak_result.dart';
 import '../../domain/entities/system_settings.dart';
 import '../../domain/entities/user.dart';
+import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
@@ -14,6 +16,7 @@ import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import 'auth_provider.dart';
+import 'badge_provider.dart';
 import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
 
@@ -51,6 +54,14 @@ final leagueTierChangeEventProvider = StateProvider<LeagueTierChangeEvent?>((ref
 /// Provider for streak events (milestone, freeze-saved, streak-broken)
 final streakEventProvider = StateProvider<StreakResult?>((ref) => null);
 
+/// Badge earned event for celebration dialog
+class BadgeEarnedEvent {
+  const BadgeEarnedEvent({required this.badges});
+  final List<BadgeEarned> badges;
+}
+
+/// Provider for badge earned events - UI listens to show celebration
+final badgeEarnedEventProvider = StateProvider<BadgeEarnedEvent?>((ref) => null);
 
 /// Provides user stats for current user
 final userStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -124,6 +135,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         _ref.read(levelUpEventProvider.notifier).state = null;
         _ref.read(leagueTierChangeEventProvider.notifier).state = null;
         _ref.read(streakEventProvider.notifier).state = null;
+        _ref.read(badgeEarnedEventProvider.notifier).state = null;
       }
     }, fireImmediately: true,);
   }
@@ -222,6 +234,21 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       );
     }
 
+    // Check for new badges
+    final badgeUseCase = _ref.read(checkAndAwardBadgesUseCaseProvider);
+    final badgeResult = await badgeUseCase(CheckAndAwardBadgesParams(userId: userId));
+    badgeResult.fold(
+      (_) {}, // Ignore badge check failures
+      (badges) {
+        if (badges.isNotEmpty && _notifSettings.notifBadgeEarned) {
+          _ref.read(badgeEarnedEventProvider.notifier).state =
+              BadgeEarnedEvent(badges: badges);
+        }
+        // Invalidate badge providers so profile reflects new badges
+        _ref.invalidate(userBadgesProvider);
+      },
+    );
+
     // Note: NOT calling updateStreak() here.
     // Server-side RPCs (complete_daily_review, complete_vocabulary_session)
     // already call PERFORM update_user_streak() internally.
@@ -257,6 +284,20 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     if (shouldShow) {
       _ref.read(streakEventProvider.notifier).state = streakResult;
     }
+
+    // Check for new badges (streak badges)
+    final badgeUseCase = _ref.read(checkAndAwardBadgesUseCaseProvider);
+    final badgeResult = await badgeUseCase(CheckAndAwardBadgesParams(userId: userId));
+    badgeResult.fold(
+      (_) {},
+      (badges) {
+        if (badges.isNotEmpty && _notifSettings.notifBadgeEarned) {
+          _ref.read(badgeEarnedEventProvider.notifier).state =
+              BadgeEarnedEvent(badges: badges);
+        }
+        _ref.invalidate(userBadgesProvider);
+      },
+    );
   }
 
   Future<bool> buyStreakFreeze() async {
