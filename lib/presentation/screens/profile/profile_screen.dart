@@ -930,8 +930,204 @@ class _MiniStat extends StatelessWidget {
 
 class _DailyReviewProfileCard extends ConsumerWidget {
   const _DailyReviewProfileCard();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todaySession = ref.watch(todayReviewSessionProvider).valueOrNull;
+    final dueWords = ref.watch(dailyReviewWordsProvider).valueOrNull ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.replay_rounded, size: 22, color: AppColors.streakOrange),
+            const SizedBox(width: 8),
+            Text(
+              'Daily Vocabulary Review',
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (todaySession != null)
+          _buildCompletedCard(todaySession)
+        else if (dueWords.length >= minDailyReviewCount)
+          _buildReadyCard(context, dueWords.length)
+        else
+          _buildBuildingUpCard(dueWords.length),
+      ],
+    );
+  }
+
+  Widget _buildCompletedCard(DailyReviewSession session) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.check_circle_rounded,
+                color: AppColors.primary, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Review Complete!',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Text(
+                  '+${session.xpEarned} XP earned today',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadyCard(BuildContext context, int wordCount) {
+    return PressableScale(
+      onTap: () => context.push(AppRoutes.vocabularyDailyReview),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.streakOrange.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: AppColors.streakOrange.withValues(alpha: 0.3), width: 2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.streakOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.bolt_rounded,
+                  color: AppColors.streakOrange, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$wordCount words ready!',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: AppColors.streakOrange,
+                    ),
+                  ),
+                  Text(
+                    'Tap to start your daily review',
+                    style: GoogleFonts.nunito(
+                      color: AppColors.neutralText,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: AppColors.streakOrange),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBuildingUpCard(int currentCount) {
+    final progress = currentCount / minDailyReviewCount;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.gemBlue.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+            color: AppColors.gemBlue.withValues(alpha: 0.3), width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.gemBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.hourglass_top_rounded,
+                color: AppColors.gemBlue, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Words Building Up',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$currentCount/$minDailyReviewCount — keep learning to unlock review!',
+                  style: GoogleFonts.nunito(
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 6,
+                    backgroundColor: AppColors.gemBlue.withValues(alpha: 0.1),
+                    valueColor:
+                        AlwaysStoppedAnimation<Color>(AppColors.gemBlue),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SignOutButton extends ConsumerWidget {
