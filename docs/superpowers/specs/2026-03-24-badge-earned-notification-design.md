@@ -12,88 +12,127 @@ When students earn badges, there is no visual feedback. The `check_and_award_bad
 
 ## Solution
 
-### 1. Event Flow
+### 1. Architectural Approach — Badge Check at Controller Level
 
-Follow the established event provider pattern used by level up, league change, and streak events:
+**Key decision:** Rather than changing repository/usecase return types (which would cascade through interfaces, use cases, and providers), we move the badge check from repository level to UserController level.
+
+**Changes:**
+- **Remove** `check_and_award_badges` calls from all 3 repository methods (`supabase_activity_repository._awardXP()`, `supabase_user_repository.addXP()`, `supabase_user_repository.updateStreak()`)
+- **Add** a new `CheckAndAwardBadgesUseCase` that wraps the RPC call and returns `List<BadgeEarned>`
+- **Call** this use case from `UserController.addXP()` and `UserController.updateStreak()` after the existing operations succeed
+
+**Benefits:**
+- Zero changes to existing repository interfaces, use cases, or return types
+- Badge result captured exactly where it's needed (provider layer)
+- Single point of control for badge notification logic
+- Clean architecture maintained (UseCase wraps RPC, not direct repository access from provider)
+
+**Trade-off:** Badge check is no longer atomic with XP award at the repository level. However, the SQL-level `PERFORM` calls inside `complete_vocabulary_session` and `complete_daily_review` still ensure badges are checked atomically for those paths. For Flutter-side paths, the badge check happens milliseconds after XP award — no practical risk.
+
+**Coverage of all XP paths:** `UserController.addXP()` is the centralized entry point called from ALL XP-granting providers:
+- `reader_provider.dart` — inline activity completion
+- `book_provider.dart` — chapter and book completion XP
+- `book_quiz_provider.dart` — quiz pass XP
+
+By placing badge check in `UserController.addXP()`, all these paths automatically get badge notifications.
+
+**Vocabulary/daily review path:** These use `refreshProfileOnly()` (NOT `addXP()`) after SQL RPCs that internally award XP and check badges via `PERFORM`. Badges are still awarded in the DB, but no Flutter-side notification fires. This is acceptable for now — vocab/daily review badge notifications can be added later by calling badge check in `refreshProfileOnly()`.
+
+### 2. Event Flow
 
 ```
-check_and_award_badges RPC
-  → result captured as List<BadgeEarned>
-  → Repository returns it up the chain
-  → UserController writes to badgeEarnedEventProvider
+UserController.addXP() or updateStreak()
+  → existing operation succeeds
+  → calls CheckAndAwardBadgesUseCase
+  → RPC returns List<BadgeEarned>
+  → if non-empty AND notifBadgeEarned setting is true
+  → writes to badgeEarnedEventProvider
   → LevelUpCelebrationListener shows BadgeEarnedDialog
 ```
 
-**Trigger points (3 Flutter-side call sites):**
+### 3. BadgeEarned Entity
 
-1. `supabase_activity_repository.dart` — `_awardXP()` method (~line 272). After `award_xp_transaction`, calls `check_and_award_badges`. Currently discards result. Will capture and return `List<BadgeEarned>`.
-
-2. `supabase_user_repository.dart` — `addXP()` method (~line 76). Same pattern. Will capture and return.
-
-3. `supabase_user_repository.dart` — `updateStreak()` method (~line 102). Same pattern. Will capture and return.
-
-**SQL-embedded PERFORM calls (untouched):** `complete_vocabulary_session` and `complete_daily_review` use `PERFORM check_and_award_badges(...)` which discards results at the SQL level. These are NOT modified because Flutter already calls `addXP()` after these RPCs, which triggers its own badge check.
-
-### 2. BadgeEarned Entity
-
-Move `BadgeEarned` from `edge_function_service.dart` (where it's defined but unused) to a proper domain entity:
+New domain entity (NOT moved from edge_function_service — they have different JSON schemas):
 
 ```dart
 // lib/domain/entities/badge_earned.dart
 class BadgeEarned {
   final String badgeId;
   final String badgeName;
+  final String badgeIcon;
   final int xpReward;
 
   const BadgeEarned({
     required this.badgeId,
     required this.badgeName,
+    required this.badgeIcon,
     required this.xpReward,
   });
 }
 ```
 
-Update `edge_function_service.dart` to import from the entity instead of defining its own class.
+`edge_function_service.dart` is left untouched — its `BadgeEarned` class has different JSON keys (camelCase from Edge Function vs snake_case from RPC) and serves a different purpose.
 
-### 3. Repository Changes
+### 4. New UseCase + Repository Method
 
-**Return type changes:**
+**BadgeRepository interface** — add method:
 
-The `check_and_award_badges` call sites currently return `void` (or the parent method ignores the badge result). Changes needed:
+```dart
+Future<Either<Failure, List<BadgeEarned>>> checkAndAwardBadges(String userId);
+```
 
-- `SupabaseActivityRepository._awardXP()` — capture RPC result, parse into `List<BadgeEarned>`, return it. The parent method `submitActivityResult()` must propagate this up.
-- `SupabaseUserRepository.addXP()` — capture RPC result, parse into `List<BadgeEarned>`, return alongside existing return value.
-- `SupabaseUserRepository.updateStreak()` — capture RPC result, parse into `List<BadgeEarned>`, return alongside `StreakResult`.
+**SupabaseBadgeRepository** — implement:
 
-**Parsing:** The RPC returns `List<Map<String, dynamic>>` with keys `badge_id`, `badge_name`, `xp_reward`. Parse each row into `BadgeEarned`.
+```dart
+Future<Either<Failure, List<BadgeEarned>>> checkAndAwardBadges(String userId) async {
+  final result = await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {'p_user_id': userId});
+  // Parse List<Map> into List<BadgeEarned>
+}
+```
 
-### 4. Provider Changes
+**CheckAndAwardBadgesUseCase:**
+
+```dart
+class CheckAndAwardBadgesUseCase implements UseCase<List<BadgeEarned>, CheckAndAwardBadgesParams> {
+  final BadgeRepository _repository;
+  // ...
+}
+```
+
+### 5. Provider Changes
 
 **New event provider** in `user_provider.dart`:
 
 ```dart
-final badgeEarnedEventProvider = StateProvider<List<BadgeEarned>?>((ref) => null);
+final badgeEarnedEventProvider = StateProvider<BadgeEarnedEvent?>((ref) => null);
+```
+
+**BadgeEarnedEvent wrapper** (for consistency with other event providers which use single objects, not lists):
+
+```dart
+class BadgeEarnedEvent {
+  final List<BadgeEarned> badges;
+  const BadgeEarnedEvent(this.badges);
+}
 ```
 
 **UserController changes:**
 
-- `addXP()`: After calling `AddXPUseCase`, if badges returned and `_notifSettings.notifBadgeEarned` is true, write to `badgeEarnedEventProvider`.
-- `updateStreak()`: After calling `UpdateStreakUseCase`, if badges returned and setting is true, write to `badgeEarnedEventProvider`.
+- `addXP()`: After `_addXPUseCase` succeeds, call `_checkAndAwardBadgesUseCase`. If result is non-empty and `_notifSettings.notifBadgeEarned` is true, write `BadgeEarnedEvent` to provider.
+- `updateStreak()`: Same pattern after `_updateStreakUseCase` succeeds.
 
-**Activity completion path:** The activity result flow needs to propagate badges from `submitActivityResult()` → provider layer → `badgeEarnedEventProvider`. This may go through `reader_provider.dart` where `handleInlineActivityCompletion()` is called.
-
-### 5. Dialog Design
+### 6. Dialog Design
 
 **File:** `lib/presentation/widgets/common/badge_earned_dialog.dart`
 
-Follows the same visual language as `StreakEventDialog` and `_LevelUpDialog`:
-- `GoogleFonts.nunito` typography
-- `Dialog` with `BoxDecoration` (white, rounded corners, shadow)
+Follows the same visual language as existing dialogs (`StreakEventDialog`, `_LevelUpDialog`):
+- White `Dialog` with `BoxDecoration` (rounded corners, shadow)
 - Animated scale entrance
+- Match existing typography patterns in `level_up_celebration.dart`
 
 **Single badge layout:**
 ```
-    🏆  (badge icon, large)
+    🏆  (badge icon from DB, large)
    "New Badge!"  (title, bold)
   "Streak Master"  (badge name)
     +100 XP  (purple badge)
@@ -110,21 +149,34 @@ Follows the same visual language as `StreakEventDialog` and `_LevelUpDialog`:
      [OK]
 ```
 
-**Badge icon:** Uses the `icon` field from the `badges` table (emoji string). However, `check_and_award_badges` RPC only returns `badge_id`, `badge_name`, `xp_reward` — NOT the icon. Two options:
+### 7. Dialog Ordering — Queue System
 
-**Option A (recommended):** Modify the RPC to also return `badge_icon` in the result set. One-line SQL change.
+`addXP()` can trigger both level up AND badge earned in the same call. Existing `ref.listen` callbacks all fire synchronously, causing overlapping `showDialog()` calls.
 
-**Option B:** Use a generic trophy emoji for all badge notifications. Simpler but less personalized.
+**Solution:** Implement a simple dialog queue in `LevelUpCelebrationListener`:
 
-**Decision: Option A** — modify RPC to include `icon` in the return columns. The `BadgeEarned` entity gets an `icon` field.
+```dart
+final _dialogQueue = <Future<void> Function()>[];
+bool _isShowingDialog = false;
 
-### 6. Dialog Ordering
+void _enqueueDialog(Future<void> Function() showFn) {
+  _dialogQueue.add(showFn);
+  _processQueue();
+}
 
-Badge dialog shows **after** level up and streak dialogs. Implementation: In `LevelUpCelebrationListener`, the badge `ref.listen` callback checks if other event providers have pending events. If so, it queues itself (via a `Future.delayed` or by chaining after dialog dismiss callbacks).
+Future<void> _processQueue() async {
+  if (_isShowingDialog || _dialogQueue.isEmpty) return;
+  _isShowingDialog = true;
+  final fn = _dialogQueue.removeAt(0);
+  await fn();
+  _isShowingDialog = false;
+  _processQueue(); // process next in queue
+}
+```
 
-Simpler approach: The existing pattern already handles this naturally — each dialog's `then()` callback resets its provider to `null`, and Riverpod listeners fire asynchronously. The badge listener simply needs to be registered last in the listener list, and when showing the dialog, wrap in `Future.microtask()` to yield to any pending dialog queues.
+All existing `ref.listen` callbacks change from direct `showDialog()` to `_enqueueDialog(() => showDialog(...))`. Badge listener is added last to ensure it's queued after level up and streak dialogs.
 
-### 7. Admin Toggle
+### 8. Admin Toggle
 
 **Migration:** Insert `notif_badge_earned` into `system_settings`:
 
@@ -144,46 +196,60 @@ ON CONFLICT (key) DO NOTHING;
   - Single: "New Badge! 🏆 Streak Master +100 XP"
   - Multiple: "2 New Badges! 🔥 Streak Master +100 XP, ⭐ Rising Star +50 XP"
 
-### 8. SQL RPC Change
+### 9. SQL RPC Change
 
-Modify `check_and_award_badges` to return `icon` alongside existing columns:
+Modify `check_and_award_badges` to return `icon` alongside existing columns. **PostgreSQL requires DROP FUNCTION when return type changes:**
 
 ```sql
--- Current return: TABLE(badge_id UUID, badge_name VARCHAR, xp_reward INTEGER)
--- New return: TABLE(badge_id UUID, badge_name VARCHAR, badge_icon VARCHAR, xp_reward INTEGER)
+DROP FUNCTION IF EXISTS check_and_award_badges(UUID);
+CREATE OR REPLACE FUNCTION check_and_award_badges(p_user_id UUID)
+RETURNS TABLE(badge_id UUID, badge_name VARCHAR, badge_icon VARCHAR, xp_reward INTEGER)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+-- ... same body, but SELECT now includes b.icon
+-- and output assignment includes badge_icon
+$$;
 ```
 
-The LOOP body already fetches badge details with `SELECT b.id, b.name, b.xp_reward FROM badges b WHERE b.id = v_awarded.badge_id`. Add `b.icon` to this SELECT and to the output assignment.
+The LOOP body changes from:
+```sql
+SELECT b.id, b.name, b.xp_reward INTO badge_id, badge_name, xp_reward FROM badges b WHERE b.id = v_awarded.badge_id;
+```
+to:
+```sql
+SELECT b.id, b.name, b.icon, b.xp_reward INTO badge_id, badge_name, badge_icon, xp_reward FROM badges b WHERE b.id = v_awarded.badge_id;
+```
 
 ## Files Changed
 
 ### New Files
-- `supabase/migrations/YYYYMMDD_badge_earned_notification.sql` — RPC update + `notif_badge_earned` setting
-- `lib/domain/entities/badge_earned.dart` — `BadgeEarned` entity
-- `lib/presentation/widgets/common/badge_earned_dialog.dart` — Dialog widget
+- `supabase/migrations/YYYYMMDD_badge_earned_notification.sql` — DROP+CREATE RPC with icon return + `notif_badge_earned` setting
+- `lib/domain/entities/badge_earned.dart` — `BadgeEarned` entity + `BadgeEarnedEvent` wrapper
+- `lib/domain/usecases/badge/check_and_award_badges_usecase.dart` — new use case
+- `lib/presentation/widgets/common/badge_earned_dialog.dart` — dialog widget
 
 ### Modified Files (Main App)
-- `lib/data/repositories/supabase/supabase_activity_repository.dart` — capture badge result from RPC
-- `lib/data/repositories/supabase/supabase_user_repository.dart` — capture badge result from RPC (2 methods)
-- `lib/domain/repositories/user_repository.dart` — update return types if needed
-- `lib/domain/repositories/activity_repository.dart` — update return types if needed
-- `lib/domain/usecases/user/add_xp_usecase.dart` — propagate badge result
-- `lib/domain/usecases/user/update_streak_usecase.dart` — propagate badge result
-- `lib/presentation/providers/user_provider.dart` — `badgeEarnedEventProvider` + write logic in `addXP()` and `updateStreak()`
-- `lib/presentation/widgets/common/level_up_celebration.dart` — add badge listener
+- `lib/data/repositories/supabase/supabase_activity_repository.dart` — **remove** `check_and_award_badges` call from `_awardXP()`
+- `lib/data/repositories/supabase/supabase_user_repository.dart` — **remove** `check_and_award_badges` calls from `addXP()` and `updateStreak()`
+- `lib/data/repositories/supabase/supabase_badge_repository.dart` — **add** `checkAndAwardBadges()` implementation
+- `lib/domain/repositories/badge_repository.dart` — **add** `checkAndAwardBadges()` to interface
+- `lib/presentation/providers/usecase_providers.dart` — register `CheckAndAwardBadgesUseCase`
+- `lib/presentation/providers/user_provider.dart` — `badgeEarnedEventProvider`, `BadgeEarnedEvent`, badge check in `addXP()` and `updateStreak()`
+- `lib/presentation/widgets/common/level_up_celebration.dart` — add badge listener + dialog queue system
 - `lib/domain/entities/system_settings.dart` — `notifBadgeEarned` field
 - `lib/data/models/settings/system_settings_model.dart` — parse `notif_badge_earned`
-- `lib/core/services/edge_function_service.dart` — replace local `BadgeEarned` with import from entity
 
 ### Modified Files (Admin Panel)
 - `owlio_admin/lib/features/notifications/screens/notification_gallery_screen.dart` — add badge earned card
 
 ### Not Changed
-- `check_and_award_badges` SQL logic (only return columns change)
-- SQL `PERFORM` calls in vocab/daily review RPCs
+- Repository/UseCase return types (no cascading interface changes)
+- `edge_function_service.dart` (different `BadgeEarned` class, different JSON schema)
+- SQL `PERFORM` calls in vocab/daily review RPCs (badges still awarded in DB, just no Flutter dialog)
 - `BadgeController` / `badgeControllerProvider` (dead code, separate cleanup)
-- Existing streak/levelup/league dialogs
-- Push notifications / Supabase Realtime
+- Existing streak/levelup/league dialog widgets
+- Shared package (`RpcFunctions.checkAndAwardBadges` constant unchanged)
 
 ## Verification
 
