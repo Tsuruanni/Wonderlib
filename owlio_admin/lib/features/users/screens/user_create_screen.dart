@@ -27,7 +27,6 @@ final createClassesProvider = FutureProvider.family<List<Map<String, dynamic>>,
       .from(DbTables.classes)
       .select('id, name')
       .eq('school_id', schoolId)
-      .isFilter('academic_year', null)
       .order('name');
   return List<Map<String, dynamic>>.from(response);
 });
