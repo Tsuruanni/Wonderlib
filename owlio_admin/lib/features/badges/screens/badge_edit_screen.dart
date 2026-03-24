@@ -21,6 +21,19 @@ final badgeDetailProvider =
   return response;
 });
 
+/// Provider for loading students who earned a specific badge
+final badgeEarnedByProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>((ref, badgeId) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final response = await supabase
+      .from(DbTables.userBadges)
+      .select('earned_at, profiles(id, first_name, last_name)')
+      .eq('badge_id', badgeId)
+      .order('earned_at', ascending: false);
+
+  return List<Map<String, dynamic>>.from(response);
+});
+
 class BadgeEditScreen extends ConsumerStatefulWidget {
   const BadgeEditScreen({super.key, this.badgeId});
 
@@ -515,6 +528,12 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                             ),
                           ),
                         ),
+                        if (!isNewBadge) ...[
+                          const SizedBox(height: 24),
+                          const Divider(),
+                          const SizedBox(height: 16),
+                          _EarnedBySection(badgeId: widget.badgeId!),
+                        ],
                       ],
                     ),
                   ),
@@ -524,4 +543,104 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     );
   }
 
+}
+
+class _EarnedBySection extends ConsumerWidget {
+  const _EarnedBySection({required this.badgeId});
+
+  final String badgeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final earnedByAsync = ref.watch(badgeEarnedByProvider(badgeId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        earnedByAsync.when(
+          data: (students) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Kazanan Öğrenciler (${students.length})',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 12),
+                if (students.isEmpty)
+                  Text(
+                    'Henüz kimse kazanmadı',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade500,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  )
+                else
+                  ...students.map((entry) {
+                    final profile =
+                        entry['profiles'] as Map<String, dynamic>? ?? {};
+                    final firstName = profile['first_name'] as String? ?? '';
+                    final lastName = profile['last_name'] as String? ?? '';
+                    final name = '$firstName $lastName'.trim();
+                    final earnedAt = entry['earned_at'] as String? ?? '';
+                    final date = earnedAt.isNotEmpty
+                        ? DateTime.tryParse(earnedAt)
+                        : null;
+                    final dateStr = date != null
+                        ? '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}'
+                        : '';
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: Colors.blue.shade50,
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue.shade700,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              name.isNotEmpty ? name : 'Bilinmeyen',
+                              style: const TextStyle(fontSize: 13),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+          error: (error, _) => Text(
+            'Hata: $error',
+            style: const TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
 }
