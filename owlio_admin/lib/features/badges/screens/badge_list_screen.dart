@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
+import '../../../core/utils/badge_helpers.dart';
 
 /// Provider for loading all badges
 final badgesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
@@ -184,7 +185,7 @@ class _BadgeCard extends StatelessWidget {
                 spacing: 8,
                 children: [
                   _Chip(
-                    label: _getConditionLabel(conditionType, conditionValue),
+                    label: getConditionLabel(conditionType, conditionValue),
                     color: Colors.blue,
                   ),
                   _Chip(
@@ -200,22 +201,6 @@ class _BadgeCard extends StatelessWidget {
     );
   }
 
-  String _getConditionLabel(String type, int value) {
-    switch (type) {
-      case 'xp_total':
-        return '$value XP';
-      case 'streak_days':
-        return '$value gün';
-      case 'books_completed':
-        return '$value kitap';
-      case 'vocabulary_learned':
-        return '$value kelime';
-      case 'perfect_scores':
-        return '$value tam puan';
-      default:
-        return type;
-    }
-  }
 }
 
 class _Chip extends StatelessWidget {

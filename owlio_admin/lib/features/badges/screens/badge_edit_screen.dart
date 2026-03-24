@@ -5,6 +5,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
+import '../../../core/utils/badge_helpers.dart';
 import 'badge_list_screen.dart';
 
 /// Provider for loading a single badge
@@ -44,9 +45,13 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     (BadgeConditionType.booksCompleted.dbValue, 'Tamamlanan Kitaplar'),
     (BadgeConditionType.vocabularyLearned.dbValue, 'Öğrenilen Kelimeler'),
     (BadgeConditionType.perfectScores.dbValue, 'Tam Puan Etkinlik Skorları'),
+    (BadgeConditionType.levelCompleted.dbValue, 'Ulaşılan Seviye'),
   ];
 
-  static const _categories = ['achievement', 'streak', 'reading', 'vocabulary', 'special'];
+  static const _categories = [
+    'achievement', 'streak', 'reading', 'vocabulary',
+    'activities', 'xp', 'level', 'special',
+  ];
 
   String _conditionType = BadgeConditionType.xpTotal.dbValue;
   String _category = 'achievement';
@@ -380,7 +385,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                             decoration: InputDecoration(
                               labelText: 'Koşul Değeri',
                               hintText: 'ör. 100',
-                              helperText: _getConditionHelper(_conditionType),
+                              helperText: getConditionHelper(_conditionType),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
@@ -519,20 +524,4 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     );
   }
 
-  String _getConditionHelper(String type) {
-    switch (type) {
-      case 'xp_total':
-        return 'Kullanıcının kazanması gereken toplam XP';
-      case 'streak_days':
-        return 'Ardışık aktif gün sayısı';
-      case 'books_completed':
-        return 'Tamamlanması gereken kitap sayısı';
-      case 'vocabulary_learned':
-        return 'Öğrenilmesi gereken kelime sayısı';
-      case 'perfect_scores':
-        return 'Etkinliklerde tam puan sayısı';
-      default:
-        return '';
-    }
-  }
 }
