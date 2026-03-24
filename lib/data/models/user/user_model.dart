@@ -11,6 +11,7 @@ class UserModel {
     this.classId,
     required this.role,
     this.studentNumber,
+    this.username,
     required this.firstName,
     required this.lastName,
     this.email,
@@ -36,6 +37,7 @@ class UserModel {
       classId: json['class_id'] as String?,
       role: parseRole(json['role'] as String? ?? 'student'),
       studentNumber: json['student_number'] as String?,
+      username: json['username'] as String?,
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       email: json['email'] as String?,
@@ -64,6 +66,7 @@ class UserModel {
       classId: entity.classId,
       role: entity.role,
       studentNumber: entity.studentNumber,
+      username: entity.username,
       firstName: entity.firstName,
       lastName: entity.lastName,
       email: entity.email,
@@ -87,6 +90,7 @@ class UserModel {
   final String? classId;
   final UserRole role;
   final String? studentNumber;
+  final String? username;
   final String firstName;
   final String lastName;
   final String? email;
@@ -111,6 +115,7 @@ class UserModel {
       'class_id': classId,
       'role': role.name,
       'student_number': studentNumber,
+      'username': username,
       'first_name': firstName,
       'last_name': lastName,
       'email': email,
@@ -146,6 +151,7 @@ class UserModel {
       classId: classId,
       role: role,
       studentNumber: studentNumber,
+      username: username,
       firstName: firstName,
       lastName: lastName,
       email: email,
