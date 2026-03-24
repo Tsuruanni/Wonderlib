@@ -90,6 +90,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
   String _role = UserRole.student.dbValue;
   String? _schoolId;
   String? _username;
+  String? _passwordPlain;
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -114,6 +115,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
         _role = _validRoles.contains(dbRole) ? dbRole : 'student';
         _schoolId = user['school_id'] as String?;
         _username = user['username'] as String?;
+        _passwordPlain = user['password_plain'] as String?;
         _isLoading = false;
       });
     } else {
@@ -313,7 +315,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
             ),
             const SizedBox(height: 24),
 
-            // Username (read-only, students only)
+            // Username + Password (read-only, students only)
             if (_username != null) ...[
               TextFormField(
                 initialValue: _username,
@@ -321,6 +323,18 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                   labelText: 'Username',
                   helperText: 'Kullanıcı adı değiştirilemez',
                   prefixIcon: Icon(Icons.alternate_email),
+                ),
+                readOnly: true,
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (_passwordPlain != null) ...[
+              TextFormField(
+                initialValue: _passwordPlain,
+                decoration: const InputDecoration(
+                  labelText: 'Şifre',
+                  prefixIcon: Icon(Icons.lock),
                 ),
                 readOnly: true,
                 enabled: false,
