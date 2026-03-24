@@ -203,6 +203,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/quests'),
                   ),
                   _DashboardCard(
+                    icon: Icons.notifications_active,
+                    title: 'Notifications',
+                    description: 'Notification types and preview',
+                    color: const Color(0xFF6366F1),
+                    onTap: () => context.go('/notifications'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.settings,
                     title: 'Ayarlar',
                     description: 'XP, oyun ve uygulama ayarları',

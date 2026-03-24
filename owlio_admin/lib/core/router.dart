@@ -31,6 +31,7 @@ import '../features/assignments/screens/assignment_detail_screen.dart';
 import '../features/recent_activity/screens/recent_activity_screen.dart';
 import '../features/recent_activity/screens/recent_activity_detail_screen.dart';
 import '../features/quests/screens/quest_list_screen.dart';
+import '../features/notifications/screens/notification_gallery_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -261,12 +262,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           cardId: state.pathParameters['cardId'],
         ),
       ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationGalleryScreen(),
+      ),
       // Ayarlar (XP + Uygulama)
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(
           title: 'Ayarlar',
-          categories: ['xp_reading', 'xp_vocab', 'notification', 'progression', 'game', 'app'],
+          categories: ['xp_reading', 'xp_vocab', 'progression', 'game', 'app'],
         ),
       ),
     ],

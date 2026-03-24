@@ -46,7 +46,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryLabels = {
     'xp_reading': 'Reading XP',
     'xp_vocab': 'Vocab Session XP',
-    'notification': 'Notifications',
     'progression': 'Seviye ve İlerleme',
     'game': 'Oyun Ayarları',
     'app': 'Uygulama Yapılandırması',
@@ -55,7 +54,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryIcons = {
     'xp_reading': Icons.auto_stories,
     'xp_vocab': Icons.school,
-    'notification': Icons.notifications_active,
     'progression': Icons.trending_up,
     'game': Icons.games,
     'app': Icons.settings_applications,
@@ -64,7 +62,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryColors = {
     'xp_reading': Color(0xFFF59E0B),
     'xp_vocab': Color(0xFF10B981),
-    'notification': Color(0xFF6366F1),
     'progression': Color(0xFF8B5CF6),
     'game': Color(0xFF3B82F6),
     'app': Color(0xFF6B7280),
