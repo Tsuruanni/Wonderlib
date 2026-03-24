@@ -107,7 +107,7 @@ class CheckAndAwardBadgesUseCase implements UseCase<List<BadgeEarned>, CheckAndA
 final badgeEarnedEventProvider = StateProvider<BadgeEarnedEvent?>((ref) => null);
 ```
 
-**BadgeEarnedEvent wrapper** (for consistency with other event providers which use single objects, not lists):
+**BadgeEarnedEvent wrapper** (defined in `user_provider.dart` alongside `LevelUpEvent` and `LeagueTierChangeEvent`, NOT in the domain entity file — follows established pattern):
 
 ```dart
 class BadgeEarnedEvent {
@@ -118,8 +118,8 @@ class BadgeEarnedEvent {
 
 **UserController changes:**
 
-- `addXP()`: After `_addXPUseCase` succeeds, call `_checkAndAwardBadgesUseCase`. If result is non-empty and `_notifSettings.notifBadgeEarned` is true, write `BadgeEarnedEvent` to provider.
-- `updateStreak()`: Same pattern after `_updateStreakUseCase` succeeds.
+- `addXP()`: After `_addXPUseCase` succeeds, call `_ref.read(checkAndAwardBadgesUseCaseProvider)`. If result is non-empty and `_notifSettings.notifBadgeEarned` is true, write `BadgeEarnedEvent` to provider. Uses the same late-read pattern (`_ref.read(xxxProvider)`) as other use case calls in UserController.
+- `updateStreak()`: Same pattern after `_updateStreakUseCase` succeeds. Note: `update_user_streak` RPC commits the new streak value to DB before `check_and_award_badges` runs as a separate RPC call, so the badge check sees the updated `current_streak`.
 
 ### 6. Dialog Design
 
@@ -153,9 +153,10 @@ Follows the same visual language as existing dialogs (`StreakEventDialog`, `_Lev
 
 `addXP()` can trigger both level up AND badge earned in the same call. Existing `ref.listen` callbacks all fire synchronously, causing overlapping `showDialog()` calls.
 
-**Solution:** Implement a simple dialog queue in `LevelUpCelebrationListener`:
+**Solution:** Convert `LevelUpCelebrationListener` from `ConsumerWidget` to `ConsumerStatefulWidget` so queue state persists across rebuilds. Then implement a simple dialog queue:
 
 ```dart
+// In the State class (persistent across rebuilds)
 final _dialogQueue = <Future<void> Function()>[];
 bool _isShowingDialog = false;
 
@@ -174,7 +175,9 @@ Future<void> _processQueue() async {
 }
 ```
 
-All existing `ref.listen` callbacks change from direct `showDialog()` to `_enqueueDialog(() => showDialog(...))`. Badge listener is added last to ensure it's queued after level up and streak dialogs.
+All existing `ref.listen` callbacks (moved into `build()` of the `ConsumerState`) change from direct `showDialog()` to `_enqueueDialog(() => showDialog(...))`. Badge listener is added last to ensure it's queued after level up and streak dialogs.
+
+**Widget conversion:** `LevelUpCelebrationListener` changes from `ConsumerWidget` to `ConsumerStatefulWidget`. The `ref.listen` calls move into `build()` of the `ConsumerState` (standard Riverpod pattern — `ref.listen` re-registers on rebuild but fires callbacks correctly). Queue state (`_dialogQueue`, `_isShowingDialog`) lives in the `State` object.
 
 ### 8. Admin Toggle
 
@@ -236,7 +239,7 @@ SELECT b.id, b.name, b.icon, b.xp_reward INTO badge_id, badge_name, badge_icon, 
 - `lib/domain/repositories/badge_repository.dart` — **add** `checkAndAwardBadges()` to interface
 - `lib/presentation/providers/usecase_providers.dart` — register `CheckAndAwardBadgesUseCase`
 - `lib/presentation/providers/user_provider.dart` — `badgeEarnedEventProvider`, `BadgeEarnedEvent`, badge check in `addXP()` and `updateStreak()`
-- `lib/presentation/widgets/common/level_up_celebration.dart` — add badge listener + dialog queue system
+- `lib/presentation/widgets/common/level_up_celebration.dart` — convert to `ConsumerStatefulWidget`, add dialog queue system, add badge listener
 - `lib/domain/entities/system_settings.dart` — `notifBadgeEarned` field
 - `lib/data/models/settings/system_settings_model.dart` — parse `notif_badge_earned`
 
@@ -245,7 +248,8 @@ SELECT b.id, b.name, b.icon, b.xp_reward INTO badge_id, badge_name, badge_icon, 
 
 ### Not Changed
 - Repository/UseCase return types (no cascading interface changes)
-- `edge_function_service.dart` (different `BadgeEarned` class, different JSON schema)
+- `edge_function_service.dart` (different `BadgeEarned` class, different JSON schema — camelCase vs snake_case)
+- `supabase/functions/award-xp/index.ts` — edge function will receive the new `badge_icon` column from the updated RPC but silently ignores it (extra columns are harmless in PostgreSQL query results)
 - SQL `PERFORM` calls in vocab/daily review RPCs (badges still awarded in DB, just no Flutter dialog)
 - `BadgeController` / `badgeControllerProvider` (dead code, separate cleanup)
 - Existing streak/levelup/league dialog widgets
