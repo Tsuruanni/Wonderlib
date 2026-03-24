@@ -141,6 +141,8 @@ class _NotificationGalleryScreenState
                   _buildLevelUpCard(grouped),
                   const SizedBox(height: 16),
                   _buildLeagueChangeCard(grouped),
+                  const SizedBox(height: 16),
+                  _buildBadgeEarnedCard(grouped),
                 ],
               ),
             ),
@@ -314,6 +316,29 @@ class _NotificationGalleryScreenState
           _previewRow('Transition', 'Level X → Level Y', null),
           const SizedBox(height: 6),
           _previewRow('Subtitle', 'Great job! Keep it up!', null),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadgeEarnedCard(
+      Map<String, List<Map<String, dynamic>>> grouped) {
+    return _NotifCard(
+      icon: Icons.emoji_events,
+      iconColor: Colors.amber.shade700,
+      title: 'Badge Earned',
+      description: 'Shown when a student earns a new badge',
+      isEnabled: _getBool(grouped, 'notif_badge_earned'),
+      isSaving: _savingKeys.contains('notif_badge_earned'),
+      onToggle: (v) => _updateSetting('notif_badge_earned', v.toString()),
+      preview: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _previewRow('Single', 'New Badge!',
+              '🏆 Streak Master  +100 XP'),
+          const SizedBox(height: 8),
+          _previewRow('Multiple', '2 New Badges!',
+              '🔥 Streak Master +100 XP\n⭐ Rising Star +50 XP'),
         ],
       ),
     );
