@@ -82,7 +82,7 @@ Add 7 new fields to `SystemSettings` entity and `SystemSettingsModel`:
 | `notifLeagueChange` | `bool` | `true` | `notif_league_change` |
 | `notifFreezeSaved` | `bool` | `true` | `notif_freeze_saved` |
 
-**Model parsing:** `SystemSettingsModel.fromMap` needs `_toBool` helper (similar to existing `_toInt`):
+**Model parsing:** `SystemSettingsModel.fromMap` needs a `_toBool` helper. Note: `_parseJsonbValue` already converts `"true"`/`"false"` strings to native `bool` in the primary `fromRows` path, but `_toBool` is a defensive fallback for direct `fromMap` calls (same pattern as existing `_toInt`):
 ```dart
 static bool _toBool(dynamic v, bool defaultValue) {
   if (v == null) return defaultValue;
@@ -157,6 +157,12 @@ bool get hasEvent =>
 
 The `previousStreak >= 3` stays as the entity's default — the settings-based threshold is applied at the provider level.
 
+**Docstring update:** The comment above `hasEvent` ("Milestone and freeze always...") must be updated to include streak extended.
+
+**Listener guard:** `LevelUpCelebrationListener` (line 35) has a redundant `next.hasEvent` check. Intentionally kept as a harmless safety net — the provider-level gate is authoritative.
+
+**Race condition note:** `systemSettingsProvider` is a `FutureProvider` that may still be loading when `updateStreak()` runs on first app open. The `.valueOrNull ?? SystemSettings.defaults()` fallback is safe — defaults enable all notifications and use `notifStreakBrokenMin = 3`, matching current hardcoded behavior.
+
 ---
 
 ### E. Admin Panel
@@ -211,6 +217,7 @@ The `previousStreak >= 3` stays as the entity's default — the settings-based t
 |------|--------|
 | `lib/presentation/providers/user_provider.dart` | Settings-aware gating for streak, level up, league events |
 | `lib/presentation/widgets/common/streak_event_dialog.dart` | Add streak extended case (Day 1 + Day 2+ with subtitle pool) |
+| `lib/presentation/widgets/common/level_up_celebration.dart` | No code change — listener guard intentionally kept as-is (see D4 note) |
 
 ### Admin Panel
 | File | Change |
