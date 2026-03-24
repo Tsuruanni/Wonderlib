@@ -5,6 +5,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:universal_html/html.dart' as html;
 
@@ -353,7 +354,10 @@ class _UserCreateScreenState extends ConsumerState<UserCreateScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Kullanıcı Oluştur'),
-        leading: BackButton(onPressed: () => Navigator.of(context).pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/users'),
+        ),
       ),
       body: Column(
         children: [
