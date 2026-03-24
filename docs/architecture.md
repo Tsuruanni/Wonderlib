@@ -186,11 +186,22 @@ readeng_admin/                 # Admin panel (separate Flutter web project)
 │       ├── settings/          # System settings
 │       ├── unit_books/        # Unit-book assignments
 │       ├── units/             # Vocabulary unit management
-│       ├── users/             # User management + progress tabs
+│       ├── users/             # User management + creation (single/bulk CSV) + progress tabs
 │       ├── vocabulary/        # Vocabulary word management
 │       └── wordlists/         # Word list management
 ├── pubspec.yaml
 └── web/
+
+supabase/functions/               # Edge Functions (Deno/TypeScript)
+├── award-xp/                     # XP transaction orchestration
+├── bulk-create-students/         # Bulk user creation (students + teachers) with auth.admin API
+├── check-streak/                 # Streak validation
+├── extract-vocabulary/           # AI vocabulary extraction
+├── generate-audio-sync/          # TTS audio generation
+├── generate-chapter-audio/       # Chapter-level audio
+├── league-reset/                 # Weekly league tier reset
+├── migrate-student-emails/       # One-time: migrate student emails to synthetic pattern
+└── reset-student-password/       # Admin/teacher password reset
 
 widgetbook/                   # Standalone UI catalog (separate Flutter project)
 ├── lib/

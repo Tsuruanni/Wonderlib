@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Timezone fix, Admin settings UX, Type-based XP spec)
+Son güncelleme: 2026-03-24 (Username auth, bulk student creation, timezone fix, admin settings UX)
 
 ## Current Phase
 
@@ -95,6 +95,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Dynamic XP Settings (all XP reads from system_settings, 15 unused settings removed)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
+- [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
@@ -109,6 +110,7 @@ See: CLAUDE.md for architecture guidelines
 | Type-Based XP + Combo Refactor | - | Spec done | Replace per-activity and hardcoded vocab XP with admin-configurable type-based settings. Combo → session-end bonus. |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
+| Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
 
 ## Deferred
 
@@ -158,6 +160,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Username Auth & Bulk Creation | 2026-03-24 | Synthetic email login, bulk-create-students Edge Function, admin creation screen, migrate-student-emails, dead student_number auth removed |
 | Timezone & Streak Fix | 2026-03-24 | UTC→Istanbul in app_current_date/app_now, JSONB cast fix that silently broke daily_logins |
 | Admin Settings UX | 2026-03-24 | XP settings grouped with sub-headers, descriptions added to all settings |
 | Book Quiz Admin Integration | 2026-03-23 | Admin quiz navigation, DB trigger for atomic attempt_number, dynamic XP from SystemSettings |

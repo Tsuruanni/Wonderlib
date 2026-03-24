@@ -8,6 +8,36 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Username Auth & Bulk Student Creation (2026-03-24)
+
+#### Added
+- **Username-based login for students** — Students log in with auto-generated usernames (e.g., `mesyil1`) instead of student numbers. Synthetic email pattern (`username@owlio.local`) keeps Supabase Auth unchanged.
+- **Unified login screen** — Single input field with `@` detection: contains `@` → email auth (teachers), otherwise → username auth (students). Replaces old tabbed Email/Student# toggle.
+- **Bulk student creation** — New `/users/create` admin screen with two modes: single creation (student or teacher) and bulk CSV upload (`ad, soyad, sınıf` columns). Auto-generates usernames and passwords (word+3digits format, e.g., `fox047`).
+- **`generate_username()` DB function** — Turkish→ASCII transliteration, first 3 chars of name + first 3 of surname + incrementing number. Advisory lock for concurrency safety.
+- **Class auto-creation** — If a class name doesn't exist for the selected school, it's created automatically during bulk import.
+- **`password_plain` column** — Stores plaintext passwords for admin visibility. Shown in user edit screen (read-only). Not exposed in `safe_profiles` view.
+- **`bulk-create-students` Edge Function** — Creates auth users via `auth.admin.createUser()`, with per-row error handling, duplicate detection, batch limit (200), and retry on username collision.
+- **`migrate-student-emails` Edge Function** — One-time migration script that updates existing students' `auth.users.email` to synthetic emails. Idempotent and admin-only.
+- **`username` in User entity/model** — Added to domain layer for Flutter app access.
+- **CSV download for credentials** — Admin can download created usernames/passwords as CSV after bulk creation.
+
+#### Changed
+- **Admin user list** — Shows `@username` instead of email for students.
+- **Admin user edit** — Displays username and password (read-only). Info banner updated to reference creation page.
+- **`safe_profiles` view** — Now includes `username` column for leaderboard/peer display.
+
+#### Removed
+- **Old CSV user import** — `user_import_screen.dart` deleted (only updated existing profiles, couldn't create users).
+- **`SignInWithStudentNumberUseCase`** — Dead code removed from domain, data, and presentation layers.
+- **Student number login** — `signInWithStudentNumber` removed from `AuthRepository`, `SupabaseAuthRepository`, and `AuthController`.
+
+#### Infrastructure
+- **2 DB migrations** — `20260325000001` (username column, generate_username, class unique index, safe_profiles update, existing student migration), `20260325000002` (password_plain column)
+- **2 Edge Functions** — `bulk-create-students`, `migrate-student-emails`
+- **Spec:** `docs/superpowers/specs/2026-03-24-username-auth-bulk-create-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-username-auth-bulk-create.md`
+
 ### Timezone & Streak Fix (2026-03-24)
 
 #### Fixed
