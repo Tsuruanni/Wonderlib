@@ -81,9 +81,9 @@ class UserListScreen extends ConsumerWidget {
         ),
         actions: [
           OutlinedButton.icon(
-            onPressed: () => context.go('/users/import'),
-            icon: const Icon(Icons.upload, size: 18),
-            label: const Text('CSV İçe Aktar'),
+            onPressed: () => context.go('/users/create'),
+            icon: const Icon(Icons.person_add, size: 18),
+            label: const Text('Kullanıcı Oluştur'),
           ),
           const SizedBox(width: 16),
         ],
