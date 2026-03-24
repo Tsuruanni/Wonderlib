@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../core/utils/app_clock.dart';
 import '../../domain/entities/streak_result.dart';
+import '../../domain/entities/system_settings.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
@@ -13,6 +14,7 @@ import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import 'auth_provider.dart';
+import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
 
 /// Level up event for celebration UI
@@ -127,6 +129,10 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   }
   final Ref _ref;
 
+  /// Read notification settings (fallback to defaults if not yet loaded)
+  SystemSettings get _notifSettings =>
+      _ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+
   Future<void> _loadUserById(String userId) async {
     final oldUser = state.valueOrNull;
     state = const AsyncValue.loading();
@@ -155,7 +161,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   void _checkLeagueTierChange(User? oldUser, User newUser) {
     if (oldUser == null) return;
-    if (oldUser.leagueTier != newUser.leagueTier) {
+    if (oldUser.leagueTier != newUser.leagueTier && _notifSettings.notifLeagueChange) {
       _ref.read(leagueTierChangeEventProvider.notifier).state =
           LeagueTierChangeEvent(
         oldTier: oldUser.leagueTier,
@@ -209,7 +215,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     _ref.invalidate(activityHistoryProvider);
 
     // Check for level up
-    if (user.level > oldLevel) {
+    if (user.level > oldLevel && _notifSettings.notifLevelUp) {
       _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
         oldLevel: oldLevel,
         newLevel: user.level,
@@ -241,8 +247,14 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
     _ref.invalidate(loginDatesProvider);
 
-    // Fire streak event if anything notable happened
-    if (streakResult.hasEvent) {
+    // Fire streak event if settings allow it
+    final s = _notifSettings;
+    final shouldShow =
+        (streakResult.milestoneBonusXp > 0 && s.notifMilestone) ||
+        (streakResult.freezeUsed && !streakResult.streakBroken && s.notifFreezeSaved) ||
+        (streakResult.streakBroken && streakResult.previousStreak >= s.notifStreakBrokenMin && s.notifStreakBroken) ||
+        (streakResult.streakExtended && s.notifStreakExtended);
+    if (shouldShow) {
       _ref.read(streakEventProvider.notifier).state = streakResult;
     }
   }
@@ -280,7 +292,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
       (_) => null,
       (user) {
         state = AsyncValue.data(user);
-        if (user.level > oldLevel) {
+        if (user.level > oldLevel && _notifSettings.notifLevelUp) {
           _ref.read(levelUpEventProvider.notifier).state = LevelUpEvent(
             oldLevel: oldLevel,
             newLevel: user.level,
