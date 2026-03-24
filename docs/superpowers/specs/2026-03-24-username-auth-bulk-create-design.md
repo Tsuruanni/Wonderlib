@@ -82,10 +82,13 @@
 ```sql
 ALTER TABLE profiles ADD COLUMN username VARCHAR(20);
 CREATE UNIQUE INDEX idx_profiles_username ON profiles(username) WHERE username IS NOT NULL;
+
+-- Prevent duplicate classes with NULL academic_year (needed for class auto-creation)
+CREATE UNIQUE INDEX idx_classes_unique_null_year ON classes(school_id, name) WHERE academic_year IS NULL;
 ```
 
-- Nullable: only students have usernames, teachers/admins have NULL
-- Unique where not null
+- `username`: Nullable — only students have usernames, teachers/admins have NULL. Unique where not null.
+- `idx_classes_unique_null_year`: Prevents concurrent class auto-creation from producing duplicate classes. PostgreSQL treats NULL ≠ NULL for unique constraints, so this partial index is needed.
 
 #### D2. `generate_username()` function
 
@@ -203,7 +206,7 @@ Add `username` to the `safe_profiles` view so it's visible in leaderboard/peer q
 ```json
 {
   "created": [
-    { "first_name": "Mesut", "last_name": "Yılmaz", "username": "mesyil1", "password": "fox47", "class_name": "5-A" }
+    { "first_name": "Mesut", "last_name": "Yılmaz", "username": "mesyil1", "password": "fox047", "class_name": "5-A" }
   ],
   "errors": [
     { "first_name": "???", "last_name": "", "error": "last_name is required" }
@@ -315,8 +318,15 @@ Future<void> _login(String input, String password) async {
 
 When a class name from CSV doesn't exist for the selected school:
 
-- Edge Function looks up class: `SELECT id FROM classes WHERE school_id = $1 AND name = $2 AND academic_year IS NULL LIMIT 1`
-- If not found, creates: `INSERT INTO classes (school_id, name) VALUES (school_id, class_name) RETURNING id`
+- Edge Function upserts class:
+  ```sql
+  INSERT INTO classes (school_id, name)
+  VALUES ($1, $2)
+  ON CONFLICT (school_id, name) WHERE academic_year IS NULL
+  DO NOTHING
+  RETURNING id;
+  ```
+  If `RETURNING` is empty (conflict), follow up with `SELECT id FROM classes WHERE school_id = $1 AND name = $2 AND academic_year IS NULL`
 - No additional admin action needed
 - Tekli oluşturmada dropdown includes "Yeni sınıf ekle" option with text input
 
