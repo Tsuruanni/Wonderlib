@@ -29,7 +29,8 @@ Each notification type gets one card. Cards are arranged in a single-column layo
 - Toggle: `notif_streak_extended`
 - Preview content:
   - Day 1: `"Day 1! Let's go!"` / `"Your learning streak starts today!"`
-  - Day 2+: `"Day X!"` + subtitle pool listed (Keep it up!, You're on fire!, Great habit!, Consistency is key!, Unstoppable!, Nice streak!)
+  - Day 2+: `"Day X!"` + subtitle cycles deterministically by streak day (`pool[newStreak % 6]`):
+    1. "Keep it up!" 2. "You're on fire!" 3. "Great habit!" 4. "Consistency is key!" 5. "Unstoppable!" 6. "Nice streak!"
 
 **Card 2: Milestone**
 - Icon: 🏆 (star, orange)
@@ -45,9 +46,10 @@ Each notification type gets one card. Cards are arranged in a single-column layo
 **Card 4: Streak Broken**
 - Icon: 💔 (fire, grey)
 - Toggle: `notif_streak_broken`
-- Inline parameter: `notif_streak_broken_min` (number input)
-- Preview (tiered):
-  - ≤6 days: `"Welcome Back!"` / `"Start a new streak today."`
+- Inline parameter: `notif_streak_broken_min` (number input, default 3)
+- Note: Only triggers when broken streak was ≥ `notif_streak_broken_min` days
+- Preview (tiered by previous streak length):
+  - 3-6 days: `"Welcome Back!"` / `"Start a new streak today."`
   - 7-9 days: `"Your X-day streak ended"` / `"You can build it again!"`
   - 10-20 days: `"Your X-day streak was broken"` / `"Don't give up!"`
   - 20+ days: `"Your X-day streak was broken"` / `"That was impressive — you can do it again!"`
@@ -55,24 +57,27 @@ Each notification type gets one card. Cards are arranged in a single-column layo
 **Card 5: Level Up**
 - Icon: ⬆️ (celebration, indigo)
 - Toggle: `notif_level_up`
-- Preview: `"Level Up! Level X → Level Y"`
+- Preview:
+  - Title: `"Level Up!"`
+  - Transition: `"Level X → Level Y"`
+  - Subtitle: `"Great job! Keep it up!"`
 
 **Card 6: League Change**
 - Icon: 🏅 (trophy, varied)
 - Toggle: `notif_league_change`
 - Preview:
-  - Promotion: `"League Promoted! Bronze → Silver"`
-  - Demotion: `"League Demoted"`
+  - Promotion: `"League Promoted!"` / `"OldTier → NewTier"` / `"Great work this week! Keep climbing!"`
+  - Demotion: `"League Demoted"` / `"OldTier → NewTier"` / `"Keep practicing to climb back up!"`
 
-### C. Toggle Behavior
+### C. Data Access
 
-Toggles read and write directly to `system_settings` via the existing Supabase REST API pattern (same as the settings page). When toggled, `UPDATE system_settings SET value = '"true"'/"false"' WHERE key = '...'`.
+The page reuses the existing `settingsProvider` from `settings_screen.dart` to load all settings (it fetches all categories). The notification gallery filters for `notification` category keys from the grouped result. This avoids duplicating the Supabase query logic.
 
-The `notif_streak_broken_min` number input uses `onFieldSubmitted` to save (same pattern as settings page).
+For writes, toggles and number input use the same `_updateSetting` pattern: `supabase.from(DbTables.systemSettings).update({'value': newValue}).eq('key', key)` with `settingsProvider` invalidation after save.
 
 ### D. Settings Page Cleanup
 
-Remove `notification` from the settings page categories list. Notification settings are now managed exclusively on `/notifications`.
+Remove `notification` from the settings page categories list in `router.dart`. Also remove the `notification` entries from `categoryLabels`, `categoryIcons`, and `categoryColors` maps in `settings_screen.dart` — they become dead code once the category is no longer passed in.
 
 ### E. Dashboard Card
 
