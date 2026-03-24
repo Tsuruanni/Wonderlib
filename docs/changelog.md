@@ -8,6 +8,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Quest Eligibility Fix (2026-03-24)
+
+#### Fixed
+- **Daily review quest shown when impossible** — `daily_review` quest appeared for users with < 10 due words, but the review UI requires 10+ words. Users saw an incomplete quest they couldn't finish.
+- **Free XP exploit** — Users with 0 vocabulary words got auto-completed `daily_review` quest + 20 XP daily for doing nothing (from earlier edge-case migration).
+- **Bonus claim mismatch** — `claim_daily_bonus` counted all active quests (3) but `get_daily_quest_progress` could return fewer (2). Users who completed all visible quests got "Not all quests completed" error when claiming bonus.
+- **`claim_daily_quest_pack` wrong date source** — Missed by debug_time_offset migration, still used raw `CURRENT_DATE`/`NOW()` instead of `app_current_date()`/`app_now()`.
+
+#### Infrastructure
+- **2 DB migrations** — `20260325000005` (daily_review min 10 words + claim_daily_bonus fix), `20260325000006` (pack claim date offset fix)
+
 ### Performance: Parallel Data Fetching (2026-03-24)
 
 #### Fixed

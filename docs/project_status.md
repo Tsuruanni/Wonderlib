@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Performance parallel data fetching, admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
+Son güncelleme: 2026-03-24 (Daily quest eligibility fix, pack claim date offset fix, performance parallel data fetching, admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
 
 ## Current Phase
 
@@ -166,6 +166,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Daily Quest Eligibility Fix | 2026-03-24 | daily_review quest hidden when < 10 due words, XP exploit closed, bonus claim aligned, pack claim date offset fixed. 2 migrations. |
 | Performance: Parallel Data Fetching | 2026-03-24 | 7 N+1/sequential fixes across vocabulary hub, word bank, daily review, reader, leaderboard. 2 new batch repository methods + use cases. |
 | Type-Based XP + Combo Refactor | 2026-03-24 | 12 new settings, inline XP from settings, vocab flat XP, combo session-end bonus, RPC reads bonuses from DB |
 | Notification Settings + Streak Extended | 2026-03-24 | Daily "Day X!" dialog, 7 notification toggles in system_settings, settings-aware event gating |
