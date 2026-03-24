@@ -240,12 +240,15 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     badgeResult.fold(
       (_) {}, // Ignore badge check failures
       (badges) {
-        if (badges.isNotEmpty && _notifSettings.notifBadgeEarned) {
-          _ref.read(badgeEarnedEventProvider.notifier).state =
-              BadgeEarnedEvent(badges: badges);
+        if (badges.isNotEmpty) {
+          if (_notifSettings.notifBadgeEarned) {
+            _ref.read(badgeEarnedEventProvider.notifier).state =
+                BadgeEarnedEvent(badges: badges);
+          }
+          _ref.invalidate(userBadgesProvider);
+          // Re-fetch profile so badge XP is reflected in UI
+          refreshProfileOnly();
         }
-        // Invalidate badge providers so profile reflects new badges
-        _ref.invalidate(userBadgesProvider);
       },
     );
 
@@ -291,11 +294,15 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     badgeResult.fold(
       (_) {},
       (badges) {
-        if (badges.isNotEmpty && _notifSettings.notifBadgeEarned) {
-          _ref.read(badgeEarnedEventProvider.notifier).state =
-              BadgeEarnedEvent(badges: badges);
+        if (badges.isNotEmpty) {
+          if (_notifSettings.notifBadgeEarned) {
+            _ref.read(badgeEarnedEventProvider.notifier).state =
+                BadgeEarnedEvent(badges: badges);
+          }
+          _ref.invalidate(userBadgesProvider);
+          // Re-fetch profile so badge XP is reflected in UI
+          refreshProfileOnly();
         }
-        _ref.invalidate(userBadgesProvider);
       },
     );
   }

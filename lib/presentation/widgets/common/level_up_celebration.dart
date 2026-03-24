@@ -34,12 +34,12 @@ class _LevelUpCelebrationListenerState
   }
 
   Future<void> _processQueue() async {
-    if (_isShowingDialog || _dialogQueue.isEmpty) return;
+    if (!mounted || _isShowingDialog || _dialogQueue.isEmpty) return;
     _isShowingDialog = true;
     final fn = _dialogQueue.removeAt(0);
     await fn();
     _isShowingDialog = false;
-    _processQueue();
+    if (mounted) _processQueue();
   }
 
   @override
