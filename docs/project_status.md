@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Username auth, bulk student creation, timezone fix, admin settings UX)
+Son güncelleme: 2026-03-24 (Type-based XP, notification settings, notification gallery, username auth)
 
 ## Current Phase
 
@@ -93,6 +93,9 @@ See: CLAUDE.md for architecture guidelines
 - [x] Debug Time Offset (system-wide app_current_date/app_now, AppClock, admin-configurable)
 - [x] Book Quiz Admin Integration (admin navigation, atomic attempt_number, dynamic XP)
 - [x] Dynamic XP Settings (all XP reads from system_settings, 15 unused settings removed)
+- [x] Type-Based XP + Combo Refactor (per-activity → type-based, combo → session-end bonus, 12 new settings)
+- [x] Notification Settings + Streak Extended (daily Day X! dialog, 7 admin-configurable notification toggles)
+- [x] Admin Notification Gallery (dedicated /notifications page with preview cards)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
@@ -107,7 +110,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Type-Based XP + Combo Refactor | - | Spec done | Replace per-activity and hardcoded vocab XP with admin-configurable type-based settings. Combo → session-end bonus. |
+| ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
@@ -160,6 +163,9 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Type-Based XP + Combo Refactor | 2026-03-24 | 12 new settings, inline XP from settings, vocab flat XP, combo session-end bonus, RPC reads bonuses from DB |
+| Notification Settings + Streak Extended | 2026-03-24 | Daily "Day X!" dialog, 7 notification toggles in system_settings, settings-aware event gating |
+| Admin Notification Gallery | 2026-03-24 | Dedicated /notifications page with 6 preview cards + toggles, dashboard card |
 | Username Auth & Bulk Creation | 2026-03-24 | Synthetic email login, bulk-create-students Edge Function, admin creation screen, migrate-student-emails, dead student_number auth removed |
 | Timezone & Streak Fix | 2026-03-24 | UTC→Istanbul in app_current_date/app_now, JSONB cast fix that silently broke daily_logins |
 | Admin Settings UX | 2026-03-24 | XP settings grouped with sub-headers, descriptions added to all settings |

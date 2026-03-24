@@ -558,7 +558,7 @@ List<bool> calculateLocks({
 /// Replaces the old vocabularyUnitsProvider + unitBooksProvider combination.
 /// Returns hierarchical data: learning paths → units → items (word lists + books, interleaved by sort_order).
 final userLearningPathsProvider = FutureProvider<List<LearningPath>>((ref) async {
-  final user = ref.watch(currentUserProvider).value;
+  final user = await ref.watch(currentUserProvider.future);
   if (user == null) return [];
   final useCase = ref.watch(getUserLearningPathsUseCaseProvider);
   final result = await useCase(GetUserLearningPathsParams(userId: user.id));

@@ -8,6 +8,48 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Type-Based XP + Combo Refactor (2026-03-24)
+
+#### Added
+- **12 new system_settings entries** — Admin-configurable XP values for inline activities (4 types), vocab question types (5 groups), combo bonus, session bonus, perfect bonus
+- **Combo session-end bonus** — Combo no longer multiplies per-question XP. Instead, `maxCombo × combo_bonus_xp` is awarded as a one-time bonus at session end. Shown separately in session summary.
+
+#### Changed
+- **Inline activity XP** — Now reads from `systemSettingsProvider` by activity type instead of per-activity `xp_reward` DB column. All 4 widget callbacks simplified (removed `xpEarned` param).
+- **Vocab session XP** — `QuestionTypeXP` extension deleted. `answerQuestion`/`answerMatchingQuestion` take `SystemSettings` param, use flat baseXP from settings.
+- **`complete_vocabulary_session` RPC** — Session and perfect bonuses now read from `system_settings` table instead of hardcoded `v_session_bonus=10` / `v_perfect_bonus=20`.
+- **Admin activity editor** — `xp_reward: 5` removed from INSERT (DB default covers it).
+
+#### Infrastructure
+- **2 DB migrations** — Settings INSERT + RPC update
+- **Spec:** `docs/superpowers/specs/2026-03-23-type-based-xp-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-23-type-based-xp.md`
+
+### Notification Settings + Streak Extended (2026-03-24)
+
+#### Added
+- **Daily streak notification** — "Day X!" dialog shown every time user opens the app. Day 1 shows motivational "Day 1! Let's go!", Day 2+ cycles through 6 subtitles deterministically.
+- **7 notification settings** — Admin-configurable toggles for all 6 notification types (streak extended, milestone, freeze saved, streak broken, level up, league change) + `notif_streak_broken_min` threshold.
+- **Settings-aware event gating** — All 3 event types (streak, level up, league) in `UserController` now check system_settings before firing. `previousStreak >= 3` hardcode replaced with configurable `notifStreakBrokenMin`.
+
+#### Infrastructure
+- **1 DB migration** — 7 notification settings
+- **Spec:** `docs/superpowers/specs/2026-03-24-notification-settings-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-notification-settings.md`
+
+### Admin Notification Gallery (2026-03-24)
+
+#### Added
+- **`/notifications` admin page** — Dedicated page showing all 6 notification types as preview cards with toggles. Each card shows exact message text users will see, with inline `notif_streak_broken_min` parameter.
+- **Dashboard card** — "Notifications" card (indigo) on admin dashboard linking to the gallery.
+
+#### Changed
+- **Notification settings removed from general settings page** — Now exclusively managed on `/notifications`.
+
+#### Infrastructure
+- **Spec:** `docs/superpowers/specs/2026-03-24-notification-gallery-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-notification-gallery.md`
+
 ### Username Auth & Bulk Student Creation (2026-03-24)
 
 #### Added

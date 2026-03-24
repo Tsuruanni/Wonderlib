@@ -26,7 +26,7 @@ class BookLockInfo {
 /// Teachers are never locked. Students may have locks if they have active
 /// book assignments with lockLibrary=true.
 final bookLockProvider = FutureProvider<BookLockInfo>((ref) async {
-  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  final user = await ref.watch(authStateChangesProvider.future);
 
   // Teachers/admins are never locked
   if (user == null) {
