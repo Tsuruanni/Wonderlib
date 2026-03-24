@@ -5,6 +5,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/level_helper.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../providers/student_profile_popup_provider.dart';
@@ -284,9 +285,7 @@ class StudentProfileDialog extends ConsumerWidget {
   }
 
   Widget _buildLevelProgress() {
-    final xpInLevel = entry.totalXp - _xpForLevel(entry.level);
-    final xpNeeded = _xpForLevel(entry.level + 1) - _xpForLevel(entry.level);
-    final progress = xpNeeded > 0 ? (xpInLevel / xpNeeded).clamp(0.0, 1.0) : 1.0;
+    final progress = LevelHelper.progress(entry.totalXp, entry.level);
 
     return Column(
       children: [
@@ -427,14 +426,6 @@ class StudentProfileDialog extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// XP threshold for a given level: level * (level + 1) * 50
-  /// But we compute backwards: threshold(n) = n * (n-1) * 50
-  /// Actually: level n starts at n*(n-1)*50 XP
-  static int _xpForLevel(int level) {
-    if (level <= 1) return 0;
-    return (level - 1) * level * 50;
   }
 
   static Color _getTierColor(LeagueTier tier) {
