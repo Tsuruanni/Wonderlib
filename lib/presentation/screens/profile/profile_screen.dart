@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/level_helper.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/card_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/common/pressable_scale.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -336,8 +341,94 @@ class _LevelXpSection extends StatelessWidget {
 
 class _CardCollectionSection extends ConsumerWidget {
   const _CardCollectionSection();
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => const SizedBox.shrink();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final statsAsync = ref.watch(userCardStatsProvider);
+
+    return statsAsync.when(
+      loading: () => const SizedBox(height: 80),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (stats) {
+        const totalCards = AppConstants.totalCardCount;
+        final progress = stats.totalUniqueCards / totalCards;
+
+        return PressableScale(
+          onTap: () => context.push(AppRoutes.cards),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.cardEpic.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.cardEpic.withValues(alpha: 0.3),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.cardEpic.withValues(alpha: 0.1),
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.collections_bookmark_rounded,
+                        size: 22, color: AppColors.cardEpic),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Card Collection',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${stats.totalUniqueCards} / $totalCards',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: AppColors.cardEpic,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.chevron_right_rounded,
+                        size: 20, color: AppColors.cardEpic),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(5),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                    color: AppColors.cardEpic,
+                    minHeight: 8,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${stats.totalPacksOpened} packs opened',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _RecentBadgesSection extends ConsumerWidget {
