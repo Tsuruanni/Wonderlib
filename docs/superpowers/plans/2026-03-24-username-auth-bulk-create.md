@@ -20,18 +20,17 @@
 ### Edge Function
 - **Create:** `supabase/functions/bulk-create-students/index.ts` — bulk user creation with auth.admin API
 
-### Shared Package
-- **Modify:** `packages/owlio_shared/lib/src/constants/rpc_functions.dart` — add `generateUsername` constant
-
 ### Admin Panel (owlio_admin)
 - **Create:** `owlio_admin/lib/features/users/screens/user_create_screen.dart` — new user creation screen (tekli + toplu CSV)
 - **Modify:** `owlio_admin/lib/core/router.dart` — replace `/users/import` route with `/users/create`
 - **Modify:** `owlio_admin/lib/features/users/screens/user_list_screen.dart` — update CSV import button → "Kullanıcı Oluştur", add username column
-- **Modify:** `owlio_admin/lib/features/users/screens/user_edit_screen.dart` — show username (read-only), remove student_number edit
+- **Modify:** `owlio_admin/lib/features/users/screens/user_edit_screen.dart` — show username (read-only), update stale info banner, remove student_number edit
 - **Delete:** `owlio_admin/lib/features/users/screens/user_import_screen.dart` — old CSV import
 
 ### Flutter App (main app)
-- **Modify:** `lib/presentation/screens/auth/login_screen.dart` — unified login (username or email)
+- **Modify:** `lib/domain/entities/user.dart` — add `username` field
+- **Modify:** `lib/data/models/user/user_model.dart` — add `username` to fromJson/toJson/toEntity
+- **Modify:** `lib/presentation/screens/auth/login_screen.dart` — unified login (username or email), update dev shortcuts
 - **Modify:** `lib/presentation/providers/auth_provider.dart` — remove signInWithStudentNumber from AuthController
 - **Modify:** `lib/domain/repositories/auth_repository.dart` — remove signInWithStudentNumber method
 - **Modify:** `lib/data/repositories/supabase/supabase_auth_repository.dart` — remove signInWithStudentNumber implementation
@@ -131,30 +130,34 @@ END $$;
 
 - [ ] **Step 4: Add safe_profiles view update to the same file**
 
-First check existing `safe_profiles` view definition. It's in migration `20260316000002`. The view must be replaced to include `username`.
+The existing view is defined in migration `20260316000002_restrict_profiles_visibility.sql`. Replace it to include `username`:
 
 ```sql
 -- 4. Update safe_profiles view to include username
 CREATE OR REPLACE VIEW safe_profiles AS
 SELECT
-  id,
-  first_name,
-  last_name,
-  role,
-  school_id,
-  class_id,
-  username,
-  xp,
-  level,
-  current_streak,
-  longest_streak,
-  league,
-  created_at,
-  last_active_at
+    id,
+    school_id,
+    class_id,
+    role,
+    first_name,
+    last_name,
+    avatar_url,
+    username,
+    xp,
+    level,
+    current_streak,
+    longest_streak,
+    league_tier,
+    last_activity_date,
+    created_at
+    -- Deliberately omits: email, student_number, coins, settings
 FROM profiles;
-```
 
-**Note:** Check the exact columns in the existing `safe_profiles` view before writing this. The above is a template — match existing columns exactly, just add `username`.
+GRANT SELECT ON safe_profiles TO authenticated;
+
+COMMENT ON VIEW safe_profiles IS 'Student-safe profile view. Omits email, student_number, coins, settings. Includes username for public display.';
+```
 
 - [ ] **Step 5: Preview migration**
 
@@ -189,35 +192,7 @@ git commit -m "feat(db): add username column, generate_username function, migrat
 
 ---
 
-## Task 2: Shared Package — Add generateUsername RPC Constant
-
-**Files:**
-- Modify: `packages/owlio_shared/lib/src/constants/rpc_functions.dart`
-
-- [ ] **Step 1: Add constant to RpcFunctions class**
-
-Open `/Users/wonderelt/Desktop/Owlio/packages/owlio_shared/lib/src/constants/rpc_functions.dart` and add:
-
-```dart
-static const generateUsername = 'generate_username';
-```
-
-Add it alphabetically near other constants.
-
-- [ ] **Step 2: Run pub get in shared package**
-
-Run: `cd /Users/wonderelt/Desktop/Owlio/packages/owlio_shared && dart pub get`
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add packages/owlio_shared/lib/src/constants/rpc_functions.dart
-git commit -m "feat(shared): add generateUsername RPC constant"
-```
-
----
-
-## Task 3: Edge Function — bulk-create-students
+## Task 2: Edge Function — bulk-create-students
 
 **Files:**
 - Create: `supabase/functions/bulk-create-students/index.ts`
@@ -389,24 +364,12 @@ serve(async (req: Request) => {
     // Class cache to avoid repeated lookups
     const classCache = new Map<string, string>();
 
-    // --- Helper: get or create class ---
+    // --- Helper: get or create class (SELECT-first, INSERT-if-not-found, SELECT-again-on-conflict) ---
     async function getOrCreateClass(className: string): Promise<string> {
       const cached = classCache.get(className);
       if (cached) return cached;
 
-      // Try insert (ON CONFLICT does nothing if exists)
-      const { data: inserted } = await supabaseAdmin
-        .from("classes")
-        .insert({ school_id, name: className })
-        .select("id")
-        .single();
-
-      if (inserted) {
-        classCache.set(className, inserted.id);
-        return inserted.id;
-      }
-
-      // Conflict: class already exists, fetch it
+      // Try to find existing class first
       const { data: existing } = await supabaseAdmin
         .from("classes")
         .select("id")
@@ -418,6 +381,36 @@ serve(async (req: Request) => {
       if (existing) {
         classCache.set(className, existing.id);
         return existing.id;
+      }
+
+      // Not found — try to insert
+      try {
+        const { data: inserted, error } = await supabaseAdmin
+          .from("classes")
+          .insert({ school_id, name: className })
+          .select("id")
+          .single();
+
+        if (inserted && !error) {
+          classCache.set(className, inserted.id);
+          return inserted.id;
+        }
+      } catch {
+        // Unique constraint conflict from concurrent insert — fall through to re-fetch
+      }
+
+      // Re-fetch (handles race condition where concurrent request created it)
+      const { data: refetched } = await supabaseAdmin
+        .from("classes")
+        .select("id")
+        .eq("school_id", school_id)
+        .eq("name", className)
+        .is("academic_year", null)
+        .single();
+
+      if (refetched) {
+        classCache.set(className, refetched.id);
+        return refetched.id;
       }
 
       throw new Error(`Could not find or create class: ${className}`);
@@ -511,30 +504,56 @@ serve(async (req: Request) => {
           continue;
         }
 
-        // Update profile (trigger already created it, we just need to set extra fields)
-        const { error: updateError } = await supabaseAdmin
-          .from("profiles")
-          .update({
-            username: username,
-            school_id: school_id,
-            class_id: classId,
-            email: null, // Clear synthetic email from profiles
-          })
-          .eq("id", authData.user.id);
+        // Update profile with username (retry on unique violation — advisory lock is per-transaction
+        // but RPC call has its own transaction, so a race is theoretically possible)
+        let finalUsername = username;
+        let updateSuccess = false;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const { error: updateError } = await supabaseAdmin
+            .from("profiles")
+            .update({
+              username: finalUsername,
+              school_id: school_id,
+              class_id: classId,
+              email: null, // Clear synthetic email from profiles
+            })
+            .eq("id", authData.user.id);
 
-        if (updateError) {
-          errors.push({
-            first_name: firstName,
-            last_name: lastName,
-            error: `Profile update failed: ${updateError.message}`,
-          });
-          continue;
+          if (!updateError) {
+            updateSuccess = true;
+            break;
+          }
+
+          // If unique violation on username, regenerate and retry
+          if (updateError.code === "23505" && updateError.message.includes("username")) {
+            const { data: retryUsername } = await supabaseAdmin
+              .rpc("generate_username", { p_first_name: firstName, p_last_name: lastName });
+            if (retryUsername) {
+              finalUsername = retryUsername as string;
+              // Also update the auth email to match new username
+              await supabaseAdmin.auth.admin.updateUserById(authData.user.id, {
+                email: `${finalUsername}@owlio.local`,
+              });
+            }
+          } else {
+            errors.push({
+              first_name: firstName,
+              last_name: lastName,
+              error: `Profile update failed: ${updateError.message}`,
+            });
+            break;
+          }
         }
+
+        if (!updateSuccess) continue;
+
+        // Use finalUsername (may differ from original if retried)
+        const usedUsername = finalUsername;
 
         created.push({
           first_name: firstName,
           last_name: lastName,
-          username: username,
+          username: usedUsername,
           password: password,
           class_name: className,
           role: "student",
@@ -684,7 +703,7 @@ git commit -m "feat(edge): add bulk-create-students Edge Function"
 
 ---
 
-## Task 4: Admin Panel — Remove Old CSV Import
+## Task 3: Admin Panel — Remove Old CSV Import
 
 **Files:**
 - Delete: `owlio_admin/lib/features/users/screens/user_import_screen.dart`
@@ -737,7 +756,7 @@ git commit -m "refactor(admin): remove old CSV user import screen"
 
 ---
 
-## Task 5: Admin Panel — User Creation Screen
+## Task 4: Admin Panel — User Creation Screen
 
 **Files:**
 - Create: `owlio_admin/lib/features/users/screens/user_create_screen.dart`
@@ -784,7 +803,7 @@ final createClassesProvider = FutureProvider.family<List<Map<String, dynamic>>, 
       .from(DbTables.classes)
       .select('id, name')
       .eq('school_id', schoolId)
-      .is_('academic_year', null)
+      .isFilter('academic_year', null)
       .order('name');
   return List<Map<String, dynamic>>.from(response);
 });
@@ -1073,6 +1092,7 @@ Widget _buildResultsTable() {
 CSV download implementation:
 
 ```dart
+/// CSV download using universal_html (add to pubspec: universal_html: ^2.2.4)
 void _downloadCsv() {
   final csvData = [
     ['Ad', 'Soyad', 'Kullanıcı Adı', 'Şifre', 'Sınıf', 'Rol'],
@@ -1088,6 +1108,8 @@ void _downloadCsv() {
 
   final csv = const ListToCsvConverter().convert(csvData);
   final bytes = utf8.encode(csv);
+  // Use universal_html for web-safe download
+  // import 'package:universal_html/html.dart' as html;
   final blob = html.Blob([bytes]);
   final url = html.Url.createObjectUrlFromBlob(blob);
   html.AnchorElement(href: url)
@@ -1096,6 +1118,8 @@ void _downloadCsv() {
   html.Url.revokeObjectUrl(url);
 }
 ```
+
+**Note:** Add `universal_html: ^2.2.4` to `owlio_admin/pubspec.yaml` dependencies. This is the standard cross-platform replacement for `dart:html`. Import as `import 'package:universal_html/html.dart' as html;`
 
 - [ ] **Step 7: Verify with dart analyze**
 
@@ -1112,7 +1136,7 @@ git commit -m "feat(admin): add user creation screen with single + bulk CSV mode
 
 ---
 
-## Task 6: Admin Panel — Update User List and Edit Screens
+## Task 5: Admin Panel — Update User List and Edit Screens
 
 **Files:**
 - Modify: `owlio_admin/lib/features/users/screens/user_list_screen.dart`
@@ -1163,23 +1187,94 @@ if (user['username'] != null)
   ),
 ```
 
-- [ ] **Step 4: Remove student_number edit from user edit screen**
+- [ ] **Step 4: Update stale info banner in user edit screen**
+
+In `user_edit_screen.dart` (line 298), replace the stale banner text:
+
+Old: `'Yeni kullanıcılar Supabase Dashboard üzerinden oluşturulur. '`
+New: `'Yeni kullanıcılar Kullanıcı Oluştur sayfasından eklenebilir.'`
+
+- [ ] **Step 5: Remove student_number edit from user edit screen**
 
 In `user_edit_screen.dart`, find the `_studentNumberController` and its TextFormField (around lines 85 and 427-434). Remove the editable student_number field, or keep it as read-only display-only:
 
 Change from editable to read-only, or remove entirely if student_number is no longer relevant.
 
-- [ ] **Step 5: Verify with dart analyze**
+- [ ] **Step 6: Verify with dart analyze**
 
 Run: `cd /Users/wonderelt/Desktop/Owlio/owlio_admin && dart analyze lib/`
 Expected: No errors
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add owlio_admin/lib/features/users/screens/user_list_screen.dart
 git add owlio_admin/lib/features/users/screens/user_edit_screen.dart
-git commit -m "feat(admin): show username in user list and edit screens"
+git commit -m "feat(admin): show username in user list and edit screens, update stale banner"
+```
+
+---
+
+## Task 6: Flutter App — Add username to User Entity and Model
+
+**Files:**
+- Modify: `lib/domain/entities/user.dart`
+- Modify: `lib/data/models/user/user_model.dart`
+
+- [ ] **Step 1: Add username field to User entity**
+
+In `/Users/wonderelt/Desktop/Owlio/lib/domain/entities/user.dart`, add `username` field:
+
+```dart
+// Add to constructor (after studentNumber):
+this.username,
+
+// Add field:
+final String? username;
+
+// Add to copyWith:
+String? username,
+// ... in return:
+username: username ?? this.username,
+
+// Add to props:
+username,
+```
+
+- [ ] **Step 2: Add username to UserModel**
+
+In `/Users/wonderelt/Desktop/Owlio/lib/data/models/user/user_model.dart`:
+
+```dart
+// Add to constructor (after studentNumber):
+this.username,
+
+// Add field:
+final String? username;
+
+// Add to fromJson (after studentNumber line):
+username: json['username'] as String?,
+
+// Add to fromEntity:
+username: entity.username,
+
+// Add to toJson (after student_number):
+'username': username,
+
+// Add to toEntity (after studentNumber):
+username: username,
+```
+
+- [ ] **Step 3: Verify no broken references**
+
+Run: `cd /Users/wonderelt/Desktop/Owlio && dart analyze lib/`
+Expected: No errors
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add lib/domain/entities/user.dart lib/data/models/user/user_model.dart
+git commit -m "feat(domain): add username field to User entity and UserModel"
 ```
 
 ---
@@ -1269,12 +1364,42 @@ Future<void> _login() async {
 
 **Note:** This uses the existing `signInWithEmail()` method since we're converting username to synthetic email. No need for a new auth method.
 
-- [ ] **Step 4: Verify with dart analyze**
+- [ ] **Step 4: Update dev shortcuts (debug mode quick login)**
+
+The login screen has `_quickLogin` dev shortcuts (lines 261-362) that use real emails like `fresh@demo.com`. After the D4 migration, these students' auth emails will be `username@owlio.local`.
+
+Update `_quickLogin` to work with the new unified login — it should pass through the same `@` detection logic:
+
+```dart
+Future<void> _quickLogin(String identity, String password) async {
+  _identityController.text = identity;
+  _passwordController.text = password;
+  await _login();
+}
+```
+
+Update the dev chip calls: student shortcuts should use usernames (will be known after D3 migration), teacher/admin shortcuts keep emails:
+
+```dart
+// Students — these will use usernames after D4 migration runs
+// The exact usernames depend on generate_username output for seed data
+// For now, keep as emails — they'll work until D4 migration runs
+// After D4, update to: _quickLogin('fredem1', 'Test1234')
+onTap: () => _quickLogin('fresh@demo.com', 'Test1234'),
+
+// Teachers/admins — keep as emails (unchanged)
+onTap: () => _quickLogin('teacher@demo.com', 'Test1234'),
+onTap: () => _quickLogin('admin@demo.com', 'Test1234'),
+```
+
+**Important:** Dev shortcuts for students must be updated to usernames AFTER Task 8 (D4 migration) runs and the exact usernames are known. Add a TODO comment in the code for this.
+
+- [ ] **Step 5: Verify with dart analyze**
 
 Run: `cd /Users/wonderelt/Desktop/Owlio && dart analyze lib/`
 Expected: No errors (may have warnings about unused student number imports — will clean in next task)
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add lib/presentation/screens/auth/login_screen.dart
@@ -1333,6 +1458,8 @@ git commit -m "refactor(auth): remove dead student number auth code"
 ---
 
 ## Task 9: Migration Script — Existing Students Auth Email Update (D4)
+
+> **DEPLOYMENT NOTE:** This task and Task 7 (Flutter login change) MUST be deployed atomically. See Migration Strategy in spec.
 
 > **WARNING:** This task is DESTRUCTIVE — existing students cannot log in with old emails after this runs. Deploy together with the Flutter login change (Task 7).
 
