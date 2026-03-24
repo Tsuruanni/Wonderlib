@@ -31,6 +31,7 @@ class SystemSettings extends Equatable {
     this.notifLevelUp = true,
     this.notifLeagueChange = true,
     this.notifFreezeSaved = true,
+    this.notifBadgeEarned = true,
     // Streak
     this.streakFreezePrice = 50,
     this.streakFreezeMax = 2,
@@ -69,6 +70,7 @@ class SystemSettings extends Equatable {
   final bool notifLevelUp;
   final bool notifLeagueChange;
   final bool notifFreezeSaved;
+  final bool notifBadgeEarned;
 
   // Streak
   final int streakFreezePrice;
@@ -104,6 +106,7 @@ class SystemSettings extends Equatable {
         notifLevelUp,
         notifLeagueChange,
         notifFreezeSaved,
+        notifBadgeEarned,
         streakFreezePrice,
         streakFreezeMax,
         debugDateOffset,
