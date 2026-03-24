@@ -268,11 +268,6 @@ class SupabaseActivityRepository implements ActivityRepository {
         'p_description': description,
       },);
 
-      // Also check for new badges
-      await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
-        'p_user_id': userId,
-      },);
-
       if (result != null && (result as List).isNotEmpty) {
         return result[0] as Map<String, dynamic>;
       }
