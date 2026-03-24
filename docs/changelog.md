@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Timezone & Streak Fix (2026-03-24)
+
+#### Fixed
+- **UTC→Istanbul timezone in `app_current_date()`/`app_now()`** — PostgreSQL `CURRENT_DATE` returns UTC. Between 00:00-03:00 Turkey time (UTC+3), server thought it was the previous day. Streak calendar showed wrong "today", daily_logins recorded wrong dates, streak didn't advance until 03:00. Fix: `CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Istanbul'`.
+- **JSONB cast error breaking streak system** — `value::INT` failed on JSONB strings like `"3"` when `debug_date_offset` was set. This silently crashed `update_user_streak`, causing `daily_logins` to never be written. Fix: `(value #>> '{}')::INT` strips JSONB quotes.
+
+#### Infrastructure
+- **2 DB migrations** — `20260324000003` (timezone fix), `20260324000005` (JSONB cast fix)
+
+### Admin Settings UX Improvements (2026-03-24)
+
+#### Changed
+- **XP settings grouped with sub-headers** — Admin settings screen now shows XP settings under labeled groups: "Reading XP", "Vocab Session XP", "Inline Activity XP", "Bonus XP". Uses `group_label` and `sort_order` columns for display ordering.
+- **Setting descriptions** — All system_settings entries now have human-readable descriptions in the admin panel.
+
 ### Book Quiz Admin Integration & Dynamic XP Settings (2026-03-23)
 
 #### Added

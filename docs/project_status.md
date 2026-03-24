@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-23 (Book Quiz Admin Integration, Dynamic XP Settings, SystemSettings Cleanup)
+Son güncelleme: 2026-03-24 (Timezone fix, Admin settings UX, Type-based XP spec)
 
 ## Current Phase
 
@@ -158,6 +158,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Timezone & Streak Fix | 2026-03-24 | UTC→Istanbul in app_current_date/app_now, JSONB cast fix that silently broke daily_logins |
+| Admin Settings UX | 2026-03-24 | XP settings grouped with sub-headers, descriptions added to all settings |
 | Book Quiz Admin Integration | 2026-03-23 | Admin quiz navigation, DB trigger for atomic attempt_number, dynamic XP from SystemSettings |
 | Dynamic XP & Settings Cleanup | 2026-03-23 | All XP reads from system_settings DB, 15 unused settings removed, SystemSettings 21→6 fields, AppConfig.xpRewards deleted |
 | Admin Quest Dashboard | 2026-03-23 | Phase 2: quest list screen with inline editing + completion stats, dashboard card |
