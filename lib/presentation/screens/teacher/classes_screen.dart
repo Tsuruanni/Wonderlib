@@ -263,7 +263,7 @@ class _ClassCard extends StatelessWidget {
                     '${classItem.avgProgress.toStringAsFixed(0)}%',
                     style: context.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: _getProgressColor(classItem.avgProgress),
+                      color: ScoreColors.getProgressColor(classItem.avgProgress),
                     ),
                   ),
                   Text(
@@ -287,9 +287,4 @@ class _ClassCard extends StatelessWidget {
     );
   }
 
-  Color _getProgressColor(double progress) {
-    if (progress >= 70) return Colors.green;
-    if (progress >= 40) return Colors.orange;
-    return Colors.red;
-  }
 }

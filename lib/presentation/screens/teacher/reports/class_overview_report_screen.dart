@@ -6,6 +6,7 @@ import '../../../../app/router.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
 
 class ClassOverviewReportScreen extends ConsumerWidget {
@@ -206,7 +207,7 @@ class _ClassReportCard extends StatelessWidget {
                         '${classItem.avgProgress.toStringAsFixed(0)}%',
                         style: context.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: _getProgressColor(classItem.avgProgress),
+                          color: ScoreColors.getProgressColor(classItem.avgProgress),
                         ),
                       ),
                       Text(
@@ -225,7 +226,7 @@ class _ClassReportCard extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: classItem.avgProgress / 100,
                   backgroundColor: context.colorScheme.surfaceContainerHighest,
-                  color: _getProgressColor(classItem.avgProgress),
+                  color: ScoreColors.getProgressColor(classItem.avgProgress),
                   minHeight: 8,
                 ),
               ),
@@ -236,9 +237,4 @@ class _ClassReportCard extends StatelessWidget {
     );
   }
 
-  Color _getProgressColor(double progress) {
-    if (progress >= 70) return Colors.green;
-    if (progress >= 40) return Colors.orange;
-    return Colors.red;
-  }
 }

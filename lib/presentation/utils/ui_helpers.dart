@@ -165,6 +165,21 @@ abstract class TimeFormatter {
     if (hours > 0) return '${hours}h ${minutes}m';
     return '${minutes}m';
   }
+
+  static String formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      return '${diff.inDays}d ago';
+    }
+  }
 }
 
 /// SnackBar helper — consistent styling across the app.

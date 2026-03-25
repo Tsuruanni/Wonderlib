@@ -143,10 +143,6 @@ class _StatsGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(teacherStatsProvider);
-    final userId = ref.watch(currentUserIdProvider);
-
-    // Debug: show user ID if stats are loading/error
-    debugPrint('Dashboard stats - userId: $userId, state: ${statsAsync.runtimeType}');
 
     return statsAsync.when(
       loading: () => GridView.count(
@@ -476,7 +472,7 @@ class _RecentActivityList extends ConsumerWidget {
                           ],
                         ),
                         Text(
-                          _formatTimeAgo(activity.createdAt),
+                          TimeFormatter.formatTimeAgo(activity.createdAt),
                           style: context.textTheme.labelSmall?.copyWith(
                             color: context.colorScheme.outline,
                           ),
@@ -493,18 +489,4 @@ class _RecentActivityList extends ConsumerWidget {
     );
   }
 
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}h ago';
-    } else if (diff.inDays == 1) {
-      return 'Yesterday';
-    } else {
-      return '${diff.inDays}d ago';
-    }
-  }
 }

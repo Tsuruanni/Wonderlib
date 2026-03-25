@@ -414,7 +414,7 @@ class _BookProgressCard extends StatelessWidget {
                       Icon(Icons.access_time, size: 14, color: context.colorScheme.outline),
                       const SizedBox(width: 4),
                       Text(
-                        _formatReadingTime(progress.totalReadingTime),
+                        TimeFormatter.formatReadingTime(progress.totalReadingTime),
                         style: context.textTheme.bodySmall?.copyWith(
                           color: context.colorScheme.outline,
                         ),
@@ -436,7 +436,7 @@ class _BookProgressCard extends StatelessWidget {
                     value: progress.completionPercentage / 100,
                     strokeWidth: 4,
                     backgroundColor: context.colorScheme.surfaceContainerHighest,
-                    color: _getProgressColor(progress.completionPercentage),
+                    color: ScoreColors.getProgressColor(progress.completionPercentage),
                   ),
                   Text(
                     '${progress.completionPercentage.toStringAsFixed(0)}%',
@@ -453,20 +453,6 @@ class _BookProgressCard extends StatelessWidget {
     );
   }
 
-  String _formatReadingTime(int seconds) {
-    if (seconds < 60) return '${seconds}s';
-    if (seconds < 3600) return '${seconds ~/ 60}m';
-    final hours = seconds ~/ 3600;
-    final mins = (seconds % 3600) ~/ 60;
-    return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
-  }
-
-  Color _getProgressColor(double percentage) {
-    if (percentage >= 100) return Colors.green;
-    if (percentage >= 50) return Colors.blue;
-    if (percentage >= 25) return Colors.orange;
-    return Colors.red;
-  }
 }
 
 class _VocabStatsSection extends StatelessWidget {
