@@ -1,5 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/usecases/avatar/get_avatar_bases_usecase.dart';
+import '../../domain/usecases/avatar/set_avatar_base_usecase.dart';
+import '../../domain/usecases/avatar/get_avatar_items_usecase.dart';
+import '../../domain/usecases/avatar/get_user_avatar_items_usecase.dart';
+import '../../domain/usecases/avatar/buy_avatar_item_usecase.dart';
+import '../../domain/usecases/avatar/equip_avatar_item_usecase.dart';
+import '../../domain/usecases/avatar/unequip_avatar_item_usecase.dart';
+import '../../domain/usecases/avatar/get_equipped_avatar_usecase.dart';
 import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
 import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
 import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
@@ -693,4 +701,40 @@ final claimDailyBonusUseCaseProvider = Provider((ref) {
 
 final hasDailyBonusClaimedUseCaseProvider = Provider((ref) {
   return HasDailyBonusClaimedUseCase(ref.watch(dailyQuestRepositoryProvider));
+});
+
+// ============================================
+// AVATAR USE CASES
+// ============================================
+
+final getAvatarBasesUseCaseProvider = Provider((ref) {
+  return GetAvatarBasesUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final setAvatarBaseUseCaseProvider = Provider((ref) {
+  return SetAvatarBaseUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final getAvatarItemsUseCaseProvider = Provider((ref) {
+  return GetAvatarItemsUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final getUserAvatarItemsUseCaseProvider = Provider((ref) {
+  return GetUserAvatarItemsUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final buyAvatarItemUseCaseProvider = Provider((ref) {
+  return BuyAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final equipAvatarItemUseCaseProvider = Provider((ref) {
+  return EquipAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final unequipAvatarItemUseCaseProvider = Provider((ref) {
+  return UnequipAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+final getEquippedAvatarUseCaseProvider = Provider((ref) {
+  return GetEquippedAvatarUseCase(ref.watch(avatarRepositoryProvider));
 });

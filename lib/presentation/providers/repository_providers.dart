@@ -10,6 +10,7 @@ import '../../data/repositories/cached/cached_book_repository.dart';
 import '../../data/repositories/cached/cached_content_block_repository.dart';
 import '../../data/repositories/supabase/supabase_activity_repository.dart';
 import '../../data/repositories/supabase/supabase_auth_repository.dart';
+import '../../data/repositories/supabase/supabase_avatar_repository.dart';
 import '../../data/repositories/supabase/supabase_daily_quest_repository.dart';
 import '../../data/repositories/supabase/supabase_badge_repository.dart';
 import '../../data/repositories/supabase/supabase_book_repository.dart';
@@ -24,6 +25,7 @@ import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/repositories/avatar_repository.dart';
 import '../../domain/repositories/daily_quest_repository.dart';
 import '../../domain/repositories/badge_repository.dart';
 import '../../domain/repositories/book_quiz_repository.dart';
@@ -131,4 +133,8 @@ final bookQuizRepositoryProvider = Provider<BookQuizRepository>((ref) {
 
 final dailyQuestRepositoryProvider = Provider<DailyQuestRepository>((ref) {
   return SupabaseDailyQuestRepository(Supabase.instance.client);
+});
+
+final avatarRepositoryProvider = Provider<AvatarRepository>((ref) {
+  return SupabaseAvatarRepository();
 });
