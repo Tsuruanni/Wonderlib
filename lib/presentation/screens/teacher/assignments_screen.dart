@@ -94,6 +94,7 @@ class AssignmentsScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_new_assignment',
         onPressed: () {
           context.push(AppRoutes.teacherCreateAssignment);
         },

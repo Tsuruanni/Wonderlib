@@ -25,6 +25,7 @@ class ClassesScreen extends ConsumerWidget {
         title: const Text('My Classes'),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'fab_new_class',
         onPressed: () => _showCreateClassDialog(context, ref),
         icon: const Icon(Icons.add),
         label: const Text('New Class'),

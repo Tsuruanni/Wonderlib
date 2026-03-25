@@ -802,6 +802,7 @@ class _StatsSection extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 14),
+          // Word Bank shortcut
           PressableScale(
             onTap: () => context.push(AppRoutes.wordBank),
             child: Container(
