@@ -22,6 +22,10 @@ class LeaderboardReportScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(allStudentsLeaderboardProvider);
           ref.invalidate(currentTeacherClassesProvider);
+          // Invalidate cached class student lists to avoid stale data
+          for (final classItem in ref.read(currentTeacherClassesProvider).valueOrNull ?? []) {
+            ref.invalidate(classStudentsProvider(classItem.id));
+          }
         },
         child: studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),

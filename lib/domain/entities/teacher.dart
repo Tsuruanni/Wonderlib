@@ -223,5 +223,5 @@ class RecentActivity extends Equatable {
   String get studentFullName => '$studentFirstName $studentLastName';
 
   @override
-  List<Object?> get props => [studentId, activityType, description, xpAmount, createdAt];
+  List<Object?> get props => [studentId, studentFirstName, studentLastName, avatarUrl, activityType, description, xpAmount, createdAt];
 }
