@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -47,7 +48,11 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
   }
 
   Future<void> _pickAndUploadImage() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'svg', 'webp'],
+      withData: true,
+    );
     if (result == null || result.files.isEmpty) return;
 
     final file = result.files.first;
@@ -56,12 +61,14 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseClientProvider);
-      final fileName = '${_nameCtrl.text.isNotEmpty ? _nameCtrl.text : DateTime.now().millisecondsSinceEpoch}.png';
-      final path = 'bases/$fileName';
+      final ext = file.extension ?? 'png';
+      final contentType = ext == 'svg' ? 'image/svg+xml' : 'image/$ext';
+      final baseName = _nameCtrl.text.isNotEmpty ? _nameCtrl.text : '${DateTime.now().millisecondsSinceEpoch}';
+      final path = 'bases/$baseName.$ext';
       await supabase.storage.from('avatars').uploadBinary(
         path,
         file.bytes!,
-        fileOptions: const FileOptions(contentType: 'image/png', upsert: true),
+        fileOptions: FileOptions(contentType: contentType, upsert: true),
       );
       final url = supabase.storage.from('avatars').getPublicUrl(path);
       setState(() => _imageUrl = url);
@@ -125,6 +132,11 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
     );
   }
 
+  static bool _isSvgUrl(String url) {
+    final path = Uri.tryParse(url)?.path ?? url;
+    return path.toLowerCase().endsWith('.svg');
+  }
+
   Widget _buildForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -181,7 +193,15 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
                 const Text('Önizleme', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 16),
                 if (_imageUrl != null)
-                  CircleAvatar(radius: 64, backgroundImage: NetworkImage(_imageUrl!))
+                  ClipOval(
+                    child: SizedBox(
+                      width: 128,
+                      height: 128,
+                      child: _isSvgUrl(_imageUrl!)
+                          ? SvgPicture.network(_imageUrl!, fit: BoxFit.contain)
+                          : Image.network(_imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48)),
+                    ),
+                  )
                 else
                   const CircleAvatar(radius: 64, child: Icon(Icons.pets, size: 48)),
               ],

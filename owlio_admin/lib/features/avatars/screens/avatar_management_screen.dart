@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/avatar_admin_providers.dart';
+
+bool _isSvgUrl(String url) {
+  final path = Uri.tryParse(url)?.path ?? url;
+  return path.toLowerCase().endsWith('.svg');
+}
+
+Widget _networkImage(String url, {BoxFit fit = BoxFit.contain}) {
+  if (_isSvgUrl(url)) {
+    return SvgPicture.network(url, fit: fit);
+  }
+  return Image.network(url, fit: fit, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image));
+}
 
 class AvatarManagementScreen extends ConsumerStatefulWidget {
   const AvatarManagementScreen({super.key, this.initialTab = 0});
@@ -103,10 +116,12 @@ class _BasesTab extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundImage: NetworkImage(base['image_url'] as String),
-                      onBackgroundImageError: (_, __) {},
+                    ClipOval(
+                      child: SizedBox(
+                        width: 64,
+                        height: 64,
+                        child: _networkImage(base['image_url'] as String, fit: BoxFit.cover),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -181,9 +196,9 @@ class _ItemsTab extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: _rarityColor(rarity), width: 2),
                 ),
-                child: item['preview_url'] != null
-                    ? Image.network(item['preview_url'] as String, fit: BoxFit.contain)
-                    : Image.network(item['image_url'] as String, fit: BoxFit.contain),
+                child: _networkImage(
+                  (item['preview_url'] ?? item['image_url']) as String,
+                ),
               ),
               title: Text(
                 item['display_name'] as String,

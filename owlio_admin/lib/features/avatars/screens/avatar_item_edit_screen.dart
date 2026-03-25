@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -56,11 +57,22 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     _previewUrl = data['preview_url'] as String?;
   }
 
+  static bool _isSvgUrl(String url) {
+    final path = Uri.tryParse(url)?.path ?? url;
+    return path.toLowerCase().endsWith('.svg');
+  }
+
   Future<String?> _uploadImage(String folder) async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image, withData: true);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'svg', 'webp'],
+      withData: true,
+    );
     if (result == null || result.files.isEmpty || result.files.first.bytes == null) return null;
 
     final file = result.files.first;
+    final ext = file.extension ?? 'png';
+    final contentType = ext == 'svg' ? 'image/svg+xml' : 'image/$ext';
     final fileName = '${DateTime.now().millisecondsSinceEpoch}_${file.name}';
     final path = '$folder/$fileName';
 
@@ -68,7 +80,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     await supabase.storage.from('avatars').uploadBinary(
       path,
       file.bytes!,
-      fileOptions: const FileOptions(contentType: 'image/png', upsert: true),
+      fileOptions: FileOptions(contentType: contentType, upsert: true),
     );
     return supabase.storage.from('avatars').getPublicUrl(path);
   }
@@ -265,7 +277,9 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                     color: Colors.grey.shade100,
                   ),
                   child: _imageUrl != null
-                      ? Image.network(_imageUrl!, fit: BoxFit.contain)
+                      ? (_isSvgUrl(_imageUrl!)
+                          ? SvgPicture.network(_imageUrl!, fit: BoxFit.contain)
+                          : Image.network(_imageUrl!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)))
                       : const Icon(Icons.image, size: 48, color: Colors.grey),
                 ),
                 if (_previewUrl != null) ...[
@@ -279,7 +293,9 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.grey.shade100,
                     ),
-                    child: Image.network(_previewUrl!, fit: BoxFit.contain),
+                    child: _isSvgUrl(_previewUrl!)
+                        ? SvgPicture.network(_previewUrl!, fit: BoxFit.contain)
+                        : Image.network(_previewUrl!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)),
                   ),
                 ],
               ],

@@ -17,6 +17,9 @@ dependencies:
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
 
+  # SVG rendering
+  flutter_svg: ^2.0.9
+
   # Routing
   go_router: ^14.8.1
 
