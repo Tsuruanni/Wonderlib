@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -159,6 +160,19 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
     );
   }
 
+  static bool _isSvg(String url) =>
+      (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith('.svg');
+
+  Widget _buildPreviewImage(String url) {
+    if (_isSvg(url)) {
+      return SvgPicture.network(url, fit: BoxFit.contain,
+        placeholderBuilder: (_) => const Center(child: CircularProgressIndicator(strokeWidth: 2)));
+    }
+    return Image.network(url, fit: BoxFit.cover,
+      loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      errorBuilder: (_, e, __) => Center(child: Text('$e', style: const TextStyle(fontSize: 8), textAlign: TextAlign.center)));
+  }
+
   Widget _buildForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -246,33 +260,7 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
                   ),
                   child: ClipOval(
                     child: _imageUrl != null
-                        ? Image.network(
-                            _imageUrl!,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (_, child, progress) =>
-                                progress == null
-                                    ? child
-                                    : const Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                            errorBuilder: (_, error, ___) => Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.broken_image,
-                                    color: Colors.red),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '$error',
-                                  style: const TextStyle(fontSize: 8),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 3,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          )
+                        ? _buildPreviewImage(_imageUrl!)
                         : const Icon(Icons.pets, size: 48, color: Colors.grey),
                   ),
                 ),

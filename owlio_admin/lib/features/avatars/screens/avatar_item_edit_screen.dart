@@ -1,6 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -54,6 +55,14 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     _isActive = data['is_active'] as bool? ?? true;
     _imageUrl = data['image_url'] as String?;
     _previewUrl = data['preview_url'] as String?;
+  }
+
+  static bool _isSvg(String url) =>
+      (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith('.svg');
+
+  Widget _buildImg(String url, {BoxFit fit = BoxFit.contain}) {
+    if (_isSvg(url)) return SvgPicture.network(url, fit: fit);
+    return Image.network(url, fit: fit, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image));
   }
 
   Future<String?> _uploadImage(String folder) async {
@@ -272,8 +281,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                     color: Colors.grey.shade100,
                   ),
                   child: _imageUrl != null
-                      ? Image.network(_imageUrl!, fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image))
+                      ? _buildImg(_imageUrl!)
                       : const Icon(Icons.image, size: 48, color: Colors.grey),
                 ),
                 if (_previewUrl != null) ...[
@@ -287,8 +295,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.grey.shade100,
                     ),
-                    child: Image.network(_previewUrl!, fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)),
+                    child: _buildImg(_previewUrl!),
                   ),
                 ],
               ],

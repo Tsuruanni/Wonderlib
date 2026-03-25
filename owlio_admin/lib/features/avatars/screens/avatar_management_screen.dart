@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/avatar_admin_providers.dart';
+
+bool _isSvg(String url) =>
+    (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith('.svg');
+
+Widget _img(String url, {BoxFit fit = BoxFit.contain}) {
+  if (_isSvg(url)) return SvgPicture.network(url, fit: fit);
+  return Image.network(url, fit: fit, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image));
+}
 
 class AvatarManagementScreen extends ConsumerStatefulWidget {
   const AvatarManagementScreen({super.key, this.initialTab = 0});
@@ -107,11 +116,7 @@ class _BasesTab extends ConsumerWidget {
                       child: SizedBox(
                         width: 64,
                         height: 64,
-                        child: Image.network(
-                          base['image_url'] as String,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.pets, size: 32),
-                        ),
+                        child: _img(base['image_url'] as String, fit: BoxFit.cover),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -187,11 +192,7 @@ class _ItemsTab extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: _rarityColor(rarity), width: 2),
                 ),
-                child: Image.network(
-                  (item['preview_url'] ?? item['image_url']) as String,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.image, size: 24),
-                ),
+                child: _img((item['preview_url'] ?? item['image_url']) as String),
               ),
               title: Text(
                 item['display_name'] as String,
