@@ -16,6 +16,8 @@ class UserModel {
     required this.lastName,
     this.email,
     this.avatarUrl,
+    this.avatarBaseId,
+    this.avatarEquippedCache,
     this.xp = 0,
     this.coins = 0,
     this.unopenedPacks = 0,
@@ -42,6 +44,8 @@ class UserModel {
       lastName: json['last_name'] as String? ?? '',
       email: json['email'] as String?,
       avatarUrl: json['avatar_url'] as String?,
+      avatarBaseId: json['avatar_base_id'] as String?,
+      avatarEquippedCache: json['avatar_equipped_cache'] as Map<String, dynamic>?,
       xp: json['xp'] as int? ?? 0,
       coins: json['coins'] as int? ?? 0,
       unopenedPacks: json['unopened_packs'] as int? ?? 0,
@@ -71,6 +75,8 @@ class UserModel {
       lastName: entity.lastName,
       email: entity.email,
       avatarUrl: entity.avatarUrl,
+      avatarBaseId: entity.avatarBaseId,
+      avatarEquippedCache: entity.avatarEquippedCache,
       xp: entity.xp,
       coins: entity.coins,
       unopenedPacks: entity.unopenedPacks,
@@ -95,6 +101,8 @@ class UserModel {
   final String lastName;
   final String? email;
   final String? avatarUrl;
+  final String? avatarBaseId;
+  final Map<String, dynamic>? avatarEquippedCache;
   final int xp;
   final int coins;
   final int unopenedPacks;
@@ -120,6 +128,8 @@ class UserModel {
       'last_name': lastName,
       'email': email,
       'avatar_url': avatarUrl,
+      'avatar_base_id': avatarBaseId,
+      'avatar_equipped_cache': avatarEquippedCache,
       'xp': xp,
       'coins': coins,
       'unopened_packs': unopenedPacks,
@@ -156,6 +166,8 @@ class UserModel {
       lastName: lastName,
       email: email,
       avatarUrl: avatarUrl,
+      avatarBaseId: avatarBaseId,
+      avatarEquippedCache: avatarEquippedCache,
       xp: xp,
       coins: coins,
       unopenedPacks: unopenedPacks,

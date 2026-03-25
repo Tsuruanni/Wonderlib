@@ -14,6 +14,8 @@ class User extends Equatable {
     required this.lastName,
     this.email,
     this.avatarUrl,
+    this.avatarBaseId,
+    this.avatarEquippedCache,
     this.xp = 0,
     this.coins = 0,
     this.unopenedPacks = 0,
@@ -37,6 +39,8 @@ class User extends Equatable {
   final String lastName;
   final String? email;
   final String? avatarUrl;
+  final String? avatarBaseId;
+  final Map<String, dynamic>? avatarEquippedCache;
   final int xp;
   final int coins;
   final int unopenedPacks;
@@ -71,6 +75,8 @@ class User extends Equatable {
     String? lastName,
     String? email,
     String? avatarUrl,
+    String? avatarBaseId,
+    Map<String, dynamic>? avatarEquippedCache,
     int? xp,
     int? coins,
     int? unopenedPacks,
@@ -95,6 +101,8 @@ class User extends Equatable {
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatarBaseId: avatarBaseId ?? this.avatarBaseId,
+      avatarEquippedCache: avatarEquippedCache ?? this.avatarEquippedCache,
       xp: xp ?? this.xp,
       coins: coins ?? this.coins,
       unopenedPacks: unopenedPacks ?? this.unopenedPacks,
@@ -122,6 +130,8 @@ class User extends Equatable {
         lastName,
         email,
         avatarUrl,
+        avatarBaseId,
+        avatarEquippedCache,
         xp,
         coins,
         unopenedPacks,
