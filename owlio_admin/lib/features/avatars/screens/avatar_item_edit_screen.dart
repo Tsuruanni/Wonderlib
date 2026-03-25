@@ -295,12 +295,26 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                     onChanged: (v) => setState(() => _isActive = v),
                   ),
                   const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _isLoading ? null : _pickAndUploadImage,
-                    icon: const Icon(Icons.upload),
-                    label: Text(_imageBytes != null || _imageUrl != null
-                        ? 'Resmi Değiştir'
-                        : 'Aksesuar PNG Yükle'),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _isLoading ? null : _pickAndUploadImage,
+                        icon: const Icon(Icons.upload),
+                        label: Text(_imageBytes != null || _imageUrl != null
+                            ? 'Resmi Değiştir'
+                            : 'Aksesuar PNG Yükle'),
+                      ),
+                      if (_imageUrl != null) ...[
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SelectableText(
+                            _imageUrl!,
+                            style: const TextStyle(fontSize: 10, color: Colors.grey),
+                            maxLines: 2,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 24),
                   FilledButton(
@@ -353,24 +367,38 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                           ),
                         ),
 
-                      // Accessory overlay
+                      // Accessory overlay — local bytes or network URL
                       if (_imageBytes != null)
                         Padding(
                           padding: const EdgeInsets.all(8),
-                          child:
-                              Image.memory(_imageBytes!, fit: BoxFit.contain),
+                          child: Image.memory(_imageBytes!, fit: BoxFit.contain),
                         )
-                      else if (_imageBytes == null && _imageUrl == null)
+                      else if (_imageUrl != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Image.network(
+                            _imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (_, __, ___) => const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.cloud_upload, size: 36, color: Colors.orange),
+                                  SizedBox(height: 4),
+                                  Text('Resim yükleyin', style: TextStyle(fontSize: 10, color: Colors.orange)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                      else
                         const Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.checkroom,
-                                  size: 40, color: Colors.grey),
+                              Icon(Icons.checkroom, size: 40, color: Colors.grey),
                               SizedBox(height: 4),
-                              Text('PNG yükleyin',
-                                  style: TextStyle(
-                                      fontSize: 10, color: Colors.grey)),
+                              Text('PNG yükleyin', style: TextStyle(fontSize: 10, color: Colors.grey)),
                             ],
                           ),
                         ),
@@ -444,12 +472,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                   ),
                 ),
 
-                if (_imageUrl != null) ...[
-                  const SizedBox(height: 12),
-                  SelectableText(_imageUrl!,
-                      style: const TextStyle(
-                          fontSize: 9, color: Colors.grey)),
-                ],
+                // URL moved next to upload button
               ],
             ),
           ),
