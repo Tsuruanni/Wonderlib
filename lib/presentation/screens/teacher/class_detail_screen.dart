@@ -166,7 +166,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                             child: OutlinedButton.icon(
                               onPressed: _toggleSelectMode,
                               icon: const Icon(Icons.swap_horiz),
-                              label: const Text('Select & Move Students'),
+                              label: const Text('Select & Move Students to Another Class'),
                             ),
                           ),
                           const SizedBox(height: 8),
