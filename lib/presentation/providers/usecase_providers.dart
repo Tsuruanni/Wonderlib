@@ -21,6 +21,9 @@ import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
+import '../../domain/usecases/assignment/get_class_learning_path_units_usecase.dart';
+import '../../domain/usecases/student_assignment/get_unit_assignment_items_usecase.dart';
+import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
 import '../../domain/usecases/auth/refresh_current_user_usecase.dart';
 import '../../domain/usecases/teacher/bulk_move_students_usecase.dart';
@@ -205,6 +208,10 @@ final changeStudentClassUseCaseProvider = Provider((ref) {
 
 final createAssignmentUseCaseProvider = Provider((ref) {
   return CreateAssignmentUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getClassLearningPathUnitsUseCaseProvider = Provider((ref) {
+  return GetClassLearningPathUnitsUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 // ============================================
@@ -624,6 +631,14 @@ final updateAssignmentProgressUseCaseProvider = Provider((ref) {
 
 final completeAssignmentUseCaseProvider = Provider((ref) {
   return CompleteAssignmentUseCase(ref.watch(studentAssignmentRepositoryProvider));
+});
+
+final getUnitAssignmentItemsUseCaseProvider = Provider((ref) {
+  return GetUnitAssignmentItemsUseCase(ref.watch(studentAssignmentRepositoryProvider));
+});
+
+final calculateUnitProgressUseCaseProvider = Provider((ref) {
+  return CalculateUnitProgressUseCase(ref.watch(studentAssignmentRepositoryProvider));
 });
 
 // ============================================

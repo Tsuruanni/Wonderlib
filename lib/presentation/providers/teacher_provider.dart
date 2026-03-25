@@ -2,9 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
+import '../../domain/usecases/assignment/get_class_learning_path_units_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
 import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
@@ -217,6 +219,18 @@ final assignmentStudentsProvider =
   return result.fold(
     (failure) => [],
     (students) => students,
+  );
+});
+
+/// Provider for learning path units of a class (for unit assignment creation)
+final classLearningPathUnitsProvider =
+    FutureProvider.family<List<ClassLearningPathUnit>, String>((ref, classId) async {
+  final useCase = ref.watch(getClassLearningPathUnitsUseCaseProvider);
+  final result = await useCase(GetClassLearningPathUnitsParams(classId: classId));
+
+  return result.fold(
+    (failure) => [],
+    (units) => units,
   );
 });
 

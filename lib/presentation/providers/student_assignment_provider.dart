@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
-import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import '../../domain/entities/student_assignment.dart';
+import '../../domain/entities/unit_assignment_item.dart';
+import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/get_student_assignment_detail_usecase.dart';
 import '../../domain/usecases/student_assignment/get_student_assignments_usecase.dart';
+import '../../domain/usecases/student_assignment/get_unit_assignment_items_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
 
@@ -101,10 +104,10 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
   var syncedCount = 0;
 
   for (final assignment in assignments) {
-    // Only check book assignments that aren't already completed
-    if (assignment.bookId != null &&
-        assignment.status != StudentAssignmentStatus.completed) {
-      // Check if the book is completed
+    if (assignment.status == StudentAssignmentStatus.completed) continue;
+
+    // Sync book assignments
+    if (assignment.bookId != null) {
       final progressResult = await getReadingProgressUseCase(
         GetReadingProgressParams(userId: userId, bookId: assignment.bookId!),
       );
@@ -116,7 +119,6 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
 
       if (isBookCompleted) {
         debugPrint('🔄 Syncing: Assignment "${assignment.title}" - book is completed but assignment not');
-        // Auto-complete the assignment
         await completeAssignmentUseCase(CompleteAssignmentParams(
           studentId: userId,
           assignmentId: assignment.assignmentId,
@@ -124,6 +126,17 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
         ));
         syncedCount++;
       }
+    }
+
+    // Sync unit assignments
+    if (assignment.scopeLpUnitId != null) {
+      debugPrint('🔄 Syncing unit assignment: "${assignment.title}"');
+      final calculateUseCase = ref.read(calculateUnitProgressUseCaseProvider);
+      await calculateUseCase(CalculateUnitProgressParams(
+        assignmentId: assignment.assignmentId,
+        studentId: userId,
+      ));
+      syncedCount++;
     }
   }
 
@@ -136,3 +149,20 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
     debugPrint('🔄 assignmentSyncProvider: No sync needed');
   }
 });
+
+/// Provider for unit assignment items (student detail screen)
+final unitAssignmentItemsProvider =
+    FutureProvider.family<List<UnitAssignmentItem>, ({String scopeLpUnitId, String studentId})>(
+  (ref, params) async {
+    final useCase = ref.watch(getUnitAssignmentItemsUseCaseProvider);
+    final result = await useCase(GetUnitAssignmentItemsParams(
+      scopeLpUnitId: params.scopeLpUnitId,
+      studentId: params.studentId,
+    ));
+
+    return result.fold(
+      (failure) => [],
+      (items) => items,
+    );
+  },
+);
