@@ -8,6 +8,7 @@ class LeaderboardEntryModel {
     required this.firstName,
     required this.lastName,
     this.avatarUrl,
+    this.avatarEquippedCache,
     required this.totalXp,
     required this.weeklyXp,
     required this.level,
@@ -23,6 +24,7 @@ class LeaderboardEntryModel {
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       avatarUrl: json['avatar_url'] as String?,
+      avatarEquippedCache: json['avatar_equipped_cache'] as Map<String, dynamic>?,
       totalXp: (json['total_xp'] ?? json['xp']) as int? ?? 0,
       weeklyXp: (json['weekly_xp'] as num?)?.toInt() ?? 0,
       level: json['level'] as int? ?? 1,
@@ -39,6 +41,7 @@ class LeaderboardEntryModel {
   final String firstName;
   final String lastName;
   final String? avatarUrl;
+  final Map<String, dynamic>? avatarEquippedCache;
   final int totalXp;
   final int weeklyXp;
   final int level;
@@ -53,6 +56,7 @@ class LeaderboardEntryModel {
       firstName: firstName,
       lastName: lastName,
       avatarUrl: avatarUrl,
+      avatarEquippedCache: avatarEquippedCache,
       totalXp: totalXp,
       weeklyXp: weeklyXp,
       level: level,

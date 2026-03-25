@@ -7,6 +7,7 @@ class LeaderboardEntry extends Equatable {
     required this.firstName,
     required this.lastName,
     this.avatarUrl,
+    this.avatarEquippedCache,
     required this.totalXp,
     required this.weeklyXp,
     required this.level,
@@ -20,6 +21,7 @@ class LeaderboardEntry extends Equatable {
   final String firstName;
   final String lastName;
   final String? avatarUrl;
+  final Map<String, dynamic>? avatarEquippedCache;
   final int totalXp;
   final int weeklyXp;
   final int level;
@@ -49,6 +51,7 @@ class LeaderboardEntry extends Equatable {
         firstName,
         lastName,
         avatarUrl,
+        avatarEquippedCache,
         totalXp,
         weeklyXp,
         level,
