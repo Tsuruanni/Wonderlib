@@ -171,11 +171,11 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
   }
 
   Future<void> _downloadLoginCards(BuildContext context, List<StudentSummary> students) async {
-    final profileContext = ref.read(profileContextProvider).valueOrNull;
-    final schoolName = profileContext?.schoolName ?? 'School';
+    final profileContext = await ref.read(profileContextProvider.future);
+    final schoolName = profileContext.schoolName ?? 'School';
 
-    final classesAsync = ref.read(currentTeacherClassesProvider).valueOrNull;
-    final className = classesAsync?.where((c) => c.id == widget.classId).firstOrNull?.name ?? 'Class';
+    final classes = await ref.read(currentTeacherClassesProvider.future);
+    final className = classes.where((c) => c.id == widget.classId).firstOrNull?.name ?? 'Class';
 
     try {
       await generateAndShareLoginCards(
