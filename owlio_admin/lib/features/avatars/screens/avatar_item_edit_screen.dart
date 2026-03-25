@@ -1,7 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -55,11 +54,6 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     _isActive = data['is_active'] as bool? ?? true;
     _imageUrl = data['image_url'] as String?;
     _previewUrl = data['preview_url'] as String?;
-  }
-
-  static bool _isSvgUrl(String url) {
-    final path = Uri.tryParse(url)?.path ?? url;
-    return path.toLowerCase().endsWith('.svg');
   }
 
   Future<String?> _uploadImage(String folder) async {
@@ -278,9 +272,8 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                     color: Colors.grey.shade100,
                   ),
                   child: _imageUrl != null
-                      ? (_isSvgUrl(_imageUrl!)
-                          ? SvgPicture.network(_imageUrl!, fit: BoxFit.contain)
-                          : Image.network(_imageUrl!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)))
+                      ? Image.network(_imageUrl!, fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image))
                       : const Icon(Icons.image, size: 48, color: Colors.grey),
                 ),
                 if (_previewUrl != null) ...[
@@ -294,9 +287,8 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.grey.shade100,
                     ),
-                    child: _isSvgUrl(_previewUrl!)
-                        ? SvgPicture.network(_previewUrl!, fit: BoxFit.contain)
-                        : Image.network(_previewUrl!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)),
+                    child: Image.network(_previewUrl!, fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image)),
                   ),
                 ],
               ],
