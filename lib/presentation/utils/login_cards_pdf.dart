@@ -133,7 +133,7 @@ pw.Widget _buildCard({
   required String downloadUrl,
   required double cardWidth,
 }) {
-  final username = student.email ?? student.studentNumber ?? 'N/A';
+  final username = student.username ?? student.studentNumber ?? 'N/A';
   final password = student.passwordPlain ?? 'N/A';
 
   return pw.Container(

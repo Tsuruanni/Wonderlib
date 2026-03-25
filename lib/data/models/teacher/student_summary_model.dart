@@ -8,6 +8,7 @@ class StudentSummaryModel {
     required this.firstName,
     required this.lastName,
     this.studentNumber,
+    this.username,
     this.email,
     this.avatarUrl,
     required this.xp,
@@ -24,6 +25,7 @@ class StudentSummaryModel {
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String? ?? '',
       studentNumber: json['student_number'] as String?,
+      username: json['username'] as String?,
       email: json['email'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       xp: (json['xp'] as num?)?.toInt() ?? 0,
@@ -41,6 +43,7 @@ class StudentSummaryModel {
       firstName: entity.firstName,
       lastName: entity.lastName,
       studentNumber: entity.studentNumber,
+      username: entity.username,
       email: entity.email,
       avatarUrl: entity.avatarUrl,
       xp: entity.xp,
@@ -55,6 +58,7 @@ class StudentSummaryModel {
   final String firstName;
   final String lastName;
   final String? studentNumber;
+  final String? username;
   final String? email;
   final String? avatarUrl;
   final int xp;
@@ -70,6 +74,7 @@ class StudentSummaryModel {
       'first_name': firstName,
       'last_name': lastName,
       'student_number': studentNumber,
+      'username': username,
       'email': email,
       'avatar_url': avatarUrl,
       'xp': xp,
@@ -87,6 +92,7 @@ class StudentSummaryModel {
       firstName: firstName,
       lastName: lastName,
       studentNumber: studentNumber,
+      username: username,
       email: email,
       avatarUrl: avatarUrl,
       xp: xp,
