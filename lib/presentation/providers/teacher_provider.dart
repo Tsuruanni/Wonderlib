@@ -52,15 +52,13 @@ final currentTeacherProfileProvider = FutureProvider<User?>((ref) async {
 
 /// Provider for teacher's classes (by school ID)
 final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>((ref, schoolId) async {
-  if (schoolId.isEmpty) {
-    return [];
-  }
+  if (schoolId.isEmpty) return [];
 
   final useCase = ref.watch(getClassesUseCaseProvider);
   final result = await useCase(GetClassesParams(schoolId: schoolId));
 
   return result.fold(
-    (failure) => [],
+    (failure) => <TeacherClass>[],
     (classes) => classes,
   );
 });
@@ -68,9 +66,7 @@ final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>
 /// Provider for current teacher's classes (convenience wrapper)
 final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
   final user = await ref.watch(authStateChangesProvider.future);
-  if (user == null || user.schoolId.isEmpty) {
-    return [];
-  }
+  if (user == null || user.schoolId.isEmpty) return [];
 
   return ref.watch(teacherClassesProvider(user.schoolId).future);
 });
