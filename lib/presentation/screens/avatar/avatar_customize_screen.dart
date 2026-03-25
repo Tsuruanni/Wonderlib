@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -15,6 +16,20 @@ import '../../providers/avatar_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
+
+bool _isSvgUrl(String url) {
+  final path = Uri.tryParse(url)?.path ?? url;
+  return path.toLowerCase().endsWith('.svg');
+}
+
+Widget _networkImage(String url, {double? width, double? height, BoxFit fit = BoxFit.contain}) {
+  if (_isSvgUrl(url)) {
+    return SvgPicture.network(url, width: width, height: height, fit: fit,
+      placeholderBuilder: (_) => const SizedBox.shrink());
+  }
+  return CachedNetworkImage(imageUrl: url, width: width, height: height, fit: fit,
+    errorWidget: (_, __, ___) => const Icon(Icons.image, size: 32));
+}
 
 class AvatarCustomizeScreen extends ConsumerStatefulWidget {
   const AvatarCustomizeScreen({super.key});
@@ -158,13 +173,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CachedNetworkImage(
-              imageUrl: item.previewUrl ?? item.imageUrl,
-              height: 80,
-              width: 80,
-              fit: BoxFit.contain,
-              errorWidget: (_, __, ___) => const Icon(Icons.image, size: 40),
-            ),
+            _networkImage(item.previewUrl ?? item.imageUrl, width: 80, height: 80),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -453,14 +462,7 @@ class _BaseAnimalRow extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: base.imageUrl,
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.contain,
-                    errorWidget: (_, __, ___) =>
-                        const Icon(Icons.pets, size: 32),
-                  ),
+                  _networkImage(base.imageUrl, width: 40, height: 40),
                   const SizedBox(height: 2),
                   Text(
                     base.displayName,
@@ -610,12 +612,7 @@ class _ItemCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: CachedNetworkImage(
-                        imageUrl: item.previewUrl ?? item.imageUrl,
-                        fit: BoxFit.contain,
-                        errorWidget: (_, __, ___) =>
-                            const Icon(Icons.image, size: 32),
-                      ),
+                      child: _networkImage(item.previewUrl ?? item.imageUrl),
                     ),
                     const SizedBox(height: 4),
                     Text(

@@ -71,16 +71,20 @@ class AvatarWidget extends StatelessWidget {
 
   Widget _buildImage(String url) {
     if (_isSvg(url)) {
-      return SvgPicture.network(
-        url,
-        fit: BoxFit.contain,
-        placeholderBuilder: (_) => const SizedBox.shrink(),
+      return SizedBox.expand(
+        child: SvgPicture.network(
+          url,
+          fit: BoxFit.contain,
+          placeholderBuilder: (_) => const SizedBox.shrink(),
+        ),
       );
     }
-    return CachedNetworkImage(
-      imageUrl: url,
-      fit: BoxFit.contain,
-      errorWidget: (_, __, ___) => const SizedBox.shrink(),
+    return SizedBox.expand(
+      child: CachedNetworkImage(
+        imageUrl: url,
+        fit: BoxFit.contain,
+        errorWidget: (_, __, ___) => const SizedBox.shrink(),
+      ),
     );
   }
 
