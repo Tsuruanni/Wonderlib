@@ -88,10 +88,10 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
         if (isStartDate) {
           _startDate = picked;
           if (_dueDate.isBefore(_startDate)) {
-            _dueDate = _startDate.add(const Duration(days: 7));
+            _dueDate = _startDate.add(const Duration(days: 7)).copyWith(hour: 23, minute: 59, second: 59);
           }
         } else {
-          _dueDate = picked;
+          _dueDate = picked.copyWith(hour: 23, minute: 59, second: 59);
         }
       });
     }
