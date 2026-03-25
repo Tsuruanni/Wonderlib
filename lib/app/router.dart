@@ -488,7 +488,8 @@ GoRouter _createRouter() {
         path: AppRoutes.teacherClassDetail,
         builder: (context, state) {
           final classId = state.pathParameters['classId']!;
-          return ClassDetailScreen(classId: classId);
+          final mode = state.extra as ClassDetailMode? ?? ClassDetailMode.management;
+          return ClassDetailScreen(classId: classId, mode: mode);
         },
       ),
       GoRoute(

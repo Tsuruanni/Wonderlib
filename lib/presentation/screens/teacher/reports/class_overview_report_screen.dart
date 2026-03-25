@@ -8,6 +8,7 @@ import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
+import '../class_detail_screen.dart';
 
 class ClassOverviewReportScreen extends ConsumerWidget {
   const ClassOverviewReportScreen({super.key});
@@ -98,7 +99,10 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                 // Class cards
                 ...classes.map((classItem) => _ClassReportCard(
                   classItem: classItem,
-                  onTap: () => context.push(AppRoutes.teacherClassDetailPath(classItem.id)),
+                  onTap: () => context.push(
+                    AppRoutes.teacherClassDetailPath(classItem.id),
+                    extra: ClassDetailMode.report,
+                  ),
                 ),),
               ],
             );

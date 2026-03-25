@@ -15,13 +15,17 @@ import '../../utils/ui_helpers.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 
+enum ClassDetailMode { management, report }
+
 class ClassDetailScreen extends ConsumerWidget {
   const ClassDetailScreen({
     super.key,
     required this.classId,
+    this.mode = ClassDetailMode.management,
   });
 
   final String classId;
+  final ClassDetailMode mode;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
