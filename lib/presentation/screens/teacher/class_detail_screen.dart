@@ -79,6 +79,13 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
               );
             }
 
+            // Sort alphabetically by last name, then first name
+            final sortedStudents = [...students]
+              ..sort((a, b) {
+                final lastCmp = a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
+                return lastCmp != 0 ? lastCmp : a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
+              });
+
             return Stack(
               children: [
                 Column(
@@ -95,9 +102,9 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                           16,
                           isManagement ? (_isSelectMode ? 80 : 140) : 16,
                         ),
-                        itemCount: students.length,
+                        itemCount: sortedStudents.length,
                         itemBuilder: (context, index) {
-                          final student = students[index];
+                          final student = sortedStudents[index];
                           if (isManagement) {
                             return _ManagementStudentCard(
                               student: student,
@@ -136,30 +143,43 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                 // Bottom action buttons (management mode, not select mode)
                 if (isManagement && !_isSelectMode)
                   Positioned(
-                    left: 16,
-                    right: 16,
-                    bottom: 16,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _toggleSelectMode,
-                            icon: const Icon(Icons.swap_horiz),
-                            label: const Text('Select & Move Students'),
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _downloadLoginCards(context, students),
-                            icon: const Icon(Icons.download),
-                            label: const Text('Download Login Cards'),
+                        ],
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _toggleSelectMode,
+                              icon: const Icon(Icons.swap_horiz),
+                              label: const Text('Select & Move Students'),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _downloadLoginCards(context, sortedStudents),
+                              icon: const Icon(Icons.download),
+                              label: const Text('Download Login Cards'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
               ],
