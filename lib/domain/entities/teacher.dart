@@ -57,6 +57,7 @@ class StudentSummary extends Equatable {
     required this.currentStreak,
     required this.booksRead,
     required this.avgProgress,
+    this.passwordPlain,
   });
   final String id;
   final String firstName;
@@ -69,11 +70,12 @@ class StudentSummary extends Equatable {
   final int currentStreak;
   final int booksRead;
   final double avgProgress;
+  final String? passwordPlain;
 
   String get fullName => '$firstName $lastName';
 
   @override
-  List<Object?> get props => [id, firstName, lastName, studentNumber, email, avatarUrl, xp, level, currentStreak, booksRead, avgProgress];
+  List<Object?> get props => [id, firstName, lastName, studentNumber, email, avatarUrl, xp, level, currentStreak, booksRead, avgProgress, passwordPlain];
 }
 
 /// Student's progress on a specific book

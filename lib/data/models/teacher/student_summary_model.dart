@@ -15,6 +15,7 @@ class StudentSummaryModel {
     required this.currentStreak,
     required this.booksRead,
     required this.avgProgress,
+    this.passwordPlain,
   });
 
   factory StudentSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +31,7 @@ class StudentSummaryModel {
       currentStreak: (json['streak'] as num?)?.toInt() ?? 0,
       booksRead: (json['books_read'] as num?)?.toInt() ?? 0,
       avgProgress: (json['avg_progress'] as num?)?.toDouble() ?? 0,
+      passwordPlain: json['password_plain'] as String?,
     );
   }
 
@@ -46,6 +48,7 @@ class StudentSummaryModel {
       currentStreak: entity.currentStreak,
       booksRead: entity.booksRead,
       avgProgress: entity.avgProgress,
+      passwordPlain: entity.passwordPlain,
     );
   }
   final String id;
@@ -59,6 +62,7 @@ class StudentSummaryModel {
   final int currentStreak;
   final int booksRead;
   final double avgProgress;
+  final String? passwordPlain;
 
   Map<String, dynamic> toJson() {
     return {
@@ -73,6 +77,7 @@ class StudentSummaryModel {
       'streak': currentStreak,
       'books_read': booksRead,
       'avg_progress': avgProgress,
+      'password_plain': passwordPlain,
     };
   }
 
@@ -89,6 +94,7 @@ class StudentSummaryModel {
       currentStreak: currentStreak,
       booksRead: booksRead,
       avgProgress: avgProgress,
+      passwordPlain: passwordPlain,
     );
   }
 }

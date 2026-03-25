@@ -514,4 +514,56 @@ class SupabaseTeacherRepository implements TeacherRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> updateClass({
+    required String classId,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      await _supabase.rpc(RpcFunctions.updateClass, params: {
+        'p_class_id': classId,
+        'p_name': name,
+        'p_description': description,
+      });
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteClass(String classId) async {
+    try {
+      await _supabase.rpc(RpcFunctions.deleteClass, params: {
+        'p_class_id': classId,
+      });
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> bulkMoveStudents({
+    required List<String> studentIds,
+    required String targetClassId,
+  }) async {
+    try {
+      await _supabase.rpc(RpcFunctions.bulkMoveStudents, params: {
+        'p_student_ids': studentIds,
+        'p_target_class_id': targetClassId,
+      });
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

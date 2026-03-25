@@ -98,4 +98,20 @@ abstract class TeacherRepository {
     required String firstName,
     required String lastName,
   });
+
+  /// Update class name and description
+  Future<Either<Failure, void>> updateClass({
+    required String classId,
+    required String name,
+    String? description,
+  });
+
+  /// Delete a class (must have no students)
+  Future<Either<Failure, void>> deleteClass(String classId);
+
+  /// Move multiple students to a target class atomically
+  Future<Either<Failure, void>> bulkMoveStudents({
+    required List<String> studentIds,
+    required String targetClassId,
+  });
 }
