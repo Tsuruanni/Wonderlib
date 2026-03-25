@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:printing/printing.dart';
-
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
@@ -179,18 +177,16 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
     final classesAsync = ref.read(currentTeacherClassesProvider).valueOrNull;
     final className = classesAsync?.where((c) => c.id == widget.classId).firstOrNull?.name ?? 'Class';
 
-    final pdfBytes = await generateLoginCardsPdf(
-      students: students,
-      schoolName: schoolName,
-      className: className,
-    );
-
-    if (!context.mounted) return;
-
-    await Printing.layoutPdf(
-      onLayout: (_) => pdfBytes,
-      name: 'login_cards_$className',
-    );
+    try {
+      await generateAndShareLoginCards(
+        students: students,
+        schoolName: schoolName,
+        className: className,
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      showAppSnackBar(context, 'Error generating PDF: $e', type: SnackBarType.error);
+    }
   }
 
   void _showStudentInfoSheet(BuildContext context, StudentSummary student) {

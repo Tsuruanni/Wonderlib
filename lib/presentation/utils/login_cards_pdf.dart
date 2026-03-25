@@ -1,19 +1,43 @@
 import 'dart:typed_data';
 
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../../domain/entities/teacher.dart';
 
-/// Generates a PDF document with student login cards.
+/// Generates a PDF document with student login cards and triggers download/print.
 ///
 /// A4 format, 2 columns × 5 rows = 10 cards per page.
 /// Each card shows: name, username, password, QR code, download URL.
-Future<Uint8List> generateLoginCardsPdf({
+/// Uses Google Fonts Nunito for Unicode/Turkish character support.
+Future<void> generateAndShareLoginCards({
   required List<StudentSummary> students,
   required String schoolName,
   required String className,
 }) async {
+  final pdfBytes = await _generatePdf(
+    students: students,
+    schoolName: schoolName,
+    className: className,
+  );
+
+  await Printing.sharePdf(
+    bytes: pdfBytes,
+    filename: 'login_cards_$className.pdf',
+  );
+}
+
+Future<Uint8List> _generatePdf({
+  required List<StudentSummary> students,
+  required String schoolName,
+  required String className,
+}) async {
+  // Load Nunito font for Unicode/Turkish support
+  final fontRegular = await PdfGoogleFonts.nunitoRegular();
+  final fontBold = await PdfGoogleFonts.nunitoBold();
+
   final pdf = pw.Document();
   const cardsPerPage = 10;
   const columns = 2;
@@ -32,6 +56,7 @@ Future<Uint8List> generateLoginCardsPdf({
       pw.Page(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(24),
+        theme: pw.ThemeData.withFont(base: fontRegular, bold: fontBold),
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
