@@ -390,7 +390,7 @@ class _PreviewSection extends StatelessWidget {
         children: [
           AvatarWidget(
             avatar: avatar,
-            size: 120,
+            size: 240,
             fallbackInitials: initials,
           ),
           const SizedBox(height: 12),
