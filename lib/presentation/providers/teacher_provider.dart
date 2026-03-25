@@ -12,6 +12,7 @@ import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
 import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -154,6 +155,24 @@ final studentWordListProgressProvider =
 });
 
 // =============================================
+// READING PROGRESS REPORT PROVIDERS
+// =============================================
+
+/// Provider for per-book reading stats scoped to the teacher's school
+final schoolBookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((ref) async {
+  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  if (user == null || user.schoolId.isEmpty) return [];
+
+  final useCase = ref.watch(getSchoolBookReadingStatsUseCaseProvider);
+  final result = await useCase(GetSchoolBookReadingStatsParams(schoolId: user.schoolId));
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (stats) => stats,
+  );
+});
+
+// =============================================
 // ASSIGNMENT PROVIDERS
 // =============================================
 
@@ -195,4 +214,25 @@ final assignmentStudentsProvider =
     (failure) => [],
     (students) => students,
   );
+});
+
+// =============================================
+// LEADERBOARD PROVIDERS
+// =============================================
+
+/// Provider that aggregates all students from all classes for leaderboard
+final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
+  final classesResult = await ref.watch(currentTeacherClassesProvider.future);
+
+  final allStudents = <StudentSummary>[];
+
+  for (final classItem in classesResult) {
+    final students = await ref.watch(classStudentsProvider(classItem.id).future);
+    allStudents.addAll(students);
+  }
+
+  // Sort by XP descending
+  allStudents.sort((a, b) => b.xp.compareTo(a.xp));
+
+  return allStudents;
 });

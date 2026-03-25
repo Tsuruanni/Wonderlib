@@ -1,3 +1,4 @@
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 
 /// Model for StudentAssignment - handles JSON serialization
@@ -44,7 +45,7 @@ class StudentAssignmentModel {
 
     // Check if overdue
     String finalStatus = statusStr;
-    if (statusStr != 'completed' && DateTime.now().isAfter(dueDate)) {
+    if (statusStr != 'completed' && AppClock.now().isAfter(dueDate)) {
       finalStatus = 'overdue';
     }
 
@@ -77,8 +78,8 @@ class StudentAssignmentModel {
       assignmentId: entity.assignmentId,
       title: entity.title,
       description: entity.description,
-      type: _typeToString(entity.type),
-      status: _statusToString(entity.status),
+      type: entity.type.dbValue,
+      status: entity.status.dbValue,
       progress: entity.progress,
       score: entity.score,
       teacherName: entity.teacherName,
@@ -146,27 +147,4 @@ class StudentAssignmentModel {
     );
   }
 
-  static String _typeToString(StudentAssignmentType type) {
-    switch (type) {
-      case StudentAssignmentType.book:
-        return 'book';
-      case StudentAssignmentType.vocabulary:
-        return 'vocabulary';
-      case StudentAssignmentType.mixed:
-        return 'mixed';
-    }
-  }
-
-  static String _statusToString(StudentAssignmentStatus status) {
-    switch (status) {
-      case StudentAssignmentStatus.pending:
-        return 'pending';
-      case StudentAssignmentStatus.inProgress:
-        return 'in_progress';
-      case StudentAssignmentStatus.completed:
-        return 'completed';
-      case StudentAssignmentStatus.overdue:
-        return 'overdue';
-    }
-  }
 }

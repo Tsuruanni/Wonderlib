@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
@@ -527,7 +529,7 @@ class _WordListProgressCard extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: _getCategoryColor(progress.wordListCategory).withValues(alpha: 0.1),
+                color: VocabularyColors.getCategoryColor(WordListCategory.fromDbValue(progress.wordListCategory)).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -535,14 +537,14 @@ class _WordListProgressCard extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.list_alt,
-                    color: _getCategoryColor(progress.wordListCategory),
+                    color: VocabularyColors.getCategoryColor(WordListCategory.fromDbValue(progress.wordListCategory)),
                     size: 24,
                   ),
                   if (progress.wordListLevel != null)
                     Text(
                       progress.wordListLevel!,
                       style: context.textTheme.labelSmall?.copyWith(
-                        color: _getCategoryColor(progress.wordListCategory),
+                        color: VocabularyColors.getCategoryColor(WordListCategory.fromDbValue(progress.wordListCategory)),
                         fontWeight: FontWeight.bold,
                         fontSize: 9,
                       ),
@@ -621,23 +623,6 @@ class _WordListProgressCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'common_words':
-        return Colors.blue;
-      case 'grade_level':
-        return Colors.green;
-      case 'test_prep':
-        return Colors.red;
-      case 'thematic':
-        return Colors.purple;
-      case 'story_vocab':
-        return Colors.teal;
-      default:
-        return Colors.grey;
-    }
   }
 
   Color _getAccuracyColor(double accuracy) {

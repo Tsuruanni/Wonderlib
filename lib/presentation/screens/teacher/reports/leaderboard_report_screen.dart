@@ -7,23 +7,6 @@ import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/error_state_widget.dart';
 
-/// Provider that aggregates all students from all classes for leaderboard
-final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
-  final classesResult = await ref.watch(currentTeacherClassesProvider.future);
-
-  // Fetch all classes' students in parallel (not sequentially)
-  final studentLists = await Future.wait(
-    classesResult.map((c) => ref.watch(classStudentsProvider(c.id).future)),
-  );
-
-  final allStudents = studentLists.expand((s) => s).toList();
-
-  // Sort by XP descending
-  allStudents.sort((a, b) => b.xp.compareTo(a.xp));
-
-  return allStudents;
-});
-
 class LeaderboardReportScreen extends ConsumerWidget {
   const LeaderboardReportScreen({super.key});
 

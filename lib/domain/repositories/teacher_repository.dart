@@ -32,6 +32,9 @@ abstract class TeacherRepository {
   /// Get student's word list progress (per-list breakdown)
   Future<Either<Failure, List<StudentWordListProgress>>> getStudentWordListProgress(String studentId);
 
+  /// Get per-book reading stats for a school (teacher reports)
+  Future<Either<Failure, List<BookReadingStats>>> getSchoolBookReadingStats(String schoolId);
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================

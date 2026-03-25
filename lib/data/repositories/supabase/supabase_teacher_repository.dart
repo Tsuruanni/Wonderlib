@@ -10,6 +10,7 @@ import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../models/assignment/assignment_model.dart';
 import '../../models/assignment/assignment_student_model.dart';
+import '../../models/teacher/book_reading_stats_model.dart';
 import '../../models/teacher/student_book_progress_model.dart';
 import '../../models/teacher/student_vocab_stats_model.dart';
 import '../../models/teacher/student_word_list_progress_model.dart';
@@ -198,6 +199,28 @@ class SupabaseTeacherRepository implements TeacherRepository {
           .toList();
 
       return Right(progressList);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BookReadingStats>>> getSchoolBookReadingStats(
+    String schoolId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getSchoolBookReadingStats,
+        params: {'p_school_id': schoolId},
+      );
+
+      final stats = (response as List)
+          .map((data) => BookReadingStatsModel.fromJson(data as Map<String, dynamic>).toEntity())
+          .toList();
+
+      return Right(stats);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

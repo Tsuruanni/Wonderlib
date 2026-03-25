@@ -61,6 +61,7 @@ import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
 import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
@@ -529,6 +530,10 @@ final getStudentVocabStatsUseCaseProvider = Provider((ref) {
 
 final getStudentWordListProgressUseCaseProvider = Provider((ref) {
   return GetStudentWordListProgressUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getSchoolBookReadingStatsUseCaseProvider = Provider((ref) {
+  return GetSchoolBookReadingStatsUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 final sendPasswordResetEmailUseCaseProvider = Provider((ref) {
