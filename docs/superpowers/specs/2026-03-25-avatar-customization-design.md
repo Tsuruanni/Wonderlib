@@ -106,6 +106,14 @@ Two new columns on `profiles`:
 
 Cache is rebuilt by every equip/unequip/set_avatar_base RPC. Source of truth remains `user_avatar_items` table.
 
+#### Leaderboard & View Integration
+
+The following existing components must be updated to expose `avatar_equipped_cache`:
+
+- **`safe_profiles` view** — add `avatar_equipped_cache` and `avatar_base_id` to the view definition
+- **Leaderboard RPCs** (`get_weekly_class_leaderboard`, `get_school_leaderboard`, etc.) — include `avatar_equipped_cache` in the returned columns alongside existing `avatar_url`
+- **`LeaderboardEntryModel`** (Flutter) — add `EquippedAvatar? equippedAvatar` field parsed from the new JSONB column, with fallback to `avatarUrl` for backward compatibility
+
 ### 1.3 RLS Policies
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
@@ -114,6 +122,8 @@ Cache is rebuilt by every equip/unequip/set_avatar_base RPC. Source of truth rem
 | avatar_item_categories | All authenticated | — | — | — |
 | avatar_items | All authenticated (where is_active) | — | — | — |
 | user_avatar_items | Own rows (auth.uid()) | Via RPC only | Via RPC only | — |
+
+**RLS enforcement for `user_avatar_items`:** No direct INSERT/UPDATE/DELETE policies. Only SELECT for `auth.uid() = user_id`. All mutations go through SECURITY DEFINER RPCs, which bypass RLS.
 
 ### 1.4 RPC Functions
 
@@ -126,7 +136,7 @@ Cache is rebuilt by every equip/unequip/set_avatar_base RPC. Source of truth rem
 - Validates item exists and is_active
 - Checks user doesn't already own it
 - Checks sufficient coins
-- Calls `spend_coins_transaction()` (existing) for atomic coin deduction + logging
+- Calls `spend_coins_transaction(p_user_id, coin_price, 'avatar_item', p_item_id, 'Purchased: ' || item.display_name)` — source `'avatar_item'` for coin audit consistency
 - Inserts into `user_avatar_items`
 - Returns `{coins_remaining, item_id}`
 
@@ -260,7 +270,7 @@ getEquippedAvatar(String userId) → Either<Failure, EquippedAvatar>
 | avatarBasesProvider | FutureProvider | 6 animal catalog (cached) |
 | avatarShopProvider | FutureProvider | All items grouped by category |
 | userAvatarItemsProvider | FutureProvider | Owned items |
-| equippedAvatarProvider | Provider | Derived from user's avatar_equipped_cache |
+| equippedAvatarProvider | Provider | Derived from `currentUserProvider`'s profile data — `UserModel` parses the `avatar_equipped_cache` JSONB column. For *other* users (leaderboard), `LeaderboardEntryModel` parses it directly. `getEquippedAvatar(userId)` UseCase is only for viewing another user's avatar outside of leaderboard context. |
 | avatarShopController | Notifier | buy/equip/unequip actions |
 | avatarCustomizeController | Notifier | Base selection, preview state management |
 
