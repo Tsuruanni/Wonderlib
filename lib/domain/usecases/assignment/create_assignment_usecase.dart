@@ -16,6 +16,9 @@ class CreateAssignmentParams {
     this.bookId,
     this.wordListId,
     this.lockLibrary = false,
+    this.scopeLpUnitId,
+    this.unitName,
+    this.totalItems,
     required this.startDate,
     required this.dueDate,
   });
@@ -28,6 +31,9 @@ class CreateAssignmentParams {
   final String? bookId;
   final String? wordListId;
   final bool lockLibrary;
+  final String? scopeLpUnitId;
+  final String? unitName;
+  final int? totalItems;
   final DateTime startDate;
   final DateTime dueDate;
 }
@@ -56,6 +62,12 @@ class CreateAssignmentUseCase
       );
     }
 
+    if (params.type == AssignmentType.unit && params.scopeLpUnitId == null) {
+      return Future.value(
+        const Left(ValidationFailure('Unit is required for unit assignments')),
+      );
+    }
+
     // Build content config based on type
     final contentConfig = <String, dynamic>{};
     if (params.type == AssignmentType.book) {
@@ -63,6 +75,10 @@ class CreateAssignmentUseCase
       contentConfig['lockLibrary'] = params.lockLibrary;
     } else if (params.type == AssignmentType.vocabulary) {
       contentConfig['wordListId'] = params.wordListId;
+    } else if (params.type == AssignmentType.unit) {
+      contentConfig['scopeLpUnitId'] = params.scopeLpUnitId;
+      contentConfig['unitName'] = params.unitName;
+      contentConfig['totalItems'] = params.totalItems;
     }
 
     final data = CreateAssignmentData(
