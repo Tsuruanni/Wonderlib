@@ -60,11 +60,17 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
         title: Text(isManagement ? 'Class Management' : 'Class Students'),
         actions: [
           if (isManagement)
-            IconButton(
-              icon: Icon(_isSelectMode ? Icons.close : Icons.checklist),
-              tooltip: _isSelectMode ? 'Cancel' : 'Select',
-              onPressed: _toggleSelectMode,
-            ),
+            _isSelectMode
+                ? TextButton.icon(
+                    onPressed: _toggleSelectMode,
+                    icon: const Icon(Icons.close),
+                    label: const Text('Cancel'),
+                  )
+                : TextButton.icon(
+                    onPressed: _toggleSelectMode,
+                    icon: const Icon(Icons.checklist),
+                    label: const Text('Select'),
+                  ),
         ],
       ),
       body: RefreshIndicator(
@@ -227,44 +233,143 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                   contentPadding: EdgeInsets.zero,
                 ),
               // Password
-              if (student.passwordPlain != null)
-                ListTile(
-                  leading: const Icon(Icons.lock_outline),
-                  title: const Text('Password'),
-                  subtitle: Text(student.passwordPlain!),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.copy, size: 18),
-                    onPressed: () {
-                      Clipboard.setData(
-                        ClipboardData(text: student.passwordPlain!),
-                      );
-                      Navigator.pop(context);
-                      showAppSnackBar(this.context, 'Password copied');
-                    },
-                  ),
-                  contentPadding: EdgeInsets.zero,
+              ListTile(
+                leading: const Icon(Icons.lock_outline),
+                title: const Text('Password'),
+                subtitle: Text(
+                  student.passwordPlain ?? 'Not available',
+                  style: student.passwordPlain == null
+                      ? TextStyle(color: this.context.colorScheme.outline, fontStyle: FontStyle.italic)
+                      : null,
                 ),
-              const SizedBox(height: 8),
-              // View Profile button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    this.context.push(
-                      AppRoutes.teacherStudentDetailPath(
-                        widget.classId,
-                        student.id,
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.person),
-                  label: const Text('View Full Profile'),
-                ),
+                trailing: student.passwordPlain != null
+                    ? IconButton(
+                        icon: const Icon(Icons.copy, size: 18),
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(text: student.passwordPlain!),
+                          );
+                          Navigator.pop(context);
+                          showAppSnackBar(this.context, 'Password copied');
+                        },
+                      )
+                    : null,
+                contentPadding: EdgeInsets.zero,
+              ),
+              const Divider(),
+              // Move to class
+              ListTile(
+                leading: const Icon(Icons.swap_horiz),
+                title: const Text('Move to Another Class'),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSingleStudentMoveSheet(this.context, student);
+                },
+              ),
+              // View Profile
+              ListTile(
+                leading: const Icon(Icons.person_outline),
+                title: const Text('View Full Profile'),
+                trailing: const Icon(Icons.chevron_right, size: 18),
+                contentPadding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.pop(context);
+                  this.context.push(
+                    AppRoutes.teacherStudentDetailPath(
+                      widget.classId,
+                      student.id,
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 8),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showSingleStudentMoveSheet(BuildContext context, StudentSummary student) {
+    final classesAsync = ref.read(currentTeacherClassesProvider);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Move ${student.fullName} to...',
+                style: context.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Divider(height: 1),
+            ...classesAsync.when(
+              loading: () => [
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ],
+              error: (_, __) => [
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('Error loading classes'),
+                  ),
+                ),
+              ],
+              data: (classes) => classes
+                  .where((c) => c.id != widget.classId)
+                  .map(
+                    (targetClass) => ListTile(
+                      leading: CircleAvatar(
+                        radius: 16,
+                        child: Text(
+                          '${targetClass.grade ?? ''}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      title: Text(targetClass.name),
+                      subtitle: Text('${targetClass.studentCount} students'),
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        final useCase = ref.read(bulkMoveStudentsUseCaseProvider);
+                        final result = await useCase(
+                          BulkMoveStudentsParams(
+                            studentIds: [student.id],
+                            targetClassId: targetClass.id,
+                          ),
+                        );
+
+                        if (!context.mounted) return;
+
+                        result.fold(
+                          (failure) {
+                            showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+                          },
+                          (_) {
+                            showAppSnackBar(context, '${student.fullName} moved to ${targetClass.name}', type: SnackBarType.success);
+                            ref.invalidate(classStudentsProvider(widget.classId));
+                            ref.invalidate(currentTeacherClassesProvider);
+                          },
+                        );
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );
