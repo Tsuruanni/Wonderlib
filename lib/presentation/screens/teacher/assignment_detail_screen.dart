@@ -50,6 +50,15 @@ class AssignmentDetailScreen extends ConsumerWidget {
                 child: _StatsBar(assignment: assignment),
               ),
 
+              // Unit content (if unit assignment)
+              if (assignment.type == AssignmentType.unit && assignment.scopeLpUnitId != null)
+                SliverToBoxAdapter(
+                  child: _UnitContentSection(
+                    classId: assignment.classId,
+                    scopeLpUnitId: assignment.scopeLpUnitId!,
+                  ),
+                ),
+
               // Section header
               SliverToBoxAdapter(
                 child: Padding(
@@ -481,4 +490,109 @@ class _StudentProgressCard extends StatelessWidget {
     );
   }
 
+}
+
+class _UnitContentSection extends ConsumerWidget {
+  const _UnitContentSection({
+    required this.classId,
+    required this.scopeLpUnitId,
+  });
+
+  final String? classId;
+  final String scopeLpUnitId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (classId == null) return const SizedBox.shrink();
+
+    final unitsAsync = ref.watch(classLearningPathUnitsProvider(classId!));
+
+    return unitsAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (units) {
+        final unit = units.where((u) => u.scopeLpUnitId == scopeLpUnitId).firstOrNull;
+        if (unit == null) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Unit Content',
+                style: context.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: unit.items.map((item) {
+                      final IconData icon;
+                      final String label;
+                      final String? detail;
+                      final bool isTracked;
+
+                      switch (item.itemType) {
+                        case 'word_list':
+                          icon = Icons.abc;
+                          label = item.wordListName ?? 'Word List';
+                          detail = '${item.words?.length ?? 0} words';
+                          isTracked = true;
+                        case 'book':
+                          icon = Icons.menu_book;
+                          label = item.bookTitle ?? 'Book';
+                          detail = '${item.bookChapterCount ?? 0} chapters';
+                          isTracked = true;
+                        case 'game':
+                          icon = Icons.sports_esports;
+                          label = 'Game';
+                          detail = 'Not graded';
+                          isTracked = false;
+                        case 'treasure':
+                          icon = Icons.card_giftcard;
+                          label = 'Treasure';
+                          detail = 'Not graded';
+                          isTracked = false;
+                        default:
+                          icon = Icons.help;
+                          label = item.itemType;
+                          detail = null;
+                          isTracked = false;
+                      }
+
+                      return ListTile(
+                        dense: true,
+                        leading: Icon(icon, size: 20, color: isTracked ? null : context.colorScheme.outline),
+                        title: Text(
+                          label,
+                          style: TextStyle(
+                            color: isTracked ? null : context.colorScheme.outline,
+                          ),
+                        ),
+                        trailing: detail != null
+                            ? Text(
+                                detail,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: context.colorScheme.outline,
+                                ),
+                              )
+                            : null,
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
