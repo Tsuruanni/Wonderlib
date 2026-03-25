@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/student_assignment.dart';
+import '../entities/unit_assignment_item.dart';
 
 /// Repository for student assignment operations
 abstract class StudentAssignmentRepository {
@@ -39,5 +40,17 @@ abstract class StudentAssignmentRepository {
     String studentId,
     String assignmentId,
     double? score,
+  );
+
+  /// Get items within a unit assignment with completion state
+  Future<Either<Failure, List<UnitAssignmentItem>>> getUnitAssignmentItems(
+    String scopeLpUnitId,
+    String studentId,
+  );
+
+  /// Calculate and update unit assignment progress (server-side)
+  Future<Either<Failure, void>> calculateUnitProgress(
+    String assignmentId,
+    String studentId,
   );
 }

@@ -35,8 +35,8 @@ extension StudentAssignmentTypeDisplay on AssignmentType {
         return 'Reading';
       case AssignmentType.vocabulary:
         return 'Vocabulary';
-      case AssignmentType.mixed:
-        return 'Mixed';
+      case AssignmentType.unit:
+        return 'Unit';
     }
   }
 
@@ -117,7 +117,7 @@ class StudentAssignment extends Equatable {
 
   /// Get book ID if this is a book assignment
   String? get bookId {
-    if (type == StudentAssignmentType.book || type == StudentAssignmentType.mixed) {
+    if (type == StudentAssignmentType.book) {
       return contentConfig['bookId'] as String?;
     }
     return null;
@@ -131,12 +131,11 @@ class StudentAssignment extends Equatable {
     return null;
   }
 
-  /// Get chapter IDs if this is a book assignment
-  List<String> get chapterIds {
-    if (type == StudentAssignmentType.book || type == StudentAssignmentType.mixed) {
-      final ids = contentConfig['chapterIds'] as List?;
-      return ids?.map((e) => e.toString()).toList() ?? [];
+  /// Get scope learning path unit ID if this is a unit assignment
+  String? get scopeLpUnitId {
+    if (type == StudentAssignmentType.unit) {
+      return contentConfig['scopeLpUnitId'] as String?;
     }
-    return [];
+    return null;
   }
 }

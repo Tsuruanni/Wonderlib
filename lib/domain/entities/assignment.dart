@@ -46,6 +46,9 @@ class Assignment extends Equatable {
       AppClock.now().isAfter(startDate) && AppClock.now().isBefore(dueDate);
   bool get isUpcoming => AppClock.now().isBefore(startDate);
 
+  /// Get scope LP unit ID for unit assignments
+  String? get scopeLpUnitId => contentConfig['scopeLpUnitId'] as String?;
+
   @override
   List<Object?> get props => [id, teacherId, classId, className, type, title, description, contentConfig, startDate, dueDate, createdAt, totalStudents, completedStudents];
 }

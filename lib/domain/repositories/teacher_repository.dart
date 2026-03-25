@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/assignment.dart';
+import '../entities/class_learning_path_unit.dart';
 import '../entities/teacher.dart';
 import '../entities/user.dart';
 
@@ -61,6 +62,11 @@ abstract class TeacherRepository {
 
   /// Delete an assignment
   Future<Either<Failure, void>> deleteAssignment(String assignmentId);
+
+  /// Get learning path units for a class (for unit assignment creation)
+  Future<Either<Failure, List<ClassLearningPathUnit>>> getClassLearningPathUnits(
+    String classId,
+  );
 
   // =============================================
   // CLASS MANAGEMENT METHODS
