@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../providers/avatar_admin_providers.dart';
-
-bool _isSvg(String url) =>
-    (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith('.svg');
-
-Widget _img(String url, {BoxFit fit = BoxFit.contain}) {
-  if (_isSvg(url)) return SvgPicture.network(url, fit: fit);
-  return Image.network(url, fit: fit, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image));
-}
 
 class AvatarManagementScreen extends ConsumerStatefulWidget {
   const AvatarManagementScreen({super.key, this.initialTab = 0});
   final int initialTab;
 
   @override
-  ConsumerState<AvatarManagementScreen> createState() => _AvatarManagementScreenState();
+  ConsumerState<AvatarManagementScreen> createState() =>
+      _AvatarManagementScreenState();
 }
 
 class _AvatarManagementScreenState extends ConsumerState<AvatarManagementScreen>
@@ -28,7 +20,8 @@ class _AvatarManagementScreenState extends ConsumerState<AvatarManagementScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTab);
+    _tabController = TabController(
+        length: 3, vsync: this, initialIndex: widget.initialTab);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) setState(() {});
     });
@@ -72,7 +65,11 @@ class _AvatarManagementScreenState extends ConsumerState<AvatarManagementScreen>
 
   List<Widget> _buildActions(BuildContext context) {
     final labels = ['Yeni Hayvan', 'Yeni Kategori', 'Yeni Aksesuar'];
-    final routes = ['/avatars/bases/new', '/avatars/categories/new', '/avatars/items/new'];
+    final routes = [
+      '/avatars/bases/new',
+      '/avatars/categories/new',
+      '/avatars/items/new'
+    ];
     final idx = _tabController.index;
     return [
       FilledButton.icon(
@@ -85,6 +82,10 @@ class _AvatarManagementScreenState extends ConsumerState<AvatarManagementScreen>
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// BASES TAB
+// ═══════════════════════════════════════════════════════════════
+
 class _BasesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,7 +94,9 @@ class _BasesTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Hata: $e')),
       data: (bases) {
-        if (bases.isEmpty) return const Center(child: Text('Henüz hayvan eklenmemiş'));
+        if (bases.isEmpty) {
+          return const Center(child: Text('Henüz hayvan eklenmemiş'));
+        }
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -116,7 +119,15 @@ class _BasesTab extends ConsumerWidget {
                       child: SizedBox(
                         width: 64,
                         height: 64,
-                        child: _img(base['image_url'] as String, fit: BoxFit.cover),
+                        child: Image.network(
+                          base['image_url'] as String,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey.shade200,
+                            child: const Icon(Icons.pets,
+                                size: 32, color: Colors.grey),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -139,6 +150,10 @@ class _BasesTab extends ConsumerWidget {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════
+// CATEGORIES TAB
+// ═══════════════════════════════════════════════════════════════
+
 class _CategoriesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -147,7 +162,9 @@ class _CategoriesTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Hata: $e')),
       data: (categories) {
-        if (categories.isEmpty) return const Center(child: Text('Henüz kategori eklenmemiş'));
+        if (categories.isEmpty) {
+          return const Center(child: Text('Henüz kategori eklenmemiş'));
+        }
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: categories.length,
@@ -156,9 +173,11 @@ class _CategoriesTab extends ConsumerWidget {
             return ListTile(
               leading: CircleAvatar(child: Text('${cat['z_index']}')),
               title: Text(cat['display_name'] as String),
-              subtitle: Text('name: ${cat['name']} | z_index: ${cat['z_index']} | sort: ${cat['sort_order']}'),
+              subtitle: Text(
+                  'name: ${cat['name']} | z_index: ${cat['z_index']} | sort: ${cat['sort_order']}'),
               trailing: const Icon(Icons.edit),
-              onTap: () => context.go('/avatars/categories/${cat['id']}'),
+              onTap: () =>
+                  context.go('/avatars/categories/${cat['id']}'),
             );
           },
         );
@@ -167,49 +186,132 @@ class _CategoriesTab extends ConsumerWidget {
   }
 }
 
-class _ItemsTab extends ConsumerWidget {
+// ═══════════════════════════════════════════════════════════════
+// ITEMS TAB — with category filter
+// ═══════════════════════════════════════════════════════════════
+
+class _ItemsTab extends ConsumerStatefulWidget {
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ItemsTab> createState() => _ItemsTabState();
+}
+
+class _ItemsTabState extends ConsumerState<_ItemsTab> {
+  String? _selectedCategoryId; // null = show all
+
+  @override
+  Widget build(BuildContext context) {
     final itemsAsync = ref.watch(avatarItemsAdminProvider);
-    return itemsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Hata: $e')),
-      data: (items) {
-        if (items.isEmpty) return const Center(child: Text('Henüz aksesuar eklenmemiş'));
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final item = items[index];
-            final category = item['avatar_item_categories'] as Map<String, dynamic>?;
-            final rarity = item['rarity'] as String? ?? 'common';
-            final isActive = item['is_active'] as bool? ?? true;
-            return ListTile(
-              leading: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _rarityColor(rarity), width: 2),
-                ),
-                child: _img((item['preview_url'] ?? item['image_url']) as String),
+    final categoriesAsync = ref.watch(avatarItemCategoriesAdminProvider);
+
+    return Column(
+      children: [
+        // Category filter chips
+        categoriesAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (categories) => Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+            child: SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  FilterChip(
+                    label: const Text('Tümü'),
+                    selected: _selectedCategoryId == null,
+                    onSelected: (_) =>
+                        setState(() => _selectedCategoryId = null),
+                  ),
+                  const SizedBox(width: 8),
+                  ...categories.map((cat) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(cat['display_name'] as String),
+                          selected:
+                              _selectedCategoryId == cat['id'] as String,
+                          onSelected: (_) => setState(() =>
+                              _selectedCategoryId = cat['id'] as String),
+                        ),
+                      )),
+                ],
               ),
-              title: Text(
-                item['display_name'] as String,
-                style: TextStyle(
-                  color: isActive ? null : Colors.grey,
-                  decoration: isActive ? null : TextDecoration.lineThrough,
-                ),
-              ),
-              subtitle: Text(
-                '${category?['display_name'] ?? '?'} | $rarity | ${item['coin_price']} coin',
-              ),
-              trailing: const Icon(Icons.edit),
-              onTap: () => context.go('/avatars/items/${item['id']}'),
-            );
-          },
-        );
-      },
+            ),
+          ),
+        ),
+
+        // Items list
+        Expanded(
+          child: itemsAsync.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Hata: $e')),
+            data: (items) {
+              // Apply category filter
+              final filtered = _selectedCategoryId == null
+                  ? items
+                  : items
+                      .where((i) =>
+                          i['category_id'] == _selectedCategoryId)
+                      .toList();
+
+              if (filtered.isEmpty) {
+                return const Center(
+                    child: Text('Bu kategoride aksesuar yok'));
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final item = filtered[index];
+                  final category = item['avatar_item_categories']
+                      as Map<String, dynamic>?;
+                  final rarity =
+                      item['rarity'] as String? ?? 'common';
+                  final isActive =
+                      item['is_active'] as bool? ?? true;
+
+                  return ListTile(
+                    leading: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: _rarityColor(rarity), width: 2),
+                        color: Colors.grey.shade100,
+                      ),
+                      child: Image.network(
+                        item['image_url'] as String,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => const Icon(
+                            Icons.checkroom,
+                            size: 24,
+                            color: Colors.grey),
+                      ),
+                    ),
+                    title: Text(
+                      item['display_name'] as String,
+                      style: TextStyle(
+                        color: isActive ? null : Colors.grey,
+                        decoration: isActive
+                            ? null
+                            : TextDecoration.lineThrough,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${category?['display_name'] ?? '?'} | $rarity | ${item['coin_price']} coin${!isActive ? ' | İNAKTİF' : ''}',
+                    ),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () =>
+                        context.go('/avatars/items/${item['id']}'),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
