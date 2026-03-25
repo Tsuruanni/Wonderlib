@@ -313,57 +313,23 @@ class SupabaseTeacherRepository implements TeacherRepository {
     CreateAssignmentData data,
   ) async {
     try {
-      // Create the assignment
-      final assignmentResponse = await _supabase
-          .from(DbTables.assignments)
-          .insert({
-            'teacher_id': teacherId,
-            'class_id': data.classId,
-            'type': data.type.name,
-            'title': data.title,
-            'description': data.description,
-            'content_config': data.contentConfig,
-            'start_date': data.startDate.toIso8601String(),
-            'due_date': data.dueDate.toIso8601String(),
-          })
-          .select()
-          .single();
-
-      final assignmentId = assignmentResponse['id'] as String;
-
-      // Get students to assign
-      List<String> studentIds = [];
-
-      if (data.studentIds != null && data.studentIds!.isNotEmpty) {
-        // Specific students selected
-        studentIds = data.studentIds!;
-      } else if (data.classId != null) {
-        // All students in the class
-        final studentsResponse = await _supabase
-            .from(DbTables.profiles)
-            .select('id')
-            .eq('class_id', data.classId!)
-            .eq('role', 'student');
-
-        studentIds = (studentsResponse as List)
-            .map((s) => s['id'] as String)
-            .toList();
-      }
-
-      // Create assignment_students entries
-      if (studentIds.isNotEmpty) {
-        final assignmentStudents = studentIds.map((studentId) => {
-          'assignment_id': assignmentId,
-          'student_id': studentId,
-          'status': 'pending',
-          'progress': 0,
-        },).toList();
-
-        await _supabase.from(DbTables.assignmentStudents).insert(assignmentStudents);
-      }
+      final assignmentId = await _supabase.rpc(
+        RpcFunctions.createAssignmentWithStudents,
+        params: {
+          'p_teacher_id': teacherId,
+          'p_class_id': data.classId,
+          'p_type': data.type.name,
+          'p_title': data.title,
+          'p_description': data.description,
+          'p_content_config': data.contentConfig,
+          'p_start_date': data.startDate.toIso8601String(),
+          'p_due_date': data.dueDate.toIso8601String(),
+          'p_student_ids': data.studentIds,
+        },
+      );
 
       // Return the created assignment
-      return getAssignmentDetail(assignmentId);
+      return getAssignmentDetail(assignmentId as String);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
