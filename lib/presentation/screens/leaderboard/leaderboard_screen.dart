@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
+import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
+import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -445,6 +447,7 @@ class _LeaderboardList extends StatelessWidget {
             avatarUrl: entry.avatarUrl,
             initials: entry.initials,
             leagueTier: entry.leagueTier,
+            avatarEquippedCache: entry.avatarEquippedCache,
           ),
           const SizedBox(width: 12),
 
@@ -635,6 +638,7 @@ class _PodiumEntry extends StatelessWidget {
           avatarUrl: entry.avatarUrl,
           initials: entry.initials,
           leagueTier: entry.leagueTier,
+          avatarEquippedCache: entry.avatarEquippedCache,
           size: 48,
         ),
         const SizedBox(height: 6),
@@ -752,16 +756,32 @@ class _Avatar extends StatelessWidget {
     required this.avatarUrl,
     required this.initials,
     required this.leagueTier,
+    this.avatarEquippedCache,
     this.size = 40,
   });
 
   final String? avatarUrl;
   final String initials;
   final LeagueTier leagueTier;
+  final Map<String, dynamic>? avatarEquippedCache;
   final double size;
 
   @override
   Widget build(BuildContext context) {
+    // Use AvatarWidget when equipped avatar data is available
+    if (avatarEquippedCache != null) {
+      final equippedAvatar = EquippedAvatarModel.fromJson(avatarEquippedCache).toEntity();
+      if (equippedAvatar.isNotEmpty) {
+        return AvatarWidget(
+          avatar: equippedAvatar,
+          size: size,
+          fallbackInitials: initials,
+          showBorder: true,
+        );
+      }
+    }
+
+    // Fallback: old rendering with tier border
     return Container(
       width: size,
       height: size,

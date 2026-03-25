@@ -6,9 +6,11 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/level_helper.dart';
+import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../providers/student_profile_popup_provider.dart';
+import 'avatar_widget.dart';
 
 /// Shows a student profile popup centered on screen.
 void showStudentProfileDialog(BuildContext context, LeaderboardEntry entry) {
@@ -221,6 +223,19 @@ class StudentProfileDialog extends ConsumerWidget {
   }
 
   Widget _buildAvatar() {
+    // Use AvatarWidget when equipped avatar data is available
+    if (entry.avatarEquippedCache != null) {
+      final equippedAvatar = EquippedAvatarModel.fromJson(entry.avatarEquippedCache).toEntity();
+      if (equippedAvatar.isNotEmpty) {
+        return AvatarWidget(
+          avatar: equippedAvatar,
+          size: 72,
+          fallbackInitials: entry.initials,
+        );
+      }
+    }
+
+    // Fallback: old rendering with tier border
     final tierColor = _getTierColor(entry.leagueTier);
     return Container(
       width: 72,
