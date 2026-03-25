@@ -16,6 +16,9 @@ class StudentAssignmentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Sync any assignments that should be auto-completed
+    ref.watch(assignmentSyncProvider);
+
     final assignmentsAsync = ref.watch(studentAssignmentsProvider);
 
     return Scaffold(
