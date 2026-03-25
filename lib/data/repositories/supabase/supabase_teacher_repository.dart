@@ -6,10 +6,12 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../domain/entities/class_learning_path_unit.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../models/assignment/assignment_model.dart';
 import '../../models/assignment/assignment_student_model.dart';
+import '../../models/assignment/class_learning_path_unit_model.dart';
 import '../../models/teacher/book_reading_stats_model.dart';
 import '../../models/teacher/recent_activity_model.dart';
 import '../../models/teacher/student_book_progress_model.dart';
@@ -279,36 +281,18 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, Assignment>> getAssignmentDetail(String assignmentId) async {
     try {
-      final response = await _supabase
-          .from(DbTables.assignments)
-          .select('''
-            *,
-            classes:class_id (name)
-          ''')
-          .eq('id', assignmentId)
-          .single();
+      final response = await _supabase.rpc(
+        RpcFunctions.getAssignmentDetailWithStats,
+        params: {'p_assignment_id': assignmentId},
+      );
 
-      // Get student counts
-      final studentsResponse = await _supabase
-          .from(DbTables.assignmentStudents)
-          .select('status')
-          .eq('assignment_id', assignmentId);
-
-      final studentsList = studentsResponse as List;
-      final totalStudents = studentsList.length;
-      final completedStudents = studentsList
-          .where((s) => s['status'] == AssignmentStatus.completed.dbValue)
-          .length;
-
-      return Right(AssignmentModel.fromJson(
-        response,
-        totalStudents: totalStudents,
-        completedStudents: completedStudents,
-      ).toEntity(),);
-    } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') {
+      final rows = response as List;
+      if (rows.isEmpty) {
         return const Left(NotFoundFailure('Assignment not found'));
       }
+
+      return Right(AssignmentModel.fromJson(rows.first as Map<String, dynamic>).toEntity());
+    } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -392,6 +376,25 @@ class SupabaseTeacherRepository implements TeacherRepository {
           .eq('id', assignmentId);
 
       return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ClassLearningPathUnit>>> getClassLearningPathUnits(
+    String classId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getClassLearningPathUnits,
+        params: {'p_class_id': classId},
+      );
+
+      final units = ClassLearningPathUnitModel.fromRpcRows(response as List);
+      return Right(units);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

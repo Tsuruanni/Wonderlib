@@ -6,8 +6,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
+import '../../../domain/entities/unit_assignment_item.dart';
 import '../../../domain/repositories/student_assignment_repository.dart';
 import '../../models/assignment/student_assignment_model.dart';
+import '../../models/assignment/unit_assignment_item_model.dart';
 
 class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository {
   SupabaseStudentAssignmentRepository({SupabaseClient? supabase})
@@ -203,6 +205,52 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
           .eq('student_id', studentId)
           .eq('assignment_id', assignmentId);
 
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<UnitAssignmentItem>>> getUnitAssignmentItems(
+    String scopeLpUnitId,
+    String studentId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getUnitAssignmentItems,
+        params: {
+          'p_scope_lp_unit_id': scopeLpUnitId,
+          'p_student_id': studentId,
+        },
+      );
+
+      final items = (response as List)
+          .map((data) => UnitAssignmentItemModel.fromJson(data as Map<String, dynamic>))
+          .toList();
+      return Right(items);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> calculateUnitProgress(
+    String assignmentId,
+    String studentId,
+  ) async {
+    try {
+      await _supabase.rpc(
+        RpcFunctions.calculateUnitAssignmentProgress,
+        params: {
+          'p_assignment_id': assignmentId,
+          'p_student_id': studentId,
+        },
+      );
       return const Right(null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
