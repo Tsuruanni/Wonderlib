@@ -85,20 +85,19 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
       final ext = file.extension ?? 'png';
+      final ts = DateTime.now().millisecondsSinceEpoch;
       final slug = _nameCtrl.text.isNotEmpty
           ? _nameCtrl.text
-          : '${DateTime.now().millisecondsSinceEpoch}';
-      final path = 'items/$slug.$ext';
+          : '$ts';
+      final path = 'items/${slug}_$ts.$ext';
 
       await supabase.storage.from('avatars').uploadBinary(
             path,
             file.bytes!,
-            fileOptions:
-                FileOptions(contentType: 'image/$ext', upsert: true),
+            fileOptions: FileOptions(contentType: 'image/$ext'),
           );
 
-      final baseUrl = supabase.storage.from('avatars').getPublicUrl(path);
-      final url = '$baseUrl?v=${DateTime.now().millisecondsSinceEpoch}';
+      final url = supabase.storage.from('avatars').getPublicUrl(path);
 
       setState(() {
         _imageUrl = url;
