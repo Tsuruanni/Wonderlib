@@ -12,6 +12,7 @@ import '../../../core/utils/level_helper.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/user.dart';
+import '../../../domain/entities/vocabulary.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/card_provider.dart';
@@ -809,12 +810,24 @@ class _VocabularyStatsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vocabAsync = ref.watch(vocabularyStatsSimpleProvider);
+    // Use same data source as Word Bank (learnedWordsWithDetailsProvider)
+    // so stats are consistent between profile and vocabulary screen.
+    final wordsAsync = ref.watch(learnedWordsWithDetailsProvider);
 
-    return vocabAsync.when(
+    return wordsAsync.when(
       loading: () => const SizedBox(height: 80),
       error: (_, __) => const SizedBox.shrink(),
-      data: (stats) {
+      data: (words) {
+        final mastered = words.where((w) => w.progress?.isMastered ?? false).length;
+        final learning = words.where((w) {
+          final s = w.progress?.status;
+          return s == VocabularyStatus.learning || s == VocabularyStatus.reviewing;
+        }).length;
+        final newCount = words.where((w) {
+          final s = w.progress?.status;
+          return s == null || s == VocabularyStatus.newWord;
+        }).length;
+
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -850,7 +863,7 @@ class _VocabularyStatsSection extends ConsumerWidget {
                   Expanded(
                     child: _MiniStat(
                       icon: Icons.fiber_new_rounded,
-                      value: '${stats.newCount}',
+                      value: '$newCount',
                       label: 'New',
                       color: AppColors.gemBlue,
                     ),
@@ -859,7 +872,7 @@ class _VocabularyStatsSection extends ConsumerWidget {
                   Expanded(
                     child: _MiniStat(
                       icon: Icons.loop_rounded,
-                      value: '${stats.inProgressCount}',
+                      value: '$learning',
                       label: 'Learning',
                       color: AppColors.streakOrange,
                     ),
@@ -868,7 +881,7 @@ class _VocabularyStatsSection extends ConsumerWidget {
                   Expanded(
                     child: _MiniStat(
                       icon: Icons.check_circle_rounded,
-                      value: '${stats.masteredCount}',
+                      value: '$mastered',
                       label: 'Mastered',
                       color: AppColors.primary,
                     ),
