@@ -81,11 +81,12 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
             fileOptions: FileOptions(contentType: contentType, upsert: true),
           );
 
-      final url = supabase.storage.from('avatars').getPublicUrl(path);
+      final baseUrl = supabase.storage.from('avatars').getPublicUrl(path);
+      final url = '$baseUrl?v=${DateTime.now().millisecondsSinceEpoch}';
 
       setState(() {
         _imageUrl = url;
-        _imageBytes = file.bytes; // keep bytes for instant preview
+        _imageBytes = file.bytes;
       });
 
       if (mounted) {

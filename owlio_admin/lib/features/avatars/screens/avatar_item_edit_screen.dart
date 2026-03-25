@@ -97,7 +97,8 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                 FileOptions(contentType: 'image/$ext', upsert: true),
           );
 
-      final url = supabase.storage.from('avatars').getPublicUrl(path);
+      final baseUrl = supabase.storage.from('avatars').getPublicUrl(path);
+      final url = '$baseUrl?v=${DateTime.now().millisecondsSinceEpoch}';
 
       setState(() {
         _imageUrl = url;
