@@ -8,6 +8,59 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Class Management Redesign (2026-03-25)
+
+#### Added
+- **Class edit/delete** — Teachers can rename classes and delete empty ones via popup menu on class cards.
+- **Bulk student transfer** — Select mode with checkboxes + "Move to..." bottom sheet for moving multiple students to another class atomically.
+- **Individual student move** — "Move to Another Class" action in student info bottom sheet.
+- **Student login cards PDF** — "Download Login Cards" generates A4 PDF (2×5 grid) with student name, username, password, QR code. Uses Nunito font for Turkish character support.
+- **Student password visibility** — Teachers can see `password_plain` in student info sheet (for auto-created accounts).
+- **Management vs Report mode** — `ClassDetailScreen` now has dual modes: management (from Classes tab — no stats, actions enabled) and report (from Reports → Class Overview — stats shown, read-only).
+- **3 new RPCs** — `delete_class` (safe delete with student count check), `bulk_move_students` (atomic transfer), `update_class` (edit name/description).
+- **`username` field** added to `StudentSummary` entity and `get_students_in_class` RPC.
+
+#### Changed
+- **Classes tab simplified** — Removed average progress from class cards (management view, not reports).
+- **Class detail stats removed** — Stats bar (total XP, avg progress) hidden in management mode.
+- **Student list alphabetical** — Sorted by first name, then last name.
+- **Bottom action bar** — Opaque background with shadow, replaces floating buttons that overlapped student names.
+
+#### Removed
+- **3-dot student menu** — Replaced by tap-to-view info sheet + select mode for bulk operations.
+- **Email display** — Removed from student info sheet (all local emails, not useful).
+
+### Teacher Panel Audit & Fixes (2026-03-25)
+
+#### Added
+- **Teacher profile page** — Full profile UI replacing empty placeholder: initials circle, name, email, role badge, school name, editable first/last name, password reset, sign out.
+- **Recent activity feed** — Teacher dashboard now shows real student activity from `xp_logs` (last 7 days) instead of permanent "No recent activity" placeholder.
+- **Reading progress report** — Fully functional with real data from new `get_school_book_reading_stats` RPC, replacing stub zeros.
+- **Quick Actions Leaderboard** — Replaced empty 4th button placeholder with Leaderboard shortcut.
+
+#### Fixed
+- **CRITICAL: `updateStudentClass` broken** — RLS blocked teacher UPDATE on profiles. Fixed with new `update_student_class` SECURITY DEFINER RPC.
+- **CRITICAL: Cross-school data leaks** — `get_student_progress_with_books` and `get_assignments_with_stats` lacked school-scope checks. Any teacher could view any school's data.
+- **CRITICAL: SQL ambiguous id** — `RETURNS TABLE (id UUID, ...)` conflicted with unqualified `WHERE id = auth.uid()`. Qualified all column references with table aliases.
+- **`createAssignment` non-atomic** — 3 sequential queries replaced with single `create_assignment_with_students` RPC transaction.
+- **`updateAssignmentProgress` race condition** — SELECT+UPDATE replaced with single `update_assignment_progress` RPC.
+- **Due date time loss** — `showDatePicker` returned midnight, losing 23:59:59. Now preserves end-of-day time.
+- **`DateTime.now()` → `AppClock.now()`** — Fixed in `getActiveAssignments` and `StudentAssignmentModel`.
+- **Hardcoded status strings** — `'completed'`/`'in_progress'` replaced with `AssignmentStatus.*.dbValue`.
+- **`_AssignmentAppBar`** — Converted from `StatelessWidget` + `ProviderScope.containerOf` to proper `ConsumerWidget`.
+- **Provider error handling** — `schoolBookReadingStatsProvider` now returns `[]` on failure (consistent with all other teacher providers).
+
+#### Changed
+- **Duplicate helpers centralized** — `_formatTimeAgo` → `TimeFormatter.formatTimeAgo`, `_formatReadingTime` → `TimeFormatter.formatReadingTime`, `_getProgressColor` → `ScoreColors.getProgressColor` (5 files).
+- **debugPrint removed** — Production debug logging removed from dashboard and teacher providers.
+- **`allStudentsLeaderboardProvider`** moved from screen file to `teacher_provider.dart`.
+- **Leaderboard refresh** — Now invalidates `classStudentsProvider` family to prevent stale data.
+- **`RecentActivity.props`** — Added missing `studentFirstName`, `studentLastName`, `avatarUrl` fields.
+
+#### Infrastructure
+- **15 DB migrations** (20260325000007 through 20260325000015) — security fixes, new RPCs, schema updates.
+- **`pdf` + `printing` packages** added for client-side PDF generation.
+
 ### Profile Screen Rebuild (2026-03-25)
 
 #### Added

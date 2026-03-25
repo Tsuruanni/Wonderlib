@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-25 (Profile screen rebuild, level formula fix, combined stats card, card previews, badge section)
+Son güncelleme: 2026-03-26 (Teacher panel audit, class management redesign, login cards PDF, teacher profile)
 
 ## Current Phase
 
@@ -105,6 +105,9 @@ See: CLAUDE.md for architecture guidelines
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
+- [x] Teacher Panel Audit & Fixes (security, atomicity, broken features, code quality — 15 migrations)
+- [x] Teacher Profile Page (editable name, password reset, role badge, school name)
+- [x] Class Management Redesign (edit/delete class, bulk move, login cards PDF, management vs report mode)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -114,6 +117,7 @@ See: CLAUDE.md for architecture guidelines
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
 | ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
+| ~~Teacher Panel Audit~~ | - | ~~Done~~ | ~~15 migrations, security fixes, class management redesign~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
