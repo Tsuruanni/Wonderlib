@@ -168,7 +168,10 @@ final schoolBookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((r
   final result = await useCase(GetSchoolBookReadingStatsParams(schoolId: user.schoolId));
 
   return result.fold(
-    (failure) => throw Exception(failure.message),
+    (failure) {
+      debugPrint('schoolBookReadingStatsProvider: error = ${failure.message}');
+      return <BookReadingStats>[];
+    },
     (stats) => stats,
   );
 });
