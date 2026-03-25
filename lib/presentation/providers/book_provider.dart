@@ -21,6 +21,7 @@ import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../domain/entities/system_settings.dart';
 import 'system_settings_provider.dart';
 import 'auth_provider.dart';
@@ -291,6 +292,22 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           if (progress >= 100) {
             _ref.invalidate(completedBookIdsProvider);
           }
+        }
+      }
+
+      // Also check unit assignments that might contain this book
+      for (final assignment in assignments) {
+        if (assignment.scopeLpUnitId != null &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          debugPrint('📋 Unit assignment found: ${assignment.title}, recalculating progress');
+          final calculateUseCase = _ref.read(calculateUnitProgressUseCaseProvider);
+          await calculateUseCase(CalculateUnitProgressParams(
+            assignmentId: assignment.assignmentId,
+            studentId: userId,
+          ));
+          _ref.invalidate(studentAssignmentsProvider);
+          _ref.invalidate(activeAssignmentsProvider);
+          _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
         }
       }
     } catch (e) {

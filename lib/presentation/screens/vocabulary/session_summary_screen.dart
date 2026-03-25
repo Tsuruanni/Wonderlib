@@ -11,6 +11,7 @@ import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/vocabulary_session.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
 import '../../providers/student_assignment_provider.dart';
@@ -183,6 +184,22 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             assignmentId: assignment.assignmentId,
             score: accuracy,
           ),);
+          ref.invalidate(studentAssignmentsProvider);
+          ref.invalidate(activeAssignmentsProvider);
+          ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        }
+      }
+
+      // Also check unit assignments
+      for (final assignment in assignments) {
+        if (assignment.scopeLpUnitId != null &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          debugPrint('📋 Unit assignment found: ${assignment.title}, recalculating progress');
+          final calculateUseCase = ref.read(calculateUnitProgressUseCaseProvider);
+          await calculateUseCase(CalculateUnitProgressParams(
+            assignmentId: assignment.assignmentId,
+            studentId: userId,
+          ));
           ref.invalidate(studentAssignmentsProvider);
           ref.invalidate(activeAssignmentsProvider);
           ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
