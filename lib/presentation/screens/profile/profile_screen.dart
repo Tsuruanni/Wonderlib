@@ -26,7 +26,9 @@ import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../providers/avatar_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
+import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
 
@@ -476,23 +478,32 @@ class _ProfileHeader extends ConsumerWidget {
 
     return Column(
       children: [
-        // Avatar
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 3),
-          ),
-          child: ClipOval(
-            child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                ? Image.network(
-                    user.avatarUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildInitials(),
-                  )
-                : _buildInitials(),
-          ),
+        // Avatar with edit button
+        Stack(
+          children: [
+            AvatarWidget(
+              avatar: ref.watch(equippedAvatarProvider),
+              size: 100,
+              fallbackInitials: user.initials,
+            ),
+            Positioned(
+              bottom: -4,
+              right: -4,
+              child: GestureDetector(
+                onTap: () => context.push(AppRoutes.avatarCustomize),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.background, width: 2),
+                  ),
+                  child: const Icon(Icons.edit, size: 14, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
 
@@ -522,22 +533,6 @@ class _ProfileHeader extends ConsumerWidget {
         // School & Class
         if (profileContext != null) _buildSchoolClass(profileContext),
       ],
-    );
-  }
-
-  Widget _buildInitials() {
-    return Container(
-      color: AppColors.primary.withValues(alpha: 0.15),
-      child: Center(
-        child: Text(
-          user.initials,
-          style: GoogleFonts.nunito(
-            fontSize: 40,
-            fontWeight: FontWeight.w900,
-            color: AppColors.primary,
-          ),
-        ),
-      ),
     );
   }
 
