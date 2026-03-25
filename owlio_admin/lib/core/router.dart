@@ -32,6 +32,10 @@ import '../features/recent_activity/screens/recent_activity_screen.dart';
 import '../features/recent_activity/screens/recent_activity_detail_screen.dart';
 import '../features/quests/screens/quest_list_screen.dart';
 import '../features/notifications/screens/notification_gallery_screen.dart';
+import '../features/avatars/screens/avatar_management_screen.dart';
+import '../features/avatars/screens/avatar_base_edit_screen.dart';
+import '../features/avatars/screens/avatar_item_edit_screen.dart';
+import '../features/avatars/screens/avatar_category_edit_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -265,6 +269,35 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationGalleryScreen(),
+      ),
+      // Avatars
+      GoRoute(
+        path: '/avatars',
+        builder: (_, __) => const AvatarManagementScreen(),
+      ),
+      GoRoute(
+        path: '/avatars/bases/new',
+        builder: (_, __) => const AvatarBaseEditScreen(),
+      ),
+      GoRoute(
+        path: '/avatars/bases/:id',
+        builder: (_, state) => AvatarBaseEditScreen(baseId: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '/avatars/items/new',
+        builder: (_, __) => const AvatarItemEditScreen(),
+      ),
+      GoRoute(
+        path: '/avatars/items/:id',
+        builder: (_, state) => AvatarItemEditScreen(itemId: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '/avatars/categories/new',
+        builder: (_, __) => const AvatarCategoryEditScreen(),
+      ),
+      GoRoute(
+        path: '/avatars/categories/:id',
+        builder: (_, state) => AvatarCategoryEditScreen(categoryId: state.pathParameters['id']),
       ),
       // Ayarlar (XP + Uygulama)
       GoRoute(
