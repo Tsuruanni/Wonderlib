@@ -13,11 +13,17 @@ import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/vocabulary.dart';
+import '../../../domain/usecases/auth/refresh_current_user_usecase.dart';
+import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
+import '../../../domain/usecases/teacher/update_teacher_profile_usecase.dart';
+import '../../../domain/usecases/usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
+import '../../providers/usecase_providers.dart';
+import '../../utils/ui_helpers.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
@@ -54,7 +60,7 @@ class ProfileScreen extends ConsumerWidget {
             return const Center(child: Text('User not found'));
           }
           if (!user.role.isStudent) {
-            return _buildTeacherFallback(context, ref);
+            return _TeacherProfileBody(user: user);
           }
           return _StudentProfileBody(user: user);
         },
@@ -62,43 +68,353 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTeacherFallback(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.person_rounded, size: 64, color: AppColors.neutralText),
-            const SizedBox(height: 16),
-            Text(
-              'Teacher Profile',
+}
+
+class _TeacherProfileBody extends ConsumerWidget {
+  const _TeacherProfileBody({required this.user});
+  final User user;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileContext = ref.watch(profileContextProvider);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          _TeacherHeader(
+            user: user,
+            schoolName: profileContext.valueOrNull?.schoolName,
+          ),
+          const SizedBox(height: 24),
+          _PersonalInfoCard(user: user),
+          const SizedBox(height: 16),
+          _PasswordCard(email: user.email),
+          const SizedBox(height: 24),
+          GameButton(
+            label: 'SIGN OUT',
+            onPressed: () async {
+              final confirmed = await context.showConfirmDialog(
+                title: 'Sign Out',
+                message: 'Are you sure you want to sign out?',
+                confirmText: 'Sign Out',
+                isDestructive: true,
+              );
+              if (confirmed ?? false) {
+                await ref.read(authControllerProvider.notifier).signOut();
+              }
+            },
+            variant: GameButtonVariant.outline,
+            fullWidth: true,
+          ),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _TeacherHeader extends StatelessWidget {
+  const _TeacherHeader({required this.user, this.schoolName});
+  final User user;
+  final String? schoolName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 40,
+          backgroundColor: _getRoleColor(user.role),
+          child: Text(
+            user.initials,
+            style: GoogleFonts.nunito(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          user.fullName,
+          style: GoogleFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: AppColors.black,
+          ),
+        ),
+        if (user.email != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            user.email!,
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              color: AppColors.neutralText,
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: _getRoleColor(user.role).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            _getRoleDisplayName(user.role),
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: _getRoleColor(user.role),
+            ),
+          ),
+        ),
+        if (schoolName != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.school_outlined, size: 16, color: AppColors.neutralText),
+              const SizedBox(width: 4),
+              Text(
+                schoolName!,
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Color _getRoleColor(UserRole role) {
+    switch (role) {
+      case UserRole.teacher:
+        return Colors.blue;
+      case UserRole.head:
+        return Colors.purple;
+      case UserRole.admin:
+        return Colors.amber.shade700;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getRoleDisplayName(UserRole role) {
+    switch (role) {
+      case UserRole.teacher:
+        return 'Teacher';
+      case UserRole.head:
+        return 'Head Teacher';
+      case UserRole.admin:
+        return 'Admin';
+      default:
+        return role.name;
+    }
+  }
+}
+
+class _PersonalInfoCard extends ConsumerWidget {
+  const _PersonalInfoCard({required this.user});
+  final User user;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'Personal Information',
               style: GoogleFonts.nunito(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w800,
                 color: AppColors.black,
               ),
             ),
-            const SizedBox(height: 32),
-            GameButton(
-              label: 'SIGN OUT',
-              onPressed: () async {
-                final confirmed = await context.showConfirmDialog(
-                  title: 'Sign Out',
-                  message: 'Are you sure you want to sign out?',
-                  confirmText: 'Sign Out',
-                  isDestructive: true,
-                );
-                if (confirmed ?? false) {
-                  await ref.read(authControllerProvider.notifier).signOut();
-                }
-              },
-              variant: GameButtonVariant.outline,
-              fullWidth: true,
+          ),
+          _InfoTile(
+            icon: Icons.person_outline,
+            label: 'First Name',
+            value: user.firstName,
+            onTap: () => _editField(context, ref, 'First Name', user.firstName, isFirstName: true),
+          ),
+          _InfoTile(
+            icon: Icons.person_outline,
+            label: 'Last Name',
+            value: user.lastName,
+            onTap: () => _editField(context, ref, 'Last Name', user.lastName, isFirstName: false),
+          ),
+          _InfoTile(
+            icon: Icons.email_outlined,
+            label: 'Email',
+            value: user.email ?? '—',
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _editField(
+    BuildContext context,
+    WidgetRef ref,
+    String fieldName,
+    String currentValue, {
+    required bool isFirstName,
+  }) async {
+    final controller = TextEditingController(text: currentValue);
+    final formKey = GlobalKey<FormState>();
+
+    final newValue = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit $fieldName'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+              labelText: fieldName,
+              border: const OutlineInputBorder(),
             ),
-          ],
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '$fieldName cannot be empty';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, controller.text.trim());
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (newValue == null || newValue == currentValue) return;
+    if (!context.mounted) return;
+
+    final firstName = isFirstName ? newValue : user.firstName;
+    final lastName = isFirstName ? user.lastName : newValue;
+
+    final useCase = ref.read(updateTeacherProfileUseCaseProvider);
+    final result = await useCase(UpdateTeacherProfileParams(
+      firstName: firstName,
+      lastName: lastName,
+    ));
+
+    if (!context.mounted) return;
+
+    result.fold(
+      (failure) {
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+      },
+      (_) async {
+        showAppSnackBar(context, '$fieldName updated', type: SnackBarType.success);
+        final refreshUseCase = ref.read(refreshCurrentUserUseCaseProvider);
+        await refreshUseCase(const NoParams());
+      },
+    );
+  }
+}
+
+class _PasswordCard extends ConsumerWidget {
+  const _PasswordCard({this.email});
+  final String? email;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        leading: const Icon(Icons.lock_outline),
+        title: Text(
+          'Change Password',
+          style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(
+          'Send a password reset link to your email',
+          style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: email == null
+            ? null
+            : () async {
+                final useCase = ref.read(sendPasswordResetEmailUseCaseProvider);
+                final result = await useCase(SendPasswordResetEmailParams(email: email!));
+
+                if (!context.mounted) return;
+
+                result.fold(
+                  (failure) {
+                    showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+                  },
+                  (_) {
+                    showAppSnackBar(context, 'Password reset link sent to $email', type: SnackBarType.success);
+                  },
+                );
+              },
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final String value;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.neutralText),
+      title: Text(
+        label,
+        style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
+      ),
+      subtitle: Text(
+        value,
+        style: GoogleFonts.nunito(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: AppColors.black,
         ),
       ),
+      trailing: onTap != null
+          ? Icon(Icons.edit_outlined, size: 18, color: AppColors.neutralText)
+          : null,
+      onTap: onTap,
     );
   }
 }
