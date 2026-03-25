@@ -62,6 +62,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
         await supabase.from(DbTables.avatarItemCategories).insert(data);
       }
       ref.invalidate(avatarItemCategoriesAdminProvider);
+      if (_isEdit) ref.invalidate(avatarCategoryDetailProvider(widget.categoryId!));
       if (mounted) context.go('/avatars');
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e')));

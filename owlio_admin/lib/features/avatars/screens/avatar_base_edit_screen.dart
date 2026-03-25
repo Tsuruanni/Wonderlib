@@ -103,6 +103,7 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
       }
 
       ref.invalidate(avatarBasesAdminProvider);
+      if (_isEdit) ref.invalidate(avatarBaseDetailProvider(widget.baseId!));
       if (mounted) context.go('/avatars');
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e')));
