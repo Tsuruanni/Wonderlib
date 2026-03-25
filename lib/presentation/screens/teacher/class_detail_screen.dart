@@ -6,9 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
-import '../../../domain/usecases/teacher/change_student_class_usecase.dart';
-import '../../../domain/usecases/teacher/reset_student_password_usecase.dart';
-import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
+import '../../../domain/usecases/teacher/bulk_move_students_usecase.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
@@ -17,7 +15,7 @@ import '../../widgets/common/error_state_widget.dart';
 
 enum ClassDetailMode { management, report }
 
-class ClassDetailScreen extends ConsumerWidget {
+class ClassDetailScreen extends ConsumerStatefulWidget {
   const ClassDetailScreen({
     super.key,
     required this.classId,
@@ -28,22 +26,56 @@ class ClassDetailScreen extends ConsumerWidget {
   final ClassDetailMode mode;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final studentsAsync = ref.watch(classStudentsProvider(classId));
+  ConsumerState<ClassDetailScreen> createState() => _ClassDetailScreenState();
+}
+
+class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
+  bool _isSelectMode = false;
+  final Set<String> _selectedStudentIds = {};
+
+  void _toggleSelectMode() {
+    setState(() {
+      _isSelectMode = !_isSelectMode;
+      if (!_isSelectMode) _selectedStudentIds.clear();
+    });
+  }
+
+  void _toggleStudentSelection(String studentId) {
+    setState(() {
+      if (_selectedStudentIds.contains(studentId)) {
+        _selectedStudentIds.remove(studentId);
+      } else {
+        _selectedStudentIds.add(studentId);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final studentsAsync = ref.watch(classStudentsProvider(widget.classId));
+    final isManagement = widget.mode == ClassDetailMode.management;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Class Students'),
+        title: Text(isManagement ? 'Class Management' : 'Class Students'),
+        actions: [
+          if (isManagement)
+            IconButton(
+              icon: Icon(_isSelectMode ? Icons.close : Icons.checklist),
+              tooltip: _isSelectMode ? 'Cancel' : 'Select',
+              onPressed: _toggleSelectMode,
+            ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(classStudentsProvider(classId));
+          ref.invalidate(classStudentsProvider(widget.classId));
         },
         child: studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, __) => ErrorStateWidget(
             message: 'Error loading students',
-            onRetry: () => ref.invalidate(classStudentsProvider(classId)),
+            onRetry: () => ref.invalidate(classStudentsProvider(widget.classId)),
           ),
           data: (students) {
             if (students.isEmpty) {
@@ -54,32 +86,506 @@ class ClassDetailScreen extends ConsumerWidget {
               );
             }
 
-            return Column(
+            return Stack(
               children: [
-                // Stats summary
-                _ClassStatsBar(students: students),
+                Column(
+                  children: [
+                    // Stats bar only in report mode
+                    if (!isManagement) _ClassStatsBar(students: students),
 
-                // Student list
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: students.length,
-                    itemBuilder: (context, index) {
-                      final student = students[index];
-                      return _StudentCard(
-                        student: student,
-                        classId: classId,
-                        onTap: () {
-                          // Navigate to student detail (nested under class)
-                          context.push(AppRoutes.teacherStudentDetailPath(classId, student.id));
+                    // Student list
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          16,
+                          16,
+                          _isSelectMode ? 80 : 16,
+                        ),
+                        itemCount: students.length,
+                        itemBuilder: (context, index) {
+                          final student = students[index];
+                          if (isManagement) {
+                            return _ManagementStudentCard(
+                              student: student,
+                              isSelectMode: _isSelectMode,
+                              isSelected:
+                                  _selectedStudentIds.contains(student.id),
+                              onToggleSelect: () =>
+                                  _toggleStudentSelection(student.id),
+                              onTap: () =>
+                                  _showStudentInfoSheet(context, student),
+                            );
+                          } else {
+                            return _ReportStudentCard(
+                              student: student,
+                              classId: widget.classId,
+                            );
+                          }
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
+
+                // Floating move bar (select mode only)
+                if (_isSelectMode && _selectedStudentIds.isNotEmpty)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: _MoveBar(
+                      selectedCount: _selectedStudentIds.length,
+                      onMoveTo: () => _showMoveToSheet(context),
+                    ),
+                  ),
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  void _showStudentInfoSheet(BuildContext context, StudentSummary student) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: context.colorScheme.primaryContainer,
+                    child: Text(
+                      student.firstName.isNotEmpty
+                          ? student.firstName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: context.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          student.fullName,
+                          style: context.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        if (student.studentNumber != null)
+                          Text(
+                            'Student #: ${student.studentNumber}',
+                            style: context.textTheme.bodySmall
+                                ?.copyWith(color: context.colorScheme.outline),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Lv ${student.level}',
+                      style: context.textTheme.labelMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              // Email
+              if (student.email != null)
+                ListTile(
+                  leading: const Icon(Icons.email_outlined),
+                  title: const Text('Email'),
+                  subtitle: Text(student.email!),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: student.email!));
+                      Navigator.pop(context);
+                      showAppSnackBar(this.context, 'Email copied');
+                    },
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              // Password
+              if (student.passwordPlain != null)
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: const Text('Password'),
+                  subtitle: Text(student.passwordPlain!),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.copy, size: 18),
+                    onPressed: () {
+                      Clipboard.setData(
+                        ClipboardData(text: student.passwordPlain!),
+                      );
+                      Navigator.pop(context);
+                      showAppSnackBar(this.context, 'Password copied');
+                    },
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              const SizedBox(height: 8),
+              // View Profile button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    this.context.push(
+                      AppRoutes.teacherStudentDetailPath(
+                        widget.classId,
+                        student.id,
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.person),
+                  label: const Text('View Full Profile'),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMoveToSheet(BuildContext context) {
+    final classesAsync = ref.read(currentTeacherClassesProvider);
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Move ${_selectedStudentIds.length} students to...',
+                style: context.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ),
+            const Divider(height: 1),
+            ...classesAsync.when(
+              loading: () => [
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ],
+              error: (_, __) => [
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text('Error loading classes'),
+                  ),
+                ),
+              ],
+              data: (classes) => classes
+                  .where((c) => c.id != widget.classId)
+                  .map(
+                    (targetClass) => ListTile(
+                      leading: CircleAvatar(
+                        radius: 16,
+                        child: Text(
+                          '${targetClass.grade ?? ''}',
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      title: Text(targetClass.name),
+                      subtitle: Text('${targetClass.studentCount} students'),
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        await _bulkMoveStudents(
+                          this.context,
+                          targetClass.id,
+                          targetClass.name,
+                        );
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _bulkMoveStudents(
+    BuildContext context,
+    String targetClassId,
+    String targetClassName,
+  ) async {
+    final useCase = ref.read(bulkMoveStudentsUseCaseProvider);
+    final result = await useCase(
+      BulkMoveStudentsParams(
+        studentIds: _selectedStudentIds.toList(),
+        targetClassId: targetClassId,
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    result.fold(
+      (failure) {
+        showAppSnackBar(
+          context,
+          'Error: ${failure.message}',
+          type: SnackBarType.error,
+        );
+      },
+      (_) {
+        showAppSnackBar(
+          context,
+          '${_selectedStudentIds.length} students moved to $targetClassName',
+          type: SnackBarType.success,
+        );
+        setState(() {
+          _isSelectMode = false;
+          _selectedStudentIds.clear();
+        });
+        ref.invalidate(classStudentsProvider(widget.classId));
+        ref.invalidate(currentTeacherClassesProvider);
+      },
+    );
+  }
+}
+
+// =============================================
+// PRIVATE WIDGETS
+// =============================================
+
+class _ManagementStudentCard extends StatelessWidget {
+  const _ManagementStudentCard({
+    required this.student,
+    required this.isSelectMode,
+    required this.isSelected,
+    required this.onToggleSelect,
+    required this.onTap,
+  });
+
+  final StudentSummary student;
+  final bool isSelectMode;
+  final bool isSelected;
+  final VoidCallback onToggleSelect;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: isSelectMode ? onToggleSelect : onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              if (isSelectMode)
+                Checkbox(
+                  value: isSelected,
+                  onChanged: (_) => onToggleSelect(),
+                ),
+              if (!isSelectMode)
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: context.colorScheme.primaryContainer,
+                  child: Text(
+                    student.firstName.isNotEmpty
+                        ? student.firstName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: context.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      student.fullName,
+                      style: context.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    if (student.studentNumber != null)
+                      Text(
+                        'Student #: ${student.studentNumber}',
+                        style: context.textTheme.bodySmall
+                            ?.copyWith(color: context.colorScheme.outline),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Lv ${student.level}',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    color: context.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportStudentCard extends StatelessWidget {
+  const _ReportStudentCard({required this.student, required this.classId});
+
+  final StudentSummary student;
+  final String classId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () =>
+            context.push(AppRoutes.teacherStudentDetailPath(classId, student.id)),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: context.colorScheme.primaryContainer,
+                child: Text(
+                  student.firstName.isNotEmpty
+                      ? student.firstName[0].toUpperCase()
+                      : '?',
+                  style: TextStyle(
+                    color: context.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      student.fullName,
+                      style: context.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        _MiniStat(
+                          icon: Icons.star,
+                          value: '${student.xp}',
+                          color: Colors.amber,
+                        ),
+                        const SizedBox(width: 12),
+                        _MiniStat(
+                          icon: Icons.local_fire_department,
+                          value: '${student.currentStreak}',
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(width: 12),
+                        _MiniStat(
+                          icon: Icons.book,
+                          value: '${student.booksRead}',
+                          color: Colors.blue,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  'Lv ${student.level}',
+                  style: context.textTheme.labelMedium?.copyWith(
+                    color: context.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MoveBar extends StatelessWidget {
+  const _MoveBar({required this.selectedCount, required this.onMoveTo});
+
+  final int selectedCount;
+  final VoidCallback onMoveTo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      elevation: 8,
+      borderRadius: BorderRadius.circular(16),
+      color: context.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Text(
+              '$selectedCount selected',
+              style: context.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const Spacer(),
+            FilledButton.icon(
+              onPressed: onMoveTo,
+              icon: const Icon(Icons.swap_horiz, size: 18),
+              label: const Text('Move to...'),
+            ),
+          ],
         ),
       ),
     );
@@ -96,7 +602,8 @@ class _ClassStatsBar extends StatelessWidget {
     final totalXP = students.fold<int>(0, (sum, s) => sum + s.xp);
     final avgProgress = students.isEmpty
         ? 0.0
-        : students.fold<double>(0, (sum, s) => sum + s.avgProgress) / students.length;
+        : students.fold<double>(0, (sum, s) => sum + s.avgProgress) /
+            students.length;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -155,421 +662,6 @@ class _StatItem extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _StudentCard extends ConsumerWidget {
-  const _StudentCard({
-    required this.student,
-    required this.classId,
-    required this.onTap,
-  });
-
-  final StudentSummary student;
-  final String classId;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Avatar
-              CircleAvatar(
-                radius: 24,
-                backgroundColor: context.colorScheme.primaryContainer,
-                backgroundImage: student.avatarUrl != null
-                    ? NetworkImage(student.avatarUrl!)
-                    : null,
-                child: student.avatarUrl == null
-                    ? Text(
-                        student.firstName.isNotEmpty
-                            ? student.firstName[0].toUpperCase()
-                            : '?',
-                        style: TextStyle(
-                          color: context.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-
-              // Name and stats
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      student.fullName,
-                      style: context.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _MiniStat(
-                          icon: Icons.star,
-                          value: '${student.xp}',
-                          color: Colors.amber,
-                        ),
-                        const SizedBox(width: 12),
-                        _MiniStat(
-                          icon: Icons.local_fire_department,
-                          value: '${student.currentStreak}',
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(width: 12),
-                        _MiniStat(
-                          icon: Icons.book,
-                          value: '${student.booksRead}',
-                          color: Colors.blue,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Level badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  'Lv ${student.level}',
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: context.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              // Actions menu
-              IconButton(
-                icon: const Icon(Icons.more_vert),
-                onPressed: () => _showActionsSheet(context, ref),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showActionsSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: context.colorScheme.primaryContainer,
-                    child: Text(
-                      student.firstName.isNotEmpty
-                          ? student.firstName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: context.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        student.fullName,
-                        style: context.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (student.studentNumber != null)
-                        Text(
-                          'Student #: ${student.studentNumber}',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: context.colorScheme.outline,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-
-            // Email
-            ListTile(
-              leading: const Icon(Icons.email),
-              title: Text(student.email ?? 'No email'),
-              subtitle: student.email != null
-                  ? const Text('Tap to copy')
-                  : null,
-              onTap: student.email != null
-                  ? () {
-                      Clipboard.setData(ClipboardData(text: student.email!));
-                      Navigator.pop(context);
-                      showAppSnackBar(context, 'Email copied to clipboard');
-                    }
-                  : null,
-            ),
-
-            // Send Password Reset Email
-            ListTile(
-              leading: const Icon(Icons.mail_outline),
-              title: const Text('Send Password Reset Email'),
-              subtitle: const Text('Sends link to student\'s email'),
-              enabled: student.email != null,
-              onTap: () {
-                Navigator.pop(context);
-                _sendPasswordResetEmail(context, ref);
-              },
-            ),
-
-            // Generate New Password
-            ListTile(
-              leading: const Icon(Icons.lock_reset),
-              title: const Text('Generate New Password'),
-              subtitle: const Text('Creates and shows new password'),
-              onTap: () {
-                Navigator.pop(context);
-                _generateNewPassword(context, ref);
-              },
-            ),
-
-            // Change Class
-            ListTile(
-              leading: const Icon(Icons.swap_horiz),
-              title: const Text('Change Class'),
-              subtitle: const Text('Move student to different class'),
-              onTap: () {
-                Navigator.pop(context);
-                _showChangeClassDialog(context, ref);
-              },
-            ),
-
-            // View Profile
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('View Full Profile'),
-              onTap: () {
-                Navigator.pop(context);
-                onTap();
-              },
-            ),
-
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _sendPasswordResetEmail(BuildContext context, WidgetRef ref) async {
-    if (student.email == null) return;
-
-    final useCase = ref.read(sendPasswordResetEmailUseCaseProvider);
-    final result = await useCase(SendPasswordResetEmailParams(email: student.email!));
-
-    if (!context.mounted) return;
-
-    result.fold(
-      (failure) {
-        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-      },
-      (_) {
-        showAppSnackBar(context, 'Password reset email sent to ${student.email}', type: SnackBarType.success);
-      },
-    );
-  }
-
-  Future<void> _generateNewPassword(BuildContext context, WidgetRef ref) async {
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('Generating new password...'),
-          ],
-        ),
-      ),
-    );
-
-    final useCase = ref.read(resetStudentPasswordUseCaseProvider);
-    final result = await useCase(ResetStudentPasswordParams(studentId: student.id));
-
-    if (!context.mounted) return;
-    Navigator.pop(context); // Close loading dialog
-
-    result.fold(
-      (failure) {
-        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-      },
-      (newPassword) {
-        // Show new password dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('New Password Generated'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Student: ${student.fullName}'),
-                const SizedBox(height: 16),
-                const Text('New Password:', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SelectableText(
-                          newPassword,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.copy),
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: newPassword));
-                          showAppSnackBar(context, 'Password copied');
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Please share this password with the student.',
-                  style: context.textTheme.bodySmall?.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _showChangeClassDialog(BuildContext context, WidgetRef ref) async {
-    // Get teacher's school ID from current user
-    final teacherProfile = await ref.read(currentTeacherProfileProvider.future);
-    if (teacherProfile == null) return;
-
-    if (!context.mounted) return;
-
-    final classesAsync = await ref.read(teacherClassesProvider(teacherProfile.schoolId).future);
-
-    if (!context.mounted) return;
-
-    String? selectedClassId;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Change Class'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Moving: ${student.fullName}'),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
-                  labelText: 'Select New Class',
-                  border: OutlineInputBorder(),
-                ),
-                initialValue: selectedClassId,
-                items: classesAsync
-                    .where((c) => c.id != classId) // Exclude current class
-                    .map((c) => DropdownMenuItem(
-                          value: c.id,
-                          child: Text(c.name),
-                        ),)
-                    .toList(),
-                onChanged: (value) {
-                  setState(() => selectedClassId = value);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: selectedClassId == null
-                  ? null
-                  : () async {
-                      Navigator.pop(dialogContext);
-                      await _changeClass(context, ref, selectedClassId!);
-                    },
-              child: const Text('Move'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _changeClass(BuildContext context, WidgetRef ref, String newClassId) async {
-    final useCase = ref.read(changeStudentClassUseCaseProvider);
-    final result = await useCase(ChangeStudentClassParams(
-      studentId: student.id,
-      newClassId: newClassId,
-    ),);
-
-    if (!context.mounted) return;
-
-    result.fold(
-      (failure) {
-        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-      },
-      (_) {
-        // Refresh the class students list
-        ref.invalidate(classStudentsProvider(classId));
-        showAppSnackBar(context, '${student.fullName} moved to new class', type: SnackBarType.success);
-      },
     );
   }
 }
