@@ -1,11 +1,12 @@
 /// Shared level/XP calculation used by ProfileScreen and StudentProfileDialog.
-/// Formula: Level n starts at (n-1) * n * 50 cumulative XP.
-/// Level 1 = 0, Level 2 = 100, Level 3 = 300, Level 4 = 600, Level 5 = 1000, ...
+/// Must match server-side `calculate_level()` SQL function.
+/// Formula: threshold(level) = (level-1) * level * 100
+/// Level 1 = 0, Level 2 = 200, Level 3 = 600, Level 4 = 1200, Level 5 = 2000, ...
 abstract class LevelHelper {
   /// Cumulative XP threshold to reach [level].
   static int xpForLevel(int level) {
     if (level <= 1) return 0;
-    return (level - 1) * level * 50;
+    return (level - 1) * level * 100;
   }
 
   /// XP earned within current level (numerator for progress bar).

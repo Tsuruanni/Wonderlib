@@ -19,6 +19,7 @@ import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
 
@@ -350,6 +351,7 @@ class _CardCollectionSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(userCardStatsProvider);
+    final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
 
     return statsAsync.when(
       loading: () => const SizedBox(height: 80),
@@ -358,8 +360,13 @@ class _CardCollectionSection extends ConsumerWidget {
         const totalCards = AppConstants.totalCardCount;
         final progress = stats.totalUniqueCards / totalCards;
 
+        // Sort cards: legendary first, then epic, rare, common
+        final sortedCards = [...userCards]
+          ..sort((a, b) => b.card.rarity.index.compareTo(a.card.rarity.index));
+        final previewCards = sortedCards.take(5).toList();
+
         return PressableScale(
-          onTap: () => context.push(AppRoutes.cards),
+          onTap: () => context.go(AppRoutes.cards),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -415,6 +422,25 @@ class _CardCollectionSection extends ConsumerWidget {
                     minHeight: 8,
                   ),
                 ),
+                // Card preview row
+                if (previewCards.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: previewCards.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (_, i) => SizedBox(
+                        width: 70,
+                        child: MythCardWidget(
+                          card: previewCards[i].card,
+                          quantity: previewCards[i].quantity,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 6),
                 Align(
                   alignment: Alignment.centerRight,
@@ -816,10 +842,10 @@ class _VocabularyStatsSection extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: _MiniStat(
-                      icon: Icons.check_circle_rounded,
-                      value: '${stats.masteredCount}',
-                      label: 'Mastered',
-                      color: AppColors.primary,
+                      icon: Icons.fiber_new_rounded,
+                      value: '${stats.newCount}',
+                      label: 'New',
+                      color: AppColors.gemBlue,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -834,10 +860,10 @@ class _VocabularyStatsSection extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _MiniStat(
-                      icon: Icons.fiber_new_rounded,
-                      value: '${stats.newCount}',
-                      label: 'New',
-                      color: AppColors.neutralText,
+                      icon: Icons.check_circle_rounded,
+                      value: '${stats.masteredCount}',
+                      label: 'Mastered',
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
