@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/bulk_move_students_usecase.dart';
+import '../../providers/profile_context_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/login_cards_pdf.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -58,20 +61,6 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isManagement ? 'Class Management' : 'Class Students'),
-        actions: [
-          if (isManagement)
-            _isSelectMode
-                ? TextButton.icon(
-                    onPressed: _toggleSelectMode,
-                    icon: const Icon(Icons.close),
-                    label: const Text('Cancel'),
-                  )
-                : TextButton.icon(
-                    onPressed: _toggleSelectMode,
-                    icon: const Icon(Icons.checklist),
-                    label: const Text('Select'),
-                  ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -106,7 +95,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                           16,
                           16,
                           16,
-                          _isSelectMode ? 80 : 16,
+                          isManagement ? (_isSelectMode ? 80 : 140) : 16,
                         ),
                         itemCount: students.length,
                         itemBuilder: (context, index) {
@@ -145,11 +134,62 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                       onMoveTo: () => _showMoveToSheet(context),
                     ),
                   ),
+
+                // Bottom action buttons (management mode, not select mode)
+                if (isManagement && !_isSelectMode)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _toggleSelectMode,
+                            icon: const Icon(Icons.swap_horiz),
+                            label: const Text('Select & Move Students'),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _downloadLoginCards(context, students),
+                            icon: const Icon(Icons.download),
+                            label: const Text('Download Login Cards'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             );
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _downloadLoginCards(BuildContext context, List<StudentSummary> students) async {
+    final profileContext = ref.read(profileContextProvider).valueOrNull;
+    final schoolName = profileContext?.schoolName ?? 'School';
+
+    final classesAsync = ref.read(currentTeacherClassesProvider).valueOrNull;
+    final className = classesAsync?.where((c) => c.id == widget.classId).firstOrNull?.name ?? 'Class';
+
+    final pdfBytes = await generateLoginCardsPdf(
+      students: students,
+      schoolName: schoolName,
+      className: className,
+    );
+
+    if (!context.mounted) return;
+
+    await Printing.layoutPdf(
+      onLayout: (_) => pdfBytes,
+      name: 'login_cards_$className',
     );
   }
 
@@ -216,22 +256,6 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
               ),
               const SizedBox(height: 16),
               const Divider(),
-              // Email
-              if (student.email != null)
-                ListTile(
-                  leading: const Icon(Icons.email_outlined),
-                  title: const Text('Email'),
-                  subtitle: Text(student.email!),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.copy, size: 18),
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: student.email!));
-                      Navigator.pop(context);
-                      showAppSnackBar(this.context, 'Email copied');
-                    },
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
               // Password
               ListTile(
                 leading: const Icon(Icons.lock_outline),
