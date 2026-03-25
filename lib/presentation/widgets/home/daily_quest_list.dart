@@ -528,9 +528,9 @@ class _AssignmentQuestRow extends StatelessWidget {
       case StudentAssignmentType.vocabulary:
         icon = Icons.abc_rounded;
         iconColor = AppColors.secondary;
-      case StudentAssignmentType.mixed:
-        icon = Icons.library_books_rounded;
-        iconColor = AppColors.primary;
+      case StudentAssignmentType.unit:
+        icon = Icons.route;
+        iconColor = AppColors.streakOrange;
     }
 
     final dueText = _buildDueText(assignment);

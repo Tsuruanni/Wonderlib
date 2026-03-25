@@ -16,8 +16,8 @@ abstract class AssignmentColors {
         return Colors.blue;
       case AssignmentType.vocabulary:
         return Colors.purple;
-      case AssignmentType.mixed:
-        return Colors.teal;
+      case AssignmentType.unit:
+        return Colors.orange;
     }
   }
 
@@ -27,8 +27,8 @@ abstract class AssignmentColors {
         return Icons.menu_book;
       case AssignmentType.vocabulary:
         return Icons.abc;
-      case AssignmentType.mixed:
-        return Icons.library_books;
+      case AssignmentType.unit:
+        return Icons.route;
     }
   }
 
@@ -67,8 +67,8 @@ abstract class StudentAssignmentColors {
         return Colors.blue;
       case StudentAssignmentType.vocabulary:
         return Colors.purple;
-      case StudentAssignmentType.mixed:
-        return Colors.teal;
+      case StudentAssignmentType.unit:
+        return Colors.orange;
     }
   }
 
@@ -78,8 +78,8 @@ abstract class StudentAssignmentColors {
         return Icons.menu_book;
       case StudentAssignmentType.vocabulary:
         return Icons.abc;
-      case StudentAssignmentType.mixed:
-        return Icons.library_books;
+      case StudentAssignmentType.unit:
+        return Icons.route;
     }
   }
 
