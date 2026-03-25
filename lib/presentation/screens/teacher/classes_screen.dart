@@ -6,6 +6,8 @@ import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/create_class_usecase.dart';
+import '../../../domain/usecases/teacher/delete_class_usecase.dart';
+import '../../../domain/usecases/teacher/update_class_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
@@ -60,6 +62,8 @@ class ClassesScreen extends ConsumerWidget {
                     // Navigate to class detail (nested under /teacher/classes/:classId)
                     context.push(AppRoutes.teacherClassDetailPath(classItem.id));
                   },
+                  onEdit: () => _showEditClassDialog(context, ref, classItem),
+                  onDelete: () => _deleteClass(context, ref, classItem),
                 );
               },
             );
@@ -166,16 +170,108 @@ class ClassesScreen extends ConsumerWidget {
       },
     );
   }
+
+  void _showEditClassDialog(BuildContext context, WidgetRef ref, TeacherClass classItem) {
+    final nameController = TextEditingController(text: classItem.name);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Edit Class'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Class Name *',
+              hintText: 'e.g., 5A, Grade 7',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter a class name';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (!formKey.currentState!.validate()) return;
+
+              Navigator.pop(dialogContext);
+              final name = nameController.text.trim();
+              final useCase = ref.read(updateClassUseCaseProvider);
+              final result = await useCase(
+                UpdateClassParams(
+                  classId: classItem.id,
+                  name: name,
+                ),
+              );
+
+              if (!context.mounted) return;
+
+              result.fold(
+                (failure) {
+                  showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+                },
+                (_) {
+                  ref.invalidate(currentTeacherClassesProvider);
+                  showAppSnackBar(context, 'Class updated', type: SnackBarType.success);
+                },
+              );
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteClass(BuildContext context, WidgetRef ref, TeacherClass classItem) async {
+    final confirmed = await context.showConfirmDialog(
+      title: 'Delete Class',
+      message: 'Are you sure you want to delete "${classItem.name}"? This cannot be undone.',
+      confirmText: 'Delete',
+      isDestructive: true,
+    );
+    if (confirmed != true) return;
+
+    final useCase = ref.read(deleteClassUseCaseProvider);
+    final result = await useCase(DeleteClassParams(classId: classItem.id));
+
+    if (!context.mounted) return;
+
+    result.fold(
+      (failure) {
+        showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+      },
+      (_) {
+        ref.invalidate(currentTeacherClassesProvider);
+        showAppSnackBar(context, 'Class deleted', type: SnackBarType.success);
+      },
+    );
+  }
 }
 
 class _ClassCard extends StatelessWidget {
   const _ClassCard({
     required this.classItem,
     required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final TeacherClass classItem;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +284,7 @@ class _ClassCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Class icon
+              // Grade number avatar
               Container(
                 width: 56,
                 height: 56,
@@ -255,27 +351,51 @@ class _ClassCard extends StatelessWidget {
                 ),
               ),
 
-              // Progress indicator
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${classItem.avgProgress.toStringAsFixed(0)}%',
-                    style: context.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: ScoreColors.getProgressColor(classItem.avgProgress),
+              // Popup menu
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: context.colorScheme.outline,
+                ),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      onEdit();
+                    case 'delete':
+                      onDelete();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: ListTile(
+                      leading: Icon(Icons.edit_outlined),
+                      title: Text('Edit'),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                  Text(
-                    'avg progress',
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: context.colorScheme.outline,
+                  PopupMenuItem(
+                    value: 'delete',
+                    enabled: classItem.studentCount == 0,
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.delete_outlined,
+                        color: classItem.studentCount == 0 ? Colors.red : null,
+                      ),
+                      title: Text(
+                        'Delete',
+                        style: TextStyle(
+                          color: classItem.studentCount == 0 ? Colors.red : null,
+                        ),
+                      ),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(width: 8),
               Icon(
                 Icons.chevron_right,
                 color: context.colorScheme.outline,
@@ -286,5 +406,4 @@ class _ClassCard extends StatelessWidget {
       ),
     );
   }
-
 }
