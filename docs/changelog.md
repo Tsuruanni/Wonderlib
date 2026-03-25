@@ -8,6 +8,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Profile Screen Rebuild (2026-03-25)
+
+#### Added
+- **Complete profile screen rewrite** — 8-section layout replacing old screen with fake/hardcoded data.
+- **`LevelHelper` utility** — Shared XP/level formula (`(level-1)*level*100`) extracted to `lib/core/utils/level_helper.dart`. Used by both `ProfileScreen` and `StudentProfileDialog`.
+- **`profileContextProvider`** — Resolves `schoolId`/`classId` UUIDs to human-readable school and class names.
+- **Card collection preview** — Top 5 rarest cards shown as `MythCardWidget` mini previews (scaled via `FittedBox`).
+- **Recent badges section** — Last 5 earned badges with emoji, name, description, and relative date. "See All" bottom sheet for full list.
+- **Combined stats card** — Books Read, Chapters Read, Reading Time, New Words in a single 4-column card with Word Bank button.
+- **Daily review card** — 3-state card (completed/ready/building up) ported from old screen.
+
+#### Fixed
+- **Level progress bar always 100%** — Client formula used `*50` but server's `calculate_level()` uses `*100`. Now matches server.
+- **Fake data removed** — "Joined 2026" (hardcoded), "Top 3 Finishes: 0" (fake), email-based username all replaced with real data.
+- **Avatar image support** — Now renders `avatarUrl` with network image + initials fallback (was always initials-only).
+- **Vocab stats mismatch** — Profile now uses same data source as Word Bank (`learnedWordsWithDetailsProvider`) for consistent numbers.
+- **Card collection navigation crash** — `context.push` → `context.go` for shell tab route.
+
+#### Removed
+- **Settings button** — Was a dead `// TODO` button, removed.
+- **Downloaded Books card** — Removed from profile (route still accessible elsewhere).
+- **Separate vocabulary stats section** — Merged into combined stats card.
+
 ### Daily Quest Eligibility Fix (2026-03-24)
 
 #### Fixed

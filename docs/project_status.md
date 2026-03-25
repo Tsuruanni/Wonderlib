@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-24 (Daily quest eligibility fix, pack claim date offset fix, performance parallel data fetching, admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
+Son güncelleme: 2026-03-25 (Profile screen rebuild, level formula fix, combined stats card, card previews, badge section)
 
 ## Current Phase
 
@@ -31,7 +31,7 @@ Son güncelleme: 2026-03-24 (Daily quest eligibility fix, pack claim date offset
 - [x] Anlık sözlük (kelimeye tıkla) - vocabulary popup
 - [x] Inline aktiviteler (3 tip) - true/false, word translation, find words
 - [x] XP ve seviye sistemi (UI + Supabase backend)
-- [x] Basit profil sayfası
+- [x] Profil sayfası (rebuilt: level progress, badges, stats, card preview)
 
 ### Faz 3: Öğretmen MVP ✅
 - [x] Öğretmen dashboard
@@ -101,6 +101,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
 - [x] Admin Badge Improvements (dailyLogin removal, missing condition types, shared helper, per-badge stats, 3 new streak badges)
 - [x] Badge Earned Notification (dialog with icon/name/XP, dialog queue, admin toggle, badge check at controller level)
+- [x] Profile Screen Rebuild (8 sections, real data, LevelHelper, card previews, combined stats)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
@@ -166,6 +167,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Profile Screen Rebuild | 2026-03-25 | Complete rewrite: header (avatar/school/class), level progress bar (*100 formula fix), card collection with MythCardWidget previews, recent badges with bottom sheet, combined 4-stat card + Word Bank, daily review. LevelHelper utility, profileContextProvider. |
 | Daily Quest Eligibility Fix | 2026-03-24 | daily_review quest hidden when < 10 due words, XP exploit closed, bonus claim aligned, pack claim date offset fixed. 2 migrations. |
 | Performance: Parallel Data Fetching | 2026-03-24 | 7 N+1/sequential fixes across vocabulary hub, word bank, daily review, reader, leaderboard. 2 new batch repository methods + use cases. |
 | Type-Based XP + Combo Refactor | 2026-03-24 | 12 new settings, inline XP from settings, vocab flat XP, combo session-end bonus, RPC reads bonuses from DB |
