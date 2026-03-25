@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../domain/entities/avatar.dart';
 
@@ -57,15 +58,29 @@ class AvatarWidget extends StatelessWidget {
       child: ClipOval(
         child: Stack(
           fit: StackFit.expand,
-          children: allLayers
-              .map((layer) => CachedNetworkImage(
-                    imageUrl: layer.url,
-                    fit: BoxFit.contain,
-                    errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                  ),)
-              .toList(),
+          children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
         ),
       ),
+    );
+  }
+
+  static bool _isSvg(String url) {
+    final path = Uri.tryParse(url)?.path ?? url;
+    return path.toLowerCase().endsWith('.svg');
+  }
+
+  Widget _buildImage(String url) {
+    if (_isSvg(url)) {
+      return SvgPicture.network(
+        url,
+        fit: BoxFit.contain,
+        placeholderBuilder: (_) => const SizedBox.shrink(),
+      );
+    }
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.contain,
+      errorWidget: (_, __, ___) => const SizedBox.shrink(),
     );
   }
 
