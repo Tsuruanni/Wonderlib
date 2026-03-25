@@ -61,6 +61,9 @@ abstract class RpcFunctions {
   static const updateAssignmentProgress = 'update_assignment_progress';
   static const getRecentSchoolActivity = 'get_recent_school_activity';
   static const updateStudentClass = 'update_student_class';
+  static const deleteClass = 'delete_class';
+  static const bulkMoveStudents = 'bulk_move_students';
+  static const updateClass = 'update_class';
 
   // Avatars
   static const setAvatarBase = 'set_avatar_base';

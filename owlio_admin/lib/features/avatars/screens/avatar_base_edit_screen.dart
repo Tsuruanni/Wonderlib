@@ -192,17 +192,27 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
               children: [
                 const Text('Önizleme', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 16),
-                if (_imageUrl != null)
-                  ClipOval(
-                    child: SizedBox(
-                      width: 128,
-                      height: 128,
-                      child: _isSvgUrl(_imageUrl!)
-                          ? SvgPicture.network(_imageUrl!, fit: BoxFit.contain)
-                          : Image.network(_imageUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48)),
+                if (_imageUrl != null) ...[
+                  Container(
+                    width: 128,
+                    height: 128,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.shade100,
+                      border: Border.all(color: Colors.grey.shade300),
                     ),
-                  )
-                else
+                    child: ClipOval(
+                      child: _isSvgUrl(_imageUrl!)
+                          ? SvgPicture.network(_imageUrl!, fit: BoxFit.contain,
+                              placeholderBuilder: (_) => const Center(child: CircularProgressIndicator(strokeWidth: 2)))
+                          : Image.network(_imageUrl!, fit: BoxFit.cover,
+                              loadingBuilder: (_, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                              errorBuilder: (_, error, ___) => Center(child: Text('Hata: $error', style: const TextStyle(fontSize: 10), textAlign: TextAlign.center))),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SelectableText(_imageUrl!, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                ] else
                   const CircleAvatar(radius: 64, child: Icon(Icons.pets, size: 48)),
               ],
             ),
