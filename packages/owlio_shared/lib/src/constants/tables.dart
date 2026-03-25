@@ -73,4 +73,10 @@ abstract class DbTables {
   static const assignmentStudents = 'assignment_students';
   // Settings
   static const systemSettings = 'system_settings';
+
+  // Avatars
+  static const avatarBases = 'avatar_bases';
+  static const avatarItemCategories = 'avatar_item_categories';
+  static const avatarItems = 'avatar_items';
+  static const userAvatarItems = 'user_avatar_items';
 }
