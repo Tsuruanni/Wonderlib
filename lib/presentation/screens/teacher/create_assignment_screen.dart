@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/book.dart';
+import '../../../domain/entities/class_learning_path_unit.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
@@ -51,6 +52,11 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
   // For vocabulary assignments
   String? _selectedWordListId;
   String? _selectedWordListName;
+
+  // For unit assignments
+  String? _selectedScopeLpUnitId;
+  String? _selectedUnitName;
+  int? _selectedUnitTotalItems;
 
   @override
   void initState() {
@@ -125,6 +131,9 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
         bookId: _selectedBookId,
         wordListId: _selectedWordListId,
         lockLibrary: _lockLibrary,
+        scopeLpUnitId: _selectedScopeLpUnitId,
+        unitName: _selectedUnitName,
+        totalItems: _selectedUnitTotalItems,
         startDate: _startDate,
         dueDate: _dueDate,
       ),);
@@ -206,6 +215,35 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
     );
   }
 
+  Future<void> _showUnitSelectionSheet(BuildContext context, WidgetRef ref) async {
+    if (_selectedClassId == null) return;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => _UnitSelectionSheet(
+          scrollController: scrollController,
+          classId: _selectedClassId!,
+          selectedScopeLpUnitId: _selectedScopeLpUnitId,
+          onUnitSelected: (scopeLpUnitId, unitName, totalItems) {
+            setState(() {
+              _selectedScopeLpUnitId = scopeLpUnitId;
+              _selectedUnitName = unitName;
+              _selectedUnitTotalItems = totalItems;
+            });
+            Navigator.of(sheetContext).pop();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final classesAsync = ref.watch(currentTeacherClassesProvider);
@@ -240,6 +278,11 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   label: Text('Vocabulary'),
                   icon: Icon(Icons.abc),
                 ),
+                ButtonSegment(
+                  value: AssignmentType.unit,
+                  label: Text('Unit'),
+                  icon: Icon(Icons.route),
+                ),
               ],
               selected: {_selectedType},
               onSelectionChanged: (Set<AssignmentType> newSelection) {
@@ -252,6 +295,9 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   _lockLibrary = false;
                   _selectedWordListId = null;
                   _selectedWordListName = null;
+                  _selectedScopeLpUnitId = null;
+                  _selectedUnitName = null;
+                  _selectedUnitTotalItems = null;
                 });
               },
             ),
@@ -469,6 +515,57 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   onTap: () => _showWordListSelectionSheet(context, ref),
                 ),
               ),
+            ],
+
+            // Unit content selection
+            if (_selectedType == AssignmentType.unit) ...[
+              Text(
+                'Unit Content',
+                style: context.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (_selectedClassId == null)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Please select a class first to see available units',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: context.colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.route,
+                      color: _selectedScopeLpUnitId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                    title: Text(
+                      _selectedScopeLpUnitId != null
+                          ? _selectedUnitName ?? 'Unit selected'
+                          : 'Select Unit',
+                    ),
+                    subtitle: Text(
+                      _selectedScopeLpUnitId != null
+                          ? '${_selectedUnitTotalItems ?? 0} trackable items'
+                          : 'Tap to choose a learning path unit',
+                      style: TextStyle(
+                        color: _selectedScopeLpUnitId != null
+                            ? context.colorScheme.primary
+                            : context.colorScheme.outline,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => _showUnitSelectionSheet(context, ref),
+                  ),
+                ),
             ],
 
             const SizedBox(height: 32),
@@ -748,6 +845,249 @@ class _WordListSelectionSheet extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// =============================================
+// UNIT SELECTION SHEET
+// =============================================
+
+class _UnitSelectionSheet extends ConsumerWidget {
+  const _UnitSelectionSheet({
+    required this.scrollController,
+    required this.classId,
+    required this.selectedScopeLpUnitId,
+    required this.onUnitSelected,
+  });
+
+  final ScrollController scrollController;
+  final String classId;
+  final String? selectedScopeLpUnitId;
+  final void Function(String scopeLpUnitId, String unitName, int totalItems) onUnitSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unitsAsync = ref.watch(classLearningPathUnitsProvider(classId));
+
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.outlineVariant,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Select Unit',
+                  style: context.textTheme.titleLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Content
+        Expanded(
+          child: unitsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Center(child: Text('Error loading units')),
+            data: (units) {
+              if (units.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Text(
+                      'No learning path assigned to this class yet.\nAsk an admin to assign a learning path.',
+                      textAlign: TextAlign.center,
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: context.colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                controller: scrollController,
+                itemCount: units.length,
+                itemBuilder: (context, index) {
+                  final unit = units[index];
+                  final isSelected = selectedScopeLpUnitId == unit.scopeLpUnitId;
+
+                  return _UnitCard(
+                    unit: unit,
+                    isSelected: isSelected,
+                    onTap: () => onUnitSelected(
+                      unit.scopeLpUnitId,
+                      unit.unitName,
+                      unit.trackableItemCount,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UnitCard extends StatelessWidget {
+  const _UnitCard({
+    required this.unit,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final ClassLearningPathUnit unit;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  static Color _parseHexColor(String hex) {
+    try {
+      final cleaned = hex.startsWith('#') ? hex.substring(1) : hex;
+      return Color(int.parse(cleaned, radix: 16) + 0xFF000000);
+    } catch (_) {
+      return const Color(0xFF58CC02);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final unitColor = _parseHexColor(unit.unitColor);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: isSelected
+            ? BorderSide(color: context.colorScheme.primary, width: 2)
+            : BorderSide.none,
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Unit header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: unitColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(unit.unitIcon, style: const TextStyle(fontSize: 20)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          unit.unitName,
+                          style: context.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? context.colorScheme.primary : null,
+                          ),
+                        ),
+                        Text(
+                          '${unit.items.length} items (${unit.trackableItemCount} tracked)',
+                          style: context.textTheme.bodySmall?.copyWith(
+                            color: context.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(Icons.check_circle, color: context.colorScheme.primary),
+                ],
+              ),
+
+              // Item list
+              const SizedBox(height: 12),
+              ...unit.items.map((item) => _UnitItemRow(item: item)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _UnitItemRow extends StatelessWidget {
+  const _UnitItemRow({required this.item});
+
+  final ClassLearningPathItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    final String label;
+    final String? subtitle;
+
+    switch (item.itemType) {
+      case 'word_list':
+        icon = Icons.abc;
+        label = item.wordListName ?? 'Word List';
+        subtitle = item.words?.join(', ');
+      case 'book':
+        icon = Icons.menu_book;
+        label = item.bookTitle ?? 'Book';
+        subtitle = '${item.bookChapterCount ?? 0} chapters';
+      case 'game':
+        icon = Icons.sports_esports;
+        label = 'Game';
+        subtitle = 'Not graded';
+      case 'treasure':
+        icon = Icons.card_giftcard;
+        label = 'Treasure';
+        subtitle = 'Not graded';
+      default:
+        icon = Icons.help;
+        label = item.itemType;
+        subtitle = null;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, top: 4, bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: context.colorScheme.outline),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: context.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: context.textTheme.labelSmall?.copyWith(color: context.colorScheme.outline),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
