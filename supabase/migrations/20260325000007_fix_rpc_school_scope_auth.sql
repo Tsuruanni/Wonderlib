@@ -54,6 +54,8 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- 2. get_students_in_class: verify caller's school owns the class + add avatar_url
+-- Must DROP first because return type changes (adding avatar_url column)
+DROP FUNCTION IF EXISTS get_students_in_class(UUID);
 CREATE OR REPLACE FUNCTION get_students_in_class(p_class_id UUID)
 RETURNS TABLE (
   id UUID,
