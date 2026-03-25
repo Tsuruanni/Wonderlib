@@ -210,6 +210,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/notifications'),
                   ),
                   _DashboardCard(
+                    icon: Icons.face,
+                    title: 'Avatar Yönetimi',
+                    description: 'Hayvanlar, kategoriler ve aksesuarlar',
+                    color: const Color(0xFF8B5CF6),
+                    onTap: () => context.go('/avatars'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.settings,
                     title: 'Ayarlar',
                     description: 'XP, oyun ve uygulama ayarları',
