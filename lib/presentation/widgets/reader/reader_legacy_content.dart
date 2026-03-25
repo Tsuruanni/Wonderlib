@@ -155,8 +155,9 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned) {
-            _handleActivityAnswer(activity.id, isCorrect, xpEarned, []);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect) {
+            _handleActivityAnswer(activity, isCorrect, []);
           },
         );
 
@@ -166,8 +167,9 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },
         );
 
@@ -177,8 +179,9 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },
         );
 
@@ -188,22 +191,23 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
           settings: widget.settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(activity, isCorrect, wordsLearned);
           },
         );
     }
   }
 
   void _handleActivityAnswer(
-    String activityId,
+    InlineActivity activity,
     bool isCorrect,
-    int xpEarned,
     List<String> wordsLearned,
   ) {
+    final xpEarned = isCorrect ? getInlineActivityXP(ref, activity.type) : 0;
     handleInlineActivityCompletion(
       ref,
-      activityId: activityId,
+      activityId: activity.id,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
       wordsLearned: wordsLearned,

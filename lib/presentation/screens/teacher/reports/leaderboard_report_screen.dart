@@ -11,12 +11,12 @@ import '../../../widgets/common/error_state_widget.dart';
 final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
   final classesResult = await ref.watch(currentTeacherClassesProvider.future);
 
-  final allStudents = <StudentSummary>[];
+  // Fetch all classes' students in parallel (not sequentially)
+  final studentLists = await Future.wait(
+    classesResult.map((c) => ref.watch(classStudentsProvider(c.id).future)),
+  );
 
-  for (final classItem in classesResult) {
-    final students = await ref.watch(classStudentsProvider(classItem.id).future);
-    allStudents.addAll(students);
-  }
+  final allStudents = studentLists.expand((s) => s).toList();
 
   // Sort by XP descending
   allStudents.sort((a, b) => b.xp.compareTo(a.xp));

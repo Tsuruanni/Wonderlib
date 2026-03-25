@@ -72,11 +72,6 @@ class SupabaseUserRepository implements UserRepository {
         'p_description': 'XP awarded',
       },);
 
-      // Check for new badges
-      await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
-        'p_user_id': userId,
-      },);
-
       // Fetch updated user
       final response = await _supabase
           .from(DbTables.profiles)
@@ -96,10 +91,6 @@ class SupabaseUserRepository implements UserRepository {
   Future<Either<Failure, StreakResult>> updateStreak(String userId) async {
     try {
       final response = await _supabase.rpc(RpcFunctions.updateUserStreak, params: {
-        'p_user_id': userId,
-      });
-
-      await _supabase.rpc(RpcFunctions.checkAndAwardBadges, params: {
         'p_user_id': userId,
       });
 

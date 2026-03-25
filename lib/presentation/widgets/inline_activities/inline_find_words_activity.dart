@@ -16,13 +16,15 @@ class InlineFindWordsActivity extends StatefulWidget {
     required this.onAnswer,
     this.isCompleted = false,
     this.wasCorrect,
+    this.xpValue = 25,
   });
 
   final InlineActivity activity;
   final ReaderSettings settings;
-  final void Function(bool isCorrect, int xpEarned, List<String> wordsLearned) onAnswer;
+  final void Function(bool isCorrect, List<String> wordsLearned) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
+  final int xpValue;
 
   @override
   State<InlineFindWordsActivity> createState() => _InlineFindWordsActivityState();
@@ -91,7 +93,6 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
 
     widget.onAnswer(
       _isCorrect!,
-      _isCorrect! ? widget.activity.xpReward : 0,
       widget.activity.vocabularyWords,
     );
   }
@@ -175,7 +176,7 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
             top: 10,
             right: 0,
             child: XPBadge(
-              xp: widget.activity.xpReward,
+              xp: widget.xpValue,
               onComplete: () {
                 if (mounted) {
                   setState(() => _showXPAnimation = false);

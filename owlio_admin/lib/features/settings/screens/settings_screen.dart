@@ -13,6 +13,7 @@ final settingsProvider =
       .from(DbTables.systemSettings)
       .select()
       .order('category')
+      .order('sort_order')
       .order('key');
 
   final settings = List<Map<String, dynamic>>.from(response);
@@ -43,21 +44,24 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const categoryLabels = {
-    'xp': 'XP Ödülleri',
+    'xp_reading': 'Reading XP',
+    'xp_vocab': 'Vocab Session XP',
     'progression': 'Seviye ve İlerleme',
     'game': 'Oyun Ayarları',
     'app': 'Uygulama Yapılandırması',
   };
 
   static const categoryIcons = {
-    'xp': Icons.star,
+    'xp_reading': Icons.auto_stories,
+    'xp_vocab': Icons.school,
     'progression': Icons.trending_up,
     'game': Icons.games,
     'app': Icons.settings_applications,
   };
 
   static const categoryColors = {
-    'xp': Color(0xFFF59E0B),
+    'xp_reading': Color(0xFFF59E0B),
+    'xp_vocab': Color(0xFF10B981),
     'progression': Color(0xFF8B5CF6),
     'game': Color(0xFF3B82F6),
     'app': Color(0xFF6B7280),
@@ -275,33 +279,77 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Settings card
+        // Settings card with sub-group headers
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              children: settings.asMap().entries.map((entry) {
-                final index = entry.key;
-                final setting = entry.value;
-                final isLast = index == settings.length - 1;
-
-                return Column(
-                  children: [
-                    _buildSettingRow(setting),
-                    if (!isLast)
-                      Divider(
-                        color: Colors.grey.shade200,
-                        height: 24,
-                      ),
-                  ],
-                );
-              }).toList(),
+              children: _buildSettingsWithGroups(settings, color),
             ),
           ),
         ),
         const SizedBox(height: 24),
       ],
     );
+  }
+
+  List<Widget> _buildSettingsWithGroups(
+      List<Map<String, dynamic>> settings, Color categoryColor) {
+    final widgets = <Widget>[];
+    String? lastGroupLabel;
+
+    for (var i = 0; i < settings.length; i++) {
+      final setting = settings[i];
+      final groupLabel = setting['group_label'] as String?;
+
+      // Insert sub-group header when group_label changes
+      if (groupLabel != null && groupLabel != lastGroupLabel) {
+        if (lastGroupLabel != null) {
+          // Spacer between sub-groups
+          widgets.add(const SizedBox(height: 8));
+        }
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12, top: 4),
+            child: Row(
+              children: [
+                Container(
+                  width: 3,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: categoryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  groupLabel,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: categoryColor,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        lastGroupLabel = groupLabel;
+      }
+
+      widgets.add(_buildSettingRow(setting));
+
+      // Add divider between rows (not after last)
+      if (i < settings.length - 1) {
+        final nextGroupLabel = settings[i + 1]['group_label'] as String?;
+        if (nextGroupLabel == groupLabel) {
+          widgets.add(Divider(color: Colors.grey.shade200, height: 24));
+        }
+      }
+    }
+
+    return widgets;
   }
 
   Widget _buildSettingRow(Map<String, dynamic> setting) {

@@ -93,42 +93,10 @@ class BadgeModel {
   }
 
   static BadgeConditionType parseConditionType(String type) {
-    switch (type) {
-      case 'xp_total':
-        return BadgeConditionType.xpTotal;
-      case 'streak_days':
-        return BadgeConditionType.streakDays;
-      case 'books_completed':
-        return BadgeConditionType.booksCompleted;
-      case 'vocabulary_learned':
-        return BadgeConditionType.vocabularyLearned;
-      case 'perfect_scores':
-        return BadgeConditionType.perfectScores;
-      case 'level_completed':
-        return BadgeConditionType.levelCompleted;
-      case 'daily_login':
-        return BadgeConditionType.dailyLogin;
-      default:
-        return BadgeConditionType.xpTotal;
-    }
+    return BadgeConditionType.fromDbValue(type);
   }
 
   static String conditionTypeToString(BadgeConditionType type) {
-    switch (type) {
-      case BadgeConditionType.xpTotal:
-        return 'xp_total';
-      case BadgeConditionType.streakDays:
-        return 'streak_days';
-      case BadgeConditionType.booksCompleted:
-        return 'books_completed';
-      case BadgeConditionType.vocabularyLearned:
-        return 'vocabulary_learned';
-      case BadgeConditionType.perfectScores:
-        return 'perfect_scores';
-      case BadgeConditionType.levelCompleted:
-        return 'level_completed';
-      case BadgeConditionType.dailyLogin:
-        return 'daily_login';
-    }
+    return type.dbValue;
   }
 }

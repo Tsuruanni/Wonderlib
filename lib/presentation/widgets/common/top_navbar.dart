@@ -31,21 +31,21 @@ class TopNavbar extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left: UK Flag
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 8, height: 16, color: const Color(0xFF012169)),
-                Container(width: 8, height: 16, color: Colors.white),
-                Container(width: 8, height: 16, color: const Color(0xFFC8102E)),
-              ],
-            ),
+          // Left: Language direction (EN → TR)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🇬🇧', style: TextStyle(fontSize: 18)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white.withValues(alpha: 0.7),
+                  size: 14,
+                ),
+              ),
+              const Text('🇹🇷', style: TextStyle(fontSize: 18)),
+            ],
           ),
 
           _buildNavDivider(),

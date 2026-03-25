@@ -5,8 +5,7 @@ enum BadgeConditionType {
   booksCompleted('books_completed'),
   vocabularyLearned('vocabulary_learned'),
   perfectScores('perfect_scores'),
-  levelCompleted('level_completed'),
-  dailyLogin('daily_login');
+  levelCompleted('level_completed');
 
   final String dbValue;
 

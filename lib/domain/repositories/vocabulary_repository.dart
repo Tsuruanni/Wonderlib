@@ -14,6 +14,9 @@ abstract class VocabularyRepository {
 
   Future<Either<Failure, VocabularyWord>> getWordById(String id);
 
+  /// Fetch multiple words by IDs in a single query
+  Future<Either<Failure, List<VocabularyWord>>> getWordsByIds(List<String> ids);
+
   Future<Either<Failure, List<VocabularyWord>>> searchWords(String query);
 
   Future<Either<Failure, List<VocabularyProgress>>> getUserProgress(
@@ -23,6 +26,12 @@ abstract class VocabularyRepository {
   Future<Either<Failure, VocabularyProgress>> getWordProgress({
     required String userId,
     required String wordId,
+  });
+
+  /// Fetch progress for multiple words in a single query
+  Future<Either<Failure, List<VocabularyProgress>>> getWordProgressBatch({
+    required String userId,
+    required List<String> wordIds,
   });
 
   Future<Either<Failure, VocabularyProgress>> updateWordProgress(

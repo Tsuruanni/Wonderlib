@@ -19,31 +19,6 @@ enum QuestionType {
   pronunciation,          // Say the word — recall + speak into microphone (production)
 }
 
-/// XP values per question type
-extension QuestionTypeXP on QuestionType {
-  int get baseXP {
-    switch (this) {
-      case QuestionType.multipleChoice:
-      case QuestionType.reverseMultipleChoice:
-      case QuestionType.listeningSelect:
-      case QuestionType.imageMatch:
-        return 10;
-      case QuestionType.matching:
-        return 15;
-      case QuestionType.scrambledLetters:
-      case QuestionType.wordWheel:
-        return 20;
-      case QuestionType.spelling:
-      case QuestionType.listeningWrite:
-        return 25;
-      case QuestionType.sentenceGap:
-        return 30;
-      case QuestionType.pronunciation:
-        return 30;
-    }
-  }
-}
-
 /// Difficulty tiers for question types
 extension QuestionTypeTier on QuestionType {
   /// Recognition (easy), Bridge (medium), Production (hard)

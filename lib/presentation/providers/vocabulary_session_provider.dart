@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/system_settings.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_session.dart';
 
@@ -198,6 +199,33 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     state = state.copyWith(micDisabledForSession: true);
   }
 
+  /// Get vocab question base XP from settings
+  int getVocabBaseXP(QuestionType type, SystemSettings settings) {
+    // Pronunciation with mic disabled → use spelling XP
+    if (type == QuestionType.pronunciation && state.micDisabledForSession) {
+      return settings.xpVocabSpelling;
+    }
+
+    switch (type) {
+      case QuestionType.multipleChoice:
+      case QuestionType.reverseMultipleChoice:
+      case QuestionType.listeningSelect:
+      case QuestionType.imageMatch:
+        return settings.xpVocabMultipleChoice;
+      case QuestionType.matching:
+        return settings.xpVocabMatching;
+      case QuestionType.scrambledLetters:
+      case QuestionType.wordWheel:
+        return settings.xpVocabScrambledLetters;
+      case QuestionType.spelling:
+      case QuestionType.listeningWrite:
+        return settings.xpVocabSpelling;
+      case QuestionType.sentenceGap:
+      case QuestionType.pronunciation:
+        return settings.xpVocabSentenceGap;
+    }
+  }
+
   // ------------------------------------
   // FAZ 1: EXPLORE
   // ------------------------------------
@@ -247,7 +275,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   // ------------------------------------
 
   /// Process an answer and update state
-  void answerQuestion(String answer) {
+  void answerQuestion(String answer, {required SystemSettings settings}) {
     final question = state.currentQuestion;
     if (question == null) return;
 
@@ -309,15 +337,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     }
     final newMaxCombo = max<int>(newCombo, state.maxCombo);
 
-    // Calculate XP with combo multiplier
+    // Calculate XP: flat per question type, no combo multiplier
     int xpGained = 0;
     if (isCorrect) {
-      final comboMultiplier = min<int>(newCombo, 5); // Cap at x5
-      final baseXP = (question.type == QuestionType.pronunciation &&
-              state.micDisabledForSession)
-          ? QuestionType.spelling.baseXP
-          : question.type.baseXP;
-      xpGained = baseXP * max<int>(1, comboMultiplier);
+      xpGained = getVocabBaseXP(question.type, settings);
     }
 
     // Add to remediation queue if wrong
@@ -375,6 +398,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     required int totalMatches,
     required List<String> correctWordIds,
     required List<String> incorrectWordIds,
+    required SystemSettings settings,
   }) {
     final updatedWords = List<WordSessionState>.from(state.words);
 
@@ -419,10 +443,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       newCombo = max<int>(0, state.combo - 2);
       newWarning = false;
     }
-    // Partial XP for matching: 3/4 correct still earns proportional XP
-    final comboMult = max<int>(1, min<int>(newCombo, 5));
+    // Partial XP for matching: 3/4 correct still earns proportional XP, no combo multiplier
+    final matchingBaseXP = getVocabBaseXP(QuestionType.matching, settings);
     final xpGained = correctMatches > 0
-        ? (QuestionType.matching.baseXP * comboMult * correctMatches) ~/ totalMatches
+        ? (matchingBaseXP * correctMatches) ~/ totalMatches
         : 0;
 
     // Add incorrect words to remediation

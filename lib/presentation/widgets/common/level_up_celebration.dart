@@ -5,11 +5,12 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../app/router.dart';
 import '../../../domain/entities/streak_result.dart';
 import '../../providers/user_provider.dart';
+import 'badge_earned_dialog.dart';
 import 'streak_event_dialog.dart';
 
 /// Shows a celebration dialog when user levels up
 /// Listens to levelUpEventProvider and displays appropriate celebration
-class LevelUpCelebrationListener extends ConsumerWidget {
+class LevelUpCelebrationListener extends ConsumerStatefulWidget {
   const LevelUpCelebrationListener({
     super.key,
     required this.child,
@@ -18,64 +19,101 @@ class LevelUpCelebrationListener extends ConsumerWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LevelUpCelebrationListener> createState() =>
+      _LevelUpCelebrationListenerState();
+}
+
+class _LevelUpCelebrationListenerState
+    extends ConsumerState<LevelUpCelebrationListener> {
+  final _dialogQueue = <Future<void> Function()>[];
+  bool _isShowingDialog = false;
+
+  void _enqueueDialog(Future<void> Function() showFn) {
+    _dialogQueue.add(showFn);
+    _processQueue();
+  }
+
+  Future<void> _processQueue() async {
+    if (!mounted || _isShowingDialog || _dialogQueue.isEmpty) return;
+    _isShowingDialog = true;
+    final fn = _dialogQueue.removeAt(0);
+    await fn();
+    _isShowingDialog = false;
+    if (mounted) _processQueue();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.listen<LevelUpEvent?>(levelUpEventProvider, (previous, next) {
       if (next != null) {
-        _showLevelUpCelebration(ref, next);
+        _enqueueDialog(() => _showLevelUpCelebration(next));
       }
     });
 
-    ref.listen<LeagueTierChangeEvent?>(leagueTierChangeEventProvider, (previous, next) {
+    ref.listen<LeagueTierChangeEvent?>(leagueTierChangeEventProvider,
+        (previous, next) {
       if (next != null) {
-        _showLeagueTierChange(ref, next);
+        _enqueueDialog(() => _showLeagueTierChange(next));
       }
     });
 
     ref.listen<StreakResult?>(streakEventProvider, (previous, next) {
       if (next != null && next.hasEvent) {
-        _showStreakEvent(ref, next);
+        _enqueueDialog(() => _showStreakEvent(next));
       }
     });
 
-    return child;
+    ref.listen<BadgeEarnedEvent?>(badgeEarnedEventProvider, (previous, next) {
+      if (next != null) {
+        _enqueueDialog(() => _showBadgeEarned(next));
+      }
+    });
+
+    return widget.child;
   }
 
-  void _showLevelUpCelebration(WidgetRef ref, LevelUpEvent event) {
+  Future<void> _showLevelUpCelebration(LevelUpEvent event) async {
     final ctx = rootNavigatorKey.currentContext;
     if (ctx == null) return;
-
-    showDialog(
+    await showDialog(
       context: ctx,
       barrierDismissible: true,
       builder: (context) => _LevelUpDialog(event: event),
-    ).then((_) {
-      ref.read(levelUpEventProvider.notifier).state = null;
-    });
+    );
+    ref.read(levelUpEventProvider.notifier).state = null;
   }
 
-  void _showStreakEvent(WidgetRef ref, StreakResult result) {
+  Future<void> _showStreakEvent(StreakResult result) async {
     final ctx = rootNavigatorKey.currentContext;
     if (ctx == null) return;
-    showDialog(
+    await showDialog(
       context: ctx,
       barrierDismissible: true,
       builder: (context) => StreakEventDialog(result: result),
-    ).then((_) {
-      ref.read(streakEventProvider.notifier).state = null;
-    });
+    );
+    ref.read(streakEventProvider.notifier).state = null;
   }
 
-  void _showLeagueTierChange(WidgetRef ref, LeagueTierChangeEvent event) {
+  Future<void> _showLeagueTierChange(LeagueTierChangeEvent event) async {
     final ctx = rootNavigatorKey.currentContext;
     if (ctx == null) return;
-
-    showDialog(
+    await showDialog(
       context: ctx,
       barrierDismissible: true,
       builder: (context) => _LeagueTierChangeDialog(event: event),
-    ).then((_) {
-      ref.read(leagueTierChangeEventProvider.notifier).state = null;
-    });
+    );
+    ref.read(leagueTierChangeEventProvider.notifier).state = null;
+  }
+
+  Future<void> _showBadgeEarned(BadgeEarnedEvent event) async {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+    await showDialog(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (context) => BadgeEarnedDialog(badges: event.badges),
+    );
+    ref.read(badgeEarnedEventProvider.notifier).state = null;
   }
 }
 

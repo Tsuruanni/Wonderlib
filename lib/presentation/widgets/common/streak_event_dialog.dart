@@ -11,13 +11,15 @@ class StreakEventDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Priority: milestone > freeze-saved > streak-broken
+    // Priority: milestone > freeze-saved > streak-broken > streak-extended
     if (result.milestoneBonusXp > 0) {
       return _buildMilestoneDialog(context);
     } else if (result.freezeUsed && !result.streakBroken) {
       return _buildFreezeSavedDialog(context);
     } else if (result.streakBroken && result.previousStreak >= 3) {
       return _buildStreakBrokenDialog(context);
+    } else if (result.streakExtended) {
+      return _buildStreakExtendedDialog(context);
     }
     return const SizedBox.shrink();
   }
@@ -77,6 +79,36 @@ class StreakEventDialog extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       subtitleColor: Colors.grey.shade600,
+    );
+  }
+
+  static const _streakSubtitles = [
+    'Keep it up!',
+    "You're on fire!",
+    'Great habit!',
+    'Consistency is key!',
+    'Unstoppable!',
+    'Nice streak!',
+  ];
+
+  Widget _buildStreakExtendedDialog(BuildContext context) {
+    final isFirstDay = result.previousStreak == 0;
+
+    final title = isFirstDay
+        ? "Day 1! Let's go!"
+        : 'Day ${result.newStreak}!';
+
+    final subtitle = isFirstDay
+        ? 'Your learning streak starts today!'
+        : _streakSubtitles[result.newStreak % _streakSubtitles.length];
+
+    return _buildDialog(
+      context,
+      icon: Icons.local_fire_department_rounded,
+      iconColor: AppColors.streakOrange,
+      title: title,
+      subtitle: subtitle,
+      subtitleColor: AppColors.streakOrange,
     );
   }
 

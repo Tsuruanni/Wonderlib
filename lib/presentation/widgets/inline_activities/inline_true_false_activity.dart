@@ -19,13 +19,15 @@ class InlineTrueFalseActivity extends StatefulWidget {
     required this.onAnswer,
     this.isCompleted = false,
     this.wasCorrect,
+    this.xpValue = 25,
   });
 
   final InlineActivity activity;
   final ReaderSettings settings;
-  final void Function(bool isCorrect, int xpEarned) onAnswer;
+  final void Function(bool isCorrect) onAnswer;
   final bool isCompleted;
   final bool? wasCorrect;
+  final int xpValue;
 
   @override
   State<InlineTrueFalseActivity> createState() => _InlineTrueFalseActivityState();
@@ -80,14 +82,14 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
       // Only trigger callback (which advances flow) if correct
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
-           widget.onAnswer(true, widget.activity.xpReward);
+           widget.onAnswer(true);
         }
       });
     } else {
        // Call onAnswer after delay to show correct answer but then unlock next flow
        Future.delayed(const Duration(milliseconds: 2000), () {
         if (mounted) {
-           widget.onAnswer(false, 0);
+           widget.onAnswer(false);
         }
       });
     }
@@ -156,7 +158,7 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
             top: 10,
             right: 0,
             child: XPBadge(
-              xp: widget.activity.xpReward,
+              xp: widget.xpValue,
               onComplete: () {
                 if (mounted) {
                   setState(() => _showXPAnimation = false);

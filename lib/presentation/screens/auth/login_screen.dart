@@ -21,10 +21,9 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _identityController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _useStudentNumber = false;
 
   // Rive animation controllers (0.7 = 30% slower)
   late final _owlAnim1 = SimpleAnimation('Timeline 1', autoplay: true);
@@ -32,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identityController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -42,20 +41,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     context.unfocus();
 
-    final authController = ref.read(authControllerProvider.notifier);
+    final input = _identityController.text.trim();
+    final password = _passwordController.text;
 
-    bool success;
-    if (_useStudentNumber) {
-      success = await authController.signInWithStudentNumber(
-        studentNumber: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    } else {
-      success = await authController.signInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    }
+    // @ detection: contains @ → email, otherwise → username (synthetic email)
+    final email = input.contains('@') ? input : '$input@owlio.local';
+
+    final authController = ref.read(authControllerProvider.notifier);
+    final success = await authController.signInWithEmail(
+      email: email,
+      password: password,
+    );
 
     if (!success && mounted) {
       final error = ref.read(authControllerProvider).error;
@@ -132,61 +128,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 48),
 
                     // --- Form Fields ---
-                    // Toggle
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.neutral.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.neutral, width: 2),
-                          ),
-                          child: Row(
-                            children: [
-                              _buildToggleOption(
-                                'Email', 
-                                Icons.email_rounded, 
-                                !_useStudentNumber,
-                              ),
-                              _buildToggleOption(
-                                'Student #', 
-                                Icons.badge_rounded, 
-                                _useStudentNumber,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ).animate().fadeIn(delay: 500.ms),
-                    const SizedBox(height: 24),
-
-                    // Inputs
                     TextFormField(
-                      controller: _emailController,
-                      keyboardType: _useStudentNumber
-                          ? TextInputType.number
-                          : TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: _useStudentNumber ? 'Student Number' : 'Email',
+                      controller: _identityController,
+                      keyboardType: TextInputType.text,
+                      decoration: const InputDecoration(
+                        labelText: 'Username or Email',
                         prefixIcon: Icon(
-                          _useStudentNumber
-                              ? Icons.badge_rounded
-                              : Icons.email_rounded,
+                          Icons.person_rounded,
                           color: AppColors.neutralText,
                         ),
                       ),
                       validator: (value) {
                         if (value.isNullOrEmpty) {
-                          return _useStudentNumber
-                              ? 'Enter your number'
-                              : 'Enter your email';
-                        }
-                        if (!_useStudentNumber && !value!.isValidEmail) {
-                          return 'Invalid email address';
+                          return 'Enter your username or email';
                         }
                         return null;
                       },
-                    ).animate().fadeIn(delay: 600.ms),
+                    ).animate().fadeIn(delay: 500.ms),
                     const SizedBox(height: 16),
 
                     TextFormField(
@@ -260,15 +218,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           _DevChip(
                             label: 'Fresh (0 XP)',
-                            onTap: () => _quickLogin('fresh@demo.com', 'Test1234'),
+                            onTap: () => _quickLogin('frestu1', 'Test1234'),
                           ),
                           _DevChip(
                             label: 'Active (500 XP)',
-                            onTap: () => _quickLogin('active@demo.com', 'Test1234'),
+                            onTap: () => _quickLogin('actstu1', 'Test1234'),
                           ),
                           _DevChip(
                             label: 'Advanced (5K)',
-                            onTap: () => _quickLogin('advanced@demo.com', 'Test1234'),
+                            onTap: () => _quickLogin('advstu1', 'Test1234'),
                             color: AppColors.gemBlue,
                           ),
                           _DevChip(
@@ -300,13 +258,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          _DevChip(label: 'Elif (8.2K)', onTap: () => _quickLogin('elif@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Ahmet (3.2K)', onTap: () => _quickLogin('ahmet@demo.com', 'Test1234')),
-                          _DevChip(label: 'Zeynep (1.8K)', onTap: () => _quickLogin('zeynep@demo.com', 'Test1234')),
-                          _DevChip(label: 'Can (12.5K)', onTap: () => _quickLogin('can@demo.com', 'Test1234'), color: AppColors.gemBlue),
-                          _DevChip(label: 'Selin (250)', onTap: () => _quickLogin('selin@demo.com', 'Test1234')),
-                          _DevChip(label: 'Emre (6.8K)', onTap: () => _quickLogin('emre@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Defne (950)', onTap: () => _quickLogin('defne@demo.com', 'Test1234')),
+                          _DevChip(label: 'Elif (8.2K)', onTap: () => _quickLogin('eliyil1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Ahmet (3.2K)', onTap: () => _quickLogin('ahmkay1', 'Test1234')),
+                          _DevChip(label: 'Zeynep (1.8K)', onTap: () => _quickLogin('zeydem1', 'Test1234')),
+                          _DevChip(label: 'Can (12.5K)', onTap: () => _quickLogin('canozt1', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Selin (250)', onTap: () => _quickLogin('selars1', 'Test1234')),
+                          _DevChip(label: 'Emre (6.8K)', onTap: () => _quickLogin('emrcel1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Defne (950)', onTap: () => _quickLogin('defsah1', 'Test1234')),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -326,13 +284,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          _DevChip(label: 'Berk (9.5K)', onTap: () => _quickLogin('berk@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Yagmur (4.2K)', onTap: () => _quickLogin('yagmur@demo.com', 'Test1234')),
-                          _DevChip(label: 'Arda (2.4K)', onTap: () => _quickLogin('arda@demo.com', 'Test1234')),
-                          _DevChip(label: 'Nil (7.4K)', onTap: () => _quickLogin('nil@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Mert (150)', onTap: () => _quickLogin('mert@demo.com', 'Test1234')),
-                          _DevChip(label: 'Deniz (5.8K)', onTap: () => _quickLogin('deniz@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Ece (1.2K)', onTap: () => _quickLogin('ece@demo.com', 'Test1234')),
+                          _DevChip(label: 'Berk (9.5K)', onTap: () => _quickLogin('berayd1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Yagmur (4.2K)', onTap: () => _quickLogin('yagkoc1', 'Test1234')),
+                          _DevChip(label: 'Arda (2.4K)', onTap: () => _quickLogin('ardyil1', 'Test1234')),
+                          _DevChip(label: 'Nil (7.4K)', onTap: () => _quickLogin('nilerd1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Mert (150)', onTap: () => _quickLogin('mertop1', 'Test1234')),
+                          _DevChip(label: 'Deniz (5.8K)', onTap: () => _quickLogin('denozk1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Ece (1.2K)', onTap: () => _quickLogin('ecepol1', 'Test1234')),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -352,12 +310,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         spacing: 6,
                         runSpacing: 6,
                         children: [
-                          _DevChip(label: 'Ali (15K)', onTap: () => _quickLogin('ali@demo.com', 'Test1234'), color: AppColors.gemBlue),
-                          _DevChip(label: 'Irem (6.2K)', onTap: () => _quickLogin('irem@demo.com', 'Test1234'), color: AppColors.cardLegendary),
-                          _DevChip(label: 'Burak (3.8K)', onTap: () => _quickLogin('burak@demo.com', 'Test1234')),
-                          _DevChip(label: 'Asya (11K)', onTap: () => _quickLogin('asya@demo.com', 'Test1234'), color: AppColors.gemBlue),
-                          _DevChip(label: 'Kerem (450)', onTap: () => _quickLogin('kerem@demo.com', 'Test1234')),
-                          _DevChip(label: 'Melis (2K)', onTap: () => _quickLogin('melis@demo.com', 'Test1234')),
+                          _DevChip(label: 'Ali (15K)', onTap: () => _quickLogin('alikor1', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Irem (6.2K)', onTap: () => _quickLogin('ireaks1', 'Test1234'), color: AppColors.cardLegendary),
+                          _DevChip(label: 'Burak (3.8K)', onTap: () => _quickLogin('burdog1', 'Test1234')),
+                          _DevChip(label: 'Asya (11K)', onTap: () => _quickLogin('asycet1', 'Test1234'), color: AppColors.gemBlue),
+                          _DevChip(label: 'Kerem (450)', onTap: () => _quickLogin('kertas1', 'Test1234')),
+                          _DevChip(label: 'Melis (2K)', onTap: () => _quickLogin('melyal1', 'Test1234')),
                         ],
                       ),
                     ],
@@ -371,62 +329,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  Widget _buildToggleOption(String label, IconData icon, bool isSelected) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _useStudentNumber = label == 'Student #';
-            _emailController.clear();
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(14), // Slightly less than outer
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 20,
-                color: isSelected ? AppColors.primary : AppColors.neutralText,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label.toUpperCase(),
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? AppColors.primary : AppColors.neutralText,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _quickLogin(String email, String password) async {
+  /// Quick login for dev shortcuts — works with both usernames and emails
+  /// since _login() handles @ detection automatically.
+  Future<void> _quickLogin(String identity, String password) async {
     setState(() {
-      _useStudentNumber = false;
-      _emailController.text = email;
+      _identityController.text = identity;
       _passwordController.text = password;
     });
-    // Add small delay to visualize the autofill
     await Future.delayed(const Duration(milliseconds: 200));
     await _login();
   }

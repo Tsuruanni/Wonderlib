@@ -7,6 +7,7 @@ import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
+import '../../domain/usecases/vocabulary/get_word_progress_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
@@ -150,6 +151,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     required this.userId,
     required this.getDueForReviewUseCase,
     required this.getWordProgressUseCase,
+    required this.getWordProgressBatchUseCase,
     required this.updateWordProgressUseCase,
     required this.completeDailyReviewUseCase,
     required this.getAllWordListsUseCase,
@@ -160,6 +162,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
   final String userId;
   final GetDueForReviewUseCase getDueForReviewUseCase;
   final GetWordProgressUseCase getWordProgressUseCase;
+  final GetWordProgressBatchUseCase getWordProgressBatchUseCase;
   final UpdateWordProgressUseCase updateWordProgressUseCase;
   final CompleteDailyReviewUseCase completeDailyReviewUseCase;
   final GetAllWordListsUseCase getAllWordListsUseCase;
@@ -189,17 +192,15 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
       return;
     }
 
-    // Get progress for each word
-    final progressMap = <String, VocabularyProgress>{};
-    for (final word in allDueWords) {
-      final progressResult = await getWordProgressUseCase(
-        GetWordProgressParams(userId: userId, wordId: word.id),
-      );
-      progressResult.fold(
-        (failure) {},
-        (progress) => progressMap[word.id] = progress,
-      );
-    }
+    // Batch fetch progress for all due words in a single query
+    final wordIds = allDueWords.map((w) => w.id).toList();
+    final progressResult = await getWordProgressBatchUseCase(
+      GetWordProgressBatchParams(userId: userId, wordIds: wordIds),
+    );
+    final progressMap = progressResult.fold(
+      (_) => <String, VocabularyProgress>{},
+      (list) => {for (final p in list) p.wordId: p},
+    );
 
     // Split into mastered and non-mastered (preserve overdue order)
     final nonMastered = <VocabularyWord>[];
@@ -287,17 +288,15 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     // Shuffle for variety
     uniqueWords.shuffle();
 
-    // Fetch progress for each word so answerWord() can update SM2
-    final progressMap = <String, VocabularyProgress>{};
-    for (final word in uniqueWords) {
-      final progressResult = await getWordProgressUseCase(
-        GetWordProgressParams(userId: userId, wordId: word.id),
-      );
-      progressResult.fold(
-        (failure) {},
-        (progress) => progressMap[word.id] = progress,
-      );
-    }
+    // Batch fetch progress for all words in a single query
+    final wordIds = uniqueWords.map((w) => w.id).toList();
+    final batchResult = await getWordProgressBatchUseCase(
+      GetWordProgressBatchParams(userId: userId, wordIds: wordIds),
+    );
+    final progressMap = batchResult.fold(
+      (_) => <String, VocabularyProgress>{},
+      (list) => {for (final p in list) p.wordId: p},
+    );
 
     state = state.copyWith(
       isLoading: false,
@@ -430,6 +429,7 @@ final dailyReviewControllerProvider =
       userId: userId,
       getDueForReviewUseCase: ref.watch(getDueForReviewUseCaseProvider),
       getWordProgressUseCase: ref.watch(getWordProgressUseCaseProvider),
+      getWordProgressBatchUseCase: ref.watch(getWordProgressBatchUseCaseProvider),
       updateWordProgressUseCase: ref.watch(updateWordProgressUseCaseProvider),
       completeDailyReviewUseCase: ref.watch(completeDailyReviewUseCaseProvider),
       getAllWordListsUseCase: ref.watch(getAllWordListsUseCaseProvider),

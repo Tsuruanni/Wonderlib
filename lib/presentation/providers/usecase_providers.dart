@@ -21,7 +21,6 @@ import '../../domain/usecases/student_assignment/get_student_assignments_usecase
 import '../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
-import '../../domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
@@ -41,6 +40,7 @@ import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/badge/award_badge_usecase.dart';
+import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
 import '../../domain/usecases/badge/check_earnable_badges_usecase.dart';
 import '../../domain/usecases/badge/get_all_badges_usecase.dart';
 import '../../domain/usecases/badge/get_badge_by_id_usecase.dart';
@@ -88,6 +88,8 @@ import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_by_id_usecase.dart';
+import '../../domain/usecases/vocabulary/get_words_by_ids_usecase.dart';
+import '../../domain/usecases/vocabulary/get_word_progress_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
@@ -124,10 +126,6 @@ import 'repository_providers.dart';
 
 final signInWithEmailUseCaseProvider = Provider((ref) {
   return SignInWithEmailUseCase(ref.watch(authRepositoryProvider));
-});
-
-final signInWithStudentNumberUseCaseProvider = Provider((ref) {
-  return SignInWithStudentNumberUseCase(ref.watch(authRepositoryProvider));
 });
 
 final signOutUseCaseProvider = Provider((ref) {
@@ -289,6 +287,10 @@ final getWordByIdUseCaseProvider = Provider((ref) {
   return GetWordByIdUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
+final getWordsByIdsUseCaseProvider = Provider((ref) {
+  return GetWordsByIdsUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
 final searchWordsUseCaseProvider = Provider((ref) {
   return SearchWordsUseCase(ref.watch(vocabularyRepositoryProvider));
 });
@@ -299,6 +301,10 @@ final getUserVocabularyProgressUseCaseProvider = Provider((ref) {
 
 final getWordProgressUseCaseProvider = Provider((ref) {
   return GetWordProgressUseCase(ref.watch(vocabularyRepositoryProvider));
+});
+
+final getWordProgressBatchUseCaseProvider = Provider((ref) {
+  return GetWordProgressBatchUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 final updateWordProgressUseCaseProvider = Provider((ref) {
@@ -415,6 +421,10 @@ final checkEarnableBadgesUseCaseProvider = Provider((ref) {
 
 final getRecentlyEarnedUseCaseProvider = Provider((ref) {
   return GetRecentlyEarnedUseCase(ref.watch(badgeRepositoryProvider));
+});
+
+final checkAndAwardBadgesUseCaseProvider = Provider((ref) {
+  return CheckAndAwardBadgesUseCase(ref.watch(badgeRepositoryProvider));
 });
 
 // ============================================

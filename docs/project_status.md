@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-23 (Book Quiz Admin Integration, Dynamic XP Settings, SystemSettings Cleanup)
+Son güncelleme: 2026-03-24 (Daily quest eligibility fix, pack claim date offset fix, performance parallel data fetching, admin badge improvements, badge earned notification, type-based XP, notification settings, notification gallery, username auth)
 
 ## Current Phase
 
@@ -93,8 +93,14 @@ See: CLAUDE.md for architecture guidelines
 - [x] Debug Time Offset (system-wide app_current_date/app_now, AppClock, admin-configurable)
 - [x] Book Quiz Admin Integration (admin navigation, atomic attempt_number, dynamic XP)
 - [x] Dynamic XP Settings (all XP reads from system_settings, 15 unused settings removed)
+- [x] Type-Based XP + Combo Refactor (per-activity → type-based, combo → session-end bonus, 12 new settings)
+- [x] Notification Settings + Streak Extended (daily Day X! dialog, 7 admin-configurable notification toggles)
+- [x] Admin Notification Gallery (dedicated /notifications page with preview cards)
 - [x] Admin Units & Unit Books management (CRUD screens)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
+- [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
+- [x] Admin Badge Improvements (dailyLogin removal, missing condition types, shared helper, per-badge stats, 3 new streak badges)
+- [x] Badge Earned Notification (dialog with icon/name/XP, dialog queue, admin toggle, badge check at controller level)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
@@ -106,9 +112,10 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Assignee | Status | Notes |
 |------|----------|--------|-------|
-| Type-Based XP + Combo Refactor | - | Spec done | Replace per-activity and hardcoded vocab XP with admin-configurable type-based settings. Combo → session-end bonus. |
+| ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
+| Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
 
 ## Deferred
 
@@ -152,12 +159,21 @@ See: CLAUDE.md for architecture guidelines
 | ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
 | ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
 | Server-side SM-2 mismatch | Medium | `complete_vocabulary_session` RPC uses different SM-2 formula than client (flat +0.02 ease vs quality-based, rep=1 vs rep=0 start). Needs migration to align with `SM2.calculateNextReview()` |
+| N+1 in assignmentSyncProvider | Low | Sequential per-assignment progress check (1-3 items, runs once on sync) |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Daily Quest Eligibility Fix | 2026-03-24 | daily_review quest hidden when < 10 due words, XP exploit closed, bonus claim aligned, pack claim date offset fixed. 2 migrations. |
+| Performance: Parallel Data Fetching | 2026-03-24 | 7 N+1/sequential fixes across vocabulary hub, word bank, daily review, reader, leaderboard. 2 new batch repository methods + use cases. |
+| Type-Based XP + Combo Refactor | 2026-03-24 | 12 new settings, inline XP from settings, vocab flat XP, combo session-end bonus, RPC reads bonuses from DB |
+| Notification Settings + Streak Extended | 2026-03-24 | Daily "Day X!" dialog, 7 notification toggles in system_settings, settings-aware event gating |
+| Admin Notification Gallery | 2026-03-24 | Dedicated /notifications page with 6 preview cards + toggles, dashboard card |
+| Username Auth & Bulk Creation | 2026-03-24 | Synthetic email login, bulk-create-students Edge Function, admin creation screen, migrate-student-emails, dead student_number auth removed |
+| Timezone & Streak Fix | 2026-03-24 | UTC→Istanbul in app_current_date/app_now, JSONB cast fix that silently broke daily_logins |
+| Admin Settings UX | 2026-03-24 | XP settings grouped with sub-headers, descriptions added to all settings |
 | Book Quiz Admin Integration | 2026-03-23 | Admin quiz navigation, DB trigger for atomic attempt_number, dynamic XP from SystemSettings |
 | Dynamic XP & Settings Cleanup | 2026-03-23 | All XP reads from system_settings DB, 15 unused settings removed, SystemSettings 21→6 fields, AppConfig.xpRewards deleted |
 | Admin Quest Dashboard | 2026-03-23 | Phase 2: quest list screen with inline editing + completion stats, dashboard card |

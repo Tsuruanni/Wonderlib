@@ -70,6 +70,28 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   }
 
   @override
+  Future<Either<Failure, List<VocabularyWord>>> getWordsByIds(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const Right([]);
+    try {
+      final response = await _supabase
+          .from(DbTables.vocabularyWords)
+          .select()
+          .inFilter('id', ids);
+
+      final words = (response as List)
+          .map((json) => VocabularyWordModel.fromJson(json).toEntity())
+          .toList();
+      return Right(words);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<VocabularyWord>>> searchWords(
     String query,
   ) async {
@@ -149,6 +171,30 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       }
 
       return Right(VocabularyProgressModel.fromJson(response).toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<VocabularyProgress>>> getWordProgressBatch({
+    required String userId,
+    required List<String> wordIds,
+  }) async {
+    if (wordIds.isEmpty) return const Right([]);
+    try {
+      final response = await _supabase
+          .from(DbTables.vocabularyProgress)
+          .select()
+          .eq('user_id', userId)
+          .inFilter('word_id', wordIds);
+
+      final progressList = (response as List)
+          .map((json) => VocabularyProgressModel.fromJson(json).toEntity())
+          .toList();
+      return Right(progressList);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

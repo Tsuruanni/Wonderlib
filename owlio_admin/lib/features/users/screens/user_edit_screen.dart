@@ -89,6 +89,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
 
   String _role = UserRole.student.dbValue;
   String? _schoolId;
+  String? _username;
+  String? _passwordPlain;
   bool _isLoading = true;
   bool _isSaving = false;
 
@@ -112,6 +114,8 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
       setState(() {
         _role = _validRoles.contains(dbRole) ? dbRole : 'student';
         _schoolId = user['school_id'] as String?;
+        _username = user['username'] as String?;
+        _passwordPlain = user['password_plain'] as String?;
         _isLoading = false;
       });
     } else {
@@ -295,7 +299,7 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Yeni kullanıcılar Supabase Dashboard üzerinden oluşturulur. '
+                      'Yeni kullanıcılar Kullanıcı Oluştur sayfasından eklenebilir. '
                       'Bu ekran yalnızca mevcut kullanıcıları düzenlemek içindir.',
                       style: TextStyle(color: Colors.blue.shade700),
                     ),
@@ -310,6 +314,33 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 24),
+
+            // Username + Password (read-only, students only)
+            if (_username != null) ...[
+              TextFormField(
+                initialValue: _username,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  helperText: 'Kullanıcı adı değiştirilemez',
+                  prefixIcon: Icon(Icons.alternate_email),
+                ),
+                readOnly: true,
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (_passwordPlain != null) ...[
+              TextFormField(
+                initialValue: _passwordPlain,
+                decoration: const InputDecoration(
+                  labelText: 'Şifre',
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                readOnly: true,
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Email (read-only)
             TextFormField(

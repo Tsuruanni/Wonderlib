@@ -8,6 +8,160 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Quest Eligibility Fix (2026-03-24)
+
+#### Fixed
+- **Daily review quest shown when impossible** — `daily_review` quest appeared for users with < 10 due words, but the review UI requires 10+ words. Users saw an incomplete quest they couldn't finish.
+- **Free XP exploit** — Users with 0 vocabulary words got auto-completed `daily_review` quest + 20 XP daily for doing nothing (from earlier edge-case migration).
+- **Bonus claim mismatch** — `claim_daily_bonus` counted all active quests (3) but `get_daily_quest_progress` could return fewer (2). Users who completed all visible quests got "Not all quests completed" error when claiming bonus.
+- **`claim_daily_quest_pack` wrong date source** — Missed by debug_time_offset migration, still used raw `CURRENT_DATE`/`NOW()` instead of `app_current_date()`/`app_now()`.
+
+#### Infrastructure
+- **2 DB migrations** — `20260325000005` (daily_review min 10 words + claim_daily_bonus fix), `20260325000006` (pack claim date offset fix)
+
+### Performance: Parallel Data Fetching (2026-03-24)
+
+#### Fixed
+- **Vocabulary Hub N+1 query** — `learningPathProvider` was making 7+ sequential Supabase calls then N additional sequential book fetches. Now uses `Future.wait` for parallel provider fetches and pre-batches all book lookups before the loop.
+- **Word Bank N+1 query** — `learnedWordsWithDetailsProvider` was fetching each word individually (50-200 sequential calls). Replaced with single `getWordsByIds` batch query using `.inFilter()`.
+- **Daily Review N+1 query** — `loadSession()` and `loadUnitReviewSession()` were fetching progress per-word (up to 100 sequential calls). Replaced with single `getWordProgressBatch` batch query.
+- **Inline activity word add** — Per-word vocabulary insert loop replaced with existing `addWordsToVocabularyBatch` method.
+- **Teacher leaderboard** — Sequential per-class student fetch replaced with `Future.wait` parallel fetch.
+- **Leaderboard display** — 3 independent provider awaits parallelized with `Future.wait`.
+
+#### Added
+- **`getWordsByIds` repository method** — Batch fetch words by ID list in a single query (`.inFilter('id', ids)`).
+- **`getWordProgressBatch` repository method** — Batch fetch vocabulary progress for multiple words in a single query.
+- **`GetWordsByIdsUseCase`** and **`GetWordProgressBatchUseCase`** — Clean Architecture use cases for the new batch methods.
+
+#### Changed
+- **Top navbar** — UK flag replaced with 🇬🇧→🇹🇷 language direction indicator.
+- **Vocab nav icon** — Changed from `sort_by_alpha` to `route` icon.
+
+### Admin Badge Improvements (2026-03-24)
+
+#### Added
+- **3 new streak badges** — Streak Warrior (14 days, +150 XP), Streak Hero (60 days, +750 XP), Streak Immortal (100 days, +1500 XP). Aligned with existing streak milestone XP bonuses.
+- **Per-badge earned-by stats** — Badge edit screen now shows which students earned the badge and when (admin panel).
+- **`levelCompleted` condition type** — Added to admin badge form dropdown (was in DB but missing from UI).
+- **Missing categories** — `activities`, `xp`, `level` added to admin badge category dropdown (fixes crash when editing existing badges with these categories).
+
+#### Changed
+- **Shared badge helper** — Extracted duplicated `_getConditionLabel` / `_getConditionHelper` from 3 admin files into `owlio_admin/lib/core/utils/badge_helpers.dart`.
+
+#### Removed
+- **`dailyLogin` condition type** — Removed from shared enum, DB CHECK constraint, and all app code. Was never evaluated; `streak_days` covers the same use case.
+
+#### Infrastructure
+- **1 DB migration** — `20260325000003` (CHECK constraint update + 3 badge INSERTs)
+- **Spec:** `docs/superpowers/specs/2026-03-24-admin-badge-improvements-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-admin-badge-improvements.md`
+
+### Badge Earned Notification (2026-03-24)
+
+#### Added
+- **Badge earned dialog** — Animated celebration dialog shown when students earn badges. Single badge: large icon + name + XP. Multiple badges: list layout. Uses amber/gold theme.
+- **Dialog queue system** — `LevelUpCelebrationListener` converted to `ConsumerStatefulWidget` with a queue that shows dialogs one at a time (level up → streak → badge), preventing overlap.
+- **`BadgeEarned` entity + `CheckAndAwardBadgesUseCase`** — New domain layer plumbing for badge check results.
+- **`notif_badge_earned` admin toggle** — Admin can enable/disable badge notifications. Card with preview added to notification gallery.
+- **`badge_icon` in RPC return** — `check_and_award_badges` now returns the badge emoji icon alongside name and XP.
+
+#### Changed
+- **Badge check moved to UserController** — Removed from 3 repository call sites, now called centrally in `UserController.addXP()` and `updateStreak()`. Covers all XP-granting paths automatically.
+- **Profile refresh after badge XP** — `refreshProfileOnly()` called after badge award to prevent stale XP display.
+
+#### Infrastructure
+- **1 DB migration** — `20260325000004` (DROP+CREATE RPC with icon + notif setting)
+- **Spec:** `docs/superpowers/specs/2026-03-24-badge-earned-notification-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-badge-earned-notification.md`
+
+### Type-Based XP + Combo Refactor (2026-03-24)
+
+#### Added
+- **12 new system_settings entries** — Admin-configurable XP values for inline activities (4 types), vocab question types (5 groups), combo bonus, session bonus, perfect bonus
+- **Combo session-end bonus** — Combo no longer multiplies per-question XP. Instead, `maxCombo × combo_bonus_xp` is awarded as a one-time bonus at session end. Shown separately in session summary.
+
+#### Changed
+- **Inline activity XP** — Now reads from `systemSettingsProvider` by activity type instead of per-activity `xp_reward` DB column. All 4 widget callbacks simplified (removed `xpEarned` param).
+- **Vocab session XP** — `QuestionTypeXP` extension deleted. `answerQuestion`/`answerMatchingQuestion` take `SystemSettings` param, use flat baseXP from settings.
+- **`complete_vocabulary_session` RPC** — Session and perfect bonuses now read from `system_settings` table instead of hardcoded `v_session_bonus=10` / `v_perfect_bonus=20`.
+- **Admin activity editor** — `xp_reward: 5` removed from INSERT (DB default covers it).
+
+#### Infrastructure
+- **2 DB migrations** — Settings INSERT + RPC update
+- **Spec:** `docs/superpowers/specs/2026-03-23-type-based-xp-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-23-type-based-xp.md`
+
+### Notification Settings + Streak Extended (2026-03-24)
+
+#### Added
+- **Daily streak notification** — "Day X!" dialog shown every time user opens the app. Day 1 shows motivational "Day 1! Let's go!", Day 2+ cycles through 6 subtitles deterministically.
+- **7 notification settings** — Admin-configurable toggles for all 6 notification types (streak extended, milestone, freeze saved, streak broken, level up, league change) + `notif_streak_broken_min` threshold.
+- **Settings-aware event gating** — All 3 event types (streak, level up, league) in `UserController` now check system_settings before firing. `previousStreak >= 3` hardcode replaced with configurable `notifStreakBrokenMin`.
+
+#### Infrastructure
+- **1 DB migration** — 7 notification settings
+- **Spec:** `docs/superpowers/specs/2026-03-24-notification-settings-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-notification-settings.md`
+
+### Admin Notification Gallery (2026-03-24)
+
+#### Added
+- **`/notifications` admin page** — Dedicated page showing all 6 notification types as preview cards with toggles. Each card shows exact message text users will see, with inline `notif_streak_broken_min` parameter.
+- **Dashboard card** — "Notifications" card (indigo) on admin dashboard linking to the gallery.
+
+#### Changed
+- **Notification settings removed from general settings page** — Now exclusively managed on `/notifications`.
+
+#### Infrastructure
+- **Spec:** `docs/superpowers/specs/2026-03-24-notification-gallery-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-notification-gallery.md`
+
+### Username Auth & Bulk Student Creation (2026-03-24)
+
+#### Added
+- **Username-based login for students** — Students log in with auto-generated usernames (e.g., `mesyil1`) instead of student numbers. Synthetic email pattern (`username@owlio.local`) keeps Supabase Auth unchanged.
+- **Unified login screen** — Single input field with `@` detection: contains `@` → email auth (teachers), otherwise → username auth (students). Replaces old tabbed Email/Student# toggle.
+- **Bulk student creation** — New `/users/create` admin screen with two modes: single creation (student or teacher) and bulk CSV upload (`ad, soyad, sınıf` columns). Auto-generates usernames and passwords (word+3digits format, e.g., `fox047`).
+- **`generate_username()` DB function** — Turkish→ASCII transliteration, first 3 chars of name + first 3 of surname + incrementing number. Advisory lock for concurrency safety.
+- **Class auto-creation** — If a class name doesn't exist for the selected school, it's created automatically during bulk import.
+- **`password_plain` column** — Stores plaintext passwords for admin visibility. Shown in user edit screen (read-only). Not exposed in `safe_profiles` view.
+- **`bulk-create-students` Edge Function** — Creates auth users via `auth.admin.createUser()`, with per-row error handling, duplicate detection, batch limit (200), and retry on username collision.
+- **`migrate-student-emails` Edge Function** — One-time migration script that updates existing students' `auth.users.email` to synthetic emails. Idempotent and admin-only.
+- **`username` in User entity/model** — Added to domain layer for Flutter app access.
+- **CSV download for credentials** — Admin can download created usernames/passwords as CSV after bulk creation.
+
+#### Changed
+- **Admin user list** — Shows `@username` instead of email for students.
+- **Admin user edit** — Displays username and password (read-only). Info banner updated to reference creation page.
+- **`safe_profiles` view** — Now includes `username` column for leaderboard/peer display.
+
+#### Removed
+- **Old CSV user import** — `user_import_screen.dart` deleted (only updated existing profiles, couldn't create users).
+- **`SignInWithStudentNumberUseCase`** — Dead code removed from domain, data, and presentation layers.
+- **Student number login** — `signInWithStudentNumber` removed from `AuthRepository`, `SupabaseAuthRepository`, and `AuthController`.
+
+#### Infrastructure
+- **2 DB migrations** — `20260325000001` (username column, generate_username, class unique index, safe_profiles update, existing student migration), `20260325000002` (password_plain column)
+- **2 Edge Functions** — `bulk-create-students`, `migrate-student-emails`
+- **Spec:** `docs/superpowers/specs/2026-03-24-username-auth-bulk-create-design.md`
+- **Plan:** `docs/superpowers/plans/2026-03-24-username-auth-bulk-create.md`
+
+### Timezone & Streak Fix (2026-03-24)
+
+#### Fixed
+- **UTC→Istanbul timezone in `app_current_date()`/`app_now()`** — PostgreSQL `CURRENT_DATE` returns UTC. Between 00:00-03:00 Turkey time (UTC+3), server thought it was the previous day. Streak calendar showed wrong "today", daily_logins recorded wrong dates, streak didn't advance until 03:00. Fix: `CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Istanbul'`.
+- **JSONB cast error breaking streak system** — `value::INT` failed on JSONB strings like `"3"` when `debug_date_offset` was set. This silently crashed `update_user_streak`, causing `daily_logins` to never be written. Fix: `(value #>> '{}')::INT` strips JSONB quotes.
+
+#### Infrastructure
+- **2 DB migrations** — `20260324000003` (timezone fix), `20260324000005` (JSONB cast fix)
+
+### Admin Settings UX Improvements (2026-03-24)
+
+#### Changed
+- **XP settings grouped with sub-headers** — Admin settings screen now shows XP settings under labeled groups: "Reading XP", "Vocab Session XP", "Inline Activity XP", "Bonus XP". Uses `group_label` and `sort_order` columns for display ordering.
+- **Setting descriptions** — All system_settings entries now have human-readable descriptions in the admin panel.
+
 ### Book Quiz Admin Integration & Dynamic XP Settings (2026-03-23)
 
 #### Added

@@ -53,7 +53,7 @@ final teacherStatsProvider = FutureProvider<TeacherStats>((ref) async {
 
 /// Provider for current teacher's profile
 final currentTeacherProfileProvider = FutureProvider<User?>((ref) async {
-  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  final user = await ref.watch(authStateChangesProvider.future);
   return user;
 });
 
@@ -74,7 +74,7 @@ final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>
 
 /// Provider for current teacher's classes (convenience wrapper)
 final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
-  final user = ref.watch(authStateChangesProvider).valueOrNull;
+  final user = await ref.watch(authStateChangesProvider.future);
   debugPrint('currentTeacherClassesProvider: user=$user, schoolId=${user?.schoolId}');
   if (user == null || user.schoolId.isEmpty) {
     debugPrint('currentTeacherClassesProvider: returning empty - user or schoolId missing');

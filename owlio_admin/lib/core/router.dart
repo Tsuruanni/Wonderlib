@@ -11,7 +11,7 @@ import '../features/dashboard/screens/dashboard_screen.dart';
 import '../features/schools/screens/school_edit_screen.dart';
 import '../features/schools/screens/school_list_screen.dart';
 import '../features/users/screens/user_edit_screen.dart';
-import '../features/users/screens/user_import_screen.dart';
+import '../features/users/screens/user_create_screen.dart';
 import '../features/users/screens/user_list_screen.dart';
 import '../features/badges/screens/badge_edit_screen.dart';
 import '../features/collectibles/screens/collectibles_screen.dart';
@@ -31,6 +31,7 @@ import '../features/assignments/screens/assignment_detail_screen.dart';
 import '../features/recent_activity/screens/recent_activity_screen.dart';
 import '../features/recent_activity/screens/recent_activity_detail_screen.dart';
 import '../features/quests/screens/quest_list_screen.dart';
+import '../features/notifications/screens/notification_gallery_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -148,14 +149,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           schoolId: state.pathParameters['schoolId'],
         ),
       ),
-      // Users (edit only - create via Supabase Dashboard)
+      // Users
       GoRoute(
         path: '/users',
         builder: (context, state) => const UserListScreen(),
       ),
       GoRoute(
-        path: '/users/import',
-        builder: (context, state) => const UserImportScreen(),
+        path: '/users/create',
+        builder: (context, state) => const UserCreateScreen(),
       ),
       GoRoute(
         path: '/users/:userId',
@@ -261,12 +262,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           cardId: state.pathParameters['cardId'],
         ),
       ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationGalleryScreen(),
+      ),
       // Ayarlar (XP + Uygulama)
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(
           title: 'Ayarlar',
-          categories: ['xp', 'progression', 'game', 'app'],
+          categories: ['xp_reading', 'xp_vocab', 'progression', 'game', 'app'],
         ),
       ),
     ],

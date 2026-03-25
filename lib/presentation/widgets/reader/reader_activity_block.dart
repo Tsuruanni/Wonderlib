@@ -89,8 +89,9 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned) {
-            _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, []);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect) {
+            _handleActivityAnswer(ref, activity, isCorrect, []);
           },
         );
 
@@ -100,8 +101,9 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
         );
 
@@ -111,8 +113,9 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
         );
 
@@ -122,8 +125,9 @@ class ReaderActivityBlock extends ConsumerWidget {
           settings: settings,
           isCompleted: isCompleted,
           wasCorrect: wasCorrect,
-          onAnswer: (isCorrect, xpEarned, wordsLearned) {
-            _handleActivityAnswer(ref, activity.id, isCorrect, xpEarned, wordsLearned);
+          xpValue: getInlineActivityXP(ref, activity.type),
+          onAnswer: (isCorrect, wordsLearned) {
+            _handleActivityAnswer(ref, activity, isCorrect, wordsLearned);
           },
         );
     }
@@ -131,14 +135,14 @@ class ReaderActivityBlock extends ConsumerWidget {
 
   Future<void> _handleActivityAnswer(
     WidgetRef ref,
-    String activityId,
+    InlineActivity activity,
     bool isCorrect,
-    int xpEarned,
     List<String> wordsLearned,
   ) async {
+    final xpEarned = isCorrect ? getInlineActivityXP(ref, activity.type) : 0;
     await handleInlineActivityCompletion(
       ref,
-      activityId: activityId,
+      activityId: activity.id,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
       wordsLearned: wordsLearned,

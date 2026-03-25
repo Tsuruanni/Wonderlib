@@ -9,6 +9,7 @@ class User extends Equatable {
     this.classId,
     required this.role,
     this.studentNumber,
+    this.username,
     required this.firstName,
     required this.lastName,
     this.email,
@@ -31,6 +32,7 @@ class User extends Equatable {
   final String? classId;
   final UserRole role;
   final String? studentNumber;
+  final String? username;
   final String firstName;
   final String lastName;
   final String? email;
@@ -64,6 +66,7 @@ class User extends Equatable {
     String? classId,
     UserRole? role,
     String? studentNumber,
+    String? username,
     String? firstName,
     String? lastName,
     String? email,
@@ -87,6 +90,7 @@ class User extends Equatable {
       classId: classId ?? this.classId,
       role: role ?? this.role,
       studentNumber: studentNumber ?? this.studentNumber,
+      username: username ?? this.username,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       email: email ?? this.email,
@@ -113,6 +117,7 @@ class User extends Equatable {
         classId,
         role,
         studentNumber,
+        username,
         firstName,
         lastName,
         email,

@@ -54,63 +54,6 @@ class SupabaseAuthRepository implements AuthRepository {
   final _authStateController = StreamController<domain.User?>.broadcast();
 
   @override
-  Future<Either<Failure, domain.User>> signInWithStudentNumber({
-    required String studentNumber,
-    required String password,
-  }) async {
-    try {
-      // 1. Find user by student number (globally unique)
-      final profileResponse = await _supabase
-          .from(DbTables.profiles)
-          .select('id, email')
-          .eq('student_number', studentNumber)
-          .maybeSingle();
-
-      if (profileResponse == null) {
-        return const Left(
-          AuthFailure('Student not found', code: 'STUDENT_NOT_FOUND'),
-        );
-      }
-
-      final email = profileResponse['email'] as String?;
-      if (email == null || email.isEmpty) {
-        return const Left(
-          AuthFailure('User has no email configured', code: 'NO_EMAIL'),
-        );
-      }
-
-      // 2. Sign in with email/password
-      final authResponse = await _supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-
-      if (authResponse.user == null) {
-        return Left(AuthFailure.invalidCredentials());
-      }
-
-      // 3. Return the domain user
-      return getCurrentUser().then(
-        (result) => result.fold(
-          (failure) => Left(failure),
-          (user) => user != null
-              ? Right(user)
-              : Left(AuthFailure.invalidCredentials()),
-        ),
-      );
-    } on AuthException catch (e) {
-      if (e.message.contains('Invalid login credentials')) {
-        return Left(AuthFailure.invalidCredentials());
-      }
-      return Left(AuthFailure(e.message));
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, domain.User>> signInWithEmail({
     required String email,
     required String password,

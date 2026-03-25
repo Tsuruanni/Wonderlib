@@ -56,4 +56,5 @@ abstract class RpcFunctions {
   static const getStudentVocabStats = 'get_student_vocab_stats';
   static const getStudentWordListProgress = 'get_student_word_list_progress';
   static const getAssignmentsWithStats = 'get_assignments_with_stats';
+  static const createAssignmentWithStudents = 'create_assignment_with_students';
 }

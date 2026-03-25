@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/badge.dart';
+import '../../../domain/entities/badge_earned.dart';
 import '../../../domain/repositories/badge_repository.dart';
 import '../../models/badge/badge_model.dart';
 import '../../models/badge/user_badge_model.dart';
@@ -202,9 +203,6 @@ class SupabaseBadgeRepository implements BadgeRepository {
             canEarn = perfectCount >= badge.conditionValue;
           case BadgeConditionType.levelCompleted:
             canEarn = level >= badge.conditionValue;
-          case BadgeConditionType.dailyLogin:
-            // Daily login tracked via streak - user is active now
-            canEarn = currentStreak >= badge.conditionValue;
         }
 
         if (canEarn) {
@@ -237,6 +235,33 @@ class SupabaseBadgeRepository implements BadgeRepository {
           .where((json) => json['badges'] != null)
           .map((json) => BadgeModel.fromJson(json['badges'] as Map<String, dynamic>).toEntity())
           .toList();
+
+      return Right(badges);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<BadgeEarned>>> checkAndAwardBadges(String userId) async {
+    try {
+      final result = await _supabase.rpc(
+        RpcFunctions.checkAndAwardBadges,
+        params: {'p_user_id': userId},
+      );
+
+      final List rows = result is List ? result : [];
+      final badges = rows.map((row) {
+        final r = row as Map<String, dynamic>;
+        return BadgeEarned(
+          badgeId: r['badge_id'] as String,
+          badgeName: r['badge_name'] as String,
+          badgeIcon: r['badge_icon'] as String? ?? '🏆',
+          xpReward: r['xp_reward'] as int? ?? 0,
+        );
+      }).toList();
 
       return Right(badges);
     } on PostgrestException catch (e) {
