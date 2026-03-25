@@ -25,7 +25,7 @@ Single `Scaffold` with `SingleChildScrollView`:
 - Full name (large, bold)
 - Email (smaller, grey)
 - Role badge chip: "Teacher" / "Head Teacher" / "Admin"
-- School name (smaller, with school icon)
+- School name (smaller, with school icon) — resolved via existing `profileContextProvider`
 
 ### 2. Personal Information Card
 
@@ -36,40 +36,41 @@ A `Card` with list tiles:
 | First Name | `user.firstName` | Yes | Tap → inline edit dialog |
 | Last Name | `user.lastName` | Yes | Tap → inline edit dialog |
 | Email | `user.email` | No (read-only) | Shown greyed out |
-| School | school name from `classes` or profile | No (read-only) | Shown greyed out |
+| School | `profileContextProvider` school name | No (read-only) | Shown greyed out |
 
-**Edit flow:** Tap on editable field → `showDialog` with `TextField` pre-filled → Save → `UPDATE profiles SET first_name/last_name` → invalidate `authStateChangesProvider` to refresh.
+**Edit flow:** Tap on editable field → `showDialog` with `AlertDialog` + `TextFormField` pre-filled (same pattern as `_showCreateClassDialog`) → Save via `updateTeacherProfileUseCaseProvider` → call `refreshCurrentUser()` to update auth stream.
 
 ### 3. Password Change Section
 
 A `Card` with single list tile:
 - "Change Password" with lock icon
-- Tap → calls `supabase.auth.resetPasswordForEmail(user.email)`
+- Tap → calls `sendPasswordResetEmailUseCaseProvider` (existing — lives on `TeacherRepository`, NOT `AuthRepository`)
 - Shows success SnackBar: "Password reset link sent to your email"
 
 ### 4. Sign Out Button
 
 - Full-width outlined button, red color
-- Tap → confirmation dialog → `signOut()`
+- Tap → confirmation dialog → `authControllerProvider.notifier.signOut()` (existing pattern from current fallback)
 - Navigates to login screen
 
 ## Data Flow
 
-**Read:** `authStateChangesProvider` → `User` entity (already has firstName, lastName, email, role, schoolId)
+**Read:** `userControllerProvider` → `User` entity (consistent with student profile, already watched at line 32 of `profile_screen.dart`). School name via `profileContextProvider` (already used by student profile).
 
-**Write (name edit):** Direct `profiles` table UPDATE via new usecase:
+**Write (name edit):** New usecase chain:
 - `UpdateTeacherProfileUseCase` → `TeacherRepository.updateProfile(firstName, lastName)`
-- After success: call `authRepository.refreshCurrentUser()` to update the stream
+- After success: call `RefreshCurrentUserUseCase` to update the auth stream
+- Note: `RefreshCurrentUserUseCase` class exists but provider is NOT registered — must be added
 
-**Write (password):** `AuthRepository.sendPasswordResetEmail(email)` — already exists.
+**Write (password):** `sendPasswordResetEmailUseCaseProvider` → `TeacherRepository.sendPasswordResetEmail(email)` — already exists with full usecase + provider chain.
 
-**Sign out:** `AuthRepository.signOut()` — already exists.
+**Sign out:** `authControllerProvider.notifier.signOut()` — already exists.
 
 ## New Components Needed
 
 ### Domain Layer
 - `UpdateTeacherProfileUseCase` — calls `TeacherRepository.updateProfile`
-- Add `updateProfile` method to `TeacherRepository` interface
+- Add `updateProfile(String firstName, String lastName)` method to `TeacherRepository` interface
 
 ### Data Layer
 - `SupabaseTeacherRepository.updateProfile` — `UPDATE profiles SET first_name, last_name WHERE id = auth.uid()`
@@ -77,19 +78,15 @@ A `Card` with single list tile:
 
 ### Provider Layer
 - `updateTeacherProfileUseCaseProvider` in `usecase_providers.dart`
-- No new feature provider needed — `authStateChangesProvider` already provides the User
+- `refreshCurrentUserUseCaseProvider` in `usecase_providers.dart` (class exists at `lib/domain/usecases/auth/refresh_current_user_usecase.dart` but provider is not registered)
 
 ### Presentation Layer
-- Replace `_buildTeacherFallback()` in `profile_screen.dart` with full teacher profile UI
+- Replace `_buildTeacherFallback()` (lines 65-103 of `profile_screen.dart`) with full teacher profile UI
 - All in the existing `profile_screen.dart` file — no new screen file needed
 
 ## School Name Resolution
 
-The `User` entity has `schoolId` (UUID) but no school name. Options:
-1. Add a simple RPC or direct query to get school name
-2. Store school name in `profiles.settings` JSONB at signup time
-
-Simplest: direct `schools` table query. RLS allows `"Users can view their own school"`.
+Reuse existing `profileContextProvider` which already resolves school name and class name from UUIDs. The student profile already uses it (line 159 of profile_screen.dart). No new query needed.
 
 ## Role Display Mapping
 
