@@ -75,7 +75,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     final result = await getStudentAssignments(studentId);
 
     return result.map((assignments) {
-      final now = DateTime.now();
+      final now = AppClock.now();
       return assignments.where((a) {
         // Skip completed assignments
         if (a.status == StudentAssignmentStatus.completed) return false;

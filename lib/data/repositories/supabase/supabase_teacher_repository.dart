@@ -297,7 +297,7 @@ class SupabaseTeacherRepository implements TeacherRepository {
       final studentsList = studentsResponse as List;
       final totalStudents = studentsList.length;
       final completedStudents = studentsList
-          .where((s) => s['status'] == 'completed')
+          .where((s) => s['status'] == AssignmentStatus.completed.dbValue)
           .length;
 
       return Right(AssignmentModel.fromJson(
