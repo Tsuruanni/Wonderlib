@@ -297,7 +297,13 @@ class _QuickActionsRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(child: SizedBox()), // Placeholder for future action
+            Expanded(
+              child: _QuickActionButton(
+                icon: Icons.leaderboard,
+                label: 'Leaderboard',
+                onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
+              ),
+            ),
           ],
         ),
       ],

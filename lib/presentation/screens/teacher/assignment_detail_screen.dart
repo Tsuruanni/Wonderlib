@@ -132,13 +132,13 @@ class AssignmentDetailScreen extends ConsumerWidget {
   }
 }
 
-class _AssignmentAppBar extends StatelessWidget {
+class _AssignmentAppBar extends ConsumerWidget {
   const _AssignmentAppBar({required this.assignment});
 
   final Assignment assignment;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final dateFormat = DateFormat('MMM d, y');
 
     return SliverAppBar(
@@ -173,8 +173,7 @@ class _AssignmentAppBar extends StatelessWidget {
 
               if ((confirmed ?? false) && context.mounted) {
                 // Delete assignment
-                final container = ProviderScope.containerOf(context);
-                final useCase = container.read(deleteAssignmentUseCaseProvider);
+                final useCase = ref.read(deleteAssignmentUseCaseProvider);
                 final result = await useCase(DeleteAssignmentParams(assignmentId: assignment.id));
 
                 result.fold(
@@ -185,8 +184,8 @@ class _AssignmentAppBar extends StatelessWidget {
                   },
                   (_) {
                     if (context.mounted) {
-                      container.invalidate(teacherAssignmentsProvider);
-                      container.invalidate(teacherStatsProvider);
+                      ref.invalidate(teacherAssignmentsProvider);
+                      ref.invalidate(teacherStatsProvider);
                       showAppSnackBar(context, 'Assignment deleted');
                       context.pop();
                     }
