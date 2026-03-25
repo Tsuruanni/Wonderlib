@@ -4,6 +4,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/repositories/student_assignment_repository.dart';
 import '../../models/assignment/student_assignment_model.dart';
@@ -146,8 +147,8 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
       await _supabase
           .from(DbTables.assignmentStudents)
           .update({
-            'status': 'in_progress',
-            'started_at': DateTime.now().toIso8601String(),
+            'status': AssignmentStatus.inProgress.dbValue,
+            'started_at': AppClock.now().toIso8601String(),
           })
           .eq('student_id', studentId)
           .eq('assignment_id', assignmentId);
@@ -179,10 +180,10 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
           .eq('assignment_id', assignmentId)
           .single();
 
-      if (currentData['status'] == 'pending' && progress > 0) {
-        updateData['status'] = 'in_progress';
+      if (currentData['status'] == AssignmentStatus.pending.dbValue && progress > 0) {
+        updateData['status'] = AssignmentStatus.inProgress.dbValue;
         if (currentData['started_at'] == null) {
-          updateData['started_at'] = DateTime.now().toIso8601String();
+          updateData['started_at'] = AppClock.now().toIso8601String();
         }
       }
 
@@ -210,10 +211,10 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
       await _supabase
           .from(DbTables.assignmentStudents)
           .update({
-            'status': 'completed',
+            'status': AssignmentStatus.completed.dbValue,
             'progress': 100,
             'score': score,
-            'completed_at': DateTime.now().toIso8601String(),
+            'completed_at': AppClock.now().toIso8601String(),
           })
           .eq('student_id', studentId)
           .eq('assignment_id', assignmentId);

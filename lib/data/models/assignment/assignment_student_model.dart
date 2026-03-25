@@ -43,7 +43,7 @@ class AssignmentStudentModel {
       studentId: entity.studentId,
       studentName: entity.studentName,
       avatarUrl: entity.avatarUrl,
-      status: _statusToString(entity.status),
+      status: entity.status.dbValue,
       progress: entity.progress,
       score: entity.score,
       startedAt: entity.startedAt,
@@ -88,16 +88,4 @@ class AssignmentStudentModel {
     );
   }
 
-  static String _statusToString(AssignmentStatus status) {
-    switch (status) {
-      case AssignmentStatus.pending:
-        return 'pending';
-      case AssignmentStatus.inProgress:
-        return 'in_progress';
-      case AssignmentStatus.completed:
-        return 'completed';
-      case AssignmentStatus.overdue:
-        return 'overdue';
-    }
-  }
 }
