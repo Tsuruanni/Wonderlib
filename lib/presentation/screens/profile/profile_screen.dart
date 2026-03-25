@@ -129,16 +129,12 @@ class _StudentProfileBody extends ConsumerWidget {
           const _RecentBadgesSection().animate().fadeIn(delay: 300.ms),
           const SizedBox(height: 20),
 
-          // 5. Reading Stats
-          const _ReadingStatsSection().animate().fadeIn(delay: 400.ms),
+          // 5. Stats (reading + vocab combined)
+          const _StatsSection().animate().fadeIn(delay: 400.ms),
           const SizedBox(height: 20),
 
-          // 6. Vocabulary Stats
-          const _VocabularyStatsSection().animate().fadeIn(delay: 500.ms),
-          const SizedBox(height: 20),
-
-          // 7. Daily Review
-          const _DailyReviewProfileCard().animate().fadeIn(delay: 600.ms),
+          // 6. Daily Review
+          const _DailyReviewProfileCard().animate().fadeIn(delay: 500.ms),
           const SizedBox(height: 32),
 
           // 8. Sign Out
@@ -714,216 +710,108 @@ class _BadgeRow extends StatelessWidget {
   }
 }
 
-class _ReadingStatsSection extends ConsumerWidget {
-  const _ReadingStatsSection();
+class _StatsSection extends ConsumerWidget {
+  const _StatsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(userStatsProvider);
+    final wordsAsync = ref.watch(learnedWordsWithDetailsProvider);
 
-    return statsAsync.when(
-      loading: () => const SizedBox(height: 80),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (stats) {
-        final booksCompleted = stats['books_completed'] as int? ?? 0;
-        final chaptersCompleted = stats['chapters_completed'] as int? ?? 0;
-        final readingTimeMin = stats['total_reading_time'] as int? ?? 0;
+    final stats = statsAsync.valueOrNull ?? {};
+    final words = wordsAsync.valueOrNull;
 
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.neutral, width: 2),
-            boxShadow: [
-              BoxShadow(
-                  color: AppColors.neutral, offset: const Offset(0, 3)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final booksCompleted = stats['books_completed'] as int? ?? 0;
+    final chaptersCompleted = stats['chapters_completed'] as int? ?? 0;
+    final readingTimeMin = stats['total_reading_time'] as int? ?? 0;
+    final learningWords = words?.where((w) {
+      final s = w.progress?.status;
+      return s == VocabularyStatus.learning || s == VocabularyStatus.reviewing;
+    }).length ?? 0;
+
+    if (statsAsync.isLoading && wordsAsync.isLoading) {
+      return const SizedBox(height: 80);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: [
+          BoxShadow(color: AppColors.neutral, offset: const Offset(0, 3)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(Icons.auto_stories_rounded,
-                      size: 22, color: AppColors.secondary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Reading Stats',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.menu_book_rounded,
-                      value: '$booksCompleted',
-                      label: 'Books',
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.bookmark_rounded,
-                      value: '$chaptersCompleted',
-                      label: 'Chapters',
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.schedule_rounded,
-                      value: _formatTime(readingTimeMin),
-                      label: 'Reading',
-                      color: AppColors.secondary,
-                    ),
-                  ),
-                ],
+              Icon(Icons.bar_chart_rounded,
+                  size: 22, color: AppColors.secondary),
+              const SizedBox(width: 8),
+              Text(
+                'Stats',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: AppColors.black,
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _MiniStat(
+                  icon: Icons.menu_book_rounded,
+                  value: '$booksCompleted',
+                  label: 'Books',
+                  color: AppColors.secondary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MiniStat(
+                  icon: Icons.bookmark_rounded,
+                  value: '$chaptersCompleted',
+                  label: 'Chapters',
+                  color: AppColors.secondary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MiniStat(
+                  icon: Icons.schedule_rounded,
+                  value: _formatTime(readingTimeMin),
+                  label: 'Reading',
+                  color: AppColors.secondary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MiniStat(
+                  icon: Icons.translate_rounded,
+                  value: '$learningWords',
+                  label: 'Learning',
+                  color: AppColors.streakOrange,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
-  String _formatTime(int minutes) {
+  static String _formatTime(int minutes) {
     if (minutes < 60) return '${minutes}m';
     final hours = minutes ~/ 60;
     final mins = minutes % 60;
     if (mins == 0) return '${hours}h';
     return '${hours}h ${mins}m';
-  }
-}
-
-class _VocabularyStatsSection extends ConsumerWidget {
-  const _VocabularyStatsSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Use same data source as Word Bank (learnedWordsWithDetailsProvider)
-    // so stats are consistent between profile and vocabulary screen.
-    final wordsAsync = ref.watch(learnedWordsWithDetailsProvider);
-
-    return wordsAsync.when(
-      loading: () => const SizedBox(height: 80),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (words) {
-        final mastered = words.where((w) => w.progress?.isMastered ?? false).length;
-        final learning = words.where((w) {
-          final s = w.progress?.status;
-          return s == VocabularyStatus.learning || s == VocabularyStatus.reviewing;
-        }).length;
-        final newCount = words.where((w) {
-          final s = w.progress?.status;
-          return s == null || s == VocabularyStatus.newWord;
-        }).length;
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.neutral, width: 2),
-            boxShadow: [
-              BoxShadow(
-                  color: AppColors.neutral, offset: const Offset(0, 3)),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.translate_rounded,
-                      size: 22, color: AppColors.gemBlue),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Vocabulary',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.fiber_new_rounded,
-                      value: '$newCount',
-                      label: 'New',
-                      color: AppColors.gemBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.loop_rounded,
-                      value: '$learning',
-                      label: 'Learning',
-                      color: AppColors.streakOrange,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _MiniStat(
-                      icon: Icons.check_circle_rounded,
-                      value: '$mastered',
-                      label: 'Mastered',
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // Word Bank shortcut
-              PressableScale(
-                onTap: () => context.push(AppRoutes.wordBank),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.gemBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.library_books_rounded,
-                          size: 18, color: AppColors.gemBlue),
-                      const SizedBox(width: 8),
-                      Text(
-                        'My Word Bank',
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                          color: AppColors.gemBlue,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(Icons.chevron_right_rounded,
-                          size: 18, color: AppColors.gemBlue),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 }
 
