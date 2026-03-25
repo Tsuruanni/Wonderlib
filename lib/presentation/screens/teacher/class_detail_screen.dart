@@ -79,11 +79,11 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
               );
             }
 
-            // Sort alphabetically by last name, then first name
+            // Sort alphabetically by first name, then last name
             final sortedStudents = [...students]
               ..sort((a, b) {
-                final lastCmp = a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
-                return lastCmp != 0 ? lastCmp : a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
+                final firstCmp = a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
+                return firstCmp != 0 ? firstCmp : a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
               });
 
             return Stack(
