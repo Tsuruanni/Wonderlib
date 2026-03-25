@@ -2,75 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/extensions/context_extensions.dart';
-import '../../../../domain/usecases/book/get_books_usecase.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../providers/usecase_providers.dart';
+import '../../../../domain/entities/teacher.dart';
+import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/error_state_widget.dart';
-
-/// Book reading stats for the school
-class BookReadingStats {
-
-  const BookReadingStats({
-    required this.bookId,
-    required this.title,
-    this.coverUrl,
-    required this.level,
-    required this.totalReaders,
-    required this.completedReaders,
-    required this.avgProgress,
-  });
-  final String bookId;
-  final String title;
-  final String? coverUrl;
-  final String level;
-  final int totalReaders;
-  final int completedReaders;
-  final double avgProgress;
-
-  double get completionRate =>
-      totalReaders > 0 ? (completedReaders / totalReaders) * 100 : 0;
-}
-
-/// Provider for book reading statistics
-final bookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((ref) async {
-  final user = ref.watch(authStateChangesProvider).valueOrNull;
-  if (user == null) return [];
-
-  final getBooksUseCase = ref.watch(getBooksUseCaseProvider);
-
-  // Get all books
-  final booksResult = await getBooksUseCase(const GetBooksParams());
-
-  return booksResult.fold(
-    (failure) => [],
-    (books) async {
-      final stats = <BookReadingStats>[];
-
-      for (final book in books) {
-        // For now, we'll show placeholder stats
-        // In production, this would query reading_progress table
-        stats.add(BookReadingStats(
-          bookId: book.id,
-          title: book.title,
-          coverUrl: book.coverUrl,
-          level: book.level,
-          totalReaders: 0, // Would be fetched from DB
-          completedReaders: 0,
-          avgProgress: 0,
-        ),);
-      }
-
-      return stats;
-    },
-  );
-});
 
 class ReadingProgressReportScreen extends ConsumerWidget {
   const ReadingProgressReportScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(bookReadingStatsProvider);
+    final statsAsync = ref.watch(schoolBookReadingStatsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -78,13 +19,13 @@ class ReadingProgressReportScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(bookReadingStatsProvider);
+          ref.invalidate(schoolBookReadingStatsProvider);
         },
         child: statsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (_, __) => ErrorStateWidget(
             message: 'Error loading data',
-            onRetry: () => ref.invalidate(bookReadingStatsProvider),
+            onRetry: () => ref.invalidate(schoolBookReadingStatsProvider),
           ),
           data: (books) {
             if (books.isEmpty) {
@@ -107,6 +48,8 @@ class ReadingProgressReportScreen extends ConsumerWidget {
               );
             }
 
+            final activeBooks = books.where((b) => b.totalReaders > 0).length;
+
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -124,7 +67,7 @@ class ReadingProgressReportScreen extends ConsumerWidget {
                           icon: Icons.menu_book,
                         ),
                         _SummaryItem(
-                          value: '${books.where((b) => b.completedReaders > 0).length}',
+                          value: '$activeBooks',
                           label: 'Being Read',
                           icon: Icons.auto_stories,
                         ),

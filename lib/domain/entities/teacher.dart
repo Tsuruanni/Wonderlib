@@ -170,3 +170,30 @@ class StudentWordListProgress extends Equatable {
   @override
   List<Object?> get props => [wordListId, wordListName, wordListLevel, wordListCategory, wordCount, bestScore, bestAccuracy, totalSessions, lastSessionAt, startedAt, completedAt];
 }
+
+/// Per-book reading stats for a school (used in teacher reports)
+class BookReadingStats extends Equatable {
+  const BookReadingStats({
+    required this.bookId,
+    required this.title,
+    this.coverUrl,
+    required this.level,
+    required this.totalReaders,
+    required this.completedReaders,
+    required this.avgProgress,
+  });
+
+  final String bookId;
+  final String title;
+  final String? coverUrl;
+  final String level;
+  final int totalReaders;
+  final int completedReaders;
+  final double avgProgress;
+
+  double get completionRate =>
+      totalReaders > 0 ? (completedReaders / totalReaders) * 100 : 0;
+
+  @override
+  List<Object?> get props => [bookId, title, coverUrl, level, totalReaders, completedReaders, avgProgress];
+}
