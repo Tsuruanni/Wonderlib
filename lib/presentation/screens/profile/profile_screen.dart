@@ -19,7 +19,7 @@ import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
-import '../../utils/ui_helpers.dart';
+import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/pressable_scale.dart';
 
@@ -426,40 +426,25 @@ class _CardCollectionSection extends ConsumerWidget {
                 if (previewCards.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   SizedBox(
-                    height: 56,
+                    height: 100,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: previewCards.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (_, i) {
-                        final card = previewCards[i].card;
-                        final rarityColor = CardColors.getRarityColor(card.rarity);
-                        return Container(
-                          width: 42,
-                          decoration: BoxDecoration(
-                            gradient: CardColors.getRarityGradient(card.rarity),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: rarityColor, width: 1.5),
+                      itemBuilder: (_, i) => SizedBox(
+                        width: 70,
+                        height: 100,
+                        child: FittedBox(
+                          child: SizedBox(
+                            width: 140,
+                            height: 200,
+                            child: MythCardWidget(
+                              card: previewCards[i].card,
+                              quantity: previewCards[i].quantity,
+                            ),
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                card.categoryIcon ?? '🃏',
-                                style: const TextStyle(fontSize: 18),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                CardColors.getRarityStars(card.rarity),
-                                style: TextStyle(
-                                  fontSize: 8,
-                                  color: rarityColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   ),
                 ],
