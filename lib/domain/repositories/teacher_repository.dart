@@ -35,6 +35,9 @@ abstract class TeacherRepository {
   /// Get per-book reading stats for a school (teacher reports)
   Future<Either<Failure, List<BookReadingStats>>> getSchoolBookReadingStats(String schoolId);
 
+  /// Get recent activity feed for a school (teacher dashboard)
+  Future<Either<Failure, List<RecentActivity>>> getRecentSchoolActivity(String schoolId);
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================

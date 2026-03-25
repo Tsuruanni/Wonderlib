@@ -197,3 +197,31 @@ class BookReadingStats extends Equatable {
   @override
   List<Object?> get props => [bookId, title, coverUrl, level, totalReaders, completedReaders, avgProgress];
 }
+
+/// A recent activity event from a student in the school
+class RecentActivity extends Equatable {
+  const RecentActivity({
+    required this.studentId,
+    required this.studentFirstName,
+    required this.studentLastName,
+    this.avatarUrl,
+    required this.activityType,
+    required this.description,
+    required this.xpAmount,
+    required this.createdAt,
+  });
+
+  final String studentId;
+  final String studentFirstName;
+  final String studentLastName;
+  final String? avatarUrl;
+  final String activityType;
+  final String description;
+  final int xpAmount;
+  final DateTime createdAt;
+
+  String get studentFullName => '$studentFirstName $studentLastName';
+
+  @override
+  List<Object?> get props => [studentId, activityType, description, xpAmount, createdAt];
+}

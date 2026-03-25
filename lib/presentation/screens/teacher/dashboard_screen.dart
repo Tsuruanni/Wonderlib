@@ -30,6 +30,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(teacherStatsProvider);
+          ref.invalidate(recentSchoolActivityProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -349,41 +350,161 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
-class _RecentActivityList extends StatelessWidget {
+class _RecentActivityList extends ConsumerWidget {
   const _RecentActivityList();
 
   @override
-  Widget build(BuildContext context) {
-    // TODO: Replace with actual data
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activitiesAsync = ref.watch(recentSchoolActivityProvider);
+
+    return activitiesAsync.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(),
+        ),
       ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.history,
-            size: 48,
-            color: context.colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'No recent activity',
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.colorScheme.outline,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Student progress will appear here',
-            style: context.textTheme.bodySmall?.copyWith(
-              color: context.colorScheme.outline,
-            ),
-          ),
-        ],
+      error: (_, __) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(child: Text('Error loading activity')),
       ),
+      data: (activities) {
+        if (activities.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 48,
+                  color: context.colorScheme.outline.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No recent activity',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+                Text(
+                  'Student progress will appear here',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: activities.take(10).map((activity) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    // Student avatar
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: context.colorScheme.primaryContainer,
+                      child: Text(
+                        activity.studentFirstName.isNotEmpty
+                            ? activity.studentFirstName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          color: context.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Activity info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            activity.studentFullName,
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            activity.description,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.outline,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // XP and time
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, size: 14, color: Colors.amber),
+                            const SizedBox(width: 2),
+                            Text(
+                              '+${activity.xpAmount}',
+                              style: context.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          _formatTimeAgo(activity.createdAt),
+                          style: context.textTheme.labelSmall?.copyWith(
+                            color: context.colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
     );
+  }
+
+  String _formatTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes}m ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
+    } else if (diff.inDays == 1) {
+      return 'Yesterday';
+    } else {
+      return '${diff.inDays}d ago';
+    }
   }
 }

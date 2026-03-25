@@ -12,6 +12,7 @@ import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
 import '../../domain/usecases/teacher/get_student_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
+import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import 'auth_provider.dart';
@@ -169,6 +170,24 @@ final schoolBookReadingStatsProvider = FutureProvider<List<BookReadingStats>>((r
   return result.fold(
     (failure) => throw Exception(failure.message),
     (stats) => stats,
+  );
+});
+
+// =============================================
+// RECENT ACTIVITY PROVIDERS
+// =============================================
+
+/// Provider for recent school activity feed (teacher dashboard)
+final recentSchoolActivityProvider = FutureProvider<List<RecentActivity>>((ref) async {
+  final user = await ref.watch(authStateChangesProvider.future);
+  if (user == null || user.schoolId.isEmpty) return [];
+
+  final useCase = ref.watch(getRecentSchoolActivityUseCaseProvider);
+  final result = await useCase(GetRecentSchoolActivityParams(schoolId: user.schoolId));
+
+  return result.fold(
+    (failure) => [],
+    (activities) => activities,
   );
 });
 
