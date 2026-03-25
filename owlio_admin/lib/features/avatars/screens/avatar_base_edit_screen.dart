@@ -1,7 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,7 +15,8 @@ class AvatarBaseEditScreen extends ConsumerStatefulWidget {
   final String? baseId;
 
   @override
-  ConsumerState<AvatarBaseEditScreen> createState() => _AvatarBaseEditScreenState();
+  ConsumerState<AvatarBaseEditScreen> createState() =>
+      _AvatarBaseEditScreenState();
 }
 
 class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
@@ -22,7 +24,9 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
   final _nameCtrl = TextEditingController();
   final _displayNameCtrl = TextEditingController();
   final _sortOrderCtrl = TextEditingController(text: '0');
+
   String? _imageUrl;
+  Uint8List? _imageBytes; // local bytes for instant preview
   bool _isLoading = false;
   bool _isEdit = false;
   bool _dataLoaded = false;
@@ -70,16 +74,29 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
           ? _nameCtrl.text
           : '${DateTime.now().millisecondsSinceEpoch}';
       final path = 'bases/$baseName.$ext';
+
       await supabase.storage.from('avatars').uploadBinary(
-        path,
-        file.bytes!,
-        fileOptions: FileOptions(contentType: contentType, upsert: true),
-      );
+            path,
+            file.bytes!,
+            fileOptions: FileOptions(contentType: contentType, upsert: true),
+          );
+
       final url = supabase.storage.from('avatars').getPublicUrl(path);
-      debugPrint('Upload OK → $url');
-      setState(() => _imageUrl = url);
+
+      setState(() {
+        _imageUrl = url;
+        _imageBytes = file.bytes; // keep bytes for instant preview
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Resim yüklendi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
     } catch (e) {
-      debugPrint('Upload error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload hatası: $e')),
@@ -120,12 +137,20 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
 
       ref.invalidate(avatarBasesAdminProvider);
       if (_isEdit) ref.invalidate(avatarBaseDetailProvider(widget.baseId!));
-      if (mounted) context.go('/avatars');
-    } catch (e) {
-      debugPrint('Save error: $e');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e')),
+          const SnackBar(
+            content: Text('Kaydedildi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/avatars');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kayıt hatası: $e')),
         );
       }
     } finally {
@@ -160,26 +185,13 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
     );
   }
 
-  static bool _isSvg(String url) =>
-      (Uri.tryParse(url)?.path ?? url).toLowerCase().endsWith('.svg');
-
-  Widget _buildPreviewImage(String url) {
-    if (_isSvg(url)) {
-      return SvgPicture.network(url, fit: BoxFit.contain,
-        placeholderBuilder: (_) => const Center(child: CircularProgressIndicator(strokeWidth: 2)));
-    }
-    return Image.network(url, fit: BoxFit.cover,
-      loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      errorBuilder: (_, e, __) => Center(child: Text('$e', style: const TextStyle(fontSize: 8), textAlign: TextAlign.center)));
-  }
-
   Widget _buildForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Form
+          // ── Form ──
           Expanded(
             flex: 2,
             child: Form(
@@ -211,19 +223,16 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
                         const InputDecoration(labelText: 'Sort Order'),
                     keyboardType: TextInputType.number,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: _isLoading ? null : _pickAndUploadImage,
                     icon: const Icon(Icons.upload),
-                    label: const Text('Resim Yükle (PNG/SVG)'),
-                  ),
-                  if (_imageUrl != null) ...[
-                    const SizedBox(height: 8),
-                    SelectableText(
-                      _imageUrl!,
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    label: Text(
+                      _imageBytes != null || _imageUrl != null
+                          ? 'Resmi Değiştir'
+                          : 'Resim Yükle (PNG/SVG)',
                     ),
-                  ],
+                  ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: _isLoading ? null : _save,
@@ -241,7 +250,8 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
             ),
           ),
           const SizedBox(width: 32),
-          // Preview
+
+          // ── Preview ──
           Expanded(
             child: Column(
               children: [
@@ -251,21 +261,66 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  width: 128,
-                  height: 128,
+                  width: 140,
+                  height: 140,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.grey.shade100,
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
                   ),
-                  child: ClipOval(
-                    child: _imageUrl != null
-                        ? _buildPreviewImage(_imageUrl!)
-                        : const Icon(Icons.pets, size: 48, color: Colors.grey),
-                  ),
+                  child: ClipOval(child: _buildPreview()),
                 ),
+                if (_imageUrl != null) ...[
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    _imageUrl!,
+                    style:
+                        const TextStyle(fontSize: 9, color: Colors.grey),
+                  ),
+                ],
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Preview priority:
+  /// 1. Local bytes (just uploaded, instant, no network)
+  /// 2. Placeholder if no URL
+  Widget _buildPreview() {
+    // Show local bytes if available (just uploaded)
+    if (_imageBytes != null) {
+      return Image.memory(_imageBytes!, fit: BoxFit.cover);
+    }
+
+    // No image at all
+    if (_imageUrl == null) {
+      return const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.pets, size: 40, color: Colors.grey),
+          SizedBox(height: 4),
+          Text('Resim yükleyin', style: TextStyle(fontSize: 10, color: Colors.grey)),
+        ],
+      );
+    }
+
+    // Has URL but no local bytes (editing existing) → try to load from network
+    // Note: this will fail for seeded placeholder URLs that have no actual file
+    return Image.network(
+      _imageUrl!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => const Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.cloud_upload, size: 36, color: Colors.orange),
+          SizedBox(height: 4),
+          Text(
+            'Resim bulunamadı\nYeni resim yükleyin',
+            style: TextStyle(fontSize: 10, color: Colors.orange),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
