@@ -2,7 +2,7 @@
 enum AssignmentType {
   book,
   vocabulary,
-  mixed;
+  unit;
 
   /// Database string representation.
   String get dbValue => name;
@@ -21,8 +21,8 @@ enum AssignmentType {
         return 'Book Reading';
       case AssignmentType.vocabulary:
         return 'Vocabulary';
-      case AssignmentType.mixed:
-        return 'Mixed';
+      case AssignmentType.unit:
+        return 'Unit';
     }
   }
 }
