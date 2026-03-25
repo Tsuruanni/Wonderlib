@@ -491,4 +491,27 @@ class SupabaseTeacherRepository implements TeacherRepository {
     final random = Random.secure();
     return List.generate(10, (_) => chars[random.nextInt(chars.length)]).join();
   }
+
+  // =============================================
+  // PROFILE METHODS
+  // =============================================
+
+  @override
+  Future<Either<Failure, void>> updateProfile({
+    required String firstName,
+    required String lastName,
+  }) async {
+    try {
+      await _supabase.from(DbTables.profiles).update({
+        'first_name': firstName,
+        'last_name': lastName,
+      }).eq('id', _supabase.auth.currentUser!.id);
+
+      return const Right(null);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

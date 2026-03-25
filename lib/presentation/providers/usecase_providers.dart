@@ -14,6 +14,8 @@ import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
+import '../../domain/usecases/auth/refresh_current_user_usecase.dart';
+import '../../domain/usecases/teacher/update_teacher_profile_usecase.dart';
 import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/get_student_assignment_detail_usecase.dart';
@@ -543,6 +545,14 @@ final getRecentSchoolActivityUseCaseProvider = Provider((ref) {
 
 final sendPasswordResetEmailUseCaseProvider = Provider((ref) {
   return SendPasswordResetEmailUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final updateTeacherProfileUseCaseProvider = Provider((ref) {
+  return UpdateTeacherProfileUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final refreshCurrentUserUseCaseProvider = Provider((ref) {
+  return RefreshCurrentUserUseCase(ref.watch(authRepositoryProvider));
 });
 
 // ============================================

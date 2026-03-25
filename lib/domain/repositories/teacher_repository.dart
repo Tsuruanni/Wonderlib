@@ -88,4 +88,14 @@ abstract class TeacherRepository {
 
   /// Generate and set new password for student (returns the new password)
   Future<Either<Failure, String>> resetStudentPassword(String studentId);
+
+  // =============================================
+  // PROFILE METHODS
+  // =============================================
+
+  /// Update teacher's own profile (first name, last name)
+  Future<Either<Failure, void>> updateProfile({
+    required String firstName,
+    required String lastName,
+  });
 }
