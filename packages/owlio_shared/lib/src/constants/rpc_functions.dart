@@ -58,4 +58,5 @@ abstract class RpcFunctions {
   static const getAssignmentsWithStats = 'get_assignments_with_stats';
   static const createAssignmentWithStudents = 'create_assignment_with_students';
   static const getSchoolBookReadingStats = 'get_school_book_reading_stats';
+  static const updateAssignmentProgress = 'update_assignment_progress';
 }

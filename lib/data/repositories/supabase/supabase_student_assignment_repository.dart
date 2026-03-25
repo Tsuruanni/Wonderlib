@@ -168,30 +168,14 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     double progress,
   ) async {
     try {
-      final updateData = <String, dynamic>{
-        'progress': progress,
-      };
-
-      // If progress > 0 and status is pending, update to in_progress
-      final currentData = await _supabase
-          .from(DbTables.assignmentStudents)
-          .select('status, started_at')
-          .eq('student_id', studentId)
-          .eq('assignment_id', assignmentId)
-          .single();
-
-      if (currentData['status'] == AssignmentStatus.pending.dbValue && progress > 0) {
-        updateData['status'] = AssignmentStatus.inProgress.dbValue;
-        if (currentData['started_at'] == null) {
-          updateData['started_at'] = AppClock.now().toIso8601String();
-        }
-      }
-
-      await _supabase
-          .from(DbTables.assignmentStudents)
-          .update(updateData)
-          .eq('student_id', studentId)
-          .eq('assignment_id', assignmentId);
+      await _supabase.rpc(
+        RpcFunctions.updateAssignmentProgress,
+        params: {
+          'p_student_id': studentId,
+          'p_assignment_id': assignmentId,
+          'p_progress': progress,
+        },
+      );
 
       return const Right(null);
     } on PostgrestException catch (e) {
