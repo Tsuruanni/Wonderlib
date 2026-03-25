@@ -430,10 +430,13 @@ class SupabaseTeacherRepository implements TeacherRepository {
     required String newClassId,
   }) async {
     try {
-      await _supabase.from(DbTables.profiles).update({
-        'class_id': newClassId,
-      }).eq('id', studentId);
-
+      await _supabase.rpc(
+        RpcFunctions.updateStudentClass,
+        params: {
+          'p_student_id': studentId,
+          'p_new_class_id': newClassId,
+        },
+      );
       return const Right(null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
