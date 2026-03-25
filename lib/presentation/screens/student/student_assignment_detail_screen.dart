@@ -8,7 +8,7 @@ import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../providers/auth_provider.dart';
 import '../../../domain/entities/student_assignment.dart';
-import '../../providers/student_assignment_provider.dart';
+import '../../providers/student_assignment_provider.dart' show studentAssignmentDetailProvider, studentAssignmentsProvider, unitAssignmentItemsProvider;
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -359,8 +359,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (assignment.type == StudentAssignmentType.book ||
-                    assignment.type == StudentAssignmentType.mixed) ...[
+                if (assignment.type == StudentAssignmentType.book) ...[
                   _ContentCard(
                     icon: Icons.menu_book,
                     title: 'Read assigned book',
@@ -371,8 +370,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
                         : null,
                   ),
                 ],
-                if (assignment.type == StudentAssignmentType.vocabulary ||
-                    assignment.type == StudentAssignmentType.mixed) ...[
+                if (assignment.type == StudentAssignmentType.vocabulary) ...[
                   _ContentCard(
                     icon: Icons.abc,
                     title: 'Complete vocabulary practice',
@@ -382,6 +380,9 @@ class _AssignmentDetailContent extends ConsumerWidget {
                         ? () => _startVocabulary(context, ref, assignment)
                         : null,
                   ),
+                ],
+                if (assignment.type == StudentAssignmentType.unit) ...[
+                  _UnitItemsList(assignment: assignment),
                 ],
               ],
             ),
@@ -442,6 +443,150 @@ class _AssignmentDetailContent extends ConsumerWidget {
 
     if (context.mounted) {
       context.go(AppRoutes.vocabularyListPath(assignment.wordListId!));
+    }
+  }
+}
+
+class _UnitItemsList extends ConsumerWidget {
+  const _UnitItemsList({required this.assignment});
+
+  final StudentAssignment assignment;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userId = ref.watch(currentUserIdProvider);
+    if (userId == null || assignment.scopeLpUnitId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final itemsAsync = ref.watch(
+      unitAssignmentItemsProvider(
+        (scopeLpUnitId: assignment.scopeLpUnitId!, studentId: userId),
+      ),
+    );
+
+    return itemsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => const Text('Error loading unit items'),
+      data: (items) {
+        return Column(
+          children: items.map((item) {
+            final IconData icon;
+            final String title;
+            final String subtitle;
+            final Color color;
+            final bool isTracked = item.isTracked;
+            final bool isCompleted = item.isCompleted;
+            VoidCallback? onTap;
+
+            switch (item.itemType) {
+              case 'word_list':
+                icon = Icons.abc;
+                title = item.wordListName ?? 'Word List';
+                subtitle = '${item.wordCount ?? 0} words';
+                color = Colors.purple;
+                if (item.wordListId != null) {
+                  onTap = () => _startUnitItem(context, ref, assignment, wordListId: item.wordListId);
+                }
+              case 'book':
+                icon = Icons.menu_book;
+                title = item.bookTitle ?? 'Book';
+                subtitle = '${item.completedChapters ?? 0}/${item.totalChapters ?? 0} chapters';
+                color = Colors.blue;
+                if (item.bookId != null) {
+                  onTap = () => _startUnitItem(context, ref, assignment, bookId: item.bookId);
+                }
+              case 'game':
+                icon = Icons.sports_esports;
+                title = 'Game';
+                subtitle = 'Not graded';
+                color = Colors.grey;
+              case 'treasure':
+                icon = Icons.card_giftcard;
+                title = 'Treasure';
+                subtitle = 'Not graded';
+                color = Colors.grey;
+              default:
+                icon = Icons.help;
+                title = item.itemType;
+                subtitle = '';
+                color = Colors.grey;
+            }
+
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: (isTracked ? color : Colors.grey).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: isTracked ? color : Colors.grey, size: 20),
+                ),
+                title: Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: isTracked ? null : context.colorScheme.outline,
+                    decoration: isCompleted ? TextDecoration.lineThrough : null,
+                  ),
+                ),
+                subtitle: Text(
+                  subtitle,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+                trailing: isTracked
+                    ? Icon(
+                        isCompleted ? Icons.check_circle : Icons.arrow_forward,
+                        color: isCompleted ? Colors.green : color,
+                      )
+                    : Text(
+                        'not graded',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: context.colorScheme.outline,
+                        ),
+                      ),
+                onTap: isTracked ? onTap : null,
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  void _startUnitItem(
+    BuildContext context,
+    WidgetRef ref,
+    StudentAssignment assignment, {
+    String? wordListId,
+    String? bookId,
+  }) async {
+    // Start assignment if pending
+    if (assignment.status == StudentAssignmentStatus.pending) {
+      final userId = ref.read(currentUserIdProvider);
+      if (userId != null) {
+        final useCase = ref.read(startAssignmentUseCaseProvider);
+        await useCase(
+          StartAssignmentParams(
+            studentId: userId,
+            assignmentId: assignment.assignmentId,
+          ),
+        );
+        ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        ref.invalidate(studentAssignmentsProvider);
+      }
+    }
+
+    if (!context.mounted) return;
+
+    if (wordListId != null) {
+      context.go(AppRoutes.vocabularyListPath(wordListId));
+    } else if (bookId != null) {
+      context.go(AppRoutes.bookDetailPath(bookId));
     }
   }
 }
