@@ -8,6 +8,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Assignment Notification System (2026-03-27)
+
+#### Added
+- **In-app assignment notification** — Students see a dialog on app open when they have active (pending/in-progress/overdue) assignments. Shows count and teacher attribution.
+- **Direct navigation** — Single assignment: "View" goes directly to assignment detail page. Multiple: goes to assignments list.
+- **Session guard** — Notification fires once per app session. Resets on logout so next login can trigger again.
+- **Admin toggle** — `notif_assignment` system setting (default: true) with notification gallery card in admin panel.
+- **Gradient dialog style** — Matches existing notification dialogs (streak, level-up, badge) with blue gradient + emoji.
+
+#### Fixed
+- **Notification ordering** — Assignment notification fires AFTER streak/badge/league notifications by listening to `userControllerProvider` load completion with 500ms delay.
+- **Back button on assignment detail** — Always visible. When navigated from notification (`go()`), back returns to homepage. When navigated from list (`push()`), back returns to list.
+
+#### Infrastructure
+- **1 DB migration** (20260327000002) — `notif_assignment` setting in system_settings.
+- **New widget** — `AssignmentNotificationDialog` with animated fade+scale transition.
+- **Event provider** — `AssignmentNotificationEvent` with count + optional assignmentId for direct navigation.
+
 ### Vocabulary Hub Performance + Class Grade Enforcement (2026-03-27)
 
 #### Fixed

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Vocabulary hub performance + class grade enforcement)
+Son güncelleme: 2026-03-27 (Assignment notification system + vocab hub perf + class grade)
 
 ## Current Phase
 
@@ -113,6 +113,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Teacher Panel Responsive Redesign (responsive layout, playful UI, sidebar nav, enriched reports, student profile deep links)
 - [x] Vocabulary Hub Performance (N+1 elimination, batch book fetch, RPC merge, empty state UX)
 - [x] Class Grade Enforcement (NOT NULL + CHECK(1-12), required grade on create/edit)
+- [x] Assignment Notification System (in-app dialog on app open, direct detail navigation, admin toggle, gradient style)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -177,6 +178,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Assignment Notification System | 2026-03-27 | In-app notification when student opens app with active assignments. Event-based (follows streak/badge pattern), fires after other notifications via userControllerProvider listener. Single assignment → direct detail navigation (go()), multiple → list. Admin toggle via notif_assignment setting. Gradient dialog matching existing style. Back button fix for detail screen (canPop → home). 1 migration, 1 new widget, event provider. |
 | Vocabulary Hub Performance + Class Grade Enforcement | 2026-03-27 | Blank screen root cause: classes.grade nullable → RPC returned 0 paths. Fixed with NOT NULL constraint. Performance: eliminated N+1 patterns (progressForList, bookById), merged getDueForReview into single RPC, derived storyWordLists from cache. Code review fixes: PathDailyReviewNode active state, ref.watch after await, published-only book filter. 3 migrations, 1 new usecase. |
 | Assignment System Overhaul | 2026-03-26 | Replaced `mixed` with `unit` assignment type. Teachers assign learning path units; students complete word_list + book items. 8 new RPCs, server-side progress calc, bulk sync on creation, teacher student detail sheet, debounced sync provider. Full code review: architecture violation fixed, NULL safety, auth hardening. 8 migrations, 5 use cases, 4 entities. |
 | Avatar Customization System | 2026-03-26 | Layered avatar with 6 base animals + 52 accessories across 5 categories. Per-animal outfit memory (JSONB). Auto-equip on purchase. Admin CRUD with live composite preview. AvatarWidget integrated in profile, leaderboard, student dialog. 9 migrations, 8 usecases, Clean Architecture. |
