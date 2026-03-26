@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
@@ -121,7 +123,10 @@ class AssignmentDetailScreen extends ConsumerWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final student = students[index];
-                        return _StudentProgressCard(student: student);
+                        return _StudentProgressCard(
+                          student: student,
+                          assignment: assignment,
+                        );
                       },
                       childCount: students.length,
                     ),
@@ -378,15 +383,24 @@ class _StatsBar extends StatelessWidget {
 }
 
 class _StudentProgressCard extends StatelessWidget {
-  const _StudentProgressCard({required this.student});
+  const _StudentProgressCard({
+    required this.student,
+    required this.assignment,
+  });
 
   final AssignmentStudent student;
+  final Assignment assignment;
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Padding(
+      child: InkWell(
+        onTap: assignment.type == AssignmentType.unit
+            ? () => _showStudentDetail(context)
+            : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
@@ -487,9 +501,333 @@ class _StudentProgressCard extends StatelessWidget {
           ],
         ),
       ),
+      ),
     );
   }
 
+  void _showStudentDetail(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, scrollController) => _StudentUnitDetailSheet(
+          scrollController: scrollController,
+          student: student,
+          assignmentId: assignment.id,
+        ),
+      ),
+    );
+  }
+}
+
+class _StudentUnitDetailSheet extends StatefulWidget {
+  const _StudentUnitDetailSheet({
+    required this.scrollController,
+    required this.student,
+    required this.assignmentId,
+  });
+
+  final ScrollController scrollController;
+  final AssignmentStudent student;
+  final String assignmentId;
+
+  @override
+  State<_StudentUnitDetailSheet> createState() => _StudentUnitDetailSheetState();
+}
+
+class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
+  List<Map<String, dynamic>>? _items;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProgress();
+  }
+
+  Future<void> _loadProgress() async {
+    try {
+      final response = await Supabase.instance.client.rpc(
+        RpcFunctions.getStudentUnitProgress,
+        params: {
+          'p_assignment_id': widget.assignmentId,
+          'p_student_id': widget.student.studentId,
+        },
+      );
+      if (mounted) {
+        setState(() {
+          _items = (response as List).cast<Map<String, dynamic>>();
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Header
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: context.colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(color: context.colorScheme.outlineVariant),
+            ),
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: context.colorScheme.primaryContainer,
+                backgroundImage: widget.student.avatarUrl != null
+                    ? NetworkImage(widget.student.avatarUrl!)
+                    : null,
+                child: widget.student.avatarUrl == null
+                    ? Text(
+                        widget.student.studentName.isNotEmpty
+                            ? widget.student.studentName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          color: context.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.student.studentName,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${widget.student.progress.toStringAsFixed(0)}% completed',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: AssignmentColors.getStatusColor(widget.student.status),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                AssignmentColors.getStatusIcon(widget.student.status),
+                color: AssignmentColors.getStatusColor(widget.student.status),
+              ),
+            ],
+          ),
+        ),
+
+        // Content
+        Expanded(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(child: Text('Error: $_error'))
+                  : ListView.builder(
+                      controller: widget.scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _items?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        final item = _items![index];
+                        return _StudentUnitItemCard(item: item);
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StudentUnitItemCard extends StatelessWidget {
+  const _StudentUnitItemCard({required this.item});
+
+  final Map<String, dynamic> item;
+
+  @override
+  Widget build(BuildContext context) {
+    final itemType = item['out_item_type'] as String?;
+    final IconData icon;
+    final String title;
+    final Color color;
+    final List<Widget> details = [];
+
+    switch (itemType) {
+      case 'word_list':
+        icon = Icons.abc;
+        title = (item['out_word_list_name'] as String?) ?? 'Word List';
+        color = Colors.purple;
+        final isCompleted = item['out_is_word_list_completed'] as bool? ?? false;
+        final wordCount = item['out_word_count'] as num?;
+        final bestScore = item['out_best_score'] as num?;
+        final bestAccuracy = item['out_best_accuracy'] as num?;
+        final totalSessions = item['out_total_sessions'] as num?;
+
+        if (totalSessions != null && totalSessions > 0) {
+          details.add(_DetailRow(
+            label: 'Sessions',
+            value: '$totalSessions',
+          ));
+          if (bestAccuracy != null) {
+            details.add(_DetailRow(
+              label: 'Best Accuracy',
+              value: '${bestAccuracy.toStringAsFixed(0)}%',
+              valueColor: ScoreColors.getScoreColor(bestAccuracy.toDouble()),
+            ));
+          }
+          if (bestScore != null) {
+            details.add(_DetailRow(
+              label: 'Best Score',
+              value: '${bestScore.toStringAsFixed(0)}',
+            ));
+          }
+        } else {
+          details.add(Text(
+            isCompleted ? 'Completed (no session data)' : 'Not started yet',
+            style: context.textTheme.bodySmall?.copyWith(
+              color: context.colorScheme.outline,
+            ),
+          ));
+        }
+
+        if (wordCount != null) {
+          details.insert(0, _DetailRow(
+            label: 'Words',
+            value: '$wordCount',
+          ));
+        }
+
+      case 'book':
+        icon = Icons.menu_book;
+        title = (item['out_book_title'] as String?) ?? 'Book';
+        color = Colors.blue;
+        final totalChapters = item['out_total_chapters'] as num? ?? 0;
+        final completedChapters = item['out_completed_chapters'] as num? ?? 0;
+        final isCompleted = item['out_is_book_completed'] as bool? ?? false;
+
+        details.add(_DetailRow(
+          label: 'Chapters',
+          value: '$completedChapters / $totalChapters',
+          valueColor: isCompleted ? Colors.green : null,
+        ));
+
+      default:
+        icon = itemType == 'game' ? Icons.sports_esports : Icons.card_giftcard;
+        title = itemType == 'game' ? 'Game' : 'Treasure';
+        color = Colors.grey;
+        details.add(Text(
+          'Not graded',
+          style: context.textTheme.bodySmall?.copyWith(
+            color: context.colorScheme.outline,
+          ),
+        ));
+    }
+
+    final bool isTracked = itemType == 'word_list' || itemType == 'book';
+    final bool isCompleted = itemType == 'word_list'
+        ? (item['out_is_word_list_completed'] as bool? ?? false)
+        : itemType == 'book'
+            ? (item['out_is_book_completed'] as bool? ?? false)
+            : false;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (isTracked ? color : Colors.grey).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: isTracked ? color : Colors.grey, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: context.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: isTracked ? null : context.colorScheme.outline,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ...details,
+                ],
+              ),
+            ),
+            if (isTracked)
+              Icon(
+                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: isCompleted ? Colors.green : context.colorScheme.outline,
+                size: 20,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Row(
+        children: [
+          Text(
+            '$label: ',
+            style: context.textTheme.bodySmall?.copyWith(
+              color: context.colorScheme.outline,
+            ),
+          ),
+          Text(
+            value,
+            style: context.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _UnitContentSection extends ConsumerWidget {
@@ -567,23 +905,49 @@ class _UnitContentSection extends ConsumerWidget {
                           isTracked = false;
                       }
 
-                      return ListTile(
-                        dense: true,
-                        leading: Icon(icon, size: 20, color: isTracked ? null : context.colorScheme.outline),
-                        title: Text(
-                          label,
-                          style: TextStyle(
-                            color: isTracked ? null : context.colorScheme.outline,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ListTile(
+                            dense: true,
+                            leading: Icon(icon, size: 20, color: isTracked ? null : context.colorScheme.outline),
+                            title: Text(
+                              label,
+                              style: TextStyle(
+                                color: isTracked ? null : context.colorScheme.outline,
+                              ),
+                            ),
+                            trailing: detail != null
+                                ? Text(
+                                    detail,
+                                    style: context.textTheme.bodySmall?.copyWith(
+                                      color: context.colorScheme.outline,
+                                    ),
+                                  )
+                                : null,
                           ),
-                        ),
-                        trailing: detail != null
-                            ? Text(
-                                detail,
-                                style: context.textTheme.bodySmall?.copyWith(
-                                  color: context.colorScheme.outline,
-                                ),
-                              )
-                            : null,
+                          if (item.itemType == 'word_list' && item.words != null && item.words!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
+                              child: Wrap(
+                                spacing: 6,
+                                runSpacing: 4,
+                                children: item.words!.map((word) => Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: context.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    word,
+                                    style: context.textTheme.labelSmall?.copyWith(
+                                      color: context.colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                )).toList(),
+                              ),
+                            ),
+                        ],
                       );
                     }).toList(),
                   ),
