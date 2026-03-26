@@ -429,10 +429,20 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                           TextFormField(
                             controller: _gradeController,
                             decoration: const InputDecoration(
-                              labelText: 'Sınıf Seviyesi',
+                              labelText: 'Sınıf Seviyesi *',
                               hintText: 'ör. 5, 7, 12',
                             ),
                             keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Sınıf seviyesi zorunludur';
+                              }
+                              final grade = int.tryParse(value.trim());
+                              if (grade == null || grade < 1 || grade > 12) {
+                                return '1-12 arası bir değer girin';
+                              }
+                              return null;
+                            },
                           ),
                           const SizedBox(height: 16),
 
