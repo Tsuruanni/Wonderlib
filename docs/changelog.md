@@ -8,6 +8,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Vocabulary Hub Performance + Class Grade Enforcement (2026-03-27)
+
+#### Fixed
+- **Blank vocabulary screen** — Root cause: `classes.grade` was nullable, causing `get_user_learning_paths` RPC to return 0 results for users in classes with null grade. Fixed with NOT NULL constraint + CHECK(1-12).
+- **PathDailyReviewNode active state** — Daily review node always received `isActive: false` due to `foundActive` double-set in outer detection loop.
+- **`ref.watch` after `await`** — Moved `getBooksByIdsUseCaseProvider` watch before first `await` in `learningPathProvider` (Riverpod best practice).
+- **`completeDailyReview` crash on empty response** — `.first` on empty list replaced with null-safe guard.
+- **Empty learning path UX** — `SizedBox.shrink()` replaced with "No learning path yet" message.
+
+#### Performance
+- **N+1 `progressForListProvider` eliminated** — `_VerticalListSection` now uses batch `userWordListProgressProvider` (N queries → 0).
+- **N+1 `bookByIdProvider` eliminated** — New `getBooksByIds` repository method + usecase fetches all books in single `WHERE id IN(...)` query (M queries → 1).
+- **Duplicate word lists fetch eliminated** — `storyWordListsProvider` now derives from cached `allWordListsProvider` (1 query → 0).
+- **`getDueForReview` sequential queries merged** — New `get_due_review_words` RPC replaces 2 sequential queries with 1 (2 queries → 1).
+- **`getBooksByIds` filters published only** — Unpublished books no longer returned in learning path.
+
+#### Added
+- **Required grade on class creation/editing** — Grade dropdown (1-12) added to teacher create + edit class dialogs. Grade field validated as required in admin panel.
+- **`update_class` RPC grade support** — RPC now accepts `p_grade` parameter for grade updates.
+- **`GetBooksByIdsUseCase`** — New batch book fetch usecase following Clean Architecture pattern.
+
+#### Infrastructure
+- **3 DB migrations** (20260327000006–008) — `classes.grade` NOT NULL enforcement, `update_class` RPC grade param, `get_due_review_words` RPC.
+- **`RpcFunctions.getDueReviewWords`** — New constant in shared package.
+
 ### Teacher Panel Responsive Redesign + Playful UI (2026-03-27)
 
 #### Added

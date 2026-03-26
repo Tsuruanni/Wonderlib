@@ -299,7 +299,7 @@ class _AssignmentCard extends StatelessWidget {
         return Colors.blue;
       case AssignmentType.vocabulary:
         return Colors.green;
-      case AssignmentType.mixed:
+      case AssignmentType.unit:
         return Colors.orange;
     }
   }
@@ -310,7 +310,7 @@ class _AssignmentCard extends StatelessWidget {
         return Icons.menu_book;
       case AssignmentType.vocabulary:
         return Icons.abc;
-      case AssignmentType.mixed:
+      case AssignmentType.unit:
         return Icons.dashboard;
     }
   }

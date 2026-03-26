@@ -323,7 +323,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
         return Colors.blue;
       case AssignmentType.vocabulary:
         return Colors.green;
-      case AssignmentType.mixed:
+      case AssignmentType.unit:
         return Colors.orange;
     }
   }
