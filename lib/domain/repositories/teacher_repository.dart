@@ -83,6 +83,7 @@ abstract class TeacherRepository {
   Future<Either<Failure, String>> createClass({
     required String schoolId,
     required String name,
+    required int grade,
     String? description,
   });
 
@@ -112,10 +113,11 @@ abstract class TeacherRepository {
     required String lastName,
   });
 
-  /// Update class name and description
+  /// Update class name, grade, and description
   Future<Either<Failure, void>> updateClass({
     required String classId,
     required String name,
+    required int grade,
     String? description,
   });
 

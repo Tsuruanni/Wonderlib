@@ -24,22 +24,37 @@ class TeacherClass extends Equatable {
   const TeacherClass({
     required this.id,
     required this.name,
-    this.grade,
+    required this.grade,
     this.academicYear,
     required this.studentCount,
     required this.avgProgress,
+    this.avgXp = 0,
+    this.avgStreak = 0,
+    this.totalReadingTime = 0,
+    this.completedBooks = 0,
+    this.activeLast30d = 0,
+    this.totalVocabWords = 0,
     this.createdAt,
   });
   final String id;
   final String name;
-  final int? grade;
+  final int grade;
   final String? academicYear;
   final int studentCount;
   final double avgProgress;
+  final double avgXp;
+  final double avgStreak;
+  final int totalReadingTime;
+  final int completedBooks;
+  final int activeLast30d;
+  final int totalVocabWords;
   final DateTime? createdAt;
 
+  int get inactiveLast30d => studentCount - activeLast30d;
+  double get booksPerStudent => studentCount > 0 ? completedBooks / studentCount : 0;
+
   @override
-  List<Object?> get props => [id, name, grade, academicYear, studentCount, avgProgress, createdAt];
+  List<Object?> get props => [id, name, grade, academicYear, studentCount, avgProgress, avgXp, avgStreak, totalReadingTime, completedBooks, activeLast30d, totalVocabWords, createdAt];
 }
 
 /// Student summary for class view

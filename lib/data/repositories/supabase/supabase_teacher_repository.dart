@@ -451,12 +451,14 @@ class SupabaseTeacherRepository implements TeacherRepository {
   Future<Either<Failure, String>> createClass({
     required String schoolId,
     required String name,
+    required int grade,
     String? description,
   }) async {
     try {
       final response = await _supabase.from(DbTables.classes).insert({
         'school_id': schoolId,
         'name': name,
+        'grade': grade,
         'description': description,
       }).select('id').single();
 
@@ -563,12 +565,14 @@ class SupabaseTeacherRepository implements TeacherRepository {
   Future<Either<Failure, void>> updateClass({
     required String classId,
     required String name,
+    required int grade,
     String? description,
   }) async {
     try {
       await _supabase.rpc(RpcFunctions.updateClass, params: {
         'p_class_id': classId,
         'p_name': name,
+        'p_grade': grade,
         'p_description': description,
       });
       return const Right(null);

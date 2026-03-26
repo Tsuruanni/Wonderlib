@@ -42,6 +42,7 @@ class TeacherClassFixtures {
   static TeacherClass minimalClass() => const TeacherClass(
         id: 'class-minimal',
         name: '5-B',
+        grade: 5,
         studentCount: 25,
         avgProgress: 55.0,
       );

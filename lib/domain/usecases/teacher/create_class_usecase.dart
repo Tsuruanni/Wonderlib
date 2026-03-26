@@ -9,10 +9,12 @@ class CreateClassParams {
   const CreateClassParams({
     required this.schoolId,
     required this.name,
+    required this.grade,
     this.description,
   });
   final String schoolId;
   final String name;
+  final int grade;
   final String? description;
 }
 
@@ -27,6 +29,7 @@ class CreateClassUseCase implements UseCase<String, CreateClassParams> {
     return _repository.createClass(
       schoolId: params.schoolId,
       name: params.name,
+      grade: params.grade,
       description: params.description,
     );
   }

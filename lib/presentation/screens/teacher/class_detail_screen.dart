@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/bulk_move_students_usecase.dart';
@@ -11,8 +12,11 @@ import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/login_cards_pdf.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/animated_game_button.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/playful_card.dart';
+import '../../widgets/common/responsive_layout.dart';
 
 enum ClassDetailMode { management, report }
 
@@ -59,6 +63,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isManagement ? 'Class Management' : 'Class Students'),
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -95,34 +100,35 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
 
                     // Student list
                     Expanded(
-                      child: ListView.builder(
+                      child: SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
                           16,
                           16,
                           16,
                           isManagement ? (_isSelectMode ? 80 : 140) : 16,
                         ),
-                        itemCount: sortedStudents.length,
-                        itemBuilder: (context, index) {
-                          final student = sortedStudents[index];
-                          if (isManagement) {
-                            return _ManagementStudentCard(
-                              student: student,
-                              isSelectMode: _isSelectMode,
-                              isSelected:
-                                  _selectedStudentIds.contains(student.id),
-                              onToggleSelect: () =>
-                                  _toggleStudentSelection(student.id),
-                              onTap: () =>
-                                  _showStudentInfoSheet(context, student),
-                            );
-                          } else {
-                            return _ReportStudentCard(
-                              student: student,
-                              classId: widget.classId,
-                            );
-                          }
-                        },
+                        child: ResponsiveWrap(
+                          minItemWidth: 280,
+                          children: sortedStudents.map((student) {
+                            if (isManagement) {
+                              return _ManagementStudentCard(
+                                student: student,
+                                isSelectMode: _isSelectMode,
+                                isSelected:
+                                    _selectedStudentIds.contains(student.id),
+                                onToggleSelect: () =>
+                                    _toggleStudentSelection(student.id),
+                                onTap: () =>
+                                    _showStudentInfoSheet(context, student),
+                              );
+                            } else {
+                              return _ReportStudentCard(
+                                student: student,
+                                classId: widget.classId,
+                              );
+                            }
+                          }).toList(),
+                        ),
                       ),
                     ),
                   ],
@@ -158,25 +164,23 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                         ],
                       ),
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                      child: ResponsiveWrap(
+                        minItemWidth: 250,
+                        runSpacing: 8,
                         children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _toggleSelectMode,
-                              icon: const Icon(Icons.swap_horiz),
-                              label: const Text('Select & Move Students to Another Class'),
-                            ),
+                          AnimatedGameButton(
+                            label: 'Select & Move Students',
+                            icon: const Icon(Icons.swap_horiz),
+                            variant: GameButtonVariant.neutral,
+                            fullWidth: true,
+                            onPressed: _toggleSelectMode,
                           ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => _downloadLoginCards(context, sortedStudents),
-                              icon: const Icon(Icons.download),
-                              label: const Text('Download Login Cards'),
-                            ),
+                          AnimatedGameButton(
+                            label: 'Download Login Cards',
+                            icon: const Icon(Icons.download),
+                            variant: GameButtonVariant.neutral,
+                            fullWidth: true,
+                            onPressed: () => _downloadLoginCards(context, sortedStudents),
                           ),
                         ],
                       ),
@@ -375,7 +379,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                       leading: CircleAvatar(
                         radius: 16,
                         child: Text(
-                          '${targetClass.grade ?? ''}',
+                          '${targetClass.grade}',
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -458,7 +462,7 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                       leading: CircleAvatar(
                         radius: 16,
                         child: Text(
-                          '${targetClass.grade ?? ''}',
+                          '${targetClass.grade}',
                           style: const TextStyle(fontSize: 12),
                         ),
                       ),
@@ -544,71 +548,66 @@ class _ManagementStudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: isSelectMode ? onToggleSelect : onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              if (isSelectMode)
-                Checkbox(
-                  value: isSelected,
-                  onChanged: (_) => onToggleSelect(),
-                ),
-              if (!isSelectMode)
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: context.colorScheme.primaryContainer,
-                  child: Text(
-                    student.firstName.isNotEmpty
-                        ? student.firstName[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      color: context.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      student.fullName,
-                      style: context.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    if (student.studentNumber != null)
-                      Text(
-                        'Student #: ${student.studentNumber}',
-                        style: context.textTheme.bodySmall
-                            ?.copyWith(color: context.colorScheme.outline),
-                      ),
-                  ],
+      padding: const EdgeInsets.all(12),
+      onTap: isSelectMode ? onToggleSelect : onTap,
+      child: Row(
+        children: [
+          if (isSelectMode)
+            Checkbox(
+              value: isSelected,
+              onChanged: (_) => onToggleSelect(),
+            ),
+          if (!isSelectMode)
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: context.colorScheme.primaryContainer,
+              child: Text(
+                student.firstName.isNotEmpty
+                    ? student.firstName[0].toUpperCase()
+                    : '?',
+                style: TextStyle(
+                  color: context.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+            ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  student.fullName,
+                  style: context.textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                child: Text(
-                  'Lv ${student.level}',
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: context.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                if (student.studentNumber != null)
+                  Text(
+                    'Student #: ${student.studentNumber}',
+                    style: context.textTheme.bodySmall
+                        ?.copyWith(color: context.colorScheme.outline),
                   ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: context.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Lv ${student.level}',
+              style: context.textTheme.labelMedium?.copyWith(
+                color: context.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -622,30 +621,32 @@ class _ReportStudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: () =>
-            context.push(AppRoutes.teacherStudentDetailPath(classId, student.id)),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+      padding: const EdgeInsets.all(12),
+      onTap: () =>
+          context.push(AppRoutes.teacherStudentDetailPath(classId, student.id)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: avatar + name + level
+          Row(
             children: [
               CircleAvatar(
-                radius: 24,
-                backgroundColor: context.colorScheme.primaryContainer,
+                radius: 20,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 child: Text(
                   student.firstName.isNotEmpty
                       ? student.firstName[0].toUpperCase()
                       : '?',
-                  style: TextStyle(
-                    color: context.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -653,51 +654,115 @@ class _ReportStudentCard extends StatelessWidget {
                     Text(
                       student.fullName,
                       style: context.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        _MiniStat(
-                          icon: Icons.star,
-                          value: '${student.xp}',
-                          color: Colors.amber,
+                    if (student.studentNumber != null)
+                      Text(
+                        '#${student.studentNumber}',
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: AppColors.neutralText,
+                          fontSize: 11,
                         ),
-                        const SizedBox(width: 12),
-                        _MiniStat(
-                          icon: Icons.local_fire_department,
-                          value: '${student.currentStreak}',
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(width: 12),
-                        _MiniStat(
-                          icon: Icons.book,
-                          value: '${student.booksRead}',
-                          color: Colors.blue,
-                        ),
-                      ],
-                    ),
+                      ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: context.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppColors.wasp.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.wasp, width: 1.5),
                 ),
                 child: Text(
                   'Lv ${student.level}',
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: context.colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.waspDark,
                   ),
                 ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 10),
+          // Progress bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: student.avgProgress / 100,
+              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+              color: ScoreColors.getProgressColor(student.avgProgress),
+              minHeight: 5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Stat chips
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _MiniChip(
+                icon: Icons.star,
+                value: '${student.xp} XP',
+                color: Colors.amber,
+              ),
+              _MiniChip(
+                icon: Icons.local_fire_department,
+                value: '${student.currentStreak} streak',
+                color: Colors.orange,
+              ),
+              _MiniChip(
+                icon: Icons.menu_book,
+                value: '${student.booksRead} books',
+                color: Colors.blue,
+              ),
+              _MiniChip(
+                icon: Icons.trending_up,
+                value: '${student.avgProgress.toStringAsFixed(0)}%',
+                color: ScoreColors.getProgressColor(student.avgProgress),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniChip extends StatelessWidget {
+  const _MiniChip({
+    required this.icon,
+    required this.value,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -744,34 +809,55 @@ class _ClassStatsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalXP = students.fold<int>(0, (sum, s) => sum + s.xp);
+    final avgXp = students.isEmpty
+        ? 0.0
+        : students.fold<int>(0, (sum, s) => sum + s.xp) / students.length;
     final avgProgress = students.isEmpty
         ? 0.0
-        : students.fold<double>(0, (sum, s) => sum + s.avgProgress) /
-            students.length;
+        : students.fold<double>(0, (sum, s) => sum + s.avgProgress) / students.length;
+    final avgStreak = students.isEmpty
+        ? 0.0
+        : students.fold<int>(0, (sum, s) => sum + s.currentStreak) / students.length;
+    final totalBooks = students.fold<int>(0, (sum, s) => sum + s.booksRead);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: context.colorScheme.surfaceContainerHighest,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _StatItem(
-            icon: Icons.people,
-            value: '${students.length}',
-            label: 'Students',
-          ),
-          _StatItem(
-            icon: Icons.star,
-            value: '$totalXP',
-            label: 'Total XP',
-          ),
-          _StatItem(
-            icon: Icons.trending_up,
-            value: '${avgProgress.toStringAsFixed(0)}%',
-            label: 'Avg Progress',
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: PlayfulCard(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _StatItem(
+              icon: Icons.people,
+              value: '${students.length}',
+              label: 'Students',
+              color: Colors.blue,
+            ),
+            _StatItem(
+              icon: Icons.star,
+              value: '${avgXp.toStringAsFixed(0)}',
+              label: 'Avg XP',
+              color: Colors.amber,
+            ),
+            _StatItem(
+              icon: Icons.local_fire_department,
+              value: '${avgStreak.toStringAsFixed(1)}',
+              label: 'Avg Streak',
+              color: Colors.orange,
+            ),
+            _StatItem(
+              icon: Icons.trending_up,
+              value: '${avgProgress.toStringAsFixed(0)}%',
+              label: 'Progress',
+              color: Colors.green,
+            ),
+            _StatItem(
+              icon: Icons.menu_book,
+              value: '$totalBooks',
+              label: 'Books',
+              color: Colors.purple,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -782,17 +868,19 @@ class _StatItem extends StatelessWidget {
     required this.icon,
     required this.value,
     required this.label,
+    this.color,
   });
 
   final IconData icon;
   final String value;
   final String label;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: context.colorScheme.primary),
+        Icon(icon, color: color ?? context.colorScheme.primary, size: 22),
         const SizedBox(height: 4),
         Text(
           value,
@@ -811,31 +899,3 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.icon,
-    required this.value,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 2),
-        Text(
-          value,
-          style: context.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-}
