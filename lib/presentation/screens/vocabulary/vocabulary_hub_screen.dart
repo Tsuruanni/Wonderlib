@@ -43,7 +43,7 @@ class VocabularyHubScreen extends ConsumerWidget {
                       // My Word Lists
                       if (storyLists.isNotEmpty) ...[
                         const _SectionHeader(title: 'My Word Lists'),
-                        _VerticalListSection(lists: storyLists, ref: ref),
+                        _VerticalListSection(lists: storyLists),
                       ],
                     ],
                   ),
@@ -114,22 +114,23 @@ class _SectionHeader extends StatelessWidget {
 }
 
 /// Vertical list of word list items
-class _VerticalListSection extends StatelessWidget {
+class _VerticalListSection extends ConsumerWidget {
 
-  const _VerticalListSection({required this.lists, required this.ref});
+  const _VerticalListSection({required this.lists});
   final List<WordList> lists;
-  final WidgetRef ref;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allProgress = ref.watch(userWordListProgressProvider).valueOrNull ?? [];
+    final progressMap = {for (final p in allProgress) p.wordListId: p};
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: lists.map((list) {
-          final progressAsync = ref.watch(progressForListProvider(list.id));
           return _WordListTile(
             wordList: list,
-            progress: progressAsync.valueOrNull,
+            progress: progressMap[list.id],
           );
         }).toList(),
       ),
