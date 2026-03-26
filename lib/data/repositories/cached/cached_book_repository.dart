@@ -497,6 +497,11 @@ class CachedBookRepository implements BookRepository {
   }
 
   @override
+  Future<Either<Failure, List<Book>>> getBooksByIds(List<String> ids) {
+    return _remoteRepo.getBooksByIds(ids);
+  }
+
+  @override
   Future<Either<Failure, List<Book>>> searchBooks(String query) {
     return _remoteRepo.searchBooks(query);
   }

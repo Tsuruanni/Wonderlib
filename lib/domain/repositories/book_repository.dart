@@ -17,6 +17,9 @@ abstract class BookRepository {
 
   Future<Either<Failure, Book>> getBookById(String id);
 
+  /// Fetch multiple books by IDs in a single query
+  Future<Either<Failure, List<Book>>> getBooksByIds(List<String> ids);
+
   Future<Either<Failure, List<Book>>> searchBooks(String query);
 
   Future<Either<Failure, List<Book>>> getRecommendedBooks(String userId);

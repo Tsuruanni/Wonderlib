@@ -4,6 +4,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/daily_review_session.dart';
 import '../../domain/entities/learning_path.dart';
+import '../../domain/usecases/book/get_books_by_ids_usecase.dart';
 import 'book_provider.dart';
 import 'daily_review_provider.dart';
 import '../../domain/entities/vocabulary.dart';
@@ -633,7 +634,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
   bool drInjected = false; // only inject DR once across all units
 
-  // Pre-fetch all book items in parallel (avoid N+1 sequential fetches in the loop)
+  // Batch fetch all book items in a single query (instead of N+1 bookByIdProvider calls)
   final allBookIds = <String>{};
   for (final path in learningPaths) {
     for (final lpUnit in path.units) {
@@ -644,14 +645,19 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
       }
     }
   }
-  final bookFutures = allBookIds.map(
-    (id) => ref.watch(bookByIdProvider(id).future).then((b) => MapEntry(id, b)),
-  );
-  final bookEntries = await Future.wait(bookFutures);
-  final bookMap = {
-    for (final e in bookEntries)
-      if (e.value != null) e.key: e.value!,
-  };
+  final bookMap = <String, Book>{};
+  if (allBookIds.isNotEmpty) {
+    final useCase = ref.watch(getBooksByIdsUseCaseProvider);
+    final result = await useCase(GetBooksByIdsParams(ids: allBookIds.toList()));
+    result.fold(
+      (_) {},
+      (books) {
+        for (final book in books) {
+          bookMap[book.id] = book;
+        }
+      },
+    );
+  }
 
   final result = <PathUnitData>[];
 

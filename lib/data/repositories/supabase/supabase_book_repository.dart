@@ -68,6 +68,25 @@ class SupabaseBookRepository implements BookRepository {
   }
 
   @override
+  Future<Either<Failure, List<Book>>> getBooksByIds(List<String> ids) async {
+    if (ids.isEmpty) return const Right([]);
+    try {
+      final response = await _supabase
+          .from(DbTables.books)
+          .select()
+          .inFilter('id', ids);
+
+      final books =
+          (response as List).map((json) => _mapToBook(json)).toList();
+      return Right(books);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, List<Book>>> searchBooks(String query) async {
     try {
       // Escape special PostgREST filter characters to prevent injection

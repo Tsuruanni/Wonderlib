@@ -40,6 +40,7 @@ import '../../domain/usecases/student_assignment/update_assignment_progress_usec
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
+import '../../domain/usecases/book/get_books_by_ids_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
@@ -165,6 +166,10 @@ final getBooksUseCaseProvider = Provider((ref) {
 
 final getBookByIdUseCaseProvider = Provider((ref) {
   return GetBookByIdUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final getBooksByIdsUseCaseProvider = Provider((ref) {
+  return GetBooksByIdsUseCase(ref.watch(bookRepositoryProvider));
 });
 
 final searchBooksUseCaseProvider = Provider((ref) {
