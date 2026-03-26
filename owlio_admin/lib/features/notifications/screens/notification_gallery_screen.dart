@@ -143,6 +143,8 @@ class _NotificationGalleryScreenState
                   _buildLeagueChangeCard(grouped),
                   const SizedBox(height: 16),
                   _buildBadgeEarnedCard(grouped),
+                  const SizedBox(height: 16),
+                  _buildAssignmentCard(grouped),
                 ],
               ),
             ),
@@ -339,6 +341,29 @@ class _NotificationGalleryScreenState
           const SizedBox(height: 8),
           _previewRow('Multiple', '2 New Badges!',
               '🔥 Streak Master +100 XP\n⭐ Rising Star +50 XP'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAssignmentCard(
+      Map<String, List<Map<String, dynamic>>> grouped) {
+    return _NotifCard(
+      icon: Icons.assignment_rounded,
+      iconColor: Colors.blue.shade600,
+      title: 'Assignment',
+      description: 'Shown when student opens app with active assignments',
+      isEnabled: _getBool(grouped, 'notif_assignment'),
+      isSaving: _savingKeys.contains('notif_assignment'),
+      onToggle: (v) => _updateSetting('notif_assignment', v.toString()),
+      preview: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _previewRow('Single', 'New Assignment!',
+              'You have an assignment from your teacher.'),
+          const SizedBox(height: 8),
+          _previewRow('Multiple', '3 Assignments Waiting!',
+              'You have 3 assignments from your teacher.'),
         ],
       ),
     );
