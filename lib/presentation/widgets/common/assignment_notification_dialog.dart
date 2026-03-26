@@ -52,15 +52,18 @@ class _AssignmentNotificationDialogState
         scale: _scaleAnimation,
         child: Dialog(
           backgroundColor: Colors.transparent,
-          elevation: 0,
           child: Container(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.blue.shade600, Colors.blue.shade900],
+              ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.blue.withValues(alpha: 0.3),
+                  color: Colors.blue.withValues(alpha: 0.4),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
@@ -69,67 +72,58 @@ class _AssignmentNotificationDialogState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.assignment_rounded,
-                    size: 48,
-                    color: Colors.blue.shade600,
-                  ),
-                ),
-                const SizedBox(height: 20),
+                const Text('📋', style: TextStyle(fontSize: 64)),
+                const SizedBox(height: 16),
+
                 Text(
                   isSingle
                       ? 'New Assignment!'
                       : '${widget.count} Assignments Waiting!',
                   style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF1A1A2E),
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
+
                 Text(
                   isSingle
                       ? 'You have an assignment from your teacher.'
                       : 'You have ${widget.count} assignments from your teacher.',
                   style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
+
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: TextButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          side: BorderSide(color: Colors.grey.shade300),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Later',
                           style: TextStyle(
-                            fontSize: 16,
+                            color: Colors.white,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey.shade600,
                           ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
+                      child: TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                           final navContext = rootNavigatorKey.currentContext;
@@ -138,19 +132,18 @@ class _AssignmentNotificationDialogState
                                 .go(AppRoutes.studentAssignments);
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade600,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'View',
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+                            color: Colors.blue.shade800,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),

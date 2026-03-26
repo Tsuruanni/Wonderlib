@@ -6,6 +6,7 @@ import '../../../app/router.dart';
 import '../../../domain/entities/streak_result.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/entities/system_settings.dart';
+import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/system_settings_provider.dart';
@@ -83,51 +84,19 @@ class _LevelUpCelebrationListenerState
       }
     });
 
-    // Fire assignment notification on first load (students only)
+    // Fire assignment notification AFTER user is fully loaded (students only).
+    // This ensures streak/badge/league notifications fire first since they
+    // are triggered during UserController._loadUserById().
     if (!_hasShownAssignmentNotif) {
       final isTeacher = ref.watch(isTeacherProvider);
       if (!isTeacher) {
-        // Listen for future loads
-        ref.listen<AsyncValue<List<StudentAssignment>>>(
-          activeAssignmentsProvider,
-          (previous, next) {
-            if (_hasShownAssignmentNotif) return;
-            next.whenData((assignments) {
-              final count = assignments.where((a) =>
-                a.status == StudentAssignmentStatus.pending ||
-                a.status == StudentAssignmentStatus.inProgress ||
-                a.status == StudentAssignmentStatus.overdue,
-              ).length;
-              if (count > 0) {
-                _hasShownAssignmentNotif = true;
-                final settings = ref.read(systemSettingsProvider).valueOrNull
-                    ?? SystemSettings.defaults();
-                if (settings.notifAssignment) {
-                  ref.read(assignmentNotificationEventProvider.notifier).state =
-                      AssignmentNotificationEvent(count: count);
-                }
-              }
-            });
-          },
-        );
-        // Also handle the case where data is already loaded
-        ref.watch(activeAssignmentsProvider).whenData((assignments) {
+        ref.listen<AsyncValue<User?>>(userControllerProvider, (previous, next) {
           if (_hasShownAssignmentNotif) return;
-          final count = assignments.where((a) =>
-            a.status == StudentAssignmentStatus.pending ||
-            a.status == StudentAssignmentStatus.inProgress ||
-            a.status == StudentAssignmentStatus.overdue,
-          ).length;
-          if (count > 0) {
-            _hasShownAssignmentNotif = true;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              final settings = ref.read(systemSettingsProvider).valueOrNull
-                  ?? SystemSettings.defaults();
-              if (settings.notifAssignment) {
-                ref.read(assignmentNotificationEventProvider.notifier).state =
-                    AssignmentNotificationEvent(count: count);
-              }
+          // Wait for user to finish loading (streak/badge/league already fired)
+          if (next is AsyncData<User?> && next.value != null) {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (!mounted || _hasShownAssignmentNotif) return;
+              _checkAndFireAssignmentNotification();
             });
           }
         });
@@ -179,6 +148,28 @@ class _LevelUpCelebrationListenerState
       builder: (context) => BadgeEarnedDialog(badges: event.badges),
     );
     ref.read(badgeEarnedEventProvider.notifier).state = null;
+  }
+
+  Future<void> _checkAndFireAssignmentNotification() async {
+    try {
+      final assignments = await ref.read(activeAssignmentsProvider.future);
+      final count = assignments.where((a) =>
+        a.status == StudentAssignmentStatus.pending ||
+        a.status == StudentAssignmentStatus.inProgress ||
+        a.status == StudentAssignmentStatus.overdue,
+      ).length;
+      if (count > 0 && !_hasShownAssignmentNotif) {
+        _hasShownAssignmentNotif = true;
+        final settings = ref.read(systemSettingsProvider).valueOrNull
+            ?? SystemSettings.defaults();
+        if (settings.notifAssignment) {
+          ref.read(assignmentNotificationEventProvider.notifier).state =
+              AssignmentNotificationEvent(count: count);
+        }
+      }
+    } catch (_) {
+      // Silently fail — assignment notification is non-critical
+    }
   }
 
   Future<void> _showAssignmentNotification(AssignmentNotificationEvent event) async {
