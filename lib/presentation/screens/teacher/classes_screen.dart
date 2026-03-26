@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/teacher/create_class_usecase.dart';
@@ -14,6 +15,8 @@ import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/playful_card.dart';
+import '../../widgets/common/responsive_layout.dart';
 
 class ClassesScreen extends ConsumerWidget {
   const ClassesScreen({super.key});
@@ -24,7 +27,8 @@ class ClassesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Classes'),
+        title: const Text('Manage Classes'),
+        centerTitle: false,
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'fab_new_class',
@@ -51,21 +55,87 @@ class ClassesScreen extends ConsumerWidget {
               );
             }
 
-            return ListView.builder(
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
-              itemCount: classes.length,
-              itemBuilder: (context, index) {
-                final classItem = classes[index];
-                return _ClassCard(
-                  classItem: classItem,
-                  onTap: () {
-                    // Navigate to class detail (nested under /teacher/classes/:classId)
-                    context.push(AppRoutes.teacherClassDetailPath(classItem.id));
-                  },
-                  onEdit: () => _showEditClassDialog(context, ref, classItem),
-                  onDelete: () => _deleteClass(context, ref, classItem),
-                );
-              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Info banner
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondaryBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.secondary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          size: 20,
+                          color: AppColors.secondary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'This page is for managing your classes and students. ',
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: 'You can edit class names, delete classes, move students between classes, '
+                                      'and access student login credentials.\n\n',
+                                  style: context.textTheme.bodySmall,
+                                ),
+                                TextSpan(
+                                  text: 'To view student progress, performance summaries, or reading statistics, '
+                                      'please use the ',
+                                  style: context.textTheme.bodySmall,
+                                ),
+                                TextSpan(
+                                  text: 'Reports',
+                                  style: context.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.secondary,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' tab instead.',
+                                  style: context.textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ResponsiveWrap(
+                minItemWidth: 300,
+                children: classes
+                    .map(
+                      (classItem) => _ClassCard(
+                        classItem: classItem,
+                        onTap: () {
+                          context.push(AppRoutes.teacherClassDetailPath(classItem.id));
+                        },
+                        onEdit: () => _showEditClassDialog(context, ref, classItem),
+                        onDelete: () => _deleteClass(context, ref, classItem),
+                      ),
+                    )
+                    .toList(),
+              ),
+                ],
+              ),
             );
           },
         ),
@@ -77,63 +147,80 @@ class ClassesScreen extends ConsumerWidget {
     final nameController = TextEditingController();
     final descController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    int? selectedGrade;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Create New Class'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Class Name *',
-                  hintText: 'e.g., 5A, Grade 7',
-                  border: OutlineInputBorder(),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Create New Class'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Class Name *',
+                    hintText: 'e.g., 5A, Grade 7',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a class name';
+                    }
+                    return null;
+                  },
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a class name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: descController,
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  hintText: 'e.g., Morning English class',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(
+                    labelText: 'Grade *',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: List.generate(12, (i) => DropdownMenuItem(
+                    value: i + 1,
+                    child: Text('Grade ${i + 1}'),
+                  )),
+                  validator: (value) => value == null ? 'Please select a grade' : null,
+                  onChanged: (value) => setDialogState(() => selectedGrade = value),
                 ),
-                maxLines: 2,
-              ),
-            ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (optional)',
+                    hintText: 'e.g., Morning English class',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
 
-              Navigator.pop(dialogContext);
-              await _createClass(
-                context,
-                ref,
-                nameController.text.trim(),
-                descController.text.trim().isEmpty ? null : descController.text.trim(),
-              );
-            },
-            child: const Text('Create'),
-          ),
-        ],
+                Navigator.pop(dialogContext);
+                await _createClass(
+                  context,
+                  ref,
+                  nameController.text.trim(),
+                  selectedGrade!,
+                  descController.text.trim().isEmpty ? null : descController.text.trim(),
+                );
+              },
+              child: const Text('Create'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -142,6 +229,7 @@ class ClassesScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String name,
+    int grade,
     String? description,
   ) async {
     // Get teacher's school ID
@@ -155,6 +243,7 @@ class ClassesScreen extends ConsumerWidget {
     final result = await useCase(CreateClassParams(
       schoolId: user.schoolId,
       name: name,
+      grade: grade,
       description: description,
     ),);
 
@@ -174,62 +263,85 @@ class ClassesScreen extends ConsumerWidget {
   void _showEditClassDialog(BuildContext context, WidgetRef ref, TeacherClass classItem) {
     final nameController = TextEditingController(text: classItem.name);
     final formKey = GlobalKey<FormState>();
+    int? selectedGrade = classItem.grade;
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit Class'),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Class Name *',
-              hintText: 'e.g., 5A, Grade 7',
-              border: OutlineInputBorder(),
-            ),
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Please enter a class name';
-              }
-              return null;
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-
-              Navigator.pop(dialogContext);
-              final name = nameController.text.trim();
-              final useCase = ref.read(updateClassUseCaseProvider);
-              final result = await useCase(
-                UpdateClassParams(
-                  classId: classItem.id,
-                  name: name,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('Edit Class'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Class Name *',
+                    hintText: 'e.g., 5A, Grade 7',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a class name';
+                    }
+                    return null;
+                  },
                 ),
-              );
-
-              if (!context.mounted) return;
-
-              result.fold(
-                (failure) {
-                  showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-                },
-                (_) {
-                  ref.invalidate(currentTeacherClassesProvider);
-                  showAppSnackBar(context, 'Class updated', type: SnackBarType.success);
-                },
-              );
-            },
-            child: const Text('Save'),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<int>(
+                  value: selectedGrade,
+                  decoration: const InputDecoration(
+                    labelText: 'Grade *',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: List.generate(12, (i) => DropdownMenuItem(
+                    value: i + 1,
+                    child: Text('Grade ${i + 1}'),
+                  )),
+                  validator: (value) => value == null ? 'Please select a grade' : null,
+                  onChanged: (value) => setDialogState(() => selectedGrade = value),
+                ),
+              ],
+            ),
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+
+                Navigator.pop(dialogContext);
+                final name = nameController.text.trim();
+                final useCase = ref.read(updateClassUseCaseProvider);
+                final result = await useCase(
+                  UpdateClassParams(
+                    classId: classItem.id,
+                    name: name,
+                    grade: selectedGrade!,
+                  ),
+                );
+
+                if (!context.mounted) return;
+
+                result.fold(
+                  (failure) {
+                    showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+                  },
+                  (_) {
+                    ref.invalidate(currentTeacherClassesProvider);
+                    showAppSnackBar(context, 'Class updated', type: SnackBarType.success);
+                  },
+                );
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -275,29 +387,28 @@ class _ClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+    return PlayfulCard(
+      onTap: onTap,
+      child: Row(
             children: [
               // Grade number avatar
               Container(
-                width: 56,
-                height: 56,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  color: context.colorScheme.primaryContainer,
+                  color: AppColors.secondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.secondary.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
                 ),
                 child: Center(
                   child: Text(
-                    classItem.grade?.toString() ?? '?',
+                    classItem.grade.toString(),
                     style: context.textTheme.headlineSmall?.copyWith(
-                      color: context.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -312,39 +423,51 @@ class _ClassCard extends StatelessWidget {
                     Text(
                       classItem.name,
                       style: context.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 4,
                       children: [
-                        Icon(
-                          Icons.person,
-                          size: 16,
-                          color: context.colorScheme.outline,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${classItem.studentCount} students',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: context.colorScheme.outline,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        if (classItem.academicYear != null) ...[
-                          Icon(
-                            Icons.calendar_today,
-                            size: 16,
-                            color: context.colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            classItem.academicYear!,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: context.colorScheme.outline,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              size: 16,
+                              color: AppColors.neutralText,
                             ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${classItem.studentCount} students',
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: AppColors.neutralText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (classItem.academicYear != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.calendar_today,
+                                size: 16,
+                                color: AppColors.neutralText,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                classItem.academicYear!,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: AppColors.neutralText,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
                       ],
                     ),
                   ],
@@ -353,9 +476,9 @@ class _ClassCard extends StatelessWidget {
 
               // Popup menu
               PopupMenuButton<String>(
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_vert,
-                  color: context.colorScheme.outline,
+                  color: AppColors.neutralDark,
                 ),
                 onSelected: (value) {
                   switch (value) {
@@ -396,14 +519,12 @@ class _ClassCard extends StatelessWidget {
                 ],
               ),
 
-              Icon(
+              const Icon(
                 Icons.chevron_right,
-                color: context.colorScheme.outline,
+                color: AppColors.neutralDark,
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 }
