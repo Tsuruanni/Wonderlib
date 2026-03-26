@@ -26,6 +26,7 @@ class SystemSettingsModel {
     required this.notifLeagueChange,
     required this.notifFreezeSaved,
     required this.notifBadgeEarned,
+    required this.notifAssignment,
     required this.streakFreezePrice,
     required this.streakFreezeMax,
     required this.debugDateOffset,
@@ -54,6 +55,7 @@ class SystemSettingsModel {
   final bool notifLeagueChange;
   final bool notifFreezeSaved;
   final bool notifBadgeEarned;
+  final bool notifAssignment;
   final int streakFreezePrice;
   final int streakFreezeMax;
   final int debugDateOffset;
@@ -94,6 +96,7 @@ class SystemSettingsModel {
       notifLeagueChange: _toBool(m['notif_league_change'], true),
       notifFreezeSaved: _toBool(m['notif_freeze_saved'], true),
       notifBadgeEarned: _toBool(m['notif_badge_earned'], true),
+      notifAssignment: _toBool(m['notif_assignment'], true),
       streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
       streakFreezeMax: _toInt(m['streak_freeze_max'], 2),
       debugDateOffset: _toInt(m['debug_date_offset'], 0),
@@ -125,6 +128,7 @@ class SystemSettingsModel {
         notifLeagueChange: true,
         notifFreezeSaved: true,
         notifBadgeEarned: true,
+        notifAssignment: true,
         streakFreezePrice: 50,
         streakFreezeMax: 2,
         debugDateOffset: 0,
@@ -155,6 +159,7 @@ class SystemSettingsModel {
         notifLeagueChange: notifLeagueChange,
         notifFreezeSaved: notifFreezeSaved,
         notifBadgeEarned: notifBadgeEarned,
+        notifAssignment: notifAssignment,
         streakFreezePrice: streakFreezePrice,
         streakFreezeMax: streakFreezeMax,
         debugDateOffset: debugDateOffset,
@@ -186,6 +191,7 @@ class SystemSettingsModel {
         notifLeagueChange: e.notifLeagueChange,
         notifFreezeSaved: e.notifFreezeSaved,
         notifBadgeEarned: e.notifBadgeEarned,
+        notifAssignment: e.notifAssignment,
         streakFreezePrice: e.streakFreezePrice,
         streakFreezeMax: e.streakFreezeMax,
         debugDateOffset: e.debugDateOffset,
