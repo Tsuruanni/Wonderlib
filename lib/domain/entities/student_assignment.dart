@@ -20,6 +20,8 @@ extension StudentAssignmentStatusDisplay on AssignmentStatus {
         return 'Completed';
       case AssignmentStatus.overdue:
         return 'Overdue';
+      case AssignmentStatus.withdrawn:
+        return 'Withdrawn';
     }
   }
 

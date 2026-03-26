@@ -3,7 +3,8 @@ enum AssignmentStatus {
   pending('pending'),
   inProgress('in_progress'),
   completed('completed'),
-  overdue('overdue');
+  overdue('overdue'),
+  withdrawn('withdrawn');
 
   final String dbValue;
 
@@ -27,6 +28,8 @@ enum AssignmentStatus {
         return 'Completed';
       case AssignmentStatus.overdue:
         return 'Overdue';
+      case AssignmentStatus.withdrawn:
+        return 'Withdrawn';
     }
   }
 }

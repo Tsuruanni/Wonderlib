@@ -42,6 +42,7 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
             )
           ''')
           .eq('student_id', studentId)
+          .neq('status', 'withdrawn')
           .order('created_at', ascending: false);
 
       debugPrint('🔍 getStudentAssignments response count: ${(response as List).length}');

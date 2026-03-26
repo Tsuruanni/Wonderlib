@@ -42,6 +42,8 @@ abstract class AssignmentColors {
         return Colors.green;
       case AssignmentStatus.overdue:
         return Colors.red;
+      case AssignmentStatus.withdrawn:
+        return Colors.grey.shade400;
     }
   }
 
@@ -55,6 +57,8 @@ abstract class AssignmentColors {
         return Icons.check_circle;
       case AssignmentStatus.overdue:
         return Icons.warning;
+      case AssignmentStatus.withdrawn:
+        return Icons.person_remove;
     }
   }
 }
@@ -93,6 +97,8 @@ abstract class StudentAssignmentColors {
         return Colors.green;
       case StudentAssignmentStatus.overdue:
         return Colors.red;
+      case StudentAssignmentStatus.withdrawn:
+        return Colors.grey.shade400;
     }
   }
 
@@ -106,6 +112,8 @@ abstract class StudentAssignmentColors {
         return Icons.check_circle;
       case StudentAssignmentStatus.overdue:
         return Icons.warning;
+      case StudentAssignmentStatus.withdrawn:
+        return Icons.person_remove;
     }
   }
 }
