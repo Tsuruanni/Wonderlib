@@ -358,8 +358,22 @@ class SupabaseTeacherRepository implements TeacherRepository {
         },
       );
 
+      final newId = assignmentId as String;
+
+      // For unit assignments, sync existing student progress immediately
+      if (data.type == AssignmentType.unit) {
+        try {
+          await _supabase.rpc(
+            RpcFunctions.syncUnitAssignmentProgress,
+            params: {'p_assignment_id': newId},
+          );
+        } catch (e) {
+          debugPrint('📋 syncUnitAssignmentProgress failed (non-blocking): $e');
+        }
+      }
+
       // Return the created assignment
-      return getAssignmentDetail(assignmentId as String);
+      return getAssignmentDetail(newId);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

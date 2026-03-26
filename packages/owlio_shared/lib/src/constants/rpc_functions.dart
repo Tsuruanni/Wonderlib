@@ -63,6 +63,7 @@ abstract class RpcFunctions {
   static const getClassLearningPathUnits = 'get_class_learning_path_units';
   static const getUnitAssignmentItems = 'get_unit_assignment_items';
   static const calculateUnitAssignmentProgress = 'calculate_unit_assignment_progress';
+  static const syncUnitAssignmentProgress = 'sync_unit_assignment_progress';
   static const getRecentSchoolActivity = 'get_recent_school_activity';
   static const updateStudentClass = 'update_student_class';
   static const deleteClass = 'delete_class';
