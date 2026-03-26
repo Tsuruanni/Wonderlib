@@ -39,8 +39,30 @@ class AvatarCustomizeScreen extends ConsumerStatefulWidget {
       _AvatarCustomizeScreenState();
 }
 
-class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
+class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
+    with SingleTickerProviderStateMixin {
   bool _isMutating = false;
+  TabController? _tabController;
+  int _tabCount = 0;
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
+
+  void _ensureTabController(int count) {
+    if (count != _tabCount || _tabController == null) {
+      final oldIndex = _tabController?.index ?? 0;
+      _tabController?.dispose();
+      _tabCount = count;
+      _tabController = TabController(
+        length: count,
+        vsync: this,
+        initialIndex: oldIndex.clamp(0, (count - 1).clamp(0, count)),
+      );
+    }
+  }
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
@@ -305,54 +327,52 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                             child: Text('No accessories available yet.'),
                           );
                         }
-                        return DefaultTabController(
-                          length: categories.length,
-                          child: Column(
-                            children: [
-                              TabBar(
-                                isScrollable: true,
-                                tabAlignment: TabAlignment.start,
-                                labelStyle: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,),
-                                unselectedLabelStyle:
-                                    GoogleFonts.nunito(fontSize: 13),
-                                labelColor: AppColors.primary,
-                                unselectedLabelColor: AppColors.neutralText,
-                                indicatorColor: AppColors.primary,
-                                tabs: categories
-                                    .map(
-                                      (cat) => Tab(
+                        _ensureTabController(categories.length);
+                        return Column(
+                          children: [
+                            TabBar(
+                              controller: _tabController,
+                              isScrollable: true,
+                              tabAlignment: TabAlignment.start,
+                              labelStyle: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13),
+                              unselectedLabelStyle:
+                                  GoogleFonts.nunito(fontSize: 13),
+                              labelColor: AppColors.primary,
+                              unselectedLabelColor: AppColors.neutralText,
+                              indicatorColor: AppColors.primary,
+                              tabs: categories
+                                  .map((cat) => Tab(
                                         text: _formatCategoryName(cat),
+                                      ))
+                                  .toList(),
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: categories
+                                    .map(
+                                      (cat) => _ItemGrid(
+                                        items:
+                                            itemsByCategory[cat] ?? [],
+                                        ownedIds: ownedIds,
+                                        equippedAvatar: equippedAvatar,
+                                        userCoins: user?.coins ?? 0,
+                                        onEquip: _equip,
+                                        onUnequip: _unequip,
+                                        onBuy: (item) =>
+                                            _showBuyConfirmation(
+                                          item,
+                                          user?.coins ?? 0,
+                                        ),
+                                        rarityColor: _rarityColor,
                                       ),
                                     )
                                     .toList(),
                               ),
-                              Expanded(
-                                child: TabBarView(
-                                  children: categories
-                                      .map(
-                                        (cat) => _ItemGrid(
-                                          items:
-                                              itemsByCategory[cat] ?? [],
-                                          ownedIds: ownedIds,
-                                          equippedAvatar: equippedAvatar,
-                                          userCoins: user?.coins ?? 0,
-                                          onEquip: _equip,
-                                          onUnequip: _unequip,
-                                          onBuy: (item) =>
-                                              _showBuyConfirmation(
-                                            item,
-                                            user?.coins ?? 0,
-                                          ),
-                                          rarityColor: _rarityColor,
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                       },
                     ),
