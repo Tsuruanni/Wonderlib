@@ -4,7 +4,13 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
 import '../../../domain/entities/streak_result.dart';
+import '../../../domain/entities/student_assignment.dart';
+import '../../../domain/entities/system_settings.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/student_assignment_provider.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
+import 'assignment_notification_dialog.dart';
 import 'badge_earned_dialog.dart';
 import 'streak_event_dialog.dart';
 
@@ -27,6 +33,7 @@ class _LevelUpCelebrationListenerState
     extends ConsumerState<LevelUpCelebrationListener> {
   final _dialogQueue = <Future<void> Function()>[];
   bool _isShowingDialog = false;
+  bool _hasShownAssignmentNotif = false;
 
   void _enqueueDialog(Future<void> Function() showFn) {
     _dialogQueue.add(showFn);
@@ -68,6 +75,64 @@ class _LevelUpCelebrationListenerState
         _enqueueDialog(() => _showBadgeEarned(next));
       }
     });
+
+    ref.listen<AssignmentNotificationEvent?>(assignmentNotificationEventProvider,
+        (previous, next) {
+      if (next != null) {
+        _enqueueDialog(() => _showAssignmentNotification(next));
+      }
+    });
+
+    // Fire assignment notification on first load (students only)
+    if (!_hasShownAssignmentNotif) {
+      final isTeacher = ref.watch(isTeacherProvider);
+      if (!isTeacher) {
+        // Listen for future loads
+        ref.listen<AsyncValue<List<StudentAssignment>>>(
+          activeAssignmentsProvider,
+          (previous, next) {
+            if (_hasShownAssignmentNotif) return;
+            next.whenData((assignments) {
+              final count = assignments.where((a) =>
+                a.status == StudentAssignmentStatus.pending ||
+                a.status == StudentAssignmentStatus.inProgress ||
+                a.status == StudentAssignmentStatus.overdue,
+              ).length;
+              if (count > 0) {
+                _hasShownAssignmentNotif = true;
+                final settings = ref.read(systemSettingsProvider).valueOrNull
+                    ?? SystemSettings.defaults();
+                if (settings.notifAssignment) {
+                  ref.read(assignmentNotificationEventProvider.notifier).state =
+                      AssignmentNotificationEvent(count: count);
+                }
+              }
+            });
+          },
+        );
+        // Also handle the case where data is already loaded
+        ref.watch(activeAssignmentsProvider).whenData((assignments) {
+          if (_hasShownAssignmentNotif) return;
+          final count = assignments.where((a) =>
+            a.status == StudentAssignmentStatus.pending ||
+            a.status == StudentAssignmentStatus.inProgress ||
+            a.status == StudentAssignmentStatus.overdue,
+          ).length;
+          if (count > 0) {
+            _hasShownAssignmentNotif = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              final settings = ref.read(systemSettingsProvider).valueOrNull
+                  ?? SystemSettings.defaults();
+              if (settings.notifAssignment) {
+                ref.read(assignmentNotificationEventProvider.notifier).state =
+                    AssignmentNotificationEvent(count: count);
+              }
+            });
+          }
+        });
+      }
+    }
 
     return widget.child;
   }
@@ -114,6 +179,17 @@ class _LevelUpCelebrationListenerState
       builder: (context) => BadgeEarnedDialog(badges: event.badges),
     );
     ref.read(badgeEarnedEventProvider.notifier).state = null;
+  }
+
+  Future<void> _showAssignmentNotification(AssignmentNotificationEvent event) async {
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+    await showDialog(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (context) => AssignmentNotificationDialog(count: event.count),
+    );
+    ref.read(assignmentNotificationEventProvider.notifier).state = null;
   }
 }
 
