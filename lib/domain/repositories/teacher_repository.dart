@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../core/errors/failures.dart';
 import '../entities/assignment.dart';
 import '../entities/class_learning_path_unit.dart';
+import '../entities/student_unit_progress_item.dart';
 import '../entities/teacher.dart';
 import '../entities/user.dart';
 
@@ -66,6 +67,12 @@ abstract class TeacherRepository {
   /// Get learning path units for a class (for unit assignment creation)
   Future<Either<Failure, List<ClassLearningPathUnit>>> getClassLearningPathUnits(
     String classId,
+  );
+
+  /// Get per-item progress for a student in a unit assignment
+  Future<Either<Failure, List<StudentUnitProgressItem>>> getStudentUnitProgress(
+    String assignmentId,
+    String studentId,
   );
 
   // =============================================

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:owlio_shared/owlio_shared.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/student_unit_progress_item.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../providers/teacher_provider.dart';
@@ -525,7 +524,7 @@ class _StudentProgressCard extends StatelessWidget {
   }
 }
 
-class _StudentUnitDetailSheet extends StatefulWidget {
+class _StudentUnitDetailSheet extends ConsumerWidget {
   const _StudentUnitDetailSheet({
     required this.scrollController,
     required this.student,
@@ -537,47 +536,14 @@ class _StudentUnitDetailSheet extends StatefulWidget {
   final String assignmentId;
 
   @override
-  State<_StudentUnitDetailSheet> createState() => _StudentUnitDetailSheetState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(
+      studentUnitProgressProvider((
+        assignmentId: assignmentId,
+        studentId: student.studentId,
+      ),),
+    );
 
-class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
-  List<Map<String, dynamic>>? _items;
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProgress();
-  }
-
-  Future<void> _loadProgress() async {
-    try {
-      final response = await Supabase.instance.client.rpc(
-        RpcFunctions.getStudentUnitProgress,
-        params: {
-          'p_assignment_id': widget.assignmentId,
-          'p_student_id': widget.student.studentId,
-        },
-      );
-      if (mounted) {
-        setState(() {
-          _items = (response as List).cast<Map<String, dynamic>>();
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _loading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
       children: [
         // Header
@@ -594,13 +560,13 @@ class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
               CircleAvatar(
                 radius: 18,
                 backgroundColor: context.colorScheme.primaryContainer,
-                backgroundImage: widget.student.avatarUrl != null
-                    ? NetworkImage(widget.student.avatarUrl!)
+                backgroundImage: student.avatarUrl != null
+                    ? NetworkImage(student.avatarUrl!)
                     : null,
-                child: widget.student.avatarUrl == null
+                child: student.avatarUrl == null
                     ? Text(
-                        widget.student.studentName.isNotEmpty
-                            ? widget.student.studentName[0].toUpperCase()
+                        student.studentName.isNotEmpty
+                            ? student.studentName[0].toUpperCase()
                             : '?',
                         style: TextStyle(
                           color: context.colorScheme.onPrimaryContainer,
@@ -615,23 +581,23 @@ class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.student.studentName,
+                      student.studentName,
                       style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      '${widget.student.progress.toStringAsFixed(0)}% completed',
+                      '${student.progress.toStringAsFixed(0)}% completed',
                       style: context.textTheme.bodySmall?.copyWith(
-                        color: AssignmentColors.getStatusColor(widget.student.status),
+                        color: AssignmentColors.getStatusColor(student.status),
                       ),
                     ),
                   ],
                 ),
               ),
               Icon(
-                AssignmentColors.getStatusIcon(widget.student.status),
-                color: AssignmentColors.getStatusColor(widget.student.status),
+                AssignmentColors.getStatusIcon(student.status),
+                color: AssignmentColors.getStatusColor(student.status),
               ),
             ],
           ),
@@ -639,19 +605,18 @@ class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
 
         // Content
         Expanded(
-          child: _loading
-              ? const Center(child: CircularProgressIndicator())
-              : _error != null
-                  ? Center(child: Text('Error: $_error'))
-                  : ListView.builder(
-                      controller: widget.scrollController,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _items?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        final item = _items![index];
-                        return _StudentUnitItemCard(item: item);
-                      },
-                    ),
+          child: progressAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error: $e')),
+            data: (items) => ListView.builder(
+              controller: scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                return _StudentUnitItemCard(item: items[index]);
+              },
+            ),
+          ),
         ),
       ],
     );
@@ -661,93 +626,81 @@ class _StudentUnitDetailSheetState extends State<_StudentUnitDetailSheet> {
 class _StudentUnitItemCard extends StatelessWidget {
   const _StudentUnitItemCard({required this.item});
 
-  final Map<String, dynamic> item;
+  final StudentUnitProgressItem item;
 
   @override
   Widget build(BuildContext context) {
-    final itemType = item['out_item_type'] as String?;
     final IconData icon;
     final String title;
     final Color color;
     final List<Widget> details = [];
 
-    switch (itemType) {
+    switch (item.itemType) {
       case 'word_list':
         icon = Icons.abc;
-        title = (item['out_word_list_name'] as String?) ?? 'Word List';
+        title = item.wordListName ?? 'Word List';
         color = Colors.purple;
-        final isCompleted = item['out_is_word_list_completed'] as bool? ?? false;
-        final wordCount = item['out_word_count'] as num?;
-        final bestScore = item['out_best_score'] as num?;
-        final bestAccuracy = item['out_best_accuracy'] as num?;
-        final totalSessions = item['out_total_sessions'] as num?;
 
-        if (totalSessions != null && totalSessions > 0) {
+        if (item.totalSessions != null && item.totalSessions! > 0) {
           details.add(_DetailRow(
             label: 'Sessions',
-            value: '$totalSessions',
-          ));
-          if (bestAccuracy != null) {
+            value: item.totalSessions.toString(),
+          ),);
+          if (item.bestAccuracy != null) {
             details.add(_DetailRow(
               label: 'Best Accuracy',
-              value: '${bestAccuracy.toStringAsFixed(0)}%',
-              valueColor: ScoreColors.getScoreColor(bestAccuracy.toDouble()),
-            ));
+              value: '${item.bestAccuracy!.toStringAsFixed(0)}%',
+              valueColor: ScoreColors.getScoreColor(item.bestAccuracy!),
+            ),);
           }
-          if (bestScore != null) {
+          if (item.bestScore != null) {
             details.add(_DetailRow(
               label: 'Best Score',
-              value: '${bestScore.toStringAsFixed(0)}',
-            ));
+              value: item.bestScore!.toStringAsFixed(0),
+            ),);
           }
         } else {
           details.add(Text(
-            isCompleted ? 'Completed (no session data)' : 'Not started yet',
+            item.isWordListCompleted ?? false
+                ? 'Completed (no session data)'
+                : 'Not started yet',
             style: context.textTheme.bodySmall?.copyWith(
               color: context.colorScheme.outline,
             ),
-          ));
+          ),);
         }
 
-        if (wordCount != null) {
+        if (item.wordCount != null) {
           details.insert(0, _DetailRow(
             label: 'Words',
-            value: '$wordCount',
-          ));
+            value: item.wordCount.toString(),
+          ),);
         }
 
       case 'book':
         icon = Icons.menu_book;
-        title = (item['out_book_title'] as String?) ?? 'Book';
+        title = item.bookTitle ?? 'Book';
         color = Colors.blue;
-        final totalChapters = item['out_total_chapters'] as num? ?? 0;
-        final completedChapters = item['out_completed_chapters'] as num? ?? 0;
-        final isCompleted = item['out_is_book_completed'] as bool? ?? false;
+        final totalChapters = item.totalChapters ?? 0;
+        final completedChapters = item.completedChapters ?? 0;
 
         details.add(_DetailRow(
           label: 'Chapters',
           value: '$completedChapters / $totalChapters',
-          valueColor: isCompleted ? Colors.green : null,
-        ));
+          valueColor: item.isBookCompleted ?? false ? Colors.green : null,
+        ),);
 
       default:
-        icon = itemType == 'game' ? Icons.sports_esports : Icons.card_giftcard;
-        title = itemType == 'game' ? 'Game' : 'Treasure';
+        icon = item.itemType == 'game' ? Icons.sports_esports : Icons.card_giftcard;
+        title = item.itemType == 'game' ? 'Game' : 'Treasure';
         color = Colors.grey;
         details.add(Text(
           'Not graded',
           style: context.textTheme.bodySmall?.copyWith(
             color: context.colorScheme.outline,
           ),
-        ));
+        ),);
     }
-
-    final bool isTracked = itemType == 'word_list' || itemType == 'book';
-    final bool isCompleted = itemType == 'word_list'
-        ? (item['out_is_word_list_completed'] as bool? ?? false)
-        : itemType == 'book'
-            ? (item['out_is_book_completed'] as bool? ?? false)
-            : false;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
@@ -759,10 +712,10 @@ class _StudentUnitItemCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (isTracked ? color : Colors.grey).withValues(alpha: 0.1),
+                color: (item.isTracked ? color : Colors.grey).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: isTracked ? color : Colors.grey, size: 20),
+              child: Icon(icon, color: item.isTracked ? color : Colors.grey, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -773,7 +726,7 @@ class _StudentUnitItemCard extends StatelessWidget {
                     title,
                     style: context.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: isTracked ? null : context.colorScheme.outline,
+                      color: item.isTracked ? null : context.colorScheme.outline,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -781,10 +734,10 @@ class _StudentUnitItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (isTracked)
+            if (item.isTracked)
               Icon(
-                isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isCompleted ? Colors.green : context.colorScheme.outline,
+                item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: item.isCompleted ? Colors.green : context.colorScheme.outline,
                 size: 20,
               ),
           ],

@@ -7,11 +7,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/class_learning_path_unit.dart';
+import '../../../domain/entities/student_unit_progress_item.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../models/assignment/assignment_model.dart';
 import '../../models/assignment/assignment_student_model.dart';
 import '../../models/assignment/class_learning_path_unit_model.dart';
+import '../../models/assignment/student_unit_progress_item_model.dart';
 import '../../models/teacher/book_reading_stats_model.dart';
 import '../../models/teacher/recent_activity_model.dart';
 import '../../models/teacher/student_book_progress_model.dart';
@@ -409,6 +411,31 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       final units = ClassLearningPathUnitModel.fromRpcRows(response as List);
       return Right(units);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<StudentUnitProgressItem>>> getStudentUnitProgress(
+    String assignmentId,
+    String studentId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getStudentUnitProgress,
+        params: {
+          'p_assignment_id': assignmentId,
+          'p_student_id': studentId,
+        },
+      );
+
+      final items = (response as List)
+          .map((data) => StudentUnitProgressItemModel.fromJson(data as Map<String, dynamic>))
+          .toList();
+      return Right(items);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

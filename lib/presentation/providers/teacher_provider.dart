@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/class_learning_path_unit.dart';
+import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
-import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
 import '../../domain/usecases/assignment/get_class_learning_path_units_usecase.dart';
+import '../../domain/usecases/assignment/get_student_unit_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
 import '../../domain/usecases/teacher/get_student_detail_usecase.dart';
@@ -240,6 +242,26 @@ final classLearningPathUnitsProvider =
     },
   );
 });
+
+/// Provider for a student's per-item unit progress (teacher view)
+final studentUnitProgressProvider =
+    FutureProvider.family<List<StudentUnitProgressItem>, ({String assignmentId, String studentId})>(
+  (ref, params) async {
+    final useCase = ref.watch(getStudentUnitProgressUseCaseProvider);
+    final result = await useCase(GetStudentUnitProgressParams(
+      assignmentId: params.assignmentId,
+      studentId: params.studentId,
+    ),);
+
+    return result.fold(
+      (failure) {
+        debugPrint('📋 studentUnitProgressProvider FAILURE: ${failure.message}');
+        return [];
+      },
+      (items) => items,
+    );
+  },
+);
 
 // =============================================
 // LEADERBOARD PROVIDERS

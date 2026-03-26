@@ -22,6 +22,7 @@ import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
 import '../../domain/usecases/assignment/get_class_learning_path_units_usecase.dart';
+import '../../domain/usecases/assignment/get_student_unit_progress_usecase.dart';
 import '../../domain/usecases/student_assignment/get_unit_assignment_items_usecase.dart';
 import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../domain/usecases/auth/get_current_user_usecase.dart';
@@ -603,6 +604,10 @@ final getAssignmentStudentsUseCaseProvider = Provider((ref) {
 
 final deleteAssignmentUseCaseProvider = Provider((ref) {
   return DeleteAssignmentUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getStudentUnitProgressUseCaseProvider = Provider((ref) {
+  return GetStudentUnitProgressUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 // ============================================
