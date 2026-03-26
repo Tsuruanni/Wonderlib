@@ -36,7 +36,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  AssignmentType _selectedType = AssignmentType.book;
+  AssignmentType _selectedType = AssignmentType.unit;
   String? _selectedClassId;
   // Use start of today for start_date to avoid timezone issues
   DateTime _startDate = DateTime.now().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
@@ -269,6 +269,11 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
             SegmentedButton<AssignmentType>(
               segments: const [
                 ButtonSegment(
+                  value: AssignmentType.unit,
+                  label: Text('Unit'),
+                  icon: Icon(Icons.route),
+                ),
+                ButtonSegment(
                   value: AssignmentType.book,
                   label: Text('Book'),
                   icon: Icon(Icons.menu_book),
@@ -277,11 +282,6 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   value: AssignmentType.vocabulary,
                   label: Text('Vocabulary'),
                   icon: Icon(Icons.abc),
-                ),
-                ButtonSegment(
-                  value: AssignmentType.unit,
-                  label: Text('Unit'),
-                  icon: Icon(Icons.route),
                 ),
               ],
               selected: {_selectedType},
