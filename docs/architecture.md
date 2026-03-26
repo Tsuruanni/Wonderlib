@@ -422,8 +422,10 @@ UserController (addXP/updateStreak)
 - `AppClock` — Flutter static utility applying the same offset client-side. Used in SM2 algorithm, assignment status, vocabulary due checks, streak calendar.
 
 ### Assignments
-- `assignments` - Teacher-created tasks
-- `assignment_students` - Student-task mapping
+- `assignments` - Teacher-created tasks (types: `book`, `vocabulary`, `unit`)
+  - `content_config` JSONB: `{"bookId":...}`, `{"wordListId":...}`, or `{"scopeLpUnitId":..., "unitName":..., "totalItems":...}`
+- `assignment_students` - Per-student progress (status, progress 0-100, score, timestamps)
+- RPCs: `create_assignment_with_students`, `get_assignments_with_stats`, `get_assignment_detail_with_stats`, `update_assignment_progress`, `calculate_unit_assignment_progress`, `sync_unit_assignment_progress`, `get_unit_assignment_items`, `get_class_learning_path_units`, `get_student_unit_progress`
 
 ## Security Model
 

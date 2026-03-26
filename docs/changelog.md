@@ -8,6 +8,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Assignment System Overhaul + Unit Assignment Type (2026-03-26)
+
+#### Added
+- **Unit assignment type** — Teachers can assign learning path units as homework. Students complete word lists + books within the unit. Progress tracked server-side via `calculate_unit_assignment_progress` RPC.
+- **Unit selection sheet** — Create assignment screen shows learning path units for the selected class, with full item preview (word lists with all words, books with chapter counts, game/treasure indicators).
+- **Teacher student detail bottom sheet** — Tapping a student in unit assignment detail shows per-item progress: completion status, sessions played, best accuracy/score for word lists, chapters read for books.
+- **Unit content section** — Teacher assignment detail shows unit items with word chips under each word list.
+- **`assignmentSyncProvider` activated** — Auto-syncs assignment completion when students open assignments screen (handles pre-existing completions). Debounced with 60s keepAlive.
+- **Bulk sync on creation** — `sync_unit_assignment_progress` RPC called after creating unit assignments to pick up students' pre-existing progress immediately.
+- **8 new DB RPCs** — `get_assignment_detail_with_stats`, `get_class_learning_path_units`, `get_unit_assignment_items`, `calculate_unit_assignment_progress`, `sync_unit_assignment_progress`, `get_student_unit_progress` + fixes.
+
+#### Changed
+- **`mixed` → `unit` assignment type** — DB CHECK constraint, shared package enum, all Flutter references updated.
+- **`getAssignmentDetail` → RPC** — Replaced 2-query approach with single `get_assignment_detail_with_stats` RPC.
+- **Unit is default tab** — Create assignment screen defaults to Unit type (first segment).
+
+#### Fixed
+- **`chapterIds` dead code removed** — Unused getter from old chapter-selection design.
+- **RPC ambiguity fixes** — `#variable_conflict use_column` added to all RETURNS TABLE functions. Type casts (`::TEXT[]`, `::BIGINT`) for PostgreSQL type matching.
+- **Book completion NULL safety** — `COALESCE` wrapper for missing `reading_progress` rows in all progress RPCs.
+- **Auth ownership check** — `get_class_learning_path_units` now verifies teacher is in same school.
+- **Class change clears unit** — Changing class in create assignment clears previously selected unit.
+
+#### Infrastructure
+- **8 DB migrations** (20260326000009–20260326000016) — Constraint change, 8 RPCs, NULL safety fixes, auth hardening.
+- **Clean Architecture** — 4 new entities, 5 new use cases, 4 new models, full provider chain. Architecture violation (direct Supabase call) caught in review and fixed.
+- **Shared package** — 7 new `RpcFunctions` constants in `owlio_shared`.
+
 ### Avatar Customization System (2026-03-26)
 
 #### Added

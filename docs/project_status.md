@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Avatar customization system, per-animal outfit memory, admin avatar management)
+Son güncelleme: 2026-03-26 (Assignment system overhaul — unit type, bug fixes, code review fixes)
 
 ## Current Phase
 
@@ -109,6 +109,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Teacher Panel Audit & Fixes (security, atomicity, broken features, code quality — 15 migrations)
 - [x] Teacher Profile Page (editable name, password reset, role badge, school name)
 - [x] Class Management Redesign (edit/delete class, bulk move, login cards PDF, management vs report mode)
+- [x] Assignment System Overhaul (unit type, mixed removal, dead code cleanup, sync activation, 8 RPCs, code review)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -165,13 +166,14 @@ See: CLAUDE.md for architecture guidelines
 | ~~Coin idempotency missing~~ | ~~High~~ | ✅ Partial unique index + idempotency check added |
 | ~~Schools public visibility~~ | ~~High~~ | ✅ Replaced with lookup_school_by_code RPC |
 | Server-side SM-2 mismatch | Medium | `complete_vocabulary_session` RPC uses different SM-2 formula than client (flat +0.02 ease vs quality-based, rep=1 vs rep=0 start). Needs migration to align with `SM2.calculateNextReview()` |
-| N+1 in assignmentSyncProvider | Low | Sequential per-assignment progress check (1-3 items, runs once on sync) |
+| ~~N+1 in assignmentSyncProvider~~ | ~~Low~~ | ✅ Debounced with 60s keepAlive, server-side progress calc |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Assignment System Overhaul | 2026-03-26 | Replaced `mixed` with `unit` assignment type. Teachers assign learning path units; students complete word_list + book items. 8 new RPCs, server-side progress calc, bulk sync on creation, teacher student detail sheet, debounced sync provider. Full code review: architecture violation fixed, NULL safety, auth hardening. 8 migrations, 5 use cases, 4 entities. |
 | Avatar Customization System | 2026-03-26 | Layered avatar with 6 base animals + 52 accessories across 5 categories. Per-animal outfit memory (JSONB). Auto-equip on purchase. Admin CRUD with live composite preview. AvatarWidget integrated in profile, leaderboard, student dialog. 9 migrations, 8 usecases, Clean Architecture. |
 | Profile Screen Rebuild | 2026-03-25 | Complete rewrite: header (avatar/school/class), level progress bar (*100 formula fix), card collection with MythCardWidget previews, recent badges with bottom sheet, combined 4-stat card + Word Bank, daily review. LevelHelper utility, profileContextProvider. |
 | Daily Quest Eligibility Fix | 2026-03-24 | daily_review quest hidden when < 10 due words, XP exploit closed, bonus claim aligned, pack claim date offset fixed. 2 migrations. |
