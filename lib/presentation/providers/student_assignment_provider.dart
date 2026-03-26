@@ -13,6 +13,16 @@ import '../../domain/usecases/student_assignment/get_unit_assignment_items_useca
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
 
+/// Assignment notification event — fired when student has active assignments on app open
+class AssignmentNotificationEvent {
+  const AssignmentNotificationEvent({required this.count});
+  final int count;
+}
+
+/// Provider for assignment notification events — UI listens to show dialog
+final assignmentNotificationEventProvider =
+    StateProvider<AssignmentNotificationEvent?>((ref) => null);
+
 /// Provider for all student assignments
 final studentAssignmentsProvider = FutureProvider<List<StudentAssignment>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
