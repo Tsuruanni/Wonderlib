@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/playful_card.dart';
+import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/stat_item.dart';
 
 class ReportsScreen extends ConsumerWidget {
@@ -15,12 +17,16 @@ class ReportsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reports'),
+        centerTitle: false,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Quick Stats Summary
-          const _QuickStatsCard(),
+          const ResponsiveConstraint(
+            maxWidth: 900,
+            child: _QuickStatsCard(),
+          ),
 
           const SizedBox(height: 24),
 
@@ -33,36 +39,38 @@ class ReportsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
 
-          _ReportTypeCard(
-            title: 'Class Overview',
-            description: 'View performance summary for each class',
-            icon: Icons.groups,
-            color: Colors.blue,
-            onTap: () => context.push(AppRoutes.teacherReportClassOverview),
-          ),
-
-          _ReportTypeCard(
-            title: 'Reading Progress',
-            description: 'Track book completion across all students',
-            icon: Icons.menu_book,
-            color: Colors.green,
-            onTap: () => context.push(AppRoutes.teacherReportReadingProgress),
-          ),
-
-          _ReportTypeCard(
-            title: 'Assignment Performance',
-            description: 'Analyze assignment completion rates',
-            icon: Icons.assignment_turned_in,
-            color: Colors.orange,
-            onTap: () => context.push(AppRoutes.teacherReportAssignments),
-          ),
-
-          _ReportTypeCard(
-            title: 'Student Leaderboard',
-            description: 'Top performers by XP and achievements',
-            icon: Icons.leaderboard,
-            color: Colors.purple,
-            onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
+          ResponsiveWrap(
+            minItemWidth: 300,
+            children: [
+              _ReportTypeCard(
+                title: 'Class Overview',
+                description: 'View performance summary for each class',
+                icon: Icons.groups,
+                color: Colors.blue,
+                onTap: () => context.push(AppRoutes.teacherReportClassOverview),
+              ),
+              _ReportTypeCard(
+                title: 'Reading Progress',
+                description: 'Track book completion across all students',
+                icon: Icons.menu_book,
+                color: Colors.green,
+                onTap: () => context.push(AppRoutes.teacherReportReadingProgress),
+              ),
+              _ReportTypeCard(
+                title: 'Assignment Performance',
+                description: 'Analyze assignment completion rates',
+                icon: Icons.assignment_turned_in,
+                color: Colors.orange,
+                onTap: () => context.push(AppRoutes.teacherReportAssignments),
+              ),
+              _ReportTypeCard(
+                title: 'Student Leaderboard',
+                description: 'Top performers by XP and achievements',
+                icon: Icons.leaderboard,
+                color: Colors.purple,
+                onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
+              ),
+            ],
           ),
         ],
       ),
@@ -77,63 +85,60 @@ class _QuickStatsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(teacherStatsProvider);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.analytics,
-                  color: context.colorScheme.primary,
+    return PlayfulCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.analytics,
+                color: context.colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Quick Stats',
+                style: context.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Quick Stats',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          statsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Text('Error loading stats'),
+            data: (stats) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                StatItem(
+                  value: '${stats.totalStudents}',
+                  label: 'Students',
+                  icon: Icons.people,
+                  color: Colors.blue,
+                ),
+                StatItem(
+                  value: '${stats.totalClasses}',
+                  label: 'Classes',
+                  icon: Icons.class_,
+                  color: Colors.green,
+                ),
+                StatItem(
+                  value: '${stats.activeAssignments}',
+                  label: 'Active Tasks',
+                  icon: Icons.assignment,
+                  color: Colors.orange,
+                ),
+                StatItem(
+                  value: '${stats.avgProgress.toStringAsFixed(0)}%',
+                  label: 'Avg Progress',
+                  icon: Icons.trending_up,
+                  color: Colors.purple,
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            statsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => const Text('Error loading stats'),
-              data: (stats) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  StatItem(
-                    value: '${stats.totalStudents}',
-                    label: 'Students',
-                    icon: Icons.people,
-                    color: Colors.blue,
-                  ),
-                  StatItem(
-                    value: '${stats.totalClasses}',
-                    label: 'Classes',
-                    icon: Icons.class_,
-                    color: Colors.green,
-                  ),
-                  StatItem(
-                    value: '${stats.activeAssignments}',
-                    label: 'Active Tasks',
-                    icon: Icons.assignment,
-                    color: Colors.orange,
-                  ),
-                  StatItem(
-                    value: '${stats.avgProgress.toStringAsFixed(0)}%',
-                    label: 'Avg Progress',
-                    icon: Icons.trending_up,
-                    color: Colors.purple,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -156,51 +161,45 @@ class _ReportTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: context.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: context.textTheme.bodySmall?.copyWith(
-                        color: context.colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: context.colorScheme.outline,
-              ),
-            ],
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 28),
           ),
-        ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: context.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            Icons.chevron_right,
+            color: context.colorScheme.outline,
+          ),
+        ],
       ),
     );
   }

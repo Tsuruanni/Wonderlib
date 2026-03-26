@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../widgets/common/playful_card.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/class_learning_path_unit.dart';
 import '../../../domain/repositories/teacher_repository.dart';
@@ -304,37 +306,6 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
             const SizedBox(height: 24),
 
-            // Title
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'e.g., Read The Little Prince',
-                border: OutlineInputBorder(),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-
-            const SizedBox(height: 16),
-
-            // Description (optional)
-            TextFormField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Instructions for students...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-
-            const SizedBox(height: 24),
-
             // Class selection
             Text(
               'Assign to Class',
@@ -348,14 +319,11 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
               error: (_, __) => const Text('Error loading classes'),
               data: (classes) {
                 if (classes.isEmpty) {
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        'No classes available',
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: context.colorScheme.outline,
-                        ),
+                  return PlayfulCard(
+                    child: Text(
+                      'No classes available',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: context.colorScheme.outline,
                       ),
                     ),
                   );
@@ -385,6 +353,161 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 );
               },
             ),
+
+            const SizedBox(height: 24),
+
+            // Book content selection
+            if (_selectedType == AssignmentType.book) ...[
+              Text(
+                'Book Content',
+                style: context.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              PlayfulCard(
+                padding: EdgeInsets.zero,
+                onTap: () => _showBookSelectionSheet(context, ref),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.menu_book,
+                    color: _selectedBookId != null
+                        ? context.colorScheme.primary
+                        : context.colorScheme.outline,
+                  ),
+                  title: Text(
+                    _selectedBookId != null
+                        ? _selectedBookTitle ?? 'Book selected'
+                        : 'Select Book',
+                  ),
+                  subtitle: Text(
+                    _selectedBookId != null
+                        ? '${_selectedBookChapterCount ?? 0} chapters (full book)'
+                        : 'Tap to choose a book',
+                    style: TextStyle(
+                      color: _selectedBookId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              ),
+
+              // Lock library option
+              if (_selectedBookId != null) ...[
+                const SizedBox(height: 12),
+                PlayfulCard(
+                  padding: EdgeInsets.zero,
+                  child: CheckboxListTile(
+                    title: const Text('Lock other books'),
+                    subtitle: const Text(
+                      'Students can only read this book until completed',
+                    ),
+                    value: _lockLibrary,
+                    onChanged: (value) {
+                      setState(() {
+                        _lockLibrary = value ?? false;
+                      });
+                    },
+                    secondary: Icon(
+                      _lockLibrary ? Icons.lock : Icons.lock_open,
+                      color: _lockLibrary
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+
+            // Vocabulary content selection
+            if (_selectedType == AssignmentType.vocabulary) ...[
+              Text(
+                'Vocabulary Content',
+                style: context.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              PlayfulCard(
+                padding: EdgeInsets.zero,
+                onTap: () => _showWordListSelectionSheet(context, ref),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.abc,
+                    color: _selectedWordListId != null
+                        ? context.colorScheme.primary
+                        : context.colorScheme.outline,
+                  ),
+                  title: Text(
+                    _selectedWordListId != null
+                        ? _selectedWordListName ?? 'Word list selected'
+                        : 'Select Word List',
+                  ),
+                  subtitle: Text(
+                    _selectedWordListId != null
+                        ? 'Vocabulary assignment'
+                        : 'Tap to choose vocabulary',
+                    style: TextStyle(
+                      color: _selectedWordListId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                ),
+              ),
+            ],
+
+            // Unit content selection
+            if (_selectedType == AssignmentType.unit) ...[
+              Text(
+                'Unit Content',
+                style: context.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (_selectedClassId == null)
+                PlayfulCard(
+                  child: Text(
+                    'Please select a class first to see available units',
+                    style: context.textTheme.bodyMedium?.copyWith(
+                      color: context.colorScheme.outline,
+                    ),
+                  ),
+                )
+              else
+                PlayfulCard(
+                  padding: EdgeInsets.zero,
+                  onTap: () => _showUnitSelectionSheet(context, ref),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.route,
+                      color: _selectedScopeLpUnitId != null
+                          ? context.colorScheme.primary
+                          : context.colorScheme.outline,
+                    ),
+                    title: Text(
+                      _selectedScopeLpUnitId != null
+                          ? _selectedUnitName ?? 'Unit selected'
+                          : 'Select Unit',
+                    ),
+                    subtitle: Text(
+                      _selectedScopeLpUnitId != null
+                          ? '${_selectedUnitTotalItems ?? 0} trackable items'
+                          : 'Tap to choose a learning path unit',
+                      style: TextStyle(
+                        color: _selectedScopeLpUnitId != null
+                            ? context.colorScheme.primary
+                            : context.colorScheme.outline,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                  ),
+                ),
+            ],
 
             const SizedBox(height: 24),
 
@@ -420,157 +543,34 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
             const SizedBox(height: 24),
 
-            // Book content selection
-            if (_selectedType == AssignmentType.book) ...[
-              Text(
-                'Book Content',
-                style: context.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            // Title
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                hintText: 'e.g., Read The Little Prince',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 8),
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    Icons.menu_book,
-                    color: _selectedBookId != null
-                        ? context.colorScheme.primary
-                        : context.colorScheme.outline,
-                  ),
-                  title: Text(
-                    _selectedBookId != null
-                        ? _selectedBookTitle ?? 'Book selected'
-                        : 'Select Book',
-                  ),
-                  subtitle: Text(
-                    _selectedBookId != null
-                        ? '${_selectedBookChapterCount ?? 0} chapters (full book)'
-                        : 'Tap to choose a book',
-                    style: TextStyle(
-                      color: _selectedBookId != null
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showBookSelectionSheet(context, ref),
-                ),
-              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
+            ),
 
-              // Lock library option
-              if (_selectedBookId != null) ...[
-                const SizedBox(height: 12),
-                Card(
-                  child: CheckboxListTile(
-                    title: const Text('Lock other books'),
-                    subtitle: const Text(
-                      'Students can only read this book until completed',
-                    ),
-                    value: _lockLibrary,
-                    onChanged: (value) {
-                      setState(() {
-                        _lockLibrary = value ?? false;
-                      });
-                    },
-                    secondary: Icon(
-                      _lockLibrary ? Icons.lock : Icons.lock_open,
-                      color: _lockLibrary
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+            const SizedBox(height: 16),
 
-            // Vocabulary content selection
-            if (_selectedType == AssignmentType.vocabulary) ...[
-              Text(
-                'Vocabulary Content',
-                style: context.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            // Description (optional)
+            TextFormField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (optional)',
+                hintText: 'Instructions for students...',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 8),
-              Card(
-                child: ListTile(
-                  leading: Icon(
-                    Icons.abc,
-                    color: _selectedWordListId != null
-                        ? context.colorScheme.primary
-                        : context.colorScheme.outline,
-                  ),
-                  title: Text(
-                    _selectedWordListId != null
-                        ? _selectedWordListName ?? 'Word list selected'
-                        : 'Select Word List',
-                  ),
-                  subtitle: Text(
-                    _selectedWordListId != null
-                        ? 'Vocabulary assignment'
-                        : 'Tap to choose vocabulary',
-                    style: TextStyle(
-                      color: _selectedWordListId != null
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showWordListSelectionSheet(context, ref),
-                ),
-              ),
-            ],
-
-            // Unit content selection
-            if (_selectedType == AssignmentType.unit) ...[
-              Text(
-                'Unit Content',
-                style: context.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (_selectedClassId == null)
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      'Please select a class first to see available units',
-                      style: context.textTheme.bodyMedium?.copyWith(
-                        color: context.colorScheme.outline,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.route,
-                      color: _selectedScopeLpUnitId != null
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
-                    title: Text(
-                      _selectedScopeLpUnitId != null
-                          ? _selectedUnitName ?? 'Unit selected'
-                          : 'Select Unit',
-                    ),
-                    subtitle: Text(
-                      _selectedScopeLpUnitId != null
-                          ? '${_selectedUnitTotalItems ?? 0} trackable items'
-                          : 'Tap to choose a learning path unit',
-                      style: TextStyle(
-                        color: _selectedScopeLpUnitId != null
-                            ? context.colorScheme.primary
-                            : context.colorScheme.outline,
-                      ),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _showUnitSelectionSheet(context, ref),
-                  ),
-                ),
-            ],
+              maxLines: 3,
+            ),
 
             const SizedBox(height: 32),
 
@@ -607,41 +607,37 @@ class _DatePickerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return PlayfulCard(
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(12),
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: context.textTheme.labelSmall?.copyWith(
+              color: context.colorScheme.outline,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
             children: [
-              Text(
-                label,
-                style: context.textTheme.labelSmall?.copyWith(
-                  color: context.colorScheme.outline,
-                ),
+              Icon(
+                Icons.calendar_today,
+                size: 16,
+                color: context.colorScheme.primary,
               ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: context.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    dateFormat.format(date),
-                    style: context.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              Text(
+                dateFormat.format(date),
+                style: context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -970,65 +966,56 @@ class _UnitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final unitColor = _parseHexColor(unit.unitColor);
 
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: isSelected
-            ? BorderSide(color: context.colorScheme.primary, width: 2)
-            : BorderSide.none,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      borderColor: isSelected
+          ? context.colorScheme.primary
+          : AppColors.neutral,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Unit header
+          Row(
             children: [
-              // Unit header
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: unitColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(unit.unitIcon, style: const TextStyle(fontSize: 20)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          unit.unitName,
-                          style: context.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? context.colorScheme.primary : null,
-                          ),
-                        ),
-                        Text(
-                          '${unit.items.length} items (${unit.trackableItemCount} tracked)',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: context.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (isSelected)
-                    Icon(Icons.check_circle, color: context.colorScheme.primary),
-                ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: unitColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(unit.unitIcon, style: const TextStyle(fontSize: 20)),
               ),
-
-              // Item list
-              const SizedBox(height: 12),
-              ...unit.items.map((item) => _UnitItemRow(item: item)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      unit.unitName,
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? context.colorScheme.primary : null,
+                      ),
+                    ),
+                    Text(
+                      '${unit.items.length} items (${unit.trackableItemCount} tracked)',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: context.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(Icons.check_circle, color: context.colorScheme.primary),
             ],
           ),
-        ),
+
+          // Item list
+          const SizedBox(height: 12),
+          ...unit.items.map((item) => _UnitItemRow(item: item)),
+        ],
       ),
     );
   }

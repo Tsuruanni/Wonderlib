@@ -11,6 +11,8 @@ import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/playful_card.dart';
+import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/stat_item.dart';
 
 class AssignmentDetailScreen extends ConsumerWidget {
@@ -46,7 +48,7 @@ class AssignmentDetailScreen extends ConsumerWidget {
               // App bar with assignment info
               _AssignmentAppBar(assignment: assignment),
 
-              // Stats bar
+              // Stats bar (full width)
               SliverToBoxAdapter(
                 child: _StatsBar(assignment: assignment),
               ),
@@ -54,33 +56,41 @@ class AssignmentDetailScreen extends ConsumerWidget {
               // Unit content (if unit assignment)
               if (assignment.type == AssignmentType.unit && assignment.scopeLpUnitId != null)
                 SliverToBoxAdapter(
-                  child: _UnitContentSection(
-                    classId: assignment.classId,
-                    scopeLpUnitId: assignment.scopeLpUnitId!,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 700),
+                      child: _UnitContentSection(
+                        classId: assignment.classId,
+                        scopeLpUnitId: assignment.scopeLpUnitId!,
+                      ),
+                    ),
                   ),
                 ),
 
               // Section header
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Student Progress',
-                        style: context.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                child: ResponsiveConstraint(
+                  maxWidth: 900,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Student Progress',
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: () {
-                          ref.invalidate(assignmentStudentsProvider(assignmentId));
-                        },
-                        icon: const Icon(Icons.refresh, size: 18),
-                        label: const Text('Refresh'),
-                      ),
-                    ],
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            ref.invalidate(assignmentStudentsProvider(assignmentId));
+                          },
+                          icon: const Icon(Icons.refresh, size: 18),
+                          label: const Text('Refresh'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -118,16 +128,29 @@ class AssignmentDetailScreen extends ConsumerWidget {
                     );
                   }
 
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final student = students[index];
-                        return _StudentProgressCard(
-                          student: student,
-                          assignment: assignment,
-                        );
-                      },
-                      childCount: students.length,
+                  // Sort: highest progress first, then alphabetically by name
+                  final sorted = [...students]..sort((a, b) {
+                    final progressCmp = b.progress.compareTo(a.progress);
+                    if (progressCmp != 0) return progressCmp;
+                    return a.studentName.toLowerCase().compareTo(
+                      b.studentName.toLowerCase(),
+                    );
+                  });
+
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ResponsiveWrap(
+                        minItemWidth: 280,
+                        children: sorted
+                            .map(
+                              (student) => _StudentProgressCard(
+                                student: student,
+                                assignment: assignment,
+                              ),
+                            )
+                            .toList(),
+                      ),
                     ),
                   );
                 },
@@ -234,12 +257,17 @@ class _AssignmentAppBar extends ConsumerWidget {
             ),
           ),
           child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Align(
+              alignment: AlignmentDirectional.bottomStart,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   // Type badge
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -337,6 +365,8 @@ class _AssignmentAppBar extends ConsumerWidget {
               ),
             ),
           ),
+            ),
+          ),
         ),
       ),
     );
@@ -392,114 +422,109 @@ class _StudentProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: InkWell(
-        onTap: assignment.type == AssignmentType.unit
-            ? () => _showStudentDetail(context)
-            : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            // Avatar
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: context.colorScheme.primaryContainer,
-              backgroundImage: student.avatarUrl != null
-                  ? NetworkImage(student.avatarUrl!)
-                  : null,
-              child: student.avatarUrl == null
-                  ? Text(
-                      student.studentName.isNotEmpty
-                          ? student.studentName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: context.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-
-            // Name and status
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    student.studentName,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(
-                        AssignmentColors.getStatusIcon(student.status),
-                        size: 14,
-                        color: AssignmentColors.getStatusColor(student.status),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        student.status.displayName,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: AssignmentColors.getStatusColor(student.status),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Progress
-            SizedBox(
-              width: 50,
-              height: 50,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: student.progress / 100,
-                    strokeWidth: 4,
-                    backgroundColor: context.colorScheme.surfaceContainerHighest,
-                    color: AssignmentColors.getStatusColor(student.status),
-                  ),
-                  Text(
-                    '${student.progress.toStringAsFixed(0)}%',
-                    style: context.textTheme.labelSmall?.copyWith(
+    return PlayfulCard(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      onTap: assignment.type == AssignmentType.unit
+          ? () => _showStudentDetail(context)
+          : null,
+      child: Row(
+        children: [
+          // Avatar
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: context.colorScheme.primaryContainer,
+            backgroundImage: student.avatarUrl != null
+                ? NetworkImage(student.avatarUrl!)
+                : null,
+            child: student.avatarUrl == null
+                ? Text(
+                    student.studentName.isNotEmpty
+                        ? student.studentName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: context.colorScheme.onPrimaryContainer,
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 12),
 
-            // Score (if completed)
-            if (student.score != null) ...[
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: ScoreColors.getScoreColor(student.score!).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+          // Name and status
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  student.studentName,
+                  style: context.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-                child: Text(
-                  '${student.score!.toStringAsFixed(0)}%',
-                  style: context.textTheme.labelMedium?.copyWith(
-                    color: ScoreColors.getScoreColor(student.score!),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      AssignmentColors.getStatusIcon(student.status),
+                      size: 14,
+                      color: AssignmentColors.getStatusColor(student.status),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      student.status.displayName,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: AssignmentColors.getStatusColor(student.status),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Progress
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircularProgressIndicator(
+                  value: student.progress / 100,
+                  strokeWidth: 4,
+                  backgroundColor: context.colorScheme.surfaceContainerHighest,
+                  color: AssignmentColors.getStatusColor(student.status),
+                ),
+                Text(
+                  '${student.progress.toStringAsFixed(0)}%',
+                  style: context.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ],
+            ),
+          ),
+
+          // Score (if completed)
+          if (student.score != null) ...[
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: ScoreColors.getScoreColor(student.score!).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-            ],
+              child: Text(
+                '${student.score!.toStringAsFixed(0)}%',
+                style: context.textTheme.labelMedium?.copyWith(
+                  color: ScoreColors.getScoreColor(student.score!),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
+        ],
       ),
     );
   }
@@ -702,46 +727,44 @@ class _StudentUnitItemCard extends StatelessWidget {
         ),);
     }
 
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: (item.isTracked ? color : Colors.grey).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: item.isTracked ? color : Colors.grey, size: 20),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (item.isTracked ? color : Colors.grey).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: item.isTracked ? null : context.colorScheme.outline,
-                    ),
+            child: Icon(icon, color: item.isTracked ? color : Colors.grey, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: context.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: item.isTracked ? null : context.colorScheme.outline,
                   ),
-                  const SizedBox(height: 4),
-                  ...details,
-                ],
-              ),
+                ),
+                const SizedBox(height: 4),
+                ...details,
+              ],
             ),
-            if (item.isTracked)
-              Icon(
-                item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: item.isCompleted ? Colors.green : context.colorScheme.outline,
-                size: 20,
-              ),
-          ],
-        ),
+          ),
+          if (item.isTracked)
+            Icon(
+              item.isCompleted ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: item.isCompleted ? Colors.green : context.colorScheme.outline,
+              size: 20,
+            ),
+        ],
       ),
     );
   }
@@ -820,10 +843,10 @@ class _UnitContentSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
+              PlayfulCard(
+                margin: EdgeInsets.zero,
+                padding: const EdgeInsets.all(12),
+                child: Column(
                     children: unit.items.map((item) {
                       final IconData icon;
                       final String label;
@@ -897,13 +920,12 @@ class _UnitContentSection extends ConsumerWidget {
                                       color: context.colorScheme.onPrimaryContainer,
                                     ),
                                   ),
-                                )).toList(),
+                                ),).toList(),
                               ),
                             ),
                         ],
                       );
                     }).toList(),
-                  ),
                 ),
               ),
             ],

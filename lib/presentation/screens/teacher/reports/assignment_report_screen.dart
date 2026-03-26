@@ -9,6 +9,8 @@ import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
+import '../../../widgets/common/playful_card.dart';
+import '../../../widgets/common/responsive_layout.dart';
 import '../../../widgets/common/stat_item.dart';
 
 class AssignmentReportScreen extends ConsumerWidget {
@@ -21,6 +23,7 @@ class AssignmentReportScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Assignment Performance'),
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -65,60 +68,60 @@ class AssignmentReportScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 // Overall stats
-                Card(
+                ResponsiveConstraint(
+                  maxWidth: 900,
+                  child: PlayfulCard(
                   color: context.colorScheme.primaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Overall Performance',
-                          style: context.textTheme.titleSmall?.copyWith(
-                            color: context.colorScheme.onPrimaryContainer,
+                  child: Column(
+                    children: [
+                      Text(
+                        'Overall Performance',
+                        style: context.textTheme.titleSmall?.copyWith(
+                          color: context.colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          StatItem(
+                            value: '$totalAssignments',
+                            label: 'Assignments',
+                            valueStyle: context.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: context.colorScheme.onPrimaryContainer,
+                            ),
+                            labelStyle: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            StatItem(
-                              value: '$totalAssignments',
-                              label: 'Assignments',
-                              valueStyle: context.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: context.colorScheme.onPrimaryContainer,
-                              ),
-                              labelStyle: context.textTheme.bodySmall?.copyWith(
-                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-                              ),
+                          StatItem(
+                            value: '$totalCompleted/$totalStudents',
+                            label: 'Completed',
+                            valueStyle: context.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: context.colorScheme.onPrimaryContainer,
                             ),
-                            StatItem(
-                              value: '$totalCompleted/$totalStudents',
-                              label: 'Completed',
-                              valueStyle: context.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: context.colorScheme.onPrimaryContainer,
-                              ),
-                              labelStyle: context.textTheme.bodySmall?.copyWith(
-                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-                              ),
+                            labelStyle: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
                             ),
-                            StatItem(
-                              value: '${avgCompletionRate.toStringAsFixed(0)}%',
-                              label: 'Avg Rate',
-                              valueStyle: context.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: context.colorScheme.onPrimaryContainer,
-                              ),
-                              labelStyle: context.textTheme.bodySmall?.copyWith(
-                                color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
-                              ),
+                          ),
+                          StatItem(
+                            value: '${avgCompletionRate.toStringAsFixed(0)}%',
+                            label: 'Avg Rate',
+                            valueStyle: context.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: context.colorScheme.onPrimaryContainer,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            labelStyle: context.textTheme.bodySmall?.copyWith(
+                              color: context.colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
                 ),
 
                 const SizedBox(height: 24),
@@ -132,10 +135,19 @@ class AssignmentReportScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
 
                 // Assignment cards
-                ...assignments.map((assignment) => _AssignmentReportCard(
-                  assignment: assignment,
-                  onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(assignment.id)),
-                ),),
+                ResponsiveWrap(
+                  minItemWidth: 240,
+                  children: assignments
+                      .map(
+                        (assignment) => _AssignmentReportCard(
+                          assignment: assignment,
+                          onTap: () => context.push(
+                            AppRoutes.teacherAssignmentDetailPath(assignment.id),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
               ],
             );
           },
@@ -158,14 +170,10 @@ class _AssignmentReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d');
 
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+      onTap: onTap,
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -305,8 +313,6 @@ class _AssignmentReportCard extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
     );
   }
 

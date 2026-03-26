@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/animated_game_button.dart';
+import '../../widgets/common/responsive_layout.dart';
 
 class TeacherDashboardScreen extends ConsumerWidget {
   const TeacherDashboardScreen({super.key});
@@ -17,14 +20,19 @@ class TeacherDashboardScreen extends ConsumerWidget {
     final authState = ref.watch(authStateChangesProvider);
     final user = authState.valueOrNull;
 
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard'),
+        centerTitle: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push(AppRoutes.profile),
-          ),
+          if (!isWide)
+            IconButton(
+              icon: const Icon(Icons.person_outline),
+              tooltip: 'Profile',
+              onPressed: () => context.push(AppRoutes.profile),
+            ),
         ],
       ),
       body: RefreshIndicator(
@@ -38,34 +46,101 @@ class TeacherDashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome header
-              _WelcomeHeader(userName: user?.firstName ?? 'Teacher'),
-              const SizedBox(height: 24),
-
-              // Stats cards
-              const _StatsGrid(),
-              const SizedBox(height: 24),
-
-              // Quick actions
-              Text(
-                'Quick Actions',
-                style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+              if (isWide)
+                // Wide: 2-column layout
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left column: Welcome + Quick Actions + Stats
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Welcome Back!',
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _WelcomeHeader(userName: user?.firstName ?? 'Teacher'),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Quick Actions',
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const _QuickActionsRow(),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Overview',
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const _StatsGrid(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Right column: Recent Student Activities
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Recent Student Activities',
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const _RecentActivityList(),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              else
+                // Narrow: single column
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _WelcomeHeader(userName: user?.firstName ?? 'Teacher'),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Quick Actions',
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const _QuickActionsRow(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Overview',
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const _StatsGrid(),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Recent Student Activities',
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const _RecentActivityList(),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 12),
-              const _QuickActionsRow(),
-              const SizedBox(height: 24),
-
-              // Recent activity
-              Text(
-                'Recent Activity',
-                style: context.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const _RecentActivityList(),
             ],
           ),
         ),
@@ -88,13 +163,20 @@ class _WelcomeHeader extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            context.colorScheme.primary,
-            context.colorScheme.primary.withValues(alpha: 0.8),
+            AppColors.primary,
+            AppColors.primary.withValues(alpha: 0.8),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryDark, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.primaryDark,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -145,28 +227,22 @@ class _StatsGrid extends ConsumerWidget {
     final statsAsync = ref.watch(teacherStatsProvider);
 
     return statsAsync.when(
-      loading: () => GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.4,
-        children: const [
+      loading: () => const ResponsiveGrid(
+        minItemWidth: 160,
+        maxColumns: 4,
+        childAspectRatio: 1.2,
+        children: [
           _StatCard(icon: Icons.groups, label: 'Total Students', value: '...', color: Colors.blue),
-          _StatCard(icon: Icons.class_, label: 'My Classes', value: '...', color: Colors.green),
+          _StatCard(icon: Icons.class_, label: 'Manage Classes', value: '...', color: Colors.green),
           _StatCard(icon: Icons.assignment, label: 'Active Assignments', value: '...', color: Colors.orange),
           _StatCard(icon: Icons.trending_up, label: 'Avg Progress', value: '...', color: Colors.purple),
         ],
       ),
       error: (_, __) => const Center(child: Text('Error loading stats')),
-      data: (stats) => GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1.4,
+      data: (stats) => ResponsiveGrid(
+        minItemWidth: 160,
+        maxColumns: 4,
+        childAspectRatio: 1.2,
         children: [
           _StatCard(
             icon: Icons.groups,
@@ -176,7 +252,7 @@ class _StatsGrid extends ConsumerWidget {
           ),
           _StatCard(
             icon: Icons.class_,
-            label: 'My Classes',
+            label: 'Manage Classes',
             value: '${stats.totalClasses}',
             color: Colors.green,
           ),
@@ -214,19 +290,30 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-        ),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.neutral,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color, size: 28),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -235,8 +322,8 @@ class _StatCard extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   value,
-                  style: context.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: context.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
                     color: color,
                   ),
                 ),
@@ -244,7 +331,8 @@ class _StatCard extends StatelessWidget {
               Text(
                 label,
                 style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.onSurface.withValues(alpha: 0.7),
+                  color: AppColors.neutralText,
+                  fontWeight: FontWeight.w600,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -262,86 +350,38 @@ class _QuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return ResponsiveWrap(
+      minItemWidth: 120,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.add_circle_outline,
-                label: 'New Assignment',
-                onTap: () => context.push(AppRoutes.teacherCreateAssignment),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.bar_chart,
-                label: 'View Reports',
-                onTap: () => context.go(AppRoutes.teacherReports),
-              ),
-            ),
-          ],
+        AnimatedGameButton(
+          label: 'New Assignment',
+          icon: const Icon(Icons.add_circle_outline),
+          variant: GameButtonVariant.primary,
+          fullWidth: true,
+          onPressed: () => context.push(AppRoutes.teacherCreateAssignment),
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.groups,
-                label: 'My Classes',
-                onTap: () => context.go(AppRoutes.teacherClasses),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.leaderboard,
-                label: 'Leaderboard',
-                onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
-              ),
-            ),
-          ],
+        AnimatedGameButton(
+          label: 'Reports',
+          icon: const Icon(Icons.bar_chart),
+          variant: GameButtonVariant.secondary,
+          fullWidth: true,
+          onPressed: () => context.go(AppRoutes.teacherReports),
+        ),
+        AnimatedGameButton(
+          label: 'Manage Classes',
+          icon: const Icon(Icons.groups),
+          variant: GameButtonVariant.neutral,
+          fullWidth: true,
+          onPressed: () => context.go(AppRoutes.teacherClasses),
+        ),
+        AnimatedGameButton(
+          label: 'Leaderboard',
+          icon: const Icon(Icons.leaderboard),
+          variant: GameButtonVariant.wasp,
+          fullWidth: true,
+          onPressed: () => context.push(AppRoutes.teacherReportLeaderboard),
         ),
       ],
-    );
-  }
-}
-
-class _QuickActionButton extends StatelessWidget {
-  const _QuickActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: context.colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: context.textTheme.labelLarge,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -401,15 +441,67 @@ class _RecentActivityList extends ConsumerWidget {
           );
         }
 
-        return Column(
-          children: activities.take(10).map((activity) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+        // Filter out noisy XP entries, then take 10
+        final filtered = activities
+            .where((a) =>
+                a.activityType != 'activity' &&
+                a.activityType != 'manual' &&
+                !a.description.toLowerCase().contains('xp awarded'),)
+            .take(10)
+            .toList();
+
+        if (filtered.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.history,
+                  size: 48,
+                  color: context.colorScheme.outline.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'No recent activity',
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    color: context.colorScheme.outline,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.neutral, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.neutral,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Column(
+          children: filtered.map((activity) {
+            return InkWell(
+              onTap: () => context.push(
+                AppRoutes.teacherStudentProfilePath(activity.studentId),
+              ),
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AppColors.neutral, width: 1),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -484,6 +576,8 @@ class _RecentActivityList extends ConsumerWidget {
               ),
             );
           }).toList(),
+            ),
+          ),
         );
       },
     );

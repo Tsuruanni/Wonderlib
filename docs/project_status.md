@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-26 (Assignment system overhaul — unit type, bug fixes, code review fixes)
+Son güncelleme: 2026-03-27 (Teacher panel responsive redesign + playful UI + enriched reports)
 
 ## Current Phase
 
@@ -110,6 +110,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Teacher Profile Page (editable name, password reset, role badge, school name)
 - [x] Class Management Redesign (edit/delete class, bulk move, login cards PDF, management vs report mode)
 - [x] Assignment System Overhaul (unit type, mixed removal, dead code cleanup, sync activation, 8 RPCs, code review)
+- [x] Teacher Panel Responsive Redesign (responsive layout, playful UI, sidebar nav, enriched reports, student profile deep links)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

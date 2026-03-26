@@ -8,6 +8,44 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Teacher Panel Responsive Redesign + Playful UI (2026-03-27)
+
+#### Added
+- **Responsive layout system** — `ResponsiveConstraint`, `ResponsiveGrid`, `ResponsiveWrap` widgets for adaptive layouts across mobile/tablet/desktop.
+- **PlayfulCard widget** — Duolingo-style card with 2px border, flat shadow, 16px radius. Drop-in replacement for Material Card across all teacher screens.
+- **PlayfulListCard widget** — Grouped list variant with dividers for activity feeds.
+- **Custom teacher sidebar** — Playful NavigationRail replacement with colored nav items, Owlio logo, profile button at bottom. Replaces default Material NavigationRail on wide screens.
+- **2-column dashboard layout** — Welcome + Quick Actions + Stats on left, Recent Student Activities on right (wide screens).
+- **AnimatedGameButton on teacher dashboard** — 3D press-down buttons for Quick Actions (New Assignment, Reports, Manage Classes, Leaderboard).
+- **Student detail redesign** — Horizontal scroll for books (filtered >0%), word lists (with word chips), quiz results, badges, and card collection. Level+XP progress bar styled like student profile.
+- **Student badges & cards on teacher view** — `teacherStudentBadgesProvider` and `teacherStudentCardsProvider` fetch student data via schoolmate RLS policies.
+- **Word list words on teacher view** — `wordListWordsProvider` shows vocabulary words as colored chips in word list cards.
+- **Student avatar on teacher view** — `AvatarWidget` renders student's equipped avatar from `avatarEquippedCache`.
+- **Clickable student profiles** — Recent Activity items and Leaderboard cards navigate to full student profile via `/teacher/dashboard/student/:studentId` route.
+- **Class Overview enriched metrics** — New RPC returns avg_xp, avg_streak, total_reading_time, completed_books, active_last_30d, total_vocab_words per class.
+- **Class detail report mode enhanced** — PlayfulCard stats bar (Students, Avg XP, Avg Streak, Progress, Books), enriched student cards with progress bars and stat chips.
+- **Info banner on Manage Classes** — Explains page purpose and directs to Reports for student progress.
+- **Page transition animations** — Global `FadeUpwardsPageTransitionsBuilder` + `AnimatedSwitcher` crossfade on tab switches.
+
+#### Changed
+- **Teacher routes moved into shell** — Class detail, student detail, assignment detail, create assignment, and all report sub-routes now render inside the teacher shell (sidebar visible).
+- **"My Classes" → "Manage Classes"** — Clearer naming for class management section.
+- **"Recent Activity" → "Recent Student Activities"** — Filtered out inline activity XP and generic "XP awarded" entries.
+- **Assignment creation reordered** — Class → Content → Schedule → Title → Description (was Title first).
+- **Teacher profile redesign** — Removed avatar circle, first+last name side by side, PlayfulCard for personal info and password sections.
+- **All teacher AppBars** — `centerTitle: false` for left-aligned titles.
+- **ResponsiveWrap orphan prevention** — If last row would have 1 item, reduces columns (e.g., 3+1 → 2+2).
+
+#### Fixed
+- **Create assignment routing** — `/teacher/assignments/create` was matching `:assignmentId` param. Fixed by placing `create` route before dynamic param.
+- **Student detail routing** — `students/:studentId` path mismatch (plural vs singular). Fixed to match route constant.
+- **AnimatedGameButton text overflow** — Added `Flexible` wrapper with `TextOverflow.ellipsis`.
+- **Class card overflow** — Inner Row converted to `Wrap` for student count + academic year.
+
+#### Infrastructure
+- **3 DB migrations** (20260327000003–005) — `get_classes_with_stats` RPC enriched with 6 new columns.
+- **New shared widgets** — `responsive_layout.dart` (3 widgets), `playful_card.dart` (2 widgets).
+
 ### Assignment System Overhaul + Unit Assignment Type (2026-03-26)
 
 #### Added

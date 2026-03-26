@@ -203,16 +203,20 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
                           if (widget.label != null) const SizedBox(width: 8),
                         ],
                         if (widget.label != null)
-                          Text(
-                            widget.label!.toUpperCase(),
-                            style: widget.textStyle ??
-                                TextStyle(
-                                  color: textColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.8,
-                                  fontFamily: 'Nunito', // Ensure Nunito is available
-                                ),
+                          Flexible(
+                            child: Text(
+                              widget.label!.toUpperCase(),
+                              style: widget.textStyle ??
+                                  TextStyle(
+                                    color: textColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.8,
+                                    fontFamily: 'Nunito',
+                                  ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
                       ],
                     ),

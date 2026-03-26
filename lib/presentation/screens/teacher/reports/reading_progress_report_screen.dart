@@ -5,6 +5,8 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/entities/teacher.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/error_state_widget.dart';
+import '../../../widgets/common/playful_card.dart';
+import '../../../widgets/common/responsive_layout.dart';
 
 class ReadingProgressReportScreen extends ConsumerWidget {
   const ReadingProgressReportScreen({super.key});
@@ -16,6 +18,7 @@ class ReadingProgressReportScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Reading Progress'),
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -54,10 +57,10 @@ class ReadingProgressReportScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 // Summary
-                Card(
-                  color: context.colorScheme.primaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                ResponsiveConstraint(
+                  maxWidth: 900,
+                  child: PlayfulCard(
+                    color: context.colorScheme.primaryContainer,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -87,7 +90,12 @@ class ReadingProgressReportScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
 
                 // Book cards
-                ...books.map((book) => _BookStatsCard(book: book)),
+                ResponsiveWrap(
+                  minItemWidth: 280,
+                  children: books
+                      .map((book) => _BookStatsCard(book: book))
+                      .toList(),
+                ),
               ],
             );
           },
@@ -139,11 +147,10 @@ class _BookStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+      padding: const EdgeInsets.all(12),
+      child: Row(
           children: [
             // Book cover
             Container(
@@ -243,7 +250,6 @@ class _BookStatsCard extends StatelessWidget {
               ),
           ],
         ),
-      ),
     );
   }
 

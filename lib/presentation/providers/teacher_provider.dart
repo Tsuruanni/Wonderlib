@@ -6,6 +6,9 @@ import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
+import '../../domain/usecases/badge/get_user_badges_usecase.dart';
+import '../../domain/usecases/card/get_user_cards_usecase.dart';
+import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_students_usecase.dart';
 import '../../domain/usecases/assignment/get_assignments_usecase.dart';
 import '../../domain/usecases/assignment/get_class_learning_path_units_usecase.dart';
@@ -179,6 +182,34 @@ final recentSchoolActivityProvider = FutureProvider<List<RecentActivity>>((ref) 
     (failure) => [],
     (activities) => activities,
   );
+});
+
+// =============================================
+// STUDENT PROFILE EXTRAS (badges, cards, word list words)
+// =============================================
+
+/// Student badges visible to teacher (same school RLS)
+final teacherStudentBadgesProvider =
+    FutureProvider.family<List<dynamic>, String>((ref, studentId) async {
+  final useCase = ref.watch(getUserBadgesUseCaseProvider);
+  final result = await useCase(GetUserBadgesParams(userId: studentId));
+  return result.fold((failure) => [], (badges) => badges);
+});
+
+/// Student cards visible to teacher (same school RLS)
+final teacherStudentCardsProvider =
+    FutureProvider.family<List<dynamic>, String>((ref, studentId) async {
+  final useCase = ref.watch(getUserCardsUseCaseProvider);
+  final result = await useCase(GetUserCardsParams(userId: studentId));
+  return result.fold((failure) => [], (cards) => cards);
+});
+
+/// Words for a specific word list (public RLS)
+final wordListWordsProvider =
+    FutureProvider.family<List<dynamic>, String>((ref, listId) async {
+  final useCase = ref.watch(getWordsForListUseCaseProvider);
+  final result = await useCase(GetWordsForListParams(listId: listId));
+  return result.fold((failure) => [], (words) => words);
 });
 
 // =============================================

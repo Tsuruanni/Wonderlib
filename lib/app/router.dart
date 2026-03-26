@@ -68,6 +68,9 @@ abstract class AppRoutes {
 
   // Teacher routes — dashboard now at /teacher/dashboard
   static const teacherDashboard = '/teacher/dashboard';
+  static const teacherStudentProfile = '/teacher/dashboard/student/:studentId';
+  static String teacherStudentProfilePath(String studentId) =>
+      '/teacher/dashboard/student/$studentId';
   static const teacherClasses = '/teacher/classes';
   static const teacherClassDetail = '/teacher/classes/:classId';
   static const teacherStudentDetail = '/teacher/classes/:classId/student/:studentId';
@@ -414,6 +417,15 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.teacherDashboard,
                 builder: (context, state) => const TeacherDashboardScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'student/:studentId',
+                    builder: (context, state) {
+                      final studentId = state.pathParameters['studentId']!;
+                      return StudentDetailScreen(studentId: studentId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -423,6 +435,25 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.teacherClasses,
                 builder: (context, state) => const ClassesScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':classId',
+                    builder: (context, state) {
+                      final classId = state.pathParameters['classId']!;
+                      final mode = state.extra as ClassDetailMode? ?? ClassDetailMode.management;
+                      return ClassDetailScreen(classId: classId, mode: mode);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'student/:studentId',
+                        builder: (context, state) {
+                          final studentId = state.pathParameters['studentId']!;
+                          return StudentDetailScreen(studentId: studentId);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
@@ -432,6 +463,26 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.teacherAssignments,
                 builder: (context, state) => const AssignmentsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      return CreateAssignmentScreen(
+                        preSelectedBookId: extra?['bookId'] as String?,
+                        preSelectedBookTitle: extra?['bookTitle'] as String?,
+                        preSelectedBookChapterCount: extra?['chapterCount'] as int?,
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: ':assignmentId',
+                    builder: (context, state) {
+                      final assignmentId = state.pathParameters['assignmentId']!;
+                      return AssignmentDetailScreen(assignmentId: assignmentId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -441,6 +492,24 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.teacherReports,
                 builder: (context, state) => const ReportsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'class-overview',
+                    builder: (context, state) => const ClassOverviewReportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'reading-progress',
+                    builder: (context, state) => const ReadingProgressReportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'assignments',
+                    builder: (context, state) => const AssignmentReportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'leaderboard',
+                    builder: (context, state) => const LeaderboardReportScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -483,63 +552,10 @@ GoRouter _createRouter() {
           return ActivityScreen(chapterId: chapterId);
         },
       ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherClassDetail,
-        builder: (context, state) {
-          final classId = state.pathParameters['classId']!;
-          final mode = state.extra as ClassDetailMode? ?? ClassDetailMode.management;
-          return ClassDetailScreen(classId: classId, mode: mode);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherStudentDetail,
-        builder: (context, state) {
-          final studentId = state.pathParameters['studentId']!;
-          return StudentDetailScreen(studentId: studentId);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherCreateAssignment,
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          return CreateAssignmentScreen(
-            preSelectedBookId: extra?['bookId'] as String?,
-            preSelectedBookTitle: extra?['bookTitle'] as String?,
-            preSelectedBookChapterCount: extra?['chapterCount'] as int?,
-          );
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherAssignmentDetail,
-        builder: (context, state) {
-          final assignmentId = state.pathParameters['assignmentId']!;
-          return AssignmentDetailScreen(assignmentId: assignmentId);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherReportClassOverview,
-        builder: (context, state) => const ClassOverviewReportScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherReportReadingProgress,
-        builder: (context, state) => const ReadingProgressReportScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherReportAssignments,
-        builder: (context, state) => const AssignmentReportScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherReportLeaderboard,
-        builder: (context, state) => const LeaderboardReportScreen(),
-      ),
+      // teacherClassDetail and teacherStudentDetail moved inside teacher shell branch
+      // teacherCreateAssignment moved inside teacher shell branch
+      // teacherAssignmentDetail moved inside teacher shell branch
+      // teacherReport sub-routes moved inside teacher shell branch
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(

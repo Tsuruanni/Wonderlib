@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import '../../../../app/router.dart';
+import '../../../../app/theme.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/error_state_widget.dart';
+import '../../../widgets/common/playful_card.dart';
+import '../../../widgets/common/responsive_layout.dart';
 
 class LeaderboardReportScreen extends ConsumerWidget {
   const LeaderboardReportScreen({super.key});
@@ -17,6 +22,7 @@ class LeaderboardReportScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Leaderboard'),
+        centerTitle: false,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -48,9 +54,12 @@ class LeaderboardReportScreen extends ConsumerWidget {
                 final student = students[index];
                 final rank = index + 1;
 
-                return _LeaderboardCard(
-                  student: student,
-                  rank: rank,
+                return ResponsiveConstraint(
+                  maxWidth: 600,
+                  child: _LeaderboardCard(
+                    student: student,
+                    rank: rank,
+                  ),
                 );
               },
             );
@@ -74,12 +83,12 @@ class _LeaderboardCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isTopThree = rank <= 3;
 
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      color: isTopThree ? _getRankColor(rank).withValues(alpha: 0.1) : null,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+      padding: const EdgeInsets.all(12),
+      color: isTopThree ? _getRankColor(rank).withValues(alpha: 0.1) : AppColors.white,
+      onTap: () => context.push(AppRoutes.teacherStudentProfilePath(student.id)),
+      child: Row(
           children: [
             // Rank badge
             Container(
@@ -194,7 +203,6 @@ class _LeaderboardCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

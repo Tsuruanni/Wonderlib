@@ -129,6 +129,17 @@ abstract class AppTheme {
         error: AppColors.danger,
       ),
 
+      // Page transitions — fade on all platforms
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        },
+      ),
+
       // AppBar
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,

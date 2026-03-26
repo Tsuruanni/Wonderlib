@@ -13,7 +13,6 @@ import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/vocabulary.dart';
-import '../../../domain/usecases/auth/refresh_current_user_usecase.dart';
 import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../../domain/usecases/teacher/update_teacher_profile_usecase.dart';
 import '../../../domain/usecases/usecase.dart';
@@ -30,6 +29,7 @@ import '../../providers/avatar_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/common/playful_card.dart';
 import '../../widgets/common/pressable_scale.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -125,69 +125,74 @@ class _TeacherHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundColor: _getRoleColor(user.role),
-          child: Text(
-            user.initials,
-            style: GoogleFonts.nunito(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
+        // Name row
+        Row(
+          children: [
+            Text(
+              user.firstName,
+              style: GoogleFonts.nunito(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+            Text(
+              user.lastName,
+              style: GoogleFonts.nunito(
+                fontSize: 26,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        Text(
-          user.fullName,
-          style: GoogleFonts.nunito(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+        const SizedBox(height: 6),
+        // Role badge + school
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: _getRoleColor(user.role).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: _getRoleColor(user.role).withValues(alpha: 0.3),
+                ),
+              ),
+              child: Text(
+                _getRoleDisplayName(user.role),
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: _getRoleColor(user.role),
+                ),
+              ),
+            ),
+            if (schoolName != null) ...[
+              const SizedBox(width: 10),
+              const Icon(Icons.school_outlined, size: 16, color: AppColors.neutralText),
+              const SizedBox(width: 4),
+              Text(
+                schoolName!,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ],
+          ],
         ),
         if (user.email != null) ...[
           const SizedBox(height: 4),
           Text(
             user.email!,
             style: GoogleFonts.nunito(
-              fontSize: 14,
+              fontSize: 13,
               color: AppColors.neutralText,
             ),
-          ),
-        ],
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: _getRoleColor(user.role).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            _getRoleDisplayName(user.role),
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: _getRoleColor(user.role),
-            ),
-          ),
-        ),
-        if (schoolName != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.school_outlined, size: 16, color: AppColors.neutralText),
-              const SizedBox(width: 4),
-              Text(
-                schoolName!,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: AppColors.neutralText,
-                ),
-              ),
-            ],
           ),
         ],
       ],
@@ -227,41 +232,46 @@ class _PersonalInfoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return PlayfulCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Personal Information',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+          Text(
+            'Personal Information',
+            style: GoogleFonts.nunito(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black,
             ),
           ),
-          _InfoTile(
-            icon: Icons.person_outline,
-            label: 'First Name',
-            value: user.firstName,
-            onTap: () => _editField(context, ref, 'First Name', user.firstName, isFirstName: true),
+          const SizedBox(height: 12),
+          // First + Last name side by side
+          Row(
+            children: [
+              Expanded(
+                child: _EditableField(
+                  label: 'First Name',
+                  value: user.firstName,
+                  onTap: () => _editField(context, ref, 'First Name', user.firstName, isFirstName: true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _EditableField(
+                  label: 'Last Name',
+                  value: user.lastName,
+                  onTap: () => _editField(context, ref, 'Last Name', user.lastName, isFirstName: false),
+                ),
+              ),
+            ],
           ),
-          _InfoTile(
-            icon: Icons.person_outline,
-            label: 'Last Name',
-            value: user.lastName,
-            onTap: () => _editField(context, ref, 'Last Name', user.lastName, isFirstName: false),
-          ),
-          _InfoTile(
-            icon: Icons.email_outlined,
+          const SizedBox(height: 12),
+          // Email (not editable)
+          _EditableField(
             label: 'Email',
             value: user.email ?? '—',
           ),
-          const SizedBox(height: 8),
         ],
       ),
     );
@@ -349,9 +359,25 @@ class _PasswordCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return PlayfulCard(
+      padding: EdgeInsets.zero,
+      onTap: email == null
+          ? null
+          : () async {
+              final useCase = ref.read(sendPasswordResetEmailUseCaseProvider);
+              final result = await useCase(SendPasswordResetEmailParams(email: email!));
+
+              if (!context.mounted) return;
+
+              result.fold(
+                (failure) {
+                  showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
+                },
+                (_) {
+                  showAppSnackBar(context, 'Password reset link sent to $email', type: SnackBarType.success);
+                },
+              );
+            },
       child: ListTile(
         leading: const Icon(Icons.lock_outline),
         title: Text(
@@ -363,60 +389,64 @@ class _PasswordCard extends ConsumerWidget {
           style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
         ),
         trailing: const Icon(Icons.chevron_right),
-        onTap: email == null
-            ? null
-            : () async {
-                final useCase = ref.read(sendPasswordResetEmailUseCaseProvider);
-                final result = await useCase(SendPasswordResetEmailParams(email: email!));
-
-                if (!context.mounted) return;
-
-                result.fold(
-                  (failure) {
-                    showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-                  },
-                  (_) {
-                    showAppSnackBar(context, 'Password reset link sent to $email', type: SnackBarType.success);
-                  },
-                );
-              },
       ),
     );
   }
 }
 
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({
-    required this.icon,
+class _EditableField extends StatelessWidget {
+  const _EditableField({
     required this.label,
     required this.value,
     this.onTap,
   });
-  final IconData icon;
+
   final String label;
   final String value;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.neutralText),
-      title: Text(
-        label,
-        style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
-      ),
-      subtitle: Text(
-        value,
-        style: GoogleFonts.nunito(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          color: AppColors.black,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.gray100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.neutral),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null)
+              const Icon(Icons.edit_outlined, size: 16, color: AppColors.neutralText),
+          ],
         ),
       ),
-      trailing: onTap != null
-          ? Icon(Icons.edit_outlined, size: 18, color: AppColors.neutralText)
-          : null,
-      onTap: onTap,
     );
   }
 }

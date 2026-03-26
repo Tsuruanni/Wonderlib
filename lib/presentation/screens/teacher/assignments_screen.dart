@@ -10,6 +10,8 @@ import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/playful_card.dart';
+import '../../widgets/common/responsive_layout.dart';
 
 class AssignmentsScreen extends ConsumerWidget {
   const AssignmentsScreen({super.key});
@@ -21,6 +23,7 @@ class AssignmentsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Assignments'),
+        centerTitle: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -65,29 +68,64 @@ class AssignmentsScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                ResponsiveConstraint(
+                  maxWidth: 900,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 if (active.isNotEmpty) ...[
                   _SectionHeader(title: 'Active', count: active.length),
-                  ...active.map((a) => _AssignmentCard(
-                    assignment: a,
-                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
-                  ),),
+                  ResponsiveWrap(
+                    minItemWidth: 280,
+                    children: active
+                        .map(
+                          (a) => _AssignmentCard(
+                            assignment: a,
+                            onTap: () => context.push(
+                              AppRoutes.teacherAssignmentDetailPath(a.id),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                   const SizedBox(height: 16),
                 ],
                 if (upcoming.isNotEmpty) ...[
                   _SectionHeader(title: 'Upcoming', count: upcoming.length),
-                  ...upcoming.map((a) => _AssignmentCard(
-                    assignment: a,
-                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
-                  ),),
+                  ResponsiveWrap(
+                    minItemWidth: 280,
+                    children: upcoming
+                        .map(
+                          (a) => _AssignmentCard(
+                            assignment: a,
+                            onTap: () => context.push(
+                              AppRoutes.teacherAssignmentDetailPath(a.id),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                   const SizedBox(height: 16),
                 ],
                 if (overdue.isNotEmpty) ...[
                   _SectionHeader(title: 'Past Due', count: overdue.length),
-                  ...overdue.map((a) => _AssignmentCard(
-                    assignment: a,
-                    onTap: () => context.push(AppRoutes.teacherAssignmentDetailPath(a.id)),
-                  ),),
+                  ResponsiveWrap(
+                    minItemWidth: 280,
+                    children: overdue
+                        .map(
+                          (a) => _AssignmentCard(
+                            assignment: a,
+                            onTap: () => context.push(
+                              AppRoutes.teacherAssignmentDetailPath(a.id),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ],
+                    ],
+                  ),
+                ),
               ],
             );
           },
@@ -160,119 +198,113 @@ class _AssignmentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, y');
 
-    return Card(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  // Type icon
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      AssignmentColors.getTypeIcon(assignment.type),
-                      color: AssignmentColors.getTypeColor(assignment.type),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Title and class
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          assignment.title,
-                          style: context.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (assignment.className != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            assignment.className!,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: context.colorScheme.outline,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-
-                  // Status indicator
-                  _StatusBadge(assignment: assignment),
-                ],
+              // Type icon
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AssignmentColors.getTypeColor(assignment.type).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  AssignmentColors.getTypeIcon(assignment.type),
+                  color: AssignmentColors.getTypeColor(assignment.type),
+                  size: 20,
+                ),
               ),
+              const SizedBox(width: 12),
 
-              const SizedBox(height: 12),
-
-              // Progress bar and stats
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: assignment.completionRate / 100,
-                            backgroundColor: context.colorScheme.surfaceContainerHighest,
-                            minHeight: 6,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${assignment.completedStudents}/${assignment.totalStudents} completed',
-                          style: context.textTheme.bodySmall?.copyWith(
-                            color: context.colorScheme.outline,
-                          ),
-                        ),
-                      ],
+              // Title and class
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      assignment.title,
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 16),
-
-                  // Due date
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
+                    if (assignment.className != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        'Due',
-                        style: context.textTheme.labelSmall?.copyWith(
+                        assignment.className!,
+                        style: context.textTheme.bodySmall?.copyWith(
                           color: context.colorScheme.outline,
                         ),
                       ),
-                      Text(
-                        dateFormat.format(assignment.dueDate),
-                        style: context.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: assignment.isOverdue
-                              ? context.colorScheme.error
-                              : null,
-                        ),
-                      ),
                     ],
+                  ],
+                ),
+              ),
+
+              // Status indicator
+              _StatusBadge(assignment: assignment),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Progress bar and stats
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: assignment.completionRate / 100,
+                        backgroundColor: context.colorScheme.surfaceContainerHighest,
+                        minHeight: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${assignment.completedStudents}/${assignment.totalStudents} completed',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: context.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Due date
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Due',
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: context.colorScheme.outline,
+                    ),
+                  ),
+                  Text(
+                    dateFormat.format(assignment.dueDate),
+                    style: context.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: assignment.isOverdue
+                          ? context.colorScheme.error
+                          : null,
+                    ),
                   ),
                 ],
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
