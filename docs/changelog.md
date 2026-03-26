@@ -8,6 +8,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Avatar Customization System (2026-03-26)
+
+#### Added
+- **Layered avatar system** — Students select a base animal (6 options, all free) and equip purchasable accessories. Accessories rendered as composited PNG layers via `Stack` widget.
+- **5 accessory categories** — Background (z=0), Body (z=10), Neck (z=15), Face (z=20), Head (z=30). One item per category enforced by RPCs.
+- **52 seeded accessories** — Common (50c), Rare (150c), Epic (400c), Legendary (1000c). Inactive by default — admin uploads PNGs and activates.
+- **Avatar shop in main app** — `AvatarCustomizeScreen` with live preview (240px), base animal row, category tabs, item grid with buy/equip/unequip states.
+- **Auto-equip on purchase** — `buy_avatar_item` RPC automatically equips the newly bought item.
+- **Per-animal outfit memory** — `avatar_outfits` JSONB on profiles stores equipped items per base animal. Switching animals saves current outfit and restores the target animal's last outfit.
+- **Reusable `AvatarWidget`** — Composited layer renderer with SVG+PNG support, used in profile, leaderboard, and student dialog.
+- **Profile integration** — Profile header shows `AvatarWidget` with edit button linking to customize screen.
+- **Leaderboard integration** — `avatar_equipped_cache` added to all 8 leaderboard RPCs + `safe_profiles` view. `AvatarWidget` renders in leaderboard rows and `StudentProfileDialog`.
+- **Admin avatar management** — 3-tab screen (Bases/Categories/Items) with category filter chips, CRUD for all entities, image upload to Supabase Storage `avatars` bucket.
+- **Admin live composite preview** — Item edit screen shows accessory overlaid on selectable base animal.
+- **Denormalized cache** — `avatar_equipped_cache` JSONB on profiles rebuilt by every equip/unequip/set_base RPC. Prevents N+1 on leaderboard reads.
+
+#### Fixed
+- **Tab reset on purchase** — Replaced `DefaultTabController` with managed `TabController` in state to preserve tab position across provider rebuilds.
+
+#### Infrastructure
+- **8 DB migrations** (20260326000001–20260326000008, 20260327000001) — 4 tables, 5 RPCs, RLS policies, storage bucket, admin policies, seed data, per-animal outfits.
+- **Shared package** — 4 new `DbTables` + 4 new `RpcFunctions` constants in `owlio_shared`.
+- **Clean Architecture** — 7 entities, 8 usecases, 5 models, 1 repository (domain→data→presentation).
+- **`flutter_svg`** added to admin panel for SVG rendering support.
+
 ### Class Management Redesign (2026-03-25)
 
 #### Added

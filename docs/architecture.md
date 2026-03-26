@@ -125,6 +125,7 @@ lib/
 │       ├── assignment/       # Assignment UseCases
 │       ├── content/          # ContentBlock UseCases
 │       ├── card/             # Card collection UseCases (6)
+│       ├── avatar/           # Avatar customization UseCases (8)
 │       ├── student_assignment/ # Student assignment UseCases
 │       └── settings/         # SystemSettings UseCases
 │
@@ -135,7 +136,8 @@ lib/
 │   │   ├── audio_sync_provider.dart  # Audio playback + auto-play orchestration
 │   │   ├── vocabulary_session_provider.dart  # Vocabulary quiz session state
 │   │   └── *_provider.dart   # Feature providers
-│   ├── screens/              # Page widgets (31 screens)
+│   ├── screens/              # Page widgets (32 screens)
+│   │   ├── avatar/           # Avatar customization screen
 │   │   ├── cards/            # Card collection + pack opening
 │   │   └── ...
 │   └── widgets/
@@ -179,6 +181,7 @@ readeng_admin/                 # Admin panel (separate Flutter web project)
 │       ├── classes/           # Class management
 │       ├── curriculum/        # Unit curriculum assignments
 │       ├── dashboard/         # Overview with feature cards
+│       ├── avatars/           # Avatar management (bases, categories, items CRUD)
 │       ├── quests/            # Daily quest management (inline editing + stats)
 │       ├── gallery/           # Media gallery
 │       ├── quizzes/           # Book quiz + question editing
@@ -383,6 +386,16 @@ UserController (addXP/updateStreak)
 - `xp_logs` - XP history
 - `league_history` - Weekly league tier changes (promotion/demotion tracking)
 
+### Avatar Customization
+- `avatar_bases` - Base animal catalog (6 animals, all free)
+- `avatar_item_categories` - Dynamic accessory slots (background, body, neck, face, head)
+- `avatar_items` - Accessory catalog with rarity + coin price
+- `user_avatar_items` - Ownership + equipped state (composite PK: user_id, item_id)
+- `profiles.avatar_base_id` - Selected base animal (FK)
+- `profiles.avatar_equipped_cache` - Denormalized JSONB for fast leaderboard reads
+- `profiles.avatar_outfits` - Per-animal outfit memory (JSONB: base_id → item_ids[])
+- Storage: `avatars` bucket (public) with `bases/` and `items/` folders
+
 ### Card Collection
 - `myth_cards` - Card catalog (96 mythology cards, `image_url` from Supabase Storage `card-images` bucket)
 - `user_cards` - Owned cards per user
@@ -436,10 +449,12 @@ Separate Flutter web project for content management.
 - **Vocabulary Management** — Word CRUD with AI generation, CSV import, source tracking
 - **Recent Activity** — Dashboard page with 10 data sections + paginated detail pages
 - **Collectibles** — Tabbed Badges + Myth Cards with image upload to Supabase Storage
+- **Avatar Management** — Bases/Categories/Items CRUD with image upload, category filter, live composite preview
 - **Learning Path Templates** — Template creation and school/class assignment
 
 ### Storage
 - Card images: Supabase Storage `card-images` bucket (public, 95 PNGs)
+- Avatar assets: Supabase Storage `avatars` bucket (public, bases/ + items/ folders)
 - All other media: URL-referenced (Supabase Storage or external)
 
 ## Offline Strategy

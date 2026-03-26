@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-26 (Teacher panel audit, class management redesign, login cards PDF, teacher profile)
+Son güncelleme: 2026-03-27 (Avatar customization system, per-animal outfit memory, admin avatar management)
 
 ## Current Phase
 
@@ -102,6 +102,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Badge Improvements (dailyLogin removal, missing condition types, shared helper, per-badge stats, 3 new streak badges)
 - [x] Badge Earned Notification (dialog with icon/name/XP, dialog queue, admin toggle, badge check at controller level)
 - [x] Profile Screen Rebuild (8 sections, real data, LevelHelper, card previews, combined stats)
+- [x] Avatar Customization System (layered PNG avatars, 6 base animals, 52 accessories, per-animal outfit memory, admin CRUD)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
@@ -171,6 +172,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Avatar Customization System | 2026-03-26 | Layered avatar with 6 base animals + 52 accessories across 5 categories. Per-animal outfit memory (JSONB). Auto-equip on purchase. Admin CRUD with live composite preview. AvatarWidget integrated in profile, leaderboard, student dialog. 9 migrations, 8 usecases, Clean Architecture. |
 | Profile Screen Rebuild | 2026-03-25 | Complete rewrite: header (avatar/school/class), level progress bar (*100 formula fix), card collection with MythCardWidget previews, recent badges with bottom sheet, combined 4-stat card + Word Bank, daily review. LevelHelper utility, profileContextProvider. |
 | Daily Quest Eligibility Fix | 2026-03-24 | daily_review quest hidden when < 10 due words, XP exploit closed, bonus claim aligned, pack claim date offset fixed. 2 migrations. |
 | Performance: Parallel Data Fetching | 2026-03-24 | 7 N+1/sequential fixes across vocabulary hub, word bank, daily review, reader, leaderboard. 2 new batch repository methods + use cases. |
