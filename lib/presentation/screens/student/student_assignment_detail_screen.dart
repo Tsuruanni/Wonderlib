@@ -63,6 +63,16 @@ class _AssignmentDetailContent extends ConsumerWidget {
         SliverAppBar(
           expandedHeight: 200,
           pinned: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                context.go(AppRoutes.home);
+              }
+            },
+          ),
           flexibleSpace: FlexibleSpaceBar(
             background: DecoratedBox(
               decoration: BoxDecoration(
