@@ -34,7 +34,35 @@ class LearningPath extends ConsumerWidget {
         ),
       ),
       data: (pathUnits) {
-        if (pathUnits.isEmpty) return const SizedBox.shrink();
+        if (pathUnits.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+            child: Column(
+              children: [
+                Icon(Icons.route_rounded, size: 48, color: AppColors.neutralText.withValues(alpha: 0.5)),
+                const SizedBox(height: 16),
+                Text(
+                  'No learning path yet',
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.neutralText,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your teacher will assign one soon!',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: AppColors.neutralText.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
         final wordsToday = ref.watch(wordsStartedTodayFromListsProvider).valueOrNull ?? 0;
         final canStartNewList = wordsToday < dailyWordListLimit;
         return _buildPath(context, ref, pathUnits, canStartNewList: canStartNewList);
