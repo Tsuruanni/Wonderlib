@@ -19,6 +19,7 @@ abstract class RpcFunctions {
   // Vocabulary
   static const completeVocabularySession = 'complete_vocabulary_session';
   static const completeDailyReview = 'complete_daily_review';
+  static const getDueReviewWords = 'get_due_review_words';
 
   // Cards
   static const buyCardPack = 'buy_card_pack';

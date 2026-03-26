@@ -239,41 +239,13 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     String userId,
   ) async {
     try {
-      final now = DateTime.now().toIso8601String();
+      final response = await _supabase.rpc(
+        RpcFunctions.getDueReviewWords,
+        params: {'p_user_id': userId, 'p_limit': 30},
+      );
 
-      // Get word IDs due for review, ordered by most overdue first
-      // Includes mastered words (they appear at long intervals via SM-2)
-      final progressResponse = await _supabase
-          .from(DbTables.vocabularyProgress)
-          .select('word_id')
-          .eq('user_id', userId)
-          .lte('next_review_at', now)
-          .order('next_review_at', ascending: true)
-          .limit(30);
-
-      final wordIds = (progressResponse as List)
-          .map((p) => p['word_id'] as String)
-          .toList();
-
-      if (wordIds.isEmpty) {
-        return const Right([]);
-      }
-
-      // Get the actual words
-      final wordsResponse = await _supabase
-          .from(DbTables.vocabularyWords)
-          .select()
-          .inFilter('id', wordIds);
-
-      // Build lookup map and preserve overdue order from first query
-      final wordMap = <String, VocabularyWord>{};
-      for (final json in wordsResponse as List) {
-        final word = VocabularyWordModel.fromJson(json).toEntity();
-        wordMap[word.id] = word;
-      }
-      final words = wordIds
-          .where((id) => wordMap.containsKey(id))
-          .map((id) => wordMap[id]!)
+      final words = (response as List)
+          .map((json) => VocabularyWordModel.fromJson(json).toEntity())
           .toList();
 
       return Right(words);
