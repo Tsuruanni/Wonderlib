@@ -295,11 +295,13 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
         }
       }
 
-      // Also check unit assignments that might contain this book
+      // Recalculate unit assignments that might contain this book.
+      // The RPC checks actual scope_unit_items server-side, so calling it
+      // for non-matching units is harmless (just a no-op progress update).
       for (final assignment in assignments) {
         if (assignment.scopeLpUnitId != null &&
             assignment.status != StudentAssignmentStatus.completed) {
-          debugPrint('📋 Unit assignment found: ${assignment.title}, recalculating progress');
+          debugPrint('📋 Unit assignment: ${assignment.title}, recalculating progress');
           final calculateUseCase = _ref.read(calculateUnitProgressUseCaseProvider);
           await calculateUseCase(CalculateUnitProgressParams(
             assignmentId: assignment.assignmentId,

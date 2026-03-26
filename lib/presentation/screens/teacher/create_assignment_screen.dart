@@ -376,6 +376,10 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   onChanged: (value) {
                     setState(() {
                       _selectedClassId = value;
+                      // Clear unit selection when class changes
+                      _selectedScopeLpUnitId = null;
+                      _selectedUnitName = null;
+                      _selectedUnitTotalItems = null;
                     });
                   },
                 );

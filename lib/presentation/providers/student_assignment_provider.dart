@@ -77,15 +77,18 @@ final pendingAssignmentCountProvider = FutureProvider<int>((ref) async {
   ).length;
 });
 
-/// Provider that syncs assignment completion with book completion
-/// This fixes cases where book was completed but assignment wasn't updated
+/// Provider that syncs assignment completion with book/unit completion.
+/// Debounced: only runs once per keepAlive cycle (not on every screen open).
 final assignmentSyncProvider = FutureProvider<void>((ref) async {
+  // Keep alive for 60 seconds — prevents re-running on every screen open
+  final link = ref.keepAlive();
+  Future.delayed(const Duration(seconds: 60), link.close);
+
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return;
 
   debugPrint('🔄 assignmentSyncProvider: Starting sync...');
 
-  // Get active assignments
   final getActiveAssignmentsUseCase = ref.read(getActiveAssignmentsUseCaseProvider);
   final assignmentsResult = await getActiveAssignmentsUseCase(
     GetActiveAssignmentsParams(studentId: userId),
@@ -98,7 +101,6 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
 
   debugPrint('🔄 assignmentSyncProvider: Found ${assignments.length} active assignments');
 
-  // Check each book assignment
   final getReadingProgressUseCase = ref.read(getReadingProgressUseCaseProvider);
   final completeAssignmentUseCase = ref.read(completeAssignmentUseCaseProvider);
   var syncedCount = 0;
@@ -118,7 +120,7 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
       );
 
       if (isBookCompleted) {
-        debugPrint('🔄 Syncing: Assignment "${assignment.title}" - book is completed but assignment not');
+        debugPrint('🔄 Syncing: Assignment "${assignment.title}" - book already completed');
         await completeAssignmentUseCase(CompleteAssignmentParams(
           studentId: userId,
           assignmentId: assignment.assignmentId,
@@ -128,7 +130,7 @@ final assignmentSyncProvider = FutureProvider<void>((ref) async {
       }
     }
 
-    // Sync unit assignments
+    // Sync unit assignments (server-side recalculates from current state)
     if (assignment.scopeLpUnitId != null) {
       debugPrint('🔄 Syncing unit assignment: "${assignment.title}"');
       final calculateUseCase = ref.read(calculateUnitProgressUseCaseProvider);
