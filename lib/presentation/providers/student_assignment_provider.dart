@@ -15,8 +15,10 @@ import 'usecase_providers.dart';
 
 /// Assignment notification event — fired when student has active assignments on app open
 class AssignmentNotificationEvent {
-  const AssignmentNotificationEvent({required this.count});
+  const AssignmentNotificationEvent({required this.count, this.assignmentId});
   final int count;
+  /// When count == 1, holds the single assignment's ID for direct navigation
+  final String? assignmentId;
 }
 
 /// Provider for assignment notification events — UI listens to show dialog

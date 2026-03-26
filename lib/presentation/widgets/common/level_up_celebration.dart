@@ -159,18 +159,21 @@ class _LevelUpCelebrationListenerState
   Future<void> _checkAndFireAssignmentNotification() async {
     try {
       final assignments = await ref.read(activeAssignmentsProvider.future);
-      final count = assignments.where((a) =>
+      final active = assignments.where((a) =>
         a.status == StudentAssignmentStatus.pending ||
         a.status == StudentAssignmentStatus.inProgress ||
         a.status == StudentAssignmentStatus.overdue,
-      ).length;
-      if (count > 0 && !_hasShownAssignmentNotif) {
+      ).toList();
+      if (active.isNotEmpty && !_hasShownAssignmentNotif) {
         _hasShownAssignmentNotif = true;
         final settings = ref.read(systemSettingsProvider).valueOrNull
             ?? SystemSettings.defaults();
         if (settings.notifAssignment) {
           ref.read(assignmentNotificationEventProvider.notifier).state =
-              AssignmentNotificationEvent(count: count);
+              AssignmentNotificationEvent(
+            count: active.length,
+            assignmentId: active.length == 1 ? active.first.assignmentId : null,
+          );
         }
       }
     } catch (_) {
@@ -184,7 +187,10 @@ class _LevelUpCelebrationListenerState
     await showDialog(
       context: ctx,
       barrierDismissible: true,
-      builder: (context) => AssignmentNotificationDialog(count: event.count),
+      builder: (context) => AssignmentNotificationDialog(
+      count: event.count,
+      assignmentId: event.assignmentId,
+    ),
     );
     ref.read(assignmentNotificationEventProvider.notifier).state = null;
   }

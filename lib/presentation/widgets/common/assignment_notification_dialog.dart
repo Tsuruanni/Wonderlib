@@ -4,9 +4,15 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 
 class AssignmentNotificationDialog extends StatefulWidget {
-  const AssignmentNotificationDialog({super.key, required this.count});
+  const AssignmentNotificationDialog({
+    super.key,
+    required this.count,
+    this.assignmentId,
+  });
 
   final int count;
+  /// When provided (single assignment), View navigates directly to detail
+  final String? assignmentId;
 
   @override
   State<AssignmentNotificationDialog> createState() =>
@@ -128,8 +134,11 @@ class _AssignmentNotificationDialogState
                           Navigator.of(context).pop();
                           final navContext = rootNavigatorKey.currentContext;
                           if (navContext != null) {
-                            GoRouter.of(navContext)
-                                .go(AppRoutes.studentAssignments);
+                            final path = widget.assignmentId != null
+                                ? AppRoutes.studentAssignmentDetailPath(
+                                    widget.assignmentId!)
+                                : AppRoutes.studentAssignments;
+                            GoRouter.of(navContext).go(path);
                           }
                         },
                         style: TextButton.styleFrom(
