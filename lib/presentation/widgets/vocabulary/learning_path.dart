@@ -150,8 +150,9 @@ class LearningPath extends ConsumerWidget {
         }
 
         // Active detection — first unlocked + incomplete node in the path
+        // Skip PathDailyReviewItem: it handles its own active state in the switch
         bool isActive = false;
-        if (!foundActive && !isItemLocked && !item.isComplete) {
+        if (!foundActive && !isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
           isActive = true;
           foundActive = true;
         }

@@ -602,6 +602,9 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
 /// Items are ordered by sort_order from the RPC. Word lists and books are interleaved
 /// in a single list for correct rendering order.
 final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
+  // Capture all ref.watch calls BEFORE the first await (Riverpod best practice)
+  final getBooksByIds = ref.watch(getBooksByIdsUseCaseProvider);
+
   // Fetch all independent providers in parallel (not sequentially)
   final futures = await Future.wait([
     ref.watch(userLearningPathsProvider.future),       // [0]
@@ -647,8 +650,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   }
   final bookMap = <String, Book>{};
   if (allBookIds.isNotEmpty) {
-    final useCase = ref.watch(getBooksByIdsUseCaseProvider);
-    final result = await useCase(GetBooksByIdsParams(ids: allBookIds.toList()));
+    final result = await getBooksByIds(GetBooksByIdsParams(ids: allBookIds.toList()));
     result.fold(
       (_) {},
       (books) {

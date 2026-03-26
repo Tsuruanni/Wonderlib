@@ -74,7 +74,8 @@ class SupabaseBookRepository implements BookRepository {
       final response = await _supabase
           .from(DbTables.books)
           .select()
-          .inFilter('id', ids);
+          .inFilter('id', ids)
+          .eq('status', 'published');
 
       final books =
           (response as List).map((json) => _mapToBook(json)).toList();

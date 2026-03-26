@@ -513,7 +513,11 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       );
 
       // RPC returns array with single row
-      final data = (response as List).first as Map<String, dynamic>;
+      final rows = response as List;
+      if (rows.isEmpty) {
+        return const Left(ServerFailure('Daily review completion returned empty response'));
+      }
+      final data = rows.first as Map<String, dynamic>;
       return Right(DailyReviewResultModel.fromJson(data).toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
