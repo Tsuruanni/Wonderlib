@@ -280,11 +280,10 @@ final systemWordListsProvider = FutureProvider<List<WordList>>((ref) async {
   return result.fold((f) => [], (lists) => lists);
 });
 
-/// Story vocabulary lists (from books user has read)
+/// Story vocabulary lists — derived from allWordListsProvider (no extra HTTP request)
 final storyWordListsProvider = FutureProvider<List<WordList>>((ref) async {
-  final useCase = ref.watch(getAllWordListsUseCaseProvider);
-  final result = await useCase(const GetAllWordListsParams(category: WordListCategory.storyVocab));
-  return result.fold((f) => [], (lists) => lists);
+  final allLists = await ref.watch(allWordListsProvider.future);
+  return allLists.where((l) => l.category == WordListCategory.storyVocab).toList();
 });
 
 /// Word lists by category
