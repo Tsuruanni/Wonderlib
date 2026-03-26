@@ -87,10 +87,16 @@ class _LevelUpCelebrationListenerState
     // Fire assignment notification AFTER user is fully loaded (students only).
     // This ensures streak/badge/league notifications fire first since they
     // are triggered during UserController._loadUserById().
-    if (!_hasShownAssignmentNotif) {
+    {
       final isTeacher = ref.watch(isTeacherProvider);
       if (!isTeacher) {
         ref.listen<AsyncValue<User?>>(userControllerProvider, (previous, next) {
+          // Reset flag on logout so next login can show notification
+          if (next is AsyncData<User?> && next.value == null) {
+            _hasShownAssignmentNotif = false;
+            ref.read(assignmentNotificationEventProvider.notifier).state = null;
+            return;
+          }
           if (_hasShownAssignmentNotif) return;
           // Wait for user to finish loading (streak/badge/league already fired)
           if (next is AsyncData<User?> && next.value != null) {
