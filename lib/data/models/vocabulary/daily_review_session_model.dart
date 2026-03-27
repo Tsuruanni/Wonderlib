@@ -30,21 +30,6 @@ class DailyReviewSessionModel {
     );
   }
 
-  factory DailyReviewSessionModel.fromEntity(DailyReviewSession entity) {
-    return DailyReviewSessionModel(
-      id: entity.id,
-      userId: entity.userId,
-      sessionDate: entity.sessionDate,
-      wordsReviewed: entity.wordsReviewed,
-      correctCount: entity.correctCount,
-      incorrectCount: entity.incorrectCount,
-      xpEarned: entity.xpEarned,
-      isPerfect: entity.isPerfect,
-      completedAt: entity.completedAt,
-      pathPosition: entity.pathPosition,
-    );
-  }
-
   final String id;
   final String userId;
   final DateTime sessionDate;

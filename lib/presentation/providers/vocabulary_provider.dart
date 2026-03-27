@@ -613,8 +613,8 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
     ref.watch(completedBookIdsProvider.future),         // [4]
     ref.watch(todayReviewSessionProvider.future)        // [5]
         .catchError((_) => null),
-    ref.watch(totalDueWordsForReviewProvider.future)    // [6]
-        .catchError((_) => 0),
+    ref.watch(dailyReviewWordsProvider.future)    // [6]
+        .catchError((_) => <VocabularyWord>[]),
   ]);
 
   final learningPaths = futures[0] as List<LearningPath>;
@@ -623,7 +623,8 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final nodeCompletions = futures[3] as Map<String, Set<String>>;
   final completedBookIds = futures[4] as Set<String>;
   final todaySession = futures[5] as DailyReviewSession?;
-  final dailyReviewDueCount = futures[6] as int;
+  final dailyReviewDueWords = futures[6] as List<VocabularyWord>;
+  final dailyReviewDueCount = dailyReviewDueWords.length;
 
   if (learningPaths.isEmpty) return [];
 
