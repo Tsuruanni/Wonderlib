@@ -8,6 +8,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Audio/Karaoke Reader Audit & Spec (2026-03-27)
+
+#### Fixed
+- **Audio load error visible to user** — `AudioSyncState.error` was set but never rendered. Added `_AudioErrorPill` widget in `ReaderAudioControls` with dark/light theme support and dismiss button.
+- **Excessive debug logging** — Removed 8 of 9 `debugPrint` calls from `WordPronunciationService` (kept only init error).
+
+#### Removed
+- **Dead code** — `showDropCap` unused parameter + `firstTextBlockId` logic from `ReaderTextBlock`/`ReaderContentBlockList`. 3 unused filtered providers (`textBlocksProvider`, `activityBlocksProvider`, `audioBlocksProvider`). 2 unused `WordTiming` helper methods (`isActiveAt`, `durationMs`).
+
+#### Infrastructure
+- **Feature spec** — `docs/specs/02-audio-karaoke-reader.md` documents the full Audio/Karaoke Reader system (5/5 findings resolved). Covers data model, two audio models (per-block vs chapter-level), listening mode, auto-play, karaoke sync, scroll follow, offline caching, TTS pronunciation.
+
 ### Book System Audit & Integrity Fixes (2026-03-27)
 
 #### Fixed

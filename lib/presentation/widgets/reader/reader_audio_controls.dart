@@ -28,6 +28,16 @@ class ReaderAudioControls extends ConsumerWidget {
       return const SizedBox.shrink();
     }
 
+    // Show error pill when audio fails to load
+    if (state.error != null) {
+      return _AudioErrorPill(
+        settings: settings,
+        onDismiss: () {
+          ref.read(audioSyncControllerProvider.notifier).stop();
+        },
+      );
+    }
+
     final isDark = settings.theme == ReaderTheme.dark;
     final backgroundColor = isDark ? const Color(0xFF1F2937) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
@@ -261,5 +271,59 @@ class _SpeedButtonState extends State<_SpeedButton> {
         ),
       ),
     );
+  }
+}
+
+class _AudioErrorPill extends StatelessWidget {
+  const _AudioErrorPill({
+    required this.settings,
+    required this.onDismiss,
+  });
+
+  final ReaderSettings settings;
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = settings.theme == ReaderTheme.dark;
+    final backgroundColor = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2);
+    final textColor = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626);
+
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: backgroundColor.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(50),
+          border: Border.all(color: textColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline_rounded, size: 18, color: textColor),
+            const SizedBox(width: 8),
+            Text(
+              'Audio could not be loaded',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onDismiss,
+              child: Icon(Icons.close_rounded, size: 18, color: textColor),
+            ),
+          ],
+        ),
+      ),
+    ).animate().slideY(
+      begin: -1,
+      end: 0,
+      duration: 400.ms,
+      curve: Curves.easeOutBack,
+    ).fadeIn(duration: 250.ms);
   }
 }

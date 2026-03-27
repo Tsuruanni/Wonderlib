@@ -18,7 +18,6 @@ class ReaderTextBlock extends ConsumerWidget {
     this.vocabulary = const [],
     this.onVocabularyTap,
     this.onWordTap,
-    this.showDropCap = false,
   });
 
   final ContentBlock block;
@@ -27,8 +26,6 @@ class ReaderTextBlock extends ConsumerWidget {
   final void Function(ChapterVocabulary vocab, Offset position)? onVocabularyTap;
   /// Callback when a word is tapped. Used for word-tap popup (TTS pronunciation).
   final void Function(String word, Offset position)? onWordTap;
-  /// Unused - kept for API compatibility
-  final bool showDropCap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

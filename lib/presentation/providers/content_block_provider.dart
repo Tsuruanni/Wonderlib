@@ -31,36 +31,6 @@ final chapterUsesContentBlocksProvider =
   );
 });
 
-/// Provider for getting text blocks only (filtered)
-final textBlocksProvider =
-    Provider.family<AsyncValue<List<ContentBlock>>, String>((ref, chapterId) {
-  final blocks = ref.watch(contentBlocksProvider(chapterId));
-
-  return blocks.whenData(
-    (list) => list.where((b) => b.isTextBlock).toList(),
-  );
-});
-
-/// Provider for getting blocks with audio (for audio player display)
-final audioBlocksProvider =
-    Provider.family<AsyncValue<List<ContentBlock>>, String>((ref, chapterId) {
-  final blocks = ref.watch(contentBlocksProvider(chapterId));
-
-  return blocks.whenData(
-    (list) => list.where((b) => b.hasAudio).toList(),
-  );
-});
-
-/// Provider for getting activity blocks only
-final activityBlocksProvider =
-    Provider.family<AsyncValue<List<ContentBlock>>, String>((ref, chapterId) {
-  final blocks = ref.watch(contentBlocksProvider(chapterId));
-
-  return blocks.whenData(
-    (list) => list.where((b) => b.isActivityBlock).toList(),
-  );
-});
-
 /// Check if any block in the chapter has audio
 final chapterHasAudioProvider = Provider.family<bool, String>((ref, chapterId) {
   final blocks = ref.watch(contentBlocksProvider(chapterId));

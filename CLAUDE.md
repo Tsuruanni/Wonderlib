@@ -76,6 +76,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Feature | Documentation | When to Read |
 |---------|--------------|--------------|
 | Book System | `docs/specs/01-book-system.md` | Book lifecycle, chapter completion XP flow, quiz integration, reading progress, inline activities, offline caching, access control |
+| Audio/Karaoke Reader | `docs/specs/02-audio-karaoke-reader.md` | Word-level audio sync, karaoke highlighting, listening mode, auto-play, scroll follow, audio caching, TTS pronunciation |
 | Vocabulary Sessions | `docs/vocabulary-session-system.md` | Question types, session algorithm, mastery levels, XP/combo, SM2 logic |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Book System audit & integrity fixes)
+Son güncelleme: 2026-03-27 (Audio/Karaoke Reader audit & spec)
 
 ## Current Phase
 
@@ -183,6 +183,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Audio/Karaoke Reader Audit & Spec | 2026-03-27 | Full audit + spec for Feature #2. 5 findings fixed: audio error pill, dead code removal (showDropCap, 3 unused providers, 2 unused WordTiming methods), debug print cleanup. Spec covers two audio models, listening mode, karaoke sync, auto-play, scroll follow, offline caching. |
 | Book System Audit & Integrity Fixes | 2026-03-27 | 38-finding audit across all layers. Phase 1: XP source_id idempotency (full addXP chain), RLS fix (no DELETE). Phase 2: 5 new UseCases (HandleBookCompletion, GradeBookQuiz, CompleteInlineActivity, DownloadBook, RemoveBookDownload), BookDownloadRepository, chapter lock provider, typed getters. Phase 3: error propagation, ErrorStateWidget, autoDispose (12 providers). Group D: dead code (-253 lines), enum dedup, author field, ActivityStats entity, ConsumerWidget, CachedBookImage, timezone fix, admin English translation. 37/38 resolved, 1 deferred. |
 | Student Class Change Assignment Sync | 2026-03-27 | DB trigger on profiles.class_id change: withdraws old-class pending/in_progress assignments, enrolls in new-class active assignments, backfills unit progress. Stats RPCs exclude withdrawn. Flutter: withdrawn enum + UI + query filter. 1 migration, 4 Flutter files. |
 | Assignment Notification System | 2026-03-27 | In-app notification when student opens app with active assignments. Event-based (follows streak/badge pattern), fires after other notifications via userControllerProvider listener. Single assignment → direct detail navigation (go()), multiple → list. Admin toggle via notif_assignment setting. Gradient dialog matching existing style. Back button fix for detail screen (canPop → home). 1 migration, 1 new widget, event provider. |

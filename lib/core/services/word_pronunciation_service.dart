@@ -23,14 +23,7 @@ class WordPronunciationService {
 
   Future<void> initialize() async {
     try {
-      // Check available languages
-      final languages = await _tts.getLanguages;
-      debugPrint('TTS available languages: $languages');
-
-      // Try to set English
-      final result = await _tts.setLanguage('en-US');
-      debugPrint('TTS setLanguage result: $result');
-
+      await _tts.setLanguage('en-US');
       await _tts.setSpeechRate(kIsWeb ? 0.9 : 0.45);
       await _tts.setVolume(1.0);
       await _tts.setPitch(1.0);
@@ -40,7 +33,6 @@ class WordPronunciationService {
       _tts.setErrorHandler(_onSpeechError);
 
       _isInitialized = true;
-      debugPrint('TTS initialized successfully (web: $kIsWeb)');
     } catch (e) {
       debugPrint('TTS initialization error: $e');
       _isInitialized = false;
@@ -50,7 +42,6 @@ class WordPronunciationService {
   /// Speak a word, ducking main audio if playing
   Future<void> speak(String word) async {
     if (!_isInitialized) {
-      debugPrint('TTS not initialized, attempting to initialize...');
       await initialize();
     }
 
@@ -70,24 +61,19 @@ class WordPronunciationService {
 
     // Clean word (remove punctuation for cleaner pronunciation)
     final cleanWord = _cleanWord(word);
-    debugPrint('TTS speaking: "$cleanWord"');
 
     try {
-      // Speak the word
-      final result = await _tts.speak(cleanWord);
-      debugPrint('TTS speak result: $result');
+      await _tts.speak(cleanWord);
 
       // Web fallback: completion handler may not fire, use timer
       if (kIsWeb) {
         _webFallbackTimer = Timer(const Duration(milliseconds: 1500), () {
           if (_isSpeaking) {
-            debugPrint('TTS web fallback: restoring audio');
             _restoreAudio();
           }
         });
       }
     } catch (e) {
-      debugPrint('TTS speak error: $e');
       _restoreAudio();
     }
   }

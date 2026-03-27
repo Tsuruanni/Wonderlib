@@ -117,14 +117,6 @@ class WordTiming extends Equatable {
   final int startMs; // Audio start time in milliseconds
   final int endMs; // Audio end time in milliseconds
 
-  /// Check if this word is active at the given audio position
-  bool isActiveAt(int positionMs) {
-    return positionMs >= startMs && positionMs < endMs;
-  }
-
-  /// Duration of this word in milliseconds
-  int get durationMs => endMs - startMs;
-
   @override
   List<Object?> get props => [word, startIndex, endIndex, startMs, endMs];
 }
