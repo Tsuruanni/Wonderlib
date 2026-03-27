@@ -98,20 +98,15 @@ class UserWordListProgress extends Equatable {
   final DateTime updatedAt;
 
   /// Whether the user has completed at least one session
-  bool get isComplete => totalSessions > 0;
+  bool get isComplete => completedAt != null;
 
-  /// Star rating based on best accuracy (0-3)
+  /// Star rating: 3 stars for ≥90%, 2 for ≥70%, 1 for ≥50%, 0 otherwise
   int get starCount {
-    if (!isComplete || bestAccuracy == null) return 0;
-    if (bestAccuracy! >= 95) return 3;
-    if (bestAccuracy! >= 80) return 2;
-    return 1;
-  }
-
-  /// Progress percentage for display (0.0 - 1.0)
-  double get progressPercentage {
-    if (!isComplete) return 0.0;
-    return (bestAccuracy ?? 0) / 100.0;
+    if (bestAccuracy == null) return 0;
+    if (bestAccuracy! >= 90) return 3;
+    if (bestAccuracy! >= 70) return 2;
+    if (bestAccuracy! >= 50) return 1;
+    return 0;
   }
 
   UserWordListProgress copyWith({
