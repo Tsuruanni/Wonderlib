@@ -140,7 +140,7 @@ Quest type 'daily_review' in get_daily_quest_progress RPC:
 ### Learning Path Integration
 ```
 learningPathProvider builds path:
-  → Check totalDueWordsForReviewProvider >= 10
+  → Check dailyReviewWordsProvider.length >= 10
   → Check todayReviewSessionProvider (completed today?)
   → IF needed and not done: inject PathDailyReviewItem before first locked non-exempt item
   → dailyReviewNeededProvider = true → blocks word list navigation with dialog
@@ -156,16 +156,16 @@ learningPathProvider builds path:
 | 0% accuracy (all Hard) | 10 XP (session bonus only), quest still completes |
 | 100% accuracy (Perfect) | Base + 10 + 20 bonus XP, "Perfect Session!" in dialog |
 | Re-submission same day | RPC returns `is_new_session=false`, 0 XP, dialog shown without XP |
-| Network error during load | **BUG**: Silent empty list shown as "All caught up!" — no error/retry UI (#5) |
-| Word without progress record | **BUG**: `_isProcessingAnswer` flag locks up in unit review mode (#4) |
-| Near-midnight timezone mismatch | **BUG**: `path_position` UPDATE may match 0 rows (#7) |
-| Logged-out user navigates to DR | **BUG**: Unhandled exception crash (#20) |
+| Network error during load | Error state shown with "Try Again" button (Fixed #5) |
+| Word without progress record | Initial SM-2 values created, session continues (Fixed #4) |
+| Near-midnight timezone mismatch | Position saved by session ID, not date (Fixed #7) |
+| Logged-out user navigates to DR | Error state shown: "Not authenticated" (Fixed #20) |
 
 ## Test Scenarios
 
 - [ ] **Happy path**: Open daily review with ≥ 10 due words, answer all, verify XP = `(correct × 5) + 10 [+ 20 if perfect]`, verify quest completes, verify DR gate clears on learning path
 - [ ] **Empty state**: User has < 10 due words → DR button hidden on home/profile, no path gate node
-- [ ] **Error state**: Disconnect network before session load → currently shows "All caught up!" (should show error + retry)
+- [ ] **Error state**: Disconnect network before session load → error screen with "Try Again" button
 - [ ] **Boundary — 10 words**: Exactly 10 due non-mastered words → session starts, quest registers
 - [ ] **Boundary — 0% accuracy**: Answer all Hard → 10 XP only (session bonus), quest still marks complete
 - [ ] **Boundary — 100% accuracy**: Answer all Easy/Good → perfect bonus 20 XP, "Perfect Session!" display
@@ -185,19 +185,16 @@ learningPathProvider builds path:
 | UseCases | `lib/domain/usecases/vocabulary/complete_daily_review_usecase.dart` | Complete session RPC call |
 | UseCases | `lib/domain/usecases/vocabulary/get_due_for_review_usecase.dart` | Fetch due words |
 | UseCases | `lib/domain/usecases/vocabulary/get_today_review_session_usecase.dart` | Check today's completion |
+| UseCases | `lib/domain/usecases/vocabulary/save_daily_review_position_usecase.dart` | Save DR position in learning path |
 | Model | `lib/data/models/vocabulary/daily_review_session_model.dart` | JSON serialization |
 | Repository | `lib/data/repositories/supabase/supabase_vocabulary_repository.dart` | Supabase queries and RPC calls |
 | Provider | `lib/presentation/providers/daily_review_provider.dart` | `DailyReviewController`, state, FutureProviders |
 | Screen | `lib/presentation/screens/vocabulary/daily_review_screen.dart` | Flashcard UI, completion dialog |
 | Path Integration | `lib/presentation/providers/vocabulary_provider.dart` | DR injection, gate logic, `dailyReviewNeededProvider` |
-| Migration | `supabase/migrations/20260203000001_add_daily_review_sessions.sql` | Table + `complete_daily_review` RPC |
-| Migration | `supabase/migrations/20260327000008_get_due_review_words_rpc.sql` | `get_due_review_words` RPC |
+| Migration | `supabase/migrations/20260203000001_add_daily_review_sessions.sql` | Table + `complete_daily_review` RPC (original) |
+| Migration | `supabase/migrations/20260327000008_get_due_review_words_rpc.sql` | `get_due_review_words` RPC (original) |
+| Migration | `supabase/migrations/20260328000003_daily_review_audit_fixes.sql` | Auth checks + mastered filter (deployed) |
 
 ## Known Issues & Tech Debt
 
-1. **Security — RPC auth checks missing** (#1, #2): Both `complete_daily_review` and `get_due_review_words` accept `p_user_id` without verifying `auth.uid()`. Follow the pattern in `20260327100001_learning_path_audit_fixes.sql`.
-2. **Bug — `_isProcessingAnswer` deadlock** (#4): Flag not reset in null-progress branch. Blocks all subsequent answers in unit review mode.
-3. **Bug — No error state UI** (#5): Network failures indistinguishable from "no words due". Need error field in `DailyReviewState` + retry button.
-4. **Bug — Threshold mismatch** (#6): Flutter gate counts all due words, quest RPC counts non-mastered only. Align by adding `status != 'mastered'` filter to the Flutter-side count OR the RPC.
-5. **Performance — Unit review N+1** (#13, #14): `loadUnitReviewSession` fetches all word lists then issues 2N queries. Needs a single RPC with server-side filtering.
-6. **Performance — Index mismatch** (#15): `get_due_review_words` RPC should add `AND vp.status != 'mastered'` to leverage existing partial index.
+1. **Performance — Unit review N+1** (#13): `loadUnitReviewSession` issues 2N DB queries per unit (one `word_list_items` + one `vocabulary_words` per list). A single RPC with JOIN would eliminate this. Low priority — `Future.wait` already parallelizes the calls.
