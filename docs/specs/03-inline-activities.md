@@ -128,8 +128,8 @@ N/A — Teachers do not interact with inline activities directly. Activity resul
 5. **true_false activities never add vocabulary** — `onAnswer` callback passes empty `[]` for words, even if `vocabularyWords` is populated on the entity.
 6. **Matching requires zero mistakes** — `_mistakeCount == 0` for `isCorrect = true`. Any wrong tap during matching results in 0 XP even if all pairs eventually matched.
 7. **find_words auto-submits** — When selection count equals `correctAnswers.length`, answer submits automatically (no confirm button).
-8. **Chapter completion = all activities completed** — `isChapterCompleteProvider` returns `true` when `completedActivities.length >= totalActivities`. If `totalActivities == 0`, chapter is immediately complete.
-9. **Re-opened chapters show all activities as "correct"** — `getCompletedInlineActivities` returns only activity IDs (not correctness), and `loadFromList` sets all to `wasCorrect = true`.
+8. **Chapter completion = all activities completed** — `isChapterCompleteProvider` returns `true` when `completedActivities.length >= totalActivities`. If `totalActivities == 0`, chapter is immediately complete. Returns `false` while `chapterInitializedProvider` is false (prevents flash).
+9. **Re-opened chapters preserve correctness** — `getCompletedInlineActivities` returns `Map<String, bool>` (activityId → isCorrect). `loadFromMap` uses actual values so correct/incorrect state is preserved across sessions.
 
 ## Cross-System Interactions
 
@@ -163,15 +163,15 @@ Student answers activity
 
 | Scenario | Current Behavior |
 |----------|-----------------|
-| Chapter with 0 activities | `isChapterComplete` returns `true` immediately — completion UI shown |
-| Activity load failure (network error) | `_loadCompletedActivities` swallows error, `chapterInitializedProvider` never set to `true`, progressive reveal broken (#2) |
-| DB save failure | Activity shown as completed locally, but server has no record. No user feedback. On re-open, activity appears uncompleted again (#3) |
-| Already-completed activity | Shows completed state with green/red header. Cannot re-attempt. |
-| Unknown activity type in DB | Silently rendered as empty true/false with `correctAnswer: true` (#12) |
-| Duplicate right-values in matching | Second identical value disabled immediately, activity unsolvable (#14) |
-| Empty options list | `word_translation`/`find_words`: crash on `.first` in completed-wrong state (#21). `find_words` with 0 `correctAnswers`: auto-submit immediately (#22) |
+| Chapter with 0 activities | `isChapterComplete` returns `true` after initialization — completion UI shown (no flash during loading) |
+| Activity load failure (network error) | `chapterInitializedProvider` set via `finally` block — progressive reveal works with empty completed list |
+| DB save failure | Local state rolled back via `removeCompleted` — activity returns to unanswered state, student can retry |
+| Already-completed activity | Shows completed state with correct green/red header based on actual `is_correct` from DB |
+| Unknown activity type in DB | Filtered out by nullable `fromJson` — activity skipped with `debugPrint` warning |
+| Duplicate right-values in matching | Index-based pairing prevents unsolvable state. Admin editor validates uniqueness on save |
+| Empty options list | Guarded with `isNotEmpty` check — falls back to empty string, no crash |
 | Offline completion | Result saved to SQLite cache with `is_dirty = true`, synced later. XP awarded optimistically. |
-| Offline cold start | `getCompletedInlineActivities` falls to network, fails — all activities appear uncompleted (#24) |
+| Offline cold start | `getCompletedInlineActivities` returns empty map (graceful degradation) — all activities appear uncompleted but reader is usable |
 
 ## Test Scenarios
 
@@ -183,11 +183,11 @@ Student answers activity
 - [ ] Chapter completion: Complete all activities in chapter — completion widget appears
 - [ ] No activities: Open chapter with 0 activities — completion widget shown immediately
 - [ ] Matching mistakes: Make 1 wrong tap then correct all pairs — 0 XP awarded (strict scoring)
-- [ ] Re-open completed chapter: Previously completed activities show as completed (all show "correct" regardless of actual result)
+- [ ] Re-open completed chapter: Previously completed activities show correct/incorrect state accurately
 - [ ] Offline: Complete activity offline — result cached, synced on reconnect
 - [ ] Daily quest: Complete correct-answer activity — `correct_answers` quest type progress increments
 - [ ] Badge check: Verify badge conditions evaluated after XP award
-- [ ] Activity type error: Insert unknown type in DB — app should handle gracefully (currently: silent empty true/false)
+- [ ] Activity type error: Insert unknown type in DB — activity skipped, debugPrint warning logged
 
 ## Key Files
 
@@ -205,10 +205,6 @@ Student answers activity
 
 ## Known Issues & Tech Debt
 
-1. **Missing index** (#1): `inline_activity_results(user_id, answered_at)` needed for daily quest performance. Fix: add partial index with `WHERE is_correct = true`.
-2. **Dual rendering paths** (#9): Legacy paragraph-interleave path must be maintained alongside content-blocks path until all books are migrated. Removing legacy path requires migrating all chapter content.
-3. **`xp_reward` column dead** (#6): DB column exists but SystemSettings always overrides. Decision needed: remove column or implement per-activity XP override.
-4. **`words_learned` column unpopulated** (#8): Schema column never written to. Either populate it in `saveInlineActivityResult` or drop the column.
-5. **Dead code accumulation** (#4, #5, #7, #17, #18): `SaveInlineActivityResultUseCase`, `InlineActivityWrapper` file, widgetbook imports, `InlineActivityResult` model methods, and `SingleTickerProviderStateMixin` — safe to remove.
-6. **Error handling gap** (#3): DB save failure needs user-visible feedback and/or retry mechanism.
-7. **Initialization resilience** (#2): `chapterInitializedProvider` should be set in a `finally` block to prevent broken state on load failure.
+1. **Dual rendering paths** (#9): Legacy paragraph-interleave path must be maintained alongside content-blocks path until all books are migrated. Removing legacy path requires migrating all chapter content.
+2. **`xp_reward` DB column unused**: Column exists in `inline_activities` table but XP comes from SystemSettings. Entity field removed — column is ignored. Consider dropping the column or implementing per-activity XP override in the future.
+3. **Double round trip** (#16): `getCompletedInlineActivities` makes 2 sequential queries (fetch activity IDs, then filter results). Could be optimized to a single query with a join, but acceptable for typical chapter size (5-10 activities).
