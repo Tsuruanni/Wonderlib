@@ -246,6 +246,7 @@ class SupabaseBookRepository implements BookRepository {
         'total_reading_time': progress.totalReadingTime,
         'completed_chapter_ids': progress.completedChapterIds,
         'completed_at': progress.completedAt?.toIso8601String(),
+        'quiz_passed': progress.quizPassed,
         'updated_at': DateTime.now().toIso8601String(),
       };
 
