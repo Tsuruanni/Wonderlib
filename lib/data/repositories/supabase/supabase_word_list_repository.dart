@@ -36,7 +36,7 @@ class SupabaseWordListRepository implements WordListRepository {
         query = query.eq('is_system', isSystem);
       }
 
-      final response = await query.order('name', ascending: true);
+      final response = await query.order('name', ascending: true).limit(500);
 
       final lists =
           (response as List).map((json) => WordListModel.fromJson(json).toEntity()).toList();
