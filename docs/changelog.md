@@ -8,6 +8,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Word Lists Audit & Fixes (2026-03-27)
+
+#### Fixed
+- **Star count divergence** — Unified `UserWordListProgress.starCount` and `StudentWordListProgress.starCount` to 90/70/50/0 thresholds. Previously student used 95/80/any, teacher used 90/70/50.
+- **isComplete semantics** — Unified to `completedAt != null` across both entities (was `totalSessions > 0` for student).
+- **RPC auth vulnerability** — `complete_vocabulary_session` now verifies `p_user_id == auth.uid()`. Previously any authenticated user could submit session data for any other user.
+- **Missing error states** — Added error/loading handling to vocabulary hub, word list detail, and word bank screens (previously swallowed errors silently).
+- **N+1 progress queries** — `CategoryBrowseScreen` now batch-loads all progress via `userWordListProgressProvider` instead of per-item `progressForListProvider`.
+
+#### Changed
+- **Session save architecture** — Extracted multi-UseCase orchestration from `session_summary_screen.dart` into `SessionSaveNotifier` provider. Screen no longer imports domain UseCases directly.
+- **UI extension relocated** — `WordListCategoryIcon` moved from domain entity to `ui_helpers.dart`. Duplicate `_getCategoryColor` in 2 screens replaced with centralized `VocabularyColors.getCategoryColor`.
+- **Shared enum parsing** — `WordListModel` now uses `WordListCategory.fromDbValue()`/`.dbValue` from owlio_shared instead of duplicate switch statements.
+- **Typed category field** — `StudentWordListProgress.wordListCategory` changed from `String` to `WordListCategory` enum. Parsing at model boundary.
+
+#### Removed
+- **Dead code** — `UpdateWordListProgressUseCase` + provider (never called), `getVocabularyUnits()` from repository (no consumers), `WordListModel.fromEntity` (never called), `progressPercentage` getter (zero callers), `dueForReviewProvider` (unused), `retryWordIds` parameter (never populated), 3 `debugPrint` statements, stale comments.
+
+#### Infrastructure
+- **1 DB migration** (20260328000002) — Auth check on `complete_vocabulary_session` RPC.
+- **Feature spec** — `docs/specs/06-word-lists.md` documents the full Word Lists system (20/24 findings fixed, 4 deferred).
+- **Pagination guard** — `getAllWordLists` now has `.limit(500)` safety net.
+
 ### Vocabulary & Spaced Repetition Audit & Spec (2026-03-27)
 
 #### Fixed
