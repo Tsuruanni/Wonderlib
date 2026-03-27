@@ -9,6 +9,7 @@ import '../../providers/book_download_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../widgets/book/level_badge.dart';
+import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/library/download_button.dart';
 
@@ -43,7 +44,10 @@ class BookDetailScreen extends ConsumerWidget {
       ),
       error: (error, stack) => Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text('Error: $error')),
+        body: ErrorStateWidget(
+          message: 'Failed to load book details',
+          onRetry: () => ref.invalidate(bookByIdProvider(bookId)),
+        ),
       ),
       data: (book) {
         if (book == null) {
@@ -235,7 +239,10 @@ class BookDetailScreen extends ConsumerWidget {
                   child: Center(child: CircularProgressIndicator()),
                 ),
                 error: (error, stack) => SliverToBoxAdapter(
-                  child: Center(child: Text('Error loading chapters: $error')),
+                  child: ErrorStateWidget(
+                    message: 'Failed to load chapters',
+                    onRetry: () => ref.invalidate(chaptersProvider(bookId)),
+                  ),
                 ),
                 data: (chapters) {
                   if (chapters.isEmpty) {

@@ -12,6 +12,7 @@ import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
+import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -221,14 +222,26 @@ class LibraryScreen extends ConsumerWidget {
             categoriesAsync.when(
               data: (categories) => _buildTopBar(ref, selectedCategory, categories, isSearchActive),
               loading: () => const SizedBox(height: 80),
-              error: (_, __) => const SizedBox(height: 80),
+              error: (_, __) => SizedBox(
+                height: 80,
+                child: Center(
+                  child: TextButton.icon(
+                    onPressed: () => ref.invalidate(booksProvider),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Retry'),
+                  ),
+                ),
+              ),
             ),
 
             // --- Content (Shelves) ---
             Expanded(
               child: booksAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(child: Text('Error: $error')),
+                error: (error, _) => ErrorStateWidget(
+                  message: 'Failed to load books',
+                  onRetry: () => ref.invalidate(booksProvider),
+                ),
                 data: (books) {
                   if (books.isEmpty) {
                     return _EmptyState(isSearchActive: isSearchActive);
