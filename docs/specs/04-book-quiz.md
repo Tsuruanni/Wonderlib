@@ -6,32 +6,32 @@
 
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Data Integrity | `updateReadingProgress` in `supabase_book_repository.dart` omits `quiz_passed` from the upsert data map — column stays `false` in DB forever. `HandleBookCompletionUseCase` sets `quizPassed: true` via `copyWith` but the field is silently dropped at persistence. `is_completed` IS written, so books appear complete locally and on re-fetch, but the `quiz_passed` column is dead for any future query or reporting. | High | TODO |
-| 2 | Security | `get_best_book_quiz_result` RPC is `SECURITY DEFINER` with no authorization check — any authenticated user can pass any `p_user_id` and retrieve another student's best quiz score. Unlike `get_student_quiz_results` which has a school-membership check. | High | TODO |
-| 3 | Edge Case | Published quiz with 0 questions soft-locks the student: `bookHasQuizProvider` returns `true` (quiz exists, published), `isQuizReadyProvider` returns `true` (quiz not passed), "Take quiz" CTA shown — but `BookQuizScreen` renders "No quiz available" with only a "Go Back" button. Student cannot complete the book. | High | TODO |
-| 4 | Dead Code | `BookQuizProgressBar.answeredIndices` parameter accepted in constructor but never used — progress is computed from `(currentIndex + 1) / totalQuestions`. The `Set<int>` is built and passed from `BookQuizScreen` (lines 207-211) for nothing. | Low | TODO |
-| 5 | Dead Code | `_goToNextPage` condition `_currentPage < 999` always evaluates to `true`, making the first clause (`_currentPage < (_pageController.page?.round() ?? 0) + 1`) dead. `PageController.nextPage` beyond last page is a Flutter no-op so no visible bug, but logic is nonsensical. | Low | TODO |
-| 6 | Dead Code | `BookQuizController.submitQuiz` never receives `timeSpent` — `BookQuizScreen._submitQuiz` does not measure elapsed time. The `time_spent` column is always `null` in the database. | Low | TODO |
-| 7 | Dead Code | `BookQuizModel.fromEntity` / `BookQuizQuestionModel.fromEntity` never called in the main app — only `BookQuizResultModel.fromEntity` is used (for `toInsertJson()`). Untested code paths. | Low | TODO |
-| 8 | Code Quality | `BookQuizQuestionModel._parseType` and `_typeToString` duplicate logic already on `BookQuizQuestionType.fromDbValue()` / `.dbValue` from owlio_shared. Two 5-case switch statements that could diverge from the shared enum. | Medium | TODO |
-| 9 | Code Quality | Admin quiz editor uses raw string literals (`'multiple_choice'`, `'fill_blank'`) in switch cases instead of `BookQuizQuestionType.x.dbValue`. | Low | TODO |
-| 10 | Code Quality | Hard-coded color literals `Color(0xFF58CC02)` and `Color(0xFFFF4B4B)` in `book_quiz_result_card.dart` — `AppColors.primary` already defines `0xFF58CC02`. | Low | TODO |
-| 11 | Architecture | Admin quiz editor (`book_quiz_edit_screen.dart`, `quiz_question_edit_screen.dart`) has all user-facing labels in Turkish: "Kitap Quizini Düzenle", "Geçme Puanı (%)", "Çoktan Seçmeli", etc. Violates CLAUDE.md "UI in English" rule. | Medium | TODO |
+| 1 | Data Integrity | `updateReadingProgress` in `supabase_book_repository.dart` omits `quiz_passed` from the upsert data map — column stays `false` in DB forever. `HandleBookCompletionUseCase` sets `quizPassed: true` via `copyWith` but the field is silently dropped at persistence. `is_completed` IS written, so books appear complete locally and on re-fetch, but the `quiz_passed` column is dead for any future query or reporting. | High | Fixed |
+| 2 | Security | `get_best_book_quiz_result` RPC is `SECURITY DEFINER` with no authorization check — any authenticated user can pass any `p_user_id` and retrieve another student's best quiz score. Unlike `get_student_quiz_results` which has a school-membership check. | High | Fixed |
+| 3 | Edge Case | Published quiz with 0 questions soft-locks the student: `bookHasQuizProvider` returns `true` (quiz exists, published), `isQuizReadyProvider` returns `true` (quiz not passed), "Take quiz" CTA shown — but `BookQuizScreen` renders "No quiz available" with only a "Go Back" button. Student cannot complete the book. | High | Fixed |
+| 4 | Dead Code | `BookQuizProgressBar.answeredIndices` parameter accepted in constructor but never used — progress is computed from `(currentIndex + 1) / totalQuestions`. The `Set<int>` is built and passed from `BookQuizScreen` (lines 207-211) for nothing. | Low | Fixed |
+| 5 | Dead Code | `_goToNextPage` condition `_currentPage < 999` always evaluates to `true`, making the first clause (`_currentPage < (_pageController.page?.round() ?? 0) + 1`) dead. `PageController.nextPage` beyond last page is a Flutter no-op so no visible bug, but logic is nonsensical. | Low | Fixed |
+| 6 | Dead Code | `BookQuizController.submitQuiz` never receives `timeSpent` — `BookQuizScreen._submitQuiz` does not measure elapsed time. The `time_spent` column is always `null` in the database. | Low | Fixed |
+| 7 | Dead Code | `BookQuizModel.fromEntity` / `BookQuizQuestionModel.fromEntity` never called in the main app — only `BookQuizResultModel.fromEntity` is used (for `toInsertJson()`). Untested code paths. | Low | Fixed |
+| 8 | Code Quality | `BookQuizQuestionModel._parseType` and `_typeToString` duplicate logic already on `BookQuizQuestionType.fromDbValue()` / `.dbValue` from owlio_shared. Two 5-case switch statements that could diverge from the shared enum. | Medium | Fixed |
+| 9 | Code Quality | Admin quiz editor uses raw string literals (`'multiple_choice'`, `'fill_blank'`) in switch cases instead of `BookQuizQuestionType.x.dbValue`. | Low | Fixed |
+| 10 | Code Quality | Hard-coded color literals `Color(0xFF58CC02)` and `Color(0xFFFF4B4B)` in `book_quiz_result_card.dart` — `AppColors.primary` already defines `0xFF58CC02`. | Low | Fixed |
+| 11 | Architecture | Admin quiz editor (`book_quiz_edit_screen.dart`, `quiz_question_edit_screen.dart`) has all user-facing labels in Turkish: "Kitap Quizini Düzenle", "Geçme Puanı (%)", "Çoktan Seçmeli", etc. Violates CLAUDE.md "UI in English" rule. | Medium | Fixed |
 | 12 | Performance | `HandleBookCompletionUseCase` makes 3 sequential async calls (`getReadingProgress`, `getChapters`, `bookHasQuiz`) — last two are independent and could be `Future.wait`-ed. | Low | Deferred |
-| 13 | Performance | Missing `(user_id, book_id)` composite index on `book_quiz_results` — `getUserQuizResults` and `get_best_book_quiz_result` both filter by both columns but only individual column indexes exist. | Low | TODO |
+| 13 | Performance | Missing `(user_id, book_id)` composite index on `book_quiz_results` — `getUserQuizResults` and `get_best_book_quiz_result` both filter by both columns but only individual column indexes exist. | Low | Fixed |
 | 14 | Edge Case | Event sequencing registers shuffled initial order as answer via `addPostFrameCallback` — if student never touches the question and submits, it counts as "answered" with a likely-wrong order. | Low | Accepted |
 | 15 | Edge Case | Cleared `fillBlank` field calls `onAnswer('')` — empty string satisfies `allAnswered` check (non-null) but always grades wrong. Student may not realize they need to type before proceeding. | Low | Accepted |
 | 16 | Dead Code | Commented-out instruction UI blocks in `book_quiz_matching.dart`, `book_quiz_who_says_what.dart`, `book_quiz_screen.dart` — `quiz.instructions` field stored in DB but never shown to students. | Low | Accepted |
 
 ### Checklist Result
 
-- **Architecture Compliance**: PASS — Clean architecture fully respected in main app. Screen → Provider → UseCase → Repository chain intact. No JSON in entities. `DbTables.bookQuizzes` / `DbTables.bookQuizResults` / `DbTables.bookQuizQuestions` used. `BookQuizQuestionType` enum from owlio_shared. Admin panel uses direct Supabase (accepted pattern).
-- **Code Quality**: 3 issues — duplicate type parsing (#8), raw string switch cases in admin (#9), hard-coded colors (#10). Turkish admin labels (#11).
-- **Dead Code**: 4 issues — unused `answeredIndices` (#4), dead navigation condition (#5), unused `timeSpent` (#6), unused `fromEntity` constructors (#7), commented-out instructions (#16).
-- **Database & Security**: 2 issues — `quiz_passed` never written (#1), `get_best_book_quiz_result` missing auth check (#2). RLS policies correct. Attempt number trigger + UNIQUE constraint enforce idempotency. Cascading deletes handled.
-- **Edge Cases & UX**: 1 critical — 0-question published quiz soft-lock (#3). 2 minor accepted (#14, #15). Loading/empty/error states handled in `BookQuizScreen`.
-- **Performance**: 2 low issues — sequential calls (#12, deferred), missing composite index (#13).
-- **Cross-System Integrity**: PASS — XP via `userControllerProvider.addXP()` with `source='quiz_pass', sourceId=quizId` (idempotent). Badge check via `addXP`. `HandleBookCompletionUseCase` called on passing. Providers invalidated: `bestQuizResultProvider`, `readingProgressProvider`, `completedBookIdsProvider`, `continueReadingProvider`, `isQuizReadyProvider`. Streak not updated (correct — app-open only).
+- **Architecture Compliance**: PASS — Clean architecture fully respected. Admin labels translated to English (#11).
+- **Code Quality**: PASS — All fixed: shared enum for type parsing (#8), enum switches in admin (#9), AppColors (#10), English labels (#11).
+- **Dead Code**: PASS — All removed: `answeredIndices` (#4), dead nav condition (#5), `timeSpent` now implemented (#6), unused `fromEntity` (#7). Commented-out instructions (#16) accepted.
+- **Database & Security**: PASS — `quiz_passed` now written (#1), auth check added to `get_best_book_quiz_result` (#2), composite index added (#13). RLS correct. Idempotency intact.
+- **Edge Cases & UX**: PASS — 0-question guard added to RPC + admin validation (#3). Accepted: #14, #15.
+- **Performance**: PASS — Composite index added (#13). Sequential calls (#12) deferred.
+- **Cross-System Integrity**: PASS — XP via `addXP` with idempotent sourceId. Badge check, book completion, provider invalidation all correct.
 
 ---
 
