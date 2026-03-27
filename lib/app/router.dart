@@ -97,8 +97,6 @@ abstract class AppRoutes {
       '/vocabulary/list/$listId/session/summary';
   static String vocabularyCategoryPath(String categoryName) =>
       '/vocabulary/category/$categoryName';
-  static String vocabularyUnitReviewPath(String unitId) =>
-      '/vocabulary/unit-review/$unitId';
   static const bookQuiz = '/quiz/:bookId';
   static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
@@ -323,13 +321,6 @@ GoRouter _createRouter() {
                   GoRoute(
                     path: 'daily-review',
                     builder: (context, state) => const DailyReviewScreen(),
-                  ),
-                  GoRoute(
-                    path: 'unit-review/:unitId',
-                    builder: (context, state) {
-                      final unitId = state.pathParameters['unitId']!;
-                      return DailyReviewScreen(unitId: unitId);
-                    },
                   ),
                   GoRoute(
                     path: 'category/:categoryName',

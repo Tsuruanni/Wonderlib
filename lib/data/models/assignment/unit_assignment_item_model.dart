@@ -1,9 +1,11 @@
+import 'package:owlio_shared/owlio_shared.dart';
+
 import '../../../domain/entities/unit_assignment_item.dart';
 
 class UnitAssignmentItemModel {
   static UnitAssignmentItem fromJson(Map<String, dynamic> json) {
     return UnitAssignmentItem(
-      itemType: json['item_type'] as String,
+      itemType: LearningPathItemType.fromDbValue(json['item_type'] as String),
       sortOrder: (json['sort_order'] as num).toInt(),
       wordListId: json['word_list_id'] as String?,
       wordListName: json['word_list_name'] as String?,

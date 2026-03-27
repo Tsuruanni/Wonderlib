@@ -4,30 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
-
-// ============================================
-// PROVIDERS
-// ============================================
-
-/// Fetches all scope learning path assignments with school/class info.
-final allAssignmentsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-  final response = await supabase
-      .from(DbTables.scopeLearningPaths)
-      .select(
-        'id, name, template_id, sort_order, grade, class_id, school_id, '
-        'sequential_lock, books_exempt_from_lock, created_at, '
-        'schools(id, name), '
-        'classes(id, name, grade), '
-        'scope_learning_path_units(id, '
-        '  vocabulary_units(name), '
-        '  scope_unit_items(id, item_type)'
-        ')',
-      )
-      .order('created_at', ascending: false);
-  return List<Map<String, dynamic>>.from(response);
-});
+import '../../templates/screens/template_list_screen.dart' show allAssignmentsProvider;
 
 // ============================================
 // SCREEN

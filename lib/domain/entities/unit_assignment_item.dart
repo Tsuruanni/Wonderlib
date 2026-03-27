@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 /// A single item within a unit assignment, with student completion state
 class UnitAssignmentItem extends Equatable {
@@ -16,7 +17,7 @@ class UnitAssignmentItem extends Equatable {
     this.isBookCompleted,
   });
 
-  final String itemType;
+  final LearningPathItemType itemType;
   final int sortOrder;
   // Word list fields
   final String? wordListId;
@@ -30,11 +31,11 @@ class UnitAssignmentItem extends Equatable {
   final int? completedChapters;
   final bool? isBookCompleted;
 
-  bool get isTracked => itemType == 'word_list' || itemType == 'book';
+  bool get isTracked => itemType == LearningPathItemType.wordList || itemType == LearningPathItemType.book;
 
   bool get isCompleted {
-    if (itemType == 'word_list') return isWordListCompleted ?? false;
-    if (itemType == 'book') return isBookCompleted ?? false;
+    if (itemType == LearningPathItemType.wordList) return isWordListCompleted ?? false;
+    if (itemType == LearningPathItemType.book) return isBookCompleted ?? false;
     return false;
   }
 

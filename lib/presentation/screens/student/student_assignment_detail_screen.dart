@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
@@ -490,7 +491,7 @@ class _UnitItemsList extends ConsumerWidget {
             VoidCallback? onTap;
 
             switch (item.itemType) {
-              case 'word_list':
+              case LearningPathItemType.wordList:
                 icon = Icons.abc;
                 title = item.wordListName ?? 'Word List';
                 subtitle = '${item.wordCount ?? 0} words';
@@ -498,7 +499,7 @@ class _UnitItemsList extends ConsumerWidget {
                 if (item.wordListId != null) {
                   onTap = () => _startUnitItem(context, ref, assignment, wordListId: item.wordListId);
                 }
-              case 'book':
+              case LearningPathItemType.book:
                 icon = Icons.menu_book;
                 title = item.bookTitle ?? 'Book';
                 subtitle = '${item.completedChapters ?? 0}/${item.totalChapters ?? 0} chapters';
@@ -506,20 +507,15 @@ class _UnitItemsList extends ConsumerWidget {
                 if (item.bookId != null) {
                   onTap = () => _startUnitItem(context, ref, assignment, bookId: item.bookId);
                 }
-              case 'game':
+              case LearningPathItemType.game:
                 icon = Icons.sports_esports;
                 title = 'Game';
                 subtitle = 'Not graded';
                 color = Colors.grey;
-              case 'treasure':
+              case LearningPathItemType.treasure:
                 icon = Icons.card_giftcard;
                 title = 'Treasure';
                 subtitle = 'Not graded';
-                color = Colors.grey;
-              default:
-                icon = Icons.help;
-                title = item.itemType;
-                subtitle = '';
                 color = Colors.grey;
             }
 

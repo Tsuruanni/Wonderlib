@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 /// A unit from the class's learning path, shown to teacher during assignment creation
 class ClassLearningPathUnit extends Equatable {
@@ -26,7 +27,7 @@ class ClassLearningPathUnit extends Equatable {
 
   /// Count of items that are tracked for progress (word_list + book only)
   int get trackableItemCount =>
-      items.where((i) => i.itemType == 'word_list' || i.itemType == 'book').length;
+      items.where((i) => i.itemType == LearningPathItemType.wordList || i.itemType == LearningPathItemType.book).length;
 
   @override
   List<Object?> get props => [
@@ -47,7 +48,7 @@ class ClassLearningPathItem extends Equatable {
     this.bookChapterCount,
   });
 
-  final String itemType;
+  final LearningPathItemType itemType;
   final int sortOrder;
   final String? wordListId;
   final String? wordListName;

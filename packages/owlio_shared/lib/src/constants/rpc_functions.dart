@@ -47,7 +47,6 @@ abstract class RpcFunctions {
   // Learning paths
   static const getUserLearningPaths = 'get_user_learning_paths';
   static const applyLearningPathTemplate = 'apply_learning_path_template';
-  static const getPathDailyReviews = 'get_path_daily_reviews';
 
   // Teacher
   static const getTeacherStats = 'get_teacher_stats';

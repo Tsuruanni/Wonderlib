@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/student_unit_progress_item.dart';
@@ -661,7 +662,7 @@ class _StudentUnitItemCard extends StatelessWidget {
     final List<Widget> details = [];
 
     switch (item.itemType) {
-      case 'word_list':
+      case LearningPathItemType.wordList:
         icon = Icons.abc;
         title = item.wordListName ?? 'Word List';
         color = Colors.purple;
@@ -702,7 +703,7 @@ class _StudentUnitItemCard extends StatelessWidget {
           ),);
         }
 
-      case 'book':
+      case LearningPathItemType.book:
         icon = Icons.menu_book;
         title = item.bookTitle ?? 'Book';
         color = Colors.blue;
@@ -715,9 +716,20 @@ class _StudentUnitItemCard extends StatelessWidget {
           valueColor: item.isBookCompleted ?? false ? Colors.green : null,
         ),);
 
-      default:
-        icon = item.itemType == 'game' ? Icons.sports_esports : Icons.card_giftcard;
-        title = item.itemType == 'game' ? 'Game' : 'Treasure';
+      case LearningPathItemType.game:
+        icon = Icons.sports_esports;
+        title = 'Game';
+        color = Colors.grey;
+        details.add(Text(
+          'Not graded',
+          style: context.textTheme.bodySmall?.copyWith(
+            color: context.colorScheme.outline,
+          ),
+        ),);
+
+      case LearningPathItemType.treasure:
+        icon = Icons.card_giftcard;
+        title = 'Treasure';
         color = Colors.grey;
         details.add(Text(
           'Not graded',
@@ -850,34 +862,29 @@ class _UnitContentSection extends ConsumerWidget {
                     children: unit.items.map((item) {
                       final IconData icon;
                       final String label;
-                      final String? detail;
+                      final String detail;
                       final bool isTracked;
 
                       switch (item.itemType) {
-                        case 'word_list':
+                        case LearningPathItemType.wordList:
                           icon = Icons.abc;
                           label = item.wordListName ?? 'Word List';
                           detail = '${item.words?.length ?? 0} words';
                           isTracked = true;
-                        case 'book':
+                        case LearningPathItemType.book:
                           icon = Icons.menu_book;
                           label = item.bookTitle ?? 'Book';
                           detail = '${item.bookChapterCount ?? 0} chapters';
                           isTracked = true;
-                        case 'game':
+                        case LearningPathItemType.game:
                           icon = Icons.sports_esports;
                           label = 'Game';
                           detail = 'Not graded';
                           isTracked = false;
-                        case 'treasure':
+                        case LearningPathItemType.treasure:
                           icon = Icons.card_giftcard;
                           label = 'Treasure';
                           detail = 'Not graded';
-                          isTracked = false;
-                        default:
-                          icon = Icons.help;
-                          label = item.itemType;
-                          detail = null;
                           isTracked = false;
                       }
 
@@ -893,16 +900,14 @@ class _UnitContentSection extends ConsumerWidget {
                                 color: isTracked ? null : context.colorScheme.outline,
                               ),
                             ),
-                            trailing: detail != null
-                                ? Text(
+                            trailing: Text(
                                     detail,
                                     style: context.textTheme.bodySmall?.copyWith(
                                       color: context.colorScheme.outline,
                                     ),
-                                  )
-                                : null,
+                                  ),
                           ),
-                          if (item.itemType == 'word_list' && item.words != null && item.words!.isNotEmpty)
+                          if (item.itemType == LearningPathItemType.wordList && item.words != null && item.words!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(left: 56, right: 16, bottom: 8),
                               child: Wrap(

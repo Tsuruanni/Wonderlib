@@ -12,8 +12,8 @@ import '../../utils/ui_helpers.dart';
 import 'path_special_nodes.dart' show pathNodeLabelStyle;
 import '../common/pressable_scale.dart';
 
-/// Controls whether the text label appears below, to the left, or to the right of the node circle.
-enum LabelPosition { below, left, right }
+/// Controls whether the text label appears to the left or to the right of the node circle.
+enum LabelPosition { left, right }
 
 /// A single node on the learning path representing one word list.
 /// Shows a 3D circle with icon, crown badge (if complete), stars (if started),
@@ -26,7 +26,7 @@ class PathNode extends ConsumerStatefulWidget {
     this.isActive = false,
     this.isLocked = false,
     this.canStartNewList = true,
-    this.labelPosition = LabelPosition.below,
+    this.labelPosition = LabelPosition.left,
   });
 
   final WordListWithProgress wordListWithProgress;
@@ -407,33 +407,6 @@ class _PathNodeState extends ConsumerState<PathNode>
 
     final labelStyle = pathNodeLabelStyle();
 
-    if (widget.labelPosition == LabelPosition.below) {
-      return PressableScale(
-        pressedScale: 0.92,
-        onTap: () => _handleTap(context),
-        child: SizedBox(
-          width: 140, 
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              nodeWidget,
-              const SizedBox(height: 6),
-              // Pill removed
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  wordList.name,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  style: labelStyle,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     // Side label layout (left or right)
     final isLeft = widget.labelPosition == LabelPosition.left;
 
@@ -576,7 +549,6 @@ class _PathNodeState extends ConsumerState<PathNode>
                   ),
                 ),
               ),
-          // Crown badge removed by user request
           // Stars for nodes with progress
           if (stars > 0 && !isLocked)
             Positioned(

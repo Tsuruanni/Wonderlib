@@ -81,6 +81,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Book Quiz | `docs/specs/04-book-quiz.md` | 5 question types (multiple_choice, fill_blank, event_sequencing, matching, who_says_what), 70% pass threshold, multi-attempt, XP awards, quiz-gates book completion |
 | Vocabulary & Spaced Repetition | `docs/specs/05-vocabulary-spaced-repetition.md` | 10 question types, 3-phase session algorithm, SM-2 spaced repetition, mastery levels, XP/combo, daily review, admin CRUD/CSV import, teacher stats |
 | Word Lists | `docs/specs/06-word-lists.md` | Word list CRUD, categories, star rating, sequential unlock, learning path integration, assignment tracking, daily limit, teacher progress view |
+| Learning Paths | `docs/specs/07-learning-paths.md` | Template/scope hierarchy, sequential lock, books exempt, daily review gate, path node types, unit assignments, scope resolution, class change handling |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

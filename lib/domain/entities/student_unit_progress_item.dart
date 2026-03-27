@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 /// Per-item progress for a student in a unit assignment (teacher view)
 class StudentUnitProgressItem extends Equatable {
@@ -19,7 +20,7 @@ class StudentUnitProgressItem extends Equatable {
     this.isBookCompleted,
   });
 
-  final String itemType;
+  final LearningPathItemType itemType;
   final int sortOrder;
   final String? wordListId;
   final String? wordListName;
@@ -34,11 +35,11 @@ class StudentUnitProgressItem extends Equatable {
   final int? completedChapters;
   final bool? isBookCompleted;
 
-  bool get isTracked => itemType == 'word_list' || itemType == 'book';
+  bool get isTracked => itemType == LearningPathItemType.wordList || itemType == LearningPathItemType.book;
 
   bool get isCompleted {
-    if (itemType == 'word_list') return isWordListCompleted ?? false;
-    if (itemType == 'book') return isBookCompleted ?? false;
+    if (itemType == LearningPathItemType.wordList) return isWordListCompleted ?? false;
+    if (itemType == LearningPathItemType.book) return isBookCompleted ?? false;
     return false;
   }
 

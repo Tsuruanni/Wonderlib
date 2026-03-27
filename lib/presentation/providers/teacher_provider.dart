@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/class_learning_path_unit.dart';
@@ -263,14 +262,8 @@ final classLearningPathUnitsProvider =
   final result = await useCase(GetClassLearningPathUnitsParams(classId: classId));
 
   return result.fold(
-    (failure) {
-      debugPrint('📋 classLearningPathUnitsProvider FAILURE: ${failure.message}');
-      return [];
-    },
-    (units) {
-      debugPrint('📋 classLearningPathUnitsProvider: got ${units.length} units for classId=$classId');
-      return units;
-    },
+    (failure) => [],
+    (units) => units,
   );
 });
 
@@ -285,10 +278,7 @@ final studentUnitProgressProvider =
     ),);
 
     return result.fold(
-      (failure) {
-        debugPrint('📋 studentUnitProgressProvider FAILURE: ${failure.message}');
-        return [];
-      },
+      (failure) => [],
       (items) => items,
     );
   },

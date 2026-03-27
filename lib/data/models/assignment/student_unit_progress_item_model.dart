@@ -1,9 +1,11 @@
+import 'package:owlio_shared/owlio_shared.dart';
+
 import '../../../domain/entities/student_unit_progress_item.dart';
 
 class StudentUnitProgressItemModel {
   static StudentUnitProgressItem fromJson(Map<String, dynamic> json) {
     return StudentUnitProgressItem(
-      itemType: json['out_item_type'] as String,
+      itemType: LearningPathItemType.fromDbValue(json['out_item_type'] as String),
       sortOrder: (json['out_sort_order'] as num).toInt(),
       wordListId: json['out_word_list_id'] as String?,
       wordListName: json['out_word_list_name'] as String?,

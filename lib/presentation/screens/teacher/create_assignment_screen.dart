@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
@@ -1033,26 +1034,22 @@ class _UnitItemRow extends StatelessWidget {
     final String? subtitle;
 
     switch (item.itemType) {
-      case 'word_list':
+      case LearningPathItemType.wordList:
         icon = Icons.abc;
         label = item.wordListName ?? 'Word List';
         subtitle = item.words?.join(', ');
-      case 'book':
+      case LearningPathItemType.book:
         icon = Icons.menu_book;
         label = item.bookTitle ?? 'Book';
         subtitle = '${item.bookChapterCount ?? 0} chapters';
-      case 'game':
+      case LearningPathItemType.game:
         icon = Icons.sports_esports;
         label = 'Game';
         subtitle = 'Not graded';
-      case 'treasure':
+      case LearningPathItemType.treasure:
         icon = Icons.card_giftcard;
         label = 'Treasure';
         subtitle = 'Not graded';
-      default:
-        icon = Icons.help;
-        label = item.itemType;
-        subtitle = null;
     }
 
     return Padding(

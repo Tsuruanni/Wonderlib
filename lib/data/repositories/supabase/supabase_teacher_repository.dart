@@ -33,8 +33,6 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, TeacherStats>> getTeacherStats(String teacherId) async {
     try {
-      debugPrint('getTeacherStats: fetching for teacherId=$teacherId');
-
       // Use RPC function to get all stats in single query (eliminates N+1)
       final response = await _supabase.rpc(
         RpcFunctions.getTeacherStats,
@@ -43,7 +41,6 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       final data = (response as List).firstOrNull;
       if (data == null) {
-        debugPrint('getTeacherStats: no data returned');
         return const Right(TeacherStats(
           totalStudents: 0,
           totalClasses: 0,
@@ -54,11 +51,8 @@ class SupabaseTeacherRepository implements TeacherRepository {
 
       final stats = TeacherStatsModel.fromJson(data).toEntity();
 
-      debugPrint('getTeacherStats: result = students:${stats.totalStudents}, classes:${stats.totalClasses}, assignments:${stats.activeAssignments}, progress:${stats.avgProgress}');
-
       return Right(stats);
     } on PostgrestException catch (e) {
-      debugPrint('getTeacherStats: PostgrestException = ${e.message}');
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -68,27 +62,20 @@ class SupabaseTeacherRepository implements TeacherRepository {
   @override
   Future<Either<Failure, List<TeacherClass>>> getClasses(String schoolId) async {
     try {
-      debugPrint('getClasses: fetching for schoolId=$schoolId');
-
       // Use RPC function to get all class stats in single query (eliminates N+1)
       final response = await _supabase.rpc(
         RpcFunctions.getClassesWithStats,
         params: {'p_school_id': schoolId},
       );
 
-      debugPrint('getClasses: response = $response');
-
       final classes = (response as List)
           .map((data) => TeacherClassModel.fromJson(data).toEntity())
           .toList();
 
-      debugPrint('getClasses: returning ${classes.length} classes');
       return Right(classes);
     } on PostgrestException catch (e) {
-      debugPrint('getClasses: PostgrestException = ${e.message}');
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
-      debugPrint('getClasses: Exception = $e');
       return Left(ServerFailure(e.toString()));
     }
   }

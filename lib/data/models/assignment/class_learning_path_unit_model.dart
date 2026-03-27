@@ -1,3 +1,5 @@
+import 'package:owlio_shared/owlio_shared.dart';
+
 import '../../../domain/entities/class_learning_path_unit.dart';
 
 class ClassLearningPathUnitModel {
@@ -28,7 +30,7 @@ class ClassLearningPathUnitModel {
         }
 
         unitBuilders[scopeLpUnitId]!.items.add(ClassLearningPathItem(
-          itemType: row['item_type'] as String,
+          itemType: LearningPathItemType.fromDbValue(row['item_type'] as String),
           sortOrder: (row['item_sort_order'] as num).toInt(),
           wordListId: row['word_list_id'] as String?,
           wordListName: row['word_list_name'] as String?,
