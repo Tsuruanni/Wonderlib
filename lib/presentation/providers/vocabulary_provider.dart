@@ -63,19 +63,6 @@ final vocabularySearchProvider =
   );
 });
 
-/// Provides words due for review
-final dueForReviewProvider = FutureProvider<List<VocabularyWord>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-
-  final useCase = ref.watch(getDueForReviewUseCaseProvider);
-  final result = await useCase(GetDueForReviewParams(userId: userId));
-  return result.fold(
-    (failure) => [],
-    (words) => words,
-  );
-});
-
 /// Provides new words to learn
 final newWordsProvider = FutureProvider<List<VocabularyWord>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
