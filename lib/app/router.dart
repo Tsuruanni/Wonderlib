@@ -306,10 +306,8 @@ GoRouter _createRouter() {
                         path: 'session',
                         builder: (context, state) {
                           final listId = state.pathParameters['listId']!;
-                          final retryWordIds = state.extra as List<String>?;
                           return VocabularySessionScreen(
                             listId: listId,
-                            retryWordIds: retryWordIds,
                           );
                         },
                       ),

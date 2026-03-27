@@ -488,8 +488,6 @@ class _PathNodeState extends ConsumerState<PathNode>
     _rotation = (random.nextDouble() - 0.5) * 0.5;
   }
 
-  // ... (existing helper methods)
-
   Widget _buildNodeCircle({
     required WordList wordList,
     required bool isComplete,

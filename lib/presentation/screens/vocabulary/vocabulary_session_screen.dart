@@ -30,11 +30,9 @@ class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
     super.key,
     required this.listId,
-    this.retryWordIds,
   });
 
   final String listId;
-  final List<String>? retryWordIds; // If set, only these words (for "Tekrar Calis")
 
   @override
   ConsumerState<VocabularySessionScreen> createState() =>
@@ -87,13 +85,6 @@ class _VocabularySessionScreenState
     if (!mounted) return;
 
     List<VocabularyWord> words = wordsResult;
-
-    // Filter to retry words if specified
-    if (widget.retryWordIds != null && widget.retryWordIds!.isNotEmpty) {
-      words = words
-          .where((w) => widget.retryWordIds!.contains(w.id))
-          .toList();
-    }
 
     if (words.length < 2) {
       if (mounted) {
@@ -296,10 +287,6 @@ class _VocabularySessionScreenState
                     ),
                   ),
                   
-                  // Spacer for feedback area height to prevent content being hidden behind it
-                  // Only if we want content to scroll above? 
-                  // For now, let's leave it full height, but maybe add bottom padding equal to expected feedback height?
-                  // Actually, just letting it be is fine for now as feedback is an overlay.
                 ],
               ),
             ),
