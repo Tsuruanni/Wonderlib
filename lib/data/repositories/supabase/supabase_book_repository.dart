@@ -28,7 +28,7 @@ class SupabaseBookRepository implements BookRepository {
     int pageSize = 20,
   }) async {
     try {
-      var query = _supabase.from(DbTables.books).select().eq('status', 'published');
+      var query = _supabase.from(DbTables.books).select().eq('status', BookStatus.published.dbValue);
 
       if (level != null) query = query.eq('level', level);
       if (genre != null) query = query.eq('genre', genre);
@@ -75,7 +75,7 @@ class SupabaseBookRepository implements BookRepository {
           .from(DbTables.books)
           .select()
           .inFilter('id', ids)
-          .eq('status', 'published');
+          .eq('status', BookStatus.published.dbValue);
 
       final books =
           (response as List).map((json) => _mapToBook(json)).toList();
@@ -101,7 +101,7 @@ class SupabaseBookRepository implements BookRepository {
       final response = await _supabase
           .from(DbTables.books)
           .select()
-          .eq('status', 'published')
+          .eq('status', BookStatus.published.dbValue)
           .or('title.ilike.%$escapedQuery%,description.ilike.%$escapedQuery%')
           .limit(20);
 
@@ -129,7 +129,7 @@ class SupabaseBookRepository implements BookRepository {
           .map((p) => p['book_id'] as String)
           .toList();
 
-      var query = _supabase.from(DbTables.books).select().eq('status', 'published');
+      var query = _supabase.from(DbTables.books).select().eq('status', BookStatus.published.dbValue);
 
       // Exclude books already being read (single filter instead of N loops)
       if (readBookIds.isNotEmpty) {

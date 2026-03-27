@@ -37,7 +37,7 @@ class BookModel {
       wordCount: json['word_count'] as int?,
       lexileScore: json['lexile_score'] as int?,
       chapterCount: json['chapter_count'] as int? ?? 0,
-      status: _parseBookStatus(json['status'] as String?),
+      status: BookStatus.fromDbValue(json['status'] as String? ?? 'draft'),
       metadata: (json['metadata'] as Map<String, dynamic>?) ?? {},
       publishedAt: json['published_at'] != null
           ? DateTime.parse(json['published_at'] as String)
@@ -130,14 +130,4 @@ class BookModel {
     );
   }
 
-  static BookStatus _parseBookStatus(String? status) {
-    switch (status) {
-      case 'published':
-        return BookStatus.published;
-      case 'archived':
-        return BookStatus.archived;
-      default:
-        return BookStatus.draft;
-    }
-  }
 }

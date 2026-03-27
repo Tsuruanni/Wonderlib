@@ -30,7 +30,7 @@ class ContentBlockModel {
       id: json['id'] as String,
       chapterId: json['chapter_id'] as String,
       orderIndex: json['order_index'] as int,
-      type: _parseBlockType(json['type'] as String? ?? 'text'),
+      type: ContentBlockType.fromDbValue(json['type'] as String? ?? 'text'),
       text: json['text'] as String?,
       audioUrl: json['audio_url'] as String?,
       wordTimings: wordTimings,
@@ -79,40 +79,12 @@ class ContentBlockModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  static ContentBlockType _parseBlockType(String type) {
-    switch (type) {
-      case 'text':
-        return ContentBlockType.text;
-      case 'image':
-        return ContentBlockType.image;
-      case 'audio':
-        return ContentBlockType.audio;
-      case 'activity':
-        return ContentBlockType.activity;
-      default:
-        return ContentBlockType.text;
-    }
-  }
-
-  static String _blockTypeToString(ContentBlockType type) {
-    switch (type) {
-      case ContentBlockType.text:
-        return 'text';
-      case ContentBlockType.image:
-        return 'image';
-      case ContentBlockType.audio:
-        return 'audio';
-      case ContentBlockType.activity:
-        return 'activity';
-    }
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'chapter_id': chapterId,
       'order_index': orderIndex,
-      'type': _blockTypeToString(type),
+      'type': type.dbValue,
       'text': text,
       'audio_url': audioUrl,
       'word_timings': wordTimings.map((w) => w.toJson()).toList(),
