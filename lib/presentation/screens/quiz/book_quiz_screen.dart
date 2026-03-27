@@ -37,11 +37,13 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   /// Stores user answers keyed by question ID.
   /// Value type varies by question type (`String`, `List<int>`, `Map<int,int>`).
   final Map<String, dynamic> _answers = {};
+  final Stopwatch _stopwatch = Stopwatch();
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _stopwatch.start();
   }
 
   @override
@@ -204,10 +206,6 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                   child: BookQuizProgressBar(
                     currentIndex: _currentPage,
                     totalQuestions: questions.length,
-                    answeredIndices: _answers.keys
-                        .map((id) => questions.indexWhere((q) => q.id == id))
-                        .where((i) => i >= 0)
-                        .toSet(),
                   ),
                 ),
               ],
@@ -373,13 +371,10 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   // ─── Navigation ───────────────────────────────
 
   void _goToNextPage() {
-    if (_currentPage < (_pageController.page?.round() ?? 0) + 1 ||
-        _currentPage < 999) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+    _pageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _goToPreviousPage() {
@@ -415,6 +410,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
               maxScore: gradeResult.maxScore,
               answers: gradeResult.answersJson,
               passingScore: quiz.passingScore,
+              timeSpent: _stopwatch.elapsed.inSeconds,
             );
 
     if (mounted) {
@@ -435,6 +431,8 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
       _showResults = false;
       _isSubmitting = false;
     });
+    _stopwatch.reset();
+    _stopwatch.start();
     // This might fail if controller was disposed, but usually fine
     WidgetsBinding.instance.addPostFrameCallback((_) {
        if (_pageController.hasClients) _pageController.jumpToPage(0);

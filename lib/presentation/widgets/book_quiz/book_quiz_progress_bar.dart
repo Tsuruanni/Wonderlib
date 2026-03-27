@@ -11,12 +11,10 @@ class BookQuizProgressBar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.totalQuestions,
-    required this.answeredIndices,
   });
 
   final int currentIndex;
   final int totalQuestions;
-  final Set<int> answeredIndices;
 
   @override
   Widget build(BuildContext context) {
