@@ -224,7 +224,7 @@ final inlineActivityStateProvider =
 
 /// Loads completed inline activities for a chapter from database
 final completedInlineActivitiesProvider =
-    FutureProvider.family<List<String>, String>((ref, chapterId) async {
+    FutureProvider.autoDispose.family<List<String>, String>((ref, chapterId) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return [];
 

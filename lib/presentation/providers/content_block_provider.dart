@@ -8,7 +8,7 @@ import 'usecase_providers.dart';
 /// Provider for loading content blocks for a chapter.
 /// Returns `AsyncValue<List<ContentBlock>>` - handles loading, error, and data states.
 final contentBlocksProvider =
-    FutureProvider.family<List<ContentBlock>, String>((ref, chapterId) async {
+    FutureProvider.autoDispose.family<List<ContentBlock>, String>((ref, chapterId) async {
   final useCase = ref.watch(getContentBlocksUseCaseProvider);
   final result = await useCase(GetContentBlocksParams(chapterId: chapterId));
 
@@ -21,7 +21,7 @@ final contentBlocksProvider =
 /// Provider for checking if a chapter uses content blocks
 /// Some chapters may still use legacy plain text content
 final chapterUsesContentBlocksProvider =
-    FutureProvider.family<bool, String>((ref, chapterId) async {
+    FutureProvider.autoDispose.family<bool, String>((ref, chapterId) async {
   final useCase = ref.watch(checkChapterUsesContentBlocksUseCaseProvider);
   final result = await useCase(CheckChapterUsesContentBlocksParams(chapterId: chapterId));
 

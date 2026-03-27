@@ -17,7 +17,7 @@ import 'user_provider.dart';
 
 /// Whether a book has a published quiz
 final bookHasQuizProvider =
-    FutureProvider.family<bool, String>((ref, bookId) async {
+    FutureProvider.autoDispose.family<bool, String>((ref, bookId) async {
   final useCase = ref.watch(bookHasQuizUseCaseProvider);
   final result = await useCase(BookHasQuizParams(bookId: bookId));
   return result.fold((failure) => throw Exception(failure.message), (hasQuiz) => hasQuiz);
@@ -25,7 +25,7 @@ final bookHasQuizProvider =
 
 /// The quiz for a book (with all questions)
 final bookQuizProvider =
-    FutureProvider.family<BookQuiz?, String>((ref, bookId) async {
+    FutureProvider.autoDispose.family<BookQuiz?, String>((ref, bookId) async {
   final useCase = ref.watch(getQuizForBookUseCaseProvider);
   final result = await useCase(GetQuizForBookParams(bookId: bookId));
   return result.fold((failure) => throw Exception(failure.message), (quiz) => quiz);
@@ -33,7 +33,7 @@ final bookQuizProvider =
 
 /// User's best quiz result for a book
 final bestQuizResultProvider =
-    FutureProvider.family<BookQuizResult?, String>((ref, bookId) async {
+    FutureProvider.autoDispose.family<BookQuizResult?, String>((ref, bookId) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return null;
 
@@ -46,7 +46,7 @@ final bestQuizResultProvider =
 
 /// Whether a book is in "quiz ready" state (all chapters read, quiz exists, not passed)
 final isQuizReadyProvider =
-    FutureProvider.family<bool, String>((ref, bookId) async {
+    FutureProvider.autoDispose.family<bool, String>((ref, bookId) async {
   final progress = await ref.watch(readingProgressProvider(bookId).future);
   if (progress == null) return false;
 
@@ -61,7 +61,7 @@ final isQuizReadyProvider =
 
 /// Student quiz results across all books (for teacher reporting)
 final studentQuizResultsProvider =
-    FutureProvider.family<List<StudentQuizProgress>, String>(
+    FutureProvider.autoDispose.family<List<StudentQuizProgress>, String>(
         (ref, studentId) async {
   final useCase = ref.watch(getStudentQuizResultsUseCaseProvider);
   final result = await useCase(

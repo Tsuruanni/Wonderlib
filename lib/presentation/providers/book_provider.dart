@@ -59,7 +59,7 @@ final chaptersWithLockStatusProvider =
 });
 
 /// Provides all published books with optional filters
-final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filters) async {
+final booksProvider = FutureProvider.autoDispose.family<List<Book>, BookFilters?>((ref, filters) async {
   final useCase = ref.watch(getBooksUseCaseProvider);
   final result = await useCase(GetBooksParams(
     level: filters?.level,
@@ -75,7 +75,7 @@ final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filt
 });
 
 /// Provides a single book by ID
-final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
+final bookByIdProvider = FutureProvider.autoDispose.family<Book?, String>((ref, id) async {
   final useCase = ref.watch(getBookByIdUseCaseProvider);
   final result = await useCase(GetBookByIdParams(bookId: id));
   return result.fold(
@@ -85,7 +85,7 @@ final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
 });
 
 /// Provides book search results
-final bookSearchProvider = FutureProvider.family<List<Book>, String>((ref, query) async {
+final bookSearchProvider = FutureProvider.autoDispose.family<List<Book>, String>((ref, query) async {
   if (query.isEmpty) return [];
   final useCase = ref.watch(searchBooksUseCaseProvider);
   final result = await useCase(SearchBooksParams(query: query));
@@ -122,7 +122,7 @@ final continueReadingProvider = FutureProvider<List<Book>>((ref) async {
 });
 
 /// Provides chapters for a book
-final chaptersProvider = FutureProvider.family<List<Chapter>, String>((ref, bookId) async {
+final chaptersProvider = FutureProvider.autoDispose.family<List<Chapter>, String>((ref, bookId) async {
   final useCase = ref.watch(getChaptersUseCaseProvider);
   final result = await useCase(GetChaptersParams(bookId: bookId));
   return result.fold(
@@ -140,7 +140,7 @@ final chapterByIdProvider = FutureProvider.family<Chapter?, ({String bookId, Str
 );
 
 /// Provides reading progress for a book
-final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>((ref, bookId) async {
+final readingProgressProvider = FutureProvider.autoDispose.family<ReadingProgress?, String>((ref, bookId) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return null;
 
@@ -339,8 +339,11 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       }
 
       // Recalculate unit assignments that might contain this book.
-      // The RPC checks actual scope_unit_items server-side, so calling it
-      // for non-matching units is harmless (just a no-op progress update).
+      // Client-side filtering is not possible here: the StudentAssignment entity
+      // only carries scopeLpUnitId in contentConfig — the list of book IDs that
+      // belong to the unit lives in scope_unit_items (server-side only).
+      // The RPC checks scope_unit_items server-side and is a no-op when the
+      // completed book is not part of the unit, so extra calls are safe.
       for (final assignment in assignments) {
         if (assignment.scopeLpUnitId != null &&
             assignment.status != StudentAssignmentStatus.completed) {
