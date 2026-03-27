@@ -122,34 +122,37 @@ chapters 1──* daily_chapter_reads (per user per day)
 
 ## Business Rules
 
-1. **Sequential Chapter Unlock**: Chapters unlock sequentially — chapter N is locked until all chapters 0..N-1 are in `completed_chapter_ids`. Enforced client-side only (no server check).
-2. **Chapter Completion XP**: First-time chapter completion awards `systemSettings.xpChapterComplete` (default 50 XP). Dedup is in-memory cache check only — no DB constraint.
-3. **Book Completion XP**: When all chapters complete AND (no quiz OR quiz already passed), awards `systemSettings.xpBookComplete` (default 200 XP). Same in-memory dedup.
+1. **Sequential Chapter Unlock**: Chapters unlock sequentially — chapter N is locked until all chapters 0..N-1 are in `completed_chapter_ids`. Enforced client-side via `chaptersWithLockStatusProvider` (no server check).
+2. **Chapter Completion XP**: First-time chapter completion awards `systemSettings.xpChapterComplete` (default 50 XP). Dedup via `source_id` in `award_xp_transaction` RPC (`source='chapter_complete'`, `sourceId=chapterId`). DB-level idempotency via partial unique index on `xp_logs(user_id, source, source_id)`.
+3. **Book Completion XP**: When all chapters complete AND (no quiz OR quiz already passed), awards `systemSettings.xpBookComplete` (default 200 XP). Dedup via `source_id` (`source='book_complete'`, `sourceId=bookId`). Completion decision handled by `HandleBookCompletionUseCase` — single source of truth.
 4. **Quiz Availability Gate**: Quiz is shown only when `completionPercentage >= 100% AND !isCompleted AND !quizPassed AND bookHasQuiz`.
-5. **Quiz Passing**: Score >= `bookQuiz.passingScore` (default 70%). On pass: `reading_progress.quiz_passed = true`. If all chapters also complete: `reading_progress.is_completed = true`.
-6. **Quiz XP**: `systemSettings.xpQuizPass` (default 20 XP) awarded on every passing attempt (no dedup — known bug).
+5. **Quiz Passing**: Score >= `bookQuiz.passingScore` (default 70%). On pass: `HandleBookCompletionUseCase` updates `reading_progress` (quiz_passed, is_completed). Grading via `GradeBookQuizUseCase`.
+6. **Quiz XP**: `systemSettings.xpQuizPass` (default 20 XP) awarded on first passing attempt only. Dedup via `source_id` (`source='quiz_pass'`, `sourceId=quizId`).
 7. **Quiz Attempt Number**: Set by DB trigger (`trg_set_quiz_attempt_number`), not client — prevents race conditions.
-8. **Inline Activity XP**: Per-type values from `systemSettings` (xpInlineTrueFalse, xpInlineWordTranslation, xpInlineFindWords, xpInlineMatching). Dedup via UNIQUE constraint on `(user_id, inline_activity_id)`.
-9. **Daily Chapter Read Logging**: `_logDailyChapterRead` inserts/upserts into `daily_chapter_reads` on each chapter completion. Fire-and-forget (errors swallowed). Used by daily quest `read_words` calculation.
+8. **Inline Activity XP**: Per-type values from `systemSettings` (xpInlineTrueFalse, xpInlineWordTranslation, xpInlineFindWords, xpInlineMatching). Double dedup: UNIQUE constraint on `(user_id, inline_activity_id)` + `source_id` in XP RPC (`source='inline_activity'`, `sourceId=activityId`). Domain logic in `CompleteInlineActivityUseCase`.
+9. **Daily Chapter Read Logging**: `_logDailyChapterRead` inserts/upserts into `daily_chapter_reads` on each chapter completion. Fire-and-forget (errors swallowed). Used by daily quest `read_words` calculation and `hasReadToday` check.
 10. **Reading Time Tracking**: `SaveReadingProgressUseCase` increments `total_reading_time` by `additionalReadingTime` (seconds). Guards against <= 0.
-11. **Book Status Lifecycle**: draft → published → archived. Only `published` books visible to students. Controlled via `BookStatus` enum in owlio_shared.
+11. **Book Status Lifecycle**: draft → published → archived. Only `published` books visible to students. Filtered via `BookStatus.published.dbValue` from owlio_shared.
 12. **Content Block Migration Flag**: `chapter.use_content_blocks` determines rendering path. When `true`, reader uses `content_blocks` table. When `false`, uses legacy `content` text field. Both systems coexist.
-13. **Offline Sync Strategy**: Cached repository uses cache-aside (read) + write-through (write). Offline writes set `isDirty: true` and queue pending actions (`award_xp`, `log_daily_read`). Quiz results do NOT queue offline XP.
-14. **Assignment-Based Access**: When a book assignment has `contentConfig['lockLibrary'] = true`, library shows only assigned books. Unassigned books get lock overlay. Computed in `bookLockProvider`.
+13. **Offline Sync Strategy**: Cached repository uses cache-aside (read) + write-through (write). Offline writes set `isDirty: true` and queue pending actions (`award_xp` with `source`/`source_id`, `log_daily_read`). Quiz results do NOT queue offline XP.
+14. **Assignment-Based Access**: When a book assignment has `lockLibrary` enabled, library shows only assigned books. Unassigned books get lock overlay. Access computed in `bookLockProvider` via typed entity getters (`assignment.hasLibraryLock`, `assignment.lockedBookId`).
 15. **Legacy Activity System**: `activities`/`activity_results` tables represent an older end-of-chapter system. Still wired and functional but superseded by `inline_activities`. `ActivityResult.isPassing` hardcodes 60% threshold (not configurable).
+16. **XP Audit Trail**: All XP awards logged in `xp_logs` with `source` (channel type) and `source_id` (entity UUID). Enables per-channel analytics and anomaly detection.
 
 ## Cross-System Interactions
 
 ### Chapter Completion Chain
 ```
-Student reads chapter → ReaderScreen._handleNextChapter()
+Student reads chapter → ReaderScreen._markCurrentChapterComplete()
   → ChapterCompletionNotifier.markComplete()
-    → MarkChapterCompleteUseCase → Repository: upsert reading_progress, log daily_chapter_reads
+    → MarkChapterCompleteUseCase → Repository: update reading_progress (chapter_ids, percentage), log daily_chapter_reads
     → IF first-time completion:
-      → UserController.addXP(xpChapterComplete) → award_xp_transaction RPC
+      → UserController.addXP(xpChapterComplete, source='chapter_complete', sourceId=chapterId)
+        → award_xp_transaction RPC (DB-level idempotency via source_id)
         → Badge check: check_and_award_badges RPC
-      → IF all chapters done AND (no quiz OR quiz passed):
-        → UserController.addXP(xpBookComplete)
+      → HandleBookCompletionUseCase → check all chapters + quiz status
+        → IF justCompleted AND no quiz:
+          → UserController.addXP(xpBookComplete, source='book_complete', sourceId=bookId)
     → _updateAssignmentProgress()
       → For each matching book assignment: update progress %
       → IF 100%: CompleteAssignmentUseCase
@@ -159,23 +162,26 @@ Student reads chapter → ReaderScreen._handleNextChapter()
 
 ### Quiz Completion Chain
 ```
-Student submits quiz → BookQuizController.submitQuiz()
-  → SubmitQuizResultUseCase → Insert book_quiz_results
-  → Repository._handleQuizPassed() → Update reading_progress (quiz_passed, is_completed)
-  → IF passing:
-    → UserController.addXP(xpQuizPass)
-      → Badge check
-  → Invalidate: bookQuizProvider, bestQuizResultProvider, readingProgressProvider
+Student submits quiz → GradeBookQuizUseCase (client-side grading)
+  → BookQuizController.submitQuiz()
+    → SubmitQuizResultUseCase → Insert book_quiz_results
+    → IF passing:
+      → UserController.addXP(xpQuizPass, source='quiz_pass', sourceId=quizId)
+        → Badge check
+      → HandleBookCompletionUseCase(quizJustPassed: true)
+        → Update reading_progress (quiz_passed, is_completed)
+    → Invalidate: bookQuizProvider, bestQuizResultProvider, readingProgressProvider
 ```
 
 ### Inline Activity Completion Chain
 ```
 Student answers activity → handleInlineActivityCompletion()
-  → SaveInlineActivityResultUseCase → Insert (UNIQUE constraint guards dedup)
+  → CompleteInlineActivityUseCase
+    → SaveInlineActivityResult (DB UNIQUE constraint guards dedup)
+    → IF has vocabulary words: VocabularyRepository.addWordsToVocabularyBatch
   → IF new completion (not duplicate):
-    → UserController.addXP(activityXp)
+    → UserController.addXP(activityXp, source='inline_activity', sourceId=activityId)
       → Badge check
-    → IF has vocabulary words: AddWordsBatchUseCase
   → Invalidate: dailyQuestProgressProvider
 ```
 
@@ -193,18 +199,19 @@ Student answers activity → handleInlineActivityCompletion()
 | No books in library | `_EmptyState` widget with icon and contextual message |
 | No chapters for book | `Text('No chapters available')` — minimal |
 | First chapter load (no progress) | Upsert creates `reading_progress` with `ON CONFLICT` |
-| Re-completing already-completed chapter | `wasAlreadyCompleted` check prevents XP (in-memory only) |
-| Quiz retake after passing | XP re-awarded (bug). `quiz_passed` not re-set (correct). |
-| All chapters read, no quiz | Book marked complete, `xpBookComplete` awarded |
+| Re-completing already-completed chapter | DB-level idempotency via `source_id` in `award_xp_transaction` — RPC returns current state without awarding |
+| Quiz retake after passing | No additional XP — `source_id` dedup prevents re-award. `quiz_passed` not re-set (correct). |
+| All chapters read, no quiz | `HandleBookCompletionUseCase` marks complete, `xpBookComplete` awarded |
 | All chapters read, quiz exists but not passed | Book NOT complete. Quiz unlocked. |
-| Offline reading | Cached repository serves from SQLite. Progress writes queued as dirty. |
+| Offline reading | Cached repository serves from SQLite. Progress writes queued as dirty with `source`/`source_id`. |
 | Offline quiz submission | Result saved with `isDirty: true` but XP NOT queued for offline award. |
-| Student deletes own reading progress | Possible via RLS `FOR ALL` policy (unintended). |
+| Student attempts to delete reading progress | Blocked by RLS — no DELETE policy exists (SELECT/INSERT/UPDATE only). |
 | Book deleted by admin | CASCADE deletes all chapters, activities, progress, quiz data. |
 | Chapter deleted | Activities, content blocks CASCADE. `reading_progress.chapter_id` SET NULL. |
 | `daily_chapter_reads` insert fails | Silently swallowed. Quest `read_words` won't progress for that day. |
-| Category filter error in library | Silent `SizedBox(height: 80)` — no error feedback to user. |
-| Provider failure (network error) | Returns empty list/null — user sees empty state, not error. |
+| Category filter error in library | Retry button shown via `TextButton.icon` |
+| Provider failure (network error) | Error propagated via `throw Exception` — screens show `ErrorStateWidget` with retry |
+| hasReadToday check | Queries `daily_chapter_reads.read_date` (DATE column) — timezone-safe |
 
 ## Test Scenarios
 
@@ -216,7 +223,7 @@ Student answers activity → handleInlineActivityCompletion()
 - [ ] Error state: Network failure during chapter load shows error scaffold with "Go Back"
 - [ ] Boundary: Complete last chapter of a book with no quiz → verify book completion + XP
 - [ ] Boundary: Complete last chapter of a book with quiz → verify book NOT complete until quiz passed
-- [ ] Boundary: Retake passed quiz → verify XP is awarded again (current bug behavior)
+- [ ] Boundary: Retake passed quiz → verify NO additional XP (source_id dedup)
 - [ ] Boundary: Try to access locked chapter (not all previous completed) → verify lock enforced
 - [ ] Cross-system: Chapter completion → verify assignment progress updated
 - [ ] Cross-system: Chapter completion → verify daily quest `read_words` progress
@@ -229,43 +236,50 @@ Student answers activity → handleInlineActivityCompletion()
 ## Key Files
 
 ### Domain
-- `lib/domain/entities/book.dart` — Book, Chapter, ReadingProgress entities
+- `lib/domain/entities/book.dart` — Book entity (includes `author` field), Chapter, ReadingProgress
 - `lib/domain/entities/book_quiz.dart` — BookQuiz, 5 question content types, BookQuizResult
 - `lib/domain/entities/content/content_block.dart` — ContentBlock, WordTiming
-- `lib/domain/repositories/book_repository.dart` — 20-method repository interface
+- `lib/domain/entities/activity_stats.dart` — Typed ActivityStats entity
+- `lib/domain/repositories/book_repository.dart` — Primary repository interface
+- `lib/domain/repositories/book_download_repository.dart` — Download repository interface
+- `lib/domain/usecases/reading/handle_book_completion_usecase.dart` — Single source of truth for "is book complete?"
+- `lib/domain/usecases/book_quiz/grade_book_quiz_usecase.dart` — Quiz grading logic (5 question types)
+- `lib/domain/usecases/activity/complete_inline_activity_usecase.dart` — Inline activity DB save + vocab add
+- `lib/domain/usecases/book/download_book_usecase.dart` — Book download orchestration
+- `lib/domain/usecases/book/remove_book_download_usecase.dart` — Book download removal
 
 ### Data
 - `lib/data/repositories/supabase/supabase_book_repository.dart` — Primary data access
 - `lib/data/repositories/cached/cached_book_repository.dart` — Offline-first cache wrapper
-- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — Quiz + `_handleQuizPassed`
+- `lib/data/repositories/supabase/supabase_book_quiz_repository.dart` — Quiz result insertion
+- `lib/data/repositories/book_download_repository_impl.dart` — Download service wrapper
 
 ### Presentation
-- `lib/presentation/providers/book_provider.dart` — `ChapterCompletionNotifier` (core cross-system orchestrator)
-- `lib/presentation/providers/reader_provider.dart` — Reader state + inline activity completion
+- `lib/presentation/providers/book_provider.dart` — `ChapterCompletionNotifier`, `chaptersWithLockStatusProvider`
+- `lib/presentation/providers/reader_provider.dart` — Reader state, thin activity completion wrapper
 - `lib/presentation/providers/book_quiz_provider.dart` — `BookQuizController`
-- `lib/presentation/screens/library/library_screen.dart` — Library browsing
+- `lib/presentation/providers/book_access_provider.dart` — Library lock via typed entity getters
+- `lib/presentation/providers/book_download_provider.dart` — Download via UseCases
+- `lib/presentation/screens/library/library_screen.dart` — Library (ConsumerWidgets, CachedBookImage)
 - `lib/presentation/screens/reader/reader_screen.dart` — Reading session
-- `lib/presentation/screens/quiz/book_quiz_screen.dart` — Quiz flow
+- `lib/presentation/screens/quiz/book_quiz_screen.dart` — Quiz flow (delegates grading to UseCase)
 
 ### Admin
-- `owlio_admin/lib/features/books/screens/book_list_screen.dart` — Book management
-- `owlio_admin/lib/features/books/screens/book_edit_screen.dart` — Book editing
-- `owlio_admin/lib/features/books/screens/chapter_edit_screen.dart` — Chapter editing
+- `owlio_admin/lib/features/books/screens/book_list_screen.dart` — Book management (English UI, CEFR colors)
+- `owlio_admin/lib/features/books/screens/book_edit_screen.dart` — Book editing (English UI)
+- `owlio_admin/lib/features/books/screens/chapter_edit_screen.dart` — Chapter editing (English UI)
 
 ### Database
 - `supabase/migrations/20260131000003_create_content_tables.sql` — books, chapters, inline_activities
 - `supabase/migrations/20260131000005_create_progress_tables.sql` — reading_progress, inline_activity_results
 - `supabase/migrations/20260211000001_create_book_quiz_tables.sql` — Quiz tables
 - `supabase/migrations/20260211000003_quiz_rpc_functions.sql` — Quiz RPCs
+- `supabase/migrations/20260328000001_fix_reading_progress_rls.sql` — RLS fix (no DELETE for students)
 
 ## Known Issues & Tech Debt
 
-1. **Chapter/book XP idempotency gap** (#1) — In-memory only. Should pass `source_id` (e.g., `chapter:{chapterId}`) to `award_xp_transaction` for DB-level dedup.
-2. **Quiz XP re-award on retakes** (#2) — `submitQuiz` should check `quiz_passed` before awarding XP, or use `source_id`.
-3. **Two competing activity systems** — Legacy `activities`/`activity_results` coexist with `inline_activities`/`inline_activity_results`. Legacy system should be deprecated once migration is complete.
-4. **`author` column not in model** (#26) — `books.author` exists in DB but `BookModel` reads from `metadata['author']`. Should be a typed field.
-5. **Content block migration** — `use_content_blocks` flag enables gradual migration. Old chapters use `content` text; new chapters use `content_blocks`. Both rendering paths must be maintained until all chapters are migrated.
-6. **`reading_progress` DELETE policy** (#9) — Students can delete their own progress via the `FOR ALL` RLS policy. Should be restricted to SELECT/INSERT/UPDATE.
-7. **Offline quiz XP** (#13 in business rules) — Quiz pass offline does not queue `award_xp` action. XP is lost if the user doesn't retake online.
-8. **`_updateAssignmentProgress` inefficiency** (#23) — Runs RPC for every unit assignment on every chapter completion. Should filter to relevant units only.
-``
+1. **Two competing activity systems** — Legacy `activities`/`activity_results` coexist with `inline_activities`/`inline_activity_results`. Legacy system should be deprecated once migration is complete.
+2. **Content block migration** — `use_content_blocks` flag enables gradual migration. Old chapters use `content` text; new chapters use `content_blocks`. Both rendering paths must be maintained until all chapters are migrated.
+3. **Offline quiz XP** — Quiz pass offline does not queue `award_xp` action. XP is lost if the user doesn't retake online.
+4. **`_updateAssignmentProgress` unit filtering** (#23) — Runs `CalculateUnitProgressUseCase` RPC for every unit assignment on every chapter completion. Client-side filtering not possible (unit item list is server-side only). Low impact — RPC is lightweight.
+5. **XP balancing** — Quiz-less books award 200 XP (book completion bonus); quiz books award only 20 XP (quiz pass). This imbalance may need a dedicated balancing session.
