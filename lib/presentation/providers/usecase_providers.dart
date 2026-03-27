@@ -40,6 +40,7 @@ import '../../domain/usecases/student_assignment/start_assignment_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
 import '../../domain/usecases/auth/sign_in_with_email_usecase.dart';
 import '../../domain/usecases/auth/sign_out_usecase.dart';
+import '../../domain/usecases/book/download_book_usecase.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_by_ids_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
@@ -47,6 +48,7 @@ import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
+import '../../domain/usecases/book/remove_book_download_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
@@ -191,6 +193,14 @@ final getRecommendedBooksUseCaseProvider = Provider((ref) {
 
 final getCompletedBookIdsUseCaseProvider = Provider((ref) {
   return GetCompletedBookIdsUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final downloadBookUseCaseProvider = Provider((ref) {
+  return DownloadBookUseCase(ref.watch(bookDownloadRepositoryProvider));
+});
+
+final removeBookDownloadUseCaseProvider = Provider((ref) {
+  return RemoveBookDownloadUseCase(ref.watch(bookDownloadRepositoryProvider));
 });
 
 // ============================================

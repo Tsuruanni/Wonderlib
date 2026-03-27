@@ -3,7 +3,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/network/network_info.dart';
 import '../../core/services/book_cache_store.dart';
+import '../../core/services/book_download_service.dart';
 import '../../core/services/edge_function_service.dart';
+import '../../core/services/file_cache_service.dart';
+import '../../data/repositories/book_download_repository_impl.dart';
 import '../../data/repositories/cached/cached_activity_repository.dart';
 import '../../data/repositories/cached/cached_book_quiz_repository.dart';
 import '../../data/repositories/cached/cached_book_repository.dart';
@@ -24,6 +27,7 @@ import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../../domain/repositories/book_download_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/avatar_repository.dart';
 import '../../domain/repositories/daily_quest_repository.dart';
@@ -56,6 +60,17 @@ final bookRepositoryProvider = Provider<BookRepository>((ref) {
     remoteRepo: remoteRepo,
     cacheStore: cacheStore,
     networkInfo: networkInfo,
+  );
+});
+
+final bookDownloadRepositoryProvider = Provider<BookDownloadRepository>((ref) {
+  final downloadService = ref.watch(bookDownloadServiceProvider);
+  final fileCacheService = ref.watch(fileCacheServiceProvider);
+  final cacheStore = ref.watch(bookCacheStoreProvider);
+  return BookDownloadRepositoryImpl(
+    downloadService: downloadService,
+    fileCacheService: fileCacheService,
+    cacheStore: cacheStore,
   );
 });
 

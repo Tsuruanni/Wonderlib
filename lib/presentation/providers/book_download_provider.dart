@@ -1,9 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../core/services/book_cache_store.dart';
-import '../../core/services/book_download_service.dart';
-import '../../core/services/file_cache_service.dart';
 import '../../domain/entities/book.dart';
+import '../../domain/usecases/book/download_book_usecase.dart';
+import '../../domain/usecases/book/remove_book_download_usecase.dart';
+import 'usecase_providers.dart';
 
 part 'book_download_provider.g.dart';
 
@@ -68,19 +69,21 @@ class BookDownloader extends _$BookDownloader {
     required String userId,
     bool includeAudio = false,
   }) async {
-    final service = ref.read(bookDownloadServiceProvider);
+    final useCase = ref.read(downloadBookUseCaseProvider);
     final activeDownloads = ref.read(activeDownloadsProvider.notifier);
 
     // Initialize progress tracking
     activeDownloads.updateProgress(bookId, 0.0);
 
-    final success = await service.downloadBook(
-      bookId,
-      userId: userId,
-      includeAudio: includeAudio,
-      onProgress: (progress, _) {
-        activeDownloads.updateProgress(bookId, progress);
-      },
+    final result = await useCase(
+      DownloadBookParams(
+        bookId: bookId,
+        userId: userId,
+        includeAudio: includeAudio,
+        onProgress: (progress, _) {
+          activeDownloads.updateProgress(bookId, progress);
+        },
+      ),
     );
 
     // Clean up active download tracking
@@ -90,19 +93,14 @@ class BookDownloader extends _$BookDownloader {
     ref.invalidate(bookDownloadStatusProvider(bookId));
     ref.invalidate(downloadedBooksProvider);
 
-    return success;
+    return result.fold((_) => false, (success) => success);
   }
 
   /// Remove a downloaded book and all its cached files.
   Future<void> removeDownload(String bookId) async {
-    final fileCacheService = ref.read(fileCacheServiceProvider);
-    final cacheStore = ref.read(bookCacheStoreProvider);
+    final useCase = ref.read(removeBookDownloadUseCaseProvider);
 
-    // Delete on-disk files first
-    await fileCacheService.deleteBookFiles(bookId);
-
-    // Delete DB records (cascades to chapters, content blocks, etc.)
-    await cacheStore.deleteBook(bookId);
+    await useCase(RemoveBookDownloadParams(bookId: bookId));
 
     // Invalidate status so watchers update
     ref.invalidate(bookDownloadStatusProvider(bookId));
