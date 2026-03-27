@@ -78,6 +78,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Book System | `docs/specs/01-book-system.md` | Book lifecycle, chapter completion XP flow, quiz integration, reading progress, inline activities, offline caching, access control |
 | Audio/Karaoke Reader | `docs/specs/02-audio-karaoke-reader.md` | Word-level audio sync, karaoke highlighting, listening mode, auto-play, scroll follow, audio caching, TTS pronunciation |
 | Inline Activities | `docs/specs/03-inline-activities.md` | 4 activity types (true_false, word_translation, find_words, matching), XP awards, vocabulary integration, idempotency, progressive reveal |
+| Book Quiz | `docs/specs/04-book-quiz.md` | 5 question types (multiple_choice, fill_blank, event_sequencing, matching, who_says_what), 70% pass threshold, multi-attempt, XP awards, quiz-gates book completion |
 | Vocabulary Sessions | `docs/vocabulary-session-system.md` | Question types, session algorithm, mastery levels, XP/combo, SM2 logic |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
