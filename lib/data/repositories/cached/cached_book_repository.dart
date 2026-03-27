@@ -417,38 +417,25 @@ class CachedBookRepository implements BookRepository {
         completedChapters.add(chapterId);
       }
 
-      // 4. Calculate completion percentage
+      // 4. Calculate completion percentage (do NOT set is_completed — UseCase handles that)
       final totalChapters = chapters.length;
       final completedCount = completedChapters.length;
       final percentage = totalChapters > 0
           ? (completedCount / totalChapters) * 100
           : 0.0;
-      final allChaptersComplete = completedCount >= totalChapters;
 
-      // 5. Check quiz existence from cache
-      bool isCompleted = allChaptersComplete;
-      if (allChaptersComplete) {
-        final hasQuiz = await _cacheStore.bookHasQuiz(bookId);
-        if (hasQuiz) {
-          // Book is only complete if quiz is passed
-          isCompleted = progress.quizPassed;
-        }
-      }
-
-      // 6. Build updated progress
+      // 5. Build updated progress
       final now = DateTime.now();
       final updatedProgress = progress.copyWith(
         completedChapterIds: completedChapters,
         completionPercentage: percentage,
-        isCompleted: isCompleted,
-        completedAt: isCompleted ? now : null,
         updatedAt: now,
       );
 
-      // 7. Write to cache with dirty flag
+      // 6. Write to cache with dirty flag
       await _cacheStore.saveReadingProgress(updatedProgress, isDirty: true);
 
-      // 8. Queue pending actions for sync
+      // 7. Queue pending actions for sync
       await _cacheStore.queuePendingAction(
         actionType: 'award_xp',
         payload: {

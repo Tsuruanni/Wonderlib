@@ -53,6 +53,7 @@ import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_words_read_today_usecase.dart';
 import '../../domain/usecases/activity/get_correct_answers_today_usecase.dart';
 import '../../domain/usecases/reading/get_user_reading_history_usecase.dart';
+import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
@@ -235,6 +236,13 @@ final getReadingProgressUseCaseProvider = Provider((ref) {
 
 final markChapterCompleteUseCaseProvider = Provider((ref) {
   return MarkChapterCompleteUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final handleBookCompletionUseCaseProvider = Provider((ref) {
+  return HandleBookCompletionUseCase(
+    ref.watch(bookRepositoryProvider),
+    ref.watch(bookQuizRepositoryProvider),
+  );
 });
 
 final updateCurrentChapterUseCaseProvider = Provider((ref) {

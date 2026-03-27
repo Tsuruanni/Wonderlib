@@ -16,7 +16,7 @@ import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import 'daily_quest_provider.dart';
-import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
+import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import '../../domain/usecases/student_assignment/update_assignment_progress_usecase.dart';
@@ -189,20 +189,26 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           source: 'chapter_complete',
           sourceId: chapterId,
         );
-        // Book completion bonus (only if no quiz required - quiz XP is handled by quiz controller)
-        if (progress.isCompleted) {
-          final hasQuizResult = await _ref.read(bookHasQuizUseCaseProvider)(
-            BookHasQuizParams(bookId: bookId),
-          );
-          final quizExists = hasQuizResult.fold((_) => false, (v) => v);
-          if (!quizExists) {
-            await _ref.read(userControllerProvider.notifier).addXP(
-              settings.xpBookComplete,
-              source: 'book_complete',
-              sourceId: bookId,
-            );
-          }
-        }
+
+        // Check if book is now complete
+        final completionUseCase = _ref.read(handleBookCompletionUseCaseProvider);
+        final completionResult = await completionUseCase(HandleBookCompletionParams(
+          userId: userId,
+          bookId: bookId,
+        ));
+
+        completionResult.fold(
+          (_) {},
+          (result) async {
+            if (result.justCompleted && !result.hasQuiz) {
+              await _ref.read(userControllerProvider.notifier).addXP(
+                settings.xpBookComplete,
+                source: 'book_complete',
+                sourceId: bookId,
+              );
+            }
+          },
+        );
       }
 
       // Update assignment progress if this book is part of an assignment

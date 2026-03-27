@@ -6,6 +6,7 @@ import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
 import '../../domain/usecases/book_quiz/get_best_quiz_result_usecase.dart';
 import '../../domain/usecases/book_quiz/get_quiz_for_book_usecase.dart';
+import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/book_quiz/get_student_quiz_results_usecase.dart';
 import '../../domain/usecases/book_quiz/submit_quiz_result_usecase.dart';
 import 'auth_provider.dart';
@@ -140,6 +141,14 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
         source: 'quiz_pass',
         sourceId: quizId,
       );
+
+      // Check book completion (quiz just passed)
+      final completionUseCase = _ref.read(handleBookCompletionUseCaseProvider);
+      await completionUseCase(HandleBookCompletionParams(
+        userId: userId,
+        bookId: bookId,
+        quizJustPassed: true,
+      ));
     }
 
     return savedResult;

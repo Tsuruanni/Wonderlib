@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -67,70 +66,11 @@ class SupabaseBookQuizRepository implements BookQuizRepository {
 
       final savedResult = BookQuizResultModel.fromJson(response).toEntity();
 
-      // If passing, update reading_progress
-      if (savedResult.isPassing) {
-        await _handleQuizPassed(
-          userId: result.userId,
-          bookId: result.bookId,
-        );
-      }
-
       return Right(savedResult);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  /// Handle quiz passing: update reading_progress and potentially mark book complete
-  Future<void> _handleQuizPassed({
-    required String userId,
-    required String bookId,
-  }) async {
-    try {
-      // Get current reading progress
-      final progressResponse = await _supabase
-          .from(DbTables.readingProgress)
-          .select()
-          .eq('user_id', userId)
-          .eq('book_id', bookId)
-          .maybeSingle();
-
-      if (progressResponse == null) return;
-
-      final wasAlreadyPassed = progressResponse['quiz_passed'] as bool? ?? false;
-      if (wasAlreadyPassed) return; // Already passed, no update needed
-
-      // Check if all chapters are complete
-      final completedChapterIds =
-          (progressResponse['completed_chapter_ids'] as List<dynamic>?) ?? [];
-      final chaptersResponse = await _supabase
-          .from(DbTables.chapters)
-          .select('id')
-          .eq('book_id', bookId);
-      final totalChapters = (chaptersResponse as List).length;
-      final allChaptersComplete = completedChapterIds.length >= totalChapters;
-
-      // Update reading progress
-      final updateData = <String, dynamic>{
-        'quiz_passed': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      if (allChaptersComplete) {
-        updateData['is_completed'] = true;
-        updateData['completed_at'] = DateTime.now().toIso8601String();
-      }
-
-      await _supabase
-          .from(DbTables.readingProgress)
-          .update(updateData)
-          .eq('user_id', userId)
-          .eq('book_id', bookId);
-
-    } catch (e) {
-      debugPrint('BookQuiz: _handleQuizPassed error: $e');
     }
   }
 

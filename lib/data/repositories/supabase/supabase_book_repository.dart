@@ -338,7 +338,7 @@ class SupabaseBookRepository implements BookRepository {
     required String chapterId,
   }) async {
     try {
-      // Get current progress
+      // 1. Get current progress
       final progressResult = await getReadingProgress(
         userId: userId,
         bookId: bookId,
@@ -347,13 +347,13 @@ class SupabaseBookRepository implements BookRepository {
       return progressResult.fold(
         (failure) => Left(failure),
         (progress) async {
-          // Add chapter to completed list if not already there
+          // 2. Add chapter to completed list if not already there
           final completedChapters = List<String>.from(progress.completedChapterIds);
           if (!completedChapters.contains(chapterId)) {
             completedChapters.add(chapterId);
           }
 
-          // Get total chapters to calculate completion percentage
+          // 3. Recalculate completion percentage
           final chaptersResult = await getChapters(bookId);
 
           return chaptersResult.fold(
@@ -364,31 +364,17 @@ class SupabaseBookRepository implements BookRepository {
               final percentage = totalChapters > 0
                   ? (completedCount / totalChapters) * 100
                   : 0.0;
-              final allChaptersComplete = completedCount >= totalChapters;
 
-              // Book completion requires quiz passing if quiz exists
-              bool isCompleted = allChaptersComplete;
-              if (allChaptersComplete) {
-                final hasQuiz = await _supabase.rpc(
-                  RpcFunctions.bookHasQuiz,
-                  params: {'p_book_id': bookId},
-                );
-                if (hasQuiz == true) {
-                  isCompleted = progress.quizPassed;
-                }
-              }
-
+              // 4. Update reading_progress (do NOT set is_completed — UseCase handles that)
               final updatedProgress = progress.copyWith(
                 completedChapterIds: completedChapters,
                 completionPercentage: percentage,
-                isCompleted: isCompleted,
-                completedAt: isCompleted ? DateTime.now() : null,
                 updatedAt: DateTime.now(),
               );
 
               final result = await updateReadingProgress(updatedProgress);
 
-              // Log for daily tracking (fire-and-forget)
+              // 5. Log for daily tracking (fire-and-forget)
               _logDailyChapterRead(userId, chapterId);
 
               return result;

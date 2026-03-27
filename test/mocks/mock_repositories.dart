@@ -7,6 +7,7 @@ import 'package:owlio/domain/repositories/activity_repository.dart';
 import 'package:owlio/domain/repositories/badge_repository.dart';
 import 'package:owlio/domain/repositories/word_list_repository.dart';
 import 'package:owlio/domain/repositories/teacher_repository.dart';
+import 'package:owlio/domain/repositories/book_quiz_repository.dart';
 import 'package:owlio/domain/repositories/student_assignment_repository.dart';
 
 /// Generate mocks for all repositories
@@ -14,6 +15,7 @@ import 'package:owlio/domain/repositories/student_assignment_repository.dart';
 @GenerateMocks([
   AuthRepository,
   BookRepository,
+  BookQuizRepository,
   UserRepository,
   VocabularyRepository,
   ActivityRepository,
