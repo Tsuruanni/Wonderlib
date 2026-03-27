@@ -1,3 +1,5 @@
+import 'package:owlio_shared/owlio_shared.dart';
+
 import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for StudentWordListProgress - handles JSON serialization
@@ -56,7 +58,7 @@ class StudentWordListProgressModel {
       wordListId: wordListId,
       wordListName: wordListName,
       wordListLevel: wordListLevel,
-      wordListCategory: wordListCategory,
+      wordListCategory: WordListCategory.fromDbValue(wordListCategory),
       wordCount: wordCount,
       bestScore: bestScore,
       bestAccuracy: bestAccuracy,

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 /// Statistics for teacher dashboard
 class TeacherStats extends Equatable {
@@ -166,7 +167,7 @@ class StudentWordListProgress extends Equatable {
   final String wordListId;
   final String wordListName;
   final String? wordListLevel;
-  final String wordListCategory;
+  final WordListCategory wordListCategory;
   final int wordCount;
   final int? bestScore;
   final double? bestAccuracy;

@@ -672,9 +672,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final color = VocabularyColors.getCategoryColor(
-      WordListCategory.fromDbValue(progress.wordListCategory),
-    );
+    final color = VocabularyColors.getCategoryColor(progress.wordListCategory);
     final wordsAsync = ref.watch(wordListWordsProvider(progress.wordListId));
 
     return PlayfulCard(
