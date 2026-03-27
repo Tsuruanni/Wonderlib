@@ -13,7 +13,6 @@ import '../../domain/usecases/book/get_continue_reading_usecase.dart';
 import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
-import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import 'daily_quest_provider.dart';
 import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
@@ -403,69 +402,6 @@ class BookFilters {
     );
   }
 }
-
-/// Reading controller for updating progress
-class ReadingController extends StateNotifier<AsyncValue<ReadingProgress?>> {
-
-  ReadingController(this._ref, this.bookId) : super(const AsyncValue.loading()) {
-    _loadProgress();
-  }
-  final Ref _ref;
-  final String bookId;
-
-  Future<void> _loadProgress() async {
-    final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) {
-      state = const AsyncValue.data(null);
-      return;
-    }
-
-    final useCase = _ref.read(getReadingProgressUseCaseProvider);
-    final result = await useCase(GetReadingProgressParams(
-      userId: userId,
-      bookId: bookId,
-    ),);
-
-    state = result.fold(
-      (failure) => AsyncValue.error(failure.message, StackTrace.current),
-      (progress) => AsyncValue.data(progress),
-    );
-  }
-
-  Future<void> updateProgress({
-    String? chapterId,
-    int? currentPage,
-    double? completionPercentage,
-    int? additionalReadingTime,
-    bool? isCompleted,
-  }) async {
-    final current = state.valueOrNull;
-    if (current == null) return;
-
-    final updated = current.copyWith(
-      chapterId: chapterId ?? current.chapterId,
-      currentPage: currentPage ?? current.currentPage,
-      completionPercentage: completionPercentage ?? current.completionPercentage,
-      totalReadingTime: current.totalReadingTime + (additionalReadingTime ?? 0),
-      isCompleted: isCompleted ?? current.isCompleted,
-      completedAt: (isCompleted ?? false) ? DateTime.now() : current.completedAt,
-      updatedAt: DateTime.now(),
-    );
-
-    final useCase = _ref.read(updateReadingProgressUseCaseProvider);
-    final result = await useCase(UpdateReadingProgressParams(progress: updated));
-
-    state = result.fold(
-      (failure) => AsyncValue.error(failure.message, StackTrace.current),
-      (progress) => AsyncValue.data(progress),
-    );
-  }
-}
-
-final readingControllerProvider = StateNotifierProvider.autoDispose.family<
-    ReadingController, AsyncValue<ReadingProgress?>, String>((ref, bookId) {
-  return ReadingController(ref, bookId);
-});
 
 /// Whether user has read today (for daily task)
 final hasReadTodayProvider = FutureProvider<bool>((ref) async {

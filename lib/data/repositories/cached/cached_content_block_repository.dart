@@ -61,31 +61,6 @@ class CachedContentBlockRepository implements ContentBlockRepository {
   }
 
   @override
-  Future<Either<Failure, ContentBlock>> getContentBlockById(
-    String blockId,
-  ) async {
-    // 1. Try cache
-    try {
-      final cached = await _cacheStore.getContentBlockById(blockId);
-      if (cached != null) return Right(cached);
-    } catch (_) {
-      // Cache read failed — fall through to remote.
-    }
-
-    // 2. Try remote
-    if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure());
-    }
-    final result = await _remoteRepo.getContentBlockById(blockId);
-
-    // Note: We do not save a single block independently because
-    // saveContentBlocks() replaces ALL blocks for a chapter atomically.
-    // Single-block caching would leave the cache in a partial state.
-
-    return result;
-  }
-
-  @override
   Future<Either<Failure, bool>> chapterUsesContentBlocks(
     String chapterId,
   ) async {

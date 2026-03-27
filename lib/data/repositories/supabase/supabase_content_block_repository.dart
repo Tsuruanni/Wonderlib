@@ -37,28 +37,6 @@ class SupabaseContentBlockRepository implements ContentBlockRepository {
   }
 
   @override
-  Future<Either<Failure, ContentBlock>> getContentBlockById(
-    String blockId,
-  ) async {
-    try {
-      final response = await _supabase
-          .from(DbTables.contentBlocks)
-          .select()
-          .eq('id', blockId)
-          .single();
-
-      return Right(ContentBlockModel.fromJson(response).toEntity());
-    } on PostgrestException catch (e) {
-      if (e.code == 'PGRST116') {
-        return const Left(NotFoundFailure('Content block not found'));
-      }
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, bool>> chapterUsesContentBlocks(
     String chapterId,
   ) async {

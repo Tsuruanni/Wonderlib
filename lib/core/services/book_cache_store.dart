@@ -218,20 +218,6 @@ class BookCacheStore {
     }).toList();
   }
 
-  /// Get a single content block by ID.
-  Future<ContentBlock?> getContentBlockById(String blockId) async {
-    final db = await _db;
-    final rows = await db.query(
-      'cached_content_blocks',
-      where: 'id = ?',
-      whereArgs: [blockId],
-    );
-    if (rows.isEmpty) return null;
-    final json =
-        jsonDecode(rows.first['content_block_json'] as String) as Map<String, dynamic>;
-    return ContentBlockModel.fromJson(json).toEntity();
-  }
-
   /// Replace all content blocks for a chapter (delete old + batch insert).
   Future<void> saveContentBlocks(
     String chapterId,

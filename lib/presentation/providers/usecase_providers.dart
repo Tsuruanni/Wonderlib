@@ -43,7 +43,6 @@ import '../../domain/usecases/auth/sign_out_usecase.dart';
 import '../../domain/usecases/book/get_book_by_id_usecase.dart';
 import '../../domain/usecases/book/get_books_by_ids_usecase.dart';
 import '../../domain/usecases/book/get_books_usecase.dart';
-import '../../domain/usecases/book/get_chapter_by_id_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
@@ -53,7 +52,6 @@ import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/get_words_read_today_usecase.dart';
 import '../../domain/usecases/activity/get_correct_answers_today_usecase.dart';
-import '../../domain/usecases/reading/get_user_reading_history_usecase.dart';
 import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
@@ -183,10 +181,6 @@ final getChaptersUseCaseProvider = Provider((ref) {
   return GetChaptersUseCase(ref.watch(bookRepositoryProvider));
 });
 
-final getChapterByIdUseCaseProvider = Provider((ref) {
-  return GetChapterByIdUseCase(ref.watch(bookRepositoryProvider));
-});
-
 final getContinueReadingUseCaseProvider = Provider((ref) {
   return GetContinueReadingUseCase(ref.watch(bookRepositoryProvider));
 });
@@ -248,10 +242,6 @@ final handleBookCompletionUseCaseProvider = Provider((ref) {
 
 final updateCurrentChapterUseCaseProvider = Provider((ref) {
   return UpdateCurrentChapterUseCase(ref.watch(bookRepositoryProvider));
-});
-
-final getUserReadingHistoryUseCaseProvider = Provider((ref) {
-  return GetUserReadingHistoryUseCase(ref.watch(bookRepositoryProvider));
 });
 
 final updateReadingProgressUseCaseProvider = Provider((ref) {
