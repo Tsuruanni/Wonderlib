@@ -28,6 +28,8 @@ class CategoryBrowseScreen extends ConsumerWidget {
     }
 
     final listsAsync = ref.watch(wordListsByCategoryProvider(category));
+    final allProgress = ref.watch(userWordListProgressProvider).valueOrNull ?? [];
+    final progressMap = {for (final p in allProgress) p.wordListId: p};
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -51,10 +53,9 @@ class CategoryBrowseScreen extends ConsumerWidget {
                 itemCount: lists.length,
                 itemBuilder: (context, index) {
                   final list = lists[index];
-                  final progressAsync = ref.watch(progressForListProvider(list.id));
                   return _WordListCard(
                     wordList: list,
-                    progress: progressAsync.valueOrNull,
+                    progress: progressMap[list.id],
                   );
                 },
               ),
