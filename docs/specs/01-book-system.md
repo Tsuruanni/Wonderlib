@@ -16,34 +16,34 @@
 | 8 | Error Handling | All `FutureProvider` book providers silently return empty list/null on failure, bypassing `.when(error:...)` branch. Only `contentBlocksProvider` correctly propagates errors. | Medium | Fixed |
 | 9 | RLS | `reading_progress` has `FOR ALL` policy — students can DELETE their own reading progress rows. Almost certainly unintended. | Medium | Fixed |
 | 10 | RLS | `book_quizzes` admin policy uses role `head_teacher` but system uses `head`. Head-role teachers may be blocked from quiz management. | Medium | N/A (already fixed) |
-| 11 | Duplicate Code | `BookModel._parseBookStatus()` duplicates `BookStatus.fromDbValue()` from owlio_shared. | Low | TODO |
-| 12 | Duplicate Code | `ContentBlockModel._parseBlockType()`/`_blockTypeToString()` duplicates `ContentBlockType.fromDbValue()`/`.dbValue`. | Low | TODO |
-| 13 | Duplicate Code | Hard-coded `'published'` string in 4 places in `supabase_book_repository.dart`. Should use `BookStatus.published.dbValue`. | Low | TODO |
-| 14 | Duplicate Code | Chapter completion `try/catch` block duplicated 3 times in `ReaderScreen` (`_handleNextChapter`, `_handleBackToBook`, `_handleTakeQuiz`). | Low | TODO |
-| 15 | Duplicate Code | `_formatBytes` duplicated between `DownloadedBooksScreen` and `DownloadedBookInfo.formattedSize`. | Low | TODO |
+| 11 | Duplicate Code | `BookModel._parseBookStatus()` duplicates `BookStatus.fromDbValue()` from owlio_shared. | Low | Fixed |
+| 12 | Duplicate Code | `ContentBlockModel._parseBlockType()`/`_blockTypeToString()` duplicates `ContentBlockType.fromDbValue()`/`.dbValue`. | Low | Fixed |
+| 13 | Duplicate Code | Hard-coded `'published'` string in 4 places in `supabase_book_repository.dart`. Should use `BookStatus.published.dbValue`. | Low | Fixed |
+| 14 | Duplicate Code | Chapter completion `try/catch` block duplicated 3 times in `ReaderScreen` (`_handleNextChapter`, `_handleBackToBook`, `_handleTakeQuiz`). | Low | Fixed |
+| 15 | Duplicate Code | `_formatBytes` duplicated between `DownloadedBooksScreen` and `DownloadedBookInfo.formattedSize`. | Low | Fixed |
 | 16 | Duplicate Code | Book completion logic partially duplicated between `SupabaseBookRepository.markChapterComplete` and `SupabaseBookQuizRepository._handleQuizPassed`. | Low | Fixed (via #7) |
-| 17 | Dead Code | `GetUserActivityResultsUseCase` — no provider registered, no callers. | Low | TODO |
-| 18 | Dead Code | `GetUserReadingHistoryUseCase` + `getUserReadingHistoryUseCaseProvider` — provider defined but never consumed by any screen/provider. | Low | TODO |
-| 19 | Dead Code | `readingControllerProvider` (`ReadingController`) — registered but never consumed. | Low | TODO |
-| 20 | Dead Code | `getChapterByIdUseCaseProvider` — registered in `usecase_providers.dart` but never used (screens use `chapterByIdProvider` which filters from cached `chaptersProvider`). | Low | TODO |
-| 21 | Dead Code | `libraryViewModeProvider`, `selectedLevelProvider`, `filteredBooksProvider` in `library_provider.dart` — shadowed by local providers in `library_screen.dart`. | Low | TODO |
-| 22 | Dead Code | `ContentBlockRepository.getContentBlockById` — declared in interface, implemented in repos, but no UseCase wraps it and nothing calls it externally. | Low | TODO |
+| 17 | Dead Code | `GetUserActivityResultsUseCase` — no provider registered, no callers. | Low | Fixed |
+| 18 | Dead Code | `GetUserReadingHistoryUseCase` + `getUserReadingHistoryUseCaseProvider` — provider defined but never consumed by any screen/provider. | Low | Fixed |
+| 19 | Dead Code | `readingControllerProvider` (`ReadingController`) — registered but never consumed. | Low | Fixed |
+| 20 | Dead Code | `getChapterByIdUseCaseProvider` — registered in `usecase_providers.dart` but never used (screens use `chapterByIdProvider` which filters from cached `chaptersProvider`). | Low | Fixed |
+| 21 | Dead Code | `libraryViewModeProvider`, `selectedLevelProvider`, `filteredBooksProvider` in `library_provider.dart` — shadowed by local providers in `library_screen.dart`. | Low | Fixed |
+| 22 | Dead Code | `ContentBlockRepository.getContentBlockById` — declared in interface, implemented in repos, but no UseCase wraps it and nothing calls it externally. | Low | Fixed |
 | 23 | Performance | `_updateAssignmentProgress` calls `CalculateUnitProgressUseCase` RPC for every unit assignment on every chapter completion, regardless of whether the book belongs to that unit. | Medium | Deferred (no client-side filter possible) |
 | 24 | Performance | `book_has_quiz` RPC called twice during `markChapterComplete` when all chapters complete — once in repository, once in notifier. | Low | Fixed (via #7) |
 | 25 | Performance | Missing `autoDispose` on `booksProvider`, `bookByIdProvider`, `chaptersProvider`, `readingProgressProvider`, `completedBookIdsProvider`, `completedInlineActivitiesProvider`, `contentBlocksProvider` — memory accumulation in long sessions. | Low | Fixed |
-| 26 | Schema Drift | `author` and `cover_image_url` columns exist in `books` table (migration `20260202000003`) but not mapped in `BookModel`/`Book` entity. UI uses `book.metadata['author']` as workaround. | Low | TODO |
-| 27 | Type Safety | `_ProgressSection.progress` typed as `dynamic` in `BookDetailScreen`. Should be `ReadingProgress`. | Low | TODO |
-| 28 | Type Safety | `_BookDetailFAB.chaptersAsync` typed as `AsyncValue<dynamic>`. Should be `AsyncValue<List<Chapter>>`. | Low | TODO |
-| 29 | Type Safety | `ActivityRepository.getActivityStats` returns `Map<String, dynamic>` — no typed entity. | Low | TODO |
+| 26 | Schema Drift | `author` and `cover_image_url` columns exist in `books` table (migration `20260202000003`) but not mapped in `BookModel`/`Book` entity. UI uses `book.metadata['author']` as workaround. | Low | Fixed |
+| 27 | Type Safety | `_ProgressSection.progress` typed as `dynamic` in `BookDetailScreen`. Should be `ReadingProgress`. | Low | Fixed |
+| 28 | Type Safety | `_BookDetailFAB.chaptersAsync` typed as `AsyncValue<dynamic>`. Should be `AsyncValue<List<Chapter>>`. | Low | Fixed |
+| 29 | Type Safety | `ActivityRepository.getActivityStats` returns `Map<String, dynamic>` — no typed entity. | Low | Fixed |
 | 30 | UX | Library categories error silently shows empty `SizedBox` — no user feedback. | Low | Fixed |
 | 31 | UX | Raw error strings (`'Error: $error'`) shown to user in `BookDetailScreen` and `LibraryScreen` instead of shared `ErrorStateWidget`. | Low | Fixed |
-| 32 | UX | `_BookShelfItem` and `_LibraryShelf` pass `WidgetRef` as constructor parameter — anti-pattern, should be `ConsumerWidget`. | Low | TODO |
-| 33 | UX | `Image.network` used in `LibraryScreen` instead of project's `CachedBookImage` widget — library covers not disk-cached. | Low | TODO |
-| 34 | Architecture | `BookDownloader` provider directly calls data-layer services (`fileCacheServiceProvider`, `bookCacheStoreProvider`), bypassing UseCase layer. | Low | TODO |
-| 35 | Data | `hasReadToday` uses device local time vs UTC `updated_at` — timezone mismatch possible. | Low | TODO |
-| 36 | Data | `selectedCategoryProvider` without `autoDispose` — filter state persists across library screen visits (likely unintended). | Low | TODO |
-| 37 | Admin | Admin panel book screens use Turkish UI text — violates CLAUDE.md "UI in English" rule. | Low | TODO |
-| 38 | Admin | `_getLevelColor` in admin `book_list_screen.dart` uses `'beginner'`/`'intermediate'`/`'advanced'` strings that don't match CEFR enum values (`A1`, `A2`, `B1`...) — switch never matches. | Low | TODO |
+| 32 | UX | `_BookShelfItem` and `_LibraryShelf` pass `WidgetRef` as constructor parameter — anti-pattern, should be `ConsumerWidget`. | Low | Fixed |
+| 33 | UX | `Image.network` used in `LibraryScreen` instead of project's `CachedBookImage` widget — library covers not disk-cached. | Low | Fixed |
+| 34 | Architecture | `BookDownloader` provider directly calls data-layer services (`fileCacheServiceProvider`, `bookCacheStoreProvider`), bypassing UseCase layer. | Low | Fixed |
+| 35 | Data | `hasReadToday` uses device local time vs UTC `updated_at` — timezone mismatch possible. | Low | Fixed |
+| 36 | Data | `selectedCategoryProvider` without `autoDispose` — filter state persists across library screen visits (likely unintended). | Low | Fixed |
+| 37 | Admin | Admin panel book screens use Turkish UI text — violates CLAUDE.md "UI in English" rule. | Low | Fixed |
+| 38 | Admin | `_getLevelColor` in admin `book_list_screen.dart` uses `'beginner'`/`'intermediate'`/`'advanced'` strings that don't match CEFR enum values (`A1`, `A2`, `B1`...) — switch never matches. | Low | Fixed |
 
 ### Checklist Result
 
