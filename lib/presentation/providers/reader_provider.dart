@@ -412,7 +412,11 @@ Future<void> _handleInlineActivityCompletionImpl(
   debugPrint('📊 Activity $activityId: isNew=$isNewCompletion, xp=$xpEarned');
   if (isNewCompletion && xpEarned > 0) {
     ref.read(sessionXPProvider.notifier).addXP(xpEarned);
-    await ref.read(userControllerProvider.notifier).addXP(xpEarned);
+    await ref.read(userControllerProvider.notifier).addXP(
+      xpEarned,
+      source: 'inline_activity',
+      sourceId: activityId,
+    );
   }
   // Note: streak is updated on app open (_updateStreakIfNeeded), not per-activity.
   // No need to call updateStreak() here — it was already done at launch.

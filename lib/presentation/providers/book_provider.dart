@@ -184,7 +184,11 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       // Award XP for new chapter completion
       if (!wasAlreadyCompleted) {
         final settings = _ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
-        await _ref.read(userControllerProvider.notifier).addXP(settings.xpChapterComplete);
+        await _ref.read(userControllerProvider.notifier).addXP(
+          settings.xpChapterComplete,
+          source: 'chapter_complete',
+          sourceId: chapterId,
+        );
         // Book completion bonus (only if no quiz required - quiz XP is handled by quiz controller)
         if (progress.isCompleted) {
           final hasQuizResult = await _ref.read(bookHasQuizUseCaseProvider)(
@@ -192,7 +196,11 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           );
           final quizExists = hasQuizResult.fold((_) => false, (v) => v);
           if (!quizExists) {
-            await _ref.read(userControllerProvider.notifier).addXP(settings.xpBookComplete);
+            await _ref.read(userControllerProvider.notifier).addXP(
+              settings.xpBookComplete,
+              source: 'book_complete',
+              sourceId: bookId,
+            );
           }
         }
       }

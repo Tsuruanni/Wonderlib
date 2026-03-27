@@ -135,7 +135,11 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
     // Award XP for passing quiz (addXP also triggers badge check)
     if (savedResult != null && savedResult.isPassing) {
       final settings = _ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
-      await _ref.read(userControllerProvider.notifier).addXP(settings.xpQuizPass);
+      await _ref.read(userControllerProvider.notifier).addXP(
+        settings.xpQuizPass,
+        source: 'quiz_pass',
+        sourceId: quizId,
+      );
     }
 
     return savedResult;
