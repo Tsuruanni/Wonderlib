@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Book Quiz Audit & Fixes (2026-03-27)
+
+#### Fixed
+- **`quiz_passed` never written to DB** — Added missing field to `updateReadingProgress` upsert data map. Column was always `false` despite `HandleBookCompletionUseCase` setting it to `true`.
+- **RPC auth vulnerability** — `get_best_book_quiz_result` now enforces authorization: caller must be the user themselves or a teacher/admin/head in the same school. Previously any authenticated user could query any other user's scores.
+- **0-question quiz soft-lock** — `book_has_quiz` RPC now requires at least one question. Admin editor prevents publishing a quiz with no questions. Previously a published empty quiz would permanently block book completion.
+- **Quiz timer** — `BookQuizScreen` now measures elapsed time via `Stopwatch` and populates `time_spent` column (was always `null`).
+- **Admin Turkish labels** — Translated all user-facing strings in quiz editor and question editor to English (~80 strings across 2 files).
+
+#### Changed
+- **Shared enum usage** — `BookQuizQuestionModel` now uses `BookQuizQuestionType.fromDbValue()` / `.dbValue` from owlio_shared instead of duplicate `_parseType`/`_typeToString` switch statements. Admin question editor switch cases also converted to enum-based.
+- **AppColors** — Replaced hard-coded `Color(0xFF58CC02)` and `Color(0xFFFF4B4B)` with `AppColors.primary` and `AppColors.danger` in quiz result card.
+
+#### Removed
+- **Dead code** — Unused `answeredIndices` parameter from `BookQuizProgressBar`, dead `_goToNextPage` condition (`_currentPage < 999`), stale comments.
+
+#### Infrastructure
+- **1 DB migration** (20260327100000) — Auth check on `get_best_book_quiz_result`, question existence check on `book_has_quiz`, composite index `(user_id, book_id)` on `book_quiz_results`.
+- **Feature spec** — `docs/specs/04-book-quiz.md` documents the full Book Quiz system (12/16 findings fixed, 4 accepted/deferred).
+
 ### Inline Activities Audit & Fixes (2026-03-27)
 
 #### Fixed
