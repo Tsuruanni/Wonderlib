@@ -164,7 +164,7 @@ Replace `#N` and `Feature Name` with the target feature.
 |---|--------|---------------|-------------|-----------------|---------------|-------------|
 | 1 | **Book System** | Book CRUD, JSON import, chapter editor, content blocks | Library, book detail, reader, chapter progress, offline download | Reading progress report, book stats | Medium | Done: `docs/specs/01-book-system.md` |
 | 2 | **Audio/Karaoke Reader** | Audio URLs in content blocks | Word-level sync, listening mode, auto-play, scroll follow | - | **High** | Done: `docs/specs/02-audio-karaoke-reader.md` |
-| 3 | **Inline Activities** | Activity editor (4 types: true_false, word_translation, find_words, matching) | In-chapter mini games, XP rewards, vocab integration | - | Medium | - |
+| 3 | **Inline Activities** | Activity editor (4 types: true_false, word_translation, find_words, matching) | In-chapter mini games, XP rewards, vocab integration | - | Medium | Done: `docs/specs/03-inline-activities.md` |
 | 4 | **Book Quiz** | Quiz editor (5 types: multiple_choice, fill_blank, event_sequencing, matching, who_says_what) | End-of-book assessment, 70% pass threshold, multi-attempt | Quiz results per student | Medium | - |
 | 5 | **Vocabulary & Spaced Repetition** | Vocabulary CRUD, CSV import | SM-2 algorithm, 10 question types, 3 tiers/phases, mastery levels | Vocab stats per student | **High** | Done: `docs/vocabulary-session-system.md` |
 | 6 | **Word Lists** | Word list editor, word picker, drag-and-drop reordering | Categorized lists, star rating, sequential unlock | Word list progress per student | Medium | - |
