@@ -5,9 +5,8 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../domain/entities/chapter.dart';
 import '../../domain/entities/system_settings.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
-import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
+import '../../domain/usecases/activity/complete_inline_activity_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
-import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import 'auth_provider.dart';
 import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
@@ -375,7 +374,7 @@ Future<void> _handleInlineActivityCompletionImpl(
   required List<String> wordsLearned,
   void Function(bool isCorrect, int xpEarned)? onComplete,
 }) async {
-  // Check if already completed locally
+  // Local dedup check
   final completedActivities = ref.read(inlineActivityStateProvider);
   if (completedActivities.containsKey(activityId)) {
     return;
@@ -387,30 +386,33 @@ Future<void> _handleInlineActivityCompletionImpl(
   final userId = ref.read(currentUserIdProvider);
   if (userId == null) return;
 
-  // Save to database
-  final useCase = ref.read(saveInlineActivityResultUseCaseProvider);
+  // UseCase handles DB save + vocabulary batch add
+  final useCase = ref.read(completeInlineActivityUseCaseProvider);
   final result = await useCase(
-    SaveInlineActivityResultParams(
+    CompleteInlineActivityParams(
       userId: userId,
       activityId: activityId,
       isCorrect: isCorrect,
       xpEarned: xpEarned,
+      wordsLearned: wordsLearned,
     ),
   );
 
-  final isNewCompletion = result.fold(
-    (failure) => false,
-    (isNew) => isNew,
+  final completionResult = result.fold(
+    (failure) => null,
+    (r) => r,
   );
 
-  // Refresh daily quest progress
-  if (isNewCompletion) {
+  if (completionResult == null) return;
+
+  // Refresh daily quest progress on new completion
+  if (completionResult.isNewCompletion) {
     ref.invalidate(dailyQuestProgressProvider);
   }
 
   // Award XP for new completions
-  debugPrint('📊 Activity $activityId: isNew=$isNewCompletion, xp=$xpEarned');
-  if (isNewCompletion && xpEarned > 0) {
+  debugPrint('📊 Activity $activityId: isNew=${completionResult.isNewCompletion}, xp=$xpEarned');
+  if (completionResult.isNewCompletion && xpEarned > 0) {
     ref.read(sessionXPProvider.notifier).addXP(xpEarned);
     await ref.read(userControllerProvider.notifier).addXP(
       xpEarned,
@@ -421,18 +423,9 @@ Future<void> _handleInlineActivityCompletionImpl(
   // Note: streak is updated on app open (_updateStreakIfNeeded), not per-activity.
   // No need to call updateStreak() here — it was already done at launch.
 
-  // Add words to vocabulary
+  // Update learned words in session state
   if (wordsLearned.isNotEmpty) {
     ref.read(learnedWordsProvider.notifier).addWords(wordsLearned);
-
-    final addWordsBatchUseCase = ref.read(addWordsBatchUseCaseProvider);
-    await addWordsBatchUseCase(
-      AddWordsBatchParams(
-        userId: userId,
-        wordIds: wordsLearned,
-        immediate: !isCorrect,
-      ),
-    );
 
     // Invalidate providers so new words appear in Word Bank and Daily Review
     ref.invalidate(dailyReviewWordsProvider);

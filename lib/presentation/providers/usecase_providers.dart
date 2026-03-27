@@ -12,6 +12,7 @@ import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
 import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
 import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
 import '../../domain/usecases/activity/get_best_result_usecase.dart';
+import '../../domain/usecases/activity/complete_inline_activity_usecase.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
@@ -310,6 +311,13 @@ final saveInlineActivityResultUseCaseProvider = Provider((ref) {
 
 final getCompletedInlineActivitiesUseCaseProvider = Provider((ref) {
   return GetCompletedInlineActivitiesUseCase(ref.watch(bookRepositoryProvider));
+});
+
+final completeInlineActivityUseCaseProvider = Provider((ref) {
+  return CompleteInlineActivityUseCase(
+    ref.watch(bookRepositoryProvider),
+    ref.watch(vocabularyRepositoryProvider),
+  );
 });
 
 // ============================================
