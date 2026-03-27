@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 
 /// Screen to browse word lists in a specific category
 class CategoryBrowseScreen extends ConsumerWidget {
@@ -109,7 +110,7 @@ class _WordListCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: _getCategoryColor(wordList.category).withValues(alpha: 0.1),
+                color: VocabularyColors.getCategoryColor(wordList.category).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Center(
@@ -152,7 +153,7 @@ class _WordListCard extends StatelessWidget {
                         minHeight: 8,
                         backgroundColor: AppColors.neutral,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          _getCategoryColor(wordList.category),
+                          VocabularyColors.getCategoryColor(wordList.category),
                         ),
                       ),
                     ),
@@ -176,20 +177,6 @@ class _WordListCard extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(WordListCategory category) {
-    switch (category) {
-      case WordListCategory.commonWords:
-        return AppColors.gemBlue;
-      case WordListCategory.gradeLevel:
-        return AppColors.primary;
-      case WordListCategory.testPrep:
-        return AppColors.streakOrange;
-      case WordListCategory.thematic:
-        return AppColors.secondary;
-      case WordListCategory.storyVocab:
-        return Colors.pink;
-    }
-  }
 }
 
 class _EmptyState extends StatelessWidget {

@@ -53,24 +53,6 @@ class WordList extends Equatable {
       ];
 }
 
-/// Emoji icons for word list categories (UI-specific)
-extension WordListCategoryIcon on WordListCategory {
-  String get icon {
-    switch (this) {
-      case WordListCategory.commonWords:
-        return '📚';
-      case WordListCategory.gradeLevel:
-        return '🎓';
-      case WordListCategory.testPrep:
-        return '📝';
-      case WordListCategory.thematic:
-        return '🏷️';
-      case WordListCategory.storyVocab:
-        return '📖';
-    }
-  }
-}
-
 /// Tracks user progress for a specific word list (session-based)
 class UserWordListProgress extends Equatable {
 

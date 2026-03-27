@@ -136,6 +136,24 @@ abstract class VocabularyColors {
   }
 }
 
+/// Emoji icons for word list categories
+extension WordListCategoryIcon on WordListCategory {
+  String get icon {
+    switch (this) {
+      case WordListCategory.commonWords:
+        return '📚';
+      case WordListCategory.gradeLevel:
+        return '🎓';
+      case WordListCategory.testPrep:
+        return '📝';
+      case WordListCategory.thematic:
+        return '🏷️';
+      case WordListCategory.storyVocab:
+        return '📖';
+    }
+  }
+}
+
 /// Centralized color helpers for score display
 abstract class ScoreColors {
   static Color getScoreColor(double score) {

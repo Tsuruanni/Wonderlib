@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/vocabulary/learning_path.dart';
 import '../../widgets/common/top_navbar.dart';
 

@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
 
 /// Detail screen for a word list — simplified session-based design
@@ -175,7 +176,7 @@ class _ListHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _getCategoryColor(wordList.category);
+    final color = VocabularyColors.getCategoryColor(wordList.category);
 
     return SliverAppBar(
       expandedHeight: 200,
@@ -265,20 +266,6 @@ class _ListHeader extends StatelessWidget {
     );
   }
 
-  Color _getCategoryColor(WordListCategory category) {
-    switch (category) {
-      case WordListCategory.commonWords:
-        return AppColors.gemBlue;
-      case WordListCategory.gradeLevel:
-        return AppColors.primary;
-      case WordListCategory.testPrep:
-        return AppColors.streakOrange;
-      case WordListCategory.thematic:
-        return AppColors.secondary;
-      case WordListCategory.storyVocab:
-        return Colors.pink;
-    }
-  }
 }
 
 /// Session stats card
