@@ -526,16 +526,13 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, bool>> hasReadToday(String userId) async {
     try {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
-
+      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
       final response = await _supabase
-          .from(DbTables.readingProgress)
+          .from(DbTables.dailyChapterReads)
           .select('id')
           .eq('user_id', userId)
-          .gte('updated_at', todayStart)
+          .eq('read_date', today)
           .limit(1);
-
       return Right((response as List).isNotEmpty);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
