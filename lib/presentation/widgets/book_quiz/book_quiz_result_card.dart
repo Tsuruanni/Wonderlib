@@ -30,8 +30,8 @@ class BookQuizResultCard extends StatelessWidget {
     final scorePercent = result.percentage;
 
     final statusColor = isPassing
-        ? const Color(0xFF58CC02) // Green
-        : const Color(0xFFFF4B4B); // Red
+        ? AppColors.primary
+        : AppColors.danger;
 
     const double depth = 6;
 
