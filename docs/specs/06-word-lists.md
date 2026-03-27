@@ -234,7 +234,7 @@ No interaction. Streak is login-based only (removed from vocabulary RPCs).
 ### Database
 - `supabase/migrations/20260131000004_create_word_list_tables.sql` — Original schema + word_count trigger
 - `supabase/migrations/20260207000002_vocabulary_session_v2.sql` — Phase columns → session-based tracking
-- `supabase/migrations/20260323000016_update_vocab_session_rpc_settings.sql` — Current `complete_vocabulary_session` RPC
+- `supabase/migrations/20260328000002_add_auth_check_to_vocab_session_rpc.sql` — Current `complete_vocabulary_session` RPC (with auth.uid() check)
 
 ### Shared
 - `packages/owlio_shared/lib/src/enums/word_list_category.dart` — `WordListCategory` enum
