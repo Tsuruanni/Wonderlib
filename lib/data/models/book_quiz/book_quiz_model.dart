@@ -34,23 +34,6 @@ class BookQuizModel {
     );
   }
 
-  factory BookQuizModel.fromEntity(BookQuiz entity) {
-    return BookQuizModel(
-      id: entity.id,
-      bookId: entity.bookId,
-      title: entity.title,
-      instructions: entity.instructions,
-      passingScore: entity.passingScore,
-      totalPoints: entity.totalPoints,
-      isPublished: entity.isPublished,
-      questions: entity.questions
-          .map((q) => BookQuizQuestionModel.fromEntity(q))
-          .toList(),
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    );
-  }
-
   final String id;
   final String bookId;
   final String title;
@@ -118,19 +101,6 @@ class BookQuizQuestionModel {
     );
   }
 
-  factory BookQuizQuestionModel.fromEntity(BookQuizQuestion entity) {
-    return BookQuizQuestionModel(
-      id: entity.id,
-      quizId: entity.quizId,
-      type: _typeToString(entity.type),
-      orderIndex: entity.orderIndex,
-      question: entity.question,
-      content: _contentToJson(entity.type, entity.content),
-      explanation: entity.explanation,
-      points: entity.points,
-    );
-  }
-
   final String id;
   final String quizId;
   final String type;
@@ -157,49 +127,13 @@ class BookQuizQuestionModel {
     return BookQuizQuestion(
       id: id,
       quizId: quizId,
-      type: _parseType(type),
+      type: BookQuizQuestionType.fromDbValue(type),
       orderIndex: orderIndex,
       question: question,
       content: _parseContent(type, content),
       explanation: explanation,
       points: points,
     );
-  }
-
-  // ============================================
-  // TYPE CONVERSION
-  // ============================================
-
-  static BookQuizQuestionType _parseType(String type) {
-    switch (type) {
-      case 'multiple_choice':
-        return BookQuizQuestionType.multipleChoice;
-      case 'fill_blank':
-        return BookQuizQuestionType.fillBlank;
-      case 'event_sequencing':
-        return BookQuizQuestionType.eventSequencing;
-      case 'matching':
-        return BookQuizQuestionType.matching;
-      case 'who_says_what':
-        return BookQuizQuestionType.whoSaysWhat;
-      default:
-        return BookQuizQuestionType.multipleChoice;
-    }
-  }
-
-  static String _typeToString(BookQuizQuestionType type) {
-    switch (type) {
-      case BookQuizQuestionType.multipleChoice:
-        return 'multiple_choice';
-      case BookQuizQuestionType.fillBlank:
-        return 'fill_blank';
-      case BookQuizQuestionType.eventSequencing:
-        return 'event_sequencing';
-      case BookQuizQuestionType.matching:
-        return 'matching';
-      case BookQuizQuestionType.whoSaysWhat:
-        return 'who_says_what';
-    }
   }
 
   // ============================================
@@ -273,51 +207,6 @@ class BookQuizQuestionModel {
     }
   }
 
-  static Map<String, dynamic> _contentToJson(
-    BookQuizQuestionType type,
-    BookQuizQuestionContent content,
-  ) {
-    switch (type) {
-      case BookQuizQuestionType.multipleChoice:
-        final mc = content as MultipleChoiceContent;
-        return {
-          'options': mc.options,
-          'correct_answer': mc.correctAnswer,
-        };
-
-      case BookQuizQuestionType.fillBlank:
-        final fb = content as FillBlankContent;
-        return {
-          'sentence': fb.sentence,
-          'correct_answer': fb.correctAnswer,
-          'accept_alternatives': fb.acceptAlternatives,
-        };
-
-      case BookQuizQuestionType.eventSequencing:
-        final es = content as EventSequencingContent;
-        return {
-          'events': es.events,
-          'correct_order': es.correctOrder,
-        };
-
-      case BookQuizQuestionType.matching:
-        final m = content as QuizMatchingContent;
-        return {
-          'left': m.leftItems,
-          'right': m.rightItems,
-          'correct_pairs': _pairsToJson(m.correctPairs),
-        };
-
-      case BookQuizQuestionType.whoSaysWhat:
-        final wsw = content as WhoSaysWhatContent;
-        return {
-          'characters': wsw.characters,
-          'quotes': wsw.quotes,
-          'correct_pairs': _pairsToJson(wsw.correctPairs),
-        };
-    }
-  }
-
   /// Parse correct_pairs from JSON (`{"0":"1","1":"0"}`) to `Map<int,int>`
   static Map<int, int> _parsePairs(dynamic json) {
     if (json is! Map) return {};
@@ -332,8 +221,4 @@ class BookQuizQuestionModel {
     return result;
   }
 
-  /// Convert `Map<int,int>` pairs to JSON format `{"0":"1","1":"0"}`
-  static Map<String, String> _pairsToJson(Map<int, int> pairs) {
-    return pairs.map((k, v) => MapEntry(k.toString(), v.toString()));
-  }
 }
