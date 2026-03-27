@@ -12,6 +12,7 @@ abstract class WordListRepository {
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,
     bool? isSystem,
+    String? unitId,
   });
 
   /// Get a single word list by ID

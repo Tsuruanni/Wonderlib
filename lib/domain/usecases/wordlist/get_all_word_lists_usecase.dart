@@ -10,9 +10,11 @@ class GetAllWordListsParams {
   const GetAllWordListsParams({
     this.category,
     this.isSystem,
+    this.unitId,
   });
   final WordListCategory? category;
   final bool? isSystem;
+  final String? unitId;
 }
 
 class GetAllWordListsUseCase
@@ -26,6 +28,7 @@ class GetAllWordListsUseCase
     return _repository.getAllWordLists(
       category: params.category,
       isSystem: params.isSystem,
+      unitId: params.unitId,
     );
   }
 }

@@ -7,10 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
-import '../../providers/repository_providers.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../../domain/entities/vocabulary.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/leaderboard_provider.dart';
@@ -124,7 +122,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     if (result == null || !mounted) return;
 
     // Save DR position to daily_review_sessions so it stays fixed in the path
-    await _saveDrPosition();
+    await _saveDrPosition(result.sessionId);
 
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
@@ -143,9 +141,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
   }
 
-  /// Saves the DR injection position to daily_review_sessions.path_position
-  /// so the completed DR stays at the same place in the path.
-  Future<void> _saveDrPosition() async {
+  Future<void> _saveDrPosition(String sessionId) async {
     try {
       final pathUnits = ref.read(learningPathProvider).valueOrNull;
       if (pathUnits == null) return;
@@ -163,14 +159,11 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
       if (drPosition == null) return;
 
-      final userId = ref.read(currentUserIdProvider);
-      if (userId == null) return;
-
-      final repo = ref.read(vocabularyRepositoryProvider);
-      await repo.saveDailyReviewPosition(
-        userId: userId,
-        pathPosition: drPosition,
-      );
+      await ref.read(dailyReviewControllerProvider.notifier)
+          .saveDailyReviewPosition(
+            sessionId: sessionId,
+            pathPosition: drPosition,
+          );
     } catch (_) {
       // Non-critical
     }
@@ -182,11 +175,14 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     bool isPerfect = false,
   }) {
     final showXp = xpEarned != null && xpEarned > 0;
-    final easyCount = state.responses.where((r) => r == SM2Response.veryEasy).length;
-    final goodCount = state.responses.where((r) => r == SM2Response.gotIt).length;
-    final hardCount = state.responses.where((r) => r == SM2Response.dontKnow).length;
-    final knownPercent = state.totalReviewed > 0
-        ? ((easyCount + goodCount) / state.totalReviewed * 100).round()
+    // Use first-pass responses only (exclude requeue duplicates)
+    final firstPassCount = state.originalWordCount;
+    final firstPassResponses = state.responses.take(firstPassCount).toList();
+    final easyCount = firstPassResponses.where((r) => r == SM2Response.veryEasy).length;
+    final goodCount = firstPassResponses.where((r) => r == SM2Response.gotIt).length;
+    final hardCount = firstPassResponses.where((r) => r == SM2Response.dontKnow).length;
+    final knownPercent = firstPassCount > 0
+        ? ((easyCount + goodCount) / firstPassCount * 100).round()
         : 0;
 
     showDialog(
@@ -228,7 +224,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     const Icon(Icons.bolt_rounded, color: AppColors.streakOrange, size: 32),
                     const SizedBox(width: 8),
                     Text(
-                      '+$xpEarned Coins',
+                      '+$xpEarned XP',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w900,
                         fontSize: 24,
@@ -289,6 +285,51 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
       return Scaffold(
         backgroundColor: AppColors.background,
         body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (state.errorMessage != null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.wifi_off_rounded, size: 64, color: AppColors.neutralText),
+                const SizedBox(height: 16),
+                Text(
+                  'Could not load words',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Check your connection and try again.',
+                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                GameButton(
+                  label: 'Try Again',
+                  onPressed: () {
+                    final controller = ref.read(dailyReviewControllerProvider.notifier);
+                    if (widget.unitId != null) {
+                      controller.loadUnitReviewSession(widget.unitId!);
+                    } else {
+                      controller.loadSession();
+                    }
+                  },
+                  variant: GameButtonVariant.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -485,18 +526,6 @@ class _CardFront extends StatelessWidget {
              child: Text(
                word.partOfSpeech ?? word.level ?? 'Word',
                style: GoogleFonts.nunito(color: AppColors.gemBlue, fontWeight: FontWeight.bold),
-             ),
-          ),
-          const SizedBox(height: 48),
-          IconButton(
-             onPressed: () {
-                HapticFeedback.lightImpact();
-                // Audio logic would go here
-             },
-             icon: Icon(Icons.volume_up_rounded, size: 40, color: AppColors.secondary),
-             style: IconButton.styleFrom(
-               backgroundColor: AppColors.secondary.withValues(alpha: 0.1),
-               padding: EdgeInsets.all(16),
              ),
           ),
         ],

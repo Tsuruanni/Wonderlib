@@ -720,16 +720,14 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
 
   @override
   Future<Either<Failure, void>> saveDailyReviewPosition({
-    required String userId,
+    required String sessionId,
     required int pathPosition,
   }) async {
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10);
       await _supabase
           .from(DbTables.dailyReviewSessions)
           .update({'path_position': pathPosition})
-          .eq('user_id', userId)
-          .eq('session_date', today);
+          .eq('id', sessionId);
       return const Right(null);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));

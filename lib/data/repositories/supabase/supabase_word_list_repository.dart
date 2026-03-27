@@ -24,6 +24,7 @@ class SupabaseWordListRepository implements WordListRepository {
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,
     bool? isSystem,
+    String? unitId,
   }) async {
     try {
       var query = _supabase.from(DbTables.wordLists).select();
@@ -34,6 +35,10 @@ class SupabaseWordListRepository implements WordListRepository {
 
       if (isSystem != null) {
         query = query.eq('is_system', isSystem);
+      }
+
+      if (unitId != null) {
+        query = query.eq('unit_id', unitId);
       }
 
       final response = await query.order('name', ascending: true).limit(500);
