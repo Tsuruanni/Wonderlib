@@ -8,6 +8,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Student Class Change Assignment Sync (2026-03-27)
+
+#### Added
+- **Automatic assignment enrollment on class change** — When a student's `class_id` changes (new student, transfer), a DB trigger automatically enrolls them in the new class's active (non-expired) assignments.
+- **Withdrawn status** — New `withdrawn` assignment status for students removed from a class. Completed assignments are preserved; only pending/in_progress are withdrawn.
+- **Unit progress backfill** — For unit-type assignments, existing learning path progress (word list completions, book reads) is automatically reflected in the new assignment record.
+- **Re-enrollment on return** — If a student returns to a previous class, withdrawn assignments are re-activated to pending.
+
+#### Changed
+- **Stats RPCs exclude withdrawn** — `get_assignments_with_stats` and `get_assignment_detail_with_stats` no longer count withdrawn students in `total_students`.
+- **Sync RPC skips withdrawn** — `sync_unit_assignment_progress` no longer processes withdrawn students.
+- **Student query filters withdrawn** — `getStudentAssignments` repository method excludes withdrawn assignments from student views.
+
+#### Infrastructure
+- **1 DB migration** (20260327000009) — CHECK constraint expansion, `_backfill_student_unit_progress` helper, `handle_student_class_change` trigger function + trigger, 3 RPC updates.
+- **Shared package** — `AssignmentStatus.withdrawn` added to `owlio_shared`.
+- **UI helpers** — Withdrawn status color (`grey.shade400`) and icon (`person_remove`) in both teacher and student helpers.
+
 ### Assignment Notification System (2026-03-27)
 
 #### Added
