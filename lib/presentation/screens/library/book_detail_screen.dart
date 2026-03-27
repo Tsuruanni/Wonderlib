@@ -27,6 +27,7 @@ class BookDetailScreen extends ConsumerWidget {
     final bookAsync = ref.watch(bookByIdProvider(bookId));
     debugPrint('📖 BookDetailScreen: bookAsync=$bookAsync');
     final chaptersAsync = ref.watch(chaptersProvider(bookId));
+    final chaptersWithStatus = ref.watch(chaptersWithLockStatusProvider(bookId));
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
     final userId = ref.watch(currentUserIdProvider);
@@ -246,39 +247,21 @@ class BookDetailScreen extends ConsumerWidget {
                     );
                   }
 
-                  // Get completed chapter IDs for locking logic
-                  final completedIds = progress?.completedChapterIds ?? [];
-
                   return SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final chapter = chapters[index];
-                        final isCurrentChapter = progress?.chapterId == chapter.id;
-                        // Simple check: is this chapter ID in the completed list?
-                        final isCompleted = completedIds.contains(chapter.id);
-
-                        // Chapter is locked if any previous chapter is not completed
-                        // First chapter (index 0) is never locked
-                        bool isLocked = false;
-                        if (index > 0) {
-                          // Check if all previous chapters are completed
-                          for (int i = 0; i < index; i++) {
-                            if (!completedIds.contains(chapters[i].id)) {
-                              isLocked = true;
-                              break;
-                            }
-                          }
-                        }
+                        final item = chaptersWithStatus[index];
+                        final isCurrentChapter = progress?.chapterId == item.chapter.id;
 
                         return _ChapterTile(
                           number: index + 1,
-                          title: chapter.title,
-                          duration: chapter.estimatedMinutes,
-                          isCompleted: isCompleted,
+                          title: item.chapter.title,
+                          duration: item.chapter.estimatedMinutes,
+                          isCompleted: item.isCompleted,
                           isCurrent: isCurrentChapter,
-                          isLocked: isLocked,
+                          isLocked: item.isLocked,
                           onTap: () {
-                            context.go(AppRoutes.readerPath(bookId, chapter.id));
+                            context.go(AppRoutes.readerPath(bookId, item.chapter.id));
                           },
                         );
                       },

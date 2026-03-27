@@ -140,4 +140,10 @@ class StudentAssignment extends Equatable {
     }
     return null;
   }
+
+  /// Whether this assignment locks the library to only the assigned book.
+  bool get hasLibraryLock => contentConfig['lockLibrary'] == true;
+
+  /// The book ID this assignment is for (book-type assignments only).
+  String? get lockedBookId => contentConfig['bookId'] as String?;
 }

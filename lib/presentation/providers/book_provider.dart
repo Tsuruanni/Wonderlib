@@ -29,6 +29,35 @@ import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
 
+class ChapterWithLockStatus {
+  const ChapterWithLockStatus({
+    required this.chapter,
+    required this.isLocked,
+    required this.isCompleted,
+  });
+  final Chapter chapter;
+  final bool isLocked;
+  final bool isCompleted;
+}
+
+final chaptersWithLockStatusProvider =
+    Provider.family<List<ChapterWithLockStatus>, String>((ref, bookId) {
+  final chapters = ref.watch(chaptersProvider(bookId)).valueOrNull ?? [];
+  final progress = ref.watch(readingProgressProvider(bookId)).valueOrNull;
+  final completedIds = progress?.completedChapterIds ?? [];
+
+  return chapters.indexed.map((e) {
+    final (index, chapter) = e;
+    final isLocked = index > 0 &&
+        chapters.take(index).any((c) => !completedIds.contains(c.id));
+    return ChapterWithLockStatus(
+      chapter: chapter,
+      isLocked: isLocked,
+      isCompleted: completedIds.contains(chapter.id),
+    );
+  }).toList();
+});
+
 /// Provides all published books with optional filters
 final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filters) async {
   final useCase = ref.watch(getBooksUseCaseProvider);

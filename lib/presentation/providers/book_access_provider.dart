@@ -50,11 +50,10 @@ final bookLockProvider = FutureProvider<BookLockInfo>((ref) async {
   for (final assignment in assignments) {
     if (assignment.type == StudentAssignmentType.book) {
       // Check if this assignment has library lock enabled
-      final lockLibrary = assignment.contentConfig['lockLibrary'];
-      if (lockLibrary == true) {
+      if (assignment.hasLibraryLock) {
         hasLock = true;
         // Add this book to allowed list
-        final bookId = assignment.contentConfig['bookId'] as String?;
+        final bookId = assignment.lockedBookId;
         if (bookId != null) {
           allowedBooks.add(bookId);
         }
