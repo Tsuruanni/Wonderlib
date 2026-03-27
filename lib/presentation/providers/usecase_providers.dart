@@ -96,6 +96,7 @@ import '../../domain/usecases/user/update_streak_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
 import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
+import '../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
 import '../../domain/usecases/book_quiz/get_user_quiz_results_usecase.dart';
 import '../../domain/usecases/wordlist/get_session_history_usecase.dart';
 import '../../domain/usecases/wordlist/reset_progress_usecase.dart';
@@ -725,6 +726,10 @@ final getBestQuizResultUseCaseProvider = Provider((ref) {
 
 final getStudentQuizResultsUseCaseProvider = Provider((ref) {
   return GetStudentQuizResultsUseCase(ref.watch(bookQuizRepositoryProvider));
+});
+
+final gradeBookQuizUseCaseProvider = Provider((ref) {
+  return GradeBookQuizUseCase();
 });
 
 // ============================================

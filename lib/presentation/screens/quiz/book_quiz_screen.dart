@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/usecase_providers.dart';
 import '../../widgets/common/animated_game_button.dart';
 import '../../widgets/common/subtle_background.dart';
 import '../../widgets/book_quiz/book_quiz_progress_bar.dart';
@@ -176,8 +178,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   Widget _buildQuizScaffold(BuildContext context, BookQuiz quiz) {
     final questions = quiz.questions;
     final isLastPage = _currentPage == questions.length - 1;
-    final allAnswered = _answers.length == questions.length &&
-        _answers.values.every(_isAnswerValid);
+    final allAnswered = quiz.questions.every((q) => _answers[q.id] != null);
 
     if (_showResults) {
       return _buildResultsView(context, quiz);
@@ -399,33 +400,20 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
       _isSubmitting = true;
     });
 
-    // Grade locally
-    double totalScore = 0;
-    double maxScore = 0;
-    final answersJson = <String, dynamic>{};
-
-    for (final question in quiz.questions) {
-      final answer = _answers[question.id];
-      maxScore += question.points;
-
-      final isCorrect = _gradeQuestion(question, answer);
-      if (isCorrect) {
-        totalScore += question.points;
-      }
-
-      answersJson[question.id] = {
-        'answer': _serializeAnswer(answer),
-        'correct': isCorrect,
-      };
-    }
+    // Grade locally via UseCase
+    final gradeUseCase = ref.read(gradeBookQuizUseCaseProvider);
+    final gradeResult = gradeUseCase(GradeBookQuizParams(
+      quiz: quiz,
+      answers: _answers,
+    ),);
 
     // Submit via controller
     await ref.read(bookQuizControllerProvider.notifier).submitQuiz(
               quizId: quiz.id,
               bookId: widget.bookId,
-              score: totalScore,
-              maxScore: maxScore,
-              answers: answersJson,
+              score: gradeResult.totalScore,
+              maxScore: gradeResult.maxScore,
+              answers: gradeResult.answersJson,
               passingScore: quiz.passingScore,
             );
 
@@ -435,54 +423,6 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
         _showResults = true;
       });
     }
-  }
-
-  bool _gradeQuestion(BookQuizQuestion question, dynamic answer) {
-    if (answer == null) return false;
-
-    switch (question.type) {
-      case BookQuizQuestionType.multipleChoice:
-        final content = question.content as MultipleChoiceContent;
-        return answer == content.correctAnswer;
-
-      case BookQuizQuestionType.fillBlank:
-        final content = question.content as FillBlankContent;
-        return content.checkAnswer(answer as String);
-
-      case BookQuizQuestionType.eventSequencing:
-        final content = question.content as EventSequencingContent;
-        return content.checkAnswer(answer as List<int>);
-
-      case BookQuizQuestionType.matching:
-        final content = question.content as QuizMatchingContent;
-        final pairs = answer as Map<int, int>;
-        if (pairs.length != content.correctPairs.length) return false;
-        return content.correctPairs.entries
-            .every((e) => pairs[e.key] == e.value);
-
-      case BookQuizQuestionType.whoSaysWhat:
-        final content = question.content as WhoSaysWhatContent;
-        final pairs = answer as Map<int, int>;
-        if (pairs.length != content.correctPairs.length) return false;
-        return content.correctPairs.entries
-            .every((e) => pairs[e.key] == e.value);
-    }
-  }
-
-  /// Converts answer to a JSON-serializable format.
-  dynamic _serializeAnswer(dynamic answer) {
-    if (answer is Map<int, int>) {
-      return answer.map((k, v) => MapEntry(k.toString(), v));
-    }
-    return answer;
-  }
-
-  bool _isAnswerValid(dynamic answer) {
-    if (answer == null) return false;
-    if (answer is String) return answer.trim().isNotEmpty;
-    if (answer is List) return answer.isNotEmpty;
-    if (answer is Map) return answer.isNotEmpty;
-    return true;
   }
 
   // ─── Actions ──────────────────────────────────
