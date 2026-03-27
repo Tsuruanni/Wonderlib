@@ -162,7 +162,7 @@ Replace `#N` and `Feature Name` with the target feature.
 
 | # | System | Admin Surface | App Surface | Teacher Surface | Spec Priority | Spec Status |
 |---|--------|---------------|-------------|-----------------|---------------|-------------|
-| 1 | **Book System** | Book CRUD, JSON import, chapter editor, content blocks | Library, book detail, reader, chapter progress, offline download | Reading progress report, book stats | Medium | - |
+| 1 | **Book System** | Book CRUD, JSON import, chapter editor, content blocks | Library, book detail, reader, chapter progress, offline download | Reading progress report, book stats | Medium | Done: `docs/specs/01-book-system.md` |
 | 2 | **Audio/Karaoke Reader** | Audio URLs in content blocks | Word-level sync, listening mode, auto-play, scroll follow | - | **High** | `docs/riverpod-audio-patterns.md` (partial) |
 | 3 | **Inline Activities** | Activity editor (4 types: true_false, word_translation, find_words, matching) | In-chapter mini games, XP rewards, vocab integration | - | Medium | - |
 | 4 | **Book Quiz** | Quiz editor (5 types: multiple_choice, fill_blank, event_sequencing, matching, who_says_what) | End-of-book assessment, 70% pass threshold, multi-attempt | Quiz results per student | Medium | - |
