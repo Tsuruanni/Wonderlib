@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/activity.dart';
+import '../../domain/entities/activity_stats.dart';
 import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
 import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
 import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
@@ -63,14 +64,14 @@ final activityBestResultProvider =
 });
 
 /// Provides activity stats for current user
-final activityStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+final activityStatsProvider = FutureProvider<ActivityStats>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return {};
+  if (userId == null) return ActivityStats.empty;
 
   final useCase = ref.watch(getActivityStatsUseCaseProvider);
   final result = await useCase(GetActivityStatsParams(userId: userId));
   return result.fold(
-    (failure) => {},
+    (failure) => ActivityStats.empty,
     (stats) => stats,
   );
 });

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/activity.dart';
+import '../../../domain/entities/activity_stats.dart';
 import '../../../domain/repositories/activity_repository.dart';
 import '../../models/activity/activity_model.dart';
 import '../../models/activity/activity_result_model.dart';
@@ -168,7 +169,7 @@ class SupabaseActivityRepository implements ActivityRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getActivityStats(
+  Future<Either<Failure, ActivityStats>> getActivityStats(
     String userId,
   ) async {
     try {
@@ -197,11 +198,11 @@ class SupabaseActivityRepository implements ActivityRepository {
       final averagePercentage =
           totalMaxScore > 0 ? (totalScore / totalMaxScore) * 100 : 0.0;
 
-      return Right({
-        'total_completed': totalCompleted,
-        'average_score': averagePercentage.round(),
-        'perfect_scores': perfectScores,
-      });
+      return Right(ActivityStats(
+        totalCompleted: totalCompleted,
+        averageScore: averagePercentage.round(),
+        perfectScores: perfectScores,
+      ));
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

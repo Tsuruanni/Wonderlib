@@ -4,6 +4,7 @@ import '../../../core/errors/failures.dart';
 import '../../../core/network/network_info.dart';
 import '../../../core/services/book_cache_store.dart';
 import '../../../domain/entities/activity.dart';
+import '../../../domain/entities/activity_stats.dart';
 import '../../../domain/repositories/activity_repository.dart';
 import '../../models/activity/activity_result_model.dart';
 import '../supabase/supabase_activity_repository.dart';
@@ -155,7 +156,7 @@ class CachedActivityRepository implements ActivityRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getActivityStats(
+  Future<Either<Failure, ActivityStats>> getActivityStats(
     String userId,
   ) {
     return _remoteRepo.getActivityStats(userId);

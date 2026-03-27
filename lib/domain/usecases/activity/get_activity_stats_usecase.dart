@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../entities/activity_stats.dart';
 import '../../repositories/activity_repository.dart';
 import '../usecase.dart';
 
@@ -11,13 +12,13 @@ class GetActivityStatsParams {
 }
 
 class GetActivityStatsUseCase
-    implements UseCase<Map<String, dynamic>, GetActivityStatsParams> {
+    implements UseCase<ActivityStats, GetActivityStatsParams> {
 
   const GetActivityStatsUseCase(this._repository);
   final ActivityRepository _repository;
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> call(GetActivityStatsParams params) {
+  Future<Either<Failure, ActivityStats>> call(GetActivityStatsParams params) {
     return _repository.getActivityStats(params.userId);
   }
 }

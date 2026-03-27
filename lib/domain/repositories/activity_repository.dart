@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/activity.dart';
+import '../entities/activity_stats.dart';
 
 abstract class ActivityRepository {
   Future<Either<Failure, List<Activity>>> getActivitiesByChapter(
@@ -24,5 +25,5 @@ abstract class ActivityRepository {
     required String activityId,
   });
 
-  Future<Either<Failure, Map<String, dynamic>>> getActivityStats(String userId);
+  Future<Either<Failure, ActivityStats>> getActivityStats(String userId);
 }
