@@ -29,7 +29,7 @@ class SupabaseWordListRepository implements WordListRepository {
       var query = _supabase.from(DbTables.wordLists).select();
 
       if (category != null) {
-        query = query.eq('category', WordListModel.categoryToString(category));
+        query = query.eq('category', category.dbValue);
       }
 
       if (isSystem != null) {

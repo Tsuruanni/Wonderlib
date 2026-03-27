@@ -75,7 +75,7 @@ class WordListModel {
       name: name,
       description: description,
       level: level,
-      category: _parseCategory(category),
+      category: WordListCategory.fromDbValue(category),
       wordCount: wordCount,
       coverImageUrl: coverImageUrl,
       isSystem: isSystem,
@@ -87,33 +87,4 @@ class WordListModel {
     );
   }
 
-  static WordListCategory _parseCategory(String category) {
-    switch (category) {
-      case 'grade_level':
-        return WordListCategory.gradeLevel;
-      case 'test_prep':
-        return WordListCategory.testPrep;
-      case 'thematic':
-        return WordListCategory.thematic;
-      case 'story_vocab':
-        return WordListCategory.storyVocab;
-      default:
-        return WordListCategory.commonWords;
-    }
-  }
-
-  static String categoryToString(WordListCategory category) {
-    switch (category) {
-      case WordListCategory.commonWords:
-        return 'common_words';
-      case WordListCategory.gradeLevel:
-        return 'grade_level';
-      case WordListCategory.testPrep:
-        return 'test_prep';
-      case WordListCategory.thematic:
-        return 'thematic';
-      case WordListCategory.storyVocab:
-        return 'story_vocab';
-    }
-  }
 }
