@@ -128,7 +128,6 @@ import '../../domain/usecases/wordlist/get_progress_for_list_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
-import '../../domain/usecases/wordlist/update_word_list_progress_usecase.dart';
 import '../../domain/usecases/content/get_content_blocks_usecase.dart';
 import '../../domain/usecases/content/check_chapter_uses_content_blocks_usecase.dart';
 import '../../domain/usecases/book_quiz/book_has_quiz_usecase.dart';
@@ -425,10 +424,6 @@ final getUserWordListProgressUseCaseProvider = Provider((ref) {
 
 final getProgressForListUseCaseProvider = Provider((ref) {
   return GetProgressForListUseCase(ref.watch(wordListRepositoryProvider));
-});
-
-final updateWordListProgressUseCaseProvider = Provider((ref) {
-  return UpdateWordListProgressUseCase(ref.watch(wordListRepositoryProvider));
 });
 
 final completeSessionUseCaseProvider = Provider((ref) {

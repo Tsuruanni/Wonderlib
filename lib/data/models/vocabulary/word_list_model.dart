@@ -37,23 +37,6 @@ class WordListModel {
     );
   }
 
-  factory WordListModel.fromEntity(WordList entity) {
-    return WordListModel(
-      id: entity.id,
-      name: entity.name,
-      description: entity.description,
-      level: entity.level,
-      category: categoryToString(entity.category),
-      wordCount: entity.wordCount,
-      coverImageUrl: entity.coverImageUrl,
-      isSystem: entity.isSystem,
-      sourceBookId: entity.sourceBookId,
-      unitId: entity.unitId,
-      orderInUnit: entity.orderInUnit,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
-    );
-  }
   final String id;
   final String name;
   final String description;

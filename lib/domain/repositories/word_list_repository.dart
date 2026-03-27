@@ -4,14 +4,10 @@ import '../../core/errors/failures.dart';
 import '../entities/learning_path.dart';
 import '../entities/vocabulary.dart';
 import '../entities/vocabulary_session.dart';
-import '../entities/vocabulary_unit.dart';
 import '../entities/word_list.dart';
 
 /// Repository interface for word list operations
 abstract class WordListRepository {
-  /// Get all active vocabulary units ordered by sort_order
-  Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits();
-
   /// Get all word lists with optional filtering
   Future<Either<Failure, List<WordList>>> getAllWordLists({
     WordListCategory? category,
@@ -34,11 +30,6 @@ abstract class WordListRepository {
     required String userId,
     required String listId,
   });
-
-  /// Update or create progress for a word list
-  Future<Either<Failure, UserWordListProgress>> updateWordListProgress(
-    UserWordListProgress progress,
-  );
 
   /// Complete a vocabulary session: persists result, awards XP, updates streak (calls RPC)
   Future<Either<Failure, VocabularySessionResult>> completeSession({

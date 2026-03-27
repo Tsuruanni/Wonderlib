@@ -6,12 +6,10 @@ import '../../../core/errors/failures.dart';
 import '../../../domain/entities/learning_path.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/entities/vocabulary_session.dart';
-import '../../../domain/entities/vocabulary_unit.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../../domain/repositories/word_list_repository.dart';
 import '../../models/vocabulary/learning_path_model.dart';
 import '../../models/vocabulary/vocabulary_session_model.dart';
-import '../../models/vocabulary/vocabulary_unit_model.dart';
 import '../../models/vocabulary/vocabulary_word_model.dart';
 import '../../models/vocabulary/word_list_model.dart';
 import '../../models/vocabulary/word_list_progress_model.dart';
@@ -21,27 +19,6 @@ class SupabaseWordListRepository implements WordListRepository {
       : _supabase = supabase ?? Supabase.instance.client;
 
   final SupabaseClient _supabase;
-
-  @override
-  Future<Either<Failure, List<VocabularyUnit>>> getVocabularyUnits() async {
-    try {
-      final response = await _supabase
-          .from(DbTables.vocabularyUnits)
-          .select()
-          .eq('is_active', true)
-          .order('sort_order', ascending: true);
-
-      final units = (response as List)
-          .map((json) => VocabularyUnitModel.fromJson(json).toEntity())
-          .toList();
-
-      return Right(units);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
 
   @override
   Future<Either<Failure, List<WordList>>> getAllWordLists({
@@ -176,37 +153,6 @@ class SupabaseWordListRepository implements WordListRepository {
       if (response == null) {
         return const Right(null);
       }
-
-      return Right(WordListProgressModel.fromJson(response).toEntity());
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, UserWordListProgress>> updateWordListProgress(
-    UserWordListProgress progress,
-  ) async {
-    try {
-      final data = {
-        'user_id': progress.userId,
-        'word_list_id': progress.wordListId,
-        'best_score': progress.bestScore,
-        'best_accuracy': progress.bestAccuracy,
-        'total_sessions': progress.totalSessions,
-        'last_session_at': progress.lastSessionAt?.toIso8601String(),
-        'started_at': progress.startedAt?.toIso8601String(),
-        'completed_at': progress.completedAt?.toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      final response = await _supabase
-          .from(DbTables.userWordListProgress)
-          .upsert(data, onConflict: 'user_id,word_list_id')
-          .select()
-          .single();
 
       return Right(WordListProgressModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
