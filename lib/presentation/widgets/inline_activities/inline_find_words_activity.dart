@@ -6,6 +6,7 @@ import '../common/xp_badge.dart';
 import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
 import '../common/feedback_animation.dart';
+import 'inline_activity_sound_mixin.dart';
 
 /// Find words activity widget (multi-select) - gamified version
 class InlineFindWordsActivity extends StatefulWidget {
@@ -30,7 +31,8 @@ class InlineFindWordsActivity extends StatefulWidget {
   State<InlineFindWordsActivity> createState() => _InlineFindWordsActivityState();
 }
 
-class _InlineFindWordsActivityState extends State<InlineFindWordsActivity> {
+class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
+    with InlineActivitySoundMixin {
   final Set<String> _selectedAnswers = {};
   bool _isAnswered = false;
   bool? _isCorrect;
@@ -42,6 +44,7 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity> {
   @override
   void initState() {
     super.initState();
+    initSoundPlayer();
 
     if (widget.isCompleted) {
       _isAnswered = true;
@@ -72,6 +75,12 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity> {
     }
   }
 
+  @override
+  void dispose() {
+    disposeSoundPlayer();
+    super.dispose();
+  }
+
   void _toggleOption(String option) {
     if (_isAnswered || widget.isCompleted) return;
     if (requiredSelections == 0) return; // No correct answers defined
@@ -97,6 +106,8 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity> {
     final correctSet = content.correctAnswers.toSet();
     final isCorrect = _selectedAnswers.length == correctSet.length &&
         _selectedAnswers.every((answer) => correctSet.contains(answer));
+
+    playSound(isCorrect);
 
     setState(() {
       _isAnswered = true;

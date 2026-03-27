@@ -38,18 +38,18 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
   /// Shuffled right-side items (computed once in initState)
   late List<String> _shuffledRightItems;
 
-  /// Currently selected left item (null = nothing selected)
-  String? _selectedLeft;
+  /// Currently selected left index (null = nothing selected)
+  int? _selectedLeft;
 
-  /// Currently selected right item (null = nothing selected)
-  String? _selectedRight;
+  /// Currently selected right index (null = nothing selected)
+  int? _selectedRight;
 
-  /// Successfully matched pairs: left → right
-  final Map<String, String> _matchedPairs = {};
+  /// Successfully matched pairs: left index → right index
+  final Map<int, int> _matchedPairs = {};
 
   /// Track wrong attempt for brief red flash
-  String? _wrongLeft;
-  String? _wrongRight;
+  int? _wrongLeft;
+  int? _wrongRight;
 
   /// Mistake counter for strict scoring
   int _mistakeCount = 0;
@@ -73,9 +73,12 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
     if (widget.isCompleted) {
       _isFinished = true;
       _isCorrect = widget.wasCorrect;
-      // Show all pairs matched
-      for (final pair in content.pairs) {
-        _matchedPairs[pair.left] = pair.right;
+      // Show all pairs matched using indices
+      for (var i = 0; i < content.pairs.length; i++) {
+        final rightIdx = _shuffledRightItems.indexOf(content.pairs[i].right);
+        if (rightIdx >= 0) {
+          _matchedPairs[i] = rightIdx;
+        }
       }
     }
   }
@@ -114,68 +117,64 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
     return null;
   }
 
-  void _onTapLeft(String left) {
+  void _onTapLeft(int leftIndex) {
     if (_isFinished || widget.isCompleted) return;
-    if (_matchedPairs.containsKey(left)) return; // Already matched
+    if (_matchedPairs.containsKey(leftIndex)) return;
 
     setState(() {
-      _selectedLeft = left;
+      _selectedLeft = leftIndex;
       _wrongLeft = null;
       _wrongRight = null;
     });
 
-    // If right is already selected, try to match
     if (_selectedRight != null) {
       _tryMatch();
     }
   }
 
-  void _onTapRight(String right) {
+  void _onTapRight(int rightIndex) {
     if (_isFinished || widget.isCompleted) return;
-    if (_matchedPairs.containsValue(right)) return; // Already matched
+    if (_matchedPairs.containsValue(rightIndex)) return;
 
     setState(() {
-      _selectedRight = right;
+      _selectedRight = rightIndex;
       _wrongLeft = null;
       _wrongRight = null;
     });
 
-    // If left is already selected, try to match
     if (_selectedLeft != null) {
       _tryMatch();
     }
   }
 
   void _tryMatch() {
-    final left = _selectedLeft!;
-    final right = _selectedRight!;
-    final correctRight = _getCorrectRight(left);
+    final leftIdx = _selectedLeft!;
+    final rightIdx = _selectedRight!;
+    final leftValue = content.pairs[leftIdx].left;
+    final correctRight = _getCorrectRight(leftValue);
+    final rightValue = _shuffledRightItems[rightIdx];
 
-    if (right == correctRight) {
-      // Correct match
+    if (rightValue == correctRight) {
       playSound(true);
       setState(() {
-        _matchedPairs[left] = right;
+        _matchedPairs[leftIdx] = rightIdx;
         _selectedLeft = null;
         _selectedRight = null;
       });
 
-      // Check if all matched
       if (_matchedPairs.length == content.pairs.length) {
         _onAllMatched();
       }
     } else {
-      // Wrong match
       playSound(false);
       _mistakeCount++;
       setState(() {
-        _wrongLeft = left;
-        _wrongRight = right;
+        _wrongLeft = leftIdx;
+        _wrongRight = rightIdx;
         _selectedLeft = null;
         _selectedRight = null;
       });
 
-      // Reset wrong indicators after 500ms
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
           setState(() {
@@ -250,12 +249,12 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
                   // Left column
                   Expanded(
                     child: Column(
-                      children: content.pairs.map((pair) {
+                      children: List.generate(content.pairs.length, (index) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _buildLeftButton(pair.left),
+                          child: _buildLeftButton(index, content.pairs[index].left),
                         );
-                      }).toList(),
+                      }),
                     ),
                   ),
 
@@ -264,12 +263,12 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
                   // Right column (shuffled)
                   Expanded(
                     child: Column(
-                      children: _shuffledRightItems.map((right) {
+                      children: List.generate(_shuffledRightItems.length, (rightIndex) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _buildRightButton(right),
+                          child: _buildRightButton(rightIndex, _shuffledRightItems[rightIndex]),
                         );
-                      }).toList(),
+                      }),
                     ),
                   ),
                 ],
@@ -320,10 +319,10 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
     );
   }
 
-  Widget _buildLeftButton(String left) {
-    final isMatched = _matchedPairs.containsKey(left);
-    final isSelected = _selectedLeft == left;
-    final isWrong = _wrongLeft == left;
+  Widget _buildLeftButton(int index, String left) {
+    final isMatched = _matchedPairs.containsKey(index);
+    final isSelected = _selectedLeft == index;
+    final isWrong = _wrongLeft == index;
 
     GameButtonVariant variant;
 
@@ -342,7 +341,7 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
       onPressed:
           (isMatched || _isFinished || widget.isCompleted)
               ? null
-              : () => _onTapLeft(left),
+              : () => _onTapLeft(index),
       variant: variant,
       fullWidth: true,
       height: 40,
@@ -355,10 +354,10 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
     );
   }
 
-  Widget _buildRightButton(String right) {
-    final isMatched = _matchedPairs.containsValue(right);
-    final isSelected = _selectedRight == right;
-    final isWrong = _wrongRight == right;
+  Widget _buildRightButton(int rightIndex, String right) {
+    final isMatched = _matchedPairs.containsValue(rightIndex);
+    final isSelected = _selectedRight == rightIndex;
+    final isWrong = _wrongRight == rightIndex;
 
     GameButtonVariant variant;
 
@@ -377,7 +376,7 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
       onPressed:
           (isMatched || _isFinished || widget.isCompleted)
               ? null
-              : () => _onTapRight(right),
+              : () => _onTapRight(rightIndex),
       variant: variant,
       fullWidth: true,
       height: 40,

@@ -203,6 +203,12 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
             return 'All meaning fields must be filled';
           }
         }
+        // Check for duplicate right values in matching pairs
+        final rightValues = _matchingWords.map((w) => (w['meaning'] ?? '').trim()).toList();
+        final uniqueRights = rightValues.toSet();
+        if (uniqueRights.length != rightValues.length) {
+          return 'Matching pairs must have unique right-side values';
+        }
     }
     return null;
   }
@@ -677,7 +683,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           children: [
             TextButton(
               onPressed: widget.onCancel,
-              child: const Text('İptal'),
+              child: const Text('Cancel'),
             ),
             const SizedBox(width: 8),
             FilledButton(
@@ -688,7 +694,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Kaydet'),
+                  : const Text('Save'),
             ),
           ],
         ),

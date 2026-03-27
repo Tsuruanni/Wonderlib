@@ -137,6 +137,8 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
 
     return blocksAsync.when(
       data: (blocks) {
+        final activitiesLoading = inlineActivitiesAsync.isLoading;
+
         final inlineActivities = inlineActivitiesAsync.maybeWhen(
           data: (activities) => activities,
           orElse: () => <InlineActivity>[],
@@ -210,7 +212,7 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
                 ...visibleBlocks.map((block) {
                   return KeyedSubtree(
                     key: _blockKeys[block.id],
-                    child: _buildBlockWidget(block, activityMap),
+                    child: _buildBlockWidget(block, activityMap, activitiesLoading),
                   );
                 }),
                 // End marker for scrolling to ReaderChapterCompletion
@@ -248,6 +250,7 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
   Widget _buildBlockWidget(
     ContentBlock block,
     Map<String, InlineActivity> activityMap,
+    bool activitiesLoading,
   ) {
     switch (block.type) {
       case ContentBlockType.text:
@@ -278,6 +281,19 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
         final activity = block.activityId != null
             ? activityMap[block.activityId]
             : null;
+        if (activity == null && activitiesLoading) {
+          // Show placeholder while activities are loading
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: widget.settings.theme.text.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
         return ReaderActivityBlock(
           block: block,
           settings: widget.settings,

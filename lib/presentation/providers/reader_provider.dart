@@ -301,7 +301,11 @@ final activityProgressProvider = Provider.autoDispose<double>((ref) {
 
 /// Whether all activities in the chapter are completed
 /// Note: If there are no activities, chapter is considered complete
+/// Returns false while activities are still loading to prevent flash
 final isChapterCompleteProvider = Provider.autoDispose<bool>((ref) {
+  final initialized = ref.watch(chapterInitializedProvider);
+  if (!initialized) return false; // Don't evaluate until activities loaded
+
   final completedActivities = ref.watch(inlineActivityStateProvider);
   final totalActivities = ref.watch(totalActivitiesProvider);
 
