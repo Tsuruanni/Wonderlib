@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Learning Paths audit & fixes — 17/21 findings fixed, 1 migration deployed)
+Son güncelleme: 2026-03-28 (Daily Vocabulary Review audit & fixes — 19/20 findings fixed, 1 migration deployed)
 
 ## Current Phase
 
@@ -121,6 +121,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Vocabulary & Spaced Repetition Audit & Spec (7-finding audit, hard-coded table fix, Turkish placeholder fix, empty list UX, full spec)
 - [x] Word Lists Audit & Fixes (24-finding audit, 20 fixed: star unification, SessionSaveNotifier extraction, RPC auth, dead code removal, error states, N+1 fix)
 - [x] Learning Paths Audit & Fixes (21-finding audit, 17 fixed: 3 RPC auth checks, DR replay block, role mismatch, FK cascade, atomic sort_order, enum refactor, dead code removal)
+- [x] Daily Vocabulary Review Audit & Fixes (20-finding audit, 19 fixed: 2 RPC auth checks, session deadlock, error state UI, threshold alignment, timezone fix, dead code removal)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

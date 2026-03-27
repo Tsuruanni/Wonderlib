@@ -8,6 +8,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Vocabulary Review Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **2 RPCs missing auth checks** — `complete_daily_review` (Critical: any user could award XP to another) and `get_due_review_words` (info disclosure). Both now verify `auth.uid() = p_user_id`.
+- **Session deadlock** — `_isProcessingAnswer` flag not reset when word had no progress record (unit review mode). Wrapped in `try/finally`. Words without progress now get initial SM-2 values.
+- **Silent network errors** — `loadSession` and `loadUnitReviewSession` swallowed failures as empty word lists ("All caught up!"). Added `errorMessage` to `DailyReviewState` with error UI + retry button.
+- **Threshold mismatch** — Flutter counted all due words (incl. mastered) for 10-word gate, quest RPC counted only non-mastered. Added `status != 'mastered'` filter to `get_due_review_words` RPC — aligns both and enables partial index.
+- **Timezone bug** — `saveDailyReviewPosition` used `DateTime.now()` (device local) while session used `app_current_date()` (Istanbul TZ). Changed to update by `session_id` instead of `user_id + date`.
+- **XP labeled as "Coins"** — Completion dialog showed `'+$xpEarned Coins'` → corrected to `'+$xpEarned XP'`.
+- **Unhandled auth exception** — `dailyReviewControllerProvider` threw on null userId, crashing screen. Now returns inert controller with error state.
+
+#### Changed
+- **Architecture fix** — `daily_review_screen.dart` no longer reads `vocabularyRepositoryProvider` directly. Created `SaveDailyReviewPositionUseCase` to maintain Screen → Provider → UseCase rule.
+- **Session composition simplified** — RPC now returns only non-mastered words. Removed mastered/non-mastered split logic from `loadSession()`. Sessions are up to 25 non-mastered words.
+- **Unit review filtering** — `GetAllWordListsParams` gained optional `unitId` parameter. `loadUnitReviewSession` now filters server-side instead of fetching all lists.
+- **Completion stats accuracy** — Dialog stats now use first-pass responses only (exclude requeue duplicates).
+
+#### Removed
+- **Dead code** — `getWordProgressUseCase` (injected but never called), `totalDueWordsForReviewProvider` (trivial `.length` wrapper), `DailyReviewSessionModel.fromEntity` (never called), audio button stub (non-functional `IconButton`).
+
+#### Infrastructure
+- **1 DB migration** (20260328000003) — Auth checks on 2 RPCs, mastered filter on `get_due_review_words`.
+- **Feature spec** — `docs/specs/08-daily-vocabulary-review.md` documents the full Daily Vocabulary Review system (20 findings: 19 fixed, 1 deferred).
+- **Provider lifecycle** — `dailyReviewWordsProvider` and `todayReviewSessionProvider` converted to `.autoDispose`.
+
 ### Learning Paths Audit & Fixes (2026-03-27)
 
 #### Fixed
