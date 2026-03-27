@@ -229,13 +229,9 @@ Student submits quiz with failing score
 | Migration | `supabase/migrations/20260211000001_create_book_quiz_tables.sql` | Tables, RLS, indexes |
 | Migration | `supabase/migrations/20260211000003_quiz_rpc_functions.sql` | 3 RPC functions |
 | Migration | `supabase/migrations/20260323000012_quiz_attempt_number_trigger.sql` | Attempt number trigger + UNIQUE |
+| Migration | `supabase/migrations/20260327100000_book_quiz_audit_fixes.sql` | Auth fix for best result RPC, 0-question guard, composite index |
 
 ## Known Issues & Tech Debt
 
-1. **`quiz_passed` never written to DB** (#1): `supabase_book_repository.dart` `updateReadingProgress` omits the field from the upsert map. `is_completed` IS written, masking the bug. The column is dead for queries/reporting. Fix: add `'quiz_passed': progress.quizPassed` to the data map.
-2. **`get_best_book_quiz_result` missing auth** (#2): Any authenticated user can query any other user's best quiz score. Fix: add school-membership check matching `get_student_quiz_results` pattern, or add `WHERE user_id = auth.uid()` for student calls and a separate teacher-scoped variant.
-3. **0-question quiz soft-lock** (#3): Published quiz with no questions prevents book completion. Fix: add `AND EXISTS (SELECT 1 FROM book_quiz_questions WHERE quiz_id = bq.id)` to `book_has_quiz` RPC, or guard in `isQuizReadyProvider`.
-4. **Type parsing duplication** (#8): `BookQuizQuestionModel` has `_parseType`/`_typeToString` that duplicate `BookQuizQuestionType.fromDbValue()`/`.dbValue`. Should use the shared enum methods.
-5. **Admin Turkish labels** (#11): All admin quiz editor UI is in Turkish. Needs English translation per architecture rule.
-6. **`time_spent` always null** (#6): Quiz screen never measures elapsed time. Either implement timing or remove the column.
-7. **`quiz.instructions` not shown** (#16): Field exists in DB and model but UI blocks for displaying it are commented out. Either remove or restore.
+1. **`quiz.instructions` not shown** (#16, accepted): Field exists in DB and model but UI blocks for displaying it are commented out. May be restored in a future iteration.
+2. **`HandleBookCompletionUseCase` sequential calls** (#12, deferred): `getChapters` and `bookHasQuiz` could be `Future.wait`-ed. Acceptable latency for now.
