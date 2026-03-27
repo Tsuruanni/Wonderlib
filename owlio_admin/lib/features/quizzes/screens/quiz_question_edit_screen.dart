@@ -137,7 +137,7 @@ class _QuizQuestionEditScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Soru yükleme hatası: $e'),
+            content: Text('Error loading question: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -150,24 +150,23 @@ class _QuizQuestionEditScreenState
   }
 
   void _populateContentFields(Map<String, dynamic> content) {
-    switch (_selectedType) {
-      case 'multiple_choice':
+    final type = BookQuizQuestionType.fromDbValue(_selectedType);
+    switch (type) {
+      case BookQuizQuestionType.multipleChoice:
         final options = (content['options'] as List?)?.cast<String>() ?? [];
         for (int i = 0; i < _mcOptionControllers.length && i < options.length; i++) {
           _mcOptionControllers[i].text = options[i];
         }
         _mcCorrectAnswer = content['correct_answer'] as String? ?? 'A';
-        break;
 
-      case 'fill_blank':
+      case BookQuizQuestionType.fillBlank:
         _fillSentenceController.text = content['sentence'] as String? ?? '';
         _fillCorrectController.text = content['correct_answer'] as String? ?? '';
         final alternatives =
             (content['accept_alternatives'] as List?)?.cast<String>() ?? [];
         _fillAlternativesController.text = alternatives.join(', ');
-        break;
 
-      case 'event_sequencing':
+      case BookQuizQuestionType.eventSequencing:
         final events = (content['events'] as List?)?.cast<String>() ?? [];
         final order = (content['correct_order'] as List?)
                 ?.map((e) => e as int)
@@ -190,9 +189,8 @@ class _QuizQuestionEditScreenState
         }
         _correctOrder =
             order.isNotEmpty ? order : List.generate(events.length, (i) => i);
-        break;
 
-      case 'matching':
+      case BookQuizQuestionType.matching:
         final left = (content['left'] as List?)?.cast<String>() ?? [];
         final right = (content['right'] as List?)?.cast<String>() ?? [];
         for (final c in _matchLeftControllers) {
@@ -218,9 +216,8 @@ class _QuizQuestionEditScreenState
             TextEditingController(),
           ]);
         }
-        break;
 
-      case 'who_says_what':
+      case BookQuizQuestionType.whoSaysWhat:
         final characters =
             (content['characters'] as List?)?.cast<String>() ?? [];
         final quotes = (content['quotes'] as List?)?.cast<String>() ?? [];
@@ -248,20 +245,20 @@ class _QuizQuestionEditScreenState
             TextEditingController(),
           ]);
         }
-        break;
     }
   }
 
   Map<String, dynamic> _buildContentJson() {
-    switch (_selectedType) {
-      case 'multiple_choice':
+    final type = BookQuizQuestionType.fromDbValue(_selectedType);
+    switch (type) {
+      case BookQuizQuestionType.multipleChoice:
         return {
           'options':
               _mcOptionControllers.map((c) => c.text.trim()).toList(),
           'correct_answer': _mcCorrectAnswer,
         };
 
-      case 'fill_blank':
+      case BookQuizQuestionType.fillBlank:
         final alternatives = _fillAlternativesController.text
             .split(',')
             .map((s) => s.trim())
@@ -273,13 +270,13 @@ class _QuizQuestionEditScreenState
           'accept_alternatives': alternatives,
         };
 
-      case 'event_sequencing':
+      case BookQuizQuestionType.eventSequencing:
         return {
           'events': _eventControllers.map((c) => c.text.trim()).toList(),
           'correct_order': _correctOrder,
         };
 
-      case 'matching':
+      case BookQuizQuestionType.matching:
         final pairs = <String, String>{};
         for (int i = 0; i < _matchLeftControllers.length; i++) {
           pairs[i.toString()] = i.toString();
@@ -290,7 +287,7 @@ class _QuizQuestionEditScreenState
           'correct_pairs': pairs,
         };
 
-      case 'who_says_what':
+      case BookQuizQuestionType.whoSaysWhat:
         final pairs = <String, String>{};
         for (int i = 0; i < _characterControllers.length; i++) {
           pairs[i.toString()] = i.toString();
@@ -301,9 +298,6 @@ class _QuizQuestionEditScreenState
           'quotes': _quoteControllers.map((c) => c.text.trim()).toList(),
           'correct_pairs': pairs,
         };
-
-      default:
-        return {};
     }
   }
 
@@ -345,7 +339,7 @@ class _QuizQuestionEditScreenState
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Soru başarıyla oluşturuldu')),
+            const SnackBar(content: Text('Question created successfully')),
           );
           // Navigate back to quiz
           if (_bookId != null) {
@@ -362,7 +356,7 @@ class _QuizQuestionEditScreenState
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Soru başarıyla kaydedildi')),
+            const SnackBar(content: Text('Question saved successfully')),
           );
           if (_bookId != null) {
             context.go('/books/$_bookId/quiz');
@@ -374,7 +368,7 @@ class _QuizQuestionEditScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -414,19 +408,18 @@ class _QuizQuestionEditScreenState
   }
 
   String _getTypeLabel(String type) {
-    switch (type) {
-      case 'multiple_choice':
-        return 'Çoktan Seçmeli';
-      case 'fill_blank':
-        return 'Boşluk Doldurma';
-      case 'event_sequencing':
-        return 'Olay Sıralaması';
-      case 'matching':
-        return 'Eşleştirme';
-      case 'who_says_what':
-        return 'Kim Ne Dedi';
-      default:
-        return type;
+    final questionType = BookQuizQuestionType.fromDbValue(type);
+    switch (questionType) {
+      case BookQuizQuestionType.multipleChoice:
+        return 'Multiple Choice';
+      case BookQuizQuestionType.fillBlank:
+        return 'Fill in the Blank';
+      case BookQuizQuestionType.eventSequencing:
+        return 'Event Sequencing';
+      case BookQuizQuestionType.matching:
+        return 'Matching';
+      case BookQuizQuestionType.whoSaysWhat:
+        return 'Who Says What';
     }
   }
 
@@ -434,7 +427,7 @@ class _QuizQuestionEditScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewQuestion ? 'Yeni Soru' : 'Soruyu Düzenle'),
+        title: Text(isNewQuestion ? 'New Question' : 'Edit Question'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -457,7 +450,7 @@ class _QuizQuestionEditScreenState
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewQuestion ? 'Oluştur' : 'Kaydet'),
+                : Text(isNewQuestion ? 'Create' : 'Save'),
           ),
           const SizedBox(width: 16),
         ],
@@ -479,7 +472,7 @@ class _QuizQuestionEditScreenState
                           child: DropdownButtonFormField<String>(
                             initialValue: _selectedType,
                             decoration: const InputDecoration(
-                              labelText: 'Soru Türü',
+                              labelText: 'Question Type',
                             ),
                             items: _questionTypes.map((type) {
                               return DropdownMenuItem(
@@ -500,16 +493,16 @@ class _QuizQuestionEditScreenState
                           child: TextFormField(
                             controller: _pointsController,
                             decoration: const InputDecoration(
-                              labelText: 'Puan',
+                              labelText: 'Points',
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Zorunlu';
+                                return 'Required';
                               }
                               final pts = int.tryParse(value.trim());
                               if (pts == null || pts < 1) {
-                                return 'En az 1';
+                                return 'Minimum 1';
                               }
                               return null;
                             },
@@ -523,13 +516,13 @@ class _QuizQuestionEditScreenState
                     TextFormField(
                       controller: _questionController,
                       decoration: const InputDecoration(
-                        labelText: 'Soru',
-                        hintText: 'Soru metnini girin',
+                        labelText: 'Question',
+                        hintText: 'Enter question text',
                       ),
                       maxLines: 3,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Soru metni zorunludur';
+                          return 'Question text is required';
                         }
                         return null;
                       },
@@ -538,7 +531,7 @@ class _QuizQuestionEditScreenState
 
                     // Dynamic content form
                     Text(
-                      'İçerik',
+                      'Content',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
@@ -550,9 +543,9 @@ class _QuizQuestionEditScreenState
                     TextFormField(
                       controller: _explanationController,
                       decoration: const InputDecoration(
-                        labelText: 'Açıklama (isteğe bağlı)',
+                        labelText: 'Explanation (optional)',
                         hintText:
-                            'Öğrencilerin öğrenmesine yardımcı olmak için doğru cevabı açıklayın',
+                            'Explain the correct answer to help students learn',
                       ),
                       maxLines: 3,
                     ),
@@ -564,19 +557,18 @@ class _QuizQuestionEditScreenState
   }
 
   Widget _buildContentForm() {
-    switch (_selectedType) {
-      case 'multiple_choice':
+    final type = BookQuizQuestionType.fromDbValue(_selectedType);
+    switch (type) {
+      case BookQuizQuestionType.multipleChoice:
         return _buildMultipleChoiceForm();
-      case 'fill_blank':
+      case BookQuizQuestionType.fillBlank:
         return _buildFillBlankForm();
-      case 'event_sequencing':
+      case BookQuizQuestionType.eventSequencing:
         return _buildEventSequencingForm();
-      case 'matching':
+      case BookQuizQuestionType.matching:
         return _buildMatchingForm();
-      case 'who_says_what':
+      case BookQuizQuestionType.whoSaysWhat:
         return _buildWhoSaysWhatForm();
-      default:
-        return const Text('Bilinmeyen soru türü');
     }
   }
 
@@ -600,14 +592,14 @@ class _QuizQuestionEditScreenState
               child: TextFormField(
                 controller: _mcOptionControllers[index],
                 decoration: InputDecoration(
-                  labelText: 'Seçenek ${labels[index]}',
+                  labelText: 'Option ${labels[index]}',
                   prefixIcon: Radio<String>(
                     value: labels[index],
                   ),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Seçenek ${labels[index]} zorunludur';
+                    return 'Option ${labels[index]} is required';
                   }
                   return null;
                 },
@@ -615,7 +607,7 @@ class _QuizQuestionEditScreenState
             );
           }),
           Text(
-            'Doğru cevabın yanındaki radyo düğmesini seçin',
+            'Select the radio button next to the correct answer',
             style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
           ),
         ],
@@ -632,12 +624,12 @@ class _QuizQuestionEditScreenState
         TextFormField(
           controller: _fillSentenceController,
           decoration: const InputDecoration(
-            labelText: 'Cümle',
-            hintText: 'Boşluk için ___ kullanın (örn. "The ___ ran fast.")',
+            labelText: 'Sentence',
+            hintText: 'Use ___ for the blank (e.g. "The ___ ran fast.")',
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Cümle zorunludur';
+              return 'Sentence is required';
             }
             return null;
           },
@@ -646,12 +638,12 @@ class _QuizQuestionEditScreenState
         TextFormField(
           controller: _fillCorrectController,
           decoration: const InputDecoration(
-            labelText: 'Doğru Cevap',
-            hintText: 'Boşluğu dolduran kelime',
+            labelText: 'Correct Answer',
+            hintText: 'The word that fills the blank',
           ),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
-              return 'Doğru cevap zorunludur';
+              return 'Correct answer is required';
             }
             return null;
           },
@@ -660,13 +652,13 @@ class _QuizQuestionEditScreenState
         TextFormField(
           controller: _fillAlternativesController,
           decoration: const InputDecoration(
-            labelText: 'Kabul Edilen Alternatifler (isteğe bağlı)',
-            hintText: 'Virgülle ayrılmış (örn. "Fox, FOX")',
+            labelText: 'Accepted Alternatives (optional)',
+            hintText: 'Comma-separated (e.g. "Fox, FOX")',
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          'Kabul edilmesi gereken alternatif cevaplar',
+          'Alternative answers that should be accepted',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
       ],
@@ -680,7 +672,7 @@ class _QuizQuestionEditScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Olayları DOĞRU sırayla girin. Öğrenciler karışık sırada görecek.',
+          'Enter events in CORRECT order. Students will see them shuffled.',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         const SizedBox(height: 12),
@@ -707,12 +699,12 @@ class _QuizQuestionEditScreenState
                   child: TextFormField(
                     controller: _eventControllers[index],
                     decoration: InputDecoration(
-                      labelText: 'Olay ${index + 1}',
-                      hintText: 'Olayı açıklayın',
+                      labelText: 'Event ${index + 1}',
+                      hintText: 'Describe the event',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Olay zorunludur';
+                        return 'Event is required';
                       }
                       return null;
                     },
@@ -744,7 +736,7 @@ class _QuizQuestionEditScreenState
             });
           },
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Olay Ekle'),
+          label: const Text('Add Event'),
         ),
       ],
     );
@@ -757,7 +749,7 @@ class _QuizQuestionEditScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Eşleştirme çiftlerini girin. Sol öğeler sağ öğelerle eşleştirilecek.',
+          'Enter matching pairs. Left items will be matched with right items.',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         const SizedBox(height: 12),
@@ -767,14 +759,14 @@ class _QuizQuestionEditScreenState
             const SizedBox(width: 40),
             Expanded(
               child: Text(
-                'Sol',
+                'Left',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Sağ (doğru eşleşme)',
+                'Right (correct match)',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -805,11 +797,11 @@ class _QuizQuestionEditScreenState
                   child: TextFormField(
                     controller: _matchLeftControllers[index],
                     decoration: InputDecoration(
-                      hintText: 'Sol öğe ${index + 1}',
+                      hintText: 'Left item ${index + 1}',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Zorunlu';
+                        return 'Required';
                       }
                       return null;
                     },
@@ -820,11 +812,11 @@ class _QuizQuestionEditScreenState
                   child: TextFormField(
                     controller: _matchRightControllers[index],
                     decoration: InputDecoration(
-                      hintText: 'Sağ öğe ${index + 1}',
+                      hintText: 'Right item ${index + 1}',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Zorunlu';
+                        return 'Required';
                       }
                       return null;
                     },
@@ -857,7 +849,7 @@ class _QuizQuestionEditScreenState
             });
           },
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Çift Ekle'),
+          label: const Text('Add Pair'),
         ),
       ],
     );
@@ -870,7 +862,7 @@ class _QuizQuestionEditScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Karakter-alıntı çiftlerini girin. Öğrenciler karakterleri alıntılarıyla eşleştirecek.',
+          'Enter character-quote pairs. Students will match characters with their quotes.',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
         ),
         const SizedBox(height: 12),
@@ -880,14 +872,14 @@ class _QuizQuestionEditScreenState
             const SizedBox(width: 40),
             Expanded(
               child: Text(
-                'Karakter',
+                'Character',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Alıntı (doğru eşleşme)',
+                'Quote (correct match)',
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -918,11 +910,11 @@ class _QuizQuestionEditScreenState
                   child: TextFormField(
                     controller: _characterControllers[index],
                     decoration: InputDecoration(
-                      hintText: 'Karakter ${index + 1}',
+                      hintText: 'Character ${index + 1}',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Zorunlu';
+                        return 'Required';
                       }
                       return null;
                     },
@@ -933,11 +925,11 @@ class _QuizQuestionEditScreenState
                   child: TextFormField(
                     controller: _quoteControllers[index],
                     decoration: InputDecoration(
-                      hintText: 'Alıntı ${index + 1}',
+                      hintText: 'Quote ${index + 1}',
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'Zorunlu';
+                        return 'Required';
                       }
                       return null;
                     },
@@ -970,7 +962,7 @@ class _QuizQuestionEditScreenState
             });
           },
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Çift Ekle'),
+          label: const Text('Add Pair'),
         ),
       ],
     );
