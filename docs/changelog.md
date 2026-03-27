@@ -8,6 +8,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Vocabulary & Spaced Repetition Audit & Spec (2026-03-27)
+
+#### Fixed
+- **Hard-coded table name** — `book_download_service.dart` used `'vocabulary_words'` string instead of `DbTables.vocabularyWords`. Added owlio_shared import.
+- **Turkish MC distractor placeholders** — Session provider used Turkish `'(diğer)', '(yok)', '(bilinmiyor)'` as fallback MC options in the main app. Changed to English `'(other)', '(none)', '(unknown)'`.
+- **Silent pop on empty word list** — Vocabulary session screen now shows snackbar feedback when word list has 0 words, instead of silently popping back.
+
+#### Changed
+- **Admin panel language rule** — CLAUDE.md clarified: "UI in English" applies to main app only. Admin panel stays in Turkish.
+- **Vocabulary spec path** — Feature Documentation table now points to `docs/specs/05-vocabulary-spaced-repetition.md` (previously `docs/vocabulary-session-system.md`).
+
+#### Infrastructure
+- **Feature spec** — `docs/specs/05-vocabulary-spaced-repetition.md` documents the full Vocabulary & Spaced Repetition system (7 findings: 3 fixed, 1 N/A, 1 resolved, 2 noted as low-priority tech debt).
+
 ### Book Quiz Audit & Fixes (2026-03-27)
 
 #### Fixed

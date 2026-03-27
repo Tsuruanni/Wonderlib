@@ -775,7 +775,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     if (wrongOptions.length < 3) {
       final placeholders = reverse
           ? const ['(other)', '(none)', '(unknown)']
-          : const ['(diğer)', '(yok)', '(bilinmiyor)'];
+          : const ['(other)', '(none)', '(unknown)'];
       final correctAnswer = reverse ? word.word : word.meaningTR;
       for (final p in placeholders) {
         if (wrongOptions.length >= 3) break;

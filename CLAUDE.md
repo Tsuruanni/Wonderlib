@@ -34,7 +34,7 @@ When compressing context, preserve in priority order:
 | Use shared package enums | `import 'package:owlio_shared/owlio_shared.dart'` |
 | Use `DbTables.x` for table names | `supabase.from(DbTables.books)` |
 | Use `RpcFunctions.x` for RPC calls | `supabase.rpc(RpcFunctions.awardXpTransaction)` |
-| UI in English | All user-facing text must be in English |
+| UI in English | All user-facing text must be in English (except admin panel — stays in Turkish) |
 
 ### Admin Panel Impact Check
 
@@ -79,7 +79,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Audio/Karaoke Reader | `docs/specs/02-audio-karaoke-reader.md` | Word-level audio sync, karaoke highlighting, listening mode, auto-play, scroll follow, audio caching, TTS pronunciation |
 | Inline Activities | `docs/specs/03-inline-activities.md` | 4 activity types (true_false, word_translation, find_words, matching), XP awards, vocabulary integration, idempotency, progressive reveal |
 | Book Quiz | `docs/specs/04-book-quiz.md` | 5 question types (multiple_choice, fill_blank, event_sequencing, matching, who_says_what), 70% pass threshold, multi-attempt, XP awards, quiz-gates book completion |
-| Vocabulary Sessions | `docs/vocabulary-session-system.md` | Question types, session algorithm, mastery levels, XP/combo, SM2 logic |
+| Vocabulary & Spaced Repetition | `docs/specs/05-vocabulary-spaced-repetition.md` | 10 question types, 3-phase session algorithm, SM-2 spaced repetition, mastery levels, XP/combo, daily review, admin CRUD/CSV import, teacher stats |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

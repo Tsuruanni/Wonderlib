@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Book Quiz audit & fixes)
+Son güncelleme: 2026-03-27 (Vocabulary & Spaced Repetition audit & spec)
 
 ## Current Phase
 
@@ -118,6 +118,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Book System Audit & Integrity Fixes (38-finding audit, XP idempotency, RLS fix, 5 new UseCases, dead code removal, admin English)
 - [x] Inline Activities Audit & Fixes (25-finding audit, data integrity, dead code removal (-628 lines), UX polish, admin validation)
 - [x] Book Quiz Audit & Fixes (16-finding audit, quiz_passed bug, RPC auth, 0-question guard, timer, admin English, shared enum)
+- [x] Vocabulary & Spaced Repetition Audit & Spec (7-finding audit, hard-coded table fix, Turkish placeholder fix, empty list UX, full spec)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

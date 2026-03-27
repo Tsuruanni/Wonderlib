@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -237,7 +238,7 @@ class BookDownloadService {
             (start + 50 > idList.length) ? idList.length : start + 50;
         final batch = idList.sublist(start, end);
         final rows = await Supabase.instance.client
-            .from('vocabulary_words')
+            .from(DbTables.vocabularyWords)
             .select()
             .inFilter('id', batch);
         allRows.addAll(List<Map<String, dynamic>>.from(rows));

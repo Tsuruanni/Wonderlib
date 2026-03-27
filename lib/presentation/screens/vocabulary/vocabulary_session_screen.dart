@@ -98,6 +98,7 @@ class _VocabularySessionScreenState
     if (words.length < 2) {
       if (mounted) {
         if (words.isEmpty) {
+          showAppSnackBar(context, 'This word list has no words');
           context.pop();
         } else {
           showAppSnackBar(context, 'Need at least 2 words for a session');
