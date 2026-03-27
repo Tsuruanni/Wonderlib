@@ -12,13 +12,14 @@ import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
+import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
 import '../../widgets/common/top_navbar.dart';
 
 // --- Providers ---
 
-final selectedCategoryProvider = StateProvider<String?>((ref) => null);
+final selectedCategoryProvider = StateProvider.autoDispose<String?>((ref) => null);
 
 /// Returns books filtered by Search and Category (Genre).
 /// Grouping by Level happens in the UI.
@@ -216,7 +217,7 @@ class LibraryScreen extends ConsumerWidget {
             const TopNavbar(),
             
             // --- Locked Banner ---
-            _LockedLibraryBanner(ref: ref),
+            const _LockedLibraryBanner(),
 
             // --- Search & Categories Row ---
             categoriesAsync.when(
@@ -258,7 +259,6 @@ class LibraryScreen extends ConsumerWidget {
                           child: _LibraryShelf(
                             level: level,
                             books: booksByLevel[level]!,
-                            ref: ref,
                           ),
                         ),
                       const SliverPadding(padding: EdgeInsets.only(bottom: 40)),
@@ -275,12 +275,11 @@ class LibraryScreen extends ConsumerWidget {
 
 }
 
-class _LibraryShelf extends StatelessWidget {
+class _LibraryShelf extends ConsumerWidget {
   final String level;
   final List<Book> books;
-  final WidgetRef ref;
 
-  const _LibraryShelf({required this.level, required this.books, required this.ref});
+  const _LibraryShelf({required this.level, required this.books});
 
   Color _getLevelColor(String level) {
     switch (level.toUpperCase()) {
@@ -295,7 +294,7 @@ class _LibraryShelf extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final color = _getLevelColor(level);
     final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
     final completedCount = books.where((b) => completedIds.contains(b.id)).length;
@@ -380,7 +379,7 @@ class _LibraryShelf extends StatelessWidget {
             itemCount: sortedBooks.length,
             separatorBuilder: (_, __) => const SizedBox(width: 16),
             itemBuilder: (context, index) {
-              return _BookShelfItem(book: sortedBooks[index], ref: ref);
+              return _BookShelfItem(book: sortedBooks[index]);
             },
           ),
         ),
@@ -389,14 +388,13 @@ class _LibraryShelf extends StatelessWidget {
   }
 }
 
-class _BookShelfItem extends StatelessWidget {
+class _BookShelfItem extends ConsumerWidget {
   final Book book;
-  final WidgetRef ref;
 
-  const _BookShelfItem({required this.book, required this.ref});
+  const _BookShelfItem({required this.book});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final canAccess = ref.watch(canAccessBookProvider(book.id));
     final isCompleted = ref.watch(completedBookIdsProvider).valueOrNull?.contains(book.id) ?? false;
     final isQuizReady = ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
@@ -451,12 +449,12 @@ class _BookShelfItem extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: Image.network(
-                      book.coverUrl ?? '',
+                    child: CachedBookImage(
+                      imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: AppColors.neutral.withOpacity(0.2), 
-                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText))
+                      errorWidget: Container(
+                        color: AppColors.neutral.withOpacity(0.2),
+                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText)),
                       ),
                     ),
                   ),
@@ -588,8 +586,7 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _LockedLibraryBanner extends ConsumerWidget {
-  final WidgetRef ref;
-  const _LockedLibraryBanner({required this.ref});
+  const _LockedLibraryBanner();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
