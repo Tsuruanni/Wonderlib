@@ -167,7 +167,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | 3 | **Inline Activities** | Activity editor (4 types: true_false, word_translation, find_words, matching) | In-chapter mini games, XP rewards, vocab integration | - | Medium | Done: `docs/specs/03-inline-activities.md` |
 | 4 | **Book Quiz** | Quiz editor (5 types: multiple_choice, fill_blank, event_sequencing, matching, who_says_what) | End-of-book assessment, 70% pass threshold, multi-attempt | Quiz results per student | Medium | Done: `docs/specs/04-book-quiz.md` |
 | 5 | **Vocabulary & Spaced Repetition** | Vocabulary CRUD, CSV import | SM-2 algorithm, 10 question types, 3 tiers/phases, mastery levels | Vocab stats per student | **High** | Done: `docs/specs/05-vocabulary-spaced-repetition.md` |
-| 6 | **Word Lists** | Word list editor, word picker, drag-and-drop reordering | Categorized lists, star rating, sequential unlock | Word list progress per student | Medium | - |
+| 6 | **Word Lists** | Word list editor, word picker, drag-and-drop reordering | Categorized lists, star rating, sequential unlock | Word list progress per student | Medium | Done: `docs/specs/06-word-lists.md` |
 | 7 | **Learning Paths** | Template editor (template > units > items), scope-based assignment (school/grade/class) | Path navigation, unit unlock, progress tracking | - | **High** | - |
 | 8 | **Daily Vocabulary Review** | - | Daily drill from SM-2 due words, triggers streak | - | Low | - |
 
