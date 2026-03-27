@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../domain/entities/chapter.dart';
+import '../../../domain/entities/reading_progress.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_download_provider.dart';
@@ -146,7 +148,7 @@ class BookDetailScreen extends ConsumerWidget {
                             size: LevelBadgeSize.medium,
                           ),
                           const SizedBox(width: 12),
-                          if (book.metadata['author'] != null) ...[
+                          if (book.author != null) ...[
                             Icon(
                               Icons.person,
                               size: 16,
@@ -154,7 +156,7 @@ class BookDetailScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              book.metadata['author'] as String,
+                              book.author!,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                   ),
@@ -350,8 +352,8 @@ class _BookDetailFAB extends ConsumerWidget {
   final int chapterCount;
   final bool hasProgress;
   final bool isCompleted;
-  final AsyncValue<dynamic> chaptersAsync;
-  final dynamic progress;
+  final AsyncValue<List<Chapter>> chaptersAsync;
+  final ReadingProgress? progress;
   final String? userId;
 
   @override
@@ -439,10 +441,10 @@ class _BookDetailFAB extends ConsumerWidget {
                   if (chapters.isEmpty) return;
 
                   String targetChapterId;
-                  if (progress != null &&
-                      progress.chapterId != null &&
-                      progress.chapterId!.isNotEmpty) {
-                    targetChapterId = progress.chapterId!;
+                  final currentChapterId = progress?.chapterId;
+                  if (currentChapterId != null &&
+                      currentChapterId.isNotEmpty) {
+                    targetChapterId = currentChapterId;
                   } else {
                     targetChapterId = chapters.first.id;
                   }
@@ -469,15 +471,15 @@ class _BookDetailFAB extends ConsumerWidget {
 class _ProgressSection extends StatelessWidget {
   const _ProgressSection({required this.progress});
 
-  final dynamic progress;
+  final ReadingProgress progress;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final percentage = progress.completionPercentage as double;
+    final percentage = progress.completionPercentage;
     final isQuizPending = percentage >= 100 &&
-        !(progress.isCompleted as bool) &&
-        !(progress.quizPassed as bool);
+        !progress.isCompleted &&
+        !progress.quizPassed;
 
     return Card(
       child: Padding(

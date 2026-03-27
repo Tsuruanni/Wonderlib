@@ -23,6 +23,7 @@ void main() {
         expect(model.slug, 'the-great-adventure');
         expect(model.description, 'An exciting story about adventure and discovery.');
         expect(model.coverUrl, 'https://example.com/covers/book-123.jpg');
+        expect(model.author, 'Jane Author');
         expect(model.level, 'B1');
         expect(model.genre, 'adventure');
         expect(model.ageGroup, '12-15');
@@ -237,6 +238,7 @@ void main() {
         expect(entity.slug, model.slug);
         expect(entity.description, model.description);
         expect(entity.coverUrl, model.coverUrl);
+        expect(entity.author, model.author);
         expect(entity.level, model.level);
         expect(entity.genre, model.genre);
         expect(entity.ageGroup, model.ageGroup);
@@ -287,6 +289,7 @@ void main() {
         expect(model.slug, entity.slug);
         expect(model.description, entity.description);
         expect(model.coverUrl, entity.coverUrl);
+        expect(model.author, entity.author);
         expect(model.level, entity.level);
         expect(model.genre, entity.genre);
         expect(model.ageGroup, entity.ageGroup);

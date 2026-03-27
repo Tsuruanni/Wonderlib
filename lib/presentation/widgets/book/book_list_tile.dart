@@ -138,10 +138,10 @@ class BookListTile extends StatelessWidget {
 
                     const SizedBox(height: 4),
 
-                    // Author (from metadata)
-                    if (book.metadata['author'] != null)
+                    // Author
+                    if (book.author != null)
                       Text(
-                        book.metadata['author'] as String,
+                        book.author!,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

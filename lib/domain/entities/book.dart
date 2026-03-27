@@ -11,6 +11,7 @@ class Book extends Equatable {
     required this.slug,
     this.description,
     this.coverUrl,
+    this.author,
     required this.level,
     this.genre,
     this.ageGroup,
@@ -29,6 +30,7 @@ class Book extends Equatable {
   final String slug;
   final String? description;
   final String? coverUrl;
+  final String? author;
   final String level; // CEFR level: A1, A2, B1, B2, C1, C2
   final String? genre;
   final String? ageGroup; // elementary, middle, high
@@ -61,6 +63,7 @@ class Book extends Equatable {
         slug,
         description,
         coverUrl,
+        author,
         level,
         genre,
         ageGroup,

@@ -9,6 +9,7 @@ class BookModel {
     required this.slug,
     this.description,
     this.coverUrl,
+    this.author,
     required this.level,
     this.genre,
     this.ageGroup,
@@ -30,6 +31,7 @@ class BookModel {
       slug: json['slug'] as String,
       description: json['description'] as String?,
       coverUrl: json['cover_url'] as String?,
+      author: json['author'] as String?,
       level: json['level'] as String,
       genre: json['genre'] as String?,
       ageGroup: json['age_group'] as String?,
@@ -54,6 +56,7 @@ class BookModel {
       slug: entity.slug,
       description: entity.description,
       coverUrl: entity.coverUrl,
+      author: entity.author,
       level: entity.level,
       genre: entity.genre,
       ageGroup: entity.ageGroup,
@@ -73,6 +76,7 @@ class BookModel {
   final String slug;
   final String? description;
   final String? coverUrl;
+  final String? author;
   final String level;
   final String? genre;
   final String? ageGroup;
@@ -93,6 +97,7 @@ class BookModel {
       'slug': slug,
       'description': description,
       'cover_url': coverUrl,
+      'author': author,
       'level': level,
       'genre': genre,
       'age_group': ageGroup,
@@ -115,6 +120,7 @@ class BookModel {
       slug: slug,
       description: description,
       coverUrl: coverUrl,
+      author: author,
       level: level,
       genre: genre,
       ageGroup: ageGroup,
