@@ -244,6 +244,34 @@ void main() {
         (_) => fail('Should return failure'),
       );
     });
+
+    test('withSourceId_shouldForwardToRepository', () async {
+      // Arrange
+      final updatedUser = UserFixtures.userWithAddedXP(addedXP: 50);
+      when(mockUserRepository.addXP(
+        'user-123', 50,
+        source: 'chapter_complete',
+        sourceId: 'chapter-uuid-5',
+      )).thenAnswer((_) async => Right(updatedUser));
+
+      const params = AddXPParams(
+        userId: 'user-123',
+        amount: 50,
+        source: 'chapter_complete',
+        sourceId: 'chapter-uuid-5',
+      );
+
+      // Act
+      final result = await usecase(params);
+
+      // Assert
+      expect(result.isRight(), true);
+      verify(mockUserRepository.addXP(
+        'user-123', 50,
+        source: 'chapter_complete',
+        sourceId: 'chapter-uuid-5',
+      )).called(1);
+    });
   });
 
   // ============================================

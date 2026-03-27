@@ -202,15 +202,20 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     await updateStreak();
   }
 
-  Future<void> addXP(int amount) async {
+  Future<void> addXP(int amount, {String source = 'manual', String? sourceId}) async {
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) return;
 
     final oldLevel = state.valueOrNull?.level ?? 1;
 
     final useCase = _ref.read(addXPUseCaseProvider);
-    debugPrint('🔄 addXP: awarding $amount XP to $userId');
-    final result = await useCase(AddXPParams(userId: userId, amount: amount));
+    debugPrint('🔄 addXP: awarding $amount XP to $userId (source=$source, sourceId=$sourceId)');
+    final result = await useCase(AddXPParams(
+      userId: userId,
+      amount: amount,
+      source: source,
+      sourceId: sourceId,
+    ));
 
     final user = result.fold(
       (failure) {

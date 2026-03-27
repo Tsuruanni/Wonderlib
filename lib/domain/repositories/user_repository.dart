@@ -10,7 +10,12 @@ abstract class UserRepository {
 
   Future<Either<Failure, User>> updateUser(User user);
 
-  Future<Either<Failure, User>> addXP(String userId, int amount);
+  Future<Either<Failure, User>> addXP(
+    String userId,
+    int amount, {
+    String source = 'manual',
+    String? sourceId,
+  });
 
   Future<Either<Failure, StreakResult>> updateStreak(String userId);
 

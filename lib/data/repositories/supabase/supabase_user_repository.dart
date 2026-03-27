@@ -61,16 +61,21 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, domain.User>> addXP(String userId, int amount) async {
+  Future<Either<Failure, domain.User>> addXP(
+    String userId,
+    int amount, {
+    String source = 'manual',
+    String? sourceId,
+  }) async {
     try {
       // Use stored function for atomic XP award + level calculation + logging
       await _supabase.rpc(RpcFunctions.awardXpTransaction, params: {
         'p_user_id': userId,
         'p_amount': amount,
-        'p_source': 'manual',
-        'p_source_id': null,
+        'p_source': source,
+        'p_source_id': sourceId,
         'p_description': 'XP awarded',
-      },);
+      });
 
       // Fetch updated user
       final response = await _supabase
