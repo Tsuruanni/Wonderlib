@@ -20,7 +20,6 @@ class VocabularyHubScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final storyListsAsync = ref.watch(storyWordListsProvider);
-    final storyLists = storyListsAsync.valueOrNull ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.terrain, // Fallback/Base color
@@ -42,10 +41,21 @@ class VocabularyHubScreen extends ConsumerWidget {
                       const LearningPath(),
 
                       // My Word Lists
-                      if (storyLists.isNotEmpty) ...[
-                        const _SectionHeader(title: 'My Word Lists'),
-                        _VerticalListSection(lists: storyLists),
-                      ],
+                      ...storyListsAsync.when(
+                        loading: () => [const SizedBox.shrink()],
+                        error: (e, _) => [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            child: Text('Failed to load word lists', style: TextStyle(color: Colors.red.shade300)),
+                          ),
+                        ],
+                        data: (storyLists) => storyLists.isEmpty
+                            ? []
+                            : [
+                                const _SectionHeader(title: 'My Word Lists'),
+                                _VerticalListSection(lists: storyLists),
+                              ],
+                      ),
                     ],
                   ),
                 ),

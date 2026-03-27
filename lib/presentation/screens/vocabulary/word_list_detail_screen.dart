@@ -37,6 +37,7 @@ class WordListDetailScreen extends ConsumerWidget {
     }
 
     final wordList = wordListAsync.valueOrNull;
+    final wordsError = wordsAsync.hasError;
     final words = wordsAsync.valueOrNull ?? [];
 
     if (wordList == null) {
@@ -72,6 +73,13 @@ class WordListDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  if (wordsError && words.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('Failed to load words. Pull down to retry.',
+                          style: TextStyle(color: Colors.red.shade300)),
+                    ),
 
                   // Stats row
                   Row(

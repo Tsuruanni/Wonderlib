@@ -49,6 +49,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
       ..sort((a, b) => a.progress!.nextReviewAt!.compareTo(b.progress!.nextReviewAt!));
 
     final isLoading = learnedWordsAsync.isLoading;
+    final hasError = learnedWordsAsync.hasError;
 
     return Scaffold(
       appBar: AppBar(
@@ -64,7 +65,23 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
       ),
       body: isLoading && allWords.isEmpty
           ? const Center(child: CircularProgressIndicator())
-          : Column(
+          : hasError && allWords.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+                      const SizedBox(height: 12),
+                      const Text('Failed to load vocabulary'),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => ref.invalidate(learnedWordsWithDetailsProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
               children: [
                 // Stats Card
                 _LearnedStatsCard(words: allWords),
