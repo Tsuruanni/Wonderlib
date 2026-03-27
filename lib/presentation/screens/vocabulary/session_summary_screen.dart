@@ -9,18 +9,8 @@ import 'package:just_audio/just_audio.dart';
 import '../../../app/router.dart';
 import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/vocabulary_session.dart';
-import '../../../domain/entities/student_assignment.dart';
-import '../../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
-import '../../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
-import '../../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
-import '../../../domain/usecases/wordlist/complete_session_usecase.dart';
-import '../../providers/student_assignment_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/system_settings_provider.dart';
-import '../../providers/daily_quest_provider.dart';
-import '../../providers/leaderboard_provider.dart';
-import '../../providers/usecase_providers.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
@@ -102,111 +92,39 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             100
         : 0.0;
 
-    final result = await ref.read(completeSessionUseCaseProvider).call(
-          CompleteSessionParams(
-            userId: userId,
-            wordListId: widget.listId,
-            totalQuestions: session.totalQuestionsAnswered,
-            correctCount: session.correctCount,
-            incorrectCount: session.incorrectCount,
-            accuracy: accuracy,
-            maxCombo: session.maxCombo,
-            xpEarned: session.xpEarned + comboBonus,
-            durationSeconds: session.durationSeconds,
-            wordsStrong: controller.wordsStrongCount,
-            wordsWeak: controller.wordsWeakCount,
-            firstTryPerfectCount: controller.firstTryPerfectCount,
-            wordResults: wordResults,
-          ),
+    await ref.read(sessionSaveProvider.notifier).save(
+          userId: userId,
+          listId: widget.listId,
+          totalQuestions: session.totalQuestionsAnswered,
+          correctCount: session.correctCount,
+          incorrectCount: session.incorrectCount,
+          accuracy: accuracy,
+          maxCombo: session.maxCombo,
+          xpEarned: session.xpEarned + comboBonus,
+          durationSeconds: session.durationSeconds,
+          wordsStrong: controller.wordsStrongCount,
+          wordsWeak: controller.wordsWeakCount,
+          firstTryPerfectCount: controller.firstTryPerfectCount,
+          wordResults: wordResults,
         );
 
-    result.fold(
-      (failure) {
-        debugPrint('Failed to save session: ${failure.message}');
-        if (mounted) {
-          setState(() => _saving = false); // Allow retry
-          showAppSnackBar(
-            context,
-            'Failed to save session. Check your connection.',
-            type: SnackBarType.error,
-            actionLabel: 'Retry',
-            onAction: _saveSession,
-          );
-        }
-      },
-      (savedResult) {
-        if (!mounted) return;
-        // Invalidate progress providers so learning path + detail screen update
-        ref.invalidate(progressForListProvider(widget.listId));
-        ref.invalidate(userWordListProgressProvider);
-        ref.invalidate(wordListsWithProgressProvider);
-        ref.invalidate(learningPathProvider);
-        // Invalidate wordbank providers so Word Bank sees updated words
-        ref.invalidate(userVocabularyProgressProvider);
-        ref.invalidate(learnedWordsWithDetailsProvider);
-        // Refresh user state so XP/level updates in navbar + triggers level-up celebration
-        ref.read(userControllerProvider.notifier).refreshProfileOnly();
-        // Invalidate leaderboard so rank reflects new XP
-        ref.invalidate(leaderboardEntriesProvider);
-        // Refresh daily quest progress (vocab_session quest)
-        ref.invalidate(dailyQuestProgressProvider);
-        // Complete any vocabulary assignments for this word list
-        _completeVocabularyAssignment(accuracy);
-        setState(() {
-          _saved = true;
-          _actualXpAwarded = savedResult.xpEarned;
-        });
-      },
-    );
-  }
+    final saveState = ref.read(sessionSaveProvider);
+    if (!mounted) return;
 
-  Future<void> _completeVocabularyAssignment(double accuracy) async {
-    try {
-      final userId = ref.read(currentUserIdProvider);
-      if (userId == null) return;
-
-      final getActiveAssignmentsUseCase = ref.read(getActiveAssignmentsUseCaseProvider);
-      final result = await getActiveAssignmentsUseCase(
-        GetActiveAssignmentsParams(studentId: userId),
+    if (saveState.status == SessionSaveStatus.error) {
+      setState(() => _saving = false);
+      showAppSnackBar(
+        context,
+        'Failed to save session. Check your connection.',
+        type: SnackBarType.error,
+        actionLabel: 'Retry',
+        onAction: _saveSession,
       );
-
-      final assignments = result.fold(
-        (failure) => <StudentAssignment>[],
-        (assignments) => assignments,
-      );
-
-      for (final assignment in assignments) {
-        if (assignment.wordListId == widget.listId &&
-            assignment.status != StudentAssignmentStatus.completed) {
-          final completeAssignmentUseCase = ref.read(completeAssignmentUseCaseProvider);
-          await completeAssignmentUseCase(CompleteAssignmentParams(
-            studentId: userId,
-            assignmentId: assignment.assignmentId,
-            score: accuracy,
-          ),);
-          ref.invalidate(studentAssignmentsProvider);
-          ref.invalidate(activeAssignmentsProvider);
-          ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-        }
-      }
-
-      // Also check unit assignments
-      for (final assignment in assignments) {
-        if (assignment.scopeLpUnitId != null &&
-            assignment.status != StudentAssignmentStatus.completed) {
-          debugPrint('📋 Unit assignment found: ${assignment.title}, recalculating progress');
-          final calculateUseCase = ref.read(calculateUnitProgressUseCaseProvider);
-          await calculateUseCase(CalculateUnitProgressParams(
-            assignmentId: assignment.assignmentId,
-            studentId: userId,
-          ));
-          ref.invalidate(studentAssignmentsProvider);
-          ref.invalidate(activeAssignmentsProvider);
-          ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-        }
-      }
-    } catch (e) {
-      debugPrint('Assignment completion failed: $e');
+    } else if (saveState.status == SessionSaveStatus.saved) {
+      setState(() {
+        _saved = true;
+        _actualXpAwarded = saveState.actualXpAwarded;
+      });
     }
   }
 

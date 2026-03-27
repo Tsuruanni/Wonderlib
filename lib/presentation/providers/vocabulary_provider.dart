@@ -4,8 +4,15 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../domain/entities/book.dart';
 import '../../domain/entities/daily_review_session.dart';
 import '../../domain/entities/learning_path.dart';
+import '../../domain/entities/student_assignment.dart';
+import '../../domain/entities/vocabulary_session.dart';
 import '../../domain/usecases/book/get_books_by_ids_usecase.dart';
+import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
+import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import 'book_provider.dart';
+import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
@@ -29,7 +36,10 @@ import '../../domain/usecases/wordlist/get_user_word_list_progress_usecase.dart'
 import '../../domain/usecases/wordlist/get_word_list_by_id_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
 import 'auth_provider.dart';
+import 'leaderboard_provider.dart';
+import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 // ============================================
 // VOCABULARY WORD PROVIDERS
@@ -906,3 +916,147 @@ Future<VocabularyActionResult> addWordToVocabulary(
     },
   );
 }
+
+// ============================================
+// SESSION SAVE
+// ============================================
+
+enum SessionSaveStatus { idle, saving, saved, error }
+
+class SessionSaveState {
+  const SessionSaveState({
+    this.status = SessionSaveStatus.idle,
+    this.actualXpAwarded,
+    this.errorMessage,
+  });
+
+  final SessionSaveStatus status;
+  final int? actualXpAwarded;
+  final String? errorMessage;
+}
+
+class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
+  SessionSaveNotifier(this._ref) : super(const SessionSaveState());
+
+  final Ref _ref;
+
+  Future<void> save({
+    required String userId,
+    required String listId,
+    required int totalQuestions,
+    required int correctCount,
+    required int incorrectCount,
+    required double accuracy,
+    required int maxCombo,
+    required int xpEarned,
+    required int durationSeconds,
+    required int wordsStrong,
+    required int wordsWeak,
+    required int firstTryPerfectCount,
+    required List<SessionWordResult> wordResults,
+  }) async {
+    if (state.status == SessionSaveStatus.saving) return;
+    state = const SessionSaveState(status: SessionSaveStatus.saving);
+
+    final completeSessionUseCase = _ref.read(completeSessionUseCaseProvider);
+    final result = await completeSessionUseCase(CompleteSessionParams(
+      userId: userId,
+      wordListId: listId,
+      totalQuestions: totalQuestions,
+      correctCount: correctCount,
+      incorrectCount: incorrectCount,
+      accuracy: accuracy,
+      maxCombo: maxCombo,
+      xpEarned: xpEarned,
+      durationSeconds: durationSeconds,
+      wordsStrong: wordsStrong,
+      wordsWeak: wordsWeak,
+      firstTryPerfectCount: firstTryPerfectCount,
+      wordResults: wordResults,
+    ));
+
+    result.fold(
+      (failure) {
+        state = SessionSaveState(
+          status: SessionSaveStatus.error,
+          errorMessage: failure.message,
+        );
+      },
+      (savedResult) {
+        // Invalidate all dependent providers
+        _ref.invalidate(progressForListProvider(listId));
+        _ref.invalidate(userWordListProgressProvider);
+        _ref.invalidate(wordListsWithProgressProvider);
+        _ref.invalidate(learningPathProvider);
+        _ref.invalidate(userVocabularyProgressProvider);
+        _ref.invalidate(learnedWordsWithDetailsProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        _ref.invalidate(leaderboardEntriesProvider);
+        _ref.invalidate(dailyQuestProgressProvider);
+
+        // Complete matching assignments (best-effort)
+        _completeAssignments(userId: userId, listId: listId, accuracy: accuracy);
+
+        state = SessionSaveState(
+          status: SessionSaveStatus.saved,
+          actualXpAwarded: savedResult.xpEarned,
+        );
+      },
+    );
+  }
+
+  Future<void> _completeAssignments({
+    required String userId,
+    required String listId,
+    required double accuracy,
+  }) async {
+    try {
+      final getActiveAssignmentsUseCase = _ref.read(getActiveAssignmentsUseCaseProvider);
+      final result = await getActiveAssignmentsUseCase(
+        GetActiveAssignmentsParams(studentId: userId),
+      );
+
+      final assignments = result.fold(
+        (failure) => <StudentAssignment>[],
+        (assignments) => assignments,
+      );
+
+      for (final assignment in assignments) {
+        if (assignment.wordListId == listId &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
+          await completeAssignmentUseCase(CompleteAssignmentParams(
+            studentId: userId,
+            assignmentId: assignment.assignmentId,
+            score: accuracy,
+          ));
+          _ref.invalidate(studentAssignmentsProvider);
+          _ref.invalidate(activeAssignmentsProvider);
+          _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        }
+      }
+
+      // Check unit assignments
+      for (final assignment in assignments) {
+        if (assignment.scopeLpUnitId != null &&
+            assignment.status != StudentAssignmentStatus.completed) {
+          final calculateUseCase = _ref.read(calculateUnitProgressUseCaseProvider);
+          await calculateUseCase(CalculateUnitProgressParams(
+            assignmentId: assignment.assignmentId,
+            studentId: userId,
+          ));
+          _ref.invalidate(studentAssignmentsProvider);
+          _ref.invalidate(activeAssignmentsProvider);
+          _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
+        }
+      }
+    } catch (_) {
+      // Assignment completion is best-effort; session save already succeeded
+    }
+  }
+}
+
+final sessionSaveProvider =
+    StateNotifierProvider.autoDispose<SessionSaveNotifier, SessionSaveState>(
+  (ref) => SessionSaveNotifier(ref),
+);
