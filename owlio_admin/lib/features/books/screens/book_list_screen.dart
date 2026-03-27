@@ -26,7 +26,7 @@ class BookListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kitaplar'),
+        title: const Text('Books'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
@@ -35,13 +35,13 @@ class BookListScreen extends ConsumerWidget {
           OutlinedButton.icon(
             onPressed: () => context.go('/books/import'),
             icon: const Icon(Icons.upload_file, size: 18),
-            label: const Text('JSON İçe Aktar'),
+            label: const Text('Import JSON'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: () => context.go('/books/new'),
             icon: const Icon(Icons.add, size: 18),
-            label: const Text('Yeni Kitap'),
+            label: const Text('New Book'),
           ),
           const SizedBox(width: 16),
         ],
@@ -60,7 +60,7 @@ class BookListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Henüz kitap yok',
+                    'No books yet',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -70,7 +70,7 @@ class BookListScreen extends ConsumerWidget {
                   FilledButton.icon(
                     onPressed: () => context.go('/books/new'),
                     icon: const Icon(Icons.add),
-                    label: const Text('İlk kitabınızı oluşturun'),
+                    label: const Text('Create your first book'),
                   ),
                 ],
               ),
@@ -99,11 +99,11 @@ class BookListScreen extends ConsumerWidget {
             children: [
               Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
               const SizedBox(height: 16),
-              Text('Hata: $error'),
+              Text('Error: $error'),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(booksProvider),
-                child: const Text('Tekrar Dene'),
+                child: const Text('Retry'),
               ),
             ],
           ),
@@ -127,7 +127,7 @@ class _BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coverUrl = book['cover_image_url'] as String?;
-    final level = book['level'] as String? ?? 'Bilinmiyor';
+    final level = book['level'] as String? ?? 'Unknown';
     final isPublished = book['status'] == BookStatus.published.dbValue;
 
     return Card(
@@ -164,7 +164,7 @@ class _BookCard extends StatelessWidget {
                   children: [
                     // Title
                     Text(
-                      book['title'] as String? ?? 'Başlıksız',
+                      book['title'] as String? ?? 'Untitled',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -177,7 +177,7 @@ class _BookCard extends StatelessWidget {
                     // Author
                     if (book['author'] != null)
                       Text(
-                        'Yazar: ${book['author']}',
+                        'Author: ${book['author']}',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade600,
@@ -195,17 +195,17 @@ class _BookCard extends StatelessWidget {
                           color: _getLevelColor(level),
                         ),
                         _Chip(
-                          label: '$chapterCount bölüm',
+                          label: '$chapterCount chapters',
                           color: Colors.grey,
                         ),
                         if (isPublished)
                           const _Chip(
-                            label: 'Yayında',
+                            label: 'Published',
                             color: Colors.green,
                           )
                         else
                           const _Chip(
-                            label: 'Taslak',
+                            label: 'Draft',
                             color: Colors.orange,
                           ),
                       ],
@@ -238,13 +238,19 @@ class _BookCard extends StatelessWidget {
   }
 
   Color _getLevelColor(String level) {
-    switch (level.toLowerCase()) {
-      case 'beginner':
+    switch (level.toUpperCase()) {
+      case 'A1':
         return Colors.green;
-      case 'intermediate':
+      case 'A2':
+        return Colors.lightGreen;
+      case 'B1':
         return Colors.orange;
-      case 'advanced':
+      case 'B2':
+        return Colors.deepOrange;
+      case 'C1':
         return Colors.red;
+      case 'C2':
+        return Colors.purple;
       default:
         return Colors.blue;
     }
