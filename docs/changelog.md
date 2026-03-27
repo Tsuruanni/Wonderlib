@@ -8,6 +8,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Learning Paths Audit & Fixes (2026-03-27)
+
+#### Fixed
+- **3 RPCs missing auth checks** — `apply_learning_path_template` (admin/head/teacher gate), `get_user_learning_paths` and `get_path_daily_reviews` (user can only query own data). Previously any authenticated user could call these for any user/school.
+- **DR replay attack** — `path_daily_review_completions` RLS split from `FOR ALL` to separate SELECT/INSERT/UPDATE policies. Students can no longer DELETE their own records to replay daily review.
+- **Template RLS role mismatch** — 3 template table policies used `'head_teacher'` but profiles CHECK uses `'head'`. Head teachers can now manage templates.
+- **Class deletion blocked** — `scope_learning_paths.class_id` FK added `ON DELETE CASCADE`. Class deletion no longer fails when scope paths reference it.
+- **Non-atomic sort_order** — `apply_learning_path_template` now uses `FOR UPDATE` row lock to prevent duplicate sort_order from concurrent template applications.
+- **Raw string itemType** — 3 entities (`ClassLearningPathUnit`, `UnitAssignmentItem`, `StudentUnitProgressItem`) changed from `String` to `LearningPathItemType` enum. Eliminates fragile `== 'word_list'` comparisons.
+
+#### Removed
+- **Dead code** — `RpcFunctions.getPathDailyReviews` (unused constant), `LabelPosition.below` (unreachable branch), `vocabularyUnitReviewPath` (orphaned route), stale comments, duplicate `allAssignmentsProvider` in admin.
+- **12 debugPrint statements** — Diagnostic prints removed from `supabase_teacher_repository` (9) and `teacher_provider` (3). Error-condition prints retained.
+
+#### Infrastructure
+- **1 DB migration** (20260327100001) — Auth checks, RLS fixes, FK cascade, index add/drop, atomic sort_order.
+- **Feature spec** — `docs/specs/07-learning-paths.md` documents the full Learning Paths system (21 findings: 17 fixed, 4 deferred as known limitations).
+- **Redundant indexes dropped** — `idx_path_dr_user` and `idx_path_dr_unit` (covered by UNIQUE composite). Added `idx_scope_lp_template`.
+
 ### Word Lists Audit & Fixes (2026-03-27)
 
 #### Fixed

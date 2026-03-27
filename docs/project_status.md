@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Word Lists audit & fixes — 20 findings fixed, RPC deployed)
+Son güncelleme: 2026-03-27 (Learning Paths audit & fixes — 17/21 findings fixed, 1 migration deployed)
 
 ## Current Phase
 
@@ -120,6 +120,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Book Quiz Audit & Fixes (16-finding audit, quiz_passed bug, RPC auth, 0-question guard, timer, admin English, shared enum)
 - [x] Vocabulary & Spaced Repetition Audit & Spec (7-finding audit, hard-coded table fix, Turkish placeholder fix, empty list UX, full spec)
 - [x] Word Lists Audit & Fixes (24-finding audit, 20 fixed: star unification, SessionSaveNotifier extraction, RPC auth, dead code removal, error states, N+1 fix)
+- [x] Learning Paths Audit & Fixes (21-finding audit, 17 fixed: 3 RPC auth checks, DR replay block, role mismatch, FK cascade, atomic sort_order, enum refactor, dead code removal)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -187,6 +188,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Learning Paths Audit & Fixes | 2026-03-27 | 21-finding audit. Security: 3 RPC auth checks (apply_template, get_user_paths, get_daily_reviews), DR replay block (DELETE policy removed), head_teacher→head RLS fix. DB: FK cascade on class_id, atomic sort_order with FOR UPDATE, index housekeeping. Code: String→LearningPathItemType enum in 3 entities+3 models+3 screens, 5 dead code removals, 12 debugPrint removed. 1 migration deployed. 17/21 fixed, 4 known limitations. |
 | Book Quiz Audit & Fixes | 2026-03-27 | 16-finding audit. 3 high: quiz_passed never written to DB, get_best_book_quiz_result missing auth (any user could query any other user's scores), 0-question quiz soft-lock. Plus: quiz timer, shared enum for type parsing, AppColors, dead code cleanup, admin English labels (~80 strings), enum switches. 1 migration (RPC fixes + composite index). 12/16 fixed, 4 accepted/deferred. |
 | Inline Activities Audit & Fixes | 2026-03-27 | 25-finding audit across all layers. Phase 1: DB index, correctness tracking (Map<String, bool>), finally block, save failure rollback + didUpdateWidget, words_learned population. Phase 2: dead code removal (-628 lines: UseCase, wrapper, entity, model, widgetbook), shared enum methods, guard clauses. Phase 3: sound feedback, loading placeholder, index-based matching, admin validation, English labels. 22/25 fixed, 2 accepted, 1 deferred. |
 | Audio/Karaoke Reader Audit & Spec | 2026-03-27 | Full audit + spec for Feature #2. 5 findings fixed: audio error pill, dead code removal (showDropCap, 3 unused providers, 2 unused WordTiming methods), debug print cleanup. Spec covers two audio models, listening mode, karaoke sync, auto-play, scroll follow, offline caching. |
