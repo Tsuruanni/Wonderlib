@@ -6,37 +6,37 @@
 
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Idempotency | Chapter/book completion XP has no DB-level idempotency — only in-memory `wasAlreadyCompleted` cache check. Race conditions can award duplicate XP. Inline activity XP has proper UNIQUE constraint. | High | TODO |
-| 2 | Idempotency | Quiz XP awarded on every passing attempt. `_handleQuizPassed` guards `quiz_passed` flag but the controller still calls `addXP(xpQuizPass)` on retakes. | High | TODO |
-| 3 | Architecture | Quiz grading logic (`_gradeQuestion`, `_isAnswerValid`, score accumulation) lives in `BookQuizScreen` widget instead of a UseCase. | Medium | TODO |
-| 4 | Architecture | `handleInlineActivityCompletion` is a free function taking `WidgetRef` — effectively a UseCase in the presentation layer. | Medium | TODO |
-| 5 | Architecture | Chapter sequential-lock algorithm computed in `BookDetailScreen.build()` — business rule in widget. | Medium | TODO |
-| 6 | Architecture | Book access lock computation in `bookLockProvider` — domain logic embedded in FutureProvider. | Medium | TODO |
-| 7 | Architecture | `_handleQuizPassed` in `SupabaseBookQuizRepository` contains multi-step business logic (fetch progress → fetch chapters → compute completion → update progress). Should be a UseCase. | Medium | TODO |
-| 8 | Error Handling | All `FutureProvider` book providers silently return empty list/null on failure, bypassing `.when(error:...)` branch. Only `contentBlocksProvider` correctly propagates errors. | Medium | TODO |
-| 9 | RLS | `reading_progress` has `FOR ALL` policy — students can DELETE their own reading progress rows. Almost certainly unintended. | Medium | TODO |
-| 10 | RLS | `book_quizzes` admin policy uses role `head_teacher` but system uses `head`. Head-role teachers may be blocked from quiz management. | Medium | TODO |
+| 1 | Idempotency | Chapter/book completion XP has no DB-level idempotency — only in-memory `wasAlreadyCompleted` cache check. Race conditions can award duplicate XP. Inline activity XP has proper UNIQUE constraint. | High | Fixed |
+| 2 | Idempotency | Quiz XP awarded on every passing attempt. `_handleQuizPassed` guards `quiz_passed` flag but the controller still calls `addXP(xpQuizPass)` on retakes. | High | Fixed |
+| 3 | Architecture | Quiz grading logic (`_gradeQuestion`, `_isAnswerValid`, score accumulation) lives in `BookQuizScreen` widget instead of a UseCase. | Medium | Fixed |
+| 4 | Architecture | `handleInlineActivityCompletion` is a free function taking `WidgetRef` — effectively a UseCase in the presentation layer. | Medium | Fixed |
+| 5 | Architecture | Chapter sequential-lock algorithm computed in `BookDetailScreen.build()` — business rule in widget. | Medium | Fixed |
+| 6 | Architecture | Book access lock computation in `bookLockProvider` — domain logic embedded in FutureProvider. | Medium | Fixed |
+| 7 | Architecture | `_handleQuizPassed` in `SupabaseBookQuizRepository` contains multi-step business logic (fetch progress → fetch chapters → compute completion → update progress). Should be a UseCase. | Medium | Fixed |
+| 8 | Error Handling | All `FutureProvider` book providers silently return empty list/null on failure, bypassing `.when(error:...)` branch. Only `contentBlocksProvider` correctly propagates errors. | Medium | Fixed |
+| 9 | RLS | `reading_progress` has `FOR ALL` policy — students can DELETE their own reading progress rows. Almost certainly unintended. | Medium | Fixed |
+| 10 | RLS | `book_quizzes` admin policy uses role `head_teacher` but system uses `head`. Head-role teachers may be blocked from quiz management. | Medium | N/A (already fixed) |
 | 11 | Duplicate Code | `BookModel._parseBookStatus()` duplicates `BookStatus.fromDbValue()` from owlio_shared. | Low | TODO |
 | 12 | Duplicate Code | `ContentBlockModel._parseBlockType()`/`_blockTypeToString()` duplicates `ContentBlockType.fromDbValue()`/`.dbValue`. | Low | TODO |
 | 13 | Duplicate Code | Hard-coded `'published'` string in 4 places in `supabase_book_repository.dart`. Should use `BookStatus.published.dbValue`. | Low | TODO |
 | 14 | Duplicate Code | Chapter completion `try/catch` block duplicated 3 times in `ReaderScreen` (`_handleNextChapter`, `_handleBackToBook`, `_handleTakeQuiz`). | Low | TODO |
 | 15 | Duplicate Code | `_formatBytes` duplicated between `DownloadedBooksScreen` and `DownloadedBookInfo.formattedSize`. | Low | TODO |
-| 16 | Duplicate Code | Book completion logic partially duplicated between `SupabaseBookRepository.markChapterComplete` and `SupabaseBookQuizRepository._handleQuizPassed`. | Low | TODO |
+| 16 | Duplicate Code | Book completion logic partially duplicated between `SupabaseBookRepository.markChapterComplete` and `SupabaseBookQuizRepository._handleQuizPassed`. | Low | Fixed (via #7) |
 | 17 | Dead Code | `GetUserActivityResultsUseCase` — no provider registered, no callers. | Low | TODO |
 | 18 | Dead Code | `GetUserReadingHistoryUseCase` + `getUserReadingHistoryUseCaseProvider` — provider defined but never consumed by any screen/provider. | Low | TODO |
 | 19 | Dead Code | `readingControllerProvider` (`ReadingController`) — registered but never consumed. | Low | TODO |
 | 20 | Dead Code | `getChapterByIdUseCaseProvider` — registered in `usecase_providers.dart` but never used (screens use `chapterByIdProvider` which filters from cached `chaptersProvider`). | Low | TODO |
 | 21 | Dead Code | `libraryViewModeProvider`, `selectedLevelProvider`, `filteredBooksProvider` in `library_provider.dart` — shadowed by local providers in `library_screen.dart`. | Low | TODO |
 | 22 | Dead Code | `ContentBlockRepository.getContentBlockById` — declared in interface, implemented in repos, but no UseCase wraps it and nothing calls it externally. | Low | TODO |
-| 23 | Performance | `_updateAssignmentProgress` calls `CalculateUnitProgressUseCase` RPC for every unit assignment on every chapter completion, regardless of whether the book belongs to that unit. | Medium | TODO |
-| 24 | Performance | `book_has_quiz` RPC called twice during `markChapterComplete` when all chapters complete — once in repository, once in notifier. | Low | TODO |
-| 25 | Performance | Missing `autoDispose` on `booksProvider`, `bookByIdProvider`, `chaptersProvider`, `readingProgressProvider`, `completedBookIdsProvider`, `completedInlineActivitiesProvider`, `contentBlocksProvider` — memory accumulation in long sessions. | Low | TODO |
+| 23 | Performance | `_updateAssignmentProgress` calls `CalculateUnitProgressUseCase` RPC for every unit assignment on every chapter completion, regardless of whether the book belongs to that unit. | Medium | Deferred (no client-side filter possible) |
+| 24 | Performance | `book_has_quiz` RPC called twice during `markChapterComplete` when all chapters complete — once in repository, once in notifier. | Low | Fixed (via #7) |
+| 25 | Performance | Missing `autoDispose` on `booksProvider`, `bookByIdProvider`, `chaptersProvider`, `readingProgressProvider`, `completedBookIdsProvider`, `completedInlineActivitiesProvider`, `contentBlocksProvider` — memory accumulation in long sessions. | Low | Fixed |
 | 26 | Schema Drift | `author` and `cover_image_url` columns exist in `books` table (migration `20260202000003`) but not mapped in `BookModel`/`Book` entity. UI uses `book.metadata['author']` as workaround. | Low | TODO |
 | 27 | Type Safety | `_ProgressSection.progress` typed as `dynamic` in `BookDetailScreen`. Should be `ReadingProgress`. | Low | TODO |
 | 28 | Type Safety | `_BookDetailFAB.chaptersAsync` typed as `AsyncValue<dynamic>`. Should be `AsyncValue<List<Chapter>>`. | Low | TODO |
 | 29 | Type Safety | `ActivityRepository.getActivityStats` returns `Map<String, dynamic>` — no typed entity. | Low | TODO |
-| 30 | UX | Library categories error silently shows empty `SizedBox` — no user feedback. | Low | TODO |
-| 31 | UX | Raw error strings (`'Error: $error'`) shown to user in `BookDetailScreen` and `LibraryScreen` instead of shared `ErrorStateWidget`. | Low | TODO |
+| 30 | UX | Library categories error silently shows empty `SizedBox` — no user feedback. | Low | Fixed |
+| 31 | UX | Raw error strings (`'Error: $error'`) shown to user in `BookDetailScreen` and `LibraryScreen` instead of shared `ErrorStateWidget`. | Low | Fixed |
 | 32 | UX | `_BookShelfItem` and `_LibraryShelf` pass `WidgetRef` as constructor parameter — anti-pattern, should be `ConsumerWidget`. | Low | TODO |
 | 33 | UX | `Image.network` used in `LibraryScreen` instead of project's `CachedBookImage` widget — library covers not disk-cached. | Low | TODO |
 | 34 | Architecture | `BookDownloader` provider directly calls data-layer services (`fileCacheServiceProvider`, `bookCacheStoreProvider`), bypassing UseCase layer. | Low | TODO |
