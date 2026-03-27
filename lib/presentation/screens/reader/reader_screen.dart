@@ -190,12 +190,22 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     }
   }
 
+  /// Marks the current chapter complete. Called after async gaps so the
+  /// autoDispose provider is read fresh each time (avoiding stale refs).
+  Future<void> _markCurrentChapterComplete() async {
+    try {
+      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
+      await completionNotifier.markComplete(
+        bookId: widget.bookId,
+        chapterId: widget.chapterId,
+      );
+    } catch (e) {
+      debugPrint('ChapterCompletionNotifier error: $e');
+    }
+  }
+
   Future<void> _handleNextChapter(Chapter nextChapter) async {
     debugPrint('>>> _handleNextChapter called for: ${nextChapter.title}');
-
-    // Capture widget values before async operations
-    final bookId = widget.bookId;
-    final chapterId = widget.chapterId;
 
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
@@ -203,81 +213,44 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     // Check if still mounted after async operation
     if (!mounted) return;
 
-    // Read notifier AFTER async gap — autoDispose provider may have been
-    // disposed during _saveReadingTime(). Reading here creates a fresh
-    // instance with a valid ref.
-    try {
-      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
-      await completionNotifier.markComplete(
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-    } catch (e) {
-      debugPrint('ChapterCompletionNotifier error: $e');
-    }
+    await _markCurrentChapterComplete();
 
     if (mounted) {
-      context.go(AppRoutes.readerPath(bookId, nextChapter.id));
+      context.go(AppRoutes.readerPath(widget.bookId, nextChapter.id));
     }
   }
 
   Future<void> _handleBackToBook() async {
-    // Capture widget values before async operations
-    final bookId = widget.bookId;
-    final chapterId = widget.chapterId;
-
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
 
     // Check if still mounted after async operation
     if (!mounted) return;
 
-    // Read notifier AFTER async gap — autoDispose provider may have been
-    // disposed during _saveReadingTime(). Reading here creates a fresh
-    // instance with a valid ref.
-    try {
-      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
-      await completionNotifier.markComplete(
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-    } catch (e) {
-      debugPrint('ChapterCompletionNotifier error: $e');
-    }
+    await _markCurrentChapterComplete();
 
     if (mounted) {
       // Invalidate providers to refresh home screen + book detail data
-      ref.invalidate(readingProgressProvider(bookId));
+      ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
       ref.invalidate(recommendedBooksProvider);
-      context.go(AppRoutes.bookDetailPath(bookId));
+      context.go(AppRoutes.bookDetailPath(widget.bookId));
     }
   }
 
   Future<void> _handleTakeQuiz() async {
-    final bookId = widget.bookId;
-    final chapterId = widget.chapterId;
-
     _stopCurrentAudio();
     await _saveReadingTime();
 
     if (!mounted) return;
 
-    try {
-      final completionNotifier = ref.read(chapterCompletionProvider.notifier);
-      await completionNotifier.markComplete(
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-    } catch (e) {
-      debugPrint('ChapterCompletionNotifier error: $e');
-    }
+    await _markCurrentChapterComplete();
 
     if (mounted) {
-      ref.invalidate(readingProgressProvider(bookId));
+      ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
       ref.invalidate(recommendedBooksProvider);
-      context.push(AppRoutes.bookQuizPath(bookId));
+      context.push(AppRoutes.bookQuizPath(widget.bookId));
     }
   }
 

@@ -47,7 +47,7 @@ class DownloadedBooksScreen extends ConsumerWidget {
             0,
             (sum, b) => sum + b.fileSizeBytes,
           );
-          final totalFormatted = _formatBytes(totalBytes);
+          final totalFormatted = _formatTotalSize(totalBytes);
 
           return Column(
             children: [
@@ -82,7 +82,9 @@ class DownloadedBooksScreen extends ConsumerWidget {
     );
   }
 
-  String _formatBytes(int bytes) {
+  /// Formats the total storage sum for the banner. Per-item size uses
+  /// [DownloadedBookInfo.formattedSize] instead.
+  String _formatTotalSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) {
       return '${(bytes / 1024).toStringAsFixed(1)} KB';
