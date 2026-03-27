@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Audio/Karaoke Reader audit & spec)
+Son güncelleme: 2026-03-27 (Inline Activities audit & fixes)
 
 ## Current Phase
 
@@ -116,6 +116,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Assignment Notification System (in-app dialog on app open, direct detail navigation, admin toggle, gradient style)
 - [x] Student Class Change Assignment Sync (DB trigger, withdrawn status, unit progress backfill, stats RPC updates)
 - [x] Book System Audit & Integrity Fixes (38-finding audit, XP idempotency, RLS fix, 5 new UseCases, dead code removal, admin English)
+- [x] Inline Activities Audit & Fixes (25-finding audit, data integrity, dead code removal (-628 lines), UX polish, admin validation)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -183,6 +184,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Inline Activities Audit & Fixes | 2026-03-27 | 25-finding audit across all layers. Phase 1: DB index, correctness tracking (Map<String, bool>), finally block, save failure rollback + didUpdateWidget, words_learned population. Phase 2: dead code removal (-628 lines: UseCase, wrapper, entity, model, widgetbook), shared enum methods, guard clauses. Phase 3: sound feedback, loading placeholder, index-based matching, admin validation, English labels. 22/25 fixed, 2 accepted, 1 deferred. |
 | Audio/Karaoke Reader Audit & Spec | 2026-03-27 | Full audit + spec for Feature #2. 5 findings fixed: audio error pill, dead code removal (showDropCap, 3 unused providers, 2 unused WordTiming methods), debug print cleanup. Spec covers two audio models, listening mode, karaoke sync, auto-play, scroll follow, offline caching. |
 | Book System Audit & Integrity Fixes | 2026-03-27 | 38-finding audit across all layers. Phase 1: XP source_id idempotency (full addXP chain), RLS fix (no DELETE). Phase 2: 5 new UseCases (HandleBookCompletion, GradeBookQuiz, CompleteInlineActivity, DownloadBook, RemoveBookDownload), BookDownloadRepository, chapter lock provider, typed getters. Phase 3: error propagation, ErrorStateWidget, autoDispose (12 providers). Group D: dead code (-253 lines), enum dedup, author field, ActivityStats entity, ConsumerWidget, CachedBookImage, timezone fix, admin English translation. 37/38 resolved, 1 deferred. |
 | Student Class Change Assignment Sync | 2026-03-27 | DB trigger on profiles.class_id change: withdraws old-class pending/in_progress assignments, enrolls in new-class active assignments, backfills unit progress. Stats RPCs exclude withdrawn. Flutter: withdrawn enum + UI + query filter. 1 migration, 4 Flutter files. |

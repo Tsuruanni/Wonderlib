@@ -8,6 +8,33 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Inline Activities Audit & Fixes (2026-03-27)
+
+#### Fixed
+- **DB performance index** — Added partial index `(user_id, answered_at DESC) WHERE is_correct = true` on `inline_activity_results` for daily quest progress queries.
+- **Chapter initialization resilience** — `chapterInitializedProvider` now set via `finally` block — progressive reveal and auto-play work even on load failure.
+- **DB save failure rollback** — Activity state rolled back on server save failure via `removeCompleted` + `didUpdateWidget` on all 4 activity widgets. Student can retry instead of seeing inconsistent state.
+- **Correctness tracking on re-open** — `getCompletedInlineActivities` returns `Map<String, bool>` (activityId → isCorrect). Previously-wrong answers now correctly displayed as wrong on chapter re-open.
+- **`words_learned` column populated** — `saveInlineActivityResult` now includes `wordsLearned` in INSERT payload. DB column was always empty before.
+- **Sound feedback on find_words** — Added `InlineActivitySoundMixin` to `InlineFindWordsActivity` (was missing, other 3 types had it).
+- **Loading flicker** — Activity blocks show placeholder instead of error card while `inlineActivitiesAsync` is loading.
+- **Chapter completion flash** — `isChapterCompleteProvider` returns `false` until `chapterInitializedProvider` is true (prevents transient completion widget).
+- **Matching duplicate right-values** — Changed to index-based pairing (`Map<int, int>`) instead of value-based (`Map<String, String>`). Admin editor validates unique right values on save.
+- **Empty options crash** — Added guard clauses in `word_translation` and `find_words` for empty options list.
+- **Zero-length auto-submit** — Added `requiredSelections == 0` guard in `find_words`.
+- **Unknown activity type** — `InlineActivityModel.fromJson` returns null for unknown types (filtered by repository). Replaces silent fallback to empty true/false card.
+- **Offline graceful degradation** — Cached repository returns empty map instead of `NetworkFailure` when offline.
+- **Admin Turkish labels** — Translated `İptal`/`Kaydet` to `Cancel`/`Save` in activity editor.
+- **Vocab failure logging** — `addWordsToVocabularyBatch` failures now logged via `debugPrint` instead of silently swallowed.
+
+#### Removed
+- **Dead code (628 lines)** — `SaveInlineActivityResultUseCase` + provider, `inline_activity_wrapper.dart` (234 lines), `InlineActivity.xpReward` field, `InlineActivityResult` entity + `InlineActivityResultModel` class, broken widgetbook `activity_widgets.dart`, unused `SingleTickerProviderStateMixin`.
+- **Redundant enum parsing** — Replaced `_parseInlineActivityType` / `_inlineActivityTypeToString` with shared `InlineActivityType.fromDbValue()` / `.dbValue`.
+
+#### Infrastructure
+- **1 DB migration** (20260327000010) — Partial index on `inline_activity_results`.
+- **Feature spec** — `docs/specs/03-inline-activities.md` documents the full Inline Activities system (22/25 findings fixed, 2 accepted, 1 deferred).
+
 ### Audio/Karaoke Reader Audit & Spec (2026-03-27)
 
 #### Fixed
