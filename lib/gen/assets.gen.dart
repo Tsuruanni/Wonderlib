@@ -97,8 +97,11 @@ class $AssetsSoundsGen {
   /// File path: assets/sounds/falsevoc.mp3
   String get falsevoc => 'assets/sounds/falsevoc.mp3';
 
+  /// File path: assets/sounds/victory.mp3
+  String get victory => 'assets/sounds/victory.mp3';
+
   /// List of all assets
-  List<String> get values => [correctvoc, falsevoc];
+  List<String> get values => [correctvoc, falsevoc, victory];
 }
 
 class $AssetsAnimationsMascotGen {

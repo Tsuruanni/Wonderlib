@@ -102,14 +102,12 @@ class InlineActivity extends Equatable {
     required this.type,
     required this.afterParagraphIndex,
     required this.content,
-    this.xpReward = 5,
     this.vocabularyWords = const [],
   });
   final String id;
   final InlineActivityType type;
   final int afterParagraphIndex;
   final InlineActivityContent content;
-  final int xpReward;
 
   /// Words to add to vocabulary when this activity is completed
   /// (for word_translation and find_words types)
@@ -121,34 +119,7 @@ class InlineActivity extends Equatable {
     type,
     afterParagraphIndex,
     content,
-    xpReward,
     vocabularyWords,
-  ];
-}
-
-/// Result of an inline activity answer
-class InlineActivityResult extends Equatable {
-
-  const InlineActivityResult({
-    required this.activityId,
-    required this.isCorrect,
-    required this.xpEarned,
-    this.wordsLearned = const [],
-    required this.answeredAt,
-  });
-  final String activityId;
-  final bool isCorrect;
-  final int xpEarned;
-  final List<String> wordsLearned;
-  final DateTime answeredAt;
-
-  @override
-  List<Object?> get props => [
-    activityId,
-    isCorrect,
-    xpEarned,
-    wordsLearned,
-    answeredAt,
   ];
 }
 

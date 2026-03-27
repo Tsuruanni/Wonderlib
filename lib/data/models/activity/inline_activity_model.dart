@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../../../domain/entities/activity.dart';
 
 /// Model for InlineActivity entity - handles JSON serialization
@@ -8,17 +10,33 @@ class InlineActivityModel {
     required this.type,
     required this.afterParagraphIndex,
     required this.content,
-    this.xpReward = 5,
     this.vocabularyWords = const [],
   });
 
-  factory InlineActivityModel.fromJson(Map<String, dynamic> json) {
+  factory InlineActivityModel.fromEntity(InlineActivity entity) {
+    return InlineActivityModel(
+      id: entity.id,
+      type: entity.type.dbValue,
+      afterParagraphIndex: entity.afterParagraphIndex,
+      content: _contentToJson(entity.type, entity.content),
+      vocabularyWords: entity.vocabularyWords,
+    );
+  }
+
+  /// Returns null for unknown activity types (filtered out by repository).
+  static InlineActivityModel? fromJson(Map<String, dynamic> json) {
+    final typeStr = json['type'] as String?;
+    final knownTypes = InlineActivityType.values.map((e) => e.dbValue).toSet();
+    if (typeStr == null || !knownTypes.contains(typeStr)) {
+      debugPrint('⚠️ Unknown inline activity type: $typeStr, skipping');
+      return null;
+    }
+
     return InlineActivityModel(
       id: json['id'] as String,
-      type: json['type'] as String,
+      type: typeStr,
       afterParagraphIndex: json['after_paragraph_index'] as int? ?? 0,
       content: json['content'] as Map<String, dynamic>? ?? {},
-      xpReward: json['xp_reward'] as int? ?? 5,
       vocabularyWords: (json['vocabulary_words'] as List<dynamic>?)
               ?.map((w) => w as String)
               .toList() ??
@@ -26,21 +44,10 @@ class InlineActivityModel {
     );
   }
 
-  factory InlineActivityModel.fromEntity(InlineActivity entity) {
-    return InlineActivityModel(
-      id: entity.id,
-      type: _inlineActivityTypeToString(entity.type),
-      afterParagraphIndex: entity.afterParagraphIndex,
-      content: _contentToJson(entity.type, entity.content),
-      xpReward: entity.xpReward,
-      vocabularyWords: entity.vocabularyWords,
-    );
-  }
   final String id;
   final String type;
   final int afterParagraphIndex;
   final Map<String, dynamic> content;
-  final int xpReward;
   final List<String> vocabularyWords;
 
   Map<String, dynamic> toJson() {
@@ -49,7 +56,6 @@ class InlineActivityModel {
       'type': type,
       'after_paragraph_index': afterParagraphIndex,
       'content': content,
-      'xp_reward': xpReward,
       'vocabulary_words': vocabularyWords,
     };
   }
@@ -57,43 +63,15 @@ class InlineActivityModel {
   InlineActivity toEntity() {
     return InlineActivity(
       id: id,
-      type: _parseInlineActivityType(type),
+      type: InlineActivityType.fromDbValue(type),
       afterParagraphIndex: afterParagraphIndex,
       content: _parseContent(type, content),
-      xpReward: xpReward,
       vocabularyWords: vocabularyWords,
     );
   }
 
-  static InlineActivityType _parseInlineActivityType(String type) {
-    switch (type) {
-      case 'true_false':
-        return InlineActivityType.trueFalse;
-      case 'word_translation':
-        return InlineActivityType.wordTranslation;
-      case 'find_words':
-        return InlineActivityType.findWords;
-      case 'matching':
-        return InlineActivityType.matching;
-      default:
-        return InlineActivityType.trueFalse;
-    }
-  }
-
-  static String _inlineActivityTypeToString(InlineActivityType type) {
-    switch (type) {
-      case InlineActivityType.trueFalse:
-        return 'true_false';
-      case InlineActivityType.wordTranslation:
-        return 'word_translation';
-      case InlineActivityType.findWords:
-        return 'find_words';
-      case InlineActivityType.matching:
-        return 'matching';
-    }
-  }
-
-  static InlineActivityContent _parseContent(String type, Map<String, dynamic> json) {
+  static InlineActivityContent _parseContent(
+      String type, Map<String, dynamic> json,) {
     switch (type) {
       case 'true_false':
         return TrueFalseContent(
@@ -121,7 +99,7 @@ class InlineActivityModel {
                   .map((p) => ActivityMatchingPair(
                         left: p['left'] as String? ?? '',
                         right: p['right'] as String? ?? '',
-                      ))
+                      ),)
                   .toList() ??
               [],
         );
@@ -164,63 +142,5 @@ class InlineActivityModel {
               .toList(),
         };
     }
-  }
-}
-
-/// Model for InlineActivityResult entity - handles JSON serialization
-class InlineActivityResultModel {
-
-  const InlineActivityResultModel({
-    required this.activityId,
-    required this.isCorrect,
-    required this.xpEarned,
-    this.wordsLearned = const [],
-    required this.answeredAt,
-  });
-
-  factory InlineActivityResultModel.fromJson(Map<String, dynamic> json) {
-    return InlineActivityResultModel(
-      activityId: json['activity_id'] as String,
-      isCorrect: json['is_correct'] as bool? ?? false,
-      xpEarned: json['xp_earned'] as int? ?? 0,
-      wordsLearned:
-          (json['words_learned'] as List<dynamic>?)?.map((w) => w as String).toList() ?? [],
-      answeredAt: DateTime.parse(json['answered_at'] as String),
-    );
-  }
-
-  factory InlineActivityResultModel.fromEntity(InlineActivityResult entity) {
-    return InlineActivityResultModel(
-      activityId: entity.activityId,
-      isCorrect: entity.isCorrect,
-      xpEarned: entity.xpEarned,
-      wordsLearned: entity.wordsLearned,
-      answeredAt: entity.answeredAt,
-    );
-  }
-  final String activityId;
-  final bool isCorrect;
-  final int xpEarned;
-  final List<String> wordsLearned;
-  final DateTime answeredAt;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'activity_id': activityId,
-      'is_correct': isCorrect,
-      'xp_earned': xpEarned,
-      'words_learned': wordsLearned,
-      'answered_at': answeredAt.toIso8601String(),
-    };
-  }
-
-  InlineActivityResult toEntity() {
-    return InlineActivityResult(
-      activityId: activityId,
-      isCorrect: isCorrect,
-      xpEarned: xpEarned,
-      wordsLearned: wordsLearned,
-      answeredAt: answeredAt,
-    );
   }
 }

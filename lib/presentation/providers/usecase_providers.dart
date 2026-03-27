@@ -15,7 +15,6 @@ import '../../domain/usecases/activity/get_best_result_usecase.dart';
 import '../../domain/usecases/activity/complete_inline_activity_usecase.dart';
 import '../../domain/usecases/activity/get_completed_inline_activities_usecase.dart';
 import '../../domain/usecases/activity/get_inline_activities_usecase.dart';
-import '../../domain/usecases/activity/save_inline_activity_result_usecase.dart';
 import '../../domain/usecases/activity/submit_activity_result_usecase.dart';
 import '../../domain/usecases/assignment/create_assignment_usecase.dart';
 import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
@@ -303,10 +302,6 @@ final getActivityStatsUseCaseProvider = Provider((ref) {
 
 final getInlineActivitiesUseCaseProvider = Provider((ref) {
   return GetInlineActivitiesUseCase(ref.watch(bookRepositoryProvider));
-});
-
-final saveInlineActivityResultUseCaseProvider = Provider((ref) {
-  return SaveInlineActivityResultUseCase(ref.watch(bookRepositoryProvider));
 });
 
 final getCompletedInlineActivitiesUseCaseProvider = Provider((ref) {

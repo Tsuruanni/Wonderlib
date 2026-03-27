@@ -53,10 +53,12 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
       _isCorrect = widget.wasCorrect;
       _selectedAnswer = widget.wasCorrect ?? false
           ? content.correctAnswer
-          : content.options.firstWhere(
-              (o) => o != content.correctAnswer,
-              orElse: () => content.options.first,
-            );
+          : content.options.isNotEmpty
+              ? content.options.firstWhere(
+                  (o) => o != content.correctAnswer,
+                  orElse: () => content.options.first,
+                )
+              : '';
     }
   }
 

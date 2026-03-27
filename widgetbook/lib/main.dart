@@ -3,7 +3,6 @@ import 'package:widgetbook/widgetbook.dart';
 
 import 'components/book_widgets.dart';
 import 'components/common_widgets.dart';
-import 'components/activity_widgets.dart';
 import 'components/reader_widgets.dart';
 
 void main() {
@@ -26,11 +25,6 @@ class WidgetbookApp extends StatelessWidget {
         WidgetbookFolder(
           name: 'Common Widgets',
           children: commonWidgets,
-        ),
-        // Activity Widgets
-        WidgetbookFolder(
-          name: 'Activity Widgets',
-          children: activityWidgets,
         ),
         // Reader Widgets
         WidgetbookFolder(

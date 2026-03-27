@@ -399,7 +399,8 @@ class SupabaseBookRepository implements BookRepository {
           .order('after_paragraph_index', ascending: true);
 
       final activities = (response as List)
-          .map((json) => _mapToInlineActivity(json))
+          .map((json) => _mapToInlineActivity(json as Map<String, dynamic>))
+          .whereType<InlineActivity>()
           .toList();
 
       return Right(activities);
@@ -620,7 +621,7 @@ class SupabaseBookRepository implements BookRepository {
     return ReadingProgressModel.fromJson(data).toEntity();
   }
 
-  InlineActivity _mapToInlineActivity(Map<String, dynamic> data) {
-    return InlineActivityModel.fromJson(data).toEntity();
+  InlineActivity? _mapToInlineActivity(Map<String, dynamic> data) {
+    return InlineActivityModel.fromJson(data)?.toEntity();
   }
 }

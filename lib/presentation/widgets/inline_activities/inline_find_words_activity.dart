@@ -30,8 +30,7 @@ class InlineFindWordsActivity extends StatefulWidget {
   State<InlineFindWordsActivity> createState() => _InlineFindWordsActivityState();
 }
 
-class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
-    with SingleTickerProviderStateMixin {
+class _InlineFindWordsActivityState extends State<InlineFindWordsActivity> {
   final Set<String> _selectedAnswers = {};
   bool _isAnswered = false;
   bool? _isCorrect;
@@ -50,10 +49,12 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
       if (widget.wasCorrect ?? false) {
         _selectedAnswers.addAll(content.correctAnswers);
       } else {
-        _selectedAnswers.add(content.options.firstWhere(
-          (o) => !content.correctAnswers.contains(o),
-          orElse: () => content.options.first,
-        ),);
+        if (content.options.isNotEmpty) {
+          _selectedAnswers.add(content.options.firstWhere(
+            (o) => !content.correctAnswers.contains(o),
+            orElse: () => content.options.first,
+          ),);
+        }
       }
     }
   }
@@ -73,6 +74,7 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
 
   void _toggleOption(String option) {
     if (_isAnswered || widget.isCompleted) return;
+    if (requiredSelections == 0) return; // No correct answers defined
 
     setState(() {
       if (_selectedAnswers.contains(option)) {

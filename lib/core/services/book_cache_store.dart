@@ -257,11 +257,14 @@ class BookCacheStore {
       whereArgs: [chapterId],
       orderBy: 'after_paragraph_index ASC',
     );
-    return rows.map((row) {
-      final json =
-          jsonDecode(row['activity_json'] as String) as Map<String, dynamic>;
-      return InlineActivityModel.fromJson(json).toEntity();
-    }).toList();
+    return rows
+        .map((row) {
+          final json =
+              jsonDecode(row['activity_json'] as String) as Map<String, dynamic>;
+          return InlineActivityModel.fromJson(json)?.toEntity();
+        })
+        .whereType<InlineActivity>()
+        .toList();
   }
 
   /// Replace all inline activities for a chapter (delete old + batch insert).
