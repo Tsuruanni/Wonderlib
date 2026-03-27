@@ -6,40 +6,40 @@
 
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Performance | Missing `(user_id, answered_at)` index on `inline_activity_results` — sequential scan on every daily quest progress check (`get_quest_progress` RPC counts correct answers by date) | High | TODO |
-| 2 | Edge Case | `chapterInitializedProvider` never set to `true` when `_loadCompletedActivities` fails — progressive reveal and auto-play triggers break silently for the rest of the session | High | TODO |
-| 3 | Error State | DB save failure in `handleInlineActivityCompletion` silently swallowed — activity marked completed locally but server has no record, XP not awarded, no user feedback or retry option | High | TODO |
-| 4 | Dead Code | `SaveInlineActivityResultUseCase` + `saveInlineActivityResultUseCaseProvider` registered but never called — superseded by `CompleteInlineActivityUseCase` | Medium | TODO |
-| 5 | Dead Code | `InlineActivityWrapper`, `XPEarnedAnimation`, `AnswerFeedback` — entire `inline_activity_wrapper.dart` file (234 lines) unused | Medium | TODO |
-| 6 | Dead Code | `InlineActivity.xpReward` entity field populated from DB column but never read — XP always comes from `SystemSettings` via `getInlineActivityXP()` | Medium | TODO |
-| 7 | Dead Code | Widgetbook `activity_widgets.dart` imports non-existent path `lib/presentation/widgets/activities/` — build break | Medium | TODO |
-| 8 | Data Integrity | `inline_activity_results.words_learned` column never populated — app tracks words in session state and vocabulary_progress but never writes to this column | Medium | TODO |
+| 1 | Performance | Missing `(user_id, answered_at)` index on `inline_activity_results` — sequential scan on every daily quest progress check (`get_quest_progress` RPC counts correct answers by date) | High | Fixed |
+| 2 | Edge Case | `chapterInitializedProvider` never set to `true` when `_loadCompletedActivities` fails — progressive reveal and auto-play triggers break silently for the rest of the session | High | Fixed |
+| 3 | Error State | DB save failure in `handleInlineActivityCompletion` silently swallowed — activity marked completed locally but server has no record, XP not awarded, no user feedback or retry option | High | Fixed |
+| 4 | Dead Code | `SaveInlineActivityResultUseCase` + `saveInlineActivityResultUseCaseProvider` registered but never called — superseded by `CompleteInlineActivityUseCase` | Medium | Fixed |
+| 5 | Dead Code | `InlineActivityWrapper`, `XPEarnedAnimation`, `AnswerFeedback` — entire `inline_activity_wrapper.dart` file (234 lines) unused | Medium | Fixed |
+| 6 | Dead Code | `InlineActivity.xpReward` entity field populated from DB column but never read — XP always comes from `SystemSettings` via `getInlineActivityXP()` | Medium | Fixed |
+| 7 | Dead Code | Widgetbook `activity_widgets.dart` imports non-existent path `lib/presentation/widgets/activities/` — build break | Medium | Fixed |
+| 8 | Data Integrity | `inline_activity_results.words_learned` column never populated — app tracks words in session state and vocabulary_progress but never writes to this column | Medium | Fixed |
 | 9 | Architecture | Two parallel rendering paths for inline activities — `ReaderContentBlockList` (content-blocks) and `ReaderLegacyContent` (legacy paragraph-interleave) — both maintained independently | Medium | Accepted |
-| 10 | Code Quality | `InlineActivityModel._parseInlineActivityType` / `_inlineActivityTypeToString` duplicate logic already on `InlineActivityType.fromDbValue()` / `.dbValue` from owlio_shared | Medium | TODO |
-| 11 | UX Gap | `InlineFindWordsActivity` missing `InlineActivitySoundMixin` — no sound feedback on answer, while the other 3 types all play sounds | Medium | TODO |
-| 12 | Edge Case | Unknown activity `type` string silently becomes empty true/false card — `_parseInlineActivityType` defaults to `trueFalse` with empty statement and `correctAnswer: true` | Medium | TODO |
-| 13 | Loading | Activity blocks show transient "Failed to load activity" error card while `inlineActivitiesAsync` still loading (resolved on rebuild) | Medium | TODO |
-| 14 | Edge Case | Duplicate `right` values in matching pairs make activity unsolvable — `_matchedPairs.containsValue(right)` disables second identical value immediately | Medium | TODO |
-| 15 | Data Integrity | Vocabulary word ID validity not validated — invalid IDs in `vocabulary_words` JSONB cause silent FK violation, `vocabResult.fold((_) => 0, ...)` swallows error | Medium | TODO |
-| 16 | Performance | `getCompletedInlineActivities` makes 2 sequential Supabase round trips (fetch activity IDs, then filter results) — could be single query | Low | TODO |
-| 17 | Dead Code | `InlineActivityResult` entity and `InlineActivityResultModel.fromJson` / `toEntity` never constructed from DB — repository returns `bool` only | Low | TODO |
-| 18 | Dead Code | `SingleTickerProviderStateMixin` on `InlineFindWordsActivity` — no `AnimationController` used | Low | TODO |
+| 10 | Code Quality | `InlineActivityModel._parseInlineActivityType` / `_inlineActivityTypeToString` duplicate logic already on `InlineActivityType.fromDbValue()` / `.dbValue` from owlio_shared | Medium | Fixed |
+| 11 | UX Gap | `InlineFindWordsActivity` missing `InlineActivitySoundMixin` — no sound feedback on answer, while the other 3 types all play sounds | Medium | Fixed |
+| 12 | Edge Case | Unknown activity `type` string silently becomes empty true/false card — `_parseInlineActivityType` defaults to `trueFalse` with empty statement and `correctAnswer: true` | Medium | Fixed |
+| 13 | Loading | Activity blocks show transient "Failed to load activity" error card while `inlineActivitiesAsync` still loading (resolved on rebuild) | Medium | Fixed |
+| 14 | Edge Case | Duplicate `right` values in matching pairs make activity unsolvable — `_matchedPairs.containsValue(right)` disables second identical value immediately | Medium | Fixed |
+| 15 | Data Integrity | Vocabulary word ID validity not validated — invalid IDs in `vocabulary_words` JSONB cause silent FK violation, `vocabResult.fold((_) => 0, ...)` swallows error | Medium | Fixed |
+| 16 | Performance | `getCompletedInlineActivities` makes 2 sequential Supabase round trips (fetch activity IDs, then filter results) — could be single query | Low | Deferred |
+| 17 | Dead Code | `InlineActivityResult` entity and `InlineActivityResultModel.fromJson` / `toEntity` never constructed from DB — repository returns `bool` only | Low | Fixed |
+| 18 | Dead Code | `SingleTickerProviderStateMixin` on `InlineFindWordsActivity` — no `AnimationController` used | Low | Fixed |
 | 19 | Code Quality | `handleInlineActivityCompletion` is a 93-line top-level free function taking `WidgetRef` in provider file — business logic in presentation layer | Low | Accepted |
-| 20 | Data Fidelity | Previously-incorrect activities displayed as "correct" on chapter re-open — `loadFromList` sets all completed activities to `wasCorrect = true` | Low | TODO |
-| 21 | Edge Case | `options.first` crash if options is empty on already-completed wrong activities in `word_translation` and `find_words` | Low | TODO |
-| 22 | Edge Case | Zero-length `correctAnswers` in `find_words` causes immediate auto-submit (selection count 0 == required 0) | Low | TODO |
-| 23 | UX | Chapter completion widget flashes briefly before `inlineActivitiesAsync` resolves — `totalActivitiesProvider` transiently reads 0 | Low | TODO |
-| 24 | Offline | Cold-cache offline open: `getCompletedInlineActivities` cache miss falls to network, fails, `chapterInitializedProvider` never set — all activities appear uncompleted | Low | TODO |
-| 25 | Code Quality | Admin activity editor has Turkish button labels (`'Iptal'`, `'Kaydet'`) — violates CLAUDE.md "UI in English" rule | Low | TODO |
+| 20 | Data Fidelity | Previously-incorrect activities displayed as "correct" on chapter re-open — `loadFromList` sets all completed activities to `wasCorrect = true` | Low | Fixed |
+| 21 | Edge Case | `options.first` crash if options is empty on already-completed wrong activities in `word_translation` and `find_words` | Low | Fixed |
+| 22 | Edge Case | Zero-length `correctAnswers` in `find_words` causes immediate auto-submit (selection count 0 == required 0) | Low | Fixed |
+| 23 | UX | Chapter completion widget flashes briefly before `inlineActivitiesAsync` resolves — `totalActivitiesProvider` transiently reads 0 | Low | Fixed |
+| 24 | Offline | Cold-cache offline open: `getCompletedInlineActivities` cache miss falls to network, fails, `chapterInitializedProvider` never set — all activities appear uncompleted | Low | Fixed |
+| 25 | Code Quality | Admin activity editor has Turkish button labels (`'Iptal'`, `'Kaydet'`) — violates CLAUDE.md "UI in English" rule | Low | Fixed |
 
 ### Checklist Result
 
 - **Architecture Compliance**: PASS — Clean architecture fully respected. Screen -> Provider -> UseCase -> Repository chain intact. No JSON in entities. `DbTables.inlineActivities` / `DbTables.inlineActivityResults` used throughout. `InlineActivityType` enum from owlio_shared. One accepted deviation: `handleInlineActivityCompletion` as free function (#19).
-- **Code Quality**: 3 issues (#10, #19, #25) — redundant enum parsing in model, orchestration function in presentation layer, Turkish admin labels
-- **Dead Code**: 6 issues (#4, #5, #6, #7, #17, #18) — unused use case, unused wrapper file, unused entity field, broken widgetbook imports, unused model methods, unused mixin
-- **Database & Security**: PASS — RLS policies correct (student INSERT with `user_id = auth.uid()`, school-scoped teacher SELECT, no UPDATE/DELETE for students). UNIQUE constraint on `(user_id, inline_activity_id)` prevents double-submit. Cascade deletes correct on both `chapter_id` and `inline_activity_id`. One data integrity gap: `words_learned` column unpopulated (#8).
-- **Edge Cases & UX**: 6 issues (#2, #12, #13, #14, #21, #22) — initialization failure, unknown type fallback, loading flicker, matching edge case, empty options crash, zero-length auto-submit
-- **Performance**: 2 issues (#1, #16) — missing index for daily quest query, double round trip for completed activities
+- **Code Quality**: PASS — All issues fixed (#10 shared enum, #25 English labels). #19 accepted (locality of behavior).
+- **Dead Code**: PASS — All removed (#4, #5, #6, #7, #17, #18).
+- **Database & Security**: PASS — `words_learned` now populated (#8). Index added (#1). All other checks pass.
+- **Edge Cases & UX**: PASS — All fixed (#2, #12, #13, #14, #21, #22, #23, #24).
+- **Performance**: 1 issue deferred (#16 double round trip — acceptable for typical chapter size). #1 index added.
 - **Cross-System Integrity**: PASS — XP via `userControllerProvider.addXP()` with source/sourceId (triple idempotency: local dedup + DB UNIQUE + xp_logs). Badge check via `addXP`. Daily quest invalidated. Streak not updated (correct — app-open only). Assignment progress not updated (correct — chapter-level tracking). Vocabulary integration via `addWordsToVocabularyBatch`.
 
 ---
@@ -54,8 +54,8 @@ Inline Activities are micro-learning games embedded within book chapters. They a
 
 | Table | Key Columns | Purpose |
 |-------|-------------|---------|
-| `inline_activities` | id, chapter_id (FK CASCADE), type (CHECK: true_false/word_translation/find_words/matching), after_paragraph_index, content (JSONB), xp_reward (unused — see #6), vocabulary_words (JSONB array of word IDs) | Activity definitions |
-| `inline_activity_results` | id, user_id (FK), inline_activity_id (FK CASCADE), is_correct, xp_earned, words_learned (TEXT[] — unpopulated, see #8), answered_at | Student answers. UNIQUE(user_id, inline_activity_id) enforces one attempt per student. |
+| `inline_activities` | id, chapter_id (FK CASCADE), type (CHECK: true_false/word_translation/find_words/matching), after_paragraph_index, content (JSONB), xp_reward (DB column exists but XP comes from SystemSettings), vocabulary_words (JSONB array of word IDs) | Activity definitions |
+| `inline_activity_results` | id, user_id (FK), inline_activity_id (FK CASCADE), is_correct, xp_earned, words_learned (TEXT[]), answered_at | Student answers. UNIQUE(user_id, inline_activity_id) enforces one attempt per student. Indexed on (user_id, answered_at) for quest queries. |
 | `content_blocks` | activity_id (FK SET NULL to inline_activities) | Links content block to an inline activity in the content-blocks rendering path |
 
 ### Content JSONB Structure per Type
