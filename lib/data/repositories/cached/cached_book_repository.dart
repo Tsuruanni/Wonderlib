@@ -442,6 +442,8 @@ class CachedBookRepository implements BookRepository {
           'user_id': userId,
           'book_id': bookId,
           'chapter_id': chapterId,
+          'source': 'chapter_complete',
+          'source_id': chapterId,
         },
         bookId: bookId,
       );
