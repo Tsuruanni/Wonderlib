@@ -18,13 +18,6 @@ class BookQuizProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate progress (0.0 to 1.0)
-    // We base progress on currentIndex + 1, so it fills up as you go.
-    // Or we can base it on actual answered count.
-    // Let's stick to "current position" for visual continuity,
-    // or arguably "answered count" is better.
-    // The previous implementation used answeredIndices.length.
-    // Let's use (currentIndex + 1) / totalQuestions to show "how far along" we are in the flow.
     final double progress = totalQuestions > 0
         ? (currentIndex + 1) / totalQuestions
         : 0.0;

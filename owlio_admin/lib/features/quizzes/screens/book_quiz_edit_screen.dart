@@ -234,19 +234,18 @@ class _BookQuizEditScreenState extends ConsumerState<BookQuizEditScreen> {
   }
 
   String _getQuestionTypeLabel(String type) {
-    switch (type) {
-      case 'multiple_choice':
+    final questionType = BookQuizQuestionType.fromDbValue(type);
+    switch (questionType) {
+      case BookQuizQuestionType.multipleChoice:
         return 'Multiple Choice';
-      case 'fill_blank':
+      case BookQuizQuestionType.fillBlank:
         return 'Fill in the Blank';
-      case 'event_sequencing':
+      case BookQuizQuestionType.eventSequencing:
         return 'Event Sequencing';
-      case 'matching':
+      case BookQuizQuestionType.matching:
         return 'Matching';
-      case 'who_says_what':
+      case BookQuizQuestionType.whoSaysWhat:
         return 'Who Says What';
-      default:
-        return type;
     }
   }
 

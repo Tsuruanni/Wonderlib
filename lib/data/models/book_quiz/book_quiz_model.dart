@@ -34,6 +34,23 @@ class BookQuizModel {
     );
   }
 
+  factory BookQuizModel.fromEntity(BookQuiz entity) {
+    return BookQuizModel(
+      id: entity.id,
+      bookId: entity.bookId,
+      title: entity.title,
+      instructions: entity.instructions,
+      passingScore: entity.passingScore,
+      totalPoints: entity.totalPoints,
+      isPublished: entity.isPublished,
+      questions: entity.questions
+          .map((q) => BookQuizQuestionModel.fromEntity(q))
+          .toList(),
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+    );
+  }
+
   final String id;
   final String bookId;
   final String title;
@@ -98,6 +115,19 @@ class BookQuizQuestionModel {
       content: json['content'] as Map<String, dynamic>? ?? {},
       explanation: json['explanation'] as String?,
       points: json['points'] as int? ?? 1,
+    );
+  }
+
+  factory BookQuizQuestionModel.fromEntity(BookQuizQuestion entity) {
+    return BookQuizQuestionModel(
+      id: entity.id,
+      quizId: entity.quizId,
+      type: entity.type.dbValue,
+      orderIndex: entity.orderIndex,
+      question: entity.question,
+      content: _contentToJson(entity.type, entity.content),
+      explanation: entity.explanation,
+      points: entity.points,
     );
   }
 
@@ -221,4 +251,57 @@ class BookQuizQuestionModel {
     return result;
   }
 
+  // ============================================
+  // ENTITY → JSON (used by offline cache)
+  // ============================================
+
+  static Map<String, dynamic> _contentToJson(
+    BookQuizQuestionType type,
+    BookQuizQuestionContent content,
+  ) {
+    switch (type) {
+      case BookQuizQuestionType.multipleChoice:
+        final mc = content as MultipleChoiceContent;
+        return {
+          'options': mc.options,
+          'correct_answer': mc.correctAnswer,
+        };
+
+      case BookQuizQuestionType.fillBlank:
+        final fb = content as FillBlankContent;
+        return {
+          'sentence': fb.sentence,
+          'correct_answer': fb.correctAnswer,
+          'accept_alternatives': fb.acceptAlternatives,
+        };
+
+      case BookQuizQuestionType.eventSequencing:
+        final es = content as EventSequencingContent;
+        return {
+          'events': es.events,
+          'correct_order': es.correctOrder,
+        };
+
+      case BookQuizQuestionType.matching:
+        final m = content as QuizMatchingContent;
+        return {
+          'left': m.leftItems,
+          'right': m.rightItems,
+          'correct_pairs': _pairsToJson(m.correctPairs),
+        };
+
+      case BookQuizQuestionType.whoSaysWhat:
+        final wsw = content as WhoSaysWhatContent;
+        return {
+          'characters': wsw.characters,
+          'quotes': wsw.quotes,
+          'correct_pairs': _pairsToJson(wsw.correctPairs),
+        };
+    }
+  }
+
+  /// Convert `Map<int,int>` pairs to JSON format `{"0":"1","1":"0"}`
+  static Map<String, String> _pairsToJson(Map<int, int> pairs) {
+    return pairs.map((k, v) => MapEntry(k.toString(), v.toString()));
+  }
 }
