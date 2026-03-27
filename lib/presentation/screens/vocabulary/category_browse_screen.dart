@@ -149,7 +149,7 @@ class _WordListCard extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
-                        value: progress!.progressPercentage,
+                        value: (progress!.bestAccuracy ?? 0) / 100.0,
                         minHeight: 8,
                         backgroundColor: AppColors.neutral,
                         valueColor: AlwaysStoppedAnimation<Color>(

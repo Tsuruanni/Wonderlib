@@ -378,7 +378,10 @@ class WordListWithProgress {
   final WordList wordList;
   final UserWordListProgress? progress;
 
-  double get progressPercentage => progress?.progressPercentage ?? 0.0;
+  double get progressPercentage {
+    if (progress == null || !progress!.isComplete) return 0.0;
+    return (progress!.bestAccuracy ?? 0) / 100.0;
+  }
   bool get isStarted => progress != null;
   bool get isComplete => progress?.isComplete ?? false;
   int get starCount => progress?.starCount ?? 0;

@@ -205,7 +205,7 @@ class _WordListTile extends StatelessWidget {
                    alignment: Alignment.center,
                    children: [
                       CircularProgressIndicator(
-                         value: progress!.progressPercentage,
+                         value: (progress!.bestAccuracy ?? 0) / 100.0,
                          color: AppColors.primary,
                          backgroundColor: AppColors.neutral,
                          strokeWidth: 5,

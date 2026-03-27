@@ -242,7 +242,7 @@ class _ListHeader extends StatelessWidget {
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
-                        value: progress!.progressPercentage,
+                        value: (progress!.bestAccuracy ?? 0) / 100.0,
                         minHeight: 12,
                         backgroundColor: Colors.white.withValues(alpha: 0.3),
                         valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
