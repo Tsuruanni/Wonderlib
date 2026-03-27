@@ -97,13 +97,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         completedInlineActivitiesProvider(widget.chapterId).future,
       );
 
-      // Check if still mounted after async operation
       if (!mounted) return;
 
-      ref.read(inlineActivityStateProvider.notifier).loadFromList(completedResult);
-      ref.read(chapterInitializedProvider.notifier).state = true;
+      ref.read(inlineActivityStateProvider.notifier).loadFromMap(completedResult);
     } catch (_) {
-      // Widget might be disposed, ignore
+      // Network/disposed error — proceed with empty completed list
+    } finally {
+      if (mounted) {
+        ref.read(chapterInitializedProvider.notifier).state = true;
+      }
     }
   }
 

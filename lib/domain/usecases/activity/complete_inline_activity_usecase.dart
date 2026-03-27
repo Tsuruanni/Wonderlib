@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../repositories/book_repository.dart';
@@ -57,6 +58,7 @@ class CompleteInlineActivityUseCase
       activityId: params.activityId,
       isCorrect: params.isCorrect,
       xpEarned: params.xpEarned,
+      wordsLearned: params.wordsLearned,
     );
 
     return saveResult.fold(
@@ -73,7 +75,10 @@ class CompleteInlineActivityUseCase
           );
 
           wordsAdded = vocabResult.fold(
-            (_) => 0,
+            (failure) {
+              debugPrint('⚠️ Failed to add vocabulary words: $failure');
+              return 0;
+            },
             (progressList) => progressList.length,
           );
         }

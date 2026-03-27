@@ -58,6 +58,19 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
     }
   }
 
+  @override
+  void didUpdateWidget(covariant InlineFindWordsActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isCompleted && !widget.isCompleted) {
+      setState(() {
+        _isAnswered = false;
+        _isCorrect = null;
+        _selectedAnswers.clear();
+        _showXPAnimation = false;
+      });
+    }
+  }
+
   void _toggleOption(String option) {
     if (_isAnswered || widget.isCompleted) return;
 

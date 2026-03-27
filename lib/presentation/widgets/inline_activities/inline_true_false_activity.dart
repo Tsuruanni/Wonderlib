@@ -57,6 +57,19 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
   }
 
   @override
+  void didUpdateWidget(covariant InlineTrueFalseActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isCompleted && !widget.isCompleted) {
+      setState(() {
+        _isAnswered = false;
+        _isCorrect = null;
+        _selectedAnswer = null;
+        _showXPAnimation = false;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     disposeSoundPlayer();
     super.dispose();

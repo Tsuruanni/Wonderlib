@@ -416,22 +416,22 @@ class SupabaseBookRepository implements BookRepository {
     required String activityId,
     required bool isCorrect,
     required int xpEarned,
+    List<String> wordsLearned = const [],
   }) async {
     try {
-      // Optimistic insert - let DB UNIQUE constraint handle duplicates
       await _supabase.from(DbTables.inlineActivityResults).insert({
         'user_id': userId,
         'inline_activity_id': activityId,
         'is_correct': isCorrect,
         'xp_earned': xpEarned,
         'answered_at': DateTime.now().toIso8601String(),
+        'words_learned': wordsLearned,
       });
 
-      return const Right(true); // New completion - XP can be awarded
+      return const Right(true);
     } on PostgrestException catch (e) {
-      // 23505 = unique_violation (already completed)
       if (e.code == '23505') {
-        return const Right(false); // Already completed - no XP should be awarded
+        return const Right(false);
       }
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -440,12 +440,11 @@ class SupabaseBookRepository implements BookRepository {
   }
 
   @override
-  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+  Future<Either<Failure, Map<String, bool>>> getCompletedInlineActivities({
     required String userId,
     required String chapterId,
   }) async {
     try {
-      // Get activity IDs for this chapter
       final activitiesResponse = await _supabase
           .from(DbTables.inlineActivities)
           .select('id')
@@ -456,21 +455,21 @@ class SupabaseBookRepository implements BookRepository {
           .toList();
 
       if (activityIds.isEmpty) {
-        return const Right([]);
+        return const Right({});
       }
 
-      // Get completed activities for this user
       final resultsResponse = await _supabase
           .from(DbTables.inlineActivityResults)
-          .select('inline_activity_id')
+          .select('inline_activity_id, is_correct')
           .eq('user_id', userId)
           .inFilter('inline_activity_id', activityIds);
 
-      final completedIds = (resultsResponse as List)
-          .map((r) => r['inline_activity_id'] as String)
-          .toList();
+      final completedMap = <String, bool>{};
+      for (final r in resultsResponse as List) {
+        completedMap[r['inline_activity_id'] as String] = r['is_correct'] as bool? ?? true;
+      }
 
-      return Right(completedIds);
+      return Right(completedMap);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

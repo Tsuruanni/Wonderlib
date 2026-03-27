@@ -181,7 +181,7 @@ class CachedBookRepository implements BookRepository {
   }
 
   @override
-  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+  Future<Either<Failure, Map<String, bool>>> getCompletedInlineActivities({
     required String userId,
     required String chapterId,
   }) async {
@@ -191,22 +191,23 @@ class CachedBookRepository implements BookRepository {
         userId: userId,
         chapterId: chapterId,
       );
-      if (cached.isNotEmpty) return Right(cached);
+      if (cached.isNotEmpty) {
+        // Cache only returns IDs, not correctness — assume true for cached
+        return Right({for (final id in cached) id: true});
+      }
     } catch (_) {
       // Cache read failed — fall through to remote.
     }
 
     // 2. Try remote
     if (!await _networkInfo.isConnected) {
-      return const Left(NetworkFailure());
+      // Graceful degradation: return empty map instead of error
+      return const Right({});
     }
     final result = await _remoteRepo.getCompletedInlineActivities(
       userId: userId,
       chapterId: chapterId,
     );
-
-    // Note: Individual results are cached via saveInlineActivityResult,
-    // not bulk-saved here, because the remote returns only IDs.
 
     return result;
   }
@@ -299,6 +300,7 @@ class CachedBookRepository implements BookRepository {
     required String activityId,
     required bool isCorrect,
     required int xpEarned,
+    List<String> wordsLearned = const [],
   }) async {
     final online = await _networkInfo.isConnected;
 
@@ -308,6 +310,7 @@ class CachedBookRepository implements BookRepository {
         activityId: activityId,
         isCorrect: isCorrect,
         xpEarned: xpEarned,
+        wordsLearned: wordsLearned,
       );
       // Cache the result on success
       result.fold((_) {}, (_) async {

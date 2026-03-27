@@ -195,12 +195,12 @@ class InlineActivityStateNotifier extends StateNotifier<Map<String, bool>> {
     state = {...state, activityId: isCorrect};
   }
 
-  void loadFromList(List<String> completedIds) {
-    final newState = <String, bool>{};
-    for (final id in completedIds) {
-      newState[id] = true; // We don't know if it was correct, assume true
-    }
-    state = newState;
+  void loadFromMap(Map<String, bool> completedActivities) {
+    state = Map.from(completedActivities);
+  }
+
+  void removeCompleted(String activityId) {
+    state = Map.from(state)..remove(activityId);
   }
 
   bool isCompleted(String activityId) {
@@ -224,9 +224,9 @@ final inlineActivityStateProvider =
 
 /// Loads completed inline activities for a chapter from database
 final completedInlineActivitiesProvider =
-    FutureProvider.autoDispose.family<List<String>, String>((ref, chapterId) async {
+    FutureProvider.autoDispose.family<Map<String, bool>, String>((ref, chapterId) async {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
+  if (userId == null) return {};
 
   final useCase = ref.watch(getCompletedInlineActivitiesUseCaseProvider);
   final result = await useCase(GetCompletedInlineActivitiesParams(
@@ -235,8 +235,8 @@ final completedInlineActivitiesProvider =
   ),);
 
   return result.fold(
-    (failure) => [],
-    (ids) => ids,
+    (failure) => {},
+    (completedMap) => completedMap,
   );
 });
 
@@ -399,7 +399,12 @@ Future<void> _handleInlineActivityCompletionImpl(
   );
 
   final completionResult = result.fold(
-    (failure) => null,
+    (failure) {
+      // Rollback local state — widget rebuilds to unanswered state
+      ref.read(inlineActivityStateProvider.notifier).removeCompleted(activityId);
+      debugPrint('⚠️ Activity $activityId save failed: $failure');
+      return null;
+    },
     (r) => r,
   );
 

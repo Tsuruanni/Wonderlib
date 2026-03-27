@@ -15,13 +15,13 @@ class GetCompletedInlineActivitiesParams {
 }
 
 class GetCompletedInlineActivitiesUseCase
-    implements UseCase<List<String>, GetCompletedInlineActivitiesParams> {
+    implements UseCase<Map<String, bool>, GetCompletedInlineActivitiesParams> {
 
   const GetCompletedInlineActivitiesUseCase(this._repository);
   final BookRepository _repository;
 
   @override
-  Future<Either<Failure, List<String>>> call(GetCompletedInlineActivitiesParams params) {
+  Future<Either<Failure, Map<String, bool>>> call(GetCompletedInlineActivitiesParams params) {
     return _repository.getCompletedInlineActivities(
       userId: params.userId,
       chapterId: params.chapterId,

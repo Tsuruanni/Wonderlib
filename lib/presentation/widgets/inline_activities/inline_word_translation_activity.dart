@@ -61,6 +61,19 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
   }
 
   @override
+  void didUpdateWidget(covariant InlineWordTranslationActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isCompleted && !widget.isCompleted) {
+      setState(() {
+        _isAnswered = false;
+        _isCorrect = null;
+        _selectedAnswer = null;
+        _showXPAnimation = false;
+      });
+    }
+  }
+
+  @override
   void dispose() {
     disposeSoundPlayer();
     super.dispose();

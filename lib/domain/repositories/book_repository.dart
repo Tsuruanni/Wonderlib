@@ -60,9 +60,11 @@ abstract class BookRepository {
     required String activityId,
     required bool isCorrect,
     required int xpEarned,
+    List<String> wordsLearned = const [],
   });
 
-  Future<Either<Failure, List<String>>> getCompletedInlineActivities({
+  /// Returns map of activityId → isCorrect for completed activities in this chapter.
+  Future<Either<Failure, Map<String, bool>>> getCompletedInlineActivities({
     required String userId,
     required String chapterId,
   });

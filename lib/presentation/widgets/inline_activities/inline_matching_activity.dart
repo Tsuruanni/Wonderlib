@@ -81,6 +81,26 @@ class _InlineMatchingActivityState extends State<InlineMatchingActivity>
   }
 
   @override
+  void didUpdateWidget(covariant InlineMatchingActivity oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isCompleted && !widget.isCompleted) {
+      setState(() {
+        _isFinished = false;
+        _isCorrect = null;
+        _matchedPairs.clear();
+        _selectedLeft = null;
+        _selectedRight = null;
+        _wrongLeft = null;
+        _wrongRight = null;
+        _mistakeCount = 0;
+        _showXPAnimation = false;
+        _shuffledRightItems = content.pairs.map((p) => p.right).toList()
+          ..shuffle(Random());
+      });
+    }
+  }
+
+  @override
   void dispose() {
     disposeSoundPlayer();
     super.dispose();
