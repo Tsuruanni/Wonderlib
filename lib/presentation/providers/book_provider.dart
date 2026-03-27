@@ -69,7 +69,7 @@ final booksProvider = FutureProvider.family<List<Book>, BookFilters?>((ref, filt
     pageSize: filters?.pageSize ?? 20,
   ),);
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (books) => books,
   );
 });
@@ -79,7 +79,7 @@ final bookByIdProvider = FutureProvider.family<Book?, String>((ref, id) async {
   final useCase = ref.watch(getBookByIdUseCaseProvider);
   final result = await useCase(GetBookByIdParams(bookId: id));
   return result.fold(
-    (failure) => null,
+    (failure) => throw Exception(failure.message),
     (book) => book,
   );
 });
@@ -90,7 +90,7 @@ final bookSearchProvider = FutureProvider.family<List<Book>, String>((ref, query
   final useCase = ref.watch(searchBooksUseCaseProvider);
   final result = await useCase(SearchBooksParams(query: query));
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (books) => books,
   );
 });
@@ -103,7 +103,7 @@ final recommendedBooksProvider = FutureProvider<List<Book>>((ref) async {
   final useCase = ref.watch(getRecommendedBooksUseCaseProvider);
   final result = await useCase(GetRecommendedBooksParams(userId: userId));
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (books) => books,
   );
 });
@@ -116,7 +116,7 @@ final continueReadingProvider = FutureProvider<List<Book>>((ref) async {
   final useCase = ref.watch(getContinueReadingUseCaseProvider);
   final result = await useCase(GetContinueReadingParams(userId: userId));
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (books) => books,
   );
 });
@@ -126,7 +126,7 @@ final chaptersProvider = FutureProvider.family<List<Chapter>, String>((ref, book
   final useCase = ref.watch(getChaptersUseCaseProvider);
   final result = await useCase(GetChaptersParams(bookId: bookId));
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (chapters) => chapters,
   );
 });
@@ -150,7 +150,7 @@ final readingProgressProvider = FutureProvider.family<ReadingProgress?, String>(
     bookId: bookId,
   ),);
   return result.fold(
-    (failure) => null,
+    (failure) => throw Exception(failure.message),
     (progress) => progress,
   );
 });
@@ -163,7 +163,7 @@ final completedBookIdsProvider = FutureProvider<Set<String>>((ref) async {
   final useCase = ref.watch(getCompletedBookIdsUseCaseProvider);
   final result = await useCase(GetCompletedBookIdsParams(userId: userId));
   return result.fold(
-    (failure) => {},
+    (failure) => throw Exception(failure.message),
     (bookIds) => bookIds,
   );
 });
@@ -472,7 +472,7 @@ final hasReadTodayProvider = FutureProvider<bool>((ref) async {
   final useCase = ref.watch(checkReadTodayUseCaseProvider);
   final result = await useCase(CheckReadTodayParams(userId: userId));
   return result.fold(
-    (failure) => false,
+    (failure) => throw Exception(failure.message),
     (hasRead) => hasRead,
   );
 });

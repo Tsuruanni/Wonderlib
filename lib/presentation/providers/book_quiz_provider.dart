@@ -20,7 +20,7 @@ final bookHasQuizProvider =
     FutureProvider.family<bool, String>((ref, bookId) async {
   final useCase = ref.watch(bookHasQuizUseCaseProvider);
   final result = await useCase(BookHasQuizParams(bookId: bookId));
-  return result.fold((_) => false, (hasQuiz) => hasQuiz);
+  return result.fold((failure) => throw Exception(failure.message), (hasQuiz) => hasQuiz);
 });
 
 /// The quiz for a book (with all questions)
@@ -28,7 +28,7 @@ final bookQuizProvider =
     FutureProvider.family<BookQuiz?, String>((ref, bookId) async {
   final useCase = ref.watch(getQuizForBookUseCaseProvider);
   final result = await useCase(GetQuizForBookParams(bookId: bookId));
-  return result.fold((_) => null, (quiz) => quiz);
+  return result.fold((failure) => throw Exception(failure.message), (quiz) => quiz);
 });
 
 /// User's best quiz result for a book
@@ -41,7 +41,7 @@ final bestQuizResultProvider =
   final result = await useCase(
     GetBestQuizResultParams(userId: userId, bookId: bookId),
   );
-  return result.fold((_) => null, (result) => result);
+  return result.fold((failure) => throw Exception(failure.message), (result) => result);
 });
 
 /// Whether a book is in "quiz ready" state (all chapters read, quiz exists, not passed)
@@ -67,7 +67,7 @@ final studentQuizResultsProvider =
   final result = await useCase(
     GetStudentQuizResultsParams(studentId: studentId),
   );
-  return result.fold((_) => [], (results) => results);
+  return result.fold((failure) => throw Exception(failure.message), (results) => results);
 });
 
 /// Quiz submission controller
