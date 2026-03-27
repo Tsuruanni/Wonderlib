@@ -8,6 +8,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Book System Audit & Integrity Fixes (2026-03-27)
+
+#### Fixed
+- **XP idempotency** — All XP awards (chapter, book, quiz, inline activity) now pass `source`/`source_id` to `award_xp_transaction` RPC. DB-level dedup prevents duplicate XP via partial unique index on `xp_logs(user_id, source, source_id)`. Quiz retakes no longer award repeated XP.
+- **reading_progress RLS** — Replaced `FOR ALL` policy with granular SELECT/INSERT/UPDATE. Students can no longer delete their own reading progress via direct API access.
+- **Error propagation** — All book FutureProviders now throw on failure instead of silently returning empty data. Screens show `ErrorStateWidget` with retry button.
+- **hasReadToday timezone** — Switched from `reading_progress.updated_at` (UTC mismatch) to `daily_chapter_reads.read_date` (DATE column, timezone-safe).
+- **Admin Turkish text** — Translated ~49 Turkish strings to English across 3 admin book screens. Fixed `_getLevelColor` to use CEFR values (A1-C2) instead of never-matching beginner/intermediate/advanced.
+
+#### Changed
+- **Book completion logic consolidated** — New `HandleBookCompletionUseCase` is the single source of truth for "is this book complete?" (replaces duplicated logic in `markChapterComplete` and `_handleQuizPassed`).
+- **Quiz grading extracted** — New `GradeBookQuizUseCase` moves grading from `BookQuizScreen` widget to domain layer.
+- **Inline activity extracted** — New `CompleteInlineActivityUseCase` replaces the 90-line free function with proper domain/presentation separation.
+- **Book download abstracted** — New `DownloadBookUseCase` and `RemoveBookDownloadUseCase` with `BookDownloadRepository` interface.
+- **Chapter lock logic** — Moved from widget build method to `chaptersWithLockStatusProvider`.
+- **Book access** — Typed getters (`assignment.hasLibraryLock`, `assignment.lockedBookId`) replace dynamic map access.
+- **Book author field** — Added `author` to Book entity/model, replacing `metadata['author']` workaround.
+- **ActivityStats entity** — Replaced `Map<String, dynamic>` with typed `ActivityStats` entity.
+- **Library screen** — `_BookShelfItem`/`_LibraryShelf` converted to `ConsumerWidget`, `Image.network` replaced with `CachedBookImage`, category filter auto-resets via `autoDispose`.
+
+#### Removed
+- **Dead code** — 253 lines removed: 3 unused UseCases, 2 unused providers, `ReadingController`, orphaned library providers, `getContentBlockById` method chain.
+- **Duplicate code** — Removed duplicate enum parsing (`_parseBookStatus`, `_parseBlockType`), hard-coded `'published'` strings, triplicated chapter completion try/catch.
+
+#### Infrastructure
+- **1 DB migration** (20260328000001) — reading_progress RLS policy split.
+- **5 new UseCases** — HandleBookCompletion, GradeBookQuiz, CompleteInlineActivity, DownloadBook, RemoveBookDownload.
+- **1 new repository** — BookDownloadRepository (interface + implementation).
+- **1 new entity** — ActivityStats.
+- **autoDispose** — Added to 12 FutureProvider.family providers to prevent memory accumulation.
+- **Feature spec** — `docs/specs/01-book-system.md` documents the full Book System (37/38 findings resolved).
+
 ### Student Class Change Assignment Sync (2026-03-27)
 
 #### Added

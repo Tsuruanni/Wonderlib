@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-27 (Student class change assignment sync)
+Son güncelleme: 2026-03-27 (Book System audit & integrity fixes)
 
 ## Current Phase
 
@@ -115,6 +115,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Class Grade Enforcement (NOT NULL + CHECK(1-12), required grade on create/edit)
 - [x] Assignment Notification System (in-app dialog on app open, direct detail navigation, admin toggle, gradient style)
 - [x] Student Class Change Assignment Sync (DB trigger, withdrawn status, unit progress backfill, stats RPC updates)
+- [x] Book System Audit & Integrity Fixes (38-finding audit, XP idempotency, RLS fix, 5 new UseCases, dead code removal, admin English)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -174,11 +175,15 @@ See: CLAUDE.md for architecture guidelines
 | ~~N+1 in assignmentSyncProvider~~ | ~~Low~~ | ✅ Debounced with 60s keepAlive, server-side progress calc |
 | ~~`canStartWordListProvider` N+1~~ | ~~Medium~~ | ~~Per-list progress query still fires from PathRow. Batch data available but not yet wired~~ |
 | Unnecessary break statements | Low | Lint warnings in switch cases |
+| Legacy activity system coexistence | Medium | `activities`/`activity_results` (end-of-chapter) coexist with `inline_activities`. Deprecate legacy after all content migrated. |
+| Offline quiz XP not queued | Low | Quiz pass offline saves result but does not queue `award_xp` pending action. XP lost until online retake. |
+| XP balancing (quiz vs non-quiz books) | Low | Quiz-less books: 200 XP (book_complete). Quiz books: 20 XP (quiz_pass). Needs dedicated balancing session. |
 
 ## Recently Completed
 
 | Task | Date | Notes |
 |------|------|-------|
+| Book System Audit & Integrity Fixes | 2026-03-27 | 38-finding audit across all layers. Phase 1: XP source_id idempotency (full addXP chain), RLS fix (no DELETE). Phase 2: 5 new UseCases (HandleBookCompletion, GradeBookQuiz, CompleteInlineActivity, DownloadBook, RemoveBookDownload), BookDownloadRepository, chapter lock provider, typed getters. Phase 3: error propagation, ErrorStateWidget, autoDispose (12 providers). Group D: dead code (-253 lines), enum dedup, author field, ActivityStats entity, ConsumerWidget, CachedBookImage, timezone fix, admin English translation. 37/38 resolved, 1 deferred. |
 | Student Class Change Assignment Sync | 2026-03-27 | DB trigger on profiles.class_id change: withdraws old-class pending/in_progress assignments, enrolls in new-class active assignments, backfills unit progress. Stats RPCs exclude withdrawn. Flutter: withdrawn enum + UI + query filter. 1 migration, 4 Flutter files. |
 | Assignment Notification System | 2026-03-27 | In-app notification when student opens app with active assignments. Event-based (follows streak/badge pattern), fires after other notifications via userControllerProvider listener. Single assignment → direct detail navigation (go()), multiple → list. Admin toggle via notif_assignment setting. Gradient dialog matching existing style. Back button fix for detail screen (canPop → home). 1 migration, 1 new widget, event provider. |
 | Vocabulary Hub Performance + Class Grade Enforcement | 2026-03-27 | Blank screen root cause: classes.grade nullable → RPC returned 0 paths. Fixed with NOT NULL constraint. Performance: eliminated N+1 patterns (progressForList, bookById), merged getDueForReview into single RPC, derived storyWordLists from cache. Code review fixes: PathDailyReviewNode active state, ref.watch after await, published-only book filter. 3 migrations, 1 new usecase. |
