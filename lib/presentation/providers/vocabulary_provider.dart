@@ -21,7 +21,6 @@ import '../../domain/usecases/vocabulary/complete_node_usecase.dart';
 import '../../domain/usecases/wordlist/get_user_learning_paths_usecase.dart';
 import '../../domain/usecases/vocabulary/get_node_completions_usecase.dart';
 import '../../domain/usecases/vocabulary/get_all_words_usecase.dart';
-import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_new_words_usecase.dart';
 import '../../domain/usecases/vocabulary/get_user_vocabulary_progress_usecase.dart';
 import '../../domain/usecases/vocabulary/get_vocabulary_stats_usecase.dart';
