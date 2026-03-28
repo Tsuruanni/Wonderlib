@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Badge/Achievement audit & fixes — 12 findings, 7 fixed, security RPC auth + dead code removal)
+Son güncelleme: 2026-03-28 (Leaderboard/Leagues audit & fixes — 10 findings, 8 fixed, league reset regression, auth on 8 RPCs, zone banner accuracy)
 
 ## Current Phase
 
@@ -125,6 +125,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] XP/Leveling Audit & Spec (4-finding audit, 3 fixed: RPC auth check, dead code removal, SQL comment correction. Full spec written.)
 - [x] Streak System Audit & Fixes (9-finding audit, all 9 fixed: RPC auth check, dead Edge Function removal, hasEvent threshold fix, loginDatesProvider architecture fix, milestone idempotency, configurable milestone XP, repeating 100+ day milestones)
 - [x] Badge/Achievement Audit & Fixes (12-finding audit, 7 fixed: RPC auth check, dead code removal — 3 usecases, 2 providers, 3 repo methods, -517 lines)
+- [x] Leaderboard/Leagues Audit & Fixes (10-finding audit, 8 fixed: league reset regression, auth on 8 RPCs, zone banner total_count, shared zone size, enum rename, type-safe LeagueTier, stale RLS drop, error retry)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

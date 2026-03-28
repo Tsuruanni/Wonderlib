@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Leaderboard/Leagues Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **`process_weekly_league_reset` regression** — Debug-time migration (`20260323000006`) accidentally overwrote tier-based algorithm with old school-wide version. Restored correct tier-based competition (school x tier loops) + temp table optimization + `app_now()` timestamps.
+- **8 leaderboard RPCs missing auth checks** — All `SECURITY DEFINER` read RPCs accepted arbitrary `school_id`/`class_id` without verifying caller belongs to that scope. Added `auth.uid()` guards to all 8 RPCs.
+- **Zone banner miscalculation** — Promotion/demotion zone banners used fetched entry count (max 50) instead of actual tier group size. Added `total_count` to `get_weekly_school_leaderboard` RPC; UI now uses server-reported count for accurate zone thresholds.
+- **No retry on error** — Leaderboard error state showed static text with no recovery action. Replaced with `ErrorStateWidget` + retry button.
+
+#### Changed
+- **Duplicate enum consolidated** — Renamed `LeaderboardScope` to `WeeklyLeaderboardScope` in domain layer, eliminating `as weekly` import alias collision.
+- **Zone size single source of truth** — Extracted `leagueZoneSize()` to `owlio_shared` package. Both Dart UI and SQL reference the same thresholds.
+- **Type-safe `LeagueTier` params** — UseCase params changed from raw `String?` to `LeagueTier?` enum; conversion to `.dbValue` happens at the data layer boundary.
+
+#### Removed
+- **Stale RLS policy** — Dropped "Users can read classmates league history" (class-based), redundant after migration to school-based system.
+
+#### Infrastructure
+- **1 DB migration** (20260328000009) — Tier-based reset fix, auth checks on 8 RPCs, total_count, stale RLS drop.
+- **Feature spec** — `docs/specs/12-leaderboard-leagues.md` documents the full Leaderboard/Leagues system (10 findings: 8 fixed, 2 deferred).
+
 ### Badge/Achievement System Audit & Fixes (2026-03-28)
 
 #### Fixed
