@@ -45,8 +45,49 @@ import 'user_provider.dart';
 // ============================================
 
 /// Y position of the active (current) node in the learning path.
-/// Written by LearningPath during build, read by VocabularyHubScreen for initial scroll offset.
-final activeNodeYProvider = StateProvider<double?>((ref) => null);
+/// Derived from learningPathProvider — mirrors the layout math in LearningPath._buildPath.
+final activeNodeYProvider = Provider<double?>((ref) {
+  final pathUnits = ref.watch(learningPathProvider).valueOrNull;
+  if (pathUnits == null || pathUnits.isEmpty) return null;
+
+  var y = 0.0;
+
+  for (int unitIdx = 0; unitIdx < pathUnits.length; unitIdx++) {
+    final unit = pathUnits[unitIdx];
+    final isUnitLocked = unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
+
+    if (unitIdx > 0) y += 36; // connector before banner
+    y += 56; // unit banner
+
+    final locks = calculateLocks(
+      items: unit.items,
+      sequentialLock: unit.sequentialLock,
+      booksExemptFromLock: unit.booksExemptFromLock,
+      isUnitLocked: isUnitLocked,
+    );
+
+    for (int itemIdx = 0; itemIdx < unit.items.length; itemIdx++) {
+      final item = unit.items[itemIdx];
+      final isItemLocked = locks[itemIdx];
+
+      // First unlocked + incomplete non-DR node is active
+      if (!isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
+        return y + 36 + 40; // connector + half node
+      }
+
+      y += 36; // connector
+
+      // Daily review: active if not completed
+      if (item is PathDailyReviewItem && !item.isCompleted) {
+        return y + 40; // half node
+      }
+
+      y += 80; // node
+    }
+  }
+
+  return null; // all complete
+});
 
 // ============================================
 // VOCABULARY WORD PROVIDERS

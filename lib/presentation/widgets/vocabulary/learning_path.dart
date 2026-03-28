@@ -65,8 +65,6 @@ class LearningPath extends ConsumerWidget {
         }
         final wordsToday = ref.watch(wordsStartedTodayFromListsProvider).valueOrNull ?? 0;
         final canStartNewList = wordsToday < dailyWordListLimit;
-        // Reset active node position — will be set during _buildPath if an active node exists
-        ref.read(activeNodeYProvider.notifier).state = null;
         return _buildPath(context, ref, pathUnits, canStartNewList: canStartNewList);
       },
     );
@@ -157,8 +155,6 @@ class LearningPath extends ConsumerWidget {
         if (!foundActive && !isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
           isActive = true;
           foundActive = true;
-          // Record active node Y for auto-scroll (y is top of connector, +36 for connector height puts us at node top, +40 centers on node)
-          ref.read(activeNodeYProvider.notifier).state = y + 36 + 40;
         }
 
         // Connector from previous node
@@ -268,10 +264,7 @@ class LearningPath extends ConsumerWidget {
                 ),
               ),
             );
-            if (!isCompleted && !foundActive) {
-              foundActive = true;
-              ref.read(activeNodeYProvider.notifier).state = y + 40;
-            }
+            if (!isCompleted && !foundActive) foundActive = true;
         }
 
         y += 80.0;

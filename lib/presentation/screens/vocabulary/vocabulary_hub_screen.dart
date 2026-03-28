@@ -35,9 +35,9 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
   Widget build(BuildContext context) {
     final storyListsAsync = ref.watch(storyWordListsProvider);
 
-    // Auto-scroll to active node once when LearningPath sets the Y position.
-    // Uses ref.listen because LearningPath (a child) writes the provider during
-    // its build — after this widget's ScrollController is already created.
+    // Auto-scroll to active node once when path data loads.
+    // activeNodeYProvider is computed from learningPathProvider (async),
+    // so it transitions from null → value when data resolves.
     ref.listen<double?>(activeNodeYProvider, (prev, next) {
       if (next != null && !_hasScrolledToActive && _scrollController.hasClients) {
         _hasScrolledToActive = true;
