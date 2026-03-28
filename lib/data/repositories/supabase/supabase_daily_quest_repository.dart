@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../domain/repositories/daily_quest_repository.dart';
 import '../../models/daily_quest/daily_quest_progress_model.dart';
@@ -53,7 +54,7 @@ class SupabaseDailyQuestRepository implements DailyQuestRepository {
   @override
   Future<Either<Failure, bool>> hasDailyBonusClaimed(String userId) async {
     try {
-      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+      final today = AppClock.now().toUtc().toIso8601String().substring(0, 10);
       final response = await _supabase
           .from(DbTables.dailyQuestBonusClaims)
           .select('id')

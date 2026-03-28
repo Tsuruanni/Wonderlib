@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Coin Economy audit & fixes — 18 findings, 13 fixed: 4 critical RPC auth gaps, column-level REVOKE, AvatarController extraction, streak freeze UX, dead code cleanup)
+Son güncelleme: 2026-03-28 (Daily Quest audit & fixes — 14 findings, 6 fixed: DailyQuestController extraction, DateTime.now() bug, dead code removal, stale docs)
 
 ## Current Phase
 
@@ -127,6 +127,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Badge/Achievement Audit & Fixes (12-finding audit, 7 fixed: RPC auth check, dead code removal — 3 usecases, 2 providers, 3 repo methods, -517 lines)
 - [x] Leaderboard/Leagues Audit & Fixes (10-finding audit, 8 fixed: league reset regression, auth on 8 RPCs, zone banner total_count, shared zone size, enum rename, type-safe LeagueTier, stale RLS drop, error retry)
 - [x] Coin Economy Audit & Fixes (18-finding audit, 13 fixed: 4 critical RPC auth gaps, column-level REVOKE on monetary columns, AvatarController extraction, streak freeze UX, pack opening text, dead code cleanup, 3-layer security model)
+- [x] Daily Quest Audit & Fixes (14-finding audit, 6 fixed: DailyQuestController extraction, DateTime.now() bug, legacy dead code removal from CardRepository + shared constants, stale docs fix)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -194,6 +195,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Daily Quest Audit & Fixes | 2026-03-28 | 14-finding audit. Architecture: DailyQuestController extracted. Bug: DateTime.now() → AppClock.now(). Dead code: legacy CardRepository quest methods + shared constants removed. Full spec at `docs/specs/14-daily-quest.md`. 6/14 fixed, 8 deferred. |
 | Badge/Achievement Audit & Fixes | 2026-03-28 | 12-finding audit. Security: auth.uid() check added to `check_and_award_badges` RPC. Dead code: removed 3 usecases, 2 providers, 3 repo methods (-517 lines). Full feature spec at `docs/specs/11-badge-achievement.md`. 1 migration, 7/12 fixed, 1 N/A, 4 tech debt. |
 | XP/Leveling Audit & Spec | 2026-03-28 | 4-finding audit. Security: auth.uid() check added to `award_xp_transaction` RPC. Dead code: `getLeaderboard()` removed from UserRepository. Docs: `calculate_level` SQL comments corrected. Full feature spec written at `docs/specs/09-xp-leveling.md`. 2 migrations deployed, 3/4 fixed, 1 accepted. |
 | Learning Paths Audit & Fixes | 2026-03-27 | 21-finding audit. Security: 3 RPC auth checks (apply_template, get_user_paths, get_daily_reviews), DR replay block (DELETE policy removed), head_teacher→head RLS fix. DB: FK cascade on class_id, atomic sort_order with FOR UPDATE, index housekeeping. Code: String→LearningPathItemType enum in 3 entities+3 models+3 screens, 5 dead code removals, 12 debugPrint removed. 1 migration deployed. 17/21 fixed, 4 known limitations. |

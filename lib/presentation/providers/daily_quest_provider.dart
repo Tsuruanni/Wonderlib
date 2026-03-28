@@ -2,10 +2,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/daily_quest.dart';
+import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 /// Provides daily quest progress for the current user.
 /// Returns list of DailyQuestProgress from server-side RPC.
@@ -39,3 +41,45 @@ final dailyBonusClaimedProvider = FutureProvider<bool>((ref) async {
     (claimed) => claimed,
   );
 });
+
+/// Controller for daily quest mutations (claim bonus).
+/// Keeps business logic out of widgets — mirrors AvatarController pattern.
+final dailyQuestControllerProvider =
+    StateNotifierProvider<DailyQuestController, AsyncValue<void>>((ref) {
+  return DailyQuestController(ref);
+});
+
+class DailyQuestController extends StateNotifier<AsyncValue<void>> {
+  DailyQuestController(this._ref) : super(const AsyncValue.data(null));
+
+  final Ref _ref;
+
+  bool get isMutating => state is AsyncLoading;
+
+  /// Claims the daily bonus pack. Returns error message on failure, null on success.
+  Future<String?> claimBonus() async {
+    if (isMutating) return null;
+
+    final userId = _ref.read(currentUserIdProvider);
+    if (userId == null) return 'Not logged in';
+
+    state = const AsyncValue.loading();
+
+    final useCase = _ref.read(claimDailyBonusUseCaseProvider);
+    final result = await useCase(ClaimDailyBonusParams(userId: userId));
+
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return failure.message;
+      },
+      (_) {
+        _ref.invalidate(dailyQuestProgressProvider);
+        _ref.invalidate(dailyBonusClaimedProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+}

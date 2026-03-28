@@ -7,12 +7,8 @@ import 'package:owlio/app/router.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
 import 'package:owlio/domain/entities/student_assignment.dart';
-import 'package:owlio/domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
-import 'package:owlio/presentation/providers/auth_provider.dart';
 import 'package:owlio/presentation/providers/daily_quest_provider.dart';
 import 'package:owlio/presentation/providers/student_assignment_provider.dart';
-import 'package:owlio/presentation/providers/usecase_providers.dart';
-import 'package:owlio/presentation/providers/user_provider.dart';
 
 import '../../../core/utils/app_clock.dart';
 
@@ -33,39 +29,21 @@ class DailyQuestList extends ConsumerStatefulWidget {
 }
 
 class _DailyQuestListState extends ConsumerState<DailyQuestList> {
-  bool _isClaiming = false;
   bool _justClaimed = false;
 
   Future<void> _claimBonus() async {
-    if (_isClaiming) return;
+    final controller = ref.read(dailyQuestControllerProvider.notifier);
+    if (controller.isMutating) return;
 
-    final userId = ref.read(currentUserIdProvider);
-    if (userId == null) return;
+    final error = await controller.claimBonus();
 
-    setState(() => _isClaiming = true);
-
-    final useCase = ref.read(claimDailyBonusUseCaseProvider);
-    final result = await useCase(ClaimDailyBonusParams(userId: userId));
-
-    result.fold(
-      (failure) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failure.message)),
-          );
-        }
-      },
-      (_) {
-        if (mounted) {
-          setState(() => _justClaimed = true);
-          ref.invalidate(dailyQuestProgressProvider);
-          ref.invalidate(dailyBonusClaimedProvider);
-          ref.read(userControllerProvider.notifier).refreshProfileOnly();
-        }
-      },
-    );
-
-    if (mounted) setState(() => _isClaiming = false);
+    if (error != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    } else if (mounted) {
+      setState(() => _justClaimed = true);
+    }
   }
 
   @override
@@ -90,12 +68,13 @@ class _DailyQuestListState extends ConsumerState<DailyQuestList> {
     }
 
     // Bonus reward row
+    final isClaiming = ref.watch(dailyQuestControllerProvider) is AsyncLoading;
     rows.add(const _ThickDivider());
     rows.add(_BonusRow(
       allComplete: widget.progress.isNotEmpty &&
           widget.progress.every((q) => q.isCompleted),
       claimed: widget.bonusClaimed || _justClaimed,
-      isClaiming: _isClaiming,
+      isClaiming: isClaiming,
       onClaim: _claimBonus,
     ),);
 

@@ -180,7 +180,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | 11 | **Badge/Achievement** | Badge editor (condition types, thresholds, XP rewards, categories) | Auto-award, badge collection display | Badge list per student | Medium | - |
 | 12 | **Leaderboard/Leagues** | - | Weekly/total ranking, league tiers, promotion/demotion | Leaderboard report | Medium | Done: `docs/specs/12-leaderboard-leagues.md` |
 | 13 | **Coin Economy** | - (coins earned through system rules) | Earn from quests/bonuses, spend on cards/avatar/freeze | - | **High** | Done: `docs/specs/13-coin-economy.md` |
-| 14 | **Daily Quest** | Quest management (title, goal, reward, active toggle) | Daily tasks, progress tracking, reward claiming | - | Medium | - |
+| 14 | **Daily Quest** | Quest management (title, goal, reward, active toggle) | Daily tasks, progress tracking, reward claiming | - | Medium | Done: `docs/specs/14-daily-quest.md` |
 | 15 | **Card Collection** | Card editor (image, rarity, category, stats) | Buy packs (coins), collect 96 cards, 8 myth categories, pity mechanic | - | Medium | - |
 | 16 | **Avatar System** | Avatar management (bases, categories, items with image upload) | Customize avatar, buy items (coins), z-index layering | - | Low | - |
 
@@ -297,7 +297,7 @@ Quest progress tracked IMPLICITLY (no explicit "complete quest" event):
   → Progress shown via GetDailyQuestProgressUseCase
 
 Reward claiming (separate action):
-  → ClaimDailyBonusUseCase → RPC: RpcFunctions.claimDailyQuestPack
+  → ClaimDailyBonusUseCase → RPC: RpcFunctions.claimDailyBonus
     → IF already claimed today: Error
     → IF eligible: unopened_packs INSERT (free pack reward)
 ```

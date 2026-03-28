@@ -125,42 +125,4 @@ class SupabaseCardRepository implements CardRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, int>> claimDailyQuestPack(String userId) async {
-    try {
-      final response = await _supabase.rpc(
-        RpcFunctions.claimDailyQuestPack,
-        params: {
-          'p_user_id': userId,
-        },
-      );
-
-      final data = response as Map<String, dynamic>? ?? {};
-      return Right((data['unopened_packs'] as num?)?.toInt() ?? 0);
-    } on PostgrestException catch (e) {
-      if (e.message.contains('already claimed')) {
-        return const Left(ServerFailure('Daily quest pack already claimed today'));
-      }
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, bool>> hasDailyQuestPackBeenClaimed(String userId) async {
-    try {
-      // Use server-side RPC to avoid client/server timezone mismatch
-      final response = await _supabase.rpc(
-        RpcFunctions.hasDailyQuestPackClaimed,
-        params: {'p_user_id': userId},
-      );
-
-      return Right(response as bool);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
 }

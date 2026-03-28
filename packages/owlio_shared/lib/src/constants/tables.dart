@@ -51,7 +51,6 @@ abstract class DbTables {
   static const userCards = 'user_cards';
   static const userCardStats = 'user_card_stats';
   static const packPurchases = 'pack_purchases';
-  static const dailyQuestPackClaims = 'daily_quest_pack_claims';
   static const dailyQuests = 'daily_quests';
   static const dailyQuestCompletions = 'daily_quest_completions';
   static const dailyQuestBonusClaims = 'daily_quest_bonus_claims';

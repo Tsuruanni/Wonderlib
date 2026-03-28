@@ -8,6 +8,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Quest Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **Widget-level UseCase call** — `DailyQuestList._claimBonus()` called `claimDailyBonusUseCaseProvider` directly. Extracted `DailyQuestController` StateNotifier (mirrors `AvatarController` pattern).
+- **`DateTime.now()` timezone bug** — `hasDailyBonusClaimed` used `DateTime.now().toUtc()` instead of `AppClock.now()`, breaking debug date offset. Fixed to use `AppClock.now()`.
+- **Stale docs** — `features.md` Flow 4 referenced wrong RPC name (`claimDailyQuestPack` → `claimDailyBonus`).
+
+#### Removed
+- **Dead code** — Legacy `CardRepository.claimDailyQuestPack()` / `hasDailyQuestPackBeenClaimed()` methods, `RpcFunctions.claimDailyQuestPack` / `hasDailyQuestPackClaimed` constants, `DbTables.dailyQuestPackClaims` constant. All superseded by the new quest engine's `DailyQuestRepository`.
+
+#### Infrastructure
+- **Feature spec** — `docs/specs/14-daily-quest.md` documents the full Daily Quest system (14 findings: 6 fixed, 8 deferred). Covers implicit progress tracking, auto-reward RPC, bonus pack claim, admin quest management.
+
 ### Coin Economy Audit & Fixes (2026-03-28)
 
 #### Fixed

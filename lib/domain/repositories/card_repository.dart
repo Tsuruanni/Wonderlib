@@ -18,10 +18,4 @@ abstract class CardRepository {
 
   /// Open a card pack from inventory (consumes 1 unopened pack, rolls 3 cards)
   Future<Either<Failure, PackResult>> openPack(String userId);
-
-  /// Claim daily quest pack reward (awards 1 pack, once per day)
-  Future<Either<Failure, int>> claimDailyQuestPack(String userId);
-
-  /// Check if daily quest pack has been claimed today
-  Future<Either<Failure, bool>> hasDailyQuestPackBeenClaimed(String userId);
 }
