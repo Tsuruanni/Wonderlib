@@ -189,8 +189,10 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
         return _buildIdlePhase(controller, coins, packs, state.error);
 
       case PackOpeningPhase.buying:
+        return _buildPurchasingPhase('Buying pack...');
+
       case PackOpeningPhase.opening:
-        return _buildPurchasingPhase();
+        return _buildPurchasingPhase('Opening pack...');
 
       case PackOpeningPhase.glowing:
         return _buildGlowingPhase(state, controller);
@@ -414,9 +416,9 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     );
   }
 
-  Widget _buildPurchasingPhase() {
+  Widget _buildPurchasingPhase(String message) {
     return Column(
-      key: const ValueKey('opening'),
+      key: const ValueKey('purchasing'),
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(
@@ -429,7 +431,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Opening pack...',
+          message,
           style: GoogleFonts.nunito(
             fontSize: 18,
             fontWeight: FontWeight.w700,
