@@ -85,6 +85,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Daily Vocabulary Review | `docs/specs/08-daily-vocabulary-review.md` | SM-2 due words drill, session composition, XP formula, first-answer-wins, learning path gate, unit cram mode, daily quest integration |
 | XP/Leveling | `docs/specs/09-xp-leveling.md` | XP award flow, level formula, combo system, admin-configurable XP values, XP=coins 1:1 rule, idempotency, badge/level-up events, leaderboard |
 | Streak System | `docs/specs/10-streak-system.md` | Daily streak, login-based model, freeze mechanic (coins), milestone XP bonuses, notification gating, calendar visualization |
+| Badge/Achievement | `docs/specs/11-badge-achievement.md` | 6 condition types, auto-award via RPC, XP rewards, badge editor, earned notification dialog, teacher badge view |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.
