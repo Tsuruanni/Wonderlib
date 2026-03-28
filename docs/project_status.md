@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Daily Quest audit & fixes — 14 findings, 6 fixed: DailyQuestController extraction, DateTime.now() bug, dead code removal, stale docs)
+Son güncelleme: 2026-03-28 (Card Collection audit & fixes — 19 findings, 8 fixed: image_url in RPC, idempotency key, dead code removal, admin fixes)
 
 ## Current Phase
 
@@ -128,6 +128,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Leaderboard/Leagues Audit & Fixes (10-finding audit, 8 fixed: league reset regression, auth on 8 RPCs, zone banner total_count, shared zone size, enum rename, type-safe LeagueTier, stale RLS drop, error retry)
 - [x] Coin Economy Audit & Fixes (18-finding audit, 13 fixed: 4 critical RPC auth gaps, column-level REVOKE on monetary columns, AvatarController extraction, streak freeze UX, pack opening text, dead code cleanup, 3-layer security model)
 - [x] Daily Quest Audit & Fixes (14-finding audit, 6 fixed: DailyQuestController extraction, DateTime.now() bug, legacy dead code removal from CardRepository + shared constants, stale docs fix)
+- [x] Card Collection Audit & Fixes (19-finding audit, 8 fixed: image_url in open_card_pack, buy idempotency key, admin column fix, firstWhere guard, dead code removal — collectionProgressProvider, CardSummaryRow, CardListScreen, unreachable branch)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -195,6 +196,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Card Collection Audit & Fixes | 2026-03-28 | 19-finding audit. Bugs: `image_url` added to `open_card_pack` JSONB, idempotency key on `buy_card_pack`, admin column name fix, `firstWhere` guard. Dead code: `collectionProgressProvider`, `CardSummaryRow`, `CardListScreen` removed; admin providers extracted. 1 migration, full spec at `docs/specs/15-card-collection.md`. 8/19 fixed, 1 skipped, 10 deferred. |
 | Daily Quest Audit & Fixes | 2026-03-28 | 14-finding audit. Architecture: DailyQuestController extracted. Bug: DateTime.now() → AppClock.now(). Dead code: legacy CardRepository quest methods + shared constants removed. Full spec at `docs/specs/14-daily-quest.md`. 6/14 fixed, 8 deferred. |
 | Badge/Achievement Audit & Fixes | 2026-03-28 | 12-finding audit. Security: auth.uid() check added to `check_and_award_badges` RPC. Dead code: removed 3 usecases, 2 providers, 3 repo methods (-517 lines). Full feature spec at `docs/specs/11-badge-achievement.md`. 1 migration, 7/12 fixed, 1 N/A, 4 tech debt. |
 | XP/Leveling Audit & Spec | 2026-03-28 | 4-finding audit. Security: auth.uid() check added to `award_xp_transaction` RPC. Dead code: `getLeaderboard()` removed from UserRepository. Docs: `calculate_level` SQL comments corrected. Full feature spec written at `docs/specs/09-xp-leveling.md`. 2 migrations deployed, 3/4 fixed, 1 accepted. |

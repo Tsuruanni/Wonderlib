@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Card Collection Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **`open_card_pack` missing `image_url`** — RPC JSONB response did not include `image_url`, causing pack reveal to always use local asset fallback instead of Supabase Storage URL. Added `'image_url', v_selected_card.image_url` to the `jsonb_build_object`.
+- **`buy_card_pack` no idempotency** — Client retry on network timeout could double-charge. Added optional `p_idempotency_key UUID` parameter; client generates UUID v4 per request, stored as `coin_logs.source_id` with duplicate check.
+- **Admin wrong column name** — `user_edit_screen.dart` ordered by `obtained_at` (non-existent), fixed to `first_obtained_at`.
+- **`firstWhere` crash risk** — `card_collection_screen.dart` used `firstWhere` without `orElse`; replaced with `where().firstOrNull` + null-safe fallback.
+
+#### Removed
+- **Dead code** — `collectionProgressProvider` (unused), `CardSummaryRow` widget (unused), `_buildFallbackBackground` unreachable branch, `CardListScreen` (never routed to — providers extracted to dedicated file).
+
+#### Infrastructure
+- **1 DB migration** (20260328200001) — Updated `open_card_pack` (image_url) + `buy_card_pack` (idempotency key).
+- **Feature spec** — `docs/specs/15-card-collection.md` documents the full Card Collection system (19 findings: 8 fixed, 1 skipped, 10 deferred). Covers 96-card catalog, 8 myth categories, rarity tiers, pity mechanic, pack opening flow, admin CRUD, idempotency.
+
 ### Daily Quest Audit & Fixes (2026-03-28)
 
 #### Fixed

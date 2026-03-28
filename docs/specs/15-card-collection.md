@@ -26,15 +26,15 @@
 | 18 | UX | Dashboard "Koleksiyon" stat only counts badges, not myth cards | Low | TODO |
 | 19 | Freshness | `cardCatalogProvider` never invalidated — stale until app restart if admin deactivates cards | Low | TODO |
 
-### Checklist Result
+### Checklist Result (post-fix)
 
 - Architecture Compliance: **PASS** — Clean Screen → Provider → UseCase → Repository layering; JSON in models only; `DbTables.x` and `RpcFunctions.x` used throughout
-- Code Quality: **3 issues** — duplicated `_rarityColor`, duplicated rarity parser, undocumented asymmetric sort
-- Dead Code: **5 issues** — unused provider, widget, field, screen, parameter branch
-- Database & Security: **PASS** — Auth guards added in hardening migration; RLS correct; `FOR UPDATE` serialization prevents race conditions; 1 minor RLS over-permissiveness on `pack_purchases` INSERT
-- Edge Cases & UX: **2 issues** — missing `orElse`, missing `image_url` in pack reveal
+- Code Quality: **3 remaining** — duplicated `_rarityColor` (#11), duplicated rarity parser (#12), undocumented asymmetric sort (#13)
+- Dead Code: **1 remaining** — `pityTriggered` kept for future use (#8); dead table `daily_quest_pack_claims` (#10). Others fixed.
+- Database & Security: **PASS** — Auth guards present; `buy_card_pack` now has idempotency key; `FOR UPDATE` serialization; 1 minor RLS over-permissiveness on `pack_purchases` INSERT (#14)
+- Edge Cases & UX: **PASS** — `firstOrNull` guard added (#3); `image_url` now returned in pack reveal (#1)
 - Performance: **PASS** — No N+1; 96-card catalog is small; provider lifecycle correct (global cache + autoDispose on controller)
-- Cross-System Integrity: **PASS** — Coin deduction audited in `coin_logs`; no XP/badge triggers (by design); daily quest integration correct via `unopened_packs` increment
+- Cross-System Integrity: **PASS** — Coin deduction audited in `coin_logs` with optional idempotency key; no XP/badge triggers (by design); daily quest integration correct via `unopened_packs` increment
 
 ---
 
@@ -103,8 +103,8 @@ myth_cards (catalog) ← user_cards.card_id (FK)
 
 | Function | Purpose | Auth |
 |----------|---------|------|
-| `buy_card_pack(p_user_id, p_pack_cost)` | Deduct coins, increment `unopened_packs`, log to `coin_logs` | `auth.uid()` check |
-| `open_card_pack(p_user_id)` | Decrement `unopened_packs`, roll 3 cards, upsert `user_cards`, update stats, log to `pack_purchases` | `auth.uid()` check |
+| `buy_card_pack(p_user_id, p_pack_cost, p_idempotency_key)` | Deduct coins, increment `unopened_packs`, log to `coin_logs` with idempotency key | `auth.uid()` check |
+| `open_card_pack(p_user_id)` | Decrement `unopened_packs`, roll 3 cards (with `image_url`), upsert `user_cards`, update stats, log to `pack_purchases` | `auth.uid()` check |
 
 ### RLS Policies
 
@@ -193,16 +193,19 @@ N/A — no teacher surface for card collection.
 13. **Pack sources:** (a) Buy with 100 coins, (b) daily quest reward type `card_pack`, (c) all-quests-complete bonus via `claim_daily_bonus`
 14. **No XP or badge triggers:** Card collection is a pure coin-sink; no XP awarded for buying/opening packs
 15. **Coin deduction is server-only:** `REVOKE UPDATE(coins, unopened_packs) ON profiles FROM authenticated` prevents client-side manipulation
-16. **Inactive cards:** Hidden from student catalog view (RLS: `is_active = true`), excluded from pack rolls
-17. **Cross-school card viewing:** Users in the same school can view each other's card collections (RLS policy)
+16. **Buy idempotency:** Client generates UUID v4 per buy request → passed as `p_idempotency_key` → stored as `coin_logs.source_id` → duplicate key returns no-op with `coins_spent = 0`
+17. **Inactive cards:** Hidden from student catalog view (RLS: `is_active = true`), excluded from pack rolls
+18. **Cross-school card viewing:** Users in the same school can view each other's card collections (RLS policy)
 
 ## Cross-System Interactions
 
 ### Coin Economy → Card Collection
 ```
 coins earned (XP=coins 1:1) → profiles.coins
-  → buy_card_pack RPC → profiles.coins -= 100, profiles.unopened_packs += 1
-  → coin_logs INSERT (source: 'pack_purchase')
+  → buy_card_pack RPC (with UUID v4 idempotency key)
+    → coin_logs idempotency check (source_id = key)
+    → profiles.coins -= 100, profiles.unopened_packs += 1
+    → coin_logs INSERT (source: 'pack_purchase', source_id: key)
 ```
 
 ### Daily Quest → Card Collection
@@ -234,10 +237,10 @@ open_card_pack → user_cards UPSERT, user_card_stats UPDATE
 | All cards of target rarity in pack | Fallback to any active card not already in current pack |
 | No active cards at all | `NOT FOUND` after fallback — RPC would error (shouldn't happen with 96 seeded cards) |
 | Pity at exactly 14 | Slot 3 forced legendary; counter resets to 0 |
-| Network timeout on buy | Client retries could double-charge — no idempotency key (mitigated by `FOR UPDATE` lock serialization; see Finding #4) |
+| Network timeout on buy | Client generates UUID v4 idempotency key per request; RPC checks `coin_logs` for duplicate `source_id` and returns no-op if found |
 | Admin deactivates card mid-session | Catalog provider not invalidated — student sees stale card until app restart; pack rolls correctly exclude it server-side |
 | Admin deletes owned card | `user_cards` row cascade-deleted; student loses card |
-| Card image not uploaded | `MythCardModel.fromJson` falls back to `cardAssetPath(name)` → `assets/images/cards/{name}.png` |
+| Card image not uploaded | Both collection screen and pack reveal fall back to `cardAssetPath(name)` → `assets/images/cards/{name}.png` when `image_url` is null |
 
 ## Test Scenarios
 
