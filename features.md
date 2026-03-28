@@ -179,7 +179,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | 10 | **Streak System** | System settings (freeze price, freeze max, milestone interval) | Daily streak, freeze mechanic (coins), milestone bonuses | Streak stats per student | **High** | Done: `docs/specs/10-streak-system.md` |
 | 11 | **Badge/Achievement** | Badge editor (condition types, thresholds, XP rewards, categories) | Auto-award, badge collection display | Badge list per student | Medium | - |
 | 12 | **Leaderboard/Leagues** | - | Weekly/total ranking, league tiers, promotion/demotion | Leaderboard report | Medium | Done: `docs/specs/12-leaderboard-leagues.md` |
-| 13 | **Coin Economy** | - (coins earned through system rules) | Earn from quests/bonuses, spend on cards/avatar/freeze | - | **High** | - |
+| 13 | **Coin Economy** | - (coins earned through system rules) | Earn from quests/bonuses, spend on cards/avatar/freeze | - | **High** | Done: `docs/specs/13-coin-economy.md` |
 | 14 | **Daily Quest** | Quest management (title, goal, reward, active toggle) | Daily tasks, progress tracking, reward claiming | - | Medium | - |
 | 15 | **Card Collection** | Card editor (image, rarity, category, stats) | Buy packs (coins), collect 96 cards, 8 myth categories, pity mechanic | - | Medium | - |
 | 16 | **Avatar System** | Avatar management (bases, categories, items with image upload) | Customize avatar, buy items (coins), z-index layering | - | Low | - |

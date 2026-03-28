@@ -87,6 +87,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Streak System | `docs/specs/10-streak-system.md` | Daily streak, login-based model, freeze mechanic (coins), milestone XP bonuses, notification gating, calendar visualization |
 | Badge/Achievement | `docs/specs/11-badge-achievement.md` | 6 condition types, auto-award via RPC, XP rewards, badge editor, earned notification dialog, teacher badge view |
 | Leaderboard/Leagues | `docs/specs/12-leaderboard-leagues.md` | Weekly tier competition, league reset, promotion/demotion zones, 3 ranking scopes (league/class/school), teacher report |
+| Coin Economy | `docs/specs/13-coin-economy.md` | XP=coins 1:1 co-award, 3 spending flows (card packs, avatar items, streak freeze), coin_logs audit trail, idempotency, system settings |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.
