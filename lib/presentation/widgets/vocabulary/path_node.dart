@@ -455,33 +455,45 @@ class _PathNodeState extends ConsumerState<PathNode>
       ),
     );
 
+    final rowChildren = isLeft
+        ? [labelWidget, const SizedBox(width: 70), nodeWidget]
+        : [nodeWidget, const SizedBox(width: 70), labelWidget];
+
     final arrowWidget = _buildArrowIndicator();
 
-    final rowChildren = isLeft
-        ? [
-            labelWidget,
-            const SizedBox(width: 70),
-            nodeWidget,
-            if (arrowWidget != null) ...[const SizedBox(width: 12), arrowWidget],
-          ]
-        : [
-            if (arrowWidget != null) ...[arrowWidget, const SizedBox(width: 12)],
-            nodeWidget,
-            const SizedBox(width: 70),
-            labelWidget,
-          ];
+    Widget content = SizedBox(
+      width: 286, // 140 + 70 + 76
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: rowChildren,
+      ),
+    );
+
+    // Overlay arrow outside the Row so it doesn't affect 286px layout
+    if (arrowWidget != null) {
+      content = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          content,
+          Positioned(
+            // Arrow on opposite side of label, 12px from node edge
+            // Node is 76px wide. When label is left: node is at right edge (x=210..286),
+            // arrow goes to the right of node. When label is right: node is at left (x=0..76),
+            // arrow goes to the left of node.
+            top: 28, // vertically center with node circle (half of 56px node)
+            left: isLeft ? null : -36, // 24 icon + 12 gap
+            right: isLeft ? -36 : null,
+            child: arrowWidget,
+          ),
+        ],
+      );
+    }
 
     return PressableScale(
       pressedScale: 0.92,
       onTap: () => _handleTap(context),
-      child: SizedBox(
-        width: (widget.isActive && !widget.isLocked) ? 334 : 286, // 286 + 12 gap + 24 icon + 12 padding
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: rowChildren,
-        ),
-      ),
+      child: content,
     );
   }
 

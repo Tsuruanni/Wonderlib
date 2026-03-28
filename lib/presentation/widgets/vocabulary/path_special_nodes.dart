@@ -247,20 +247,35 @@ class _SpecialNodeCircle extends StatelessWidget {
     final showArrow = isActive && !isLocked && !isComplete;
 
     final rowChildren = isLeftLabel
-        ? [
-            labelWidget,
-            const SizedBox(width: 70),
-            nodeContainer,
-            if (showArrow) ...[const SizedBox(width: 12), const _AnimatedArrow(pointsLeft: true)],
-          ]
-        : [
-            if (showArrow) ...[const _AnimatedArrow(pointsLeft: false), const SizedBox(width: 12)],
-            nodeContainer,
-            const SizedBox(width: 70),
-            labelWidget,
-          ];
+        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
+        : [nodeContainer, const SizedBox(width: 70), labelWidget];
 
     final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
+
+    Widget rowWidget = SizedBox(
+      width: 286,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: rowChildren,
+      ),
+    );
+
+    // Overlay arrow outside the Row so it doesn't affect 286px layout
+    if (showArrow) {
+      rowWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          rowWidget,
+          Positioned(
+            top: 28, // vertically center with 56px node circle
+            left: isLeftLabel ? null : -36,
+            right: isLeftLabel ? -36 : null,
+            child: _AnimatedArrow(pointsLeft: isLeftLabel),
+          ),
+        ],
+      );
+    }
 
     return PressableScale(
       onTap: onTap,
@@ -272,14 +287,7 @@ class _SpecialNodeCircle extends StatelessWidget {
             Positioned(
               left: leftEdge,
               top: 0,
-              child: SizedBox(
-                width: showArrow ? 334 : 286,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: rowChildren,
-                ),
-              ),
+              child: rowWidget,
             ),
           ],
         ),
@@ -608,20 +616,34 @@ class PathTreasureNode extends StatelessWidget {
     final showArrow = isActive && !isLocked && !isUnitComplete;
 
     final rowChildren = isLeftLabel
-        ? [
-            labelWidget,
-            const SizedBox(width: 70),
-            nodeContainer,
-            if (showArrow) ...[const SizedBox(width: 12), const _AnimatedArrow(pointsLeft: true)],
-          ]
-        : [
-            if (showArrow) ...[const _AnimatedArrow(pointsLeft: false), const SizedBox(width: 12)],
-            nodeContainer,
-            const SizedBox(width: 70),
-            labelWidget,
-          ];
+        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
+        : [nodeContainer, const SizedBox(width: 70), labelWidget];
 
     final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
+
+    Widget rowWidget = SizedBox(
+      width: 286,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: rowChildren,
+      ),
+    );
+
+    if (showArrow) {
+      rowWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          rowWidget,
+          Positioned(
+            top: 28,
+            left: isLeftLabel ? null : -36,
+            right: isLeftLabel ? -36 : null,
+            child: _AnimatedArrow(pointsLeft: isLeftLabel),
+          ),
+        ],
+      );
+    }
 
     return PressableScale(
       onTap: () {
@@ -642,14 +664,7 @@ class PathTreasureNode extends StatelessWidget {
             Positioned(
               left: leftEdge,
               top: 0,
-              child: SizedBox(
-                width: showArrow ? 334 : 286,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: rowChildren,
-                ),
-              ),
+              child: rowWidget,
             ),
           ],
         ),
