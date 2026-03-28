@@ -38,3 +38,9 @@ body {
   color: var(--color-eel);
   font-family: var(--font-sans);
 }
+
+/* Tighten Nunito spacing to match DIN Round Pro feel */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}

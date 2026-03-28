@@ -19,7 +19,7 @@ export function Hero() {
 
         {/* Right: text + buttons (centered, stacked) */}
         <div className="flex-1 text-center order-2 md:order-none">
-          <h1 className="text-4xl md:text-5xl lg:text-[3.2rem] font-black text-eel leading-tight mb-8">
+          <h1 className="text-3xl md:text-4xl lg:text-[2.5rem] font-black text-eel leading-snug tracking-tight mb-8">
             The fun way to read in English
           </h1>
           <div className="flex flex-col gap-3 max-w-sm mx-auto">
