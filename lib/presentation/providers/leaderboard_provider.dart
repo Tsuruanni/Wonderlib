@@ -4,8 +4,7 @@ import '../../domain/entities/leaderboard_entry.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_total_position_usecase.dart';
-import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart'
-    as weekly;
+import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_weekly_position_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -46,10 +45,10 @@ final leaderboardEntriesProvider =
   } else {
     // leagueScope — weekly school leaderboard (within user's tier)
     final useCase = ref.watch(getWeeklyLeaderboardUseCaseProvider);
-    final result = await useCase(weekly.GetWeeklyLeaderboardParams(
-      scope: weekly.LeaderboardScope.schoolScope,
+    final result = await useCase(GetWeeklyLeaderboardParams(
+      scope: WeeklyLeaderboardScope.schoolScope,
       schoolId: currentUser.schoolId,
-      leagueTier: currentUser.leagueTier.dbValue,
+      leagueTier: currentUser.leagueTier,
       limit: 50,
     ));
     return result.fold((_) => [], (entries) => entries);
@@ -86,9 +85,9 @@ final currentUserPositionProvider =
     final useCase = ref.watch(getUserWeeklyPositionUseCaseProvider);
     final result = await useCase(GetUserWeeklyPositionParams(
       userId: currentUser.id,
-      scope: weekly.LeaderboardScope.schoolScope,
+      scope: WeeklyLeaderboardScope.schoolScope,
       schoolId: currentUser.schoolId,
-      leagueTier: currentUser.leagueTier.dbValue,
+      leagueTier: currentUser.leagueTier,
     ));
     return result.fold((_) => null, (entry) => entry);
   }
@@ -125,6 +124,9 @@ final leaderboardDisplayProvider =
     currentUserEntry: isInList ? null : userPosition,
     currentUserId: currentUser.id,
     scope: scope,
+    leagueTotalCount: scope == LeaderboardScope.leagueScope && entries.isNotEmpty
+        ? entries.first.totalCount
+        : null,
   );
 });
 
@@ -135,12 +137,14 @@ class LeaderboardDisplayState {
     required this.currentUserEntry,
     required this.currentUserId,
     this.scope = LeaderboardScope.classScope,
+    this.leagueTotalCount,
   });
 
   final List<LeaderboardEntry> entries;
   final LeaderboardEntry? currentUserEntry;
   final String currentUserId;
   final LeaderboardScope scope;
+  final int? leagueTotalCount;
 
   bool get isLeagueMode => scope == LeaderboardScope.leagueScope;
 

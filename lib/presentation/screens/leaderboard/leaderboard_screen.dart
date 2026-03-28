@@ -11,16 +11,8 @@ import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/student_profile_dialog.dart';
+import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/top_navbar.dart';
-
-/// Number of students promoted/demoted per week based on school size.
-/// Matches the thresholds in process_weekly_league_reset().
-int _leagueZoneSize(int totalStudents) {
-  if (totalStudents < 10) return 1;
-  if (totalStudents <= 25) return 2;
-  if (totalStudents <= 50) return 3;
-  return 5;
-}
 
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
@@ -56,9 +48,9 @@ class LeaderboardScreen extends ConsumerWidget {
             child: displayAsync.when(
               loading: () =>
                   const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Text('Could not load leaderboard',
-                    style: GoogleFonts.nunito(color: AppColors.neutralText)),
+              error: (e, _) => ErrorStateWidget(
+                message: 'Could not load leaderboard',
+                onRetry: () => ref.invalidate(leaderboardDisplayProvider),
               ),
               data: (state) {
                 if (state.isEmpty) return _buildEmptyState();
@@ -260,8 +252,8 @@ class _ZonePreviewBanner extends StatelessWidget {
     final rank = userEntry?.rank ?? state.currentUserEntry?.rank;
     if (rank == null || state.entries.isEmpty) return const SizedBox.shrink();
 
-    final totalEntries = state.totalCount;
-    final zoneSize = _leagueZoneSize(totalEntries);
+    final totalEntries = state.leagueTotalCount ?? state.totalCount;
+    final zoneSize = leagueZoneSize(totalEntries);
 
     if (rank <= zoneSize) {
       return _buildBanner(
@@ -385,8 +377,8 @@ class _LeaderboardList extends StatelessWidget {
       borderColor = AppColors.secondary;
       borderWidth = 2;
     } else if (isLeague) {
-      final totalEntries = state.totalCount;
-      final zoneSize = _leagueZoneSize(totalEntries);
+      final totalEntries = state.leagueTotalCount ?? state.totalCount;
+      final zoneSize = leagueZoneSize(totalEntries);
       if (entry.rank <= zoneSize) {
         // Promote zone
         cardColor = const Color(0xFFE8F5E9);
