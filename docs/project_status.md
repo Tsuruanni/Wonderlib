@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (User Profile audit + 4 fixes: teacher stale UI, AppClock, retry button, type-safe casts)
+Son güncelleme: 2026-03-28 (Feature #24/#25 specs, configurable settings migration, admin dashboard responsive fix)
 
 ## Current Phase
 
@@ -137,6 +137,11 @@ See: CLAUDE.md for architecture guidelines
 - [x] Student Management Audit & Fixes (13-finding audit, 4 fixed: dead password reset stack removed, admin class routes added, role helpers extracted. Full spec at `docs/specs/20-student-management.md`)
 - [x] Auth Audit & Security Hardening (15-finding audit, 5 fixed: award-xp JWT auth, signup role escalation, profiles RLS, router role strings, dead test code. Full spec at `docs/specs/21-auth.md`)
 - [x] User Profile Audit & Fixes (11-finding audit, 4 fixed: teacher stale UI, AppClock badge date, retry button, Dart 3 type-safe casts. Full spec at `docs/specs/22-user-profile.md`)
+- [x] System Settings Audit & Fixes (4-finding audit, all 4 fixed. Full spec at `docs/specs/23-system-settings.md`)
+- [x] Notification System Audit & Fixes (3-finding audit, all 3 fixed: AppNotificationListener rename, streak threshold, badge_earned sort_order. Full spec at `docs/specs/24-notification-system.md`)
+- [x] Content Blocks Audit & Fixes (1-finding audit, fixed: dead audio block type removed. Full spec at `docs/specs/25-content-blocks.md`)
+- [x] Configurable Settings Migration (11 hardcoded values → system_settings: pack cost, activity XP tiers, daily review XP, activity thresholds, star rating. Pity mismatch bugfix.)
+- [x] Admin Dashboard Responsive Fix (overflow fix: responsive grid + safe card layout)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

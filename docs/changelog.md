@@ -8,6 +8,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Feature #24 & #25 Spec + Configurable Settings Migration (2026-03-28)
+
+#### Added
+- **Feature spec #24** — `docs/specs/24-notification-system.md` documents the Notification System (3 findings, all fixed). Covers 8 notification types, event-driven dialog queue, admin gallery, settings-gated display.
+- **Feature spec #25** — `docs/specs/25-content-blocks.md` documents the Content Blocks system (1 finding, fixed). Covers block types, progressive reveal, word-level audio sync, cache-aside offline, admin editor.
+- **11 configurable settings** — Card pack cost, activity XP tiers (4 levels), daily review XP per correct, activity pass/excellence thresholds, star rating thresholds (3 levels) — all now admin-editable via system_settings.
+- **Admin "Oyun Ekonomisi" category** — New settings category with pack cost, visible in admin settings screen.
+
+#### Changed
+- **Rename `LevelUpCelebrationListener` → `AppNotificationListener`** — Reflects that the widget orchestrates all 5 notification types, not just level-up.
+- **Responsive admin dashboard grid** — Fixed 5-column grid replaced with `LayoutBuilder` (2-5 columns based on screen width). Card layout uses `spaceBetween` + text overflow protection instead of `Spacer`.
+- **Star rating** — `starCount` getter now delegates to configurable `starCountWith(star3, star2, star1)` parameterized method. All UI callers read thresholds from system_settings.
+- **Activity XP calculation** — `SupabaseActivityRepository._calculateXP()` reads tier values from `SystemSettings` instead of hardcoded 10/7/5/2.
+- **Daily review RPC** — `complete_daily_review()` now reads `xp_daily_review_correct` from system_settings (was hardcoded `* 5`).
+
+#### Fixed
+- **Pity threshold mismatch** — Client `AppConstants.pityThreshold` was 15, SQL RPC uses `>= 14`. Client synced to 14.
+- **Dead `audio` block type** — Removed from `ContentBlockType` enum, DB CHECK constraint, and reader switch (was never created, text blocks with `audio_url` serve the purpose).
+- **`notif_badge_earned` sort_order** — Was missing (defaulted to 0), now set to 8 with normalized JSONB quoting.
+- **Hardcoded streak-broken threshold** — `streak_event_dialog.dart` had redundant `>= 3` check, removed (upstream `UserController` already filters via configurable `notifStreakBrokenMin`).
+- **Admin assignment detail crash** — Missing `AssignmentStatus.withdrawn` switch case caused non-exhaustive error.
+- **Admin dashboard overflow** — Bottom/right overflow on smaller screens due to fixed 5-column grid + `Spacer` in card layout.
+
+#### Removed
+- **`AppConstants.packCost`** — Moved to `SystemSettings.packCost`.
+- **`AppConstants.minimumPassScore` / `excellentScore`** — Moved to `SystemSettings.activityPassThreshold` / `activityExcellenceThreshold`.
+- **`ActivityResult.isPassing` / `isExcellent`** — Unused hardcoded getters removed.
+
+#### Infrastructure
+- **3 DB migrations** — `20260328800001` (badge_earned sort_order), `20260328900001` (remove audio block type), `20260329000001` (11 configurable settings + daily review RPC update).
+
 ### User Profile Audit & Fixes (2026-03-28)
 
 #### Added
