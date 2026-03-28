@@ -144,8 +144,8 @@ system_settings
 
 ### Streak → XP System
 ```
-Milestone hit (day 7/14/30/60/100)
-  → award_xp_transaction(p_user_id, xp, 'streak_milestone', NULL, description)
+Milestone hit (configurable days, default 7/14/30/60/100 + every 100 after)
+  → award_xp_transaction(p_user_id, xp, 'streak_milestone', 'day_N', description)
   → XP added to profiles.xp
   → coins added 1:1 (XP = coins rule)
 ```
@@ -183,8 +183,9 @@ Quest progress is tracked implicitly via activity logs.
 | Buy freeze with insufficient coins | Buy button disabled (grey) |
 | Streak = 0, then broken | `previousStreak = 0`, no broken dialog (threshold requires ≥3 by default) |
 | Exactly day 7/14/30/60/100 | Milestone XP awarded, milestone dialog shown |
-| Day 101+ | No milestone XP, regular streak-extended dialog |
-| `notifStreakBrokenMin` set to 1 in admin | **BUG**: Provider fires event but `hasEvent` hard-codes ≥3, dialog suppressed (#3) |
+| Day 101+ | No milestone unless repeating interval hit (default: day 200, 300, ...) |
+| Day 200 (repeat milestone) | `streak_milestone_repeat_xp` awarded (default 1000 XP) |
+| `notifStreakBrokenMin` set to 1 in admin | Works correctly — provider gates on settings, no hard-coded threshold |
 
 ## Test Scenarios
 
@@ -219,15 +220,10 @@ Quest progress is tracked implicitly via activity logs.
 - `lib/presentation/widgets/common/level_up_celebration.dart` — listener that shows streak event dialogs
 
 ### Database
-- `supabase/migrations/20260323000011_streak_previous_streak.sql` — canonical `update_user_streak` RPC
+- `supabase/migrations/20260328000007_streak_milestone_configurable.sql` — canonical `update_user_streak` RPC (configurable milestones)
 - `supabase/migrations/20260323000005_streak_freeze_and_milestones.sql` — `buy_streak_freeze` RPC, `streak_freeze_count` column, system settings seed
 - `supabase/migrations/20260323000008_daily_logins.sql` — `daily_logins` table + RLS
 
 ## Known Issues & Tech Debt
 
-1. **CRITICAL: Missing auth check** — `update_user_streak` needs `IF auth.uid() != p_user_id THEN RAISE EXCEPTION 'unauthorized'; END IF;` (same pattern as `buy_streak_freeze`)
-2. **Dead Edge Function** — `supabase/functions/check-streak/index.ts` should be deleted (duplicates SQL RPC logic, holds service role key)
-3. **`hasEvent` threshold mismatch** — `StreakResult.hasEvent` hard-codes `>= 3` but should use `notifStreakBrokenMin` from settings. Fix: remove `hasEvent` getter and rely solely on the provider's `shouldShow` logic
-4. **`loginDatesProvider` bypasses repository** — should be routed through `UserRepository` for testability and architecture compliance
-5. **Milestone source_id is NULL** — `award_xp_transaction` call should pass a deterministic `source_id` like `'streak_7'` for proper idempotency
-6. **Stale comment in addXP** — lines 261-265 reference removed server-side streak calls; should be updated
+None — all audit findings have been resolved.
