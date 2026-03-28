@@ -2,7 +2,6 @@
 enum ContentBlockType {
   text,
   image,
-  audio,
   activity;
 
   /// Database string representation.

@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/services/offline_sync_service.dart';
 import '../l10n/app_localizations.dart';
-import '../presentation/widgets/common/level_up_celebration.dart';
+import '../presentation/widgets/common/notification_listener.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -39,7 +39,7 @@ class OwlioApp extends ConsumerWidget {
         Locale('en'),
       ],
       builder: (context, child) {
-        return LevelUpCelebrationListener(
+        return AppNotificationListener(
           child: child ?? const SizedBox.shrink(),
         );
       },

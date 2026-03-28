@@ -16,7 +16,7 @@ class StreakEventDialog extends StatelessWidget {
       return _buildMilestoneDialog(context);
     } else if (result.freezeUsed && !result.streakBroken) {
       return _buildFreezeSavedDialog(context);
-    } else if (result.streakBroken && result.previousStreak >= 3) {
+    } else if (result.streakBroken) {
       return _buildStreakBrokenDialog(context);
     } else if (result.streakExtended) {
       return _buildStreakExtendedDialog(context);

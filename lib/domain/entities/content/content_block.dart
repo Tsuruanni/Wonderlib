@@ -63,7 +63,6 @@ class ContentBlock extends Equatable {
   // Helper getters
   bool get isTextBlock => type == ContentBlockType.text;
   bool get isImageBlock => type == ContentBlockType.image;
-  bool get isAudioBlock => type == ContentBlockType.audio;
   bool get isActivityBlock => type == ContentBlockType.activity;
 
   bool get hasAudio => audioUrl != null && audioUrl!.isNotEmpty;
