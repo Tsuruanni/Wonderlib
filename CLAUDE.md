@@ -95,6 +95,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Class Management | `docs/specs/18-class-management.md` | School/class CRUD, student roster, bulk move, login cards PDF, class-change assignment sync trigger, admin school management |
 | Teacher Dashboard & Reports | `docs/specs/19-teacher-dashboard-reports.md` | Dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs |
 | Student Management | `docs/specs/20-student-management.md` | Admin user CRUD, bulk CSV import, tabbed detail view, credential cards, teacher student detail, class management routes |
+| Auth | `docs/specs/21-auth.md` | Admin/student/teacher login, role routing, username-based auth, session management, RLS helper functions, bulk-create edge function |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

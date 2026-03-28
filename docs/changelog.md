@@ -8,6 +8,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Auth Audit & Security Hardening (2026-03-28)
+
+#### Added
+- **Feature spec** — `docs/specs/21-auth.md` documents the Auth system (15 findings: 5 fixed, 10 skipped/accepted). Covers admin/student/teacher login, role routing, username-based auth, session management, RLS helpers.
+
+#### Fixed
+- **`award-xp` edge function unauthed** — Added JWT verification + self-only constraint. Previously any request with the anon key could award arbitrary XP to any user via service role key.
+- **Privilege escalation via self-signup** — `handle_new_user()` trigger now always sets `role='student'` regardless of `raw_user_meta_data`. Previously a self-signup could pass `role: 'admin'` in metadata.
+- **`password_plain` exposed to students** — Replaced school-wide `profiles` SELECT policy with teacher-or-higher-only. Students must use `safe_profiles` view for peer data.
+- **Hard-coded role strings in router** — Replaced `'teacher'`/`'head'`/`'admin'` literals with `UserRole.xxx.dbValue` from shared package in 3 locations.
+
+#### Removed
+- **Dead test code** — `SignInWithStudentNumberUseCase` import + 70-line test group referencing non-existent class (prevented test compilation).
+
+#### Infrastructure
+- **1 DB migration** (20260328600001) — `handle_new_user` trigger hardened + profiles school-wide SELECT restricted to `is_teacher_or_higher()`.
+
 ### Student Management Audit & Fixes (2026-03-28)
 
 #### Added

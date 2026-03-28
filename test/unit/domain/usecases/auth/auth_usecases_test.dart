@@ -4,7 +4,6 @@ import 'package:mockito/mockito.dart';
 import 'package:owlio/core/errors/failures.dart';
 import 'package:owlio/domain/entities/user.dart';
 import 'package:owlio/domain/usecases/auth/sign_in_with_email_usecase.dart';
-import 'package:owlio/domain/usecases/auth/sign_in_with_student_number_usecase.dart';
 import 'package:owlio/domain/usecases/auth/sign_out_usecase.dart';
 import 'package:owlio/domain/usecases/auth/get_current_user_usecase.dart';
 import 'package:owlio/domain/usecases/usecase.dart';
@@ -144,82 +143,6 @@ void main() {
 
       // Assert
       expect(params.email, 'test@example.com');
-      expect(params.password, 'mypassword');
-    });
-  });
-
-  // ============================================
-  // SignInWithStudentNumberUseCase Tests
-  // ============================================
-  group('SignInWithStudentNumberUseCase', () {
-    late SignInWithStudentNumberUseCase usecase;
-
-    setUp(() {
-      usecase = SignInWithStudentNumberUseCase(mockAuthRepository);
-    });
-
-    test('withValidCredentials_shouldReturnUser', () async {
-      // Arrange
-      final user = UserFixtures.validStudentUser();
-      when(mockAuthRepository.signInWithStudentNumber(
-        studentNumber: '2024001',
-        password: 'password123',
-      )).thenAnswer((_) async => Right(user));
-
-      const params = SignInWithStudentNumberParams(
-        studentNumber: '2024001',
-        password: 'password123',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedUser) {
-          expect(returnedUser.studentNumber, '2024001');
-        },
-      );
-      verify(mockAuthRepository.signInWithStudentNumber(
-        studentNumber: '2024001',
-        password: 'password123',
-      )).called(1);
-    });
-
-    test('withInvalidStudentNumber_shouldReturnAuthFailure', () async {
-      // Arrange
-      when(mockAuthRepository.signInWithStudentNumber(
-        studentNumber: '9999999',
-        password: 'password',
-      )).thenAnswer((_) async => Left(AuthFailure.invalidCredentials()));
-
-      const params = SignInWithStudentNumberParams(
-        studentNumber: '9999999',
-        password: 'password',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (failure) => expect(failure, isA<AuthFailure>()),
-        (user) => fail('Should not return user'),
-      );
-    });
-
-    test('params_shouldStoreStudentNumberAndPassword', () {
-      // Arrange & Act
-      const params = SignInWithStudentNumberParams(
-        studentNumber: '2024001',
-        password: 'mypassword',
-      );
-
-      // Assert
-      expect(params.studentNumber, '2024001');
       expect(params.password, 'mypassword');
     });
   });

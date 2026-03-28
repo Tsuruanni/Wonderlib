@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
@@ -137,7 +138,9 @@ class _SplashScreenState extends State<_SplashScreen> {
       // Check role from user metadata
       final metadata = session.user.userMetadata;
       final role = metadata?['role'] as String?;
-      if (role == 'teacher' || role == 'head' || role == 'admin') {
+      if (role == UserRole.teacher.dbValue ||
+          role == UserRole.head.dbValue ||
+          role == UserRole.admin.dbValue) {
         context.go(AppRoutes.teacherDashboard);
       } else {
         context.go(AppRoutes.home);
@@ -209,7 +212,9 @@ GoRouter _createRouter() {
       if (isAuthenticated && isAuthRoute) {
         final metadata = session.user.userMetadata;
         final role = metadata?['role'] as String?;
-        if (role == 'teacher' || role == 'head' || role == 'admin') {
+        if (role == UserRole.teacher.dbValue ||
+            role == UserRole.head.dbValue ||
+            role == UserRole.admin.dbValue) {
           return AppRoutes.teacherDashboard;
         }
         return AppRoutes.home;
@@ -219,7 +224,9 @@ GoRouter _createRouter() {
       if (isAuthenticated) {
         final metadata = session.user.userMetadata;
         final role = metadata?['role'] as String?;
-        final isTeacherOrHigher = role == 'teacher' || role == 'head' || role == 'admin';
+        final isTeacherOrHigher = role == UserRole.teacher.dbValue ||
+            role == UserRole.head.dbValue ||
+            role == UserRole.admin.dbValue;
         final isTeacherRoute = state.matchedLocation.startsWith('/teacher');
 
         // Redirect bare /teacher to /teacher/dashboard

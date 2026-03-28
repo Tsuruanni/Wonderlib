@@ -39,6 +39,30 @@ serve(async (req) => {
   }
 
   try {
+    // Verify caller authentication
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Missing authorization header' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: `Bearer ${token}` } } }
+    )
+
+    const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser()
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+
     const { userId, amount, source, sourceId, description } = await req.json() as AwardXPRequest
 
     // Validate input
@@ -48,6 +72,14 @@ serve(async (req) => {
 
     if (amount <= 0) {
       throw new Error('Amount must be positive')
+    }
+
+    // Users can only award XP to themselves
+    if (userId !== caller.id) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Cannot award XP to another user' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      )
     }
 
     const supabase = createClient(

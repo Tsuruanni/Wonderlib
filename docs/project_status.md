@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Student Management audit + spec, dead code removal, admin class routes)
+Son güncelleme: 2026-03-28 (Auth audit + security hardening: award-xp auth, signup role fix, profiles RLS)
 
 ## Current Phase
 
@@ -135,6 +135,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Teacher Dashboard & Reports Audit & Fixes (8-finding audit, 7 fixed: leaderboard N+1 → single RPC, dead code removal — 2 model methods, 1 entity getter, 2 unused imports)
 - [x] Vocabulary Session Save & Progress Bar Fixes (3 bugs fixed: save race condition, dispose crash, progress bar estimation. Reactive state via ref.watch/listen.)
 - [x] Student Management Audit & Fixes (13-finding audit, 4 fixed: dead password reset stack removed, admin class routes added, role helpers extracted. Full spec at `docs/specs/20-student-management.md`)
+- [x] Auth Audit & Security Hardening (15-finding audit, 5 fixed: award-xp JWT auth, signup role escalation, profiles RLS, router role strings, dead test code. Full spec at `docs/specs/21-auth.md`)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -202,6 +203,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Auth Audit & Security Hardening | 2026-03-28 | 15-finding audit. Security: award-xp JWT + self-only, signup role forced to student, profiles school-wide SELECT restricted to teachers. Quality: router role strings → `UserRole.dbValue`. Dead code: stale test import + group. 1 migration, full spec at `docs/specs/21-auth.md`. 5/15 fixed, 10 skipped/accepted. |
 | Student Management Audit & Fixes | 2026-03-28 | 13-finding audit. Dead code: reset password stack removed (UseCase, provider, repo method, Edge Function, tests). Admin: class routes + dashboard card. Quality: role helpers extracted. Full spec at `docs/specs/20-student-management.md`. 4/13 fixed, 1 resolved, 8 skipped. |
 | Class Management Audit & Fixes | 2026-03-28 | 10-finding audit. Bug: edit dialog description field added (was silently clearing). Error: class/student providers now throw on failure (error UI reachable). Dead code: `ChangeStudentClassUseCase`, `GetClassmatesUseCase`, 4 model methods removed. Full spec at `docs/specs/18-class-management.md`. 6/10 fixed, 4 skipped. |
 | Assignment System Audit & Fixes | 2026-03-28 | 17-finding audit. Security: `start_assignment` + `complete_assignment` SECURITY DEFINER RPCs (prevents student forgery). Architecture: `AssignmentDeleteController` + `StudentAssignmentController` StateNotifiers. UX: content validation on create, error state reachable. Quality: `AssignmentStatusBadge` + `LearningPathItemDisplay` shared helpers, 9 debugPrint removed, dead code (-116 net lines). 1 migration, full spec at `docs/specs/17-assignment-system.md`. 13/17 fixed, 4 skipped. |
