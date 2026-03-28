@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -642,10 +640,10 @@ class _MockBookCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.neutral.withOpacity(0.5), width: 2),
+        border: Border.all(color: AppColors.neutral.withValues(alpha: 0.5), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral.withOpacity(0.4),
+            color: AppColors.neutral.withValues(alpha: 0.4),
             offset: const Offset(0, 4),
             blurRadius: 0,
           )
@@ -657,25 +655,15 @@ class _MockBookCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Base placeholder
-                  Container(color: AppColors.neutral.withOpacity(0.15)),
-                  // Frosted glass effect
-                  BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                    child: Container(color: Colors.white.withOpacity(0.3)),
+              child: Container(
+                color: AppColors.neutral.withValues(alpha: 0.12),
+                child: Center(
+                  child: Icon(
+                    Icons.lock_rounded,
+                    size: 32,
+                    color: AppColors.neutralText.withValues(alpha: 0.6),
                   ),
-                  // Lock icon
-                  Center(
-                    child: Icon(
-                      Icons.lock_rounded,
-                      size: 32,
-                      color: AppColors.neutralText.withOpacity(0.6),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
