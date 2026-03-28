@@ -47,6 +47,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': 'Reading XP',
     'xp_vocab': 'Vocab Session XP',
     'progression': 'Seviye ve İlerleme',
+    'game': 'Oyun Ekonomisi',
     'app': 'Uygulama Yapılandırması',
   };
 
@@ -54,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': Icons.auto_stories,
     'xp_vocab': Icons.school,
     'progression': Icons.trending_up,
+    'game': Icons.casino,
     'app': Icons.settings_applications,
   };
 
@@ -61,6 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': Color(0xFFF59E0B),
     'xp_vocab': Color(0xFF10B981),
     'progression': Color(0xFF8B5CF6),
+    'game': Color(0xFFEC4899),
     'app': Color(0xFF6B7280),
   };
 
