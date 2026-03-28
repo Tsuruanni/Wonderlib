@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Streak System audit & fixes — 9 findings all fixed, configurable milestones, 2 migrations deployed)
+Son güncelleme: 2026-03-28 (Badge/Achievement audit & fixes — 12 findings, 7 fixed, security RPC auth + dead code removal)
 
 ## Current Phase
 
@@ -124,6 +124,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Vocabulary Review Audit & Fixes (20-finding audit, 19 fixed: 2 RPC auth checks, session deadlock, error state UI, threshold alignment, timezone fix, dead code removal)
 - [x] XP/Leveling Audit & Spec (4-finding audit, 3 fixed: RPC auth check, dead code removal, SQL comment correction. Full spec written.)
 - [x] Streak System Audit & Fixes (9-finding audit, all 9 fixed: RPC auth check, dead Edge Function removal, hasEvent threshold fix, loginDatesProvider architecture fix, milestone idempotency, configurable milestone XP, repeating 100+ day milestones)
+- [x] Badge/Achievement Audit & Fixes (12-finding audit, 7 fixed: RPC auth check, dead code removal — 3 usecases, 2 providers, 3 repo methods, -517 lines)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -191,6 +192,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Badge/Achievement Audit & Fixes | 2026-03-28 | 12-finding audit. Security: auth.uid() check added to `check_and_award_badges` RPC. Dead code: removed 3 usecases, 2 providers, 3 repo methods (-517 lines). Full feature spec at `docs/specs/11-badge-achievement.md`. 1 migration, 7/12 fixed, 1 N/A, 4 tech debt. |
 | XP/Leveling Audit & Spec | 2026-03-28 | 4-finding audit. Security: auth.uid() check added to `award_xp_transaction` RPC. Dead code: `getLeaderboard()` removed from UserRepository. Docs: `calculate_level` SQL comments corrected. Full feature spec written at `docs/specs/09-xp-leveling.md`. 2 migrations deployed, 3/4 fixed, 1 accepted. |
 | Learning Paths Audit & Fixes | 2026-03-27 | 21-finding audit. Security: 3 RPC auth checks (apply_template, get_user_paths, get_daily_reviews), DR replay block (DELETE policy removed), head_teacher→head RLS fix. DB: FK cascade on class_id, atomic sort_order with FOR UPDATE, index housekeeping. Code: String→LearningPathItemType enum in 3 entities+3 models+3 screens, 5 dead code removals, 12 debugPrint removed. 1 migration deployed. 17/21 fixed, 4 known limitations. |
 | Book Quiz Audit & Fixes | 2026-03-27 | 16-finding audit. 3 high: quiz_passed never written to DB, get_best_book_quiz_result missing auth (any user could query any other user's scores), 0-question quiz soft-lock. Plus: quiz timer, shared enum for type parsing, AppColors, dead code cleanup, admin English labels (~80 strings), enum switches. 1 migration (RPC fixes + composite index). 12/16 fixed, 4 accepted/deferred. |

@@ -8,6 +8,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Badge/Achievement System Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **`check_and_award_badges` missing auth check** — CRITICAL: SECURITY DEFINER RPC didn't validate `p_user_id = auth.uid()`. Any authenticated user could trigger badge awards (including XP rewards) for any other user. Added auth guard (same pattern as `award_xp_transaction`).
+
+#### Removed
+- **Dead code** — `allBadgesProvider`, `earnableBadgesProvider`, `GetAllBadgesUseCase`, `GetBadgeByIdUseCase`, `CheckEarnableBadgesUseCase`, `checkEarnableBadges()` repo method (6 sequential queries), `getAllBadges()`/`getBadgeById()` repo methods — all had zero consumers. Tests updated accordingly (-517 lines).
+
+#### Infrastructure
+- **1 DB migration** (20260328000008) — Auth guard on `check_and_award_badges`.
+- **Feature spec** — `docs/specs/11-badge-achievement.md` documents the full Badge/Achievement system (12 findings: 7 fixed, 1 N/A, 4 tech debt).
+
 ### Streak System Audit, Spec & Fixes (2026-03-28)
 
 #### Fixed
