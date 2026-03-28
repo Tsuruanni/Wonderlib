@@ -44,9 +44,12 @@ class PathNode extends ConsumerStatefulWidget {
 }
 
 class _PathNodeState extends ConsumerState<PathNode>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   AnimationController? _bounceController;
   late Animation<double> _bounceAnimation;
+
+  AnimationController? _arrowController;
+  late Animation<double> _arrowAnimation;
 
 
 
@@ -55,6 +58,7 @@ class _PathNodeState extends ConsumerState<PathNode>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
       _setupBounce();
+      _setupArrow();
     }
   }
 
@@ -78,9 +82,27 @@ class _PathNodeState extends ConsumerState<PathNode>
     }
   }
 
+  void _setupArrow() {
+    if (widget.isActive && !widget.isLocked) {
+      _arrowController ??= AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 900),
+      );
+      _arrowAnimation = Tween<double>(begin: 0.0, end: 6.0).animate(
+        CurvedAnimation(parent: _arrowController!, curve: Curves.easeInOut),
+      );
+      _arrowController!.repeat(reverse: true);
+    } else {
+      _arrowController?.stop();
+      _arrowController?.dispose();
+      _arrowController = null;
+    }
+  }
+
   @override
   void dispose() {
     _bounceController?.dispose();
+    _arrowController?.dispose();
     super.dispose();
   }
 
@@ -433,15 +455,27 @@ class _PathNodeState extends ConsumerState<PathNode>
       ),
     );
 
+    final arrowWidget = _buildArrowIndicator();
+
     final rowChildren = isLeft
-        ? [labelWidget, const SizedBox(width: 70), nodeWidget] // Increased gap to 70
-        : [nodeWidget, const SizedBox(width: 70), labelWidget]; // Increased gap to 70
+        ? [
+            labelWidget,
+            const SizedBox(width: 70),
+            nodeWidget,
+            if (arrowWidget != null) ...[const SizedBox(width: 12), arrowWidget],
+          ]
+        : [
+            if (arrowWidget != null) ...[arrowWidget, const SizedBox(width: 12)],
+            nodeWidget,
+            const SizedBox(width: 70),
+            labelWidget,
+          ];
 
     return PressableScale(
       pressedScale: 0.92,
       onTap: () => _handleTap(context),
       child: SizedBox(
-        width: 286, // 140 + 70 + 76
+        width: (widget.isActive && !widget.isLocked) ? 334 : 286, // 286 + 12 gap + 24 icon + 12 padding
         child: Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -457,7 +491,8 @@ class _PathNodeState extends ConsumerState<PathNode>
   void initState() {
     super.initState();
     _setupBounce();
-    
+    _setupArrow();
+
     // Calculate random rotation once on init
     final seed = widget.wordListWithProgress.wordList.id.hashCode;
     final random = Random(seed);
@@ -577,6 +612,39 @@ class _PathNodeState extends ConsumerState<PathNode>
           color: filled ? AppColors.wasp : AppColors.neutralDark,
         );
       }),
+    );
+  }
+
+  /// Animated arrow indicator — appears on the opposite side of the label,
+  /// translates rhythmically toward the node.
+  Widget? _buildArrowIndicator() {
+    if (!widget.isActive || widget.isLocked || _arrowController == null) {
+      return null;
+    }
+
+    final isLeft = widget.labelPosition == LabelPosition.left;
+    // Arrow on opposite side of label: label left → arrow right, pointing left toward node
+    // Flip direction: if arrow is on the right side, point left (toward node)
+    // If arrow is on the left side, point right (toward node)
+    final flipX = isLeft ? -1.0 : 1.0; // -1 mirrors horizontally (points left)
+    // Translate direction: arrow moves toward the node
+    final translateSign = isLeft ? -1.0 : 1.0; // negative = move left, positive = move right
+
+    return AnimatedBuilder(
+      animation: _arrowAnimation,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(_arrowAnimation.value * translateSign, 0),
+        child: child,
+      ),
+      child: Transform.scale(
+        scaleX: flipX,
+        scaleY: 1.0,
+        child: Icon(
+          Icons.double_arrow_rounded,
+          size: 24,
+          color: AppColors.primary.withValues(alpha: 0.9),
+        ),
+      ),
     );
   }
 
