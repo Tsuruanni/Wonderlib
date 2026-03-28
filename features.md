@@ -176,7 +176,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | # | System | Admin Surface | App Surface | Teacher Surface | Spec Priority | Spec Status |
 |---|--------|---------------|-------------|-----------------|---------------|-------------|
 | 9 | **XP/Leveling** | System settings (XP values per activity type) | Earn XP, combo bonuses, level progression | XP-based ranking in reports | **High** | Done: `docs/specs/09-xp-leveling.md` |
-| 10 | **Streak System** | System settings (freeze price, freeze max, milestone interval) | Daily streak, freeze mechanic (coins), milestone bonuses | Streak stats per student | **High** | - |
+| 10 | **Streak System** | System settings (freeze price, freeze max, milestone interval) | Daily streak, freeze mechanic (coins), milestone bonuses | Streak stats per student | **High** | Done: `docs/specs/10-streak-system.md` |
 | 11 | **Badge/Achievement** | Badge editor (condition types, thresholds, XP rewards, categories) | Auto-award, badge collection display | Badge list per student | Medium | - |
 | 12 | **Leaderboard/Leagues** | - | Weekly/total ranking, league tiers, promotion/demotion | Leaderboard report | Medium | - |
 | 13 | **Coin Economy** | - (coins earned through system rules) | Earn from quests/bonuses, spend on cards/avatar/freeze | - | **High** | - |
