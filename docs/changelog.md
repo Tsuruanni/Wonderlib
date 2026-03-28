@@ -8,6 +8,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Coin Economy Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **4 RPC auth gaps (CRITICAL)** — `buy_card_pack`, `open_card_pack`, `award_coins_transaction`, `spend_coins_transaction` accepted arbitrary `p_user_id` without verifying `auth.uid()`. Any authenticated user could spend another user's coins or award themselves coins. Added auth guards to all 4 RPCs.
+- **Direct coin inflation via RLS** — `profiles` UPDATE policy had no column restriction; authenticated users could directly `UPDATE profiles SET coins = 999999`. Applied `REVOKE UPDATE(coins, unopened_packs, streak_freeze_count) ON profiles FROM authenticated`.
+- **Avatar screen architecture violation** — `AvatarCustomizeScreen` called UseCases directly and used `ref.invalidate(userControllerProvider)` (triggering unnecessary streak RPC). Extracted `AvatarController` StateNotifier with `refreshProfileOnly()`.
+- **Streak freeze fire-and-forget** — Dialog popped before purchase completed, no loading state, no error feedback. `StreakStatusDialog` is now a `ConsumerStatefulWidget` with loading indicator and error snackbar.
+- **Pack opening wrong text** — "Opening pack..." shown during buy phase (coin deduction). Split into "Buying pack..." / "Opening pack..." per phase.
+
+#### Removed
+- **Dead code** — `GetUserCoinsUseCase`, `GetCardsByCategoryUseCase`, `collectionByCategoryProvider`, `filteredCatalogProvider`, `selectedCategoryProvider` (card variant), corresponding repo methods. 2 files deleted, 118 lines removed.
+
+#### Infrastructure
+- **1 DB migration** (20260328100001) — Auth guards on 4 RPCs, column-level REVOKE, `streak_freeze_count` CHECK >= 0 constraint, redundant index dropped.
+- **Feature spec** — `docs/specs/13-coin-economy.md` documents the full Coin Economy system (18 findings: 13 fixed, 5 deferred). Includes 3-layer security model documentation.
+
 ### Leaderboard/Leagues Audit & Fixes (2026-03-28)
 
 #### Fixed
