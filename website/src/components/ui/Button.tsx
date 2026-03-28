@@ -19,7 +19,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   blue:
     "bg-snow text-sky shadow-[0_4px_0_#BBE7FC] hover:brightness-95 active:shadow-none active:translate-y-[4px]",
   neutral:
-    "bg-snow text-eel border-2 border-swan shadow-[0_2px_0_#E5E5E5] hover:bg-swan hover:border-[#CECECE] hover:shadow-[0_2px_0_#CECECE] active:shadow-none active:translate-y-[2px]",
+    "bg-snow text-sky border-2 border-swan shadow-[0_2px_0_#E5E5E5] hover:bg-polar hover:border-[#CECECE] hover:shadow-[0_2px_0_#CECECE] active:shadow-none active:translate-y-[2px]",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
