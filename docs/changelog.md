@@ -8,6 +8,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Class Management Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **Edit dialog silently clearing description** — `_showEditClassDialog` didn't expose description field, so editing a class always passed `description: null` to `update_class` RPC. Added `description` to `TeacherClass` entity + model + edit dialog (matching create dialog pattern).
+- **Class/student provider error states unreachable** — `teacherClassesProvider` and `classStudentsProvider` returned `[]` on failure. Now throw on failure, making `ErrorStateWidget` in screens reachable.
+
+#### Removed
+- **Dead code** — `ChangeStudentClassUseCase` + provider (superseded by `BulkMoveStudentsUseCase`), `GetClassmatesUseCase` + provider (never called), `fromEntity`/`toJson` on `TeacherClassModel` and `StudentSummaryModel` (read-only RPC projections).
+
+#### Infrastructure
+- **Feature spec** — `docs/specs/18-class-management.md` documents the full Class Management system (10 findings: 6 fixed, 4 skipped). Covers school/class CRUD, student roster, bulk move, login cards PDF, assignment sync trigger, admin school management.
+
 ### Assignment System Audit & Fixes (2026-03-28)
 
 #### Fixed
