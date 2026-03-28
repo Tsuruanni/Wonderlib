@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../domain/entities/card.dart';
 import '../../domain/usecases/card/buy_pack_usecase.dart';
@@ -80,14 +81,6 @@ final unopenedPacksProvider = Provider<int>((ref) {
 final ownedCardIdsProvider = Provider<Set<String>>((ref) {
   final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
   return userCards.map((uc) => uc.cardId).toSet();
-});
-
-/// Collection progress: unique owned / total catalog
-final collectionProgressProvider = Provider<double>((ref) {
-  final owned = ref.watch(ownedCardIdsProvider).length;
-  final catalog = ref.watch(cardCatalogProvider).valueOrNull ?? [];
-  if (catalog.isEmpty) return 0.0;
-  return owned / catalog.length;
 });
 
 /// Cards grouped by category, sorted by owned status + rarity + cardNo.
@@ -200,7 +193,8 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
     }
 
     final useCase = _ref.read(buyPackUseCaseProvider);
-    final result = await useCase(BuyPackParams(userId: userId, cost: cost));
+    final idempotencyKey = const Uuid().v4();
+    final result = await useCase(BuyPackParams(userId: userId, cost: cost, idempotencyKey: idempotencyKey));
 
     result.fold(
       (failure) {

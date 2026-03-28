@@ -6,9 +6,10 @@ import '../../repositories/card_repository.dart';
 import '../usecase.dart';
 
 class BuyPackParams {
-  const BuyPackParams({required this.userId, this.cost = 100});
+  const BuyPackParams({required this.userId, this.cost = 100, this.idempotencyKey});
   final String userId;
   final int cost;
+  final String? idempotencyKey;
 }
 
 class BuyPackUseCase implements UseCase<BuyPackResult, BuyPackParams> {
@@ -17,6 +18,6 @@ class BuyPackUseCase implements UseCase<BuyPackResult, BuyPackParams> {
 
   @override
   Future<Either<Failure, BuyPackResult>> call(BuyPackParams params) {
-    return _repository.buyPack(params.userId, cost: params.cost);
+    return _repository.buyPack(params.userId, cost: params.cost, idempotencyKey: params.idempotencyKey);
   }
 }

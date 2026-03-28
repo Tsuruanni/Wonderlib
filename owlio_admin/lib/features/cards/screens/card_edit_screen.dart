@@ -7,7 +7,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
-import 'card_list_screen.dart';
+import '../providers/card_providers.dart';
 
 /// Provider for loading a single card
 final cardDetailProvider =

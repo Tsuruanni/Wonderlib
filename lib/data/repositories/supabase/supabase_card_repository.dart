@@ -81,13 +81,14 @@ class SupabaseCardRepository implements CardRepository {
   }
 
   @override
-  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100}) async {
+  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100, String? idempotencyKey}) async {
     try {
       final response = await _supabase.rpc(
         RpcFunctions.buyCardPack,
         params: {
           'p_user_id': userId,
           'p_pack_cost': cost,
+          if (idempotencyKey != null) 'p_idempotency_key': idempotencyKey,
         },
       );
 

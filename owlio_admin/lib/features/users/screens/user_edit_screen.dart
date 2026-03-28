@@ -52,7 +52,7 @@ final userCardsProvider =
       .from(DbTables.userCards)
       .select('*, myth_cards(card_no, name, category, rarity, power)')
       .eq('user_id', userId)
-      .order('obtained_at', ascending: false));
+      .order('first_obtained_at', ascending: false));
 });
 
 /// Provider for user's quiz results

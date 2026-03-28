@@ -58,7 +58,7 @@ class MythCardWidget extends StatelessWidget {
             if (card.imageUrl != null)
               _buildCardImage(card.imageUrl!)
             else
-              _buildFallbackBackground(getGradient: true),
+              _buildFallbackBackground(),
 
             // Gradient Overlay for Text Readability
             Container(
@@ -340,19 +340,18 @@ class MythCardWidget extends StatelessWidget {
         url,
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) =>
-            _buildFallbackBackground(getGradient: true),
+            _buildFallbackBackground(),
       );
     }
     return Image.network(
       url,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) =>
-          _buildFallbackBackground(getGradient: true),
+          _buildFallbackBackground(),
     );
   }
 
-  Widget _buildFallbackBackground({required bool getGradient}) {
-    if (!getGradient) return const SizedBox.shrink();
+  Widget _buildFallbackBackground() {
     return Container(
       decoration: BoxDecoration(
         gradient: CardColors.getRarityGradient(card.rarity),

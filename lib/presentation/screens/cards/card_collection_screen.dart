@@ -282,7 +282,13 @@ class _CategorySection extends StatelessWidget {
                 width: 140, // 220 height * 0.7 aspect ratio ~= 154
                 child: isOwned
                   ? (() {
-                      final userCard = userCards.firstWhere((uc) => uc.cardId == card.id);
+                      final userCard = userCards.where((uc) => uc.cardId == card.id).firstOrNull;
+                      if (userCard == null) {
+                        return LockedCardWidget(
+                          card: card,
+                          onTap: () => onLockedTap(card),
+                        );
+                      }
                       return MythCardWidget(
                         card: card,
                         quantity: userCard.quantity,

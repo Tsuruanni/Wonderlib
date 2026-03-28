@@ -181,7 +181,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | 12 | **Leaderboard/Leagues** | - | Weekly/total ranking, league tiers, promotion/demotion | Leaderboard report | Medium | Done: `docs/specs/12-leaderboard-leagues.md` |
 | 13 | **Coin Economy** | - (coins earned through system rules) | Earn from quests/bonuses, spend on cards/avatar/freeze | - | **High** | Done: `docs/specs/13-coin-economy.md` |
 | 14 | **Daily Quest** | Quest management (title, goal, reward, active toggle) | Daily tasks, progress tracking, reward claiming | - | Medium | Done: `docs/specs/14-daily-quest.md` |
-| 15 | **Card Collection** | Card editor (image, rarity, category, stats) | Buy packs (coins), collect 96 cards, 8 myth categories, pity mechanic | - | Medium | - |
+| 15 | **Card Collection** | Card editor (image, rarity, category, stats) | Buy packs (coins), collect 96 cards, 8 myth categories, pity mechanic | - | Medium | Done: `docs/specs/15-card-collection.md` |
 | 16 | **Avatar System** | Avatar management (bases, categories, items with image upload) | Customize avatar, buy items (coins), z-index layering | - | Low | - |
 
 ## Teacher & Assignment

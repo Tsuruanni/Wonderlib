@@ -89,6 +89,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Leaderboard/Leagues | `docs/specs/12-leaderboard-leagues.md` | Weekly tier competition, league reset, promotion/demotion zones, 3 ranking scopes (league/class/school), teacher report |
 | Coin Economy | `docs/specs/13-coin-economy.md` | XP=coins 1:1 co-award, 3 spending flows (card packs, avatar items, streak freeze), coin_logs audit trail, idempotency, system settings |
 | Daily Quest | `docs/specs/14-daily-quest.md` | Quest types, implicit progress tracking, auto-reward via RPC, bonus pack claim, admin quest management, daily reset |
+| Card Collection | `docs/specs/15-card-collection.md` | Buy packs (coins), collect 96 cards, 8 myth categories, rarity tiers, pity mechanic, pack opening flow, admin card CRUD |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

@@ -5,7 +5,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/utils/badge_helpers.dart';
 import '../../badges/screens/badge_list_screen.dart';
-import '../../cards/screens/card_list_screen.dart';
+import '../../cards/providers/card_providers.dart';
 
 /// Combined screen for Badges + Myth Cards with tabs.
 class CollectiblesScreen extends ConsumerStatefulWidget {

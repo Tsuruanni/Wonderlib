@@ -14,7 +14,7 @@ abstract class CardRepository {
   Future<Either<Failure, UserCardStats>> getUserCardStats(String userId);
 
   /// Buy a card pack (deducts coins, adds to inventory — does NOT open)
-  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100});
+  Future<Either<Failure, BuyPackResult>> buyPack(String userId, {int cost = 100, String? idempotencyKey});
 
   /// Open a card pack from inventory (consumes 1 unopened pack, rolls 3 cards)
   Future<Either<Failure, PackResult>> openPack(String userId);
