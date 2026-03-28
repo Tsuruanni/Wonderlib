@@ -8,6 +8,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Student Management Audit & Fixes (2026-03-28)
+
+#### Added
+- **Feature spec** — `docs/specs/20-student-management.md` documents the Student Management system (13 findings: 4 fixed, 1 resolved, 8 skipped). Covers admin user CRUD, bulk CSV import, tabbed detail view, teacher student profile, credential cards.
+- **Admin class management routes** — `/classes`, `/classes/new`, `/classes/:classId` now registered in admin router; "Sınıflar" dashboard card added with class count stat.
+- **Admin role helpers** — `getRoleColor`/`getRoleLabel` extracted to `owlio_admin/lib/core/utils/role_helpers.dart`.
+
+#### Removed
+- **Dead password reset stack** — `ResetStudentPasswordUseCase`, provider registration, repository interface method, repository implementation + `_generateRandomPassword` helper, `reset-student-password` Edge Function directory, 3 test cases. Full stack was implemented but never wired to any UI.
+
 ### Vocabulary Session Save & Progress Bar Fixes (2026-03-28)
 
 #### Fixed

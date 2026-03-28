@@ -103,9 +103,6 @@ abstract class TeacherRepository {
   /// Send password reset email to student
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
 
-  /// Generate and set new password for student (returns the new password)
-  Future<Either<Failure, String>> resetStudentPassword(String studentId);
-
   // =============================================
   // PROFILE METHODS
   // =============================================

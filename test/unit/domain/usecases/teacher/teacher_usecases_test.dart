@@ -11,7 +11,6 @@ import 'package:owlio/domain/usecases/teacher/get_classes_usecase.dart';
 import 'package:owlio/domain/usecases/teacher/get_student_detail_usecase.dart';
 import 'package:owlio/domain/usecases/teacher/get_student_progress_usecase.dart';
 import 'package:owlio/domain/usecases/teacher/get_teacher_stats_usecase.dart';
-import 'package:owlio/domain/usecases/teacher/reset_student_password_usecase.dart';
 import 'package:owlio/domain/usecases/teacher/send_password_reset_email_usecase.dart';
 
 import '../../../../fixtures/teacher_fixtures.dart';
@@ -468,60 +467,6 @@ void main() {
 
       // Assert
       expect(result, const Left(NotFoundFailure('Class not found')));
-    });
-  });
-
-  // ============================================
-  // ResetStudentPasswordUseCase Tests
-  // ============================================
-  group('ResetStudentPasswordUseCase', () {
-    late ResetStudentPasswordUseCase useCase;
-
-    setUp(() {
-      useCase = ResetStudentPasswordUseCase(mockRepository);
-    });
-
-    test('shouldReturnNewPassword_whenResetSuccessfully', () async {
-      // Arrange
-      when(mockRepository.resetStudentPassword('student-123'))
-          .thenAnswer((_) async => const Right('NewPass123!'));
-
-      // Act
-      final result = await useCase(
-        const ResetStudentPasswordParams(studentId: 'student-123'),
-      );
-
-      // Assert
-      expect(result, const Right('NewPass123!'));
-      verify(mockRepository.resetStudentPassword('student-123')).called(1);
-    });
-
-    test('shouldReturnFailure_whenStudentNotFound', () async {
-      // Arrange
-      when(mockRepository.resetStudentPassword('invalid-student'))
-          .thenAnswer((_) async => const Left(NotFoundFailure('Student not found')));
-
-      // Act
-      final result = await useCase(
-        const ResetStudentPasswordParams(studentId: 'invalid-student'),
-      );
-
-      // Assert
-      expect(result, const Left(NotFoundFailure('Student not found')));
-    });
-
-    test('shouldReturnFailure_whenServerError', () async {
-      // Arrange
-      when(mockRepository.resetStudentPassword('student-123'))
-          .thenAnswer((_) async => const Left(ServerFailure('Auth service unavailable')));
-
-      // Act
-      final result = await useCase(
-        const ResetStudentPasswordParams(studentId: 'student-123'),
-      );
-
-      // Assert
-      expect(result, const Left(ServerFailure('Auth service unavailable')));
     });
   });
 

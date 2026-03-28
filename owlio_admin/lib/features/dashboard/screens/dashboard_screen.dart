@@ -17,6 +17,7 @@ final dashboardStatsProvider =
   final results = await Future.wait([
     supabase.from(DbTables.books).select().count(CountOption.exact),
     supabase.from(DbTables.schools).select().count(CountOption.exact),
+    supabase.from(DbTables.classes).select().count(CountOption.exact),
     supabase.from(DbTables.profiles).select().count(CountOption.exact),
     supabase.from(DbTables.badges).select().count(CountOption.exact),
     supabase.from(DbTables.vocabularyWords).select().count(CountOption.exact),
@@ -29,13 +30,14 @@ final dashboardStatsProvider =
   return {
     'books': results[0].count,
     'schools': results[1].count,
-    'users': results[2].count,
-    'badges': results[3].count,
-    'words': results[4].count,
-    'wordlists': results[5].count,
-    'templates': results[6].count,
-    'assignments': results[7].count,
-    'quests': results[8].count,
+    'classes': results[2].count,
+    'users': results[3].count,
+    'badges': results[4].count,
+    'words': results[5].count,
+    'wordlists': results[6].count,
+    'templates': results[7].count,
+    'assignments': results[8].count,
+    'quests': results[9].count,
   };
 });
 
@@ -148,6 +150,14 @@ class DashboardScreen extends ConsumerWidget {
                     color: const Color(0xFFE11D48),
                     stat: stats['schools'],
                     onTap: () => context.go('/schools'),
+                  ),
+                  _DashboardCard(
+                    icon: Icons.class_,
+                    title: 'Sınıflar',
+                    description: 'Sınıf ve öğrenci listesi yönetimi',
+                    color: const Color(0xFFDB2777),
+                    stat: stats['classes'],
+                    onTap: () => context.go('/classes'),
                   ),
                   _DashboardCard(
                     icon: Icons.people,

@@ -36,6 +36,8 @@ import '../features/avatars/screens/avatar_management_screen.dart';
 import '../features/avatars/screens/avatar_base_edit_screen.dart';
 import '../features/avatars/screens/avatar_item_edit_screen.dart';
 import '../features/avatars/screens/avatar_category_edit_screen.dart';
+import '../features/classes/screens/class_list_screen.dart';
+import '../features/classes/screens/class_edit_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -166,6 +168,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/users/:userId',
         builder: (context, state) => UserEditScreen(
           userId: state.pathParameters['userId']!,
+        ),
+      ),
+      // Classes
+      GoRoute(
+        path: '/classes',
+        builder: (context, state) => const ClassListScreen(),
+      ),
+      GoRoute(
+        path: '/classes/new',
+        builder: (context, state) => const ClassEditScreen(),
+      ),
+      GoRoute(
+        path: '/classes/:classId',
+        builder: (context, state) => ClassEditScreen(
+          classId: state.pathParameters['classId'],
         ),
       ),
       // Collectibles (Badges + Myth Cards)

@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
@@ -514,37 +513,6 @@ class SupabaseTeacherRepository implements TeacherRepository {
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
-  }
-
-  @override
-  Future<Either<Failure, String>> resetStudentPassword(String studentId) async {
-    try {
-      // Generate random password
-      final newPassword = _generateRandomPassword();
-
-      // Call edge function to set password
-      final response = await _supabase.functions.invoke(
-        'reset-student-password',
-        body: {'studentId': studentId, 'newPassword': newPassword},
-      );
-
-      if (response.status != 200) {
-        final error = response.data?['error'] as String? ?? 'Failed to reset password';
-        return Left(ServerFailure(error));
-      }
-
-      return Right(newPassword);
-    } on FunctionException catch (e) {
-      return Left(ServerFailure(e.details?.toString() ?? e.toString()));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  String _generateRandomPassword() {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final random = Random.secure();
-    return List.generate(10, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   // =============================================

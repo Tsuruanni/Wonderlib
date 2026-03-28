@@ -191,7 +191,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | 17 | **Assignment System** | Teacher assignments (read-only view) | Student: receive, complete, track progress/score | Teacher: create (book/vocab/unit), monitor submissions, grades | **High** | Done: `docs/specs/17-assignment-system.md` |
 | 18 | **Class Management** | School + class management, student roster | Student: class membership | Teacher: create/manage classes, bulk student operations | Low | Done: `docs/specs/18-class-management.md` |
 | 19 | **Teacher Dashboard & Reports** | Recent activity analytics | - | Dashboard stats, 4 report types (reading, assignment, class, leaderboard) | Low | Done: `docs/specs/19-teacher-dashboard-reports.md` |
-| 20 | **Student Management** | User management (CRUD, tabbed detail view) | - | Student detail, password reset, class transfer | Low | - |
+| 20 | **Student Management** | User management (CRUD, tabbed detail view) | - | Student detail, password reset, class transfer | Low | Done: `docs/specs/20-student-management.md` |
 
 ## Infrastructure
 

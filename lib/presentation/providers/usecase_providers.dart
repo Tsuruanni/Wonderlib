@@ -77,7 +77,6 @@ import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
-import '../../domain/usecases/teacher/reset_student_password_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/get_user_weekly_position_usecase.dart';
@@ -199,10 +198,6 @@ final removeBookDownloadUseCaseProvider = Provider((ref) {
 // ============================================
 // TEACHER USE CASES
 // ============================================
-
-final resetStudentPasswordUseCaseProvider = Provider((ref) {
-  return ResetStudentPasswordUseCase(ref.watch(teacherRepositoryProvider));
-});
 
 // ============================================
 // ASSIGNMENT USE CASES

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Teacher Dashboard audit + N+1 fix, spec update)
+Son güncelleme: 2026-03-28 (Student Management audit + spec, dead code removal, admin class routes)
 
 ## Current Phase
 
@@ -134,6 +134,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Class Management Audit & Fixes (10-finding audit, 6 fixed: description field bug, error propagation, dead code removal — 2 usecases, 4 model methods)
 - [x] Teacher Dashboard & Reports Audit & Fixes (8-finding audit, 7 fixed: leaderboard N+1 → single RPC, dead code removal — 2 model methods, 1 entity getter, 2 unused imports)
 - [x] Vocabulary Session Save & Progress Bar Fixes (3 bugs fixed: save race condition, dispose crash, progress bar estimation. Reactive state via ref.watch/listen.)
+- [x] Student Management Audit & Fixes (13-finding audit, 4 fixed: dead password reset stack removed, admin class routes added, role helpers extracted. Full spec at `docs/specs/20-student-management.md`)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -201,6 +202,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Student Management Audit & Fixes | 2026-03-28 | 13-finding audit. Dead code: reset password stack removed (UseCase, provider, repo method, Edge Function, tests). Admin: class routes + dashboard card. Quality: role helpers extracted. Full spec at `docs/specs/20-student-management.md`. 4/13 fixed, 1 resolved, 8 skipped. |
 | Class Management Audit & Fixes | 2026-03-28 | 10-finding audit. Bug: edit dialog description field added (was silently clearing). Error: class/student providers now throw on failure (error UI reachable). Dead code: `ChangeStudentClassUseCase`, `GetClassmatesUseCase`, 4 model methods removed. Full spec at `docs/specs/18-class-management.md`. 6/10 fixed, 4 skipped. |
 | Assignment System Audit & Fixes | 2026-03-28 | 17-finding audit. Security: `start_assignment` + `complete_assignment` SECURITY DEFINER RPCs (prevents student forgery). Architecture: `AssignmentDeleteController` + `StudentAssignmentController` StateNotifiers. UX: content validation on create, error state reachable. Quality: `AssignmentStatusBadge` + `LearningPathItemDisplay` shared helpers, 9 debugPrint removed, dead code (-116 net lines). 1 migration, full spec at `docs/specs/17-assignment-system.md`. 13/17 fixed, 4 skipped. |
 | Avatar System Audit & Fixes | 2026-03-28 | 12-finding audit. Security: storage policy restricted to admin. Dead code: GetEquippedAvatarUseCase pipeline removed. Quality: CardRarity.colorHex centralized, admin UX improvements (error+retry, blob cleanup, validation, friendly errors). 1 migration, full spec at `docs/specs/16-avatar-system.md`. 8/12 fixed, 4 skipped. |

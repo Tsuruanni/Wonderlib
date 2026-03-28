@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
+import '../../../core/utils/role_helpers.dart';
 import 'user_list_screen.dart';
 
 /// Provider for loading a single user
@@ -401,12 +402,12 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: _getRoleColor(role),
+                          color: getRoleColor(role),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(_getRoleLabel(role)),
+                      Text(getRoleLabel(role)),
                     ],
                   ),
                 );
@@ -488,35 +489,6 @@ class _UserEditScreenState extends ConsumerState<UserEditScreen>
     );
   }
 
-  Color _getRoleColor(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return Colors.red;
-      case 'head':
-        return Colors.purple;
-      case 'teacher':
-        return Colors.blue;
-      case 'student':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getRoleLabel(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return 'Admin';
-      case 'head':
-        return 'Baş Öğretmen';
-      case 'teacher':
-        return 'Öğretmen';
-      case 'student':
-        return 'Öğrenci';
-      default:
-        return role;
-    }
-  }
 }
 
 // ─── Progress Tab ───────────────────────────────────────────

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/supabase_client.dart';
+import '../../../core/utils/role_helpers.dart';
 
 /// Provider for school filter
 final schoolFilterProvider = StateProvider<String?>((ref) => null);
@@ -306,11 +307,11 @@ class _UserCard extends StatelessWidget {
               // Avatar
               CircleAvatar(
                 radius: 24,
-                backgroundColor: _getRoleColor(role).withValues(alpha: 0.1),
+                backgroundColor: getRoleColor(role).withValues(alpha: 0.1),
                 child: Text(
                   _getInitials(firstName, lastName, email),
                   style: TextStyle(
-                    color: _getRoleColor(role),
+                    color: getRoleColor(role),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -360,8 +361,8 @@ class _UserCard extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         _Chip(
-                          label: _getRoleLabel(role),
-                          color: _getRoleColor(role),
+                          label: getRoleLabel(role),
+                          color: getRoleColor(role),
                         ),
                         if (schoolName != null)
                           _Chip(
@@ -403,35 +404,6 @@ class _UserCard extends StatelessWidget {
     return '?';
   }
 
-  Color _getRoleColor(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return Colors.red;
-      case 'head':
-        return Colors.purple;
-      case 'teacher':
-        return Colors.blue;
-      case 'student':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getRoleLabel(String role) {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return 'Admin';
-      case 'head':
-        return 'Baş Öğretmen';
-      case 'teacher':
-        return 'Öğretmen';
-      case 'student':
-        return 'Öğrenci';
-      default:
-        return role;
-    }
-  }
 }
 
 class _Chip extends StatelessWidget {
