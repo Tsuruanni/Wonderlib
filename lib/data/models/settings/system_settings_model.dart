@@ -76,75 +76,47 @@ class SystemSettingsModel {
     return SystemSettingsModel.fromMap(map);
   }
 
+  /// Single source of truth for defaults — derived from entity
+  static const _d = SystemSettings();
+
   /// Parse from key-value map
   factory SystemSettingsModel.fromMap(Map<String, dynamic> m) {
     return SystemSettingsModel(
-      xpChapterComplete: _toInt(m['xp_chapter_complete'], 50),
-      xpBookComplete: _toInt(m['xp_book_complete'], 200),
-      xpQuizPass: _toInt(m['xp_quiz_pass'], 20),
-      xpInlineTrueFalse: _toInt(m['xp_inline_true_false'], 25),
-      xpInlineWordTranslation: _toInt(m['xp_inline_word_translation'], 25),
-      xpInlineFindWords: _toInt(m['xp_inline_find_words'], 25),
-      xpInlineMatching: _toInt(m['xp_inline_matching'], 25),
-      xpVocabMultipleChoice: _toInt(m['xp_vocab_multiple_choice'], 10),
-      xpVocabMatching: _toInt(m['xp_vocab_matching'], 15),
-      xpVocabScrambledLetters: _toInt(m['xp_vocab_scrambled_letters'], 20),
-      xpVocabSpelling: _toInt(m['xp_vocab_spelling'], 25),
-      xpVocabSentenceGap: _toInt(m['xp_vocab_sentence_gap'], 30),
-      comboBonusXp: _toInt(m['combo_bonus_xp'], 5),
-      xpVocabSessionBonus: _toInt(m['xp_vocab_session_bonus'], 10),
-      xpVocabPerfectBonus: _toInt(m['xp_vocab_perfect_bonus'], 20),
-      notifStreakExtended: _toBool(m['notif_streak_extended'], true),
-      notifStreakBroken: _toBool(m['notif_streak_broken'], true),
-      notifStreakBrokenMin: _toInt(m['notif_streak_broken_min'], 3),
-      notifMilestone: _toBool(m['notif_milestone'], true),
-      notifLevelUp: _toBool(m['notif_level_up'], true),
-      notifLeagueChange: _toBool(m['notif_league_change'], true),
-      notifFreezeSaved: _toBool(m['notif_freeze_saved'], true),
-      notifBadgeEarned: _toBool(m['notif_badge_earned'], true),
-      notifAssignment: _toBool(m['notif_assignment'], true),
-      streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
-      streakFreezeMax: _toInt(m['streak_freeze_max'], 2),
-      streakMilestones: _toIntMap(m['streak_milestones'], {7: 50, 14: 100, 30: 200, 60: 400, 100: 1000}),
-      streakMilestoneRepeatInterval: _toInt(m['streak_milestone_repeat_interval'], 100),
-      streakMilestoneRepeatXp: _toInt(m['streak_milestone_repeat_xp'], 1000),
-      debugDateOffset: _toInt(m['debug_date_offset'], 0),
+      xpChapterComplete: _toInt(m['xp_chapter_complete'], _d.xpChapterComplete),
+      xpBookComplete: _toInt(m['xp_book_complete'], _d.xpBookComplete),
+      xpQuizPass: _toInt(m['xp_quiz_pass'], _d.xpQuizPass),
+      xpInlineTrueFalse: _toInt(m['xp_inline_true_false'], _d.xpInlineTrueFalse),
+      xpInlineWordTranslation: _toInt(m['xp_inline_word_translation'], _d.xpInlineWordTranslation),
+      xpInlineFindWords: _toInt(m['xp_inline_find_words'], _d.xpInlineFindWords),
+      xpInlineMatching: _toInt(m['xp_inline_matching'], _d.xpInlineMatching),
+      xpVocabMultipleChoice: _toInt(m['xp_vocab_multiple_choice'], _d.xpVocabMultipleChoice),
+      xpVocabMatching: _toInt(m['xp_vocab_matching'], _d.xpVocabMatching),
+      xpVocabScrambledLetters: _toInt(m['xp_vocab_scrambled_letters'], _d.xpVocabScrambledLetters),
+      xpVocabSpelling: _toInt(m['xp_vocab_spelling'], _d.xpVocabSpelling),
+      xpVocabSentenceGap: _toInt(m['xp_vocab_sentence_gap'], _d.xpVocabSentenceGap),
+      comboBonusXp: _toInt(m['combo_bonus_xp'], _d.comboBonusXp),
+      xpVocabSessionBonus: _toInt(m['xp_vocab_session_bonus'], _d.xpVocabSessionBonus),
+      xpVocabPerfectBonus: _toInt(m['xp_vocab_perfect_bonus'], _d.xpVocabPerfectBonus),
+      notifStreakExtended: _toBool(m['notif_streak_extended'], _d.notifStreakExtended),
+      notifStreakBroken: _toBool(m['notif_streak_broken'], _d.notifStreakBroken),
+      notifStreakBrokenMin: _toInt(m['notif_streak_broken_min'], _d.notifStreakBrokenMin),
+      notifMilestone: _toBool(m['notif_milestone'], _d.notifMilestone),
+      notifLevelUp: _toBool(m['notif_level_up'], _d.notifLevelUp),
+      notifLeagueChange: _toBool(m['notif_league_change'], _d.notifLeagueChange),
+      notifFreezeSaved: _toBool(m['notif_freeze_saved'], _d.notifFreezeSaved),
+      notifBadgeEarned: _toBool(m['notif_badge_earned'], _d.notifBadgeEarned),
+      notifAssignment: _toBool(m['notif_assignment'], _d.notifAssignment),
+      streakFreezePrice: _toInt(m['streak_freeze_price'], _d.streakFreezePrice),
+      streakFreezeMax: _toInt(m['streak_freeze_max'], _d.streakFreezeMax),
+      streakMilestones: _toIntMap(m['streak_milestones'], _d.streakMilestones),
+      streakMilestoneRepeatInterval: _toInt(m['streak_milestone_repeat_interval'], _d.streakMilestoneRepeatInterval),
+      streakMilestoneRepeatXp: _toInt(m['streak_milestone_repeat_xp'], _d.streakMilestoneRepeatXp),
+      debugDateOffset: _toInt(m['debug_date_offset'], _d.debugDateOffset),
     );
   }
 
-  /// Default model (fallback)
-  factory SystemSettingsModel.defaults() => const SystemSettingsModel(
-        xpChapterComplete: 50,
-        xpBookComplete: 200,
-        xpQuizPass: 20,
-        xpInlineTrueFalse: 25,
-        xpInlineWordTranslation: 25,
-        xpInlineFindWords: 25,
-        xpInlineMatching: 25,
-        xpVocabMultipleChoice: 10,
-        xpVocabMatching: 15,
-        xpVocabScrambledLetters: 20,
-        xpVocabSpelling: 25,
-        xpVocabSentenceGap: 30,
-        comboBonusXp: 5,
-        xpVocabSessionBonus: 10,
-        xpVocabPerfectBonus: 20,
-        notifStreakExtended: true,
-        notifStreakBroken: true,
-        notifStreakBrokenMin: 3,
-        notifMilestone: true,
-        notifLevelUp: true,
-        notifLeagueChange: true,
-        notifFreezeSaved: true,
-        notifBadgeEarned: true,
-        notifAssignment: true,
-        streakFreezePrice: 50,
-        streakFreezeMax: 2,
-        streakMilestones: const {7: 50, 14: 100, 30: 200, 60: 400, 100: 1000},
-        streakMilestoneRepeatInterval: 100,
-        streakMilestoneRepeatXp: 1000,
-        debugDateOffset: 0,
-      );
+  /// Default model (fallback) — derives all values from entity defaults
+  factory SystemSettingsModel.defaults() => SystemSettingsModel.fromMap({});
 
   /// Convert to entity
   SystemSettings toEntity() => SystemSettings(
@@ -178,41 +150,6 @@ class SystemSettingsModel {
         streakMilestoneRepeatInterval: streakMilestoneRepeatInterval,
         streakMilestoneRepeatXp: streakMilestoneRepeatXp,
         debugDateOffset: debugDateOffset,
-      );
-
-  /// Create model from entity
-  factory SystemSettingsModel.fromEntity(SystemSettings e) =>
-      SystemSettingsModel(
-        xpChapterComplete: e.xpChapterComplete,
-        xpBookComplete: e.xpBookComplete,
-        xpQuizPass: e.xpQuizPass,
-        xpInlineTrueFalse: e.xpInlineTrueFalse,
-        xpInlineWordTranslation: e.xpInlineWordTranslation,
-        xpInlineFindWords: e.xpInlineFindWords,
-        xpInlineMatching: e.xpInlineMatching,
-        xpVocabMultipleChoice: e.xpVocabMultipleChoice,
-        xpVocabMatching: e.xpVocabMatching,
-        xpVocabScrambledLetters: e.xpVocabScrambledLetters,
-        xpVocabSpelling: e.xpVocabSpelling,
-        xpVocabSentenceGap: e.xpVocabSentenceGap,
-        comboBonusXp: e.comboBonusXp,
-        xpVocabSessionBonus: e.xpVocabSessionBonus,
-        xpVocabPerfectBonus: e.xpVocabPerfectBonus,
-        notifStreakExtended: e.notifStreakExtended,
-        notifStreakBroken: e.notifStreakBroken,
-        notifStreakBrokenMin: e.notifStreakBrokenMin,
-        notifMilestone: e.notifMilestone,
-        notifLevelUp: e.notifLevelUp,
-        notifLeagueChange: e.notifLeagueChange,
-        notifFreezeSaved: e.notifFreezeSaved,
-        notifBadgeEarned: e.notifBadgeEarned,
-        notifAssignment: e.notifAssignment,
-        streakFreezePrice: e.streakFreezePrice,
-        streakFreezeMax: e.streakFreezeMax,
-        streakMilestones: e.streakMilestones,
-        streakMilestoneRepeatInterval: e.streakMilestoneRepeatInterval,
-        streakMilestoneRepeatXp: e.streakMilestoneRepeatXp,
-        debugDateOffset: e.debugDateOffset,
       );
 
   // Helper: Parse JSONB value (removes quotes, converts types)
