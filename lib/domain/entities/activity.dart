@@ -236,8 +236,6 @@ class ActivityResult extends Equatable {
   final DateTime completedAt;
 
   double get percentage => maxScore > 0 ? (score / maxScore) * 100 : 0;
-  bool get isPassing => percentage >= 60;
-  bool get isExcellent => percentage >= 90;
   bool get isPerfect => score == maxScore;
 
   @override
