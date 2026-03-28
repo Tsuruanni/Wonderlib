@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/word_list.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
@@ -23,6 +25,7 @@ class WordListDetailScreen extends ConsumerWidget {
     final wordsAsync = ref.watch(wordsForListProvider(listId));
     final canStart = ref.watch(canStartWordListProvider(listId));
 
+    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     final progress = progressAsync.valueOrNull;
 
     // Lock applies only to un-started lists that exceed daily limit
@@ -104,9 +107,9 @@ class WordListDetailScreen extends ConsumerWidget {
                   ],
 
                   // Star display
-                  if (progress != null && progress.starCount > 0) ...[
+                  if (progress != null && progress.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1) > 0) ...[
                     const SizedBox(height: 16),
-                    _StarDisplay(stars: progress.starCount),
+                    _StarDisplay(stars: progress.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1)),
                   ],
 
                   const SizedBox(height: 100),

@@ -7,6 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
+import '../../../domain/entities/system_settings.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
 import 'path_special_nodes.dart' show pathNodeLabelStyle;
@@ -133,6 +135,7 @@ class _PathNodeState extends ConsumerState<PathNode>
   }
 
   void _showProgressSheet(BuildContext context, WordListWithProgress wlp) {
+    final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     final progress = wlp.progress!;
     final id = wlp.wordList.id;
     final isPerfect = progress.bestAccuracy != null && progress.bestAccuracy! >= 100;
@@ -208,12 +211,12 @@ class _PathNodeState extends ConsumerState<PathNode>
               ),
 
               // Stars
-              if (wlp.starCount > 0) ...[
+              if (wlp.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1) > 0) ...[
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(3, (i) {
-                    final filled = i < wlp.starCount;
+                    final filled = i < wlp.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1);
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Icon(
@@ -369,6 +372,7 @@ class _PathNodeState extends ConsumerState<PathNode>
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     final wordList = widget.wordListWithProgress.wordList;
     final isComplete = widget.wordListWithProgress.isComplete;
     final isStarted = widget.wordListWithProgress.isStarted;
@@ -377,7 +381,7 @@ class _PathNodeState extends ConsumerState<PathNode>
     final nodeColor = isLocked
         ? AppColors.neutral
         : isComplete
-            ? _getStarColor(widget.wordListWithProgress.starCount, widget.unitColor)
+            ? _getStarColor(widget.wordListWithProgress.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1), widget.unitColor)
             : (isStarted || widget.isActive)
                 ? widget.unitColor
                 : AppColors.white;
@@ -470,7 +474,8 @@ class _PathNodeState extends ConsumerState<PathNode>
     required Color shadowColor,
   }) {
     final showGlow = widget.isActive && !isLocked;
-    final stars = widget.wordListWithProgress.starCount;
+    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+    final stars = widget.wordListWithProgress.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1);
 
     return SizedBox(
       width: 76,

@@ -381,6 +381,8 @@ class WordListWithProgress {
   bool get isStarted => progress != null;
   bool get isComplete => progress?.isComplete ?? false;
   int get starCount => progress?.starCount ?? 0;
+  int starCountWith({int star3 = 90, int star2 = 70, int star1 = 50}) =>
+      progress?.starCountWith(star3: star3, star2: star2, star1: star1) ?? 0;
 }
 
 /// Vocabulary hub stats
