@@ -5,16 +5,16 @@
 ### Findings
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Dead Code | `getLeaderboard()` in `UserRepository` and `SupabaseUserRepository` — old method replaced by RPC-based leaderboard methods, never called | Low | TODO |
-| 2 | Security | `award_xp_transaction` is SECURITY DEFINER but doesn't validate `p_user_id = auth.uid()` — client could award XP to any user | Medium | TODO |
-| 3 | Documentation | SQL comments in `create_functions.sql` show wrong threshold values ("0, 100, 300, 600" but actual formula gives "0, 200, 600, 1200") | Low | TODO |
+| 1 | Dead Code | `getLeaderboard()` in `UserRepository` and `SupabaseUserRepository` — old method replaced by RPC-based leaderboard methods, never called | Low | Fixed |
+| 2 | Security | `award_xp_transaction` is SECURITY DEFINER but doesn't validate `p_user_id = auth.uid()` — client could award XP to any user | Medium | Fixed |
+| 3 | Documentation | SQL comments in `create_functions.sql` show wrong threshold values ("0, 100, 300, 600" but actual formula gives "0, 200, 600, 1200") | Low | Fixed |
 | 4 | UX | `XPBadge` widget and session summary use coin icon (`Icons.monetization_on`) for XP — technically correct (XP=coins 1:1) but semantically ambiguous | Low | Accepted |
 
 ### Checklist Result
 - Architecture Compliance: PASS
-- Code Quality: PASS (1 dead code method)
-- Dead Code: 1 issue (#1)
-- Database & Security: 1 issue (#2)
+- Code Quality: PASS
+- Dead Code: PASS (fixed)
+- Database & Security: PASS (fixed)
 - Edge Cases & UX: PASS (1 accepted quirk)
 - Performance: PASS
 - Cross-System Integrity: PASS
@@ -214,10 +214,4 @@ Streak milestone (app open)
 
 ## Known Issues & Tech Debt
 
-1. **Security: No auth check in `award_xp_transaction`** — The RPC is SECURITY DEFINER and doesn't validate `p_user_id = auth.uid()`. A client could theoretically award XP to any user. Should add `IF p_user_id != auth.uid() THEN RAISE EXCEPTION` guard (same pattern applied to `complete_vocabulary_session` in migration `20260328000002`).
-
-2. **Dead code: `getLeaderboard()` method** — Old method in `UserRepository` interface and `SupabaseUserRepository` that queries profiles directly by XP. Replaced by RPC-based leaderboard methods. Should be removed from both the interface and implementation.
-
-3. **Misleading SQL comments** — `create_functions.sql` comments say thresholds are "0, 100, 300, 600" but the actual formula produces "0, 200, 600, 1200". The formula itself is correct; only the comments are wrong.
-
-4. **Planned: Type-based XP refactor** — Design spec exists at `docs/superpowers/specs/2026-03-23-type-based-xp-design.md`. Inline activity XP per-type settings are deployed but not yet wired into the inline activity completion flow (currently all use a single `xpInlineActivity` value). Vocab per-type settings are fully wired.
+None — all audit findings resolved. Type-based XP per inline activity type is fully wired via `getInlineActivityXP()` in `reader_provider.dart`.
