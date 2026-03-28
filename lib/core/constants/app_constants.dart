@@ -21,9 +21,8 @@ abstract class AppConstants {
   // XP values → managed via system_settings table (admin panel configurable)
   // See: SystemSettings entity + systemSettingsProvider
 
-  // Activity thresholds
-  static const minimumPassScore = 60.0;
-  static const excellentScore = 90.0;
+  // Activity thresholds → managed via system_settings table (admin panel configurable)
+  // See: SystemSettings entity + systemSettingsProvider
 
   // Spaced repetition
   static const initialEaseFactor = 2.5;
@@ -31,9 +30,8 @@ abstract class AppConstants {
   static const maxInterval = 365;
 
   // Card System
-  static const packCost = 100;
   static const cardsPerPack = 3;
   static const totalCardCount = 96;
   static const cardsPerCategory = 12;
-  static const pityThreshold = 15;
+  static const pityThreshold = 14; // matches SQL pity logic (0-indexed, triggers at pack 15)
 }

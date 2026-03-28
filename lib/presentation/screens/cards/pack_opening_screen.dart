@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../widgets/cards/card_flip_widget.dart';
 import '../../widgets/cards/card_reveal_effects.dart';
 import '../../widgets/cards/coin_badge.dart';
@@ -205,7 +206,8 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
   Widget _buildIdlePhase(
       PackOpeningController controller, int coins, int packs, String? error) {
-    final canAfford = coins >= 100;
+    final packCost = ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
+    final canAfford = coins >= packCost;
     final hasPacks = packs > 0;
 
     return Padding(
@@ -381,9 +383,9 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             width: 240,
             height: 48,
             child: GameButton(
-              label: 'BUY PACK  \u00a2100',
+              label: 'BUY PACK  \u00a2$packCost',
               variant: canAfford ? GameButtonVariant.primary : GameButtonVariant.neutral,
-              onPressed: canAfford ? () => controller.buyPack() : null,
+              onPressed: canAfford ? () => controller.buyPack(cost: packCost) : null,
             ),
           ),
 
