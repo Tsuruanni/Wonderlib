@@ -86,6 +86,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | XP/Leveling | `docs/specs/09-xp-leveling.md` | XP award flow, level formula, combo system, admin-configurable XP values, XP=coins 1:1 rule, idempotency, badge/level-up events, leaderboard |
 | Streak System | `docs/specs/10-streak-system.md` | Daily streak, login-based model, freeze mechanic (coins), milestone XP bonuses, notification gating, calendar visualization |
 | Badge/Achievement | `docs/specs/11-badge-achievement.md` | 6 condition types, auto-award via RPC, XP rewards, badge editor, earned notification dialog, teacher badge view |
+| Leaderboard/Leagues | `docs/specs/12-leaderboard-leagues.md` | Weekly tier competition, league reset, promotion/demotion zones, 3 ranking scopes (league/class/school), teacher report |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.
