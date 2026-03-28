@@ -248,11 +248,7 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     );
 
     // Note: NOT calling updateStreak() here.
-    // Server-side RPCs (complete_daily_review, complete_vocabulary_session)
-    // already call PERFORM update_user_streak() internally.
-    // The streak was already updated on app open via _updateStreakIfNeeded.
-    // Calling it again would be idempotent but would suppress event dialogs
-    // (second same-day call returns no events).
+    // Streak is login-based — updated once per day on app open via _updateStreakIfNeeded.
   }
 
   Future<void> updateStreak() async {

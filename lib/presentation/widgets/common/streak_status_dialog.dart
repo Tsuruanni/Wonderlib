@@ -195,14 +195,12 @@ class StreakStatusDialog extends StatelessWidget {
                      );
                   }),
                 ),
-                child: Container(
-                   child: Text(
-                    'Close',
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
+                child: Text(
+                  'Close',
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
