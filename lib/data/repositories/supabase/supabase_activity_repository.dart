@@ -6,15 +6,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/activity_stats.dart';
+import '../../../domain/entities/system_settings.dart';
 import '../../../domain/repositories/activity_repository.dart';
 import '../../models/activity/activity_model.dart';
 import '../../models/activity/activity_result_model.dart';
 
 class SupabaseActivityRepository implements ActivityRepository {
-  SupabaseActivityRepository({SupabaseClient? supabase})
-      : _supabase = supabase ?? Supabase.instance.client;
+  SupabaseActivityRepository({SupabaseClient? supabase, SystemSettings? settings})
+      : _supabase = supabase ?? Supabase.instance.client,
+        _settings = settings ?? const SystemSettings();
 
   final SupabaseClient _supabase;
+  final SystemSettings _settings;
 
   @override
   Future<Either<Failure, List<Activity>>> getActivitiesByChapter(
@@ -246,10 +249,10 @@ class SupabaseActivityRepository implements ActivityRepository {
   int _calculateXP(double score, double maxScore) {
     if (maxScore == 0) return 0;
     final percentage = (score / maxScore) * 100;
-    if (percentage >= 100) return 10; // Perfect
-    if (percentage >= 80) return 7;
-    if (percentage >= 60) return 5;
-    return 2; // Participation XP
+    if (percentage >= 100) return _settings.xpActivityResultPerfect;
+    if (percentage >= 80) return _settings.xpActivityResultGood;
+    if (percentage >= 60) return _settings.xpActivityResultPass;
+    return _settings.xpActivityResultParticipation;
   }
 
   Future<Map<String, dynamic>?> _awardXP(

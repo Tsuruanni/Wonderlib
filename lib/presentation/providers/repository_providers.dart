@@ -26,7 +26,9 @@ import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
+import '../../domain/entities/system_settings.dart';
 import '../../domain/repositories/activity_repository.dart';
+import '../providers/system_settings_provider.dart';
 import '../../domain/repositories/book_download_repository.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/repositories/avatar_repository.dart';
@@ -83,7 +85,8 @@ final vocabularyRepositoryProvider = Provider<VocabularyRepository>((ref) {
 });
 
 final activityRepositoryProvider = Provider<ActivityRepository>((ref) {
-  final remoteRepo = SupabaseActivityRepository();
+  final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
+  final remoteRepo = SupabaseActivityRepository(settings: settings);
   final cacheStore = ref.watch(bookCacheStoreProvider);
   final networkInfo = ref.watch(networkInfoProvider);
   return CachedActivityRepository(
