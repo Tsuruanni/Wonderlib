@@ -66,7 +66,7 @@ final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>
   final result = await useCase(GetClassesParams(schoolId: schoolId));
 
   return result.fold(
-    (failure) => <TeacherClass>[],
+    (failure) => throw Exception(failure.message),
     (classes) => classes,
   );
 });
@@ -86,7 +86,7 @@ final classStudentsProvider =
   final result = await useCase(GetClassStudentsParams(classId: classId));
 
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (students) => students,
   );
 });

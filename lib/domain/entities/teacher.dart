@@ -27,6 +27,7 @@ class TeacherClass extends Equatable {
     required this.name,
     required this.grade,
     this.academicYear,
+    this.description,
     required this.studentCount,
     required this.avgProgress,
     this.avgXp = 0,
@@ -41,6 +42,7 @@ class TeacherClass extends Equatable {
   final String name;
   final int grade;
   final String? academicYear;
+  final String? description;
   final int studentCount;
   final double avgProgress;
   final double avgXp;
@@ -55,7 +57,7 @@ class TeacherClass extends Equatable {
   double get booksPerStudent => studentCount > 0 ? completedBooks / studentCount : 0;
 
   @override
-  List<Object?> get props => [id, name, grade, academicYear, studentCount, avgProgress, avgXp, avgStreak, totalReadingTime, completedBooks, activeLast30d, totalVocabWords, createdAt];
+  List<Object?> get props => [id, name, grade, academicYear, description, studentCount, avgProgress, avgXp, avgStreak, totalReadingTime, completedBooks, activeLast30d, totalVocabWords, createdAt];
 }
 
 /// Student summary for class view

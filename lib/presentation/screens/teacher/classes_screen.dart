@@ -262,6 +262,7 @@ class ClassesScreen extends ConsumerWidget {
 
   void _showEditClassDialog(BuildContext context, WidgetRef ref, TeacherClass classItem) {
     final nameController = TextEditingController(text: classItem.name);
+    final descController = TextEditingController(text: classItem.description ?? '');
     final formKey = GlobalKey<FormState>();
     int? selectedGrade = classItem.grade;
 
@@ -303,6 +304,16 @@ class ClassesScreen extends ConsumerWidget {
                   validator: (value) => value == null ? 'Please select a grade' : null,
                   onChanged: (value) => setDialogState(() => selectedGrade = value),
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: descController,
+                  decoration: const InputDecoration(
+                    labelText: 'Description (optional)',
+                    hintText: 'e.g., Morning English class',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
               ],
             ),
           ),
@@ -323,6 +334,7 @@ class ClassesScreen extends ConsumerWidget {
                     classId: classItem.id,
                     name: name,
                     grade: selectedGrade!,
+                    description: descController.text.trim().isEmpty ? null : descController.text.trim(),
                   ),
                 );
 

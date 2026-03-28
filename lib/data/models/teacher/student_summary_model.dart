@@ -37,23 +37,6 @@ class StudentSummaryModel {
     );
   }
 
-  factory StudentSummaryModel.fromEntity(StudentSummary entity) {
-    return StudentSummaryModel(
-      id: entity.id,
-      firstName: entity.firstName,
-      lastName: entity.lastName,
-      studentNumber: entity.studentNumber,
-      username: entity.username,
-      email: entity.email,
-      avatarUrl: entity.avatarUrl,
-      xp: entity.xp,
-      level: entity.level,
-      currentStreak: entity.currentStreak,
-      booksRead: entity.booksRead,
-      avgProgress: entity.avgProgress,
-      passwordPlain: entity.passwordPlain,
-    );
-  }
   final String id;
   final String firstName;
   final String lastName;
@@ -67,24 +50,6 @@ class StudentSummaryModel {
   final int booksRead;
   final double avgProgress;
   final String? passwordPlain;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'first_name': firstName,
-      'last_name': lastName,
-      'student_number': studentNumber,
-      'username': username,
-      'email': email,
-      'avatar_url': avatarUrl,
-      'xp': xp,
-      'level': level,
-      'streak': currentStreak,
-      'books_read': booksRead,
-      'avg_progress': avgProgress,
-      'password_plain': passwordPlain,
-    };
-  }
 
   StudentSummary toEntity() {
     return StudentSummary(

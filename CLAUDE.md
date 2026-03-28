@@ -92,6 +92,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Card Collection | `docs/specs/15-card-collection.md` | Buy packs (coins), collect 96 cards, 8 myth categories, rarity tiers, pity mechanic, pack opening flow, admin card CRUD |
 | Avatar System | `docs/specs/16-avatar-system.md` | Base animal selection, accessory shop (coins), z-index layering, per-animal outfit memory, admin catalog CRUD, avatar cache rendering |
 | Assignment System | `docs/specs/17-assignment-system.md` | 3 assignment types (book/vocab/unit), distributed completion, teacher CRUD, student progress tracking, library lock, class-change handling, admin read-only view |
+| Class Management | `docs/specs/18-class-management.md` | School/class CRUD, student roster, bulk move, login cards PDF, class-change assignment sync trigger, admin school management |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

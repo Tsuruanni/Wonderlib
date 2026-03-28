@@ -8,6 +8,7 @@ class TeacherClassModel {
     required this.name,
     required this.grade,
     this.academicYear,
+    this.description,
     required this.studentCount,
     required this.avgProgress,
     this.avgXp = 0,
@@ -25,6 +26,7 @@ class TeacherClassModel {
       name: json['name'] as String,
       grade: (json['grade'] as num?)?.toInt() ?? 0,
       academicYear: json['academic_year'] as String?,
+      description: json['description'] as String?,
       studentCount: (json['student_count'] as num?)?.toInt() ?? 0,
       avgProgress: (json['avg_progress'] as num?)?.toDouble() ?? 0,
       avgXp: (json['avg_xp'] as num?)?.toDouble() ?? 0,
@@ -39,28 +41,11 @@ class TeacherClassModel {
     );
   }
 
-  factory TeacherClassModel.fromEntity(TeacherClass entity) {
-    return TeacherClassModel(
-      id: entity.id,
-      name: entity.name,
-      grade: entity.grade,
-      academicYear: entity.academicYear,
-      studentCount: entity.studentCount,
-      avgProgress: entity.avgProgress,
-      avgXp: entity.avgXp,
-      avgStreak: entity.avgStreak,
-      totalReadingTime: entity.totalReadingTime,
-      completedBooks: entity.completedBooks,
-      activeLast30d: entity.activeLast30d,
-      totalVocabWords: entity.totalVocabWords,
-      createdAt: entity.createdAt,
-    );
-  }
-
   final String id;
   final String name;
   final int grade;
   final String? academicYear;
+  final String? description;
   final int studentCount;
   final double avgProgress;
   final double avgXp;
@@ -71,30 +56,13 @@ class TeacherClassModel {
   final int totalVocabWords;
   final DateTime? createdAt;
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'grade': grade,
-      'academic_year': academicYear,
-      'student_count': studentCount,
-      'avg_progress': avgProgress,
-      'avg_xp': avgXp,
-      'avg_streak': avgStreak,
-      'total_reading_time': totalReadingTime,
-      'completed_books': completedBooks,
-      'active_last_30d': activeLast30d,
-      'total_vocab_words': totalVocabWords,
-      'created_at': createdAt?.toIso8601String(),
-    };
-  }
-
   TeacherClass toEntity() {
     return TeacherClass(
       id: id,
       name: name,
       grade: grade,
       academicYear: academicYear,
+      description: description,
       studentCount: studentCount,
       avgProgress: avgProgress,
       avgXp: avgXp,

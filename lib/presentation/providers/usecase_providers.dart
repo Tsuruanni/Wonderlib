@@ -66,7 +66,6 @@ import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/buy_pack_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
-import '../../domain/usecases/teacher/change_student_class_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
@@ -90,7 +89,6 @@ import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
 import '../../domain/usecases/user/get_login_dates_usecase.dart';
-import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
 import '../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
 import '../../domain/usecases/book_quiz/get_user_quiz_results_usecase.dart';
@@ -203,10 +201,6 @@ final removeBookDownloadUseCaseProvider = Provider((ref) {
 
 final resetStudentPasswordUseCaseProvider = Provider((ref) {
   return ResetStudentPasswordUseCase(ref.watch(teacherRepositoryProvider));
-});
-
-final changeStudentClassUseCaseProvider = Provider((ref) {
-  return ChangeStudentClassUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 // ============================================
@@ -496,10 +490,6 @@ final getTotalLeaderboardUseCaseProvider = Provider((ref) {
 
 final getUserTotalPositionUseCaseProvider = Provider((ref) {
   return GetUserTotalPositionUseCase(ref.watch(userRepositoryProvider));
-});
-
-final getClassmatesUseCaseProvider = Provider((ref) {
-  return GetClassmatesUseCase(ref.watch(userRepositoryProvider));
 });
 
 // ============================================
