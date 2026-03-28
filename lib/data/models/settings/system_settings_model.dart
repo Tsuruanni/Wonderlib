@@ -33,6 +33,17 @@ class SystemSettingsModel {
     required this.streakMilestoneRepeatInterval,
     required this.streakMilestoneRepeatXp,
     required this.debugDateOffset,
+    required this.packCost,
+    required this.xpActivityResultPerfect,
+    required this.xpActivityResultGood,
+    required this.xpActivityResultPass,
+    required this.xpActivityResultParticipation,
+    required this.xpDailyReviewCorrect,
+    required this.activityPassThreshold,
+    required this.activityExcellenceThreshold,
+    required this.starRating3,
+    required this.starRating2,
+    required this.starRating1,
   });
 
   final int xpChapterComplete;
@@ -65,6 +76,17 @@ class SystemSettingsModel {
   final int streakMilestoneRepeatInterval;
   final int streakMilestoneRepeatXp;
   final int debugDateOffset;
+  final int packCost;
+  final int xpActivityResultPerfect;
+  final int xpActivityResultGood;
+  final int xpActivityResultPass;
+  final int xpActivityResultParticipation;
+  final int xpDailyReviewCorrect;
+  final int activityPassThreshold;
+  final int activityExcellenceThreshold;
+  final int starRating3;
+  final int starRating2;
+  final int starRating1;
 
   /// Parse from database rows (key-value pairs)
   factory SystemSettingsModel.fromRows(List<Map<String, dynamic>> rows) {
@@ -112,6 +134,17 @@ class SystemSettingsModel {
       streakMilestoneRepeatInterval: _toInt(m['streak_milestone_repeat_interval'], _d.streakMilestoneRepeatInterval),
       streakMilestoneRepeatXp: _toInt(m['streak_milestone_repeat_xp'], _d.streakMilestoneRepeatXp),
       debugDateOffset: _toInt(m['debug_date_offset'], _d.debugDateOffset),
+      packCost: _toInt(m['pack_cost'], _d.packCost),
+      xpActivityResultPerfect: _toInt(m['xp_activity_result_perfect'], _d.xpActivityResultPerfect),
+      xpActivityResultGood: _toInt(m['xp_activity_result_good'], _d.xpActivityResultGood),
+      xpActivityResultPass: _toInt(m['xp_activity_result_pass'], _d.xpActivityResultPass),
+      xpActivityResultParticipation: _toInt(m['xp_activity_result_participation'], _d.xpActivityResultParticipation),
+      xpDailyReviewCorrect: _toInt(m['xp_daily_review_correct'], _d.xpDailyReviewCorrect),
+      activityPassThreshold: _toInt(m['activity_pass_threshold'], _d.activityPassThreshold),
+      activityExcellenceThreshold: _toInt(m['activity_excellence_threshold'], _d.activityExcellenceThreshold),
+      starRating3: _toInt(m['star_rating_3'], _d.starRating3),
+      starRating2: _toInt(m['star_rating_2'], _d.starRating2),
+      starRating1: _toInt(m['star_rating_1'], _d.starRating1),
     );
   }
 
@@ -150,6 +183,17 @@ class SystemSettingsModel {
         streakMilestoneRepeatInterval: streakMilestoneRepeatInterval,
         streakMilestoneRepeatXp: streakMilestoneRepeatXp,
         debugDateOffset: debugDateOffset,
+        packCost: packCost,
+        xpActivityResultPerfect: xpActivityResultPerfect,
+        xpActivityResultGood: xpActivityResultGood,
+        xpActivityResultPass: xpActivityResultPass,
+        xpActivityResultParticipation: xpActivityResultParticipation,
+        xpDailyReviewCorrect: xpDailyReviewCorrect,
+        activityPassThreshold: activityPassThreshold,
+        activityExcellenceThreshold: activityExcellenceThreshold,
+        starRating3: starRating3,
+        starRating2: starRating2,
+        starRating1: starRating1,
       );
 
   // Helper: Parse JSONB value (removes quotes, converts types)
