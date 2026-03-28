@@ -12,8 +12,8 @@
 | 4 | Architecture | `loginDatesProvider` calls `Supabase.instance.client` directly, bypassing Repository layer | Medium | Fixed |
 | 5 | Idempotency | Milestone XP `award_xp_transaction` passes `source_id = NULL` — deduplication depends on whether `xp_logs` UNIQUE constraint handles NULLs | Medium | Fixed |
 | 6 | Stale Comment | `addXP()` lines 261-265 comment says server RPCs "already call PERFORM update_user_streak()" — this was removed in migration `_010` | Low | Fixed |
-| 7 | Config | Milestone XP values (7d=50, 14d=100, 30d=200, 60d=400, 100d=1000) are hard-coded in SQL, not admin-configurable via `system_settings` | Low | - |
-| 8 | Config | No milestone defined for streaks beyond 100 days (CASE returns 0 for day 101+) | Low | - |
+| 7 | Config | Milestone XP values (7d=50, 14d=100, 30d=200, 60d=400, 100d=1000) are hard-coded in SQL, not admin-configurable via `system_settings` | Low | Fixed |
+| 8 | Config | No milestone defined for streaks beyond 100 days (CASE returns 0 for day 101+) | Low | Fixed |
 | 9 | Code Quality | Redundant `Container` wrapper around Close button `Text` in `StreakStatusDialog` (line 198) | Low | Fixed |
 
 ### Checklist Result
@@ -131,14 +131,14 @@ system_settings
 2. **Same-day idempotency** — if `last_activity_date == today`, RPC returns current streak with no changes. Client also guards this check before calling RPC.
 3. **Freeze absorption** — if days missed ≤ freeze count: all gap days consumed, streak continues. If days missed > freeze count: all freezes consumed, streak breaks anyway (partial freeze does not save streak).
 4. **Freeze gap recording** — absorbed gap days are inserted into `daily_logins` with `is_freeze = true` for calendar visualization.
-5. **Milestone XP** — awarded at specific streak days: 7→50, 14→100, 30→200, 60→400, 100→1000 XP. These values are hard-coded in SQL, NOT admin-configurable.
+5. **Milestone XP** — awarded at specific streak days, configurable via `system_settings` key `streak_milestones` (default: 7→50, 14→100, 30→200, 60→400, 100→1000 XP). Beyond defined milestones, repeating milestones award XP every `streak_milestone_repeat_interval` days (default: every 100 days, 1000 XP).
 6. **Milestone XP is atomic** — `award_xp_transaction` is called within the same transaction as the profile update. Failure rolls back both.
 7. **Streak freeze purchase** — costs `streak_freeze_price` coins (default 50). Max inventory: `streak_freeze_max` (default 2). Uses `spend_coins_transaction` for atomic coin deduction.
 8. **Notification gating** — each dialog type is independently toggleable via `system_settings`. Broken-streak dialog has additional threshold: only shown if `previousStreak >= notifStreakBrokenMin` (default 3).
 9. **Badge integration** — after streak update, `checkAndAwardBadgesUseCase` is called. `streak_days` is an available badge condition type.
 10. **`app_current_date()` wrapper** — all date logic uses this function (respects `debug_date_offset` system setting for testing).
 11. **Row-level locking** — `SELECT ... FOR UPDATE` on `profiles` prevents race conditions on concurrent streak updates.
-12. **No streak for streaks >100 days** — after day 100, no further milestone XP is awarded.
+12. **Repeating milestones** — after the last defined milestone (default day 100), XP is awarded every `streak_milestone_repeat_interval` days (default 100). Day 200, 300, etc. each award `streak_milestone_repeat_xp` (default 1000 XP). Set interval to 0 to disable.
 
 ## Cross-System Interactions
 
@@ -231,4 +231,3 @@ Quest progress is tracked implicitly via activity logs.
 4. **`loginDatesProvider` bypasses repository** — should be routed through `UserRepository` for testability and architecture compliance
 5. **Milestone source_id is NULL** — `award_xp_transaction` call should pass a deterministic `source_id` like `'streak_7'` for proper idempotency
 6. **Stale comment in addXP** — lines 261-265 reference removed server-side streak calls; should be updated
-7. **Hard-coded milestone XP** — consider moving to `system_settings` if admin needs to tune these values
