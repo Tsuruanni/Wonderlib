@@ -208,40 +208,6 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, List<domain.User>>> getLeaderboard({
-    String? schoolId,
-    String? classId,
-    int limit = 10,
-  }) async {
-    try {
-      var query = _supabase
-          .from(DbTables.profiles)
-          .select()
-          .eq('role', 'student');
-
-      if (schoolId != null) {
-        query = query.eq('school_id', schoolId);
-      }
-
-      if (classId != null) {
-        query = query.eq('class_id', classId);
-      }
-
-      final response = await query
-          .order('xp', ascending: false)
-          .limit(limit);
-
-      final users = (response as List).map((json) => UserModel.fromJson(json).toEntity()).toList();
-
-      return Right(users);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<DateTime>>> getLast7DaysActivity(String userId) async {
     try {
       final now = AppClock.now();

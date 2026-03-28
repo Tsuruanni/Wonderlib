@@ -83,6 +83,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Word Lists | `docs/specs/06-word-lists.md` | Word list CRUD, categories, star rating, sequential unlock, learning path integration, assignment tracking, daily limit, teacher progress view |
 | Learning Paths | `docs/specs/07-learning-paths.md` | Template/scope hierarchy, sequential lock, books exempt, daily review gate, path node types, unit assignments, scope resolution, class change handling |
 | Daily Vocabulary Review | `docs/specs/08-daily-vocabulary-review.md` | SM-2 due words drill, session composition, XP formula, first-answer-wins, learning path gate, unit cram mode, daily quest integration |
+| XP/Leveling | `docs/specs/09-xp-leveling.md` | XP award flow, level formula, combo system, admin-configurable XP values, XP=coins 1:1 rule, idempotency, badge/level-up events, leaderboard |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

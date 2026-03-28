@@ -28,12 +28,6 @@ abstract class UserRepository {
 
   Future<Either<Failure, List<User>>> getClassmates(String classId);
 
-  Future<Either<Failure, List<User>>> getLeaderboard({
-    String? schoolId,
-    String? classId,
-    int limit = 10,
-  });
-
   /// Get total XP class leaderboard (ranked by all-time XP)
   Future<Either<Failure, List<LeaderboardEntry>>> getTotalClassLeaderboard({
     required String classId,
