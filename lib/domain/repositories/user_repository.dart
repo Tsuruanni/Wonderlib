@@ -26,6 +26,10 @@ abstract class UserRepository {
   /// Get dates of activity for the last 7 days
   Future<Either<Failure, List<DateTime>>> getLast7DaysActivity(String userId);
 
+  /// Get login dates for streak calendar (from daily_logins table)
+  /// Returns map: date → is_freeze (true = freeze day, false = login day)
+  Future<Either<Failure, Map<DateTime, bool>>> getLoginDates(String userId, DateTime from);
+
   Future<Either<Failure, List<User>>> getClassmates(String classId);
 
   /// Get total XP class leaderboard (ranked by all-time XP)

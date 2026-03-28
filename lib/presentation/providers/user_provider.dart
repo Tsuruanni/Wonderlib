@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../core/utils/app_clock.dart';
 import '../../domain/entities/badge_earned.dart';
@@ -11,6 +10,7 @@ import '../../domain/entities/user.dart';
 import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
+import '../../domain/usecases/user/get_login_dates_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
@@ -96,25 +96,15 @@ final loginDatesProvider = FutureProvider<Map<DateTime, bool>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return {};
 
-  try {
-    final today = AppClock.today();
-    final monday = today.subtract(Duration(days: today.weekday - 1));
+  final today = AppClock.today();
+  final monday = today.subtract(Duration(days: today.weekday - 1));
 
-    final response = await Supabase.instance.client
-        .from(DbTables.dailyLogins)
-        .select('login_date, is_freeze')
-        .eq('user_id', userId)
-        .gte('login_date', monday.toIso8601String().split('T').first);
-
-    final map = <DateTime, bool>{};
-    for (final row in response as List) {
-      final date = DateTime.parse(row['login_date'] as String);
-      map[DateTime(date.year, date.month, date.day)] = row['is_freeze'] as bool? ?? false;
-    }
-    return map;
-  } catch (_) {
-    return {};
-  }
+  final useCase = ref.watch(getLoginDatesUseCaseProvider);
+  final result = await useCase(GetLoginDatesParams(userId: userId, from: monday));
+  return result.fold(
+    (failure) => <DateTime, bool>{},
+    (dates) => dates,
+  );
 });
 
 /// User controller for XP and streak updates

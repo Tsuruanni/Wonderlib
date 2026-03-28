@@ -154,6 +154,26 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
+  Future<Either<Failure, Map<DateTime, bool>>> getLoginDates(String userId, DateTime from) async {
+    try {
+      final response = await _supabase
+          .from(DbTables.dailyLogins)
+          .select('login_date, is_freeze')
+          .eq('user_id', userId)
+          .gte('login_date', from.toIso8601String().split('T').first);
+
+      final map = <DateTime, bool>{};
+      for (final row in response as List) {
+        final date = DateTime.parse(row['login_date'] as String);
+        map[DateTime(date.year, date.month, date.day)] = row['is_freeze'] as bool? ?? false;
+      }
+      return Right(map);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, Map<String, dynamic>>> getUserStats(
     String userId,
   ) async {

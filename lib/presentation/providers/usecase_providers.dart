@@ -95,6 +95,7 @@ import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
 import '../../domain/usecases/user/update_streak_usecase.dart';
 import '../../domain/usecases/user/buy_streak_freeze_usecase.dart';
+import '../../domain/usecases/user/get_login_dates_usecase.dart';
 import '../../domain/usecases/user/get_classmates_usecase.dart';
 import '../../domain/usecases/user/update_user_usecase.dart';
 import '../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
@@ -489,6 +490,10 @@ final updateStreakUseCaseProvider = Provider((ref) {
 
 final buyStreakFreezeUseCaseProvider = Provider((ref) {
   return BuyStreakFreezeUseCase(ref.watch(userRepositoryProvider));
+});
+
+final getLoginDatesUseCaseProvider = Provider((ref) {
+  return GetLoginDatesUseCase(ref.watch(userRepositoryProvider));
 });
 
 final getUserStatsUseCaseProvider = Provider((ref) {
