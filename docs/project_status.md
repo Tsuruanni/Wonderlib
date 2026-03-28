@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Vocab session save fix, progress bar rewrite, Teacher Dashboard spec, dead code cleanup)
+Son güncelleme: 2026-03-28 (Teacher Dashboard audit + N+1 fix, spec update)
 
 ## Current Phase
 
@@ -132,7 +132,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Avatar System Audit & Fixes (12-finding audit, 8 fixed: storage policy restricted to admin, dead GetEquippedAvatarUseCase pipeline removed, CardRarity.colorHex centralized, base-load error+retry, stale helper text, storage blob cleanup, coin_price validation, unique-constraint friendly errors)
 - [x] Assignment System Audit & Fixes (17-finding audit, 13 fixed: start/complete SECURITY DEFINER RPCs, AssignmentDeleteController+StudentAssignmentController extraction, content validation, AssignmentStatusBadge+LearningPathItemDisplay shared helpers, dead code removal, debugPrint cleanup, error propagation)
 - [x] Class Management Audit & Fixes (10-finding audit, 6 fixed: description field bug, error propagation, dead code removal — 2 usecases, 4 model methods)
-- [x] Teacher Dashboard & Reports Spec (full spec written, dead code removal — 2 model methods, 1 entity getter, 2 unused imports)
+- [x] Teacher Dashboard & Reports Audit & Fixes (8-finding audit, 7 fixed: leaderboard N+1 → single RPC, dead code removal — 2 model methods, 1 entity getter, 2 unused imports)
 - [x] Vocabulary Session Save & Progress Bar Fixes (3 bugs fixed: save race condition, dispose crash, progress bar estimation. Reactive state via ref.watch/listen.)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını

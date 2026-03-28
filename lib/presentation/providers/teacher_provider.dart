@@ -21,6 +21,7 @@ import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
+import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -321,19 +322,17 @@ final assignmentDeleteControllerProvider =
 // LEADERBOARD PROVIDERS
 // =============================================
 
-/// Provider that aggregates all students from all classes for leaderboard
+/// Provider that fetches all students in the teacher's school for leaderboard.
+/// Uses a single RPC call instead of per-class N+1 queries.
 final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
-  final classesResult = await ref.watch(currentTeacherClassesProvider.future);
+  final user = await ref.watch(authStateChangesProvider.future);
+  if (user == null || user.schoolId.isEmpty) return [];
 
-  final allStudents = <StudentSummary>[];
+  final useCase = ref.watch(getSchoolStudentsForTeacherUseCaseProvider);
+  final result = await useCase(GetSchoolStudentsForTeacherParams(schoolId: user.schoolId));
 
-  for (final classItem in classesResult) {
-    final students = await ref.watch(classStudentsProvider(classItem.id).future);
-    allStudents.addAll(students);
-  }
-
-  // Sort by XP descending
-  allStudents.sort((a, b) => b.xp.compareTo(a.xp));
-
-  return allStudents;
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (students) => students,
+  );
 });

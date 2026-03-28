@@ -12,7 +12,7 @@
 | 4 | Dead Code | `StudentBookProgressModel.toJson()` never called | Low | Fixed |
 | 5 | Dead Code | `BookReadingStats.completionRate` getter unused (only `Assignment.completionRate` is used) | Low | Fixed |
 | 6 | Code Quality | Unnecessary `teacher.dart` imports in `get_recent_school_activity_usecase.dart` and `get_school_book_reading_stats_usecase.dart` (already re-exported via repository) | Low | Fixed |
-| 7 | Performance | `allStudentsLeaderboardProvider` N+1 pattern: fetches N classes sequentially, then N separate `getClassStudents` RPC calls | Medium | TODO |
+| 7 | Performance | `allStudentsLeaderboardProvider` N+1 pattern: fetches N classes sequentially, then N separate `getClassStudents` RPC calls | Medium | Fixed |
 | 8 | Code Quality | `teacherStudentBadgesProvider`, `teacherStudentCardsProvider`, `wordListWordsProvider` use `List<dynamic>` instead of typed entities | Low | Noted |
 
 ### Checklist Result
@@ -22,7 +22,7 @@
 - Dead Code: **5 issues** (#1-5 all fixed)
 - Database & Security: **PASS** — all RPCs enforce `is_teacher_or_higher()` + school-scoping via `auth.uid()`
 - Edge Cases & UX: **PASS** — empty/loading/error states handled in all screens
-- Performance: **1 issue** (#7 N+1 in leaderboard provider)
+- Performance: **1 issue** (#7 N+1 in leaderboard provider — fixed via `get_school_students_for_teacher` RPC)
 - Cross-System Integrity: **PASS** — read-only feature, no mutations
 
 ---
@@ -57,6 +57,7 @@ Aggregates counts/lists from: `books`, `chapters`, `vocabulary_words`, `inline_a
 | `get_school_book_reading_stats` | Per-book reader/completion counts for school | `is_teacher_or_higher()` + school-scoped |
 | `get_recent_school_activity` | Last 7 days of XP events from school students | `is_teacher_or_higher()` + school-scoped |
 | `get_assignments_with_stats` | All teacher assignments with student counts | teacher-scoped |
+| `get_school_students_for_teacher` | All students in school with stats, sorted by XP (leaderboard) | `is_teacher_or_higher()` + school-scoped |
 
 ## Surfaces
 
@@ -114,7 +115,7 @@ N/A — students do not see teacher dashboard or reports.
 3. **Avg progress**: Calculated as average `completion_percentage` across all `reading_progress` rows for students in the school.
 4. **Recent activity source**: Uses `xp_logs` table — every XP-earning event creates a log entry. Activity feed shows last 7 days, limited to 20 entries.
 5. **Activity filtering (dashboard)**: Client-side filters out entries with `activityType = 'activity'`, `'manual'`, or description containing "xp awarded" to reduce noise, then takes top 10.
-6. **Leaderboard aggregation**: Currently fetches students per-class then merges client-side (N+1 pattern — see Known Issues).
+6. **Leaderboard aggregation**: Single RPC `get_school_students_for_teacher` fetches all students in the school sorted by XP desc.
 7. **Admin recent activity**: Not school-scoped — admin sees all data across all schools. Uses RLS (admin role has full SELECT).
 8. **Admin detail pagination**: 50 items per page with "Load More" button (not infinite scroll).
 
@@ -176,9 +177,9 @@ This is a **read-only** feature — it does not trigger any side effects.
 - `supabase/migrations/20260316000003_fix_teacher_stats_auth.sql` — `get_teacher_stats` RPC
 - `supabase/migrations/20260325000009_school_book_reading_stats_rpc.sql` — `get_school_book_reading_stats` RPC
 - `supabase/migrations/20260325000011_recent_school_activity_rpc.sql` — `get_recent_school_activity` RPC
+- `supabase/migrations/20260328500001_teacher_school_students_rpc.sql` — `get_school_students_for_teacher` RPC
 
 ## Known Issues & Tech Debt
 
-1. **N+1 in leaderboard provider** (`allStudentsLeaderboardProvider`): Fetches N classes, then N separate `getClassStudents` calls. Should be replaced with a single `get_school_leaderboard` RPC that returns all students for a school sorted by XP. Impact is low for small schools but will degrade as class count grows.
-2. **Untyped providers**: `teacherStudentBadgesProvider`, `teacherStudentCardsProvider`, and `wordListWordsProvider` use `List<dynamic>` instead of typed entities. Low risk since these are display-only but reduces IDE support and type safety.
-3. **Admin 12-query parallel fetch**: `recentActivityProvider` fires 12 simultaneous Supabase queries. Works fine with `Future.wait` parallelism but could be consolidated into fewer RPCs if response time becomes an issue.
+1. **Untyped providers**: `teacherStudentBadgesProvider`, `teacherStudentCardsProvider`, and `wordListWordsProvider` use `List<dynamic>` instead of typed entities. Low risk since these are display-only but reduces IDE support and type safety.
+2. **Admin 12-query parallel fetch**: `recentActivityProvider` fires 12 simultaneous Supabase queries. Works fine with `Future.wait` parallelism but could be consolidated into fewer RPCs if response time becomes an issue.

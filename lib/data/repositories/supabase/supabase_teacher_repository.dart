@@ -242,6 +242,28 @@ class SupabaseTeacherRepository implements TeacherRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<StudentSummary>>> getSchoolStudentsForTeacher(
+    String schoolId,
+  ) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getSchoolStudentsForTeacher,
+        params: {'p_school_id': schoolId},
+      );
+
+      final students = (response as List)
+          .map((data) => StudentSummaryModel.fromJson(data).toEntity())
+          .toList();
+
+      return Right(students);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================

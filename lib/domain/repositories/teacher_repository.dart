@@ -40,6 +40,9 @@ abstract class TeacherRepository {
   /// Get recent activity feed for a school (teacher dashboard)
   Future<Either<Failure, List<RecentActivity>>> getRecentSchoolActivity(String schoolId);
 
+  /// Get all students in a school sorted by XP (teacher leaderboard report)
+  Future<Either<Failure, List<StudentSummary>>> getSchoolStudentsForTeacher(String schoolId);
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================

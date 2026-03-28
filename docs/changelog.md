@@ -18,13 +18,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 #### Changed
 - **Session summary state management** — Removed local `_saving`/`_saved`/`_actualXpAwarded` state variables; all session save state now derived from `sessionSaveProvider` via `ref.watch` (single source of truth).
 
-### Teacher Dashboard & Reports Spec (2026-03-28)
+### Teacher Dashboard & Reports Audit & Fixes (2026-03-28)
 
-#### Infrastructure
-- **Feature spec** — `docs/specs/19-teacher-dashboard-reports.md` documents the Teacher Dashboard & Reports system. Covers dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs.
+#### Fixed
+- **Leaderboard N+1 query** — `allStudentsLeaderboardProvider` fetched N classes then N separate `getClassStudents` RPC calls. Replaced with single `get_school_students_for_teacher` RPC that returns all students in a school sorted by XP desc.
 
 #### Removed
 - **Dead code** — `fromEntity`/`toJson` on `StudentBookProgressModel` and `TeacherStatsModel` (unused RPC projections), `completionRate` getter on `BookReadingStats`, unused imports in 2 teacher usecases.
+
+#### Infrastructure
+- **1 DB migration** (20260328500001) — `get_school_students_for_teacher` RPC with teacher auth + school-scoping.
+- **Feature spec** — `docs/specs/19-teacher-dashboard-reports.md` documents the Teacher Dashboard & Reports system (8 findings: 7 fixed, 1 noted). Covers dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs.
 
 ### Class Management Audit & Fixes (2026-03-28)
 
