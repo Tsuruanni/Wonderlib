@@ -298,22 +298,24 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     );
   }
 
-  Future<bool> buyStreakFreeze() async {
+  /// Returns null on success, error message on failure.
+  Future<String?> buyStreakFreeze() async {
     final userId = _ref.read(currentUserIdProvider);
-    if (userId == null) return false;
+    if (userId == null) return 'Not logged in';
 
     final useCase = _ref.read(buyStreakFreezeUseCaseProvider);
     final result = await useCase(BuyStreakFreezeParams(userId: userId));
 
-    // FIX: Extract from fold to properly await
     final buyResult = result.fold<BuyFreezeResult?>((f) => null, (r) => r);
-    if (buyResult == null) return false;
+    if (buyResult == null) {
+      return result.fold((f) => f.message, (_) => 'Unknown error');
+    }
 
     // Re-fetch profile to update freeze count and coins
     final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
     final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
     userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
-    return true;
+    return null;
   }
 
   /// Refresh profile without triggering streak check.

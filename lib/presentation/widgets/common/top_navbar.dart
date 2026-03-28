@@ -65,10 +65,6 @@ class TopNavbar extends ConsumerWidget {
                     streakFreezeMax: settings.streakFreezeMax,
                     streakFreezePrice: settings.streakFreezePrice,
                     userCoins: user.coins,
-                    onBuyFreeze: () {
-                      Navigator.of(context).pop();
-                      ref.read(userControllerProvider.notifier).buyStreakFreeze();
-                    },
                   ),
                 );
               }
