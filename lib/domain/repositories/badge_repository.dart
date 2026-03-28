@@ -5,18 +5,12 @@ import '../entities/badge.dart';
 import '../entities/badge_earned.dart';
 
 abstract class BadgeRepository {
-  Future<Either<Failure, List<Badge>>> getAllBadges();
-
-  Future<Either<Failure, Badge>> getBadgeById(String id);
-
   Future<Either<Failure, List<UserBadge>>> getUserBadges(String userId);
 
   Future<Either<Failure, UserBadge>> awardBadge({
     required String userId,
     required String badgeId,
   });
-
-  Future<Either<Failure, List<Badge>>> checkEarnableBadges(String userId);
 
   Future<Either<Failure, List<Badge>>> getRecentlyEarned({
     required String userId,

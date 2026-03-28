@@ -6,18 +6,18 @@
 
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Security | `check_and_award_badges` RPC has no `auth.uid()` check — any authenticated user can trigger badge awards for any other user | Critical | TODO |
-| 2 | Architecture | `checkEarnableBadges()` in repository contains business logic (condition evaluation, stat queries) — should be in UseCase or server RPC | Medium | TODO |
-| 3 | Architecture | `awardBadge()` in repository orchestrates XP side-effect (`_awardXP`) — XP orchestration belongs in UseCase layer | Medium | TODO |
+| 1 | Security | `check_and_award_badges` RPC has no `auth.uid()` check — any authenticated user can trigger badge awards for any other user | Critical | Fixed |
+| 2 | Architecture | `checkEarnableBadges()` in repository contains business logic (condition evaluation, stat queries) — should be in UseCase or server RPC | Medium | Fixed (removed — dead code) |
+| 3 | Architecture | `awardBadge()` in repository orchestrates XP side-effect (`_awardXP`) — XP orchestration belongs in UseCase layer | Medium | Tech debt |
 | 4 | Architecture | Admin screens (`badge_edit_screen.dart`, `badge_list_screen.dart`) access Supabase directly, bypassing repository/UseCase layers | Low | Accepted (admin pattern) |
-| 5 | Dead Code | `allBadgesProvider` defined but never consumed by any screen or widget | Low | TODO |
-| 6 | Dead Code | `earnableBadgesProvider` defined but never consumed by any screen or widget | Low | TODO |
-| 7 | Dead Code | `GetBadgeByIdUseCase` + `getBadgeByIdUseCaseProvider` registered but never called | Low | TODO |
-| 8 | Performance | `checkEarnableBadges()` makes 6 sequential DB queries (N+1 pattern) instead of using server RPC | Medium | TODO |
-| 9 | Code Quality | All badge FutureProviders lack `.autoDispose` — cached in memory after navigation | Low | TODO |
-| 10 | Edge Case | Badge FutureProviders silently return `[]` on failure — user cannot distinguish "no badges" from "network error" | Medium | TODO |
-| 11 | Edge Case | UI `.when(error:)` renders `SizedBox.shrink()` — error state invisible to user | Medium | TODO |
-| 12 | Code Quality | `BadgeController` invalidates `recentBadgesProvider` but not `earnableBadgesProvider` after award | Low | TODO |
+| 5 | Dead Code | `allBadgesProvider` defined but never consumed by any screen or widget | Low | Fixed (removed) |
+| 6 | Dead Code | `earnableBadgesProvider` + `CheckEarnableBadgesUseCase` + repo method — entire dead path | Low | Fixed (removed) |
+| 7 | Dead Code | `GetBadgeByIdUseCase` + `getBadgeByIdUseCaseProvider` + `GetAllBadgesUseCase` + repo methods | Low | Fixed (removed) |
+| 8 | Performance | `checkEarnableBadges()` made 6 sequential DB queries (N+1 pattern) | Medium | Fixed (removed — dead code) |
+| 9 | Code Quality | All badge FutureProviders lack `.autoDispose` — cached in memory after navigation | Low | Tech debt |
+| 10 | Edge Case | Badge FutureProviders silently return `[]` on failure — user cannot distinguish "no badges" from "network error" | Medium | Tech debt |
+| 11 | Edge Case | UI `.when(error:)` renders `SizedBox.shrink()` — error state invisible to user | Medium | Tech debt |
+| 12 | Code Quality | `BadgeController` invalidates `recentBadgesProvider` but not `earnableBadgesProvider` after award | Low | N/A (earnableBadgesProvider removed) |
 
 ### Checklist Result
 
@@ -279,8 +279,8 @@ Vocabulary session complete (server-side)
 
 ## Known Issues & Tech Debt
 
-1. **CRITICAL — Missing auth check**: `check_and_award_badges` RPC lacks `IF p_user_id != auth.uid() THEN RAISE EXCEPTION` guard. Any authenticated user can trigger badge awards for any other user. Fix: Add auth check as first statement in the function.
-2. **Business logic in repository**: `checkEarnableBadges()` evaluates badge conditions with 6 sequential queries. Should be an RPC or moved to UseCase layer.
-3. **Unused providers**: `allBadgesProvider`, `earnableBadgesProvider`, `GetBadgeByIdUseCase` are defined but have no consumers. Remove or use when building a dedicated badge collection screen.
+1. ~~**CRITICAL — Missing auth check**~~: Fixed in `20260328000008_add_auth_check_to_badge_rpc.sql`.
+2. ~~**Dead code**~~: Removed `allBadgesProvider`, `earnableBadgesProvider`, `checkEarnableBadges()`, `GetAllBadgesUseCase`, `GetBadgeByIdUseCase`, and related repo methods/providers.
+3. **XP side-effect in repository**: `awardBadge()` orchestrates XP award inside the repository. Should be in UseCase layer. Low risk — manual badge award flow is rarely used.
 4. **Silent error handling**: Badge providers return `[]` on failure with no logging or user feedback. Consider adding error state to UI.
 5. **No autoDispose**: Badge FutureProviders stay cached after navigation. Low impact since badge data is small, but inconsistent with best practices.
