@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Feature #24/#25 specs, configurable settings migration, admin dashboard responsive fix)
+Son güncelleme: 2026-03-28 (Mock Library Mode, auto book stats trigger, Tom Sawyer cleanup)
 
 ## Current Phase
 
@@ -142,6 +142,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Content Blocks Audit & Fixes (1-finding audit, fixed: dead audio block type removed. Full spec at `docs/specs/25-content-blocks.md`)
 - [x] Configurable Settings Migration (11 hardcoded values → system_settings: pack cost, activity XP tiers, daily review XP, activity thresholds, star rating. Pity mismatch bugfix.)
 - [x] Admin Dashboard Responsive Fix (overflow fix: responsive grid + safe card layout)
+- [x] Mock Library Mode (150 hardcoded demo books, admin toggle, frosted lock cards, Demo badge on real books)
+- [x] Auto Book Stats Trigger (word_count + estimated_minutes + chapter_count auto-recalculated from chapters on INSERT/UPDATE/DELETE)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

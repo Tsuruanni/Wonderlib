@@ -8,6 +8,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Mock Library Mode (2026-03-28)
+
+#### Added
+- **Mock Library Mode** — Admin-toggleable demo mode that shows 150 hardcoded locked books (100 classics + 50 originals) in the library alongside real content. Mock books appear at the end of each CEFR level shelf with a frosted placeholder + lock icon. Real books get a yellow "Demo" badge. Controlled via `mock_library_enabled` system setting.
+- **Auto book stats calculation** — New DB trigger `recalculate_book_stats()` auto-updates `word_count`, `estimated_minutes`, and `chapter_count` on the parent book whenever chapters are inserted, updated, or deleted. Uses 150 WPM for ESL reading time estimation.
+
+#### Fixed
+- **Book metadata out of sync** — One-time migration fix for all existing books: `chapter_count` was doubled (6 instead of 3), `estimated_minutes` was manually set too high. All values now derived from actual chapter data.
+- **BackdropFilter on flat color** — Removed no-op `BackdropFilter` from mock book cards (blurring a solid color produces no visual effect but costs GPU compositing per card).
+
+#### Infrastructure
+- **2 DB migrations** — `20260329100001` (mock_library_enabled setting), `20260329200001` (auto book stats trigger + one-time fix).
+
 ### Feature #24 & #25 Spec + Configurable Settings Migration (2026-03-28)
 
 #### Added
