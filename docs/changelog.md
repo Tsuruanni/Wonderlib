@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Avatar System Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **Storage policy security** — `avatars` bucket INSERT/UPDATE policies were open to all authenticated users (including students). Restricted to `can_manage_content()` admin roles only.
+- **Base-load silent failure** — `avatarBasesProvider` error branch rendered `SizedBox.shrink()` (blank row). Now shows error text with retry button.
+- **Stale category helper text** — Admin z_index helper referenced "hand=40" (renamed to "neck=15" in migration 0007). Updated both slug and z_index helpers.
+- **Storage blob orphaning** — Admin re-upload created new blob without deleting old one. Both base and item edit screens now delete old blob before uploading.
+- **`coin_price` missing validation** — Admin item form allowed negative values (caught by DB CHECK). Added client-side `>= 0` validator.
+- **Raw unique-constraint errors** — All 3 admin edit screens now catch PostgreSQL `23505` and show "Bu isim zaten kullanılıyor" instead of raw exception.
+
+#### Removed
+- **Dead code** — `GetEquippedAvatarUseCase`, `getEquippedAvatarUseCaseProvider`, `AvatarRepository.getEquippedAvatar()` + repository implementation (all unreachable; equippedAvatarProvider reads from user profile cache directly).
+
+#### Changed
+- **`CardRarity.colorHex`** — Centralized rarity colors (common=grey, rare=blue, epic=purple, legendary=gold) as `int get colorHex` on the shared `CardRarity` enum. Replaced 3 duplicated switch statements in avatar_customize_screen, avatar_management_screen, avatar_item_edit_screen.
+
+#### Infrastructure
+- **1 DB migration** (20260328300001) — `avatar_storage_policy_fix.sql` drops permissive policies, creates admin-only ones.
+- **Feature spec** — `docs/specs/16-avatar-system.md` documents the full Avatar System (12 findings: 8 fixed, 4 skipped). Covers base animals, accessory shop, z-index layering, per-animal outfit memory, admin catalog CRUD, denormalized cache rendering.
+
 ### Card Collection Audit & Fixes (2026-03-28)
 
 #### Fixed

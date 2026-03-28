@@ -68,6 +68,19 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseClientProvider);
+
+      // Delete old blob if re-uploading
+      if (_imageUrl != null) {
+        final oldPath = _extractStoragePath(_imageUrl!);
+        if (oldPath != null) {
+          try {
+            await supabase.storage.from('avatars').remove([oldPath]);
+          } catch (_) {
+            // Best-effort cleanup — don't block upload on delete failure
+          }
+        }
+      }
+
       final ext = file.extension ?? 'png';
       final contentType = ext == 'svg' ? 'image/svg+xml' : 'image/$ext';
       final ts = DateTime.now().millisecondsSinceEpoch;
@@ -147,6 +160,13 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
           ),
         );
         context.go('/avatars');
+      }
+    } on PostgrestException catch (e) {
+      if (mounted) {
+        final msg = e.code == '23505'
+            ? 'Bu isim zaten kullanılıyor. Farklı bir name girin.'
+            : 'Kayıt hatası: ${e.message}';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       if (mounted) {
@@ -326,5 +346,14 @@ class _AvatarBaseEditScreenState extends ConsumerState<AvatarBaseEditScreen> {
         ],
       ),
     );
+  }
+
+  /// Extract storage path from a full Supabase public URL.
+  /// e.g. ".../object/public/avatars/bases/owl_123.png" → "bases/owl_123.png"
+  static String? _extractStoragePath(String url) {
+    const marker = '/object/public/avatars/';
+    final idx = url.indexOf(marker);
+    if (idx < 0) return null;
+    return url.substring(idx + marker.length);
   }
 }

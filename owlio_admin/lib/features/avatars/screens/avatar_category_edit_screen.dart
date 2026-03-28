@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/supabase_client.dart';
 import '../providers/avatar_admin_providers.dart';
@@ -64,6 +65,13 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
       ref.invalidate(avatarItemCategoriesAdminProvider);
       if (_isEdit) ref.invalidate(avatarCategoryDetailProvider(widget.categoryId!));
       if (mounted) context.go('/avatars');
+    } on PostgrestException catch (e) {
+      if (mounted) {
+        final msg = e.code == '23505'
+            ? 'Bu isim zaten kullanılıyor. Farklı bir name girin.'
+            : 'Hata: ${e.message}';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e')));
     } finally {
@@ -104,7 +112,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
               controller: _nameCtrl,
               decoration: const InputDecoration(
                 labelText: 'Name (slug)',
-                helperText: 'head, face, body, hand, background',
+                helperText: 'head, face, body, neck, background',
               ),
               validator: (v) => v == null || v.isEmpty ? 'Zorunlu' : null,
             ),
@@ -119,7 +127,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
               controller: _zIndexCtrl,
               decoration: const InputDecoration(
                 labelText: 'Z-Index',
-                helperText: 'Render sırası: background=0, body=10, face=20, head=30, hand=40',
+                helperText: 'Render sırası: background=0, body=10, neck=15, face=20, head=30',
               ),
               keyboardType: TextInputType.number,
             ),

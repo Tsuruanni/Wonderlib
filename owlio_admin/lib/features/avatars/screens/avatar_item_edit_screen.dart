@@ -84,6 +84,19 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseClientProvider);
+
+      // Delete old blob if re-uploading
+      if (_imageUrl != null) {
+        final oldPath = _extractStoragePath(_imageUrl!);
+        if (oldPath != null) {
+          try {
+            await supabase.storage.from('avatars').remove([oldPath]);
+          } catch (_) {
+            // Best-effort cleanup
+          }
+        }
+      }
+
       final ext = file.extension ?? 'png';
       final ts = DateTime.now().millisecondsSinceEpoch;
       final slug = _nameCtrl.text.isNotEmpty
@@ -166,6 +179,13 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
               content: Text('Kaydedildi!'), backgroundColor: Colors.green),
         );
         context.go('/avatars');
+      }
+    } on PostgrestException catch (e) {
+      if (mounted) {
+        final msg = e.code == '23505'
+            ? 'Bu isim zaten kullanılıyor. Farklı bir name girin.'
+            : 'Kayıt hatası: ${e.message}';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       if (mounted) {
@@ -287,6 +307,11 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                     decoration:
                         const InputDecoration(labelText: 'Coin Fiyatı'),
                     keyboardType: TextInputType.number,
+                    validator: (v) {
+                      final val = int.tryParse(v ?? '');
+                      if (val == null || val < 0) return '0 veya üzeri olmalı';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
@@ -481,18 +506,13 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     );
   }
 
-  Color _rarityBorderColor() {
-    switch (_rarity) {
-      case 'common':
-        return const Color(0xFFAFAFAF);
-      case 'rare':
-        return const Color(0xFF1CB0F6);
-      case 'epic':
-        return const Color(0xFF9B59B6);
-      case 'legendary':
-        return const Color(0xFFFFC800);
-      default:
-        return Colors.grey;
-    }
+  Color _rarityBorderColor() =>
+      Color(CardRarity.fromDbValue(_rarity).colorHex);
+
+  static String? _extractStoragePath(String url) {
+    const marker = '/object/public/avatars/';
+    final idx = url.indexOf(marker);
+    if (idx < 0) return null;
+    return url.substring(idx + marker.length);
   }
 }

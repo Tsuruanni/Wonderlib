@@ -7,7 +7,6 @@ import '../../domain/usecases/avatar/get_user_avatar_items_usecase.dart';
 import '../../domain/usecases/avatar/buy_avatar_item_usecase.dart';
 import '../../domain/usecases/avatar/equip_avatar_item_usecase.dart';
 import '../../domain/usecases/avatar/unequip_avatar_item_usecase.dart';
-import '../../domain/usecases/avatar/get_equipped_avatar_usecase.dart';
 import '../../domain/usecases/activity/get_activities_by_chapter_usecase.dart';
 import '../../domain/usecases/activity/get_activity_by_id_usecase.dart';
 import '../../domain/usecases/activity/get_activity_stats_usecase.dart';
@@ -769,8 +768,4 @@ final equipAvatarItemUseCaseProvider = Provider((ref) {
 
 final unequipAvatarItemUseCaseProvider = Provider((ref) {
   return UnequipAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
-});
-
-final getEquippedAvatarUseCaseProvider = Provider((ref) {
-  return GetEquippedAvatarUseCase(ref.watch(avatarRepositoryProvider));
 });

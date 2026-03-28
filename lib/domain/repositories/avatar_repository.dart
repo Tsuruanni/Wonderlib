@@ -11,5 +11,4 @@ abstract class AvatarRepository {
   Future<Either<Failure, BuyAvatarItemResult>> buyAvatarItem(String itemId);
   Future<Either<Failure, void>> equipAvatarItem(String itemId);
   Future<Either<Failure, void>> unequipAvatarItem(String itemId);
-  Future<Either<Failure, EquippedAvatar>> getEquippedAvatar(String userId);
 }

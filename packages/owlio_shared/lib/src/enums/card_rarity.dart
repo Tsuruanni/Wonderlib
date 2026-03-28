@@ -29,4 +29,19 @@ enum CardRarity {
         return 'Legendary';
     }
   }
+
+  /// ARGB hex color for this rarity tier.
+  /// Usage: `Color(rarity.colorHex)`
+  int get colorHex {
+    switch (this) {
+      case common:
+        return 0xFFAFAFAF;
+      case rare:
+        return 0xFF1CB0F6;
+      case epic:
+        return 0xFF9B59B6;
+      case legendary:
+        return 0xFFFFC800;
+    }
+  }
 }

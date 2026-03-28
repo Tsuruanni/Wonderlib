@@ -60,18 +60,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
-  Color _rarityColor(CardRarity rarity) {
-    switch (rarity) {
-      case CardRarity.common:
-        return const Color(0xFFAFAFAF);
-      case CardRarity.rare:
-        return const Color(0xFF1CB0F6);
-      case CardRarity.epic:
-        return const Color(0xFF9B59B6);
-      case CardRarity.legendary:
-        return const Color(0xFFFFC800);
-    }
-  }
+  Color _rarityColor(CardRarity rarity) => Color(rarity.colorHex);
 
   Future<void> _setBase(AvatarBase base) async {
     final error = await ref.read(avatarControllerProvider.notifier).setBase(base.id);
@@ -228,7 +217,16 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
                     height: 80,
                     child: Center(child: CircularProgressIndicator()),
                   ),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (_, __) => SizedBox(
+                    height: 80,
+                    child: Center(
+                      child: TextButton.icon(
+                        onPressed: () => ref.invalidate(avatarBasesProvider),
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Failed to load animals. Tap to retry.'),
+                      ),
+                    ),
+                  ),
                   data: (bases) => _BaseAnimalRow(
                     bases: bases,
                     selectedBaseId: user?.avatarBaseId,

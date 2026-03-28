@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../providers/avatar_admin_providers.dart';
 
@@ -315,18 +316,6 @@ class _ItemsTabState extends ConsumerState<_ItemsTab> {
     );
   }
 
-  Color _rarityColor(String rarity) {
-    switch (rarity) {
-      case 'common':
-        return const Color(0xFFAFAFAF);
-      case 'rare':
-        return const Color(0xFF1CB0F6);
-      case 'epic':
-        return const Color(0xFF9B59B6);
-      case 'legendary':
-        return const Color(0xFFFFC800);
-      default:
-        return Colors.grey;
-    }
-  }
+  Color _rarityColor(String rarity) =>
+      Color(CardRarity.fromDbValue(rarity).colorHex);
 }

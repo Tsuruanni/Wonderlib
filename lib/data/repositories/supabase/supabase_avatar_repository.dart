@@ -7,7 +7,6 @@ import '../../../domain/entities/avatar.dart';
 import '../../../domain/repositories/avatar_repository.dart';
 import '../../models/avatar/avatar_base_model.dart';
 import '../../models/avatar/avatar_item_model.dart';
-import '../../models/avatar/equipped_avatar_model.dart';
 import '../../models/avatar/user_avatar_item_model.dart';
 
 class SupabaseAvatarRepository implements AvatarRepository {
@@ -138,23 +137,4 @@ class SupabaseAvatarRepository implements AvatarRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, EquippedAvatar>> getEquippedAvatar(String userId) async {
-    try {
-      final response = await _supabase
-          .from(DbTables.profiles)
-          .select('avatar_equipped_cache')
-          .eq('id', userId)
-          .single();
-
-      final model = EquippedAvatarModel.fromJson(
-        response['avatar_equipped_cache'] as Map<String, dynamic>?,
-      );
-      return Right(model.toEntity());
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
 }

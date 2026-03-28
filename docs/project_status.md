@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Card Collection audit & fixes — 19 findings, 8 fixed: image_url in RPC, idempotency key, dead code removal, admin fixes)
+Son güncelleme: 2026-03-28 (Avatar System audit & fixes — 12 findings, 8 fixed: storage policy security, dead code removal, rarity color centralization, admin UX improvements)
 
 ## Current Phase
 
@@ -129,6 +129,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Coin Economy Audit & Fixes (18-finding audit, 13 fixed: 4 critical RPC auth gaps, column-level REVOKE on monetary columns, AvatarController extraction, streak freeze UX, pack opening text, dead code cleanup, 3-layer security model)
 - [x] Daily Quest Audit & Fixes (14-finding audit, 6 fixed: DailyQuestController extraction, DateTime.now() bug, legacy dead code removal from CardRepository + shared constants, stale docs fix)
 - [x] Card Collection Audit & Fixes (19-finding audit, 8 fixed: image_url in open_card_pack, buy idempotency key, admin column fix, firstWhere guard, dead code removal — collectionProgressProvider, CardSummaryRow, CardListScreen, unreachable branch)
+- [x] Avatar System Audit & Fixes (12-finding audit, 8 fixed: storage policy restricted to admin, dead GetEquippedAvatarUseCase pipeline removed, CardRarity.colorHex centralized, base-load error+retry, stale helper text, storage blob cleanup, coin_price validation, unique-constraint friendly errors)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
