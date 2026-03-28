@@ -30,29 +30,25 @@ final studentProfileExtraProvider =
     final cardStatsUseCase = ref.watch(getUserCardStatsUseCaseProvider);
     final badgesUseCase = ref.watch(getUserBadgesUseCaseProvider);
 
-    final results = await Future.wait([
+    final (userResult, cardStatsResult, badgesResult) = await (
       userUseCase(GetUserByIdParams(userId: userId)),
       cardStatsUseCase(GetUserCardStatsParams(userId: userId)),
       badgesUseCase(GetUserBadgesParams(userId: userId)),
-    ]);
-
-    final userResult = results[0];
-    final cardStatsResult = results[1];
-    final badgesResult = results[2];
+    ).wait;
 
     final user = userResult.fold(
       (failure) => throw Exception('Failed to load profile'),
-      (u) => u as User,
+      (u) => u,
     );
 
     final cardStats = cardStatsResult.fold(
       (_) => UserCardStats(userId: userId),
-      (s) => s as UserCardStats,
+      (s) => s,
     );
 
     final badges = badgesResult.fold(
       (_) => <UserBadge>[],
-      (b) => (b as List).cast<UserBadge>(),
+      (b) => b,
     );
 
     return StudentProfileExtra(

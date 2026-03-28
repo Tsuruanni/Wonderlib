@@ -198,7 +198,7 @@ Replace `#N` and `Feature Name` with the target feature.
 | # | System | Admin Surface | App Surface | Teacher Surface | Spec Priority | Spec Status |
 |---|--------|---------------|-------------|-----------------|---------------|-------------|
 | 21 | **Auth** | Admin login (admin/head-teacher role check) | Student/teacher email login, role routing | - | None | Done: `docs/specs/21-auth.md` |
-| 22 | **User Profile** | User detail view | Profile screen, avatar display | - | None | - |
+| 22 | **User Profile** | User detail view | Profile screen, avatar display | - | None | Done: `docs/specs/22-user-profile.md` |
 | 23 | **System Settings** | Multi-category settings editor (xp_reading, xp_vocab, progression, game, app) | Runtime config consumption | - | Low | - |
 | 24 | **Notification System** | Notification gallery (preview, toggle, settings per type) | In-app notifications (planned) | - | Low | - |
 | 25 | **Content Blocks** | Content block editor in chapter editor | Flexible rendering in reader (text, image, audio) | - | Low | - |

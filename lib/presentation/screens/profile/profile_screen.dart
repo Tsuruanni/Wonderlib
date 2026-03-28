@@ -15,7 +15,7 @@ import '../../../domain/entities/user.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../../domain/usecases/teacher/update_teacher_profile_usecase.dart';
-import '../../../domain/usecases/usecase.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/card_provider.dart';
@@ -56,7 +56,20 @@ class ProfileScreen extends ConsumerWidget {
       ),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Error: $error'),
+              const SizedBox(height: 12),
+              TextButton.icon(
+                onPressed: () => ref.invalidate(userControllerProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
         data: (user) {
           if (user == null) {
             return const Center(child: Text('User not found'));
@@ -346,8 +359,7 @@ class _PersonalInfoCard extends ConsumerWidget {
       },
       (_) async {
         showAppSnackBar(context, '$fieldName updated', type: SnackBarType.success);
-        final refreshUseCase = ref.read(refreshCurrentUserUseCaseProvider);
-        await refreshUseCase(const NoParams());
+        await ref.read(userControllerProvider.notifier).refreshProfileOnly();
       },
     );
   }
@@ -1041,7 +1053,7 @@ class _BadgeRow extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
+    final now = AppClock.now();
     final diff = now.difference(date);
     if (diff.inDays == 0) return 'Today';
     if (diff.inDays == 1) return 'Yesterday';

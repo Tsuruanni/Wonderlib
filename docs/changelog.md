@@ -8,6 +8,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### User Profile Audit & Fixes (2026-03-28)
+
+#### Added
+- **Feature spec** — `docs/specs/22-user-profile.md` documents the User Profile system (11 findings: 4 fixed, 7 skipped/accepted). Covers student profile dashboard (avatar, level/XP, cards, badges, stats, daily review), teacher profile (editable name, password reset), peer profile popup, admin surface (via spec #20).
+
+#### Fixed
+- **Teacher name edit stale UI** — After editing name, `refreshCurrentUserUseCaseProvider` (JWT refresh) was used instead of `refreshProfileOnly()` (profile re-fetch). UI now updates immediately after save.
+- **Badge date display ignores debug time offset** — `_BadgeRow._formatDate()` used `DateTime.now()` instead of `AppClock.now()`, causing incorrect relative dates in debug time offset mode.
+- **No retry on profile error** — Profile error state showed raw error text with no way to retry. Added retry button with `ref.invalidate(userControllerProvider)`.
+- **Fragile runtime casts in peer profile popup** — `studentProfileExtraProvider` used `Future.wait` with `as` downcasts. Replaced with Dart 3 record destructuring (`(f1, f2, f3).wait`) for compile-time type safety.
+
 ### Auth Audit & Security Hardening (2026-03-28)
 
 #### Added
