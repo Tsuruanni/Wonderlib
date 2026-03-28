@@ -1,6 +1,7 @@
 // Constants
 export 'src/constants/tables.dart';
 export 'src/constants/rpc_functions.dart';
+export 'src/constants/league_constants.dart';
 
 // Enums
 export 'src/enums/user_role.dart';
