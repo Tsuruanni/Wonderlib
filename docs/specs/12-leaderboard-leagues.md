@@ -253,7 +253,7 @@ All read RPCs return: `user_id`, `first_name`, `last_name`, `avatar_url`, `avata
 - `supabase/migrations/20260316000010_optimize_league_reset.sql` — Temp table optimization
 - `supabase/migrations/20260323000006_debug_time_offset.sql` — `app_now()` wrapper (regression fixed by below)
 - `supabase/migrations/20260326000003_update_leaderboard_rpcs_avatar.sql` — Avatar cache in RPCs
-- `supabase/migrations/20260328000001_fix_leaderboard_audit.sql` — Audit fixes: tier-based reset, auth checks, total_count, stale RLS drop
+- `supabase/migrations/20260328000009_fix_leaderboard_audit.sql` — Audit fixes: tier-based reset, auth checks, total_count, stale RLS drop
 - `supabase/functions/league-reset/index.ts` — Edge Function (cron entry point)
 
 ## Known Issues & Tech Debt

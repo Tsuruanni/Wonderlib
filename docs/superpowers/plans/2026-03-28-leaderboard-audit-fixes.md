@@ -14,7 +14,7 @@
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `supabase/migrations/20260328000001_fix_leaderboard_audit.sql` | Fix league reset, auth checks, total_count, drop stale RLS |
+| Create | `supabase/migrations/20260328000009_fix_leaderboard_audit.sql` | Fix league reset, auth checks, total_count, drop stale RLS |
 | Create | `packages/owlio_shared/lib/src/constants/league_constants.dart` | Shared `leagueZoneSize()` function |
 | Modify | `packages/owlio_shared/lib/owlio_shared.dart` | Export new constants file |
 | Modify | `lib/domain/entities/leaderboard_entry.dart` | Add `totalCount` field |
@@ -31,7 +31,7 @@
 ### Task 1: Database Migration — Fix league reset + auth + total_count + stale RLS
 
 **Files:**
-- Create: `supabase/migrations/20260328000001_fix_leaderboard_audit.sql`
+- Create: `supabase/migrations/20260328000009_fix_leaderboard_audit.sql`
 
 - [ ] **Step 1: Create migration file with fixed `process_weekly_league_reset()`**
 
@@ -727,7 +727,7 @@ Expected: Migration applied successfully.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add supabase/migrations/20260328000001_fix_leaderboard_audit.sql
+git add supabase/migrations/20260328000009_fix_leaderboard_audit.sql
 git commit -m "fix: restore tier-based league reset + add auth checks to leaderboard RPCs (#12 audit)"
 ```
 
