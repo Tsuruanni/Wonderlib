@@ -14,33 +14,51 @@ import '../../widgets/common/top_navbar.dart';
 import '../../widgets/common/terrain_background.dart';
 
 /// Main vocabulary hub screen with word lists organized by sections
-class VocabularyHubScreen extends ConsumerWidget {
+class VocabularyHubScreen extends ConsumerStatefulWidget {
   const VocabularyHubScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<VocabularyHubScreen> createState() => _VocabularyHubScreenState();
+}
+
+class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
+  ScrollController? _scrollController;
+
+  @override
+  void dispose() {
+    _scrollController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final storyListsAsync = ref.watch(storyWordListsProvider);
 
+    // Create scroll controller once with initial offset centered on active node
+    if (_scrollController == null) {
+      final activeY = ref.read(activeNodeYProvider);
+      final screenHeight = MediaQuery.of(context).size.height;
+      final initialOffset = activeY != null
+          ? (activeY - screenHeight / 2).clamp(0.0, double.maxFinite)
+          : 0.0;
+      _scrollController = ScrollController(initialScrollOffset: initialOffset);
+    }
+
     return Scaffold(
-      backgroundColor: AppColors.terrain, // Fallback/Base color
+      backgroundColor: AppColors.terrain,
       body: TerrainBackground(
         child: SafeArea(
           child: Column(
             children: [
-              // --- Duolingo-style Navbar ---
               const TopNavbar(),
-
-              // --- Scrollable Content ---
               Expanded(
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   padding: const EdgeInsets.only(bottom: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Learning Path
                       const LearningPath(),
-
-                      // My Word Lists
                       ...storyListsAsync.when(
                         loading: () => [const SizedBox.shrink()],
                         error: (e, _) => [
