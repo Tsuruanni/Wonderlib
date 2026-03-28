@@ -244,9 +244,21 @@ class _SpecialNodeCircle extends StatelessWidget {
       ),
     );
 
+    final showArrow = isActive && !isLocked && !isComplete;
+
     final rowChildren = isLeftLabel
-        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
-        : [nodeContainer, const SizedBox(width: 70), labelWidget];
+        ? [
+            labelWidget,
+            const SizedBox(width: 70),
+            nodeContainer,
+            if (showArrow) ...[const SizedBox(width: 12), const _AnimatedArrow(pointsLeft: true)],
+          ]
+        : [
+            if (showArrow) ...[const _AnimatedArrow(pointsLeft: false), const SizedBox(width: 12)],
+            nodeContainer,
+            const SizedBox(width: 70),
+            labelWidget,
+          ];
 
     final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
 
@@ -261,7 +273,7 @@ class _SpecialNodeCircle extends StatelessWidget {
               left: leftEdge,
               top: 0,
               child: SizedBox(
-                width: 286,
+                width: showArrow ? 334 : 286,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -311,6 +323,64 @@ class _BounceWrapperState extends State<_BounceWrapper>
   @override
   Widget build(BuildContext context) {
     return ScaleTransition(scale: _animation, child: widget.child);
+  }
+}
+
+/// Animated arrow that translates rhythmically toward the node.
+class _AnimatedArrow extends StatefulWidget {
+  const _AnimatedArrow({required this.pointsLeft});
+
+  /// If true, arrow points left (toward a node on its left). If false, points right.
+  final bool pointsLeft;
+
+  @override
+  State<_AnimatedArrow> createState() => _AnimatedArrowState();
+}
+
+class _AnimatedArrowState extends State<_AnimatedArrow>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.0, end: 6.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final translateSign = widget.pointsLeft ? -1.0 : 1.0;
+    final flipX = widget.pointsLeft ? -1.0 : 1.0;
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) => Transform.translate(
+        offset: Offset(_animation.value * translateSign, 0),
+        child: child,
+      ),
+      child: Transform.scale(
+        scaleX: flipX,
+        scaleY: 1.0,
+        child: Icon(
+          Icons.double_arrow_rounded,
+          size: 24,
+          color: AppColors.primary.withValues(alpha: 0.9),
+        ),
+      ),
+    );
   }
 }
 
@@ -535,9 +605,21 @@ class PathTreasureNode extends StatelessWidget {
       ),
     );
 
+    final showArrow = isActive && !isLocked && !isUnitComplete;
+
     final rowChildren = isLeftLabel
-        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
-        : [nodeContainer, const SizedBox(width: 70), labelWidget];
+        ? [
+            labelWidget,
+            const SizedBox(width: 70),
+            nodeContainer,
+            if (showArrow) ...[const SizedBox(width: 12), const _AnimatedArrow(pointsLeft: true)],
+          ]
+        : [
+            if (showArrow) ...[const _AnimatedArrow(pointsLeft: false), const SizedBox(width: 12)],
+            nodeContainer,
+            const SizedBox(width: 70),
+            labelWidget,
+          ];
 
     final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
 
@@ -561,7 +643,7 @@ class PathTreasureNode extends StatelessWidget {
               left: leftEdge,
               top: 0,
               child: SizedBox(
-                width: 286,
+                width: showArrow ? 334 : 286,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.center,
