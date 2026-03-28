@@ -11,12 +11,23 @@
 **Design Spec:** `docs/superpowers/specs/2026-03-28-owlio-website-sitemap-design.md`
 
 **Duolingo Design Reference:**
-- Font: Nunito (free DIN Round alternative) via Google Fonts
-- 3D buttons: `border-bottom: 4px solid darkerShade` + press-down on click
-- Border radius: 12-16px on everything
-- Colors: Owlio green `#58CC02`, blue `#1CB0F6`, red `#FF4B4B`, yellow `#FFC800`, neutrals `#4B4B4B`/`#AFAFAF`/`#E5E5E5`/`#F7F7F7`
+- Font: Nunito (free DIN Round alternative) via Google Fonts, weight 800 for buttons/headings
+- 3D "island" buttons: `box-shadow: 0 4px 0 darkerShade` + `transform: translateY(4px)` on press (NOT border-bottom)
+- Border radius: 15px (Duolingo's exact value)
+- Colors: green `#58CC02`/`#46A302`, blue `#1CB0F6`/`#BBE7FC`, red `#FF4B4B`, yellow `#FFC800`, neutrals `#4B4B4B`/`#AFAFAF`/`#E5E5E5`/`#F7F7F7`
+- Button height: 44px (Duolingo standard)
 - Layout: generous padding (64-100px per section), max-width 1080-1200px
-- No heavy box-shadows — depth from bottom borders only
+- Depth comes from box-shadow only — no border-bottom for 3D effect
+
+**Button Variants (exact Duolingo specs):**
+| Variant | BG | Text | Shadow | Border |
+|---------|-----|------|--------|--------|
+| Green (CTA) | `#58CC02` | white | `0 4px 0 #46A302` | none |
+| Blue (secondary) | `#fff` | `#1CB0F6` | `0 4px 0 #BBE7FC` | none |
+| Neutral (ghost) | `#fff` | `#4B4B4B` | `0 2px 0 #E5E5E5` | `2px solid #E5E5E5` |
+
+All buttons: `:active` → `box-shadow: none; transform: translateY(Npx)`
+Neutral hover: `bg: #E5E5E5`, `border-color: #CECECE`, `box-shadow: 0 2px 0 #CECECE`
 
 ---
 
@@ -177,7 +188,7 @@ const config: Config = {
         snow: "#FFFFFF",
       },
       borderRadius: {
-        duo: "16px",
+        duo: "15px",
       },
       maxWidth: {
         site: "1140px",
@@ -257,7 +268,7 @@ Create `website/src/components/ui/Button.tsx`:
 ```tsx
 import Link from "next/link";
 
-type ButtonVariant = "green" | "blue" | "white";
+type ButtonVariant = "green" | "blue" | "neutral";
 type ButtonSize = "md" | "lg";
 
 interface ButtonProps {
@@ -272,15 +283,16 @@ interface ButtonProps {
 
 const variantStyles: Record<ButtonVariant, string> = {
   green:
-    "bg-feather text-snow border-b-4 border-feather-dark hover:brightness-105 active:border-b-2 active:mt-[2px]",
-  blue: "bg-sky text-snow border-b-4 border-sky-dark hover:brightness-105 active:border-b-2 active:mt-[2px]",
-  white:
-    "bg-snow text-sky border-2 border-swan border-b-4 border-b-swan hover:bg-polar active:border-b-2 active:mt-[2px]",
+    "bg-feather text-snow border-none shadow-[0_4px_0_#46A302] hover:brightness-110 active:shadow-none active:translate-y-[4px]",
+  blue:
+    "bg-snow text-sky border-none shadow-[0_4px_0_#BBE7FC] hover:brightness-95 active:shadow-none active:translate-y-[4px]",
+  neutral:
+    "bg-snow text-eel border-2 border-swan shadow-[0_2px_0_#E5E5E5] hover:bg-swan hover:border-[#CECECE] hover:shadow-[0_2px_0_#CECECE] active:shadow-none active:translate-y-[2px]",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  md: "px-6 py-3 text-sm",
-  lg: "px-8 py-4 text-base",
+  md: "px-6 py-2.5 text-sm h-[36px]",
+  lg: "px-8 py-3 text-base h-[44px]",
 };
 
 export function Button({
@@ -293,7 +305,7 @@ export function Button({
   className = "",
 }: ButtonProps) {
   const baseStyles =
-    "inline-block rounded-duo font-bold uppercase tracking-wider transition-all duration-100 text-center cursor-pointer select-none";
+    "inline-flex items-center justify-center rounded-duo font-extrabold uppercase tracking-wider transition-all duration-100 text-center cursor-pointer select-none";
   const styles = `${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`;
 
   if (href) {
@@ -346,7 +358,7 @@ export default function Home() {
           <Button variant="green" href="/demo">
             Get Started
           </Button>
-          <Button variant="white" href="/login">
+          <Button variant="neutral" href="/login">
             I Already Have an Account
           </Button>
         </div>
@@ -425,7 +437,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/login"
-            className="rounded-duo border-2 border-swan border-b-4 border-b-swan bg-snow px-5 py-2 text-sm font-bold uppercase tracking-wider text-sky hover:bg-polar active:border-b-2 active:mt-[2px] transition-all duration-100"
+            className="rounded-duo border-2 border-swan bg-snow px-5 py-2 text-sm font-extrabold uppercase tracking-wider text-sky shadow-[0_2px_0_#E5E5E5] hover:bg-polar hover:border-[#CECECE] hover:shadow-[0_2px_0_#CECECE] active:shadow-none active:translate-y-[2px] transition-all duration-100"
           >
             Log in
           </Link>
@@ -630,7 +642,7 @@ export function Hero() {
             <Button variant="green" size="lg" href="/demo">
               Get Started
             </Button>
-            <Button variant="white" size="lg" href="/login">
+            <Button variant="neutral" size="lg" href="/login">
               I Already Have an Account
             </Button>
           </div>
@@ -1853,7 +1865,7 @@ export function Navbar() {
           </Link>
           <Link
             href="/login"
-            className="rounded-duo border-2 border-swan border-b-4 border-b-swan bg-snow px-5 py-2 text-sm font-bold uppercase tracking-wider text-sky hover:bg-polar active:border-b-2 active:mt-[2px] transition-all duration-100"
+            className="rounded-duo border-2 border-swan bg-snow px-5 py-2 text-sm font-extrabold uppercase tracking-wider text-sky shadow-[0_2px_0_#E5E5E5] hover:bg-polar hover:border-[#CECECE] hover:shadow-[0_2px_0_#CECECE] active:shadow-none active:translate-y-[2px] transition-all duration-100"
           >
             Log in
           </Link>
