@@ -41,6 +41,14 @@ import 'usecase_providers.dart';
 import 'user_provider.dart';
 
 // ============================================
+// TOP-LEVEL PROVIDERS
+// ============================================
+
+/// Y position of the active (current) node in the learning path.
+/// Written by LearningPath during build, read by VocabularyHubScreen for initial scroll offset.
+final activeNodeYProvider = StateProvider<double?>((ref) => null);
+
+// ============================================
 // VOCABULARY WORD PROVIDERS
 // ============================================
 
