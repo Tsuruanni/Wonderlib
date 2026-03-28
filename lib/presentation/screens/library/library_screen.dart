@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,12 +8,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../data/datasources/mock_books_data.dart';
 import '../../../domain/entities/book.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_access_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
@@ -42,30 +46,65 @@ final libraryFilteredBooksProvider = Provider<AsyncValue<List<Book>>>((ref) {
 });
 
 /// Books grouped by level (A1, A2, B1...), sorted by level key.
-/// Extracted from build() to avoid recomputing on every rebuild.
+/// When mock mode is enabled, appends mock books to the end of each level.
 final booksByLevelProvider = Provider<Map<String, List<Book>>>((ref) {
   final books = ref.watch(libraryFilteredBooksProvider).valueOrNull ?? [];
+  final mockEnabled = ref.watch(mockLibraryEnabledProvider);
+  final searchQuery = ref.watch(librarySearchQueryProvider).toLowerCase();
+  final selectedCategory = ref.watch(selectedCategoryProvider);
+
   final map = <String, List<Book>>{};
+
+  // Add real books
   for (var book in books) {
     map.putIfAbsent(book.level.toUpperCase(), () => []).add(book);
   }
+
+  // Append filtered mock books at the end of each level
+  if (mockEnabled) {
+    for (var mock in kMockBooks) {
+      final matchesSearch = searchQuery.isEmpty ||
+          mock.title.toLowerCase().contains(searchQuery);
+      final matchesCategory =
+          selectedCategory == null || mock.genre == selectedCategory;
+      if (matchesSearch && matchesCategory) {
+        map.putIfAbsent(mock.level.toUpperCase(), () => []).add(mock);
+      }
+    }
+  }
+
   return Map.fromEntries(
     map.entries.toList()..sort((a, b) => a.key.compareTo(b.key)),
   );
 });
 
-/// Extracts unique categories from all books for the filter chips.
+/// Extracts unique categories from all books (and mock books when enabled) for the filter chips.
 final availableCategoriesProvider = Provider<AsyncValue<List<String>>>((ref) {
   final booksAsync = ref.watch(booksProvider(null));
+  final mockEnabled = ref.watch(mockLibraryEnabledProvider);
   return booksAsync.whenData((books) {
-    return books
+    final genres = books
         .map((b) => b.genre)
         .where((g) => g != null && g.isNotEmpty)
         .map((g) => g!)
-        .toSet()
-        .toList()
-      ..sort();
+        .toSet();
+
+    // Include mock book genres when mock mode is enabled
+    if (mockEnabled) {
+      for (var mock in kMockBooks) {
+        if (mock.genre != null && mock.genre!.isNotEmpty) {
+          genres.add(mock.genre!);
+        }
+      }
+    }
+
+    return genres.toList()..sort();
   });
+});
+
+/// Whether mock library mode is enabled (from system settings).
+final mockLibraryEnabledProvider = Provider<bool>((ref) {
+  return ref.watch(systemSettingsProvider).valueOrNull?.mockLibraryEnabled ?? false;
 });
 
 class LibraryScreen extends ConsumerWidget {
@@ -244,11 +283,11 @@ class LibraryScreen extends ConsumerWidget {
                   onRetry: () => ref.invalidate(booksProvider),
                 ),
                 data: (books) {
-                  if (books.isEmpty) {
+                  final booksByLevel = ref.watch(booksByLevelProvider);
+
+                  if (booksByLevel.isEmpty) {
                     return _EmptyState(isSearchActive: isSearchActive);
                   }
-
-                  final booksByLevel = ref.watch(booksByLevelProvider);
 
                   return CustomScrollView(
                     physics: const BouncingScrollPhysics(),
@@ -297,8 +336,9 @@ class _LibraryShelf extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final color = _getLevelColor(level);
     final completedIds = ref.watch(completedBookIdsProvider).valueOrNull ?? {};
-    final completedCount = books.where((b) => completedIds.contains(b.id)).length;
-    final progress = books.isEmpty ? 0.0 : completedCount / books.length;
+    final realBooks = books.where((b) => !b.isMock).toList();
+    final completedCount = realBooks.where((b) => completedIds.contains(b.id)).length;
+    final progress = realBooks.isEmpty ? 0.0 : completedCount / realBooks.length;
 
     // Sort: completed books go to the end
     final sortedBooks = [...books]
@@ -343,7 +383,7 @@ class _LibraryShelf extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '$completedCount / ${books.length}',
+                  '$completedCount / ${realBooks.length}',
                   style: GoogleFonts.nunito(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -395,6 +435,12 @@ class _BookShelfItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Mock books get a completely different card
+    if (book.isMock) {
+      return _MockBookCard(book: book);
+    }
+
+    final mockEnabled = ref.watch(mockLibraryEnabledProvider);
     final canAccess = ref.watch(canAccessBookProvider(book.id));
     final isCompleted = ref.watch(completedBookIdsProvider).valueOrNull?.contains(book.id) ?? false;
     final isQuizReady = ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
@@ -417,7 +463,7 @@ class _BookShelfItem extends ConsumerWidget {
                ),
                actions: [
                  TextButton(
-                   onPressed: () => Navigator.pop(context), 
+                   onPressed: () => Navigator.pop(context),
                    child: Text("OK", style: GoogleFonts.fredoka(fontSize: 18, color: AppColors.primary))
                  )
                ],
@@ -434,7 +480,7 @@ class _BookShelfItem extends ConsumerWidget {
           border: Border.all(color: AppColors.neutral, width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.neutral.withOpacity(0.6), 
+              color: AppColors.neutral.withOpacity(0.6),
               offset: const Offset(0, 4),
               blurRadius: 0,
             )
@@ -503,6 +549,27 @@ class _BookShelfItem extends ConsumerWidget {
                         ),
                       ),
                     ),
+                  // Demo badge (only when mock mode is on and book has no other badge)
+                  if (mockEnabled && !isCompleted && !isQuizReady)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.wasp,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Demo',
+                          style: GoogleFonts.nunito(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -525,7 +592,7 @@ class _BookShelfItem extends ConsumerWidget {
                     book.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito( // Reverted to Nunito
+                    style: GoogleFonts.nunito(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       height: 1.2,
@@ -544,8 +611,8 @@ class _BookShelfItem extends ConsumerWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.nunito(
-                        fontSize: 9, 
-                        color: AppColors.neutralText, 
+                        fontSize: 9,
+                        color: AppColors.neutralText,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.5,
                       ),
@@ -561,6 +628,100 @@ class _BookShelfItem extends ConsumerWidget {
   }
 }
 
+
+class _MockBookCard extends StatelessWidget {
+  final Book book;
+
+  const _MockBookCard({required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.neutral.withOpacity(0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.neutral.withOpacity(0.4),
+            offset: const Offset(0, 4),
+            blurRadius: 0,
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Base placeholder
+                  Container(color: AppColors.neutral.withOpacity(0.15)),
+                  // Frosted glass effect
+                  BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                    child: Container(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  // Lock icon
+                  Center(
+                    child: Icon(
+                      Icons.lock_rounded,
+                      size: 32,
+                      color: AppColors.neutralText.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  book.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    book.genre?.toUpperCase() ?? 'GENERAL',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      fontSize: 9,
+                      color: AppColors.neutralText,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _EmptyState extends StatelessWidget {
   final bool isSearchActive;
