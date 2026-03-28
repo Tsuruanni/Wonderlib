@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/leaderboard_entry.dart';
@@ -67,7 +68,7 @@ abstract class UserRepository {
   Future<Either<Failure, List<LeaderboardEntry>>> getWeeklySchoolLeaderboard({
     required String schoolId,
     int limit = 10,
-    String? leagueTier,
+    LeagueTier? leagueTier,
   });
 
   /// Get current user's position in weekly class leaderboard
@@ -81,6 +82,6 @@ abstract class UserRepository {
   Future<Either<Failure, LeaderboardEntry>> getUserWeeklySchoolPosition({
     required String userId,
     required String schoolId,
-    String? leagueTier,
+    LeagueTier? leagueTier,
   });
 }

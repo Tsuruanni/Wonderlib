@@ -439,14 +439,14 @@ class SupabaseUserRepository implements UserRepository {
   Future<Either<Failure, List<LeaderboardEntry>>> getWeeklySchoolLeaderboard({
     required String schoolId,
     int limit = 10,
-    String? leagueTier,
+    LeagueTier? leagueTier,
   }) async {
     try {
       final params = <String, dynamic>{
         'p_school_id': schoolId,
         'p_limit': limit,
       };
-      if (leagueTier != null) params['p_league_tier'] = leagueTier;
+      if (leagueTier != null) params['p_league_tier'] = leagueTier.dbValue;
 
       final result = await _supabase.rpc(
         RpcFunctions.getWeeklySchoolLeaderboard,
@@ -502,14 +502,14 @@ class SupabaseUserRepository implements UserRepository {
   Future<Either<Failure, LeaderboardEntry>> getUserWeeklySchoolPosition({
     required String userId,
     required String schoolId,
-    String? leagueTier,
+    LeagueTier? leagueTier,
   }) async {
     try {
       final params = <String, dynamic>{
         'p_user_id': userId,
         'p_school_id': schoolId,
       };
-      if (leagueTier != null) params['p_league_tier'] = leagueTier;
+      if (leagueTier != null) params['p_league_tier'] = leagueTier.dbValue;
 
       final result = await _supabase.rpc(
         RpcFunctions.getUserWeeklySchoolPosition,

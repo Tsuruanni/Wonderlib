@@ -16,6 +16,7 @@ class LeaderboardEntryModel {
     this.previousRank,
     this.className,
     required this.leagueTier,
+    this.totalCount,
   });
 
   factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
@@ -34,6 +35,7 @@ class LeaderboardEntryModel {
       leagueTier: LeagueTier.fromDbValue(
         json['league_tier'] as String? ?? 'bronze',
       ),
+      totalCount: (json['total_count'] as num?)?.toInt(),
     );
   }
 
@@ -49,6 +51,7 @@ class LeaderboardEntryModel {
   final int? previousRank;
   final String? className;
   final LeagueTier leagueTier;
+  final int? totalCount;
 
   LeaderboardEntry toEntity() {
     return LeaderboardEntry(
@@ -64,6 +67,7 @@ class LeaderboardEntryModel {
       previousRank: previousRank,
       className: className,
       leagueTier: leagueTier,
+      totalCount: totalCount,
     );
   }
 }

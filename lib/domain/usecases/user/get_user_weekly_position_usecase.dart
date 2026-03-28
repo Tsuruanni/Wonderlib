@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../entities/leaderboard_entry.dart';
@@ -16,10 +17,10 @@ class GetUserWeeklyPositionParams {
   });
 
   final String userId;
-  final LeaderboardScope scope;
+  final WeeklyLeaderboardScope scope;
   final String? classId;
   final String? schoolId;
-  final String? leagueTier;
+  final LeagueTier? leagueTier;
 }
 
 class GetUserWeeklyPositionUseCase
@@ -32,7 +33,7 @@ class GetUserWeeklyPositionUseCase
   Future<Either<Failure, LeaderboardEntry>> call(
     GetUserWeeklyPositionParams params,
   ) {
-    if (params.scope == LeaderboardScope.classScope) {
+    if (params.scope == WeeklyLeaderboardScope.classScope) {
       if (params.classId == null) {
         return Future.value(
           const Left(ValidationFailure('Class ID required')),

@@ -15,6 +15,7 @@ class LeaderboardEntry extends Equatable {
     this.previousRank,
     this.className,
     required this.leagueTier,
+    this.totalCount,
   });
 
   final String userId;
@@ -29,6 +30,7 @@ class LeaderboardEntry extends Equatable {
   final int? previousRank;
   final String? className;
   final LeagueTier leagueTier;
+  final int? totalCount;
 
   String get fullName => '$firstName $lastName';
 
@@ -59,5 +61,6 @@ class LeaderboardEntry extends Equatable {
         previousRank,
         className,
         leagueTier,
+        totalCount,
       ];
 }

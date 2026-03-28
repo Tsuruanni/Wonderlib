@@ -1,11 +1,12 @@
 import 'package:dartz/dartz.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../core/errors/failures.dart';
 import '../../entities/leaderboard_entry.dart';
 import '../../repositories/user_repository.dart';
 import '../usecase.dart';
 
-enum LeaderboardScope { classScope, schoolScope }
+enum WeeklyLeaderboardScope { classScope, schoolScope }
 
 class GetWeeklyLeaderboardParams {
   const GetWeeklyLeaderboardParams({
@@ -16,11 +17,11 @@ class GetWeeklyLeaderboardParams {
     this.leagueTier,
   });
 
-  final LeaderboardScope scope;
+  final WeeklyLeaderboardScope scope;
   final String? classId;
   final String? schoolId;
   final int limit;
-  final String? leagueTier;
+  final LeagueTier? leagueTier;
 }
 
 class GetWeeklyLeaderboardUseCase
@@ -33,7 +34,7 @@ class GetWeeklyLeaderboardUseCase
   Future<Either<Failure, List<LeaderboardEntry>>> call(
     GetWeeklyLeaderboardParams params,
   ) {
-    if (params.scope == LeaderboardScope.classScope) {
+    if (params.scope == WeeklyLeaderboardScope.classScope) {
       if (params.classId == null) {
         return Future.value(
           const Left(ValidationFailure('Class ID required for class leaderboard')),
