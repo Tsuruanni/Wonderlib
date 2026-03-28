@@ -76,6 +76,7 @@ The Coin Economy is the virtual currency system of Owlio. Coins are earned autom
 - `coin_logs` is append-only audit trail — every mutation (earn or spend) writes a log row
 - All earning flows go through `award_xp_transaction` (which co-awards coins) or `award_coins_transaction` (standalone, for quest rewards)
 - All spending flows go through `spend_coins_transaction` or direct SQL in specific RPCs
+- All RPCs enforce `auth.uid() == p_user_id` and monetary columns are REVOKE'd from direct UPDATE
 
 ## Surfaces
 
@@ -160,25 +161,29 @@ PackOpeningController.buyPack()
 
 **Avatar item:**
 ```
-AvatarCustomizeScreen._buy(item)
+AvatarController.buyItem(itemId)
   → BuyAvatarItemUseCase → supabase.rpc('buy_avatar_item')
     → spend_coins_transaction(user, price, 'avatar_purchase', itemId)
       → profiles.coins -= price
       → coin_logs INSERT
     → user_avatar_items INSERT
     → auto-equip + cache rebuild
-  → ref.invalidate(userControllerProvider)     ← heavier than needed
+  → invalidate(userAvatarItemsProvider)
+  → refreshProfileOnly()
 ```
 
 **Streak freeze:**
 ```
-UserController.buyStreakFreeze()
-  → BuyStreakFreezeUseCase → supabase.rpc('buy_streak_freeze')
-    → spend_coins_transaction(user, price, 'streak_freeze', null)
-      → profiles.coins -= price
-      → coin_logs INSERT
-    → profiles.streak_freeze_count += 1
-  → re-fetch profile, update state
+StreakStatusDialog._handleBuyFreeze()
+  → UserController.buyStreakFreeze()
+    → BuyStreakFreezeUseCase → supabase.rpc('buy_streak_freeze')
+      → spend_coins_transaction(user, price, 'streak_freeze', null)
+        → profiles.coins -= price
+        → coin_logs INSERT
+      → profiles.streak_freeze_count += 1
+    → re-fetch profile, update state
+  → on success: pop dialog
+  → on failure: show error snackbar
 ```
 
 ### Systems that read coin balance
@@ -193,13 +198,13 @@ UserController.buyStreakFreeze()
 |----------|-----------------|
 | 0 coins, 0 packs | Pack screen shows hint: "Earn coins by completing books and activities" |
 | Insufficient coins for pack | Buy button disabled (client-side check) + server returns `insufficient_coins` |
-| Insufficient coins for avatar | Server returns `InsufficientFundsFailure`; UI shows generic error snackbar |
-| Insufficient coins for freeze | Server returns `insufficient_coins`; **no error shown** (fire-and-forget call) |
+| Insufficient coins for avatar | Server returns `InsufficientFundsFailure`; UI shows error snackbar via AvatarController |
+| Insufficient coins for freeze | Server returns `insufficient_coins`; error snackbar shown in dialog |
 | Already own avatar item | Server returns `'Already owned'` as `ServerFailure`; UI shows "Purchase failed: Already owned" |
-| Max freezes reached | Server returns `max_freezes_reached`; **no error shown** (same fire-and-forget issue) |
+| Max freezes reached | Server returns `max_freezes_reached`; error snackbar shown in dialog |
 | Double-tap buy pack | `PackOpeningController` has a `_isBuying` guard; only one request fires |
-| Double-tap buy avatar | `_isMutating` guard in screen state; only one request fires |
-| Double-tap buy freeze | No client-side guard; two requests can fire, second fails on balance check |
+| Double-tap buy avatar | `AvatarController.isMutating` guard; only one request fires |
+| Double-tap buy freeze | Dialog shows loading state, button disabled during request |
 | Concurrent earn + spend | `FOR UPDATE` row lock serializes; no phantom reads |
 | User deleted | `ON DELETE CASCADE` cleans up all `coin_logs`, `user_cards`, etc. |
 
@@ -236,11 +241,13 @@ UserController.buyStreakFreeze()
 - `lib/data/repositories/supabase/supabase_user_repository.dart` — XP + freeze RPCs
 
 ### Presentation
-- `lib/presentation/providers/user_provider.dart` — `UserController` (coin balance source of truth)
+- `lib/presentation/providers/user_provider.dart` — `UserController` (coin balance source of truth, streak freeze purchase)
 - `lib/presentation/providers/card_provider.dart` — `userCoinsProvider`, `PackOpeningController`
+- `lib/presentation/providers/avatar_provider.dart` — `AvatarController` (buy, equip, unequip, setBase)
 - `lib/presentation/screens/cards/pack_opening_screen.dart` — Pack buy/open UI
-- `lib/presentation/screens/avatar/avatar_customize_screen.dart` — Avatar shop
+- `lib/presentation/screens/avatar/avatar_customize_screen.dart` — Avatar shop (delegates to AvatarController)
 - `lib/presentation/widgets/common/top_navbar.dart` — Global coin display
+- `lib/presentation/widgets/common/streak_status_dialog.dart` — Streak freeze purchase with loading/error UX
 - `lib/presentation/widgets/cards/coin_badge.dart` — Coin formatting widget
 
 ### Database
@@ -250,11 +257,21 @@ UserController.buyStreakFreeze()
 - `supabase/migrations/20260210000004_add_balance_constraints.sql` — CHECK constraints
 - `supabase/migrations/20260316000006_coin_idempotency_and_xp_constraint.sql` — Idempotency index + TOCTOU fix
 - `supabase/migrations/20260328000004_add_auth_check_to_award_xp.sql` — Auth guard on `award_xp_transaction`
+- `supabase/migrations/20260328100001_coin_security_hardening.sql` — Auth guards on 4 RPCs, column REVOKE, constraints
+
+## Security Model
+
+Three-layer defense on monetary columns:
+
+1. **Column-level REVOKE**: `REVOKE UPDATE(coins, unopened_packs, streak_freeze_count) ON profiles FROM authenticated` — prevents direct `UPDATE` from client
+2. **Auth guards in RPCs**: All 6 coin-mutating functions verify `auth.uid() == p_user_id` — prevents cross-user exploitation
+3. **CHECK constraints**: `CHECK (coins >= 0)`, `CHECK (unopened_packs >= 0)`, `CHECK (streak_freeze_count >= 0)` — database-level safety net
+
+SECURITY DEFINER functions bypass both layer 1 (column revoke) and RLS, so the auth guard inside each function is the critical enforcement point.
 
 ## Known Issues & Tech Debt
 
-1. **Critical security gaps** (#1–#4): `profiles` UPDATE RLS allows direct coin inflation; `buy_card_pack`, `open_card_pack`, `award_coins_transaction`, and `spend_coins_transaction` lack `auth.uid()` verification. Priority fix: add auth guards to all RPCs and restrict `profiles` UPDATE policy to non-monetary columns (or use column-level security).
-2. **Avatar screen architecture violation** (#5–#6): Screen calls UseCases directly and uses `invalidate(userControllerProvider)` triggering unintended streak checks. Needs an `AvatarController` StateNotifier mirroring the `PackOpeningController` pattern.
-3. **Streak freeze UX gap** (#7): No loading state, no error feedback on purchase. Dialog dismisses before result is known.
-4. **Dead code accumulation** (#8–#10, #18): 3 unused UseCases, 2 unused providers, 1 unused entity field. Cleanup needed.
-5. **Pack cost not configurable** (#15): Hard-coded 100 coins in both SQL and Dart. Should be a `system_settings` entry like `streak_freeze_price`.
+1. **Pack cost not configurable** (#15): Hard-coded 100 coins in both SQL and Dart. Should be a `system_settings` entry like `streak_freeze_price`.
+2. **Generic error snackbars** (#11): UI does not distinguish `InsufficientFundsFailure` from `ServerFailure` — cosmetic, correct behavior.
+3. **Card collection linear scan** (#17): `firstWhere` inside `ListView.builder` is O(n) per card — negligible with 96 cards.
+4. **Unused `BuyPackResult.coinsSpent` field** (#18): Carried through model→entity path but never read — harmless.
