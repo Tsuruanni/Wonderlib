@@ -6,34 +6,34 @@
 
 | # | Category | Issue | Severity | Status |
 |---|----------|-------|----------|--------|
-| 1 | Security | `profiles` UPDATE RLS policy has no column restriction — any authenticated user can directly `UPDATE profiles SET coins = 999999` on their own row, bypassing all RPC controls | Critical | TODO |
-| 2 | Security | `award_coins_transaction` and `spend_coins_transaction` have no `auth.uid()` check — any authenticated user can award/spend coins for any other user | Critical | TODO |
-| 3 | Security | `buy_card_pack` RPC has no `auth.uid()` check — accepts arbitrary `p_user_id`, allowing any authenticated user to spend another user's coins | Critical | TODO |
-| 4 | Security | `open_card_pack` RPC has no `auth.uid()` check — same pattern as `buy_card_pack` | Critical | TODO |
-| 5 | Architecture | `AvatarCustomizeScreen` calls UseCases directly (`ref.read(buyAvatarItemUseCaseProvider)`) instead of going through a controller provider — violates Screen → Provider → UseCase rule | Medium | TODO |
-| 6 | Code Quality | Avatar screen uses `ref.invalidate(userControllerProvider)` instead of `refreshProfileOnly()` — triggers full provider restart including unnecessary streak RPC call on every avatar mutation | Medium | TODO |
-| 7 | Edge Case | Streak freeze purchase has no loading state and no error feedback — dialog pops before `buyStreakFreeze()` completes, result is fire-and-forget | Medium | TODO |
-| 8 | Dead Code | `GetUserCoinsUseCase`, `getUserCoinsUseCaseProvider`, and `CardRepository.getUserCoins()` are never called — coin balance is sourced entirely from `userControllerProvider` | Medium | TODO |
-| 9 | Dead Code | `GetCardsByCategoryUseCase` and `getCardsByCategoryUseCaseProvider` are unused — collection screen filters in-memory via `sortedCollectionByCategoryProvider` | Medium | TODO |
-| 10 | Dead Code | `collectionByCategoryProvider` and `filteredCatalogProvider` in `card_provider.dart` are never referenced by any screen | Medium | TODO |
-| 11 | Code Quality | UI never distinguishes `InsufficientFundsFailure` from `ServerFailure` — both produce identical generic error snackbars in avatar and pack purchase flows | Low | TODO |
-| 12 | Edge Case | `PackOpeningScreen` shows "Opening pack..." text during the BUY phase (coin deduction) — should say "Buying pack..." | Low | TODO |
-| 13 | Database | `streak_freeze_count` column has no `CHECK >= 0` constraint, unlike `coins` and `unopened_packs` | Low | TODO |
-| 14 | Database | Redundant `idx_coin_logs_user_id` index superseded by `idx_coin_logs_user_created` composite index | Low | TODO |
-| 15 | Database | Card pack cost (100 coins) is hard-coded in both RPC default parameter and Dart layer — not admin-configurable via `system_settings` | Low | TODO |
-| 16 | Cross-System | Badge checks are not run after avatar item purchase (unlike XP-based flows that always trigger badge check) | Low | TODO |
-| 17 | Performance | `CardCollectionScreen` uses `firstWhere` linear scan inside `ListView.builder` — O(n) per rendered card; should pre-build a `Map<String, UserCard>` | Low | TODO |
-| 18 | Dead Code | `BuyPackResult.coinsSpent` field is populated from RPC but never read in UI | Low | TODO |
+| 1 | Security | `profiles` UPDATE RLS policy has no column restriction — any authenticated user can directly `UPDATE profiles SET coins = 999999` on their own row, bypassing all RPC controls | Critical | Fixed |
+| 2 | Security | `award_coins_transaction` and `spend_coins_transaction` have no `auth.uid()` check — any authenticated user can award/spend coins for any other user | Critical | Fixed |
+| 3 | Security | `buy_card_pack` RPC has no `auth.uid()` check — accepts arbitrary `p_user_id`, allowing any authenticated user to spend another user's coins | Critical | Fixed |
+| 4 | Security | `open_card_pack` RPC has no `auth.uid()` check — same pattern as `buy_card_pack` | Critical | Fixed |
+| 5 | Architecture | `AvatarCustomizeScreen` calls UseCases directly (`ref.read(buyAvatarItemUseCaseProvider)`) instead of going through a controller provider — violates Screen → Provider → UseCase rule | Medium | Fixed |
+| 6 | Code Quality | Avatar screen uses `ref.invalidate(userControllerProvider)` instead of `refreshProfileOnly()` — triggers full provider restart including unnecessary streak RPC call on every avatar mutation | Medium | Fixed |
+| 7 | Edge Case | Streak freeze purchase has no loading state and no error feedback — dialog pops before `buyStreakFreeze()` completes, result is fire-and-forget | Medium | Fixed |
+| 8 | Dead Code | `GetUserCoinsUseCase`, `getUserCoinsUseCaseProvider`, and `CardRepository.getUserCoins()` are never called — coin balance is sourced entirely from `userControllerProvider` | Medium | Fixed |
+| 9 | Dead Code | `GetCardsByCategoryUseCase` and `getCardsByCategoryUseCaseProvider` are unused — collection screen filters in-memory via `sortedCollectionByCategoryProvider` | Medium | Fixed |
+| 10 | Dead Code | `collectionByCategoryProvider` and `filteredCatalogProvider` in `card_provider.dart` are never referenced by any screen | Medium | Fixed |
+| 11 | Code Quality | UI never distinguishes `InsufficientFundsFailure` from `ServerFailure` — both produce identical generic error snackbars in avatar and pack purchase flows | Low | Deferred |
+| 12 | Edge Case | `PackOpeningScreen` shows "Opening pack..." text during the BUY phase (coin deduction) — should say "Buying pack..." | Low | Fixed |
+| 13 | Database | `streak_freeze_count` column has no `CHECK >= 0` constraint, unlike `coins` and `unopened_packs` | Low | Fixed |
+| 14 | Database | Redundant `idx_coin_logs_user_id` index superseded by `idx_coin_logs_user_created` composite index | Low | Fixed |
+| 15 | Database | Card pack cost (100 coins) is hard-coded in both RPC default parameter and Dart layer — not admin-configurable via `system_settings` | Low | Deferred |
+| 16 | Cross-System | Badge checks are not run after avatar item purchase (unlike XP-based flows that always trigger badge check) | Low | Deferred |
+| 17 | Performance | `CardCollectionScreen` uses `firstWhere` linear scan inside `ListView.builder` — O(n) per rendered card; should pre-build a `Map<String, UserCard>` | Low | Deferred |
+| 18 | Dead Code | `BuyPackResult.coinsSpent` field is populated from RPC but never read in UI | Low | Deferred |
 
 ### Checklist Result
 
-- Architecture Compliance: 1 medium issue (#5 — avatar screen bypasses provider layer)
-- Code Quality: 2 issues (#6 medium, #11 low)
-- Dead Code: 4 issues (#8–#10 medium, #18 low)
-- Database & Security: 4 critical (#1–#4), 2 low (#13, #14)
-- Edge Cases & UX: 2 issues (#7 medium, #12 low)
-- Performance: 1 low issue (#17)
-- Cross-System Integrity: 1 low issue (#16)
+- Architecture Compliance: PASS (#5 fixed — AvatarController extracted)
+- Code Quality: PASS (#6 fixed; #11 deferred — cosmetic)
+- Dead Code: PASS (#8–#10 fixed; #18 deferred — harmless)
+- Database & Security: PASS (#1–#4 fixed, #13–#14 fixed; #15 deferred — feature request)
+- Edge Cases & UX: PASS (#7 fixed, #12 fixed)
+- Performance: 1 deferred (#17 — negligible with 96 cards)
+- Cross-System Integrity: 1 deferred (#16 — no badge conditions exist for avatar purchases)
 
 ---
 
@@ -51,7 +51,7 @@ The Coin Economy is the virtual currency system of Owlio. Coins are earned autom
 |--------|------|-----------|-------|
 | `coins` | INTEGER | DEFAULT 0, CHECK >= 0 | Virtual currency balance |
 | `unopened_packs` | INTEGER | DEFAULT 0, CHECK >= 0 | Purchased but not yet opened card packs |
-| `streak_freeze_count` | INTEGER | DEFAULT 0 | Available streak freezes (no CHECK constraint) |
+| `streak_freeze_count` | INTEGER | DEFAULT 0, CHECK >= 0 | Available streak freezes |
 
 **`coin_logs`** (full audit trail):
 
