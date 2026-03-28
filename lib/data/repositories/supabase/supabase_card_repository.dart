@@ -39,28 +39,6 @@ class SupabaseCardRepository implements CardRepository {
   }
 
   @override
-  Future<Either<Failure, List<MythCard>>> getCardsByCategory(CardCategory category) async {
-    try {
-      final response = await _supabase
-          .from(DbTables.mythCards)
-          .select()
-          .eq('is_active', true)
-          .eq('category', category.dbValue)
-          .order('card_no');
-
-      final cards = (response as List)
-          .map((json) => MythCardModel.fromJson(json).toEntity())
-          .toList();
-
-      return Right(cards);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<UserCard>>> getUserCards(String userId) async {
     try {
       final response = await _supabase
@@ -141,23 +119,6 @@ class SupabaseCardRepository implements CardRepository {
       if (e.message.contains('No unopened packs')) {
         return const Left(ServerFailure('No packs available to open'));
       }
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, int>> getUserCoins(String userId) async {
-    try {
-      final response = await _supabase
-          .from(DbTables.profiles)
-          .select('coins')
-          .eq('id', userId)
-          .single();
-
-      return Right(response['coins'] as int? ?? 0);
-    } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
       return Left(ServerFailure(e.toString()));

@@ -76,17 +76,6 @@ final unopenedPacksProvider = Provider<int>((ref) {
 // COMPUTED PROVIDERS
 // ============================================
 
-/// Card catalog grouped by category
-final collectionByCategoryProvider =
-    Provider<Map<CardCategory, List<MythCard>>>((ref) {
-  final catalog = ref.watch(cardCatalogProvider).valueOrNull ?? [];
-  final grouped = <CardCategory, List<MythCard>>{};
-  for (final card in catalog) {
-    grouped.putIfAbsent(card.category, () => []).add(card);
-  }
-  return grouped;
-});
-
 /// Set of card IDs the user owns — for quick owned/locked checks
 final ownedCardIdsProvider = Provider<Set<String>>((ref) {
   final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
@@ -146,17 +135,6 @@ final categoryProgressProvider = Provider<Map<CardCategory, int>>((ref) {
     progress[cat] = (progress[cat] ?? 0) + 1;
   }
   return progress;
-});
-
-/// Category filter state for collection screen
-final selectedCategoryProvider = StateProvider<CardCategory?>((ref) => null);
-
-/// Filtered catalog based on selected category
-final filteredCatalogProvider = Provider<List<MythCard>>((ref) {
-  final category = ref.watch(selectedCategoryProvider);
-  final catalog = ref.watch(cardCatalogProvider).valueOrNull ?? [];
-  if (category == null) return catalog;
-  return catalog.where((c) => c.category == category).toList();
 });
 
 // ============================================
