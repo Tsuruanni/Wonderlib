@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,6 +50,7 @@ class _VocabularySessionScreenState
   String? _currentMascotAsset;
   bool? _currentMascotCorrect;
   int _lastFeedbackQuestion = -1;
+  double _maxProgress = 0.0; // monotonic: never decreases
   // Halfway mascot state
   bool _hasShownHalfway = false;
   bool _halfwayPending = false;
@@ -114,6 +117,52 @@ class _VocabularySessionScreenState
     }
   }
 
+  /// Progress = answered / (answered + estimatedRemaining).
+  ///
+  /// Each phase estimates how many questions remain in this phase plus
+  /// future phases.  [_maxProgress] ensures the bar never moves backward
+  /// when estimates are revised at phase transitions.
+  double _calculateProgress(VocabularySessionState s) {
+    if (s.totalQuestionsAnswered == 0) return 0.0;
+
+    final minReinforce = s.words.length + 2;
+    // Live estimate: weakWords updates as the user gets answers wrong
+    final targetFinal = s.weakWords.isEmpty ? 0 : min(5, s.weakWords.length);
+
+    int estimatedRemaining;
+    switch (s.phase) {
+      case SessionPhase.explore:
+        final pairsLeft = s.totalPairs - s.introductionPairIndex;
+        estimatedRemaining = pairsLeft + minReinforce + targetFinal;
+      case SessionPhase.reinforce:
+        int reinforceLeft;
+        if (s.reinforceQuestionsAsked < minReinforce) {
+          reinforceLeft = minReinforce - s.reinforceQuestionsAsked;
+        } else {
+          // Past minimum — check if all words are bridged (transition condition)
+          final allBridged = s.words.every(
+            (w) => w.masteryLevel.index >= WordMasteryLevel.bridged.index,
+          );
+          if (allBridged) {
+            reinforceLeft = 0;
+          } else {
+            final unbridged = s.words.where(
+              (w) => w.masteryLevel.index < WordMasteryLevel.bridged.index,
+            ).length;
+            reinforceLeft = max(1, unbridged * 2);
+          }
+        }
+        estimatedRemaining = reinforceLeft + targetFinal;
+      case SessionPhase.finalPhase:
+        estimatedRemaining = max(0, targetFinal - s.finalQuestionsAsked);
+    }
+
+    final raw = s.totalQuestionsAnswered /
+        (s.totalQuestionsAnswered + estimatedRemaining);
+    _maxProgress = max(_maxProgress, raw.clamp(0.0, 1.0));
+    return _maxProgress;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Watch the session provider early to keep it alive during async _loadAndStart.
@@ -151,9 +200,8 @@ class _VocabularySessionScreenState
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Estimate total questions for progress bar
-    final estimatedTotal = sessionState.words.length * 2 + 4; // rough estimate
-    final progress = sessionState.totalQuestionsAnswered / estimatedTotal;
+    // Phase-aware progress: each phase estimates remaining questions
+    final progress = _calculateProgress(sessionState);
 
     // Halfway encouragement — visible for one question after progress crosses 50%
     if (progress >= 0.5 && !_hasShownHalfway) {

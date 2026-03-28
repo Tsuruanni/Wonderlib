@@ -93,6 +93,7 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Avatar System | `docs/specs/16-avatar-system.md` | Base animal selection, accessory shop (coins), z-index layering, per-animal outfit memory, admin catalog CRUD, avatar cache rendering |
 | Assignment System | `docs/specs/17-assignment-system.md` | 3 assignment types (book/vocab/unit), distributed completion, teacher CRUD, student progress tracking, library lock, class-change handling, admin read-only view |
 | Class Management | `docs/specs/18-class-management.md` | School/class CRUD, student roster, bulk move, login cards PDF, class-change assignment sync trigger, admin school management |
+| Teacher Dashboard & Reports | `docs/specs/19-teacher-dashboard-reports.md` | Dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

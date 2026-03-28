@@ -975,14 +975,18 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
       wordResults: wordResults,
     ));
 
+    if (!mounted) return;
+
     result.fold(
       (failure) {
+        if (!mounted) return;
         state = SessionSaveState(
           status: SessionSaveStatus.error,
           errorMessage: failure.message,
         );
       },
       (savedResult) {
+        if (!mounted) return;
         // Invalidate all dependent providers
         _ref.invalidate(progressForListProvider(listId));
         _ref.invalidate(userWordListProgressProvider);
@@ -1011,17 +1015,20 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
     required double accuracy,
   }) async {
     try {
+      if (!mounted) return;
       final getActiveAssignmentsUseCase = _ref.read(getActiveAssignmentsUseCaseProvider);
       final result = await getActiveAssignmentsUseCase(
         GetActiveAssignmentsParams(studentId: userId),
       );
 
+      if (!mounted) return;
       final assignments = result.fold(
         (failure) => <StudentAssignment>[],
         (assignments) => assignments,
       );
 
       for (final assignment in assignments) {
+        if (!mounted) return;
         if (assignment.wordListId == listId &&
             assignment.status != StudentAssignmentStatus.completed) {
           final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
@@ -1030,6 +1037,7 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
             assignmentId: assignment.assignmentId,
             score: accuracy,
           ));
+          if (!mounted) return;
           _ref.invalidate(studentAssignmentsProvider);
           _ref.invalidate(activeAssignmentsProvider);
           _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
@@ -1038,6 +1046,7 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
 
       // Check unit assignments
       for (final assignment in assignments) {
+        if (!mounted) return;
         if (assignment.scopeLpUnitId != null &&
             assignment.status != StudentAssignmentStatus.completed) {
           final calculateUseCase = _ref.read(calculateUnitProgressUseCaseProvider);
@@ -1045,6 +1054,7 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
             assignmentId: assignment.assignmentId,
             studentId: userId,
           ));
+          if (!mounted) return;
           _ref.invalidate(studentAssignmentsProvider);
           _ref.invalidate(activeAssignmentsProvider);
           _ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));

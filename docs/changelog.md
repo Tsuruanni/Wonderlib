@@ -8,6 +8,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Vocabulary Session Save & Progress Bar Fixes (2026-03-28)
+
+#### Fixed
+- **Session save silently failing** — `SessionSummaryScreen.initState()` called `_saveSession()` during widget build phase, causing Riverpod to reject provider state mutations. Additionally, `sessionSaveProvider` (autoDispose) had zero watchers in `build()`, so it got disposed during the async network call, silently dropping the save result. Restructured to: `addPostFrameCallback` for save trigger, `ref.watch(sessionSaveProvider)` in build to keep provider alive, `ref.listen` for error handling with retry.
+- **Session save crash after dispose** — `SessionSaveNotifier.save()` and `_completeAssignments()` accessed state/ref after provider disposal. Added `mounted` guards after every `await`.
+- **Progress bar stuck at ~70%** — Used hardcoded `words.length * 2 + 4` estimate that was disconnected from the 3-phase session state machine (Explore → Reinforce → Final). Replaced with phase-aware `answered / (answered + estimatedRemaining)` formula using live mastery data, with `_maxProgress` monotonic guard preventing backward movement.
+
+#### Changed
+- **Session summary state management** — Removed local `_saving`/`_saved`/`_actualXpAwarded` state variables; all session save state now derived from `sessionSaveProvider` via `ref.watch` (single source of truth).
+
+### Teacher Dashboard & Reports Spec (2026-03-28)
+
+#### Infrastructure
+- **Feature spec** — `docs/specs/19-teacher-dashboard-reports.md` documents the Teacher Dashboard & Reports system. Covers dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs.
+
+#### Removed
+- **Dead code** — `fromEntity`/`toJson` on `StudentBookProgressModel` and `TeacherStatsModel` (unused RPC projections), `completionRate` getter on `BookReadingStats`, unused imports in 2 teacher usecases.
+
 ### Class Management Audit & Fixes (2026-03-28)
 
 #### Fixed

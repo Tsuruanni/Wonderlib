@@ -19,27 +19,10 @@ class TeacherStatsModel {
     );
   }
 
-  factory TeacherStatsModel.fromEntity(TeacherStats entity) {
-    return TeacherStatsModel(
-      totalStudents: entity.totalStudents,
-      totalClasses: entity.totalClasses,
-      activeAssignments: entity.activeAssignments,
-      avgProgress: entity.avgProgress,
-    );
-  }
   final int totalStudents;
   final int totalClasses;
   final int activeAssignments;
   final double avgProgress;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'total_students': totalStudents,
-      'total_classes': totalClasses,
-      'active_assignments': activeAssignments,
-      'avg_progress': avgProgress,
-    };
-  }
 
   TeacherStats toEntity() {
     return TeacherStats(

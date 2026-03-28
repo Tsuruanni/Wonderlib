@@ -213,9 +213,6 @@ class BookReadingStats extends Equatable {
   final int completedReaders;
   final double avgProgress;
 
-  double get completionRate =>
-      totalReaders > 0 ? (completedReaders / totalReaders) * 100 : 0;
-
   @override
   List<Object?> get props => [bookId, title, coverUrl, level, totalReaders, completedReaders, avgProgress];
 }

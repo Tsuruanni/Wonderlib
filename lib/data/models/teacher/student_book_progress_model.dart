@@ -29,18 +29,6 @@ class StudentBookProgressModel {
     );
   }
 
-  factory StudentBookProgressModel.fromEntity(StudentBookProgress entity) {
-    return StudentBookProgressModel(
-      bookId: entity.bookId,
-      bookTitle: entity.bookTitle,
-      bookCoverUrl: entity.bookCoverUrl,
-      completionPercentage: entity.completionPercentage,
-      totalReadingTime: entity.totalReadingTime,
-      completedChapters: entity.completedChapters,
-      totalChapters: entity.totalChapters,
-      lastReadAt: entity.lastReadAt,
-    );
-  }
   final String bookId;
   final String bookTitle;
   final String? bookCoverUrl;
@@ -49,19 +37,6 @@ class StudentBookProgressModel {
   final int completedChapters;
   final int totalChapters;
   final DateTime? lastReadAt;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'book_id': bookId,
-      'book_title': bookTitle,
-      'book_cover_url': bookCoverUrl,
-      'completion_percentage': completionPercentage,
-      'total_reading_time': totalReadingTime,
-      'completed_chapters': completedChapters,
-      'total_chapters': totalChapters,
-      'last_read_at': lastReadAt?.toIso8601String(),
-    };
-  }
 
   StudentBookProgress toEntity() {
     return StudentBookProgress(

@@ -29,10 +29,7 @@ class SessionSummaryScreen extends ConsumerStatefulWidget {
 }
 
 class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
-  bool _saving = false;
-  bool _saved = false;
   String? _surpriseStat;
-  int? _actualXpAwarded;
   int _comboBonus = 0;
 
   AudioPlayer? _victoryPlayer;
@@ -42,7 +39,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
     super.initState();
     _playVictorySound();
     _maybeSurprise();
-    _saveSession();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _saveSession());
   }
 
   Future<void> _playVictorySound() async {
@@ -69,17 +66,14 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   }
 
   Future<void> _saveSession() async {
-    if (_saving) return;
-    setState(() => _saving = true);
+    final currentStatus = ref.read(sessionSaveProvider).status;
+    if (currentStatus == SessionSaveStatus.saving) return;
 
     final controller = ref.read(vocabularySessionControllerProvider.notifier);
     final session = ref.read(vocabularySessionControllerProvider);
     final userId = ref.read(currentUserIdProvider);
 
-    if (userId == null) {
-      setState(() => _saving = false);
-      return;
-    }
+    if (userId == null) return;
 
     final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     final comboBonus = session.maxCombo * settings.comboBonusXp;
@@ -107,25 +101,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
           firstTryPerfectCount: controller.firstTryPerfectCount,
           wordResults: wordResults,
         );
-
-    final saveState = ref.read(sessionSaveProvider);
-    if (!mounted) return;
-
-    if (saveState.status == SessionSaveStatus.error) {
-      setState(() => _saving = false);
-      showAppSnackBar(
-        context,
-        'Failed to save session. Check your connection.',
-        type: SnackBarType.error,
-        actionLabel: 'Retry',
-        onAction: _saveSession,
-      );
-    } else if (saveState.status == SessionSaveStatus.saved) {
-      setState(() {
-        _saved = true;
-        _actualXpAwarded = saveState.actualXpAwarded;
-      });
-    }
   }
 
   @override
@@ -138,14 +113,28 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final session = ref.watch(vocabularySessionControllerProvider);
+    final saveState = ref.watch(sessionSaveProvider);
+    final saved = saveState.status == SessionSaveStatus.saved;
     final accuracy = session.correctCount + session.incorrectCount > 0
         ? (session.correctCount /
                 (session.correctCount + session.incorrectCount)) *
             100
         : 0.0;
 
+    ref.listen<SessionSaveState>(sessionSaveProvider, (prev, next) {
+      if (next.status == SessionSaveStatus.error) {
+        showAppSnackBar(
+          context,
+          'Failed to save session. Check your connection.',
+          type: SnackBarType.error,
+          actionLabel: 'Retry',
+          onAction: _saveSession,
+        );
+      }
+    });
+
     return PopScope(
-      canPop: _saved,
+      canPop: saved,
       child: Scaffold(
         body: SafeArea(
           child: SingleChildScrollView(
@@ -199,7 +188,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                       icon: Icons.monetization_on,
                       iconColor: Colors.amber,
                       label: 'Coins Earned',
-                      value: '+${_actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
+                      value: '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
                       subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,
                       delay: 400.ms,
                     ),
