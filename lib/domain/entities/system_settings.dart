@@ -58,6 +58,8 @@ class SystemSettings extends Equatable {
     this.starRating3 = 90,
     this.starRating2 = 70,
     this.starRating1 = 50,
+    // Mock library
+    this.mockLibraryEnabled = false,
   });
 
   // XP Rewards
@@ -127,6 +129,9 @@ class SystemSettings extends Equatable {
   final int starRating2;
   final int starRating1;
 
+  // Mock library
+  final bool mockLibraryEnabled;
+
   /// Default settings (fallback when database is unavailable)
   factory SystemSettings.defaults() => const SystemSettings();
 
@@ -173,5 +178,6 @@ class SystemSettings extends Equatable {
         starRating3,
         starRating2,
         starRating1,
+        mockLibraryEnabled,
       ];
 }

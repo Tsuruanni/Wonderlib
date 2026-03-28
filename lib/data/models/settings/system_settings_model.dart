@@ -44,6 +44,7 @@ class SystemSettingsModel {
     required this.starRating3,
     required this.starRating2,
     required this.starRating1,
+    required this.mockLibraryEnabled,
   });
 
   final int xpChapterComplete;
@@ -87,6 +88,7 @@ class SystemSettingsModel {
   final int starRating3;
   final int starRating2;
   final int starRating1;
+  final bool mockLibraryEnabled;
 
   /// Parse from database rows (key-value pairs)
   factory SystemSettingsModel.fromRows(List<Map<String, dynamic>> rows) {
@@ -145,6 +147,7 @@ class SystemSettingsModel {
       starRating3: _toInt(m['star_rating_3'], _d.starRating3),
       starRating2: _toInt(m['star_rating_2'], _d.starRating2),
       starRating1: _toInt(m['star_rating_1'], _d.starRating1),
+      mockLibraryEnabled: _toBool(m['mock_library_enabled'], _d.mockLibraryEnabled),
     );
   }
 
@@ -194,6 +197,7 @@ class SystemSettingsModel {
         starRating3: starRating3,
         starRating2: starRating2,
         starRating1: starRating1,
+        mockLibraryEnabled: mockLibraryEnabled,
       );
 
   // Helper: Parse JSONB value (removes quotes, converts types)
