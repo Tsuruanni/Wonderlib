@@ -8,6 +8,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Streak System Audit, Spec & Fixes (2026-03-28)
+
+#### Fixed
+- **`update_user_streak` missing auth check** — CRITICAL: SECURITY DEFINER RPC didn't validate `p_user_id = auth.uid()`. Any authenticated user could update another user's streak, insert login records, and award milestone XP on their behalf. Added auth guard (same pattern as `buy_streak_freeze`).
+- **Milestone XP idempotency gap** — `award_xp_transaction` called with `source_id = NULL` for milestones. Changed to deterministic `'day_N'` key for proper deduplication.
+- **`hasEvent` hard-coded threshold** — `StreakResult.hasEvent` hard-coded `previousStreak >= 3` for broken-streak dialog, ignoring admin-configurable `notifStreakBrokenMin`. Removed getter; provider's `shouldShow` logic already reads from settings correctly.
+- **`loginDatesProvider` bypassed repository** — Called `Supabase.instance.client` directly. Created `GetLoginDatesUseCase` and routed through `UserRepository` for architecture compliance.
+- **Stale comment in `addXP()`** — Referenced removed server-side streak calls; updated to reflect login-based model.
+- **Redundant Container wrapper** — `StreakStatusDialog` Close button had unnecessary `Container` wrapping `Text`.
+
+#### Added
+- **Admin-configurable milestone XP** — Milestone XP values moved from hard-coded SQL `CASE` to `system_settings` key `streak_milestones` (JSON object: `{"7":50,"14":100,...}`). Admin can now tune milestone rewards.
+- **Repeating milestones for 100+ day streaks** — New `streak_milestone_repeat_interval` (default 100) and `streak_milestone_repeat_xp` (default 1000) settings. Day 200, 300, etc. each award XP.
+- **`GetLoginDatesUseCase`** — New UseCase + Params for streak calendar data, following existing codebase pattern.
+
+#### Removed
+- **Dead Edge Function** — `supabase/functions/check-streak/index.ts` deleted (duplicated SQL RPC logic, held `SUPABASE_SERVICE_ROLE_KEY`, never called by app).
+
+#### Infrastructure
+- **2 DB migrations** (20260328000006, 20260328000007) — Auth guard + idempotency fix, then configurable milestones with 3 new `system_settings` keys.
+- **Feature spec** — `docs/specs/10-streak-system.md` documents the full Streak System (9 findings: all 9 fixed).
+
 ### XP/Leveling Audit & Spec (2026-03-28)
 
 #### Fixed

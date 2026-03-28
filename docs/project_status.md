@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (XP/Leveling audit & spec — 3 fixes + spec, 2 migrations deployed)
+Son güncelleme: 2026-03-28 (Streak System audit & fixes — 9 findings all fixed, configurable milestones, 2 migrations deployed)
 
 ## Current Phase
 
@@ -123,6 +123,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Learning Paths Audit & Fixes (21-finding audit, 17 fixed: 3 RPC auth checks, DR replay block, role mismatch, FK cascade, atomic sort_order, enum refactor, dead code removal)
 - [x] Daily Vocabulary Review Audit & Fixes (20-finding audit, 19 fixed: 2 RPC auth checks, session deadlock, error state UI, threshold alignment, timezone fix, dead code removal)
 - [x] XP/Leveling Audit & Spec (4-finding audit, 3 fixed: RPC auth check, dead code removal, SQL comment correction. Full spec written.)
+- [x] Streak System Audit & Fixes (9-finding audit, all 9 fixed: RPC auth check, dead Edge Function removal, hasEvent threshold fix, loginDatesProvider architecture fix, milestone idempotency, configurable milestone XP, repeating 100+ day milestones)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
