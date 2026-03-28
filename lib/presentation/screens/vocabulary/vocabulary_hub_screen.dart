@@ -22,11 +22,12 @@ class VocabularyHubScreen extends ConsumerStatefulWidget {
 }
 
 class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
-  ScrollController? _scrollController;
+  final _scrollController = ScrollController();
+  bool _hasScrolledToActive = false;
 
   @override
   void dispose() {
-    _scrollController?.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -34,15 +35,20 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
   Widget build(BuildContext context) {
     final storyListsAsync = ref.watch(storyWordListsProvider);
 
-    // Create scroll controller once with initial offset centered on active node
-    if (_scrollController == null) {
-      final activeY = ref.read(activeNodeYProvider);
-      final screenHeight = MediaQuery.of(context).size.height;
-      final initialOffset = activeY != null
-          ? (activeY - screenHeight / 2).clamp(0.0, double.maxFinite)
-          : 0.0;
-      _scrollController = ScrollController(initialScrollOffset: initialOffset);
-    }
+    // Auto-scroll to active node once when LearningPath sets the Y position.
+    // Uses ref.listen because LearningPath (a child) writes the provider during
+    // its build — after this widget's ScrollController is already created.
+    ref.listen<double?>(activeNodeYProvider, (prev, next) {
+      if (next != null && !_hasScrolledToActive && _scrollController.hasClients) {
+        _hasScrolledToActive = true;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final targetOffset = (next - screenHeight / 2).clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        );
+        _scrollController.jumpTo(targetOffset);
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.terrain,
@@ -54,6 +60,7 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: _scrollController,
+
                   padding: const EdgeInsets.only(bottom: 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
