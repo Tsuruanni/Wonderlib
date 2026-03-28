@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/avatar/equipped_avatar_model.dart';
 import '../../domain/entities/avatar.dart';
+import '../../domain/usecases/avatar/buy_avatar_item_usecase.dart';
+import '../../domain/usecases/avatar/equip_avatar_item_usecase.dart';
 import '../../domain/usecases/avatar/get_user_avatar_items_usecase.dart';
+import '../../domain/usecases/avatar/set_avatar_base_usecase.dart';
+import '../../domain/usecases/avatar/unequip_avatar_item_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
@@ -70,4 +74,95 @@ final avatarItemsByCategoryProvider = Provider<Map<String, List<AvatarItem>>>((r
     grouped.putIfAbsent(item.category.name, () => []).add(item);
   }
   return grouped;
+});
+
+/// Controller for avatar mutations (setBase, equip, unequip, buy).
+/// Keeps business logic out of screens — mirrors PackOpeningController pattern.
+class AvatarController extends StateNotifier<AsyncValue<void>> {
+  AvatarController(this._ref) : super(const AsyncValue.data(null));
+
+  final Ref _ref;
+
+  bool get isMutating => state is AsyncLoading;
+
+  Future<String?> setBase(String baseId) async {
+    if (isMutating) return null;
+    state = const AsyncValue.loading();
+    final useCase = _ref.read(setAvatarBaseUseCaseProvider);
+    final result = await useCase(SetAvatarBaseParams(baseId: baseId));
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return 'Failed to set base: ${failure.message}';
+      },
+      (_) {
+        _ref.invalidate(userAvatarItemsProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+
+  Future<String?> equipItem(String itemId) async {
+    if (isMutating) return null;
+    state = const AsyncValue.loading();
+    final useCase = _ref.read(equipAvatarItemUseCaseProvider);
+    final result = await useCase(EquipAvatarItemParams(itemId: itemId));
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return 'Failed to equip: ${failure.message}';
+      },
+      (_) {
+        _ref.invalidate(userAvatarItemsProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+
+  Future<String?> unequipItem(String itemId) async {
+    if (isMutating) return null;
+    state = const AsyncValue.loading();
+    final useCase = _ref.read(unequipAvatarItemUseCaseProvider);
+    final result = await useCase(UnequipAvatarItemParams(itemId: itemId));
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return 'Failed to unequip: ${failure.message}';
+      },
+      (_) {
+        _ref.invalidate(userAvatarItemsProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+
+  Future<String?> buyItem(String itemId) async {
+    if (isMutating) return null;
+    state = const AsyncValue.loading();
+    final useCase = _ref.read(buyAvatarItemUseCaseProvider);
+    final result = await useCase(BuyAvatarItemParams(itemId: itemId));
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return 'Purchase failed: ${failure.message}';
+      },
+      (buyResult) {
+        _ref.invalidate(userAvatarItemsProvider);
+        _ref.read(userControllerProvider.notifier).refreshProfileOnly();
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+}
+
+final avatarControllerProvider =
+    StateNotifierProvider.autoDispose<AvatarController, AsyncValue<void>>((ref) {
+  return AvatarController(ref);
 });

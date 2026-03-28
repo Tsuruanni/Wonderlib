@@ -8,12 +8,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/avatar.dart';
-import '../../../domain/usecases/avatar/buy_avatar_item_usecase.dart';
-import '../../../domain/usecases/avatar/equip_avatar_item_usecase.dart';
-import '../../../domain/usecases/avatar/set_avatar_base_usecase.dart';
-import '../../../domain/usecases/avatar/unequip_avatar_item_usecase.dart';
 import '../../providers/avatar_provider.dart';
-import '../../providers/usecase_providers.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
 
@@ -41,7 +36,6 @@ class AvatarCustomizeScreen extends ConsumerStatefulWidget {
 
 class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
     with SingleTickerProviderStateMixin {
-  bool _isMutating = false;
   TabController? _tabController;
   int _tabCount = 0;
 
@@ -80,93 +74,27 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
   }
 
   Future<void> _setBase(AvatarBase base) async {
-    if (_isMutating) return;
-    setState(() => _isMutating = true);
-    try {
-      final useCase = ref.read(setAvatarBaseUseCaseProvider);
-      final result =
-          await useCase(SetAvatarBaseParams(baseId: base.id));
-      result.fold(
-        (failure) => _showSnack(
-          'Failed to set base: ${failure.message}',
-          isError: true,
-        ),
-        (_) {
-          ref.invalidate(userAvatarItemsProvider);
-          ref.invalidate(userControllerProvider);
-        },
-      );
-    } finally {
-      if (mounted) setState(() => _isMutating = false);
-    }
+    final error = await ref.read(avatarControllerProvider.notifier).setBase(base.id);
+    if (error != null && mounted) _showSnack(error, isError: true);
   }
 
   Future<void> _equip(AvatarItem item) async {
-    if (_isMutating) return;
-    setState(() => _isMutating = true);
-    try {
-      final useCase = ref.read(equipAvatarItemUseCaseProvider);
-      final result =
-          await useCase(EquipAvatarItemParams(itemId: item.id));
-      result.fold(
-        (failure) => _showSnack(
-          'Failed to equip: ${failure.message}',
-          isError: true,
-        ),
-        (_) {
-          ref.invalidate(userAvatarItemsProvider);
-          ref.invalidate(userControllerProvider);
-        },
-      );
-    } finally {
-      if (mounted) setState(() => _isMutating = false);
-    }
+    final error = await ref.read(avatarControllerProvider.notifier).equipItem(item.id);
+    if (error != null && mounted) _showSnack(error, isError: true);
   }
 
   Future<void> _unequip(AvatarItem item) async {
-    if (_isMutating) return;
-    setState(() => _isMutating = true);
-    try {
-      final useCase = ref.read(unequipAvatarItemUseCaseProvider);
-      final result =
-          await useCase(UnequipAvatarItemParams(itemId: item.id));
-      result.fold(
-        (failure) => _showSnack(
-          'Failed to unequip: ${failure.message}',
-          isError: true,
-        ),
-        (_) {
-          ref.invalidate(userAvatarItemsProvider);
-          ref.invalidate(userControllerProvider);
-        },
-      );
-    } finally {
-      if (mounted) setState(() => _isMutating = false);
-    }
+    final error = await ref.read(avatarControllerProvider.notifier).unequipItem(item.id);
+    if (error != null && mounted) _showSnack(error, isError: true);
   }
 
   Future<void> _buy(AvatarItem item) async {
-    if (_isMutating) return;
-    setState(() => _isMutating = true);
-    try {
-      final useCase = ref.read(buyAvatarItemUseCaseProvider);
-      final result =
-          await useCase(BuyAvatarItemParams(itemId: item.id));
-      result.fold(
-        (failure) => _showSnack(
-          'Purchase failed: ${failure.message}',
-          isError: true,
-        ),
-        (buyResult) {
-          ref.invalidate(userAvatarItemsProvider);
-          ref.invalidate(userControllerProvider);
-          _showSnack(
-            '${item.displayName} purchased! ${buyResult.coinsRemaining} coins remaining.',
-          );
-        },
-      );
-    } finally {
-      if (mounted) setState(() => _isMutating = false);
+    final error = await ref.read(avatarControllerProvider.notifier).buyItem(item.id);
+    if (!mounted) return;
+    if (error != null) {
+      _showSnack(error, isError: true);
+    } else {
+      _showSnack('${item.displayName} purchased!');
     }
   }
 
@@ -260,6 +188,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
     final userItemsAsync = ref.watch(userAvatarItemsProvider);
     final ownedIds = ref.watch(ownedAvatarItemIdsProvider);
     final itemsByCategory = ref.watch(avatarItemsByCategoryProvider);
+    final isMutating = ref.watch(avatarControllerProvider) is AsyncLoading;
 
     final categories = itemsByCategory.keys.toList()..sort();
 
@@ -282,7 +211,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
           onPressed: () => context.pop(),
         ),
       ),
-      body: _isMutating
+      body: isMutating
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
