@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Avatar System audit & fixes — 12 findings, 8 fixed: storage policy security, dead code removal, rarity color centralization, admin UX improvements)
+Son güncelleme: 2026-03-28 (Assignment System audit & fixes — 17 findings, 13 fixed: start/complete RPCs, StateNotifier controllers, content validation, shared widgets, dead code removal)
 
 ## Current Phase
 
@@ -130,6 +130,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Quest Audit & Fixes (14-finding audit, 6 fixed: DailyQuestController extraction, DateTime.now() bug, legacy dead code removal from CardRepository + shared constants, stale docs fix)
 - [x] Card Collection Audit & Fixes (19-finding audit, 8 fixed: image_url in open_card_pack, buy idempotency key, admin column fix, firstWhere guard, dead code removal — collectionProgressProvider, CardSummaryRow, CardListScreen, unreachable branch)
 - [x] Avatar System Audit & Fixes (12-finding audit, 8 fixed: storage policy restricted to admin, dead GetEquippedAvatarUseCase pipeline removed, CardRarity.colorHex centralized, base-load error+retry, stale helper text, storage blob cleanup, coin_price validation, unique-constraint friendly errors)
+- [x] Assignment System Audit & Fixes (17-finding audit, 13 fixed: start/complete SECURITY DEFINER RPCs, AssignmentDeleteController+StudentAssignmentController extraction, content validation, AssignmentStatusBadge+LearningPathItemDisplay shared helpers, dead code removal, debugPrint cleanup, error propagation)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -197,6 +198,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Assignment System Audit & Fixes | 2026-03-28 | 17-finding audit. Security: `start_assignment` + `complete_assignment` SECURITY DEFINER RPCs (prevents student forgery). Architecture: `AssignmentDeleteController` + `StudentAssignmentController` StateNotifiers. UX: content validation on create, error state reachable. Quality: `AssignmentStatusBadge` + `LearningPathItemDisplay` shared helpers, 9 debugPrint removed, dead code (-116 net lines). 1 migration, full spec at `docs/specs/17-assignment-system.md`. 13/17 fixed, 4 skipped. |
+| Avatar System Audit & Fixes | 2026-03-28 | 12-finding audit. Security: storage policy restricted to admin. Dead code: GetEquippedAvatarUseCase pipeline removed. Quality: CardRarity.colorHex centralized, admin UX improvements (error+retry, blob cleanup, validation, friendly errors). 1 migration, full spec at `docs/specs/16-avatar-system.md`. 8/12 fixed, 4 skipped. |
 | Card Collection Audit & Fixes | 2026-03-28 | 19-finding audit. Bugs: `image_url` added to `open_card_pack` JSONB, idempotency key on `buy_card_pack`, admin column name fix, `firstWhere` guard. Dead code: `collectionProgressProvider`, `CardSummaryRow`, `CardListScreen` removed; admin providers extracted. 1 migration, full spec at `docs/specs/15-card-collection.md`. 8/19 fixed, 1 skipped, 10 deferred. |
 | Daily Quest Audit & Fixes | 2026-03-28 | 14-finding audit. Architecture: DailyQuestController extracted. Bug: DateTime.now() → AppClock.now(). Dead code: legacy CardRepository quest methods + shared constants removed. Full spec at `docs/specs/14-daily-quest.md`. 6/14 fixed, 8 deferred. |
 | Badge/Achievement Audit & Fixes | 2026-03-28 | 12-finding audit. Security: auth.uid() check added to `check_and_award_badges` RPC. Dead code: removed 3 usecases, 2 providers, 3 repo methods (-517 lines). Full feature spec at `docs/specs/11-badge-achievement.md`. 1 migration, 7/12 fixed, 1 N/A, 4 tech debt. |

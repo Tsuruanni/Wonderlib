@@ -8,6 +8,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Assignment System Audit & Fixes (2026-03-28)
+
+#### Fixed
+- **Student assignment forgery (HIGH)** — `startAssignment` and `completeAssignment` used direct table UPDATEs; a student could set `status='completed', score=100` via Supabase client. Migrated both to SECURITY DEFINER RPCs with enrollment, status transition, and score range validation.
+- **UseCase-in-widget (teacher delete)** — `AssignmentDetailScreen` called `deleteAssignmentUseCaseProvider` directly. Extracted `AssignmentDeleteController` StateNotifier in `teacher_provider.dart`.
+- **UseCase-in-widget (student start)** — `StudentAssignmentDetailScreen` called `startAssignmentUseCaseProvider` directly in 3 methods. Extracted `StudentAssignmentController` StateNotifier in `student_assignment_provider.dart`.
+- **Missing content validation** — Teacher could submit assignment without selecting a book/word list/unit. Added pre-submit guards per assignment type.
+- **Teacher error state unreachable** — `teacherAssignmentsProvider` swallowed errors (returned `[]`). Now throws on failure, making the error UI reachable.
+- **StatusBadge color inconsistency** — `_StatusBadge` duplicated in `assignments_screen.dart` (orange=Upcoming) and `assignment_report_screen.dart` (blue=Upcoming). Extracted shared `AssignmentStatusBadge` to `ui_helpers.dart`, standardized on orange.
+- **Unit item icon/color duplication** — `LearningPathItemType` switch-case (icon, color, isTracked) duplicated in 4 places. Extracted `LearningPathItemDisplay` helper to `ui_helpers.dart`.
+
+#### Removed
+- **Dead code** — `fromEntity`/`toJson` on 3 assignment models (never called), `pendingAssignmentCountProvider` (never consumed), 9 `debugPrint` statements from `student_assignment_provider.dart`.
+
+#### Infrastructure
+- **1 DB migration** (20260328400001) — `start_assignment` + `complete_assignment` SECURITY DEFINER RPCs with auth, enrollment, status, and score validation.
+- **Feature spec** — `docs/specs/17-assignment-system.md` documents the full Assignment System (17 findings: 13 fixed, 4 skipped). Covers 3 assignment types, distributed completion, teacher CRUD, student progress, library lock, class-change handling, admin read-only view.
+
 ### Avatar System Audit & Fixes (2026-03-28)
 
 #### Fixed
