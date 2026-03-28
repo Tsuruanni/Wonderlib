@@ -208,6 +208,8 @@ Streak milestone (app open)
 - `supabase/migrations/20260131000010_create_functions.sql` — calculate_level, award_xp_transaction (original)
 - `supabase/migrations/20260316000006_coin_idempotency_and_xp_constraint.sql` — latest award_xp_transaction (with idempotency + coins)
 - `supabase/migrations/20260323000015_type_based_xp_settings.sql` — per-type XP settings
+- `supabase/migrations/20260328000004_add_auth_check_to_award_xp.sql` — auth.uid() guard on award_xp_transaction
+- `supabase/migrations/20260328000005_fix_calculate_level_comments.sql` — corrected level threshold comments
 
 **Admin**
 - `owlio_admin/lib/features/settings/screens/settings_screen.dart` — XP settings editor

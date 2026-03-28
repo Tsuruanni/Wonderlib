@@ -8,6 +8,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### XP/Leveling Audit & Spec (2026-03-28)
+
+#### Fixed
+- **`award_xp_transaction` missing auth check** — SECURITY DEFINER RPC didn't validate `p_user_id = auth.uid()`. Any client could award XP/coins to any user. Added auth guard (same pattern as `complete_vocabulary_session`).
+- **Misleading SQL comments** — `calculate_level` function comments said thresholds "0, 100, 300, 600" but actual formula gives "0, 200, 600, 1200". Comments corrected to match.
+
+#### Removed
+- **Dead code** — `getLeaderboard()` method in `UserRepository` interface and `SupabaseUserRepository` (replaced by RPC-based leaderboard methods, never called).
+
+#### Infrastructure
+- **2 DB migrations** (20260328000004, 20260328000005) — Auth guard on `award_xp_transaction`, corrected `calculate_level` comments.
+- **Feature spec** — `docs/specs/09-xp-leveling.md` documents the full XP/Leveling system (4 findings: 3 fixed, 1 accepted).
+
 ### Daily Vocabulary Review Audit & Fixes (2026-03-28)
 
 #### Fixed

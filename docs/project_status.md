@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Daily Vocabulary Review audit & fixes — 19/20 findings fixed, 1 migration deployed)
+Son güncelleme: 2026-03-28 (XP/Leveling audit & spec — 3 fixes + spec, 2 migrations deployed)
 
 ## Current Phase
 
@@ -122,6 +122,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Word Lists Audit & Fixes (24-finding audit, 20 fixed: star unification, SessionSaveNotifier extraction, RPC auth, dead code removal, error states, N+1 fix)
 - [x] Learning Paths Audit & Fixes (21-finding audit, 17 fixed: 3 RPC auth checks, DR replay block, role mismatch, FK cascade, atomic sort_order, enum refactor, dead code removal)
 - [x] Daily Vocabulary Review Audit & Fixes (20-finding audit, 19 fixed: 2 RPC auth checks, session deadlock, error state UI, threshold alignment, timezone fix, dead code removal)
+- [x] XP/Leveling Audit & Spec (4-finding audit, 3 fixed: RPC auth check, dead code removal, SQL comment correction. Full spec written.)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -189,6 +190,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| XP/Leveling Audit & Spec | 2026-03-28 | 4-finding audit. Security: auth.uid() check added to `award_xp_transaction` RPC. Dead code: `getLeaderboard()` removed from UserRepository. Docs: `calculate_level` SQL comments corrected. Full feature spec written at `docs/specs/09-xp-leveling.md`. 2 migrations deployed, 3/4 fixed, 1 accepted. |
 | Learning Paths Audit & Fixes | 2026-03-27 | 21-finding audit. Security: 3 RPC auth checks (apply_template, get_user_paths, get_daily_reviews), DR replay block (DELETE policy removed), head_teacher→head RLS fix. DB: FK cascade on class_id, atomic sort_order with FOR UPDATE, index housekeeping. Code: String→LearningPathItemType enum in 3 entities+3 models+3 screens, 5 dead code removals, 12 debugPrint removed. 1 migration deployed. 17/21 fixed, 4 known limitations. |
 | Book Quiz Audit & Fixes | 2026-03-27 | 16-finding audit. 3 high: quiz_passed never written to DB, get_best_book_quiz_result missing auth (any user could query any other user's scores), 0-question quiz soft-lock. Plus: quiz timer, shared enum for type parsing, AppColors, dead code cleanup, admin English labels (~80 strings), enum switches. 1 migration (RPC fixes + composite index). 12/16 fixed, 4 accepted/deferred. |
 | Inline Activities Audit & Fixes | 2026-03-27 | 25-finding audit across all layers. Phase 1: DB index, correctness tracking (Map<String, bool>), finally block, save failure rollback + didUpdateWidget, words_learned population. Phase 2: dead code removal (-628 lines: UseCase, wrapper, entity, model, widgetbook), shared enum methods, guard clauses. Phase 3: sound feedback, loading placeholder, index-based matching, admin validation, English labels. 22/25 fixed, 2 accepted, 1 deferred. |
