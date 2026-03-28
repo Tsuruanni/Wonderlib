@@ -23,12 +23,6 @@ class StreakResult extends Equatable {
   final int freezesRemaining;
   final int milestoneBonusXp;
 
-  /// Show event dialog? Streak extended always. Milestone and freeze always.
-  /// Streak broken only if >= 3 days (default, overridable via settings).
-  bool get hasEvent =>
-      streakExtended ||
-      milestoneBonusXp > 0 || freezeUsed || (streakBroken && previousStreak >= 3);
-
   @override
   List<Object?> get props => [
         newStreak, longestStreak, previousStreak, streakBroken, streakExtended,

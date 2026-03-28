@@ -66,7 +66,7 @@ class _LevelUpCelebrationListenerState
     });
 
     ref.listen<StreakResult?>(streakEventProvider, (previous, next) {
-      if (next != null && next.hasEvent) {
+      if (next != null) {
         _enqueueDialog(() => _showStreakEvent(next));
       }
     });
