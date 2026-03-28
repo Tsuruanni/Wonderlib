@@ -36,6 +36,10 @@ class SystemSettings extends Equatable {
     // Streak
     this.streakFreezePrice = 50,
     this.streakFreezeMax = 2,
+    // Streak Milestones
+    this.streakMilestones = const {7: 50, 14: 100, 30: 200, 60: 400, 100: 1000},
+    this.streakMilestoneRepeatInterval = 100,
+    this.streakMilestoneRepeatXp = 1000,
     // Debug
     this.debugDateOffset = 0,
   });
@@ -78,6 +82,11 @@ class SystemSettings extends Equatable {
   final int streakFreezePrice;
   final int streakFreezeMax;
 
+  // Streak Milestones
+  final Map<int, int> streakMilestones;
+  final int streakMilestoneRepeatInterval;
+  final int streakMilestoneRepeatXp;
+
   // Debug
   final int debugDateOffset;
 
@@ -112,6 +121,9 @@ class SystemSettings extends Equatable {
         notifAssignment,
         streakFreezePrice,
         streakFreezeMax,
+        streakMilestones,
+        streakMilestoneRepeatInterval,
+        streakMilestoneRepeatXp,
         debugDateOffset,
       ];
 }

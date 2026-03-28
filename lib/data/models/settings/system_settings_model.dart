@@ -29,6 +29,9 @@ class SystemSettingsModel {
     required this.notifAssignment,
     required this.streakFreezePrice,
     required this.streakFreezeMax,
+    required this.streakMilestones,
+    required this.streakMilestoneRepeatInterval,
+    required this.streakMilestoneRepeatXp,
     required this.debugDateOffset,
   });
 
@@ -58,6 +61,9 @@ class SystemSettingsModel {
   final bool notifAssignment;
   final int streakFreezePrice;
   final int streakFreezeMax;
+  final Map<int, int> streakMilestones;
+  final int streakMilestoneRepeatInterval;
+  final int streakMilestoneRepeatXp;
   final int debugDateOffset;
 
   /// Parse from database rows (key-value pairs)
@@ -99,6 +105,9 @@ class SystemSettingsModel {
       notifAssignment: _toBool(m['notif_assignment'], true),
       streakFreezePrice: _toInt(m['streak_freeze_price'], 50),
       streakFreezeMax: _toInt(m['streak_freeze_max'], 2),
+      streakMilestones: _toIntMap(m['streak_milestones'], {7: 50, 14: 100, 30: 200, 60: 400, 100: 1000}),
+      streakMilestoneRepeatInterval: _toInt(m['streak_milestone_repeat_interval'], 100),
+      streakMilestoneRepeatXp: _toInt(m['streak_milestone_repeat_xp'], 1000),
       debugDateOffset: _toInt(m['debug_date_offset'], 0),
     );
   }
@@ -131,6 +140,9 @@ class SystemSettingsModel {
         notifAssignment: true,
         streakFreezePrice: 50,
         streakFreezeMax: 2,
+        streakMilestones: const {7: 50, 14: 100, 30: 200, 60: 400, 100: 1000},
+        streakMilestoneRepeatInterval: 100,
+        streakMilestoneRepeatXp: 1000,
         debugDateOffset: 0,
       );
 
@@ -162,6 +174,9 @@ class SystemSettingsModel {
         notifAssignment: notifAssignment,
         streakFreezePrice: streakFreezePrice,
         streakFreezeMax: streakFreezeMax,
+        streakMilestones: streakMilestones,
+        streakMilestoneRepeatInterval: streakMilestoneRepeatInterval,
+        streakMilestoneRepeatXp: streakMilestoneRepeatXp,
         debugDateOffset: debugDateOffset,
       );
 
@@ -194,6 +209,9 @@ class SystemSettingsModel {
         notifAssignment: e.notifAssignment,
         streakFreezePrice: e.streakFreezePrice,
         streakFreezeMax: e.streakFreezeMax,
+        streakMilestones: e.streakMilestones,
+        streakMilestoneRepeatInterval: e.streakMilestoneRepeatInterval,
+        streakMilestoneRepeatXp: e.streakMilestoneRepeatXp,
         debugDateOffset: e.debugDateOffset,
       );
 
@@ -218,6 +236,17 @@ class SystemSettingsModel {
     if (v == null) return defaultValue;
     if (v is bool) return v;
     if (v is String) return v == 'true';
+    return defaultValue;
+  }
+
+  static Map<int, int> _toIntMap(dynamic v, Map<int, int> defaultValue) {
+    if (v == null) return defaultValue;
+    if (v is Map) {
+      return v.map((k, v) => MapEntry(
+        int.tryParse(k.toString()) ?? 0,
+        _toInt(v, 0),
+      ));
+    }
     return defaultValue;
   }
 }
