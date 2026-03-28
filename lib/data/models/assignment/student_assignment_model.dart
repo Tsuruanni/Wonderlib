@@ -72,25 +72,6 @@ class StudentAssignmentModel {
     );
   }
 
-  factory StudentAssignmentModel.fromEntity(StudentAssignment entity) {
-    return StudentAssignmentModel(
-      id: entity.id,
-      assignmentId: entity.assignmentId,
-      title: entity.title,
-      description: entity.description,
-      type: entity.type.dbValue,
-      status: entity.status.dbValue,
-      progress: entity.progress,
-      score: entity.score,
-      teacherName: entity.teacherName,
-      className: entity.className,
-      startDate: entity.startDate,
-      dueDate: entity.dueDate,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
-      contentConfig: entity.contentConfig,
-    );
-  }
   final String id;
   final String assignmentId;
   final String title;
@@ -106,26 +87,6 @@ class StudentAssignmentModel {
   final DateTime? startedAt;
   final DateTime? completedAt;
   final Map<String, dynamic> contentConfig;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'assignment_id': assignmentId,
-      'title': title,
-      'description': description,
-      'type': type,
-      'status': status,
-      'progress': progress,
-      'score': score,
-      'teacher_name': teacherName,
-      'class_name': className,
-      'start_date': startDate.toIso8601String(),
-      'due_date': dueDate.toIso8601String(),
-      'started_at': startedAt?.toIso8601String(),
-      'completed_at': completedAt?.toIso8601String(),
-      'content_config': contentConfig,
-    };
-  }
 
   StudentAssignment toEntity() {
     return StudentAssignment(

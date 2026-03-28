@@ -7,9 +7,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/student_unit_progress_item.dart';
 import '../../../domain/repositories/teacher_repository.dart';
-import '../../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../providers/teacher_provider.dart';
-import '../../providers/usecase_providers.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -209,25 +207,17 @@ class _AssignmentAppBar extends ConsumerWidget {
               );
 
               if ((confirmed ?? false) && context.mounted) {
-                // Delete assignment
-                final useCase = ref.read(deleteAssignmentUseCaseProvider);
-                final result = await useCase(DeleteAssignmentParams(assignmentId: assignment.id));
-
-                result.fold(
-                  (failure) {
-                    if (context.mounted) {
-                      showAppSnackBar(context, 'Error: ${failure.message}', type: SnackBarType.error);
-                    }
-                  },
-                  (_) {
-                    if (context.mounted) {
-                      ref.invalidate(teacherAssignmentsProvider);
-                      ref.invalidate(teacherStatsProvider);
-                      showAppSnackBar(context, 'Assignment deleted');
-                      context.pop();
-                    }
-                  },
-                );
+                final error = await ref
+                    .read(assignmentDeleteControllerProvider.notifier)
+                    .deleteAssignment(assignment.id);
+                if (context.mounted) {
+                  if (error != null) {
+                    showAppSnackBar(context, 'Error: $error', type: SnackBarType.error);
+                  } else {
+                    showAppSnackBar(context, 'Assignment deleted');
+                    context.pop();
+                  }
+                }
               }
             }
           },
@@ -656,16 +646,14 @@ class _StudentUnitItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final IconData icon;
+    final icon = LearningPathItemDisplay.getIcon(item.itemType);
+    final color = LearningPathItemDisplay.getColor(item.itemType);
     final String title;
-    final Color color;
     final List<Widget> details = [];
 
     switch (item.itemType) {
       case LearningPathItemType.wordList:
-        icon = Icons.abc;
         title = item.wordListName ?? 'Word List';
-        color = Colors.purple;
 
         if (item.totalSessions != null && item.totalSessions! > 0) {
           details.add(_DetailRow(
@@ -704,9 +692,7 @@ class _StudentUnitItemCard extends StatelessWidget {
         }
 
       case LearningPathItemType.book:
-        icon = Icons.menu_book;
         title = item.bookTitle ?? 'Book';
-        color = Colors.blue;
         final totalChapters = item.totalChapters ?? 0;
         final completedChapters = item.completedChapters ?? 0;
 
@@ -717,9 +703,7 @@ class _StudentUnitItemCard extends StatelessWidget {
         ),);
 
       case LearningPathItemType.game:
-        icon = Icons.sports_esports;
         title = 'Game';
-        color = Colors.grey;
         details.add(Text(
           'Not graded',
           style: context.textTheme.bodySmall?.copyWith(
@@ -728,9 +712,7 @@ class _StudentUnitItemCard extends StatelessWidget {
         ),);
 
       case LearningPathItemType.treasure:
-        icon = Icons.card_giftcard;
         title = 'Treasure';
-        color = Colors.grey;
         details.add(Text(
           'Not graded',
           style: context.textTheme.bodySmall?.copyWith(
@@ -860,32 +842,24 @@ class _UnitContentSection extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                     children: unit.items.map((item) {
-                      final IconData icon;
+                      final icon = LearningPathItemDisplay.getIcon(item.itemType);
+                      final isTracked = LearningPathItemDisplay.isTracked(item.itemType);
                       final String label;
                       final String detail;
-                      final bool isTracked;
 
                       switch (item.itemType) {
                         case LearningPathItemType.wordList:
-                          icon = Icons.abc;
                           label = item.wordListName ?? 'Word List';
                           detail = '${item.words?.length ?? 0} words';
-                          isTracked = true;
                         case LearningPathItemType.book:
-                          icon = Icons.menu_book;
                           label = item.bookTitle ?? 'Book';
                           detail = '${item.bookChapterCount ?? 0} chapters';
-                          isTracked = true;
                         case LearningPathItemType.game:
-                          icon = Icons.sports_esports;
                           label = 'Game';
                           detail = 'Not graded';
-                          isTracked = false;
                         case LearningPathItemType.treasure:
-                          icon = Icons.card_giftcard;
                           label = 'Treasure';
                           detail = 'Not graded';
-                          isTracked = false;
                       }
 
                       return Column(

@@ -218,7 +218,7 @@ class _AssignmentReportCard extends StatelessWidget {
                   ),
 
                   // Status badge
-                  _StatusBadge(assignment: assignment),
+                  AssignmentStatusBadge(assignment: assignment),
                 ],
               ),
 
@@ -318,40 +318,3 @@ class _AssignmentReportCard extends StatelessWidget {
 
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.assignment});
-
-  final Assignment assignment;
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    String text;
-
-    if (assignment.isOverdue) {
-      color = Colors.red;
-      text = 'Overdue';
-    } else if (assignment.isUpcoming) {
-      color = Colors.blue;
-      text = 'Upcoming';
-    } else {
-      color = Colors.green;
-      text = 'Active';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: context.textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}

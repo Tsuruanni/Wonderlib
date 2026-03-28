@@ -37,19 +37,6 @@ class AssignmentStudentModel {
     );
   }
 
-  factory AssignmentStudentModel.fromEntity(AssignmentStudent entity) {
-    return AssignmentStudentModel(
-      id: entity.id,
-      studentId: entity.studentId,
-      studentName: entity.studentName,
-      avatarUrl: entity.avatarUrl,
-      status: entity.status.dbValue,
-      progress: entity.progress,
-      score: entity.score,
-      startedAt: entity.startedAt,
-      completedAt: entity.completedAt,
-    );
-  }
   final String id;
   final String studentId;
   final String studentName;
@@ -59,20 +46,6 @@ class AssignmentStudentModel {
   final double? score;
   final DateTime? startedAt;
   final DateTime? completedAt;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'student_id': studentId,
-      'student_name': studentName,
-      'avatar_url': avatarUrl,
-      'status': status,
-      'progress': progress,
-      'score': score,
-      'started_at': startedAt?.toIso8601String(),
-      'completed_at': completedAt?.toIso8601String(),
-    };
-  }
 
   AssignmentStudent toEntity() {
     return AssignmentStudent(

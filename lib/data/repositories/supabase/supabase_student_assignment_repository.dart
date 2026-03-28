@@ -147,14 +147,13 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     String assignmentId,
   ) async {
     try {
-      await _supabase
-          .from(DbTables.assignmentStudents)
-          .update({
-            'status': AssignmentStatus.inProgress.dbValue,
-            'started_at': AppClock.now().toIso8601String(),
-          })
-          .eq('student_id', studentId)
-          .eq('assignment_id', assignmentId);
+      await _supabase.rpc(
+        RpcFunctions.startAssignment,
+        params: {
+          'p_student_id': studentId,
+          'p_assignment_id': assignmentId,
+        },
+      );
 
       return const Right(null);
     } on PostgrestException catch (e) {
@@ -195,16 +194,14 @@ class SupabaseStudentAssignmentRepository implements StudentAssignmentRepository
     double? score,
   ) async {
     try {
-      await _supabase
-          .from(DbTables.assignmentStudents)
-          .update({
-            'status': AssignmentStatus.completed.dbValue,
-            'progress': 100,
-            'score': score,
-            'completed_at': AppClock.now().toIso8601String(),
-          })
-          .eq('student_id', studentId)
-          .eq('assignment_id', assignmentId);
+      await _supabase.rpc(
+        RpcFunctions.completeAssignment,
+        params: {
+          'p_student_id': studentId,
+          'p_assignment_id': assignmentId,
+          'p_score': score,
+        },
+      );
 
       return const Right(null);
     } on PostgrestException catch (e) {

@@ -6,11 +6,9 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
-import '../../../domain/usecases/student_assignment/start_assignment_usecase.dart';
-import '../../providers/auth_provider.dart';
 import '../../../domain/entities/student_assignment.dart';
-import '../../providers/student_assignment_provider.dart' show studentAssignmentDetailProvider, studentAssignmentsProvider, unitAssignmentItemsProvider;
-import '../../providers/usecase_providers.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/student_assignment_provider.dart' show studentAssignmentControllerProvider, studentAssignmentDetailProvider, unitAssignmentItemsProvider;
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
 
@@ -409,27 +407,13 @@ class _AssignmentDetailContent extends ConsumerWidget {
   }
 
   void _startReading(BuildContext context, WidgetRef ref, StudentAssignment assignment) async {
-    debugPrint('📚 _startReading: bookId=${assignment.bookId}, contentConfig=${assignment.contentConfig}');
-    if (assignment.bookId == null) {
-      debugPrint('📚 _startReading: bookId is null, returning');
-      return;
-    }
+    if (assignment.bookId == null) return;
 
-    // Start the assignment if not started
     if (assignment.status == StudentAssignmentStatus.pending) {
-      final userId = ref.read(currentUserIdProvider);
-      if (userId != null) {
-        final useCase = ref.read(startAssignmentUseCaseProvider);
-        await useCase(StartAssignmentParams(
-          studentId: userId,
-          assignmentId: assignment.assignmentId,
-        ),);
-        ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-        ref.invalidate(studentAssignmentsProvider);
-      }
+      await ref.read(studentAssignmentControllerProvider.notifier)
+          .startAssignment(assignment.assignmentId);
     }
 
-    // Navigate to book detail - use go() not push() to avoid shell navigation conflicts
     if (context.mounted) {
       context.go(AppRoutes.bookDetailPath(assignment.bookId!));
     }
@@ -438,18 +422,9 @@ class _AssignmentDetailContent extends ConsumerWidget {
   void _startVocabulary(BuildContext context, WidgetRef ref, StudentAssignment assignment) async {
     if (assignment.wordListId == null) return;
 
-    // Start the assignment if not started
     if (assignment.status == StudentAssignmentStatus.pending) {
-      final userId = ref.read(currentUserIdProvider);
-      if (userId != null) {
-        final useCase = ref.read(startAssignmentUseCaseProvider);
-        await useCase(StartAssignmentParams(
-          studentId: userId,
-          assignmentId: assignment.assignmentId,
-        ),);
-        ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-        ref.invalidate(studentAssignmentsProvider);
-      }
+      await ref.read(studentAssignmentControllerProvider.notifier)
+          .startAssignment(assignment.assignmentId);
     }
 
     if (context.mounted) {
@@ -482,41 +457,33 @@ class _UnitItemsList extends ConsumerWidget {
       data: (items) {
         return Column(
           children: items.map((item) {
-            final IconData icon;
-            final String title;
-            final String subtitle;
-            final Color color;
+            final icon = LearningPathItemDisplay.getIcon(item.itemType);
+            final color = LearningPathItemDisplay.getColor(item.itemType);
             final bool isTracked = item.isTracked;
             final bool isCompleted = item.isCompleted;
             VoidCallback? onTap;
 
+            final String title;
+            final String subtitle;
             switch (item.itemType) {
               case LearningPathItemType.wordList:
-                icon = Icons.abc;
                 title = item.wordListName ?? 'Word List';
                 subtitle = '${item.wordCount ?? 0} words';
-                color = Colors.purple;
                 if (item.wordListId != null) {
                   onTap = () => _startUnitItem(context, ref, assignment, wordListId: item.wordListId);
                 }
               case LearningPathItemType.book:
-                icon = Icons.menu_book;
                 title = item.bookTitle ?? 'Book';
                 subtitle = '${item.completedChapters ?? 0}/${item.totalChapters ?? 0} chapters';
-                color = Colors.blue;
                 if (item.bookId != null) {
                   onTap = () => _startUnitItem(context, ref, assignment, bookId: item.bookId);
                 }
               case LearningPathItemType.game:
-                icon = Icons.sports_esports;
                 title = 'Game';
                 subtitle = 'Not graded';
-                color = Colors.grey;
               case LearningPathItemType.treasure:
-                icon = Icons.card_giftcard;
                 title = 'Treasure';
                 subtitle = 'Not graded';
-                color = Colors.grey;
             }
 
             return Card(
@@ -571,20 +538,9 @@ class _UnitItemsList extends ConsumerWidget {
     String? wordListId,
     String? bookId,
   }) async {
-    // Start assignment if pending
     if (assignment.status == StudentAssignmentStatus.pending) {
-      final userId = ref.read(currentUserIdProvider);
-      if (userId != null) {
-        final useCase = ref.read(startAssignmentUseCaseProvider);
-        await useCase(
-          StartAssignmentParams(
-            studentId: userId,
-            assignmentId: assignment.assignmentId,
-          ),
-        );
-        ref.invalidate(studentAssignmentDetailProvider(assignment.assignmentId));
-        ref.invalidate(studentAssignmentsProvider);
-      }
+      await ref.read(studentAssignmentControllerProvider.notifier)
+          .startAssignment(assignment.assignmentId);
     }
 
     if (!context.mounted) return;

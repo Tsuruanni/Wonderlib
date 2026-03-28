@@ -4,6 +4,7 @@ import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/badge/get_user_badges_usecase.dart';
 import '../../domain/usecases/card/get_user_cards_usecase.dart';
@@ -226,7 +227,7 @@ final teacherAssignmentsProvider = FutureProvider<List<Assignment>>((ref) async 
   final result = await useCase(GetAssignmentsParams(teacherId: userId));
 
   return result.fold(
-    (failure) => [],
+    (failure) => throw Exception(failure.message),
     (assignments) => assignments,
   );
 });
@@ -283,6 +284,38 @@ final studentUnitProgressProvider =
     );
   },
 );
+
+/// Controller for teacher assignment mutations (delete)
+class AssignmentDeleteController extends StateNotifier<AsyncValue<void>> {
+  AssignmentDeleteController(this._ref) : super(const AsyncValue.data(null));
+  final Ref _ref;
+
+  bool get isMutating => state is AsyncLoading;
+
+  Future<String?> deleteAssignment(String assignmentId) async {
+    if (isMutating) return null;
+    state = const AsyncValue.loading();
+    final useCase = _ref.read(deleteAssignmentUseCaseProvider);
+    final result = await useCase(DeleteAssignmentParams(assignmentId: assignmentId));
+    return result.fold(
+      (failure) {
+        state = const AsyncValue.data(null);
+        return failure.message;
+      },
+      (_) {
+        _ref.invalidate(teacherAssignmentsProvider);
+        _ref.invalidate(teacherStatsProvider);
+        state = const AsyncValue.data(null);
+        return null;
+      },
+    );
+  }
+}
+
+final assignmentDeleteControllerProvider =
+    StateNotifierProvider.autoDispose<AssignmentDeleteController, AsyncValue<void>>((ref) {
+  return AssignmentDeleteController(ref);
+});
 
 // =============================================
 // LEADERBOARD PROVIDERS

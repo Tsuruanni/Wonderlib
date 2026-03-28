@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../app/theme.dart';
 import '../../domain/entities/card.dart';
@@ -357,5 +358,77 @@ extension VocabularyUnitColor on VocabularyUnit {
     } catch (_) {
       return const Color(0xFF58CC02);
     }
+  }
+}
+
+/// Centralized icon/color helpers for LearningPathItemType
+abstract class LearningPathItemDisplay {
+  static IconData getIcon(LearningPathItemType type) {
+    switch (type) {
+      case LearningPathItemType.wordList:
+        return Icons.abc;
+      case LearningPathItemType.book:
+        return Icons.menu_book;
+      case LearningPathItemType.game:
+        return Icons.sports_esports;
+      case LearningPathItemType.treasure:
+        return Icons.card_giftcard;
+    }
+  }
+
+  static Color getColor(LearningPathItemType type) {
+    switch (type) {
+      case LearningPathItemType.wordList:
+        return Colors.purple;
+      case LearningPathItemType.book:
+        return Colors.blue;
+      case LearningPathItemType.game:
+      case LearningPathItemType.treasure:
+        return Colors.grey;
+    }
+  }
+
+  static bool isTracked(LearningPathItemType type) {
+    return type == LearningPathItemType.wordList || type == LearningPathItemType.book;
+  }
+}
+
+/// Shared status badge for teacher assignment views
+class AssignmentStatusBadge extends StatelessWidget {
+  const AssignmentStatusBadge({super.key, required this.assignment});
+
+  final Assignment assignment;
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String text;
+
+    if (assignment.isOverdue) {
+      color = Colors.red;
+      text = 'Overdue';
+    } else if (assignment.isUpcoming) {
+      color = Colors.orange;
+      text = 'Upcoming';
+    } else {
+      color = Colors.green;
+      text = 'Active';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
   }
 }

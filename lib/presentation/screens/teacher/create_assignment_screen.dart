@@ -114,6 +114,20 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
       return;
     }
 
+    // Validate content selection per type
+    if (_selectedType == AssignmentType.book && _selectedBookId == null) {
+      showAppSnackBar(context, 'Please select a book', type: SnackBarType.warning);
+      return;
+    }
+    if (_selectedType == AssignmentType.vocabulary && _selectedWordListId == null) {
+      showAppSnackBar(context, 'Please select a word list', type: SnackBarType.warning);
+      return;
+    }
+    if (_selectedType == AssignmentType.unit && _selectedScopeLpUnitId == null) {
+      showAppSnackBar(context, 'Please select a unit', type: SnackBarType.warning);
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -1029,25 +1043,21 @@ class _UnitItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final IconData icon;
+    final icon = LearningPathItemDisplay.getIcon(item.itemType);
     final String label;
     final String? subtitle;
 
     switch (item.itemType) {
       case LearningPathItemType.wordList:
-        icon = Icons.abc;
         label = item.wordListName ?? 'Word List';
         subtitle = item.words?.join(', ');
       case LearningPathItemType.book:
-        icon = Icons.menu_book;
         label = item.bookTitle ?? 'Book';
         subtitle = '${item.bookChapterCount ?? 0} chapters';
       case LearningPathItemType.game:
-        icon = Icons.sports_esports;
         label = 'Game';
         subtitle = 'Not graded';
       case LearningPathItemType.treasure:
-        icon = Icons.card_giftcard;
         label = 'Treasure';
         subtitle = 'Not graded';
     }
