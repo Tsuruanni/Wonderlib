@@ -225,9 +225,9 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       text:
           'A 2x3 grid of 6 separate illustrations for a children\'s '
           'English learning app. Each cell contains exactly one object/concept '
-          'illustration, clearly separated with visible borders. '
-          'All cells are equal size. White background for each cell. '
-          'No text or labels inside the cells.',
+          'illustration. No borders, no frames, no dividing lines. '
+          'Seamless white background. '
+          'IMPORTANT: Do NOT include any text, letters, words or labels. Only illustrations.',
     );
     var selectedStyle = 'flat';
     var includeExamples = false;
@@ -900,6 +900,21 @@ class _WordCardState extends State<_WordCard> {
     }
   }
 
+  void _showImageVersions() {
+    final wordId = widget.word['id'] as String;
+    showDialog(
+      context: context,
+      builder: (_) => _ImageVersionDialog(
+        wordId: wordId,
+        currentImageUrl: widget.word['image_url'] as String?,
+        onSelect: (url) async {
+          await widget.onSaveField('image_url', url);
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final imageUrl = widget.word['image_url'] as String?;
@@ -920,26 +935,29 @@ class _WordCardState extends State<_WordCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Image area
+            // Image area (tap to see versions)
             Stack(
               children: [
-                Container(
-                  height: 160,
-                  color: Colors.grey.shade100,
-                  width: double.infinity,
-                  child: hasImage
-                      ? Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Center(
-                            child: Icon(Icons.broken_image_outlined,
-                                color: Colors.grey.shade400, size: 40),
+                GestureDetector(
+                  onTap: _showImageVersions,
+                  child: Container(
+                    height: 160,
+                    color: Colors.grey.shade100,
+                    width: double.infinity,
+                    child: hasImage
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Center(
+                              child: Icon(Icons.broken_image_outlined,
+                                  color: Colors.grey.shade400, size: 40),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(Icons.image_outlined,
+                                color: Colors.grey.shade300, size: 48),
                           ),
-                        )
-                      : Center(
-                          child: Icon(Icons.image_outlined,
-                              color: Colors.grey.shade300, size: 48),
-                        ),
+                  ),
                 ),
                 // Index badge
                 Positioned(
@@ -1490,6 +1508,170 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('İptal'),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Image version picker dialog
+// ---------------------------------------------------------------------------
+
+class _ImageVersionDialog extends ConsumerStatefulWidget {
+  const _ImageVersionDialog({
+    required this.wordId,
+    required this.currentImageUrl,
+    required this.onSelect,
+  });
+
+  final String wordId;
+  final String? currentImageUrl;
+  final Future<void> Function(String url) onSelect;
+
+  @override
+  ConsumerState<_ImageVersionDialog> createState() =>
+      _ImageVersionDialogState();
+}
+
+class _ImageVersionDialogState extends ConsumerState<_ImageVersionDialog> {
+  List<String> _imageUrls = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersions();
+  }
+
+  Future<void> _loadVersions() async {
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final result = await supabase.storage
+          .from('word-images')
+          .list(path: 'words/${widget.wordId}');
+
+      final urls = <String>[];
+      for (final file in result) {
+        if (file.name.endsWith('.png') || file.name.endsWith('.jpg')) {
+          final publicUrl = supabase.storage
+              .from('word-images')
+              .getPublicUrl('words/${widget.wordId}/${file.name}');
+          urls.add(publicUrl);
+        }
+      }
+
+      // En yenisi önce
+      urls.sort((a, b) => b.compareTo(a));
+
+      setState(() {
+        _imageUrls = urls;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Görsel Versiyonları'),
+      content: SizedBox(
+        width: 500,
+        height: 400,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text('Hata: $_error'))
+                : _imageUrls.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Henüz görsel versiyonu yok',
+                          style: TextStyle(color: Colors.grey.shade500),
+                        ),
+                      )
+                    : GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: _imageUrls.length,
+                        itemBuilder: (context, index) {
+                          final url = _imageUrls[index];
+                          final isCurrent = widget.currentImageUrl == url;
+
+                          return GestureDetector(
+                            onTap: isCurrent
+                                ? null
+                                : () async {
+                                    await widget.onSelect(url);
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isCurrent
+                                      ? const Color(0xFF4F46E5)
+                                      : Colors.grey.shade300,
+                                  width: isCurrent ? 3 : 1,
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.network(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Icon(
+                                          Icons.broken_image_outlined,
+                                          color: Colors.grey.shade400),
+                                    ),
+                                  ),
+                                  if (isCurrent)
+                                    Positioned(
+                                      bottom: 4,
+                                      right: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF4F46E5),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: const Text(
+                                          'Aktif',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Kapat'),
         ),
       ],
     );

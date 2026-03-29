@@ -128,8 +128,8 @@ function buildGridPrompt(
       `Create a 2x3 grid image for a children's vocabulary learning app. ` +
       `Each cell should contain a single clear illustration of the word described. ` +
       `Style: ${styleDescription}. ` +
-      `The grid should have thin white dividing lines between cells. ` +
-      `No text or labels in the image.`;
+      `No borders, no frames, no dividing lines between cells. Seamless white background. ` +
+      `IMPORTANT: Do NOT include any text, letters, words, labels, or typography anywhere in the image. Only illustrations.`;
   }
 
   const cellDescriptions = batch.map((item, index) => {
