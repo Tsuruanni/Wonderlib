@@ -368,6 +368,13 @@ GoRouter _createRouter() {
                   return ActivityScreen(chapterId: chapterId);
                 },
               ),
+              GoRoute(
+                path: AppRoutes.bookQuiz,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  return BookQuizScreen(bookId: bookId);
+                },
+              ),
             ],
           ),
           // Branch 3: Card Collection
@@ -400,15 +407,7 @@ GoRouter _createRouter() {
         builder: (context, state) => const PackOpeningScreen(),
       ),
 
-      // Book quiz (standalone, full-screen quiz experience)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.bookQuiz,
-        builder: (context, state) {
-          final bookId = state.pathParameters['bookId']!;
-          return BookQuizScreen(bookId: bookId);
-        },
-      ),
+      // Book quiz moved to library branch (shell visible with reader sidebar)
 
       // Profile moved inside Home branch to keep shell visible on wide screens
 

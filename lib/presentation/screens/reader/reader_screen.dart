@@ -252,7 +252,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
       ref.invalidate(recommendedBooksProvider);
-      context.push(AppRoutes.bookQuizPath(widget.bookId));
+      context.go(AppRoutes.bookQuizPath(widget.bookId));
     }
   }
 
@@ -264,7 +264,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     ref.invalidate(continueReadingProvider);
     ref.invalidate(recommendedBooksProvider);
     if (mounted) {
-      context.go(AppRoutes.bookDetailPath(widget.bookId));
+      context.go(AppRoutes.library);
     }
   }
 
@@ -311,13 +311,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               // Popup overlays
               const ReaderPopups(),
 
-              // Floating audio player controls (top center, below collapsed header)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: MediaQuery.of(context).padding.top + 44,
-                child: ReaderAudioControls(settings: settings),
-              ),
+              // Floating audio player controls — only on narrow screens
+              // (wide screens use the reader sidebar's audio player)
+              if (MediaQuery.sizeOf(context).width < 1000)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: MediaQuery.of(context).padding.top + 44,
+                  child: ReaderAudioControls(settings: settings),
+                ),
             ],
           ),
         );

@@ -6,13 +6,10 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
-import '../../../domain/entities/chapter.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../domain/entities/system_settings.dart';
-import '../../providers/book_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_quest_provider.dart';
-import '../../providers/audio_sync_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
@@ -26,12 +23,9 @@ class RightInfoPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).uri.path;
-    final isReader = location.startsWith('/reader');
+    final isReader = location.startsWith('/reader') ||
+        location.startsWith('/quiz');
     final showPackCard = location.startsWith(AppRoutes.cards);
-
-    if (isReader) {
-      return _ReaderPanel(location: location);
-    }
 
     return SizedBox(
       width: 330,
@@ -49,6 +43,10 @@ class RightInfoPanel extends ConsumerWidget {
                 children: [
                   if (showPackCard) ...[
                     const _OpenPackCard(),
+                    const SizedBox(height: 16),
+                  ],
+                  if (isReader) ...[
+                    const _ReaderSettingsCard(),
                     const SizedBox(height: 16),
                   ],
                   const _LeagueCard(),
@@ -528,51 +526,6 @@ class _OpenPackCard extends ConsumerWidget {
   }
 }
 
-// ─── Reader Panel (chapters + settings + default widgets) ───
-
-class _ReaderPanel extends ConsumerWidget {
-  const _ReaderPanel({required this.location});
-
-  final String location;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final segments = location.split('/');
-    final bookId = segments.length > 2 ? segments[2] : '';
-    final currentChapterId = segments.length > 3 ? segments[3] : '';
-
-    return SizedBox(
-      width: 330,
-      child: Column(
-        children: [
-          // Audio controls at very top
-          const Padding(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
-            child: _AudioControlBar(),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Column(
-                children: [
-                  _ChaptersCard(bookId: bookId, currentChapterId: currentChapterId),
-                  const SizedBox(height: 16),
-                  const _ReaderSettingsCard(),
-                  const SizedBox(height: 16),
-                  const _LeagueCard(),
-                  const SizedBox(height: 16),
-                  const _DailyQuestsCard(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 // ─── Reader Settings Card ───
 
 class _ReaderSettingsCard extends ConsumerWidget {
@@ -796,276 +749,3 @@ class _SettingsButton extends StatelessWidget {
   }
 }
 
-// ─── Chapters Card ───
-
-class _ChaptersCard extends ConsumerWidget {
-  const _ChaptersCard({required this.bookId, required this.currentChapterId});
-
-  final String bookId;
-  final String currentChapterId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chaptersAsync = ref.watch(chaptersProvider(bookId));
-    final bookAsync = ref.watch(bookByIdProvider(bookId));
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Book title + Chapters header
-          bookAsync.when(
-            data: (book) => Text(
-              book?.title ?? 'Chapters',
-              style: GoogleFonts.nunito(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => Text(
-              'Chapters',
-              style: GoogleFonts.nunito(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          chaptersAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            ),
-            error: (_, __) => Text(
-              'Could not load chapters',
-              style: GoogleFonts.nunito(color: AppColors.neutralText),
-            ),
-            data: (chapters) {
-              final completedIds = ref.watch(
-                readingProgressProvider(bookId)
-                    .select((v) => v.valueOrNull?.completedChapterIds ?? []),
-              );
-
-              final currentIdx = chapters.indexWhere((c) => c.id == currentChapterId);
-
-              return Column(
-                children: [
-                  for (int i = 0; i < chapters.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 4),
-                    _ChapterTile(
-                      chapter: chapters[i],
-                      index: i,
-                      isCurrent: chapters[i].id == currentChapterId,
-                      isCompleted: completedIds.contains(chapters[i].id),
-                      isLocked: !completedIds.contains(chapters[i].id) && i > currentIdx,
-                      onTap: () => context.go(
-                        AppRoutes.readerPath(bookId, chapters[i].id),
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChapterTile extends StatelessWidget {
-  const _ChapterTile({
-    required this.chapter,
-    required this.index,
-    required this.isCurrent,
-    required this.isCompleted,
-    required this.onTap,
-    this.isLocked = false,
-  });
-
-  final Chapter chapter;
-  final int index;
-  final bool isCurrent;
-  final bool isCompleted;
-  final bool isLocked;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isLocked ? null : onTap,
-      child: Opacity(
-        opacity: isLocked ? 0.4 : 1.0,
-        child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: isCurrent
-              ? AppColors.secondary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          border: isCurrent
-              ? Border.all(color: AppColors.secondary.withValues(alpha: 0.3), width: 2)
-              : null,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: isCurrent
-                    ? AppColors.secondary
-                    : isCompleted
-                        ? AppColors.primary
-                        : AppColors.neutral.withValues(alpha: 0.5),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: isCompleted && !isCurrent
-                    ? const Icon(Icons.check_rounded, color: Colors.white, size: 14)
-                    : Text(
-                        '${index + 1}',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: isCurrent || isCompleted
-                              ? Colors.white
-                              : AppColors.neutralText,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                chapter.title,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                  color: isCurrent ? AppColors.secondary : AppColors.black,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-}
-
-// ─── Audio Control Bar ───
-
-class _AudioControlBar extends ConsumerWidget {
-  const _AudioControlBar();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final AudioSyncState audioState;
-    try {
-      audioState = ref.watch(audioSyncControllerProvider);
-    } catch (_) {
-      // AudioService not initialized
-      return const SizedBox.shrink();
-    }
-
-    final isPlaying = audioState.isPlaying;
-    final progress = audioState.progress;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.neutral, width: 2),
-      ),
-      child: Row(
-        children: [
-          // Play/Pause button
-          GestureDetector(
-            onTap: () {
-              final controller = ref.read(audioSyncControllerProvider.notifier);
-              if (isPlaying) {
-                controller.pause();
-              } else {
-                controller.play();
-              }
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.secondary,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          // Progress + time
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: AppColors.neutral,
-                    color: AppColors.secondary,
-                    minHeight: 6,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      audioState.positionFormatted,
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutralText,
-                      ),
-                    ),
-                    Text(
-                      audioState.durationFormatted,
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutralText,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

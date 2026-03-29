@@ -8,6 +8,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Reader Sidebar + Font Fix + Quiz Integration (2026-03-29)
+
+#### Added
+- **Reader sidebar** — 300px dedicated left column on reader/quiz routes at ≥1000px. Contains chapters list, "Listen to the story" GameButton (auto-plays first audio block), and audio player controls. Replaces previous right panel reader widgets.
+- **Font applied to reader text** — `ReaderFontX` extension converts `ReaderFont` enum to `GoogleFonts.getFont()` TextStyle. Applied to `reader_word_highlight`, `reader_paragraph`, `reader_text_block`.
+- **Quiz in shell** — Book quiz route moved from root navigator into library branch. Reader sidebar stays visible during quiz with "Book Quiz" as natural chapter list item.
+- **Duolingo-style word-on-tap popup** — White card with rounded border, bold Nunito font, blue speaker circle, part-of-speech badge, "I DIDN'T KNOW THIS" yellow 3D GameButton.
+- **Duolingo-style Leave Quiz dialog** — Warning icon, "Keep going" green 3D button, "Leave" red 3D button. Consistent across shell nav, quiz X button, and PopScope back.
+- **Quiz navigation guard** — Chapter tiles locked during active quiz. Sidebar nav items show Leave Quiz confirmation before navigating away.
+
+#### Changed
+- **Reader breakpoints** — Reader route: right panel at ≥1400px (was ≥1000px). Reader sidebar at ≥1000px. Non-reader routes unchanged.
+- **Right info panel** — Removed `_ReaderPanel`, `_AudioControlBar`, `_ChaptersCard`, `_ChapterTile` (-329 lines). Reader route now shows Settings + League + Quests only.
+- **Floating audio controls** — Hidden at ≥1000px (reader sidebar has audio player). Visible on mobile only.
+- **Reader X button** — Navigates to library (was book detail). Positioned in title row (right side).
+- **Reader gear icon** — Hidden at ≥1000px (right panel has settings card).
+- **Word-on-tap positioning** — Uses `globalToLocal()` coordinate conversion to fix popup offset when reader sidebar is present.
+
+#### Infrastructure
+- **Reader sidebar spec** — `docs/superpowers/specs/2026-03-29-reader-sidebar-design.md`
+- **Reader sidebar plan** — `docs/superpowers/plans/2026-03-29-reader-sidebar.md`
+
 ### Responsive Web Layout — Duolingo-Style (2026-03-29)
 
 #### Added

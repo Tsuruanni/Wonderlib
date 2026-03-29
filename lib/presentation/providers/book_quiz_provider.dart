@@ -9,8 +9,13 @@ import '../../domain/usecases/book_quiz/get_quiz_for_book_usecase.dart';
 import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/book_quiz/get_student_quiz_results_usecase.dart';
 import '../../domain/usecases/book_quiz/submit_quiz_result_usecase.dart';
+import '../../domain/entities/student_assignment.dart';
+import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
+import '../../domain/usecases/student_assignment/complete_assignment_usecase.dart';
+import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
 import 'auth_provider.dart';
 import 'book_provider.dart';
+import 'student_assignment_provider.dart';
 import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
@@ -167,6 +172,10 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
           source: 'book_complete',
           sourceId: bookId,
         );
+
+        // Book is now truly complete — update any matching assignments.
+        // Without this, assignments wouldn't update until next assignmentSyncProvider run.
+        await _syncAssignmentsAfterBookCompletion(userId, bookId);
       }
 
       // Re-invalidate providers AFTER completion write to ensure UI reflects
@@ -181,6 +190,51 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
     return savedResult;
   }
 
+  /// After quiz pass completes a book, update matching book/unit assignments.
+  Future<void> _syncAssignmentsAfterBookCompletion(String userId, String bookId) async {
+    try {
+      final getActiveAssignmentsUseCase = _ref.read(getActiveAssignmentsUseCaseProvider);
+      final assignmentsResult = await getActiveAssignmentsUseCase(
+        GetActiveAssignmentsParams(studentId: userId),
+      );
+
+      final assignments = assignmentsResult.fold(
+        (_) => <StudentAssignment>[],
+        (a) => a,
+      );
+
+      for (final assignment in assignments) {
+        if (assignment.status == StudentAssignmentStatus.completed) continue;
+
+        // Complete matching book assignment
+        if (assignment.bookId == bookId) {
+          await _ref.read(completeAssignmentUseCaseProvider)(
+            CompleteAssignmentParams(
+              studentId: userId,
+              assignmentId: assignment.assignmentId,
+              score: null,
+            ),
+          );
+        }
+
+        // Recalculate unit assignments (RPC checks if book is in unit)
+        if (assignment.scopeLpUnitId != null) {
+          await _ref.read(calculateUnitProgressUseCaseProvider)(
+            CalculateUnitProgressParams(
+              assignmentId: assignment.assignmentId,
+              studentId: userId,
+            ),
+          );
+        }
+      }
+
+      _ref.invalidate(studentAssignmentsProvider);
+      _ref.invalidate(activeAssignmentsProvider);
+    } catch (e) {
+      debugPrint('BookQuizController: assignment sync failed: $e');
+    }
+  }
+
   void reset() {
     state = const AsyncValue.data(null);
   }
@@ -190,3 +244,7 @@ final bookQuizControllerProvider = StateNotifierProvider.autoDispose<
     BookQuizController, AsyncValue<BookQuizResult?>>((ref) {
   return BookQuizController(ref);
 });
+
+/// Whether a quiz is currently in progress (answers given, results not shown).
+/// Used by shell to block navigation away from quiz.
+final quizActiveProvider = StateProvider<bool>((ref) => false);

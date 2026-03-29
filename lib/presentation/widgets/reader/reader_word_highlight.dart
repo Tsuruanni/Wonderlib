@@ -173,7 +173,7 @@ class _ReaderWordHighlightState extends State<ReaderWordHighlight> {
     return spans;
   }
 
-  TextStyle get _baseTextStyle => TextStyle(
+  TextStyle get _baseTextStyle => widget.settings.font.textStyle(
         fontSize: widget.settings.fontSize,
         height: widget.settings.lineHeight,
         color: widget.settings.theme.text,
@@ -258,7 +258,7 @@ class _ReaderWordHighlightState extends State<ReaderWordHighlight> {
           : null,
       child: Text(
         word,
-        style: TextStyle(
+        style: widget.settings.font.textStyle(
           fontSize: widget.settings.fontSize,
           height: widget.settings.lineHeight,
           color: widget.settings.theme.text,
@@ -323,7 +323,7 @@ class _ReaderWordHighlightState extends State<ReaderWordHighlight> {
           ),
           child: Text(
             word,
-            style: TextStyle(
+            style: widget.settings.font.textStyle(
               fontSize: widget.settings.fontSize,
               height: widget.settings.lineHeight,
               color: widget.settings.theme.text,

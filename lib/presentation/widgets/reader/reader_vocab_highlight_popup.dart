@@ -22,24 +22,29 @@ class ReaderVocabHighlightPopup extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final screenSize = MediaQuery.of(context).size;
+    // Convert global tap position to local coordinates within this Stack
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final localPos = renderBox != null
+        ? renderBox.globalToLocal(position)
+        : position;
+    final stackSize = renderBox?.size ?? MediaQuery.of(context).size;
 
     // Calculate popup position to keep it on screen
     const popupWidth = 280.0;
     const popupHeight = 180.0;
 
-    double left = position.dx - popupWidth / 2;
-    double top = position.dy - popupHeight - 20;
+    double left = localPos.dx - popupWidth / 2;
+    double top = localPos.dy - popupHeight - 20;
 
     // Adjust if off screen horizontally
     if (left < 16) left = 16;
-    if (left + popupWidth > screenSize.width - 16) {
-      left = screenSize.width - popupWidth - 16;
+    if (left + popupWidth > stackSize.width - 16) {
+      left = stackSize.width - popupWidth - 16;
     }
 
     // Show below if not enough space above
     if (top < 100) {
-      top = position.dy + 20;
+      top = localPos.dy + 20;
     }
 
     return Stack(

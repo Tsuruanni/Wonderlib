@@ -4,8 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../providers/book_quiz_provider.dart';
 import '../../screens/cards/card_collection_screen.dart';
 import '../../screens/library/library_screen.dart';
+import '../common/game_button.dart';
+import '../reader/reader_sidebar.dart';
 import 'right_info_panel.dart';
 
 /// Main shell scaffold that provides persistent navigation.
@@ -56,7 +59,6 @@ class MainShellScaffold extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isWide = screenWidth >= 600;
-    final showRightPanel = screenWidth >= 1000;
 
     if (isWide) {
       return Scaffold(
@@ -108,24 +110,39 @@ class MainShellScaffold extends ConsumerWidget {
                         color: AppColors.neutralDark,
                       ),
                       isSelected: false,
-                      onTap: () => context.go(AppRoutes.profile),
+                      onTap: () {
+                        final isQuizActive = ref.read(quizActiveProvider);
+                        if (isQuizActive) {
+                          _showQuizExitConfirmation(context, ref, () => context.go(AppRoutes.profile));
+                          return;
+                        }
+                        context.go(AppRoutes.profile);
+                      },
                     ),
                     const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
-            // Content + right panel
+            // Content + optional reader sidebar + optional right panel
             Expanded(
               child: Builder(
                 builder: (context) {
                   final location = GoRouterState.of(context).uri.path;
                   final isFullWidth = location.startsWith(AppRoutes.vocabulary);
+                  final isReader = location.startsWith('/reader') ||
+                      location.startsWith('/quiz');
+                  final showReaderSidebar = isReader && screenWidth >= 1000;
+                  // Reader: right panel only at ≥1400px. Others: at ≥1000px.
+                  final showRightPanel = isReader
+                      ? screenWidth >= 1400
+                      : screenWidth >= 1000;
 
-                  if (isFullWidth) {
-                    // Full-width screens (e.g. Learning Path with terrain bg)
+                  if (isFullWidth || showReaderSidebar) {
+                    // Full-width: Learning Path (terrain bg) or Reader (sidebar)
                     return Row(
                       children: [
+                        if (showReaderSidebar) const ReaderSidebar(),
                         Expanded(child: navigationShell),
                         if (showRightPanel) const RightInfoPanel(),
                       ],
@@ -185,6 +202,17 @@ class MainShellScaffold extends ConsumerWidget {
   }
 
   void _onTap(BuildContext context, WidgetRef ref, int index) {
+    // Block navigation if quiz is active
+    final isQuizActive = ref.read(quizActiveProvider);
+    if (isQuizActive) {
+      _showQuizExitConfirmation(context, ref, () => _navigateToTab(context, ref, index));
+      return;
+    }
+
+    _navigateToTab(context, ref, index);
+  }
+
+  void _navigateToTab(BuildContext context, WidgetRef ref, int index) {
     // Reset expanded states when navigating away
     if (index != navigationShell.currentIndex) {
       ref.read(expandedLevelsProvider.notifier).state = {};
@@ -193,6 +221,71 @@ class MainShellScaffold extends ConsumerWidget {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
+    );
+  }
+
+  void _showQuizExitConfirmation(BuildContext context, WidgetRef ref, VoidCallback onLeave) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.warning_rounded, color: AppColors.danger, size: 32),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Leave Quiz?',
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your progress will be lost.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  color: AppColors.neutralText,
+                ),
+              ),
+              const SizedBox(height: 24),
+              GameButton(
+                label: 'Keep going',
+                onPressed: () => Navigator.of(ctx).pop(),
+                variant: GameButtonVariant.primary,
+                fullWidth: true,
+              ),
+              const SizedBox(height: 8),
+              GameButton(
+                label: 'Leave',
+                onPressed: () {
+                  ref.read(quizActiveProvider.notifier).state = false;
+                  Navigator.of(ctx).pop();
+                  onLeave();
+                },
+                variant: GameButtonVariant.danger,
+                fullWidth: true,
+              ),
+            ],
+          ),
+          ),
+        ),
+      ),
     );
   }
 }

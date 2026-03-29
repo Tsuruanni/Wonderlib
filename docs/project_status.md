@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-29 (Responsive web layout — Duolingo-style sidebar, right panel, library/cards/word bank redesign)
+Son güncelleme: 2026-03-29 (Reader sidebar + font fix + quiz shell integration + Duolingo-style popups)
 
 ## Current Phase
 
@@ -146,6 +146,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Auto Book Stats Trigger (word_count + estimated_minutes + chapter_count auto-recalculated from chapters on INSERT/UPDATE/DELETE)
 - [x] Active Node Indicator (Duolingo-style START bubble + auto-scroll to active node on screen open)
 - [x] Responsive Web Layout (Duolingo-style sidebar + right info panel + library/cards/word bank grid redesign)
+- [x] Reader Sidebar + Font Fix (300px reader sidebar with chapters/audio, GoogleFonts applied to reader text, quiz in shell)
 - [ ] Learning Path Redesign (tile-based map system — spec + plan done, implementation pending)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını

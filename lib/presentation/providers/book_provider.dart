@@ -312,15 +312,35 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
           // Update assignment progress using UseCases
           if (progress >= 100) {
-            debugPrint('📋 Completing assignment: ${assignment.assignmentId}');
-            // All chapters complete - mark assignment as complete
-            final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
-            final result = await completeAssignmentUseCase(CompleteAssignmentParams(
-              studentId: userId,
-              assignmentId: assignment.assignmentId,
-              score: null, // No score for reading completion
-            ),);
-            debugPrint('📋 Complete assignment result: ${result.isRight() ? "success" : "failed"}');
+            // All chapters read — but book may require quiz to be "completed".
+            // Check reading_progress.isCompleted which respects quiz gates.
+            final rpUseCase = _ref.read(getReadingProgressUseCaseProvider);
+            final rpResult = await rpUseCase(
+              GetReadingProgressParams(userId: userId, bookId: bookId),
+            );
+            final isBookCompleted = rpResult.fold(
+              (_) => false,
+              (rp) => rp.isCompleted,
+            );
+
+            if (isBookCompleted) {
+              debugPrint('📋 Completing assignment: ${assignment.assignmentId}');
+              final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
+              final result = await completeAssignmentUseCase(CompleteAssignmentParams(
+                studentId: userId,
+                assignmentId: assignment.assignmentId,
+                score: null,
+              ),);
+              debugPrint('📋 Complete assignment result: ${result.isRight() ? "success" : "failed"}');
+            } else {
+              debugPrint('📋 All chapters read but book not completed (quiz pending), updating progress only');
+              final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
+              await updateAssignmentProgressUseCase(UpdateAssignmentProgressParams(
+                studentId: userId,
+                assignmentId: assignment.assignmentId,
+                progress: progress,
+              ),);
+            }
           } else {
             debugPrint('📋 Updating progress: ${assignment.assignmentId} to $progress%');
             // Update progress

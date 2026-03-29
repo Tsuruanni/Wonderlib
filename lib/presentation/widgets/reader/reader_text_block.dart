@@ -37,7 +37,7 @@ class ReaderTextBlock extends ConsumerWidget {
     if (!audioReady) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: Text(text, style: TextStyle(fontSize: settings.fontSize)),
+        child: Text(text, style: settings.font.textStyle(fontSize: settings.fontSize)),
       );
     }
 

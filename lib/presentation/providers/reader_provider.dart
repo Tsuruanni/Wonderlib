@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/chapter.dart';
@@ -55,6 +56,30 @@ enum ReaderFont {
 
   const ReaderFont(this.displayName);
   final String displayName;
+}
+
+/// Extension to convert ReaderFont enum to GoogleFonts TextStyle.
+extension ReaderFontX on ReaderFont {
+  TextStyle textStyle({
+    double? fontSize,
+    double? height,
+    Color? color,
+    FontWeight? fontWeight,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+  }) {
+    return GoogleFonts.getFont(
+      displayName,
+      fontSize: fontSize,
+      height: height,
+      color: color,
+      fontWeight: fontWeight,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+    );
+  }
 }
 
 class ReaderSettings {

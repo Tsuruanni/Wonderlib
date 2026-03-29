@@ -46,7 +46,7 @@ class ReaderParagraph extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: SelectableText.rich(
         TextSpan(children: spans),
-        style: TextStyle(
+        style: settings.font.textStyle(
           fontSize: settings.fontSize,
           height: settings.lineHeight,
           color: settings.theme.text,
@@ -100,7 +100,7 @@ class ReaderParagraph extends StatelessWidget {
         },
         child: Text(
           word,
-          style: TextStyle(
+          style: settings.font.textStyle(
             fontSize: settings.fontSize,
             height: settings.lineHeight,
             color: settings.theme.text,
@@ -184,7 +184,7 @@ class ReaderParagraph extends StatelessWidget {
           ),
           child: Text(
             displayText,
-            style: TextStyle(
+            style: settings.font.textStyle(
               fontSize: settings.fontSize,
               height: settings.lineHeight,
               color: settings.theme.text,
