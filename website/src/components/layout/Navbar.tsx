@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { OwlLogo } from "@/components/ui/OwlLogo";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,7 +11,8 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-snow/95 backdrop-blur-sm border-b border-swan">
       <Container className="flex items-center justify-between h-16">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-1.5">
+          <OwlLogo size={34} />
           <span className="text-2xl font-black text-feather tracking-tight">
             owlio
           </span>

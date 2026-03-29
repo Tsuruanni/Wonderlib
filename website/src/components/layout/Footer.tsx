@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { OwlLogo } from "@/components/ui/OwlLogo";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
 const footerSections = [
@@ -37,9 +38,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           {/* Logo column */}
           <div>
-            <span className="text-2xl font-black text-feather tracking-tight">
-              owlio
-            </span>
+            <div className="flex items-center gap-1.5 mb-3">
+              <OwlLogo size={30} />
+              <span className="text-2xl font-black text-feather tracking-tight">
+                owlio
+              </span>
+            </div>
+            <p className="text-sm text-hare leading-relaxed max-w-[200px]">
+              The fun way to read in English. Curriculum-aligned, science-backed.
+            </p>
           </div>
 
           {/* Link columns */}

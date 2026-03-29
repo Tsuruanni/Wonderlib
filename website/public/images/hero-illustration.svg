@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 450" fill="none">
+  <!-- Background soft circle -->
+  <circle cx="250" cy="225" r="190" fill="#58CC02" opacity="0.08"/>
+  <circle cx="250" cy="225" r="140" fill="#58CC02" opacity="0.06"/>
+
+  <!-- Floating book - top left -->
+  <g transform="translate(60, 60) rotate(-15)">
+    <rect x="0" y="0" width="50" height="38" rx="4" fill="#1CB0F6" stroke="#0D8ECF" stroke-width="2"/>
+    <rect x="2" y="0" width="24" height="38" rx="3" fill="#3DC2FF"/>
+    <line x1="25" y1="6" x2="25" y2="32" stroke="#0D8ECF" stroke-width="2"/>
+    <line x1="30" y1="10" x2="44" y2="10" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="30" y1="16" x2="42" y2="16" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="30" y1="22" x2="40" y2="22" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- Floating book - top right -->
+  <g transform="translate(380, 45) rotate(12)">
+    <rect x="0" y="0" width="55" height="42" rx="4" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <rect x="2" y="0" width="26" height="42" rx="3" fill="#FFB040"/>
+    <line x1="27" y1="6" x2="27" y2="36" stroke="#D47E00" stroke-width="2"/>
+    <line x1="32" y1="12" x2="48" y2="12" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+    <line x1="32" y1="18" x2="46" y2="18" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+  </g>
+
+  <!-- Floating book - bottom left -->
+  <g transform="translate(45, 320) rotate(8)">
+    <rect x="0" y="0" width="48" height="36" rx="4" fill="#CE82FF" stroke="#A85CD4" stroke-width="2"/>
+    <rect x="2" y="0" width="22" height="36" rx="3" fill="#DCA0FF"/>
+    <line x1="23" y1="5" x2="23" y2="31" stroke="#A85CD4" stroke-width="2"/>
+  </g>
+
+  <!-- Floating pencil - right side -->
+  <g transform="translate(410, 200) rotate(25)">
+    <rect x="0" y="0" width="12" height="60" rx="2" fill="#FFC800" stroke="#D4A600" stroke-width="2"/>
+    <polygon points="0,60 12,60 6,74" fill="#FFE066" stroke="#D4A600" stroke-width="2"/>
+    <rect x="0" y="0" width="12" height="10" rx="2" fill="#FF9600"/>
+    <circle cx="6" cy="70" r="1.5" fill="#4B4B4B"/>
+  </g>
+
+  <!-- Sparkle stars - various positions -->
+  <!-- Star top-center -->
+  <g transform="translate(250, 35)">
+    <path d="M0,-14 L3,-4 L14,-4 L5,3 L8,14 L0,7 L-8,14 L-5,3 L-14,-4 L-3,-4 Z" fill="#FFC800" stroke="#D4A600" stroke-width="1.5"/>
+  </g>
+  <!-- Star left -->
+  <g transform="translate(105, 170) scale(0.7)">
+    <path d="M0,-14 L3,-4 L14,-4 L5,3 L8,14 L0,7 L-8,14 L-5,3 L-14,-4 L-3,-4 Z" fill="#FFC800" stroke="#D4A600" stroke-width="1.5"/>
+  </g>
+  <!-- Star right -->
+  <g transform="translate(420, 140) scale(0.6)">
+    <path d="M0,-14 L3,-4 L14,-4 L5,3 L8,14 L0,7 L-8,14 L-5,3 L-14,-4 L-3,-4 Z" fill="#FFC800" stroke="#D4A600" stroke-width="1.5"/>
+  </g>
+  <!-- Star bottom right -->
+  <g transform="translate(440, 340) scale(0.5)">
+    <path d="M0,-14 L3,-4 L14,-4 L5,3 L8,14 L0,7 L-8,14 L-5,3 L-14,-4 L-3,-4 Z" fill="#FF9600"/>
+  </g>
+
+  <!-- Small sparkle dots -->
+  <circle cx="140" cy="90" r="4" fill="#CE82FF" opacity="0.7"/>
+  <circle cx="370" cy="100" r="3" fill="#1CB0F6" opacity="0.6"/>
+  <circle cx="80" cy="250" r="5" fill="#FFC800" opacity="0.5"/>
+  <circle cx="430" cy="280" r="4" fill="#58CC02" opacity="0.6"/>
+  <circle cx="160" cy="380" r="3" fill="#FF9600" opacity="0.5"/>
+  <circle cx="350" cy="390" r="4" fill="#CE82FF" opacity="0.6"/>
+  <circle cx="460" cy="180" r="3" fill="#FFC800" opacity="0.7"/>
+  <circle cx="55" cy="180" r="3" fill="#1CB0F6" opacity="0.5"/>
+
+  <!-- Small plus/cross sparkles -->
+  <g transform="translate(330, 70)" stroke="#CE82FF" stroke-width="2.5" stroke-linecap="round">
+    <line x1="-6" y1="0" x2="6" y2="0"/>
+    <line x1="0" y1="-6" x2="0" y2="6"/>
+  </g>
+  <g transform="translate(130, 350)" stroke="#1CB0F6" stroke-width="2.5" stroke-linecap="round">
+    <line x1="-5" y1="0" x2="5" y2="0"/>
+    <line x1="0" y1="-5" x2="0" y2="5"/>
+  </g>
+  <g transform="translate(450, 110)" stroke="#58CC02" stroke-width="2" stroke-linecap="round">
+    <line x1="-4" y1="0" x2="4" y2="0"/>
+    <line x1="0" y1="-4" x2="0" y2="4"/>
+  </g>
+
+  <!-- Diamond sparkles -->
+  <rect x="88" y="130" width="8" height="8" rx="1" fill="#FFC800" transform="rotate(45, 92, 134)" opacity="0.7"/>
+  <rect x="388" y="370" width="6" height="6" rx="1" fill="#1CB0F6" transform="rotate(45, 391, 373)" opacity="0.6"/>
+
+  <!-- === OWL BODY === -->
+  <!-- Body shadow -->
+  <ellipse cx="254" cy="360" rx="78" ry="18" fill="#3BA302" opacity="0.3"/>
+
+  <!-- Owl feet -->
+  <g transform="translate(220, 345)">
+    <ellipse cx="0" cy="8" rx="16" ry="8" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="-10" cy="4" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="0" cy="2" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="10" cy="4" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+  </g>
+  <g transform="translate(280, 345)">
+    <ellipse cx="0" cy="8" rx="16" ry="8" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="-10" cy="4" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="0" cy="2" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+    <circle cx="10" cy="4" r="5" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+  </g>
+
+  <!-- Owl body -->
+  <ellipse cx="250" cy="270" rx="80" ry="95" fill="#58CC02" stroke="#3BA302" stroke-width="3"/>
+
+  <!-- Belly patch -->
+  <ellipse cx="250" cy="290" rx="52" ry="62" fill="#89E219" stroke="#58CC02" stroke-width="2"/>
+
+  <!-- Belly pattern lines -->
+  <path d="M220,270 Q250,278 280,270" stroke="#58CC02" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M215,285 Q250,294 285,285" stroke="#58CC02" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M218,300 Q250,310 282,300" stroke="#58CC02" stroke-width="1.5" fill="none" opacity="0.4"/>
+
+  <!-- Wings -->
+  <!-- Left wing -->
+  <path d="M170,240 Q155,275 172,320 Q185,295 190,260 Z" fill="#3BA302" stroke="#2D8200" stroke-width="2.5"/>
+  <path d="M175,255 Q165,280 175,305" stroke="#58CC02" stroke-width="1.5" fill="none" opacity="0.5"/>
+
+  <!-- Right wing (holding book) - raised -->
+  <path d="M330,220 Q348,250 330,290 Q318,260 312,230 Z" fill="#3BA302" stroke="#2D8200" stroke-width="2.5"/>
+  <path d="M325,240 Q335,260 328,280" stroke="#58CC02" stroke-width="1.5" fill="none" opacity="0.5"/>
+
+  <!-- Book in wing/hand -->
+  <g transform="translate(310, 260) rotate(-10)">
+    <rect x="0" y="0" width="58" height="44" rx="5" fill="#1CB0F6" stroke="#0D8ECF" stroke-width="2.5"/>
+    <rect x="2" y="0" width="27" height="44" rx="4" fill="#3DC2FF"/>
+    <line x1="28" y1="7" x2="28" y2="37" stroke="#0D8ECF" stroke-width="2.5"/>
+    <!-- Page lines -->
+    <line x1="33" y1="12" x2="50" y2="12" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="33" y1="18" x2="48" y2="18" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="33" y1="24" x2="50" y2="24" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <line x1="33" y1="30" x2="45" y2="30" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+    <!-- Book highlight -->
+    <rect x="5" y="4" width="6" height="18" rx="2" fill="white" opacity="0.2"/>
+  </g>
+
+  <!-- === OWL HEAD === -->
+  <!-- Head -->
+  <ellipse cx="250" cy="185" rx="68" ry="60" fill="#58CC02" stroke="#3BA302" stroke-width="3"/>
+
+  <!-- Ear tufts -->
+  <path d="M195,145 Q185,110 200,125 Q195,115 210,135" fill="#58CC02" stroke="#3BA302" stroke-width="2.5"/>
+  <path d="M305,145 Q315,110 300,125 Q305,115 290,135" fill="#58CC02" stroke="#3BA302" stroke-width="2.5"/>
+
+  <!-- Face disc -->
+  <ellipse cx="250" cy="192" rx="55" ry="46" fill="#89E219"/>
+
+  <!-- Eye whites -->
+  <circle cx="228" cy="182" r="22" fill="white" stroke="#3BA302" stroke-width="2.5"/>
+  <circle cx="272" cy="182" r="22" fill="white" stroke="#3BA302" stroke-width="2.5"/>
+
+  <!-- Eye pupils -->
+  <circle cx="232" cy="180" r="13" fill="#4B4B4B"/>
+  <circle cx="268" cy="180" r="13" fill="#4B4B4B"/>
+
+  <!-- Eye highlights -->
+  <circle cx="237" cy="175" r="5" fill="white"/>
+  <circle cx="273" cy="175" r="5" fill="white"/>
+  <circle cx="229" cy="183" r="2.5" fill="white"/>
+  <circle cx="265" cy="183" r="2.5" fill="white"/>
+
+  <!-- Eyelid (happy expression - slightly lowered) -->
+  <path d="M208,172 Q228,168 248,172" stroke="#3BA302" stroke-width="2" fill="#58CC02" opacity="0.3"/>
+  <path d="M252,172 Q272,168 292,172" stroke="#3BA302" stroke-width="2" fill="#58CC02" opacity="0.3"/>
+
+  <!-- Beak -->
+  <path d="M243,198 L250,212 L257,198 Z" fill="#FF9600" stroke="#D47E00" stroke-width="2"/>
+  <!-- Beak highlight -->
+  <path d="M246,200 L250,208 L250,200 Z" fill="#FFB040" opacity="0.5"/>
+
+  <!-- Cheek blush -->
+  <ellipse cx="210" cy="200" rx="12" ry="7" fill="#FF9600" opacity="0.2"/>
+  <ellipse cx="290" cy="200" rx="12" ry="7" fill="#FF9600" opacity="0.2"/>
+
+  <!-- Small smile below beak -->
+  <path d="M242,214 Q250,220 258,214" stroke="#3BA302" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- === FLOATING LEARNING ELEMENTS === -->
+
+  <!-- Graduation cap - top -->
+  <g transform="translate(250, 95)">
+    <polygon points="0,-18 30,-6 0,6 -30,-6" fill="#4B4B4B" stroke="#333" stroke-width="1.5"/>
+    <rect x="-12" y="-6" width="24" height="12" rx="2" fill="#4B4B4B"/>
+    <line x1="22" y1="-4" x2="22" y2="10" stroke="#FFC800" stroke-width="2"/>
+    <circle cx="22" cy="12" r="3" fill="#FFC800"/>
+  </g>
+
+  <!-- Light bulb - left -->
+  <g transform="translate(115, 225)">
+    <circle cx="0" cy="0" r="14" fill="#FFC800" stroke="#D4A600" stroke-width="2"/>
+    <rect x="-5" y="12" width="10" height="6" rx="2" fill="#D4A600"/>
+    <path d="M-4,2 L0,8 L4,2" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+    <!-- Light rays -->
+    <line x1="0" y1="-20" x2="0" y2="-24" stroke="#FFC800" stroke-width="2" stroke-linecap="round"/>
+    <line x1="16" y1="-10" x2="20" y2="-13" stroke="#FFC800" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-16" y1="-10" x2="-20" y2="-13" stroke="#FFC800" stroke-width="2" stroke-linecap="round"/>
+    <line x1="18" y1="4" x2="22" y2="5" stroke="#FFC800" stroke-width="2" stroke-linecap="round"/>
+    <line x1="-18" y1="4" x2="-22" y2="5" stroke="#FFC800" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- ABC block - bottom right -->
+  <g transform="translate(400, 350)">
+    <rect x="-18" y="-18" width="36" height="36" rx="6" fill="#CE82FF" stroke="#A85CD4" stroke-width="2"/>
+    <text x="0" y="7" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold" font-size="18">A</text>
+  </g>
+
+  <!-- Music note - floating -->
+  <g transform="translate(70, 140)">
+    <circle cx="0" cy="8" r="5" fill="#1CB0F6"/>
+    <rect x="4" y="-14" width="3" height="22" rx="1" fill="#1CB0F6"/>
+    <path d="M7,-14 Q16,-18 7,-8" fill="#1CB0F6"/>
+  </g>
+
+  <!-- Small heart -->
+  <g transform="translate(390, 310)">
+    <path d="M0,6 C0,6 -10,-2 -10,-8 C-10,-12 -6,-14 -3,-12 L0,-8 L3,-12 C6,-14 10,-12 10,-8 C10,-2 0,6 0,6Z" fill="#FF4B4B" opacity="0.7"/>
+  </g>
+
+  <!-- Floating checkmark circle -->
+  <g transform="translate(380, 250)">
+    <circle cx="0" cy="0" r="12" fill="#58CC02" stroke="#3BA302" stroke-width="2"/>
+    <polyline points="-5,0 -1,5 7,-4" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Bouncing dots trail -->
+  <circle cx="155" cy="310" r="3" fill="#CE82FF" opacity="0.8"/>
+  <circle cx="148" cy="318" r="2" fill="#CE82FF" opacity="0.5"/>
+  <circle cx="143" cy="324" r="1.5" fill="#CE82FF" opacity="0.3"/>
+
+  <circle cx="345" cy="160" r="3" fill="#FFC800" opacity="0.8"/>
+  <circle cx="352" cy="152" r="2" fill="#FFC800" opacity="0.5"/>
+  <circle cx="357" cy="146" r="1.5" fill="#FFC800" opacity="0.3"/>
+</svg>

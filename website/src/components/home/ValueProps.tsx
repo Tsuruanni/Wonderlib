@@ -1,11 +1,15 @@
+"use client";
+
 import Image from "next/image";
 import { Container } from "@/components/ui/Container";
+import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
 interface ValuePropData {
   heading: string;
   description: string;
   image: string;
   imageAlt: string;
+  accent: string;
 }
 
 const valueProps: ValuePropData[] = [
@@ -13,22 +17,25 @@ const valueProps: ValuePropData[] = [
     heading: "curriculum-aligned",
     description:
       "Books and vocabulary that match what's taught in class. Your students read what they're already learning — no extra materials needed.",
-    image: "/images/placeholder.svg",
+    image: "/images/value-curriculum.svg",
     imageAlt: "Curriculum-aligned library illustration",
+    accent: "text-feather",
   },
   {
     heading: "backed by science",
     description:
       "Powered by SM-2 spaced repetition — the world's most proven memory algorithm. Every word is reviewed at the perfect moment for long-term retention.",
-    image: "/images/placeholder.svg",
+    image: "/images/value-science.svg",
     imageAlt: "Spaced repetition science illustration",
+    accent: "text-sky",
   },
   {
     heading: "stay motivated",
     description:
       "XP, streaks, leagues, avatars, card collections — students actually want to practice every day. Learning that feels like playing.",
-    image: "/images/placeholder.svg",
+    image: "/images/value-motivation.svg",
     imageAlt: "Gamification elements illustration",
+    accent: "text-fox",
   },
 ];
 
@@ -47,23 +54,32 @@ function ValuePropBlock({
         isReversed ? "md:flex-row-reverse" : "md:flex-row"
       } items-center gap-12 md:gap-16`}
     >
-      {/* Text */}
-      <div className="flex-1 text-center md:text-left">
-        <h2 className="text-3xl md:text-4xl font-black text-feather lowercase mb-4">
+      <ScrollReveal
+        direction={isReversed ? "right" : "left"}
+        className="flex-1 text-center md:text-left"
+      >
+        <h2
+          className={`text-3xl md:text-4xl font-black ${prop.accent} lowercase mb-4`}
+        >
           {prop.heading}
         </h2>
-        <p className="text-lg text-hare max-w-md">{prop.description}</p>
-      </div>
+        <p className="text-lg text-hare max-w-md leading-relaxed">
+          {prop.description}
+        </p>
+      </ScrollReveal>
 
-      {/* Illustration */}
-      <div className="flex-1 flex justify-center">
+      <ScrollReveal
+        direction={isReversed ? "left" : "right"}
+        delay={0.15}
+        className="flex-1 flex justify-center"
+      >
         <Image
           src={prop.image}
           alt={prop.imageAlt}
           width={460}
           height={360}
         />
-      </div>
+      </ScrollReveal>
     </div>
   );
 }
