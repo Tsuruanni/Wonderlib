@@ -87,13 +87,13 @@ class _AppNotificationListenerState
     return widget.child;
   }
 
-  BuildContext? get _overlayContext => rootNavigatorKey.currentContext;
+  OverlayState? get _overlay => rootNavigatorKey.currentState?.overlay;
 
   void _showLevelUp(LevelUpEvent event) {
-    final ctx = _overlayContext;
-    if (ctx == null) return;
+    final overlay = _overlay;
+    if (overlay == null) return;
     _manager.show(
-      context: ctx,
+      overlay: overlay,
       type: NotificationType.levelUp,
       data: event,
       cardBuilder: (dismiss) => NotificationCard.levelUp(
@@ -108,10 +108,10 @@ class _AppNotificationListenerState
   }
 
   void _showLeagueChange(LeagueTierChangeEvent event) {
-    final ctx = _overlayContext;
-    if (ctx == null) return;
+    final overlay = _overlay;
+    if (overlay == null) return;
     _manager.show(
-      context: ctx,
+      overlay: overlay,
       type: NotificationType.leagueChange,
       data: event,
       cardBuilder: (dismiss) => NotificationCard.leagueChange(
@@ -126,8 +126,8 @@ class _AppNotificationListenerState
   }
 
   void _showStreakEvent(StreakResult result) {
-    final ctx = _overlayContext;
-    if (ctx == null) return;
+    final overlay = _overlay;
+    if (overlay == null) return;
 
     // Determine streak type by priority:
     // 1. milestone  2. freeze  3. broken  4. extended
@@ -165,7 +165,7 @@ class _AppNotificationListenerState
     }
 
     _manager.show(
-      context: ctx,
+      overlay: overlay,
       type: type,
       data: result,
       cardBuilder: cardBuilder,
@@ -176,10 +176,10 @@ class _AppNotificationListenerState
   }
 
   void _showBadgeEarned(BadgeEarnedEvent event) {
-    final ctx = _overlayContext;
-    if (ctx == null) return;
+    final overlay = _overlay;
+    if (overlay == null) return;
     _manager.show(
-      context: ctx,
+      overlay: overlay,
       type: NotificationType.badgeEarned,
       data: event,
       cardBuilder: (dismiss) => NotificationCard.badgeEarned(
@@ -193,10 +193,10 @@ class _AppNotificationListenerState
   }
 
   void _showAssignment(AssignmentNotificationEvent event) {
-    final ctx = _overlayContext;
-    if (ctx == null) return;
+    final overlay = _overlay;
+    if (overlay == null) return;
     _manager.show(
-      context: ctx,
+      overlay: overlay,
       type: NotificationType.assignment,
       data: event,
       cardBuilder: (dismiss) => NotificationCard.assignment(

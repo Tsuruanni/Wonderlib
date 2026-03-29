@@ -58,13 +58,12 @@ class NotificationOverlayManager {
   /// [cardBuilder] receives a `dismiss` callback that the card widget should
   /// call when the user taps "Continue" / swipes away / etc.
   void show({
-    required BuildContext context,
+    required OverlayState overlay,
     required NotificationType type,
     required Object? data,
     required Widget Function(VoidCallback dismiss) cardBuilder,
     VoidCallback? onDismiss,
   }) {
-    final overlay = Overlay.of(context);
 
     // Show barrier before the first card
     if (_active.isEmpty) {
