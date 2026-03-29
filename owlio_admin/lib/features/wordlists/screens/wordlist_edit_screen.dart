@@ -746,26 +746,32 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                             ],
                           ),
                         )
-                      : ReorderableListView.builder(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: List.generate(_wordItems.length, (index) {
+                              final word = _wordItems[index];
+                              return _WordCard(
+                                key: ValueKey(word['id']),
+                                word: word,
+                                index: index,
+                                total: _wordItems.length,
+                                onRemove: () => _removeWord(index),
+                                onMoveLeft: index > 0
+                                    ? () => _moveWord(index, index - 1)
+                                    : null,
+                                onMoveRight: index < _wordItems.length - 1
+                                    ? () => _moveWord(index, index + 2)
+                                    : null,
+                                onSaveField: (field, value) =>
+                                    _saveWordField(index, field, value),
+                                onTap: () =>
+                                    context.go('/vocabulary/${word['id']}'),
+                              );
+                            }),
                           ),
-                          itemCount: _wordItems.length,
-                          onReorder: _moveWord,
-                          itemBuilder: (context, index) {
-                            final word = _wordItems[index];
-                            return _WordCard(
-                              key: ValueKey(word['id']),
-                              word: word,
-                              index: index,
-                              onRemove: () => _removeWord(index),
-                              onSaveField: (field, value) =>
-                                  _saveWordField(index, field, value),
-                              onTap: () =>
-                                  context.go('/vocabulary/${word['id']}'),
-                            );
-                          },
                         ),
                 ),
 
@@ -790,14 +796,20 @@ class _WordCard extends StatefulWidget {
     super.key,
     required this.word,
     required this.index,
+    required this.total,
     required this.onRemove,
+    required this.onMoveLeft,
+    required this.onMoveRight,
     required this.onSaveField,
     required this.onTap,
   });
 
   final Map<String, dynamic> word;
   final int index;
+  final int total;
   final VoidCallback onRemove;
+  final VoidCallback? onMoveLeft;
+  final VoidCallback? onMoveRight;
   final Future<void> Function(String field, dynamic value) onSaveField;
   final VoidCallback onTap;
 
@@ -815,6 +827,10 @@ class _WordCardState extends State<_WordCard> {
   @override
   void initState() {
     super.initState();
+    _initControllers();
+  }
+
+  void _initControllers() {
     _meaningTrController = TextEditingController(
       text: widget.word['meaning_tr'] as String? ?? '',
     );
@@ -823,7 +839,9 @@ class _WordCardState extends State<_WordCard> {
     );
     final examples = widget.word['example_sentences'] as List?;
     _exampleController = TextEditingController(
-      text: examples != null && examples.isNotEmpty ? examples.first as String : '',
+      text: examples != null && examples.isNotEmpty
+          ? examples.first as String
+          : '',
     );
   }
 
@@ -831,11 +849,14 @@ class _WordCardState extends State<_WordCard> {
   void didUpdateWidget(covariant _WordCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.word['id'] != widget.word['id']) {
-      _meaningTrController.text = widget.word['meaning_tr'] as String? ?? '';
-      _meaningEnController.text = widget.word['meaning_en'] as String? ?? '';
+      _meaningTrController.text =
+          widget.word['meaning_tr'] as String? ?? '';
+      _meaningEnController.text =
+          widget.word['meaning_en'] as String? ?? '';
       final examples = widget.word['example_sentences'] as List?;
-      _exampleController.text =
-          examples != null && examples.isNotEmpty ? examples.first as String : '';
+      _exampleController.text = examples != null && examples.isNotEmpty
+          ? examples.first as String
+          : '';
       _isEditing = false;
     }
   }
@@ -859,10 +880,12 @@ class _WordCardState extends State<_WordCard> {
           : '';
 
       if (_meaningTrController.text.trim() != oldTr) {
-        await widget.onSaveField('meaning_tr', _meaningTrController.text.trim());
+        await widget.onSaveField(
+            'meaning_tr', _meaningTrController.text.trim());
       }
       if (_meaningEnController.text.trim() != oldEn) {
-        await widget.onSaveField('meaning_en', _meaningEnController.text.trim());
+        await widget.onSaveField(
+            'meaning_en', _meaningEnController.text.trim());
       }
       if (_exampleController.text.trim() != oldExample) {
         final newExamples = _exampleController.text.trim().isEmpty
@@ -881,170 +904,242 @@ class _WordCardState extends State<_WordCard> {
   Widget build(BuildContext context) {
     final imageUrl = widget.word['image_url'] as String?;
     final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+    final meaningTr = widget.word['meaning_tr'] as String? ?? '';
+    final meaningEn = widget.word['meaning_en'] as String? ?? '';
     final phonetic = widget.word['phonetic'] as String? ?? '';
-    final hasAudio = (widget.word['audio_url'] as String?)?.isNotEmpty == true;
+    final hasAudio =
+        (widget.word['audio_url'] as String?)?.isNotEmpty == true;
+    final examples = widget.word['example_sentences'] as List?;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      clipBehavior: Clip.antiAlias,
-      child: IntrinsicHeight(
-        child: Row(
+    return SizedBox(
+      width: 220,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Drag handle strip
-            ReorderableDragStartListener(
-              index: widget.index,
-              child: Container(
-                width: 36,
-                color: Colors.grey.shade100,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.drag_handle, color: Colors.grey, size: 20),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${widget.index + 1}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
+            // Image area
+            Stack(
+              children: [
+                Container(
+                  height: 160,
+                  color: Colors.grey.shade100,
+                  width: double.infinity,
+                  child: hasImage
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(Icons.broken_image_outlined,
+                                color: Colors.grey.shade400, size: 40),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.grey.shade300, size: 48),
+                        ),
                 ),
-              ),
-            ),
-
-            // Image
-            Container(
-              width: 120,
-              color: Colors.grey.shade50,
-              child: hasImage
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Icon(Icons.broken_image_outlined,
-                            color: Colors.grey.shade400, size: 32),
-                      ),
-                    )
-                  : Center(
-                      child: Icon(Icons.image_outlined,
-                          color: Colors.grey.shade300, size: 40),
+                // Index badge
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Text(
+                      '${widget.index + 1}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                // Reorder arrows
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onMoveLeft != null)
+                        _miniButton(Icons.chevron_left, widget.onMoveLeft!),
+                      if (widget.onMoveRight != null)
+                        _miniButton(
+                            Icons.chevron_right, widget.onMoveRight!),
+                    ],
+                  ),
+                ),
+              ],
             ),
 
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header row: word name + actions
-                    Row(
-                      children: [
-                        InkWell(
+            // Content area
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Word name row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
                           onTap: widget.onTap,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                widget.word['word'] ?? '',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF4F46E5),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.open_in_new,
-                                  size: 13, color: Color(0xFF4F46E5)),
-                            ],
+                          child: Text(
+                            widget.word['word'] ?? '',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF4F46E5),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (phonetic.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            '/$phonetic/',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade500,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                        if (hasAudio) ...[
-                          const SizedBox(width: 4),
-                          Icon(Icons.volume_up,
-                              size: 14, color: Colors.grey.shade500),
-                        ],
-                        const Spacer(),
-                        // Edit toggle
-                        if (!_isEditing)
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined, size: 18),
-                            color: Colors.grey.shade600,
-                            onPressed: () => setState(() => _isEditing = true),
-                            tooltip: 'Hızlı Düzenle',
-                            visualDensity: VisualDensity.compact,
-                          ),
-                        if (_isEditing) ...[
-                          TextButton(
-                            onPressed: () => setState(() => _isEditing = false),
-                            child: const Text('İptal', style: TextStyle(fontSize: 12)),
-                          ),
-                          const SizedBox(width: 4),
-                          FilledButton(
-                            onPressed: _isSaving ? null : _saveAll,
-                            child: _isSaving
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Text('Kaydet', style: TextStyle(fontSize: 12)),
-                          ),
-                        ],
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline, size: 18),
-                          color: Colors.red.shade300,
-                          onPressed: widget.onRemove,
-                          visualDensity: VisualDensity.compact,
+                      ),
+                      if (hasAudio)
+                        Icon(Icons.volume_up,
+                            size: 14, color: Colors.grey.shade400),
+                    ],
+                  ),
+                  if (phonetic.isNotEmpty)
+                    Text(
+                      '/$phonetic/',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  const Divider(height: 12),
+
+                  // Edit / View mode
+                  if (_isEditing) ...[
+                    _editField('TR', _meaningTrController),
+                    const SizedBox(height: 6),
+                    _editField('EN', _meaningEnController),
+                    const SizedBox(height: 6),
+                    _editField('Örnek', _exampleController),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () =>
+                              setState(() => _isEditing = false),
+                          style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
+                          child: const Text('İptal',
+                              style: TextStyle(fontSize: 12)),
+                        ),
+                        const SizedBox(width: 4),
+                        FilledButton(
+                          onPressed: _isSaving ? null : _saveAll,
+                          style: FilledButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white),
+                                )
+                              : const Text('Kaydet',
+                                  style: TextStyle(fontSize: 12)),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-
-                    // Fields: view or edit mode
-                    if (_isEditing) ...[
-                      _editField('TR Anlam', _meaningTrController),
-                      const SizedBox(height: 8),
-                      _editField('EN Meaning', _meaningEnController),
-                      const SizedBox(height: 8),
-                      _editField('Örnek Cümle', _exampleController),
-                    ] else ...[
-                      _viewField('TR', widget.word['meaning_tr'] as String? ?? ''),
-                      _viewField('EN', widget.word['meaning_en'] as String? ?? ''),
-                      _viewField(
-                        'Örnek',
-                        () {
-                          final ex = widget.word['example_sentences'] as List?;
-                          return ex != null && ex.isNotEmpty ? '"${ex.first}"' : '';
-                        }(),
-                        italic: true,
+                  ] else ...[
+                    if (meaningTr.isNotEmpty)
+                      Text(
+                        meaningTr,
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade800),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                    if (meaningEn.isNotEmpty)
+                      Text(
+                        meaningEn,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (examples != null && examples.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '"${examples.first}"',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade400,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    const SizedBox(height: 6),
+                    // Action row
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () =>
+                              setState(() => _isEditing = true),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 14,
+                                  color: Colors.grey.shade500),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Düzenle',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: widget.onRemove,
+                          child: Icon(Icons.delete_outline,
+                              size: 16, color: Colors.red.shade300),
+                        ),
+                      ],
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _miniButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        decoration: BoxDecoration(
+          color: Colors.black38,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Icon(icon, size: 16, color: Colors.white),
       ),
     );
   }
@@ -1056,44 +1151,10 @@ class _WordCardState extends State<_WordCard> {
         labelText: label,
         isDense: true,
         border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       ),
-      style: const TextStyle(fontSize: 13),
-    );
-  }
-
-  Widget _viewField(String label, String value, {bool italic = false}) {
-    if (value.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 40,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade700,
-                fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+      style: const TextStyle(fontSize: 12),
     );
   }
 }
