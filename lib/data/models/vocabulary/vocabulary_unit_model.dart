@@ -11,6 +11,7 @@ class VocabularyUnitModel {
     this.color,
     this.icon,
     this.isActive = true,
+    this.tileThemeId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -24,6 +25,7 @@ class VocabularyUnitModel {
       color: json['color'] as String?,
       icon: json['icon'] as String?,
       isActive: json['is_active'] as bool? ?? true,
+      tileThemeId: json['tile_theme_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -36,6 +38,7 @@ class VocabularyUnitModel {
   final String? color;
   final String? icon;
   final bool isActive;
+  final String? tileThemeId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -48,6 +51,7 @@ class VocabularyUnitModel {
       color: color,
       icon: icon,
       isActive: isActive,
+      tileThemeId: tileThemeId,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
