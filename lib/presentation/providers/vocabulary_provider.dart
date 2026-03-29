@@ -745,6 +745,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         sortOrder: lpUnit.sortOrder,
         color: lpUnit.unitColor,
         icon: lpUnit.unitIcon,
+        tileThemeId: lpUnit.tileThemeId,
         createdAt: DateTime.now(), // not available from RPC, not used by widgets
         updatedAt: DateTime.now(),
       );
