@@ -164,6 +164,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           unitName: unitData['name'] as String? ?? '',
           unitIcon: unitData['icon'] as String?,
           unitColor: unitData['color'] as String?,
+          tileThemeId: unitData['tile_theme_id'] as String?,
           sortOrder: unitRow['sort_order'] as int? ?? 0,
           items: items,
         ));
