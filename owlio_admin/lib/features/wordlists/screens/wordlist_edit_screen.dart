@@ -540,6 +540,30 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     });
   }
 
+  Future<void> _saveWordField(int index, String field, dynamic value) async {
+    final word = _wordItems[index];
+    final wordId = word['id'] as String;
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      await supabase
+          .from(DbTables.vocabularyWords)
+          .update({field: value}).eq('id', wordId);
+
+      setState(() {
+        final updated = Map<String, dynamic>.from(word);
+        updated[field] = value;
+        _wordItems[index] = updated;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kaydetme hatası: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   void _moveWord(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) {
       newIndex -= 1;
@@ -731,261 +755,15 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                           onReorder: _moveWord,
                           itemBuilder: (context, index) {
                             final word = _wordItems[index];
-                            final imageUrl =
-                                word['image_url'] as String?;
-                            final hasImage = imageUrl != null &&
-                                imageUrl.isNotEmpty;
-                            final meaningTr =
-                                word['meaning_tr'] as String? ?? '';
-                            final meaningEn =
-                                word['meaning_en'] as String? ?? '';
-                            final examples =
-                                word['example_sentences'] as List?;
-                            final phonetic =
-                                word['phonetic'] as String? ?? '';
-                            final hasAudio =
-                                (word['audio_url'] as String?)
-                                        ?.isNotEmpty ==
-                                    true;
-
-                            return Card(
+                            return _WordCard(
                               key: ValueKey(word['id']),
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 4,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    // Drag handle + index
-                                    ReorderableDragStartListener(
-                                      index: index,
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(
-                                          top: 8,
-                                          right: 8,
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            const Icon(
-                                              Icons.drag_handle,
-                                              color: Colors.grey,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets
-                                                      .symmetric(
-                                                horizontal: 6,
-                                                vertical: 2,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors
-                                                    .grey.shade200,
-                                                borderRadius:
-                                                    BorderRadius
-                                                        .circular(4),
-                                              ),
-                                              child: Text(
-                                                '${index + 1}',
-                                                style:
-                                                    const TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight:
-                                                      FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-
-                                    // Image
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      margin:
-                                          const EdgeInsets.only(
-                                        right: 12,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade100,
-                                        borderRadius:
-                                            BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color:
-                                              Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: hasImage
-                                          ? Image.network(
-                                              imageUrl,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (_, __, ___) =>
-                                                  Icon(
-                                                Icons
-                                                    .broken_image_outlined,
-                                                color: Colors
-                                                    .grey.shade400,
-                                                size: 24,
-                                              ),
-                                            )
-                                          : Icon(
-                                              Icons.image_outlined,
-                                              color:
-                                                  Colors.grey.shade400,
-                                              size: 24,
-                                            ),
-                                    ),
-
-                                    // Word details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Word name + link
-                                          Row(
-                                            children: [
-                                              InkWell(
-                                                onTap: () =>
-                                                    context.go(
-                                                  '/vocabulary/${word['id']}',
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize
-                                                          .min,
-                                                  children: [
-                                                    Text(
-                                                      word['word'] ??
-                                                          '',
-                                                      style:
-                                                          const TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight
-                                                                .w600,
-                                                        color: Color(
-                                                            0xFF4F46E5),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                        width: 4),
-                                                    const Icon(
-                                                      Icons
-                                                          .open_in_new,
-                                                      size: 13,
-                                                      color: Color(
-                                                          0xFF4F46E5),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              if (phonetic
-                                                  .isNotEmpty) ...[
-                                                const SizedBox(
-                                                    width: 8),
-                                                Text(
-                                                  '/$phonetic/',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey
-                                                        .shade500,
-                                                    fontStyle:
-                                                        FontStyle
-                                                            .italic,
-                                                  ),
-                                                ),
-                                              ],
-                                              if (hasAudio) ...[
-                                                const SizedBox(
-                                                    width: 4),
-                                                Icon(
-                                                  Icons.volume_up,
-                                                  size: 14,
-                                                  color: Colors.grey
-                                                      .shade500,
-                                                ),
-                                              ],
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-
-                                          // Meanings
-                                          if (meaningTr.isNotEmpty)
-                                            Text(
-                                              'TR: $meaningTr',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors
-                                                    .grey.shade700,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow
-                                                  .ellipsis,
-                                            ),
-                                          if (meaningEn.isNotEmpty)
-                                            Text(
-                                              'EN: $meaningEn',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors
-                                                    .grey.shade700,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow
-                                                  .ellipsis,
-                                            ),
-
-                                          // Example sentence
-                                          if (examples != null &&
-                                              examples.isNotEmpty)
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets
-                                                      .only(top: 4),
-                                              child: Text(
-                                                '"${examples.first}"',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontStyle:
-                                                      FontStyle
-                                                          .italic,
-                                                  color: Colors
-                                                      .grey.shade500,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow
-                                                    .ellipsis,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // Delete button
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete_outline,
-                                        size: 20,
-                                      ),
-                                      color: Colors.red.shade300,
-                                      onPressed: () =>
-                                          _removeWord(index),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              word: word,
+                              index: index,
+                              onRemove: () => _removeWord(index),
+                              onSaveField: (field, value) =>
+                                  _saveWordField(index, field, value),
+                              onTap: () =>
+                                  context.go('/vocabulary/${word['id']}'),
                             );
                           },
                         ),
@@ -999,6 +777,323 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ),
               ],
             ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Word card with inline quick edit
+// ---------------------------------------------------------------------------
+
+class _WordCard extends StatefulWidget {
+  const _WordCard({
+    super.key,
+    required this.word,
+    required this.index,
+    required this.onRemove,
+    required this.onSaveField,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> word;
+  final int index;
+  final VoidCallback onRemove;
+  final Future<void> Function(String field, dynamic value) onSaveField;
+  final VoidCallback onTap;
+
+  @override
+  State<_WordCard> createState() => _WordCardState();
+}
+
+class _WordCardState extends State<_WordCard> {
+  bool _isEditing = false;
+  late final TextEditingController _meaningTrController;
+  late final TextEditingController _meaningEnController;
+  late final TextEditingController _exampleController;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _meaningTrController = TextEditingController(
+      text: widget.word['meaning_tr'] as String? ?? '',
+    );
+    _meaningEnController = TextEditingController(
+      text: widget.word['meaning_en'] as String? ?? '',
+    );
+    final examples = widget.word['example_sentences'] as List?;
+    _exampleController = TextEditingController(
+      text: examples != null && examples.isNotEmpty ? examples.first as String : '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _WordCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.word['id'] != widget.word['id']) {
+      _meaningTrController.text = widget.word['meaning_tr'] as String? ?? '';
+      _meaningEnController.text = widget.word['meaning_en'] as String? ?? '';
+      final examples = widget.word['example_sentences'] as List?;
+      _exampleController.text =
+          examples != null && examples.isNotEmpty ? examples.first as String : '';
+      _isEditing = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _meaningTrController.dispose();
+    _meaningEnController.dispose();
+    _exampleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveAll() async {
+    setState(() => _isSaving = true);
+    try {
+      final oldTr = widget.word['meaning_tr'] as String? ?? '';
+      final oldEn = widget.word['meaning_en'] as String? ?? '';
+      final oldExamples = widget.word['example_sentences'] as List?;
+      final oldExample = oldExamples != null && oldExamples.isNotEmpty
+          ? oldExamples.first as String
+          : '';
+
+      if (_meaningTrController.text.trim() != oldTr) {
+        await widget.onSaveField('meaning_tr', _meaningTrController.text.trim());
+      }
+      if (_meaningEnController.text.trim() != oldEn) {
+        await widget.onSaveField('meaning_en', _meaningEnController.text.trim());
+      }
+      if (_exampleController.text.trim() != oldExample) {
+        final newExamples = _exampleController.text.trim().isEmpty
+            ? <String>[]
+            : [_exampleController.text.trim()];
+        await widget.onSaveField('example_sentences', newExamples);
+      }
+
+      setState(() => _isEditing = false);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = widget.word['image_url'] as String?;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+    final phonetic = widget.word['phonetic'] as String? ?? '';
+    final hasAudio = (widget.word['audio_url'] as String?)?.isNotEmpty == true;
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drag handle strip
+            ReorderableDragStartListener(
+              index: widget.index,
+              child: Container(
+                width: 36,
+                color: Colors.grey.shade100,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.drag_handle, color: Colors.grey, size: 20),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${widget.index + 1}',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Image
+            Container(
+              width: 120,
+              color: Colors.grey.shade50,
+              child: hasImage
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.broken_image_outlined,
+                            color: Colors.grey.shade400, size: 32),
+                      ),
+                    )
+                  : Center(
+                      child: Icon(Icons.image_outlined,
+                          color: Colors.grey.shade300, size: 40),
+                    ),
+            ),
+
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header row: word name + actions
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: widget.onTap,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.word['word'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF4F46E5),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.open_in_new,
+                                  size: 13, color: Color(0xFF4F46E5)),
+                            ],
+                          ),
+                        ),
+                        if (phonetic.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            '/$phonetic/',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade500,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                        if (hasAudio) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.volume_up,
+                              size: 14, color: Colors.grey.shade500),
+                        ],
+                        const Spacer(),
+                        // Edit toggle
+                        if (!_isEditing)
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            color: Colors.grey.shade600,
+                            onPressed: () => setState(() => _isEditing = true),
+                            tooltip: 'Hızlı Düzenle',
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        if (_isEditing) ...[
+                          TextButton(
+                            onPressed: () => setState(() => _isEditing = false),
+                            child: const Text('İptal', style: TextStyle(fontSize: 12)),
+                          ),
+                          const SizedBox(width: 4),
+                          FilledButton(
+                            onPressed: _isSaving ? null : _saveAll,
+                            child: _isSaving
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text('Kaydet', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18),
+                          color: Colors.red.shade300,
+                          onPressed: widget.onRemove,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Fields: view or edit mode
+                    if (_isEditing) ...[
+                      _editField('TR Anlam', _meaningTrController),
+                      const SizedBox(height: 8),
+                      _editField('EN Meaning', _meaningEnController),
+                      const SizedBox(height: 8),
+                      _editField('Örnek Cümle', _exampleController),
+                    ] else ...[
+                      _viewField('TR', widget.word['meaning_tr'] as String? ?? ''),
+                      _viewField('EN', widget.word['meaning_en'] as String? ?? ''),
+                      _viewField(
+                        'Örnek',
+                        () {
+                          final ex = widget.word['example_sentences'] as List?;
+                          return ex != null && ex.isNotEmpty ? '"${ex.first}"' : '';
+                        }(),
+                        italic: true,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _editField(String label, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      ),
+      style: const TextStyle(fontSize: 13),
+    );
+  }
+
+  Widget _viewField(String label, String value, {bool italic = false}) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+                fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
