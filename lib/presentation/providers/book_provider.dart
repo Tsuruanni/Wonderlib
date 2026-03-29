@@ -218,25 +218,33 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           sourceId: chapterId,
         );
 
-        // Check if book is now complete
+        // Check if book is now complete (quiz-less books complete here)
         final completionUseCase = _ref.read(handleBookCompletionUseCaseProvider);
-        final completionResult = await completionUseCase(HandleBookCompletionParams(
-          userId: userId,
-          bookId: bookId,
-        ));
-
-        completionResult.fold(
-          (_) {},
-          (result) async {
-            if (result.justCompleted && !result.hasQuiz) {
-              await _ref.read(userControllerProvider.notifier).addXP(
-                settings.xpBookComplete,
-                source: 'book_complete',
-                sourceId: bookId,
-              );
-            }
-          },
+        final completionResult = await completionUseCase(
+          HandleBookCompletionParams(
+            userId: userId,
+            bookId: bookId,
+          ),
         );
+
+        final justCompleted = completionResult.fold(
+          (_) => false,
+          (result) => result.justCompleted && !result.hasQuiz,
+        );
+
+        if (justCompleted) {
+          await _ref.read(userControllerProvider.notifier).addXP(
+            settings.xpBookComplete,
+            source: 'book_complete',
+            sourceId: bookId,
+          );
+
+          // Re-invalidate after completion write to avoid stale cache
+          // (first invalidation races against the completion DB write)
+          _ref.invalidate(readingProgressProvider(bookId));
+          _ref.invalidate(completedBookIdsProvider);
+          _ref.invalidate(continueReadingProvider);
+        }
       }
 
       // Update assignment progress if this book is part of an assignment

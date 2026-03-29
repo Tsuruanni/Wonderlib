@@ -16,6 +16,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 #### Fixed
 - **Book completion XP not awarded** — `BookQuizController` now awards `xpBookComplete` XP after quiz pass triggers book completion. Provider invalidation deferred to after completion write to avoid stale cache.
+- **Chapter-path book completion race** — `ChapterCompletionNotifier.markComplete` had the same invalidate-before-write race: providers re-fetched stale `is_completed=false` before `HandleBookCompletionUseCase` wrote. Also fixed un-awaited async fold callback for `xpBookComplete`, and added missing `completedBookIdsProvider` invalidation for quiz-less book completion.
 
 ### Mock Library Mode (2026-03-28)
 
