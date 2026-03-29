@@ -8,6 +8,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Active Node Indicator & Auto-Scroll (2026-03-29)
+
+#### Added
+- **START bubble on active node** — Duolingo-style speech bubble with "START" text and triangle pointer above the active learning path node. Bounces vertically to draw attention. Works on all node types (vocabulary, book, game, treasure, daily review).
+- **Auto-scroll to active node** — Vocabulary hub screen now opens centered on the active node. Uses a computed `Provider` that derives Y position from path data, consumed via `ref.listen` + `jumpTo`.
+
+#### Fixed
+- **Book completion XP not awarded** — `BookQuizController` now awards `xpBookComplete` XP after quiz pass triggers book completion. Provider invalidation deferred to after completion write to avoid stale cache.
+
 ### Mock Library Mode (2026-03-28)
 
 #### Added

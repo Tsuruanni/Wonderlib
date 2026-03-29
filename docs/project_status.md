@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Mock Library Mode, auto book stats trigger, Tom Sawyer cleanup)
+Son güncelleme: 2026-03-29 (Active node START bubble, auto-scroll, book completion XP fix)
 
 ## Current Phase
 
@@ -144,6 +144,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Dashboard Responsive Fix (overflow fix: responsive grid + safe card layout)
 - [x] Mock Library Mode (150 hardcoded demo books, admin toggle, frosted lock cards, Demo badge on real books)
 - [x] Auto Book Stats Trigger (word_count + estimated_minutes + chapter_count auto-recalculated from chapters on INSERT/UPDATE/DELETE)
+- [x] Active Node Indicator (Duolingo-style START bubble + auto-scroll to active node on screen open)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

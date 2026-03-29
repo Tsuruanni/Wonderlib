@@ -144,11 +144,38 @@ class BookQuizController extends StateNotifier<AsyncValue<BookQuizResult?>> {
 
       // Check book completion (quiz just passed)
       final completionUseCase = _ref.read(handleBookCompletionUseCaseProvider);
-      await completionUseCase(HandleBookCompletionParams(
-        userId: userId,
-        bookId: bookId,
-        quizJustPassed: true,
-      ));
+      final completionResult = await completionUseCase(
+        HandleBookCompletionParams(
+          userId: userId,
+          bookId: bookId,
+          quizJustPassed: true,
+        ),
+      );
+
+      // Award book completion XP if just completed
+      final justCompleted = completionResult.fold(
+        (failure) {
+          debugPrint('BookQuizController: book completion failed: ${failure.message}');
+          return false;
+        },
+        (result) => result.justCompleted,
+      );
+
+      if (justCompleted) {
+        await _ref.read(userControllerProvider.notifier).addXP(
+          settings.xpBookComplete,
+          source: 'book_complete',
+          sourceId: bookId,
+        );
+      }
+
+      // Re-invalidate providers AFTER completion write to ensure UI reflects
+      // the new is_completed state (first invalidation at quiz-save time races
+      // against the completion write and caches stale data).
+      _ref.invalidate(readingProgressProvider(bookId));
+      _ref.invalidate(completedBookIdsProvider);
+      _ref.invalidate(continueReadingProvider);
+      _ref.invalidate(isQuizReadyProvider(bookId));
     }
 
     return savedResult;
