@@ -43,6 +43,8 @@ interface WordItem {
   word_id: string;
   word: string;
   meaning_tr: string;
+  example_sentence?: string;
+  has_image: boolean;
 }
 
 interface FalImageResponse {
@@ -95,7 +97,6 @@ function splitImageGrid(
               tileHeight
             )
           );
-          clone.rePage();
           clone.write(MagickFormat.Png, (data) => {
             tiles.push(new Uint8Array(data));
           });
@@ -112,7 +113,8 @@ function splitImageGrid(
 function buildGridPrompt(
   batch: (WordItem | null)[],
   style?: string,
-  customPrompt?: string
+  customPrompt?: string,
+  includeExamples?: boolean,
 ): string {
   const styleDescription = style && STYLE_PRESETS[style]
     ? STYLE_PRESETS[style]
@@ -133,7 +135,11 @@ function buildGridPrompt(
   const cellDescriptions = batch.map((item, index) => {
     const position = CELL_POSITIONS[index];
     if (item) {
-      return `Cell ${index + 1} (${position}): "${item.word}" (${item.meaning_tr})`;
+      let desc = `Cell ${index + 1} (${position}): "${item.word}" (${item.meaning_tr})`;
+      if (includeExamples && item.example_sentence) {
+        desc += ` — context: "${item.example_sentence}"`;
+      }
+      return desc;
     }
     return `Cell ${index + 1} (${position}): empty white cell`;
   });
@@ -148,9 +154,10 @@ async function processBatch(
   falKey: string,
   supabase: ReturnType<typeof createClient>,
   style?: string,
-  customPrompt?: string
+  customPrompt?: string,
+  includeExamples?: boolean,
 ): Promise<WordResult[]> {
-  const prompt = buildGridPrompt(batch, style, customPrompt);
+  const prompt = buildGridPrompt(batch, style, customPrompt, includeExamples);
   console.log(`Grid prompt:\n${prompt}`);
 
   // 1. Call fal.ai image generation
@@ -219,7 +226,8 @@ async function processBatch(
     }
 
     const tileData = tiles[i];
-    const storagePath = `words/${item.word_id}.png`;
+    const timestamp = Date.now();
+    const storagePath = `words/${item.word_id}/${timestamp}.png`;
 
     // Upload tile to storage
     const { error: uploadError } = await supabase.storage
@@ -276,7 +284,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { wordListId, prompt, style } = await req.json();
+    const { wordListId, prompt, style, includeExamples, overwrite } = await req.json();
 
     if (!wordListId) {
       return new Response(
@@ -307,7 +315,7 @@ Deno.serve(async (req) => {
     console.log(`Fetching words for list ${wordListId}...`);
     const { data: items, error: fetchError } = await supabase
       .from("word_list_items")
-      .select("word_id, vocabulary_words(id, word, meaning_tr)")
+      .select("word_id, vocabulary_words(id, word, meaning_tr, example_sentences, image_url)")
       .eq("word_list_id", wordListId)
       .order("order_index", { ascending: true });
 
@@ -324,19 +332,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    const words: WordItem[] = items
-      .map((item: any) => ({
-        word_id: item.vocabulary_words?.id,
-        word: item.vocabulary_words?.word,
-        meaning_tr: item.vocabulary_words?.meaning_tr,
-      }))
+    const allWords: WordItem[] = items
+      .map((item: any) => {
+        const v = item.vocabulary_words;
+        const examples = v?.example_sentences as string[] | null;
+        return {
+          word_id: v?.id,
+          word: v?.word,
+          meaning_tr: v?.meaning_tr,
+          example_sentence: examples && examples.length > 0 ? examples[0] : undefined,
+          has_image: !!(v?.image_url && (v.image_url as string).trim().length > 0),
+        };
+      })
       .filter(
         (w: WordItem) => w.word_id && w.word && w.meaning_tr
       );
 
+    // Filter: skip words that already have images (unless overwrite)
+    const words = overwrite !== true
+      ? allWords.filter((w) => !w.has_image)
+      : allWords;
+
     if (words.length === 0) {
+      const msg = overwrite !== true
+        ? "All words already have images. Use overwrite to regenerate."
+        : "No valid words found (missing word or meaning_tr)";
       return new Response(
-        JSON.stringify({ error: "No valid words found (missing word or meaning_tr)" }),
+        JSON.stringify({ error: msg, allHaveImages: overwrite !== true }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -344,7 +366,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${words.length} words`);
+    console.log(`Found ${words.length} words to process (${allWords.length} total, overwrite=${overwrite ?? false})`);
 
     // 2. Ensure storage bucket exists
     await supabase.storage
@@ -377,7 +399,8 @@ Deno.serve(async (req) => {
         FAL_KEY,
         supabase,
         style,
-        prompt
+        prompt,
+        includeExamples,
       );
       allResults.push(...batchResults);
     }

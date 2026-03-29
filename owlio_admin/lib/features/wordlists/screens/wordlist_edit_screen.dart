@@ -230,13 +230,25 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           'No text or labels inside the cells.',
     );
     var selectedStyle = 'flat';
+    var includeExamples = false;
+    var overwrite = false;
+
+    final wordsWithImages =
+        _wordItems.where((w) {
+          final url = w['image_url'] as String?;
+          return url != null && url.isNotEmpty;
+        }).length;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          final wordCount = _wordItems.length;
-          final apiCalls = (wordCount / 6).ceil();
+          final wordsToProcess = overwrite
+              ? _wordItems.length
+              : _wordItems.length - wordsWithImages;
+          final apiCalls = wordsToProcess > 0
+              ? (wordsToProcess / 6).ceil()
+              : 0;
 
           return AlertDialog(
             title: const Text('Görsel Üretimi'),
@@ -291,24 +303,69 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Options
+                  CheckboxListTile(
+                    value: includeExamples,
+                    onChanged: (v) =>
+                        setDialogState(() => includeExamples = v ?? false),
+                    title: const Text('Örnek cümle bağlamı ekle'),
+                    subtitle: const Text(
+                      'Çok anlamlı kelimelerde doğru görseli üretmek için',
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    value: overwrite,
+                    onChanged: (v) =>
+                        setDialogState(() => overwrite = v ?? false),
+                    title: const Text('Mevcut görselleri yeniden üret'),
+                    subtitle: Text(
+                      '$wordsWithImages/${_wordItems.length} kelimenin görseli var',
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  const SizedBox(height: 12),
+
                   // Info box
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: wordsToProcess == 0
+                          ? Colors.orange.shade50
+                          : Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
+                      border: Border.all(
+                        color: wordsToProcess == 0
+                            ? Colors.orange.shade200
+                            : Colors.blue.shade200,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+                        Icon(
+                          wordsToProcess == 0
+                              ? Icons.warning_amber_rounded
+                              : Icons.info_outline,
+                          size: 18,
+                          color: wordsToProcess == 0
+                              ? Colors.orange.shade700
+                              : Colors.blue.shade700,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '$wordCount kelime, $apiCalls API çağrısı yapılacak',
+                            wordsToProcess == 0
+                                ? 'Tüm kelimelerin görseli var. Yeniden üretmek için üstteki seçeneği işaretleyin.'
+                                : '$wordsToProcess kelime için $apiCalls API çağrısı yapılacak',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.blue.shade700,
+                              color: wordsToProcess == 0
+                                  ? Colors.orange.shade700
+                                  : Colors.blue.shade700,
                             ),
                           ),
                         ),
@@ -324,7 +381,9 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                 child: const Text('İptal'),
               ),
               FilledButton.icon(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: wordsToProcess > 0
+                    ? () => Navigator.pop(context, true)
+                    : null,
                 icon: const Icon(Icons.auto_awesome, size: 18),
                 label: const Text('Üret'),
               ),
@@ -349,6 +408,8 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           'wordListId': widget.listId,
           'style': selectedStyle,
           'prompt': promptController.text.trim(),
+          'includeExamples': includeExamples,
+          'overwrite': overwrite,
         },
       );
 
