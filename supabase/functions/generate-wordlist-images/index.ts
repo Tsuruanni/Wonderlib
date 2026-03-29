@@ -165,25 +165,36 @@ async function processBatch(
   const prompt = buildGridPrompt(batch, style, customPrompt, includeExamples);
   console.log(`Grid prompt:\n${prompt}`);
 
-  // 1. Call fal.ai image generation
+  // 1. Call fal.ai image generation (with 120s timeout)
   console.log("Calling fal.ai image generation...");
-  const falResponse = await fetch(
-    "https://fal.run/fal-ai/nano-banana-pro",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${falKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        num_images: 1,
-        aspect_ratio: "2:3",
-        output_format: "png",
-        safety_tolerance: "6",
-      }),
-    }
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+
+  let falResponse: Response;
+  try {
+    falResponse = await fetch(
+      "https://fal.run/fal-ai/nano-banana-pro",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Key ${falKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          num_images: 1,
+          aspect_ratio: "2:3",
+          output_format: "png",
+          safety_tolerance: "6",
+        }),
+        signal: controller.signal,
+      }
+    );
+  } catch (e) {
+    clearTimeout(timeout);
+    throw new Error(`fal.ai request failed (timeout or network): ${e.message}`);
+  }
+  clearTimeout(timeout);
 
   if (!falResponse.ok) {
     const errorText = await falResponse.text();
@@ -216,25 +227,20 @@ async function processBatch(
   const tiles = splitImageGrid(imageBuffer, GRID_COLS, GRID_ROWS);
   console.log(`Split into ${tiles.length} tiles`);
 
-  // 4. Upload tiles and update DB
-  const results: WordResult[] = [];
+  // 4. Upload tiles and update DB (parallel)
+  console.log("Uploading tiles in parallel...");
+  const timestamp = Date.now();
 
-  for (let i = 0; i < batch.length; i++) {
-    const item = batch[i];
-    if (!item) continue; // Skip padding cells
-
+  const uploadPromises = batch.map(async (item, i) => {
+    if (!item) return null;
     if (i >= tiles.length) {
-      console.warn(
-        `No tile for word "${item.word}" at index ${i}, skipping`
-      );
-      continue;
+      console.warn(`No tile for word "${item.word}" at index ${i}, skipping`);
+      return null;
     }
 
     const tileData = tiles[i];
-    const timestamp = Date.now();
-    const storagePath = `words/${item.word_id}/${timestamp}.png`;
+    const storagePath = `words/${item.word_id}/${timestamp}_${i}.png`;
 
-    // Upload tile to storage
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(storagePath, tileData, {
@@ -243,40 +249,29 @@ async function processBatch(
       });
 
     if (uploadError) {
-      console.error(
-        `Failed to upload tile for "${item.word}": ${uploadError.message}`
-      );
-      throw new Error(
-        `Storage upload failed for "${item.word}": ${uploadError.message}`
-      );
+      throw new Error(`Storage upload failed for "${item.word}": ${uploadError.message}`);
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(storagePath);
     const imageUrl = publicUrlData.publicUrl;
 
-    // Update vocabulary_words with image URL
     const { error: updateError } = await supabase
       .from("vocabulary_words")
       .update({ image_url: imageUrl })
       .eq("id", item.word_id);
 
     if (updateError) {
-      throw new Error(
-        `DB update failed for "${item.word}": ${updateError.message}`
-      );
+      throw new Error(`DB update failed for "${item.word}": ${updateError.message}`);
     }
 
-    results.push({
-      wordId: item.word_id,
-      word: item.word,
-      imageUrl,
-    });
+    console.log(`"${item.word}" → ${imageUrl}`);
+    return { wordId: item.word_id, word: item.word, imageUrl } as WordResult;
+  });
 
-    console.log(`Uploaded tile for "${item.word}": ${imageUrl}`);
-  }
+  const settled = await Promise.all(uploadPromises);
+  const results = settled.filter((r): r is WordResult => r !== null);
 
   return results;
 }
