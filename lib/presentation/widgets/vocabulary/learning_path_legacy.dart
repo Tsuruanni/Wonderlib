@@ -7,9 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
-import 'path_painters.dart';
-import 'path_row.dart';
-import 'path_special_nodes.dart';
+import 'path_painters_legacy.dart';
+import 'path_row_legacy.dart';
+import 'path_special_nodes_legacy.dart';
 
 /// Duolingo-style vertical learning path.
 /// Renders units as sections with word list nodes in a zigzag pattern.
