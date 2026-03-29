@@ -690,6 +690,14 @@ class _ReaderSettingsCard extends ConsumerWidget {
                             width: 2,
                           ),
                         ),
+                        // Mini lines for notebook theme preview
+                        child: theme.hasLines
+                            ? CustomPaint(
+                                painter: _MiniNotebookPainter(
+                                  lineColor: theme.lineColor,
+                                ),
+                              )
+                            : null,
                       ),
                     ),
                   ),
@@ -749,3 +757,30 @@ class _SettingsButton extends StatelessWidget {
   }
 }
 
+/// Mini notebook line preview for theme circle button.
+class _MiniNotebookPainter extends CustomPainter {
+  _MiniNotebookPainter({required this.lineColor});
+
+  final Color lineColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.8;
+
+    // Draw 3 horizontal lines inside the circle
+    final spacing = size.height / 4;
+    for (int i = 1; i <= 3; i++) {
+      final y = spacing * i;
+      canvas.drawLine(
+        Offset(size.width * 0.2, y),
+        Offset(size.width * 0.8, y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MiniNotebookPainter oldDelegate) => false;
+}

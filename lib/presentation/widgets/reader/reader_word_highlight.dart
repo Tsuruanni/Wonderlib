@@ -262,7 +262,7 @@ class _ReaderWordHighlightState extends State<ReaderWordHighlight> {
           fontSize: widget.settings.fontSize,
           height: widget.settings.lineHeight,
           color: widget.settings.theme.text,
-          fontWeight: isActive ? FontWeight.bold : null,
+          fontWeight: null,
         ),
       ),
     );
@@ -327,7 +327,7 @@ class _ReaderWordHighlightState extends State<ReaderWordHighlight> {
               fontSize: widget.settings.fontSize,
               height: widget.settings.lineHeight,
               color: widget.settings.theme.text,
-              fontWeight: isActive ? FontWeight.bold : null,
+              fontWeight: null,
               decoration: TextDecoration.underline,
               decorationColor: const Color(0xFF4F46E5).withValues(alpha: 0.5),
               decorationStyle: TextDecorationStyle.dotted,

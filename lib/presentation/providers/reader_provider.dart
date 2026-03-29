@@ -23,10 +23,10 @@ enum ReaderTheme {
     text: Color(0xFF1E293B),
     name: 'Light',
   ),
-  sepia(
-    background: Color(0xFFF5E6D3),
-    text: Color(0xFF5C4033),
-    name: 'Sepia',
+  notebook(
+    background: Color(0xFFFFFDF5),
+    text: Color(0xFF1E293B),
+    name: 'Notebook',
   ),
   dark(
     background: Color(0xFF1E293B),
@@ -37,6 +37,15 @@ enum ReaderTheme {
   final Color background;
   final Color text;
   final String name;
+
+  /// Whether this theme draws ruled lines behind text.
+  bool get hasLines => this == ReaderTheme.notebook;
+
+  /// Line color for ruled themes.
+  Color get lineColor => const Color(0xFFD6E5EF);
+
+  /// Left margin line color (red margin line on notebook paper).
+  Color get marginColor => const Color(0xFFE8A0A0);
 
   const ReaderTheme({
     required this.background,
@@ -119,34 +128,33 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
 
   ReaderSettingsNotifier(this._ref) : super(const ReaderSettings()) {
     _loadFromProfile();
+    // Re-load when auth state becomes available (handles async session restore)
+    _ref.listen(authStateChangesProvider, (_, next) {
+      if (next.valueOrNull != null) _loadFromProfile();
+    });
   }
   final Ref _ref;
+  bool _loaded = false;
 
   void _loadFromProfile() {
     final user = _ref.read(authStateChangesProvider).valueOrNull;
-    if (user != null && user.settings.isNotEmpty) {
-      final readerSettings = user.settings['reader'] as Map<String, dynamic>?;
-      if (readerSettings != null) {
-        state = ReaderSettings(
-          fontSize: (readerSettings['fontSize'] as num?)?.toDouble() ?? 18,
-          lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
-          theme: _parseTheme(readerSettings['theme'] as String?),
-          showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
-          font: _parseFont(readerSettings['font'] as String?),
-        );
-      }
+    if (user == null || _loaded) return;
+    final readerSettings = user.settings['reader'] as Map<String, dynamic>?;
+    if (readerSettings != null) {
+      _loaded = true;
+      state = ReaderSettings(
+        fontSize: (readerSettings['fontSize'] as num?)?.toDouble() ?? 18,
+        lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
+        theme: _parseTheme(readerSettings['theme'] as String?),
+        showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
+        font: _parseFont(readerSettings['font'] as String?),
+      );
     }
   }
 
   ReaderTheme _parseTheme(String? theme) {
-    switch (theme) {
-      case 'sepia':
-        return ReaderTheme.sepia;
-      case 'dark':
-        return ReaderTheme.dark;
-      default:
-        return ReaderTheme.light;
-    }
+    return ReaderTheme.values.where((t) => t.name == theme).firstOrNull ??
+        ReaderTheme.light;
   }
 
   Future<void> _saveToProfile() async {

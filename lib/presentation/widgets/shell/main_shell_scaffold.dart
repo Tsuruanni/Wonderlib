@@ -26,31 +26,31 @@ class MainShellScaffold extends ConsumerWidget {
     _NavItem(
       icon: Icons.route_outlined,
       selectedIcon: Icons.route_rounded,
-      label: 'LEARNING PATH',
+      label: 'Learning Path',
       color: AppColors.wasp,
     ),
     _NavItem(
       icon: Icons.home_outlined,
       selectedIcon: Icons.home_rounded,
-      label: 'HOME',
+      label: 'Home',
       color: AppColors.primary,
     ),
     _NavItem(
       icon: Icons.local_library_outlined,
       selectedIcon: Icons.local_library_rounded,
-      label: 'LIBRARY',
+      label: 'Library',
       color: AppColors.secondary,
     ),
     _NavItem(
       icon: Icons.collections_bookmark_outlined,
       selectedIcon: Icons.collections_bookmark_rounded,
-      label: 'CARD COLLECTION',
+      label: 'Card Collection',
       color: AppColors.cardEpic,
     ),
     _NavItem(
       icon: Icons.emoji_events_outlined,
       selectedIcon: Icons.emoji_events_rounded,
-      label: 'LEADERBOARDS',
+      label: 'Leaderboards',
       color: AppColors.streakOrange,
     ),
   ];
@@ -106,7 +106,7 @@ class MainShellScaffold extends ConsumerWidget {
                       item: const _NavItem(
                         icon: Icons.person_outline_rounded,
                         selectedIcon: Icons.person_rounded,
-                        label: 'PROFILE',
+                        label: 'Profile',
                         color: AppColors.neutralDark,
                       ),
                       isSelected: false,
@@ -354,8 +354,9 @@ class _SidebarItemState extends State<_SidebarItem> {
                   child: Text(
                     item.label,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.boogaloo(
-                      fontSize: 15,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
                       color: isSelected ? item.color : AppColors.neutralText,
                     ),
                   ),

@@ -8,6 +8,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Notebook Theme + Reader Settings Polish + Quiz Guard (2026-03-29)
+
+#### Added
+- **Notebook reader theme** — Replaces sepia. Warm white background (`#FFFDF5`) with ruled blue lines and red margin line drawn via `CustomPaint`. Theme circle preview shows mini notebook lines.
+- **Reader settings auth fix** — `ReaderSettingsNotifier` now listens to `authStateChangesProvider` to re-load settings when user session restores asynchronously. Prevents settings reset on app reload.
+- **Quiz active guard on sidebar** — Chapter tiles in reader sidebar locked during active quiz. Prevents accidental chapter switch mid-quiz.
+- **Notebook line painter** — `_MiniNotebookPainter` renders 3 horizontal lines inside the theme preview circle for visual distinction.
+
+#### Changed
+- **Sidebar labels** — Switched from UPPERCASE to Title Case (Learning Path, Home, Library, etc.).
+- **Theme parsing** — `_parseTheme` now uses `ReaderTheme.values.where()` instead of manual switch — adding new themes requires zero parser changes.
+- **Settings load guard** — `_loaded` flag prevents double-loading when auth state fires multiple times.
+
 ### Reader Sidebar + Font Fix + Quiz Integration (2026-03-29)
 
 #### Added

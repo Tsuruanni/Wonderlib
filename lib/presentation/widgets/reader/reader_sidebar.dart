@@ -10,6 +10,7 @@ import '../../../domain/entities/chapter.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/reader_provider.dart';
 import '../../providers/content_block_provider.dart';
 import '../common/game_button.dart';
 

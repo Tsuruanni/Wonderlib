@@ -48,28 +48,30 @@ class ReaderTextBlock extends ConsumerWidget {
     final isLoading = ref.watch(isBlockLoadingProvider(block.id));
     final isFollowingScroll = audioState.isFollowingScroll;
 
+    Widget child = ReaderWordHighlight(
+      text: text,
+      wordTimings: block.wordTimings,
+      settings: settings,
+      activeWordIndex: activeWordIndex,
+      vocabulary: vocabulary,
+      onVocabularyTap: onVocabularyTap,
+      onWordTap: onWordTap,
+      isFollowingScroll: isFollowingScroll,
+      // Inline audio icon (scales with font)
+      prefixWidgets: [
+        if (block.hasAudio)
+          _InlinePlayIcon(
+            isPlaying: isPlaying,
+            isLoading: isLoading,
+            onPressed: () => _handlePlayPress(ref),
+            settings: settings,
+          ),
+      ],
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: ReaderWordHighlight(
-        text: text,
-        wordTimings: block.wordTimings,
-        settings: settings,
-        activeWordIndex: activeWordIndex,
-        vocabulary: vocabulary,
-        onVocabularyTap: onVocabularyTap,
-        onWordTap: onWordTap,
-        isFollowingScroll: isFollowingScroll,
-        // Inline audio icon (scales with font)
-        prefixWidgets: [
-          if (block.hasAudio)
-            _InlinePlayIcon(
-              isPlaying: isPlaying,
-              isLoading: isLoading,
-              onPressed: () => _handlePlayPress(ref),
-              settings: settings,
-            ),
-        ],
-      ),
+      child: child,
     );
   }
 

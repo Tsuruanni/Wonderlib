@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-29 (Reader sidebar + font fix + quiz shell integration + Duolingo-style popups)
+Son güncelleme: 2026-03-29 (Notebook theme, reader settings auth fix, quiz navigation guard, sidebar label polish)
 
 ## Current Phase
 

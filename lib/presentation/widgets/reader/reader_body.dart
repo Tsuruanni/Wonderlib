@@ -119,11 +119,18 @@ class ReaderBody extends ConsumerWidget {
 
           // Chapter content
           SliverToBoxAdapter(
-            child: Padding(
-              padding: ReaderConstants.contentPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: CustomPaint(
+              painter: settings.theme.hasLines
+                  ? NotebookLinePainter(
+                      lineHeight: settings.fontSize * settings.lineHeight,
+                      lineColor: settings.theme.lineColor,
+                    )
+                  : null,
+              child: Padding(
+                padding: ReaderConstants.contentPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   // Chapter content - uses ReaderContentBlockList if available,
                   // falls back to ReaderLegacyContent for legacy content
                   _ChapterContent(
@@ -157,6 +164,7 @@ class ReaderBody extends ConsumerWidget {
                   // Bottom breathing room (contentPadding already has 80px bottom)
                   const SizedBox(height: 16),
                 ],
+              ),
               ),
             ),
           ),
@@ -215,5 +223,38 @@ class _ChapterContent extends ConsumerWidget {
       ),
     );
   }
+}
 
+/// Draws ruled notebook lines behind reader content.
+/// Lines repeat at [lineHeight] intervals, offset by [topPadding]
+/// so the first line aligns with the first text baseline.
+class NotebookLinePainter extends CustomPainter {
+  NotebookLinePainter({
+    required this.lineHeight,
+    required this.lineColor,
+    this.topPadding = 8,
+  });
+
+  final double lineHeight;
+  final Color lineColor;
+  /// Top padding of the content area — lines start after this offset.
+  final double topPadding;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final linePaint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.5;
+
+    // First line at: topPadding + lineHeight (under first text line)
+    // Then every lineHeight after that
+    for (double y = topPadding + lineHeight; y < size.height; y += lineHeight) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(NotebookLinePainter oldDelegate) =>
+      lineHeight != oldDelegate.lineHeight ||
+      lineColor != oldDelegate.lineColor;
 }
