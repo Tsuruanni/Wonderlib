@@ -552,249 +552,382 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Top: Form + Word list side by side
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Form
-                      Expanded(
-                        flex: 1,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Liste Detayları',
-                                  style:
-                                      Theme.of(context).textTheme.titleLarge,
+                // Top: Form (centered, compact)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                    ),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Form(
+                        key: _formKey,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Ad',
+                                  hintText: 'ör. Yaygın A1 Kelimeler',
+                                  isDense: true,
                                 ),
-                                const SizedBox(height: 24),
-
-                                // Name
-                                TextFormField(
-                                  controller: _nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Ad',
-                                    hintText: 'ör. Yaygın A1 Kelimeler',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null ||
-                                        value.trim().isEmpty) {
-                                      return 'Ad zorunludur';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Description
-                                TextFormField(
-                                  controller: _descriptionController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Açıklama',
-                                    hintText: 'Bu kelime listesini açıklayın',
-                                  ),
-                                  maxLines: 3,
-                                ),
-                              ],
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.trim().isEmpty) {
+                                    return 'Ad zorunludur';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-
-                      // Word list
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            border: Border(
-                              left:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Kelimeler (${_wordItems.length})',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: _showAddWordDialog,
-                                      icon:
-                                          const Icon(Icons.add, size: 18),
-                                      label: const Text('Kelime Ekle'),
-                                    ),
-                                  ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 3,
+                              child: TextFormField(
+                                controller: _descriptionController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Açıklama',
+                                  hintText: 'Bu kelime listesini açıklayın',
+                                  isDense: true,
                                 ),
                               ),
-                              const Divider(height: 1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
 
-                              // Word list
-                              Expanded(
-                                child: _wordItems.isEmpty
-                                    ? Center(
+                // Header bar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  color: Colors.grey.shade50,
+                  child: Row(
+                    children: [
+                      Text(
+                        'Kelimeler (${_wordItems.length})',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: _showAddWordDialog,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Kelime Ekle'),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+
+                // Word list (full height)
+                Expanded(
+                  child: _wordItems.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.list,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Henüz kelime yok',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: _showAddWordDialog,
+                                icon: const Icon(Icons.add),
+                                label: const Text('Kelime Ekle'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ReorderableListView.builder(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: _wordItems.length,
+                          onReorder: _moveWord,
+                          itemBuilder: (context, index) {
+                            final word = _wordItems[index];
+                            final imageUrl =
+                                word['image_url'] as String?;
+                            final hasImage = imageUrl != null &&
+                                imageUrl.isNotEmpty;
+                            final meaningTr =
+                                word['meaning_tr'] as String? ?? '';
+                            final meaningEn =
+                                word['meaning_en'] as String? ?? '';
+                            final examples =
+                                word['example_sentences'] as List?;
+                            final phonetic =
+                                word['phonetic'] as String? ?? '';
+                            final hasAudio =
+                                (word['audio_url'] as String?)
+                                        ?.isNotEmpty ==
+                                    true;
+
+                            return Card(
+                              key: ValueKey(word['id']),
+                              margin: const EdgeInsets.symmetric(
+                                vertical: 4,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    // Drag handle + index
+                                    ReorderableDragStartListener(
+                                      index: index,
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(
+                                          top: 8,
+                                          right: 8,
+                                        ),
                                         child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
                                           children: [
-                                            Icon(
-                                              Icons.list,
-                                              size: 48,
-                                              color: Colors.grey.shade400,
+                                            const Icon(
+                                              Icons.drag_handle,
+                                              color: Colors.grey,
+                                              size: 20,
                                             ),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Henüz kelime yok',
-                                              style: TextStyle(
-                                                color:
-                                                    Colors.grey.shade600,
+                                            const SizedBox(height: 4),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets
+                                                      .symmetric(
+                                                horizontal: 6,
+                                                vertical: 2,
                                               ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            TextButton.icon(
-                                              onPressed:
-                                                  _showAddWordDialog,
-                                              icon:
-                                                  const Icon(Icons.add),
-                                              label:
-                                                  const Text('Kelime Ekle'),
+                                              decoration: BoxDecoration(
+                                                color: Colors
+                                                    .grey.shade200,
+                                                borderRadius:
+                                                    BorderRadius
+                                                        .circular(4),
+                                              ),
+                                              child: Text(
+                                                '${index + 1}',
+                                                style:
+                                                    const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight:
+                                                      FontWeight.bold,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      )
-                                    : ReorderableListView.builder(
-                                        padding:
-                                            const EdgeInsets.all(8),
-                                        itemCount: _wordItems.length,
-                                        onReorder: _moveWord,
-                                        itemBuilder: (context, index) {
-                                          final word =
-                                              _wordItems[index];
-                                          return Card(
-                                            key: ValueKey(word['id']),
-                                            margin:
-                                                const EdgeInsets
-                                                    .symmetric(
-                                              vertical: 4,
-                                            ),
-                                            child: ListTile(
-                                              leading:
-                                                  ReorderableDragStartListener(
-                                                index: index,
-                                                child: const Icon(
-                                                  Icons.drag_handle,
-                                                  color: Colors.grey,
-                                                ),
+                                      ),
+                                    ),
+
+                                    // Image
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      margin:
+                                          const EdgeInsets.only(
+                                        right: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius:
+                                            BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color:
+                                              Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: hasImage
+                                          ? Image.network(
+                                              imageUrl,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (_, __, ___) =>
+                                                  Icon(
+                                                Icons
+                                                    .broken_image_outlined,
+                                                color: Colors
+                                                    .grey.shade400,
+                                                size: 24,
                                               ),
-                                              title: InkWell(
-                                                onTap: () => context.go(
-                                                    '/vocabulary/${word['id']}'),
+                                            )
+                                          : Icon(
+                                              Icons.image_outlined,
+                                              color:
+                                                  Colors.grey.shade400,
+                                              size: 24,
+                                            ),
+                                    ),
+
+                                    // Word details
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Word name + link
+                                          Row(
+                                            children: [
+                                              InkWell(
+                                                onTap: () =>
+                                                    context.go(
+                                                  '/vocabulary/${word['id']}',
+                                                ),
                                                 child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize
+                                                          .min,
                                                   children: [
-                                                    Flexible(
-                                                      child: Text(
-                                                        word['word'] ??
-                                                            '',
-                                                        style:
-                                                            const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .w500,
-                                                          color: Color(
-                                                              0xFF4F46E5),
-                                                        ),
+                                                    Text(
+                                                      word['word'] ??
+                                                          '',
+                                                      style:
+                                                          const TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight
+                                                                .w600,
+                                                        color: Color(
+                                                            0xFF4F46E5),
                                                       ),
                                                     ),
                                                     const SizedBox(
                                                         width: 4),
                                                     const Icon(
-                                                      Icons.open_in_new,
-                                                      size: 14,
+                                                      Icons
+                                                          .open_in_new,
+                                                      size: 13,
                                                       color: Color(
                                                           0xFF4F46E5),
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                              subtitle: Text(
-                                                word['meaning_tr'] ?? '',
+                                              if (phonetic
+                                                  .isNotEmpty) ...[
+                                                const SizedBox(
+                                                    width: 8),
+                                                Text(
+                                                  '/$phonetic/',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey
+                                                        .shade500,
+                                                    fontStyle:
+                                                        FontStyle
+                                                            .italic,
+                                                  ),
+                                                ),
+                                              ],
+                                              if (hasAudio) ...[
+                                                const SizedBox(
+                                                    width: 4),
+                                                Icon(
+                                                  Icons.volume_up,
+                                                  size: 14,
+                                                  color: Colors.grey
+                                                      .shade500,
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+
+                                          // Meanings
+                                          if (meaningTr.isNotEmpty)
+                                            Text(
+                                              'TR: $meaningTr',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors
+                                                    .grey.shade700,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow
+                                                  .ellipsis,
+                                            ),
+                                          if (meaningEn.isNotEmpty)
+                                            Text(
+                                              'EN: $meaningEn',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors
+                                                    .grey.shade700,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow
+                                                  .ellipsis,
+                                            ),
+
+                                          // Example sentence
+                                          if (examples != null &&
+                                              examples.isNotEmpty)
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets
+                                                      .only(top: 4),
+                                              child: Text(
+                                                '"${examples.first}"',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontStyle:
+                                                      FontStyle
+                                                          .italic,
+                                                  color: Colors
+                                                      .grey.shade500,
+                                                ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow
                                                     .ellipsis,
                                               ),
-                                              trailing: Row(
-                                                mainAxisSize:
-                                                    MainAxisSize.min,
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                    decoration:
-                                                        BoxDecoration(
-                                                      color: Colors
-                                                          .grey.shade200,
-                                                      borderRadius:
-                                                          BorderRadius
-                                                              .circular(
-                                                                  4),
-                                                    ),
-                                                    child: Text(
-                                                      '${index + 1}',
-                                                      style:
-                                                          const TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight
-                                                                .bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                      width: 8),
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      Icons
-                                                          .delete_outline,
-                                                      size: 20,
-                                                    ),
-                                                    color: Colors.red,
-                                                    onPressed: () =>
-                                                        _removeWord(
-                                                            index),
-                                                  ),
-                                                ],
-                                              ),
                                             ),
-                                          );
-                                        },
+                                        ],
                                       ),
+                                    ),
+
+                                    // Delete button
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 20,
+                                      ),
+                                      color: Colors.red.shade300,
+                                      onPressed: () =>
+                                          _removeWord(index),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                      ),
-                    ],
-                  ),
                 ),
 
                 // Bottom: Content completeness table
