@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
-import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/vocabulary_provider.dart';
-import '../../widgets/common/stat_item.dart';
 
 class VocabularyScreen extends ConsumerStatefulWidget {
   const VocabularyScreen({super.key});
@@ -14,98 +14,145 @@ class VocabularyScreen extends ConsumerStatefulWidget {
   ConsumerState<VocabularyScreen> createState() => _VocabularyScreenState();
 }
 
-class _VocabularyScreenState extends ConsumerState<VocabularyScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
+  int _selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
     final learnedWordsAsync = ref.watch(learnedWordsWithDetailsProvider);
-
-    // Extract learned words (starts from progress, not dictionary)
     final allWords = learnedWordsAsync.valueOrNull ?? [];
 
-    // Derived lists from learned words
     final dueWords = allWords.where((item) {
       return item.progress != null && item.progress!.isDueForReview;
     }).toList();
 
-    // Schedule tab: words with next_review_at, sorted by date (earliest first)
     final scheduledWords = allWords
         .where((item) => item.progress?.nextReviewAt != null)
         .toList()
       ..sort((a, b) => a.progress!.nextReviewAt!.compareTo(b.progress!.nextReviewAt!));
 
-    final isLoading = learnedWordsAsync.isLoading;
-    final hasError = learnedWordsAsync.hasError;
+    final tabs = [
+      _TabData('All', allWords.length, allWords),
+      _TabData('Due', dueWords.length, dueWords),
+      _TabData('Schedule', scheduledWords.length, scheduledWords),
+    ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Vocabulary'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(text: 'All (${allWords.length})'),
-            Tab(text: 'Due (${dueWords.length})'),
-            Tab(text: 'Schedule (${scheduledWords.length})'),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).maybePop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.neutral, width: 2),
+                      ),
+                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.black, size: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Text(
+                    'MY WORD BANK',
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Stats row
+            if (!learnedWordsAsync.isLoading)
+              _StatsRow(words: allWords),
+
+            const SizedBox(height: 16),
+
+            // Tab chips
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  for (int i = 0; i < tabs.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    _TabChip(
+                      label: tabs[i].label,
+                      count: tabs[i].count,
+                      isSelected: _selectedTab == i,
+                      onTap: () => setState(() => _selectedTab = i),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Content
+            Expanded(
+              child: learnedWordsAsync.isLoading && allWords.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : learnedWordsAsync.hasError && allWords.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Failed to load vocabulary',
+                                style: GoogleFonts.nunito(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.neutralText,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () => ref.invalidate(learnedWordsWithDetailsProvider),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _WordList(
+                          words: tabs[_selectedTab].words,
+                          emptyMessage: _selectedTab == 1
+                              ? 'No words due for review'
+                              : _selectedTab == 2
+                                  ? 'No scheduled reviews'
+                                  : 'No words learned yet',
+                        ),
+            ),
           ],
         ),
       ),
-      body: isLoading && allWords.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : hasError && allWords.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
-                      const SizedBox(height: 12),
-                      const Text('Failed to load vocabulary'),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => ref.invalidate(learnedWordsWithDetailsProvider),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                )
-              : Column(
-              children: [
-                // Stats Card
-                _LearnedStatsCard(words: allWords),
-
-                // Word Lists
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _WordListView(words: allWords),
-                      _WordListView(words: dueWords, emptyMessage: 'No words due for review'),
-                      _WordListView(words: scheduledWords, emptyMessage: 'No scheduled reviews'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
     );
   }
 }
 
-class _LearnedStatsCard extends StatelessWidget {
+class _TabData {
+  const _TabData(this.label, this.count, this.words);
+  final String label;
+  final int count;
+  final List<UserVocabularyItem> words;
+}
 
-  const _LearnedStatsCard({required this.words});
+// ─── Stats Row ───
+
+class _StatsRow extends StatelessWidget {
+  const _StatsRow({required this.words});
   final List<UserVocabularyItem> words;
 
   @override
@@ -118,60 +165,114 @@ class _LearnedStatsCard extends StatelessWidget {
     }).length;
     final dueNow = words.where((w) => w.progress?.isDueForReview ?? false).length;
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            context.colorScheme.primaryContainer,
-            context.colorScheme.primaryContainer.withValues(alpha: 0.7),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neutral, width: 2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _StatBadge(value: total, label: 'Total', color: AppColors.secondary),
+            _StatBadge(value: learning, label: 'Learning', color: AppColors.wasp),
+            _StatBadge(value: mastered, label: 'Mastered', color: AppColors.primary),
+            _StatBadge(value: dueNow, label: 'Due', color: AppColors.streakOrange),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          StatItem(
-            value: total.toString(),
-            label: 'Total',
-            icon: Icons.library_books,
-            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          StatItem(
-            value: learning.toString(),
-            label: 'Learning',
-            icon: Icons.trending_up,
-            color: Colors.blue,
-            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          StatItem(
-            value: mastered.toString(),
-            label: 'Mastered',
-            icon: Icons.star,
-            color: Colors.amber,
-            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          StatItem(
-            value: dueNow.toString(),
-            label: 'Due',
-            icon: Icons.schedule,
-            color: Colors.orange,
-            valueStyle: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-          ),
-        ],
       ),
     );
   }
 }
 
-class _WordListView extends StatelessWidget {
+class _StatBadge extends StatelessWidget {
+  const _StatBadge({required this.value, required this.label, required this.color});
+  final int value;
+  final String label;
+  final Color color;
 
-  const _WordListView({
-    required this.words,
-    this.emptyMessage = 'No words found',
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value.toString(),
+          style: GoogleFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.neutralText,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Tab Chip ───
+
+class _TabChip extends StatelessWidget {
+  const _TabChip({
+    required this.label,
+    required this.count,
+    required this.isSelected,
+    required this.onTap,
   });
+
+  final String label;
+  final int count;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.secondary : AppColors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.secondary : AppColors.neutral,
+            width: 2,
+          ),
+          boxShadow: [
+            if (!isSelected)
+              BoxShadow(
+                color: AppColors.neutral.withValues(alpha: 0.5),
+                offset: const Offset(0, 2),
+                blurRadius: 0,
+              ),
+          ],
+        ),
+        child: Text(
+          '$label ($count)',
+          style: GoogleFonts.nunito(
+            color: isSelected ? Colors.white : AppColors.neutralText,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Word List ───
+
+class _WordList extends StatelessWidget {
+  const _WordList({required this.words, required this.emptyMessage});
   final List<UserVocabularyItem> words;
   final String emptyMessage;
 
@@ -182,68 +283,119 @@ class _WordListView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, size: 64, color: context.colorScheme.outline),
-            const SizedBox(height: 16),
-            Text(emptyMessage, style: context.textTheme.bodyLarge),
+            Icon(Icons.inbox_outlined, size: 48, color: AppColors.neutral),
+            const SizedBox(height: 12),
+            Text(
+              emptyMessage,
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutralText,
+              ),
+            ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
       itemCount: words.length,
-      itemBuilder: (context, index) {
-        return _WordCard(item: words[index]);
-      },
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) => _WordCard(item: words[index]),
     );
   }
 }
 
-class _WordCard extends StatelessWidget {
+// ─── Word Card ───
 
+class _WordCard extends StatelessWidget {
   const _WordCard({required this.item});
   final UserVocabularyItem item;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: _StatusIndicator(status: item.status),
-        title: Text(
-          item.word.word,
-          style: const TextStyle(fontWeight: FontWeight.w600),
+    final (statusColor, statusIcon) = _statusVisual(item.status);
+
+    return GestureDetector(
+      onTap: () => _showWordDetail(context, item.word),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neutral, width: 2),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(item.word.meaningTR),
+            // Status circle
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(statusIcon, color: statusColor, size: 20),
+            ),
+            const SizedBox(width: 14),
+            // Word + meaning
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.word.word,
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  Text(
+                    item.word.meaningTR,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Review status
             if (item.progress?.nextReviewAt != null)
-              Text(
-                _formatNextReview(item.progress!.nextReviewAt!),
-                style: context.textTheme.bodySmall?.copyWith(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
                   color: item.progress!.isDueForReview
-                      ? Colors.orange.shade700
-                      : context.colorScheme.outline,
-                  fontWeight: item.progress!.isDueForReview
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+                      ? AppColors.streakOrange.withValues(alpha: 0.1)
+                      : AppColors.neutral.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _formatNextReview(item.progress!.nextReviewAt!),
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: item.progress!.isDueForReview
+                        ? AppColors.streakOrange
+                        : AppColors.neutralText,
+                  ),
                 ),
               ),
           ],
         ),
-        trailing: item.word.phonetic != null
-            ? Text(
-                item.word.phonetic!,
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: context.colorScheme.outline,
-                ),
-              )
-            : null,
-        onTap: () => _showWordDetail(context, item.word),
       ),
     );
+  }
+
+  (Color, IconData) _statusVisual(VocabularyStatus status) {
+    return switch (status) {
+      VocabularyStatus.newWord => (AppColors.neutral, Icons.fiber_new_rounded),
+      VocabularyStatus.learning => (AppColors.wasp, Icons.school_rounded),
+      VocabularyStatus.reviewing => (AppColors.secondary, Icons.refresh_rounded),
+      VocabularyStatus.mastered => (AppColors.primary, Icons.star_rounded),
+    };
   }
 
   String _formatNextReview(DateTime date) {
@@ -251,189 +403,181 @@ class _WordCard extends StatelessWidget {
     final reviewDay = DateTime(date.year, date.month, date.day);
     final diff = reviewDay.difference(today).inDays;
 
-    if (diff < 0) return 'Overdue (${-diff}d ago)';
+    if (diff < 0) return '${-diff}d overdue';
     if (diff == 0) return 'Due today';
-    if (diff == 1) return 'Due tomorrow';
-    return 'Review in $diff days (${date.month}/${date.day})';
+    if (diff == 1) return 'Tomorrow';
+    return 'In $diff days';
   }
 
   void _showWordDetail(BuildContext context, VocabularyWord word) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) => _WordDetailSheet(word: word),
     );
   }
 }
 
-class _StatusIndicator extends StatelessWidget {
-
-  const _StatusIndicator({required this.status});
-  final VocabularyStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final (color, icon) = switch (status) {
-      VocabularyStatus.newWord => (Colors.grey, Icons.fiber_new),
-      VocabularyStatus.learning => (Colors.orange, Icons.school),
-      VocabularyStatus.reviewing => (Colors.blue, Icons.refresh),
-      VocabularyStatus.mastered => (Colors.green, Icons.star),
-    };
-
-    return CircleAvatar(
-      radius: 18,
-      backgroundColor: color.withValues(alpha: 0.2),
-      child: Icon(icon, color: color, size: 20),
-    );
-  }
-}
+// ─── Word Detail Sheet ───
 
 class _WordDetailSheet extends StatelessWidget {
-
   const _WordDetailSheet({required this.word});
   final VocabularyWord word;
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.8,
-      expand: false,
-      builder: (context, scrollController) {
-        return SingleChildScrollView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.outline.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+    return Container(
+      margin: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: AppColors.neutral,
+                borderRadius: BorderRadius.circular(2),
               ),
-              const SizedBox(height: 24),
-
-              // Word
-              Text(
-                word.word,
-                style: context.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              if (word.phonetic != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  word.phonetic!,
-                  style: context.textTheme.bodyLarge?.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Turkish meaning
-              _DetailRow(
-                label: 'Turkish',
-                value: word.meaningTR,
-              ),
-
-              if (word.meaningEN != null)
-                _DetailRow(
-                  label: 'English',
-                  value: word.meaningEN!,
-                ),
-
-              if (word.exampleSentence != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'Example Sentence',
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: context.colorScheme.outline,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    word.exampleSentence!,
-                    style: context.textTheme.bodyLarge?.copyWith(
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
-              ],
-
-              if (word.level != null) ...[
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Chip(
-                      label: Text(word.level!),
-                      backgroundColor: context.colorScheme.primaryContainer,
-                    ),
-                    const SizedBox(width: 8),
-                    ...word.categories.map((cat) => Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Chip(
-                            label: Text(cat),
-                            backgroundColor: context.colorScheme.secondaryContainer,
-                          ),
-                        ),),
-                  ],
-                ),
-              ],
-            ],
+            ),
           ),
-        );
-      },
+          // Word
+          Text(
+            word.word,
+            style: GoogleFonts.nunito(
+              fontSize: 28,
+              fontWeight: FontWeight.w900,
+              color: AppColors.black,
+            ),
+          ),
+          if (word.phonetic != null)
+            Text(
+              word.phonetic!,
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                color: AppColors.neutralText,
+              ),
+            ),
+          const SizedBox(height: 16),
+          // Meaning
+          _DetailChip(label: 'Turkish', value: word.meaningTR),
+          if (word.meaningEN != null)
+            _DetailChip(label: 'English', value: word.meaningEN!),
+          // Example
+          if (word.exampleSentence != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.secondary.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Text(
+                word.exampleSentence!,
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic,
+                  color: AppColors.black,
+                ),
+              ),
+            ),
+          ],
+          // Tags
+          if (word.level != null || word.categories.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (word.level != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      word.level!,
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ...word.categories.map((cat) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.secondary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        cat,
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    )),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
 
-class _DetailRow extends StatelessWidget {
-
-  const _DetailRow({required this.label, required this.value});
+class _DetailChip extends StatelessWidget {
+  const _DetailChip({required this.label, required this.value});
   final String label;
   final String value;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 80,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.neutral.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Text(
               label,
-              style: context.textTheme.labelLarge?.copyWith(
-                color: context.colorScheme.outline,
+              style: GoogleFonts.nunito(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutralText,
               ),
             ),
           ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               value,
-              style: context.textTheme.bodyLarge,
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
+              ),
             ),
           ),
         ],

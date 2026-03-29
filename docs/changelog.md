@@ -8,6 +8,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Responsive Web Layout — Duolingo-Style (2026-03-29)
+
+#### Added
+- **Duolingo-style sidebar** — 250px sidebar with icon + text labels on screens ≥600px. Bottom nav preserved on mobile. Hover effect, always-colored icons, Boogaloo font.
+- **Right info panel** — 330px contextual panel on screens ≥1000px with stats bar, league card, daily quests. Route-aware: shows Open Pack card on Cards page, chapters + reader settings on Reader page.
+- **Reader font selection** — 5 Google Fonts options (Nunito, Open Sans, Merriweather, Lora, Literata) persisted to user profile. Dropdown shows each font in its own typeface.
+- **Reader right panel** — Audio controls, chapter list (with locked future chapters), inline reader settings (font, size, spacing, theme) replace default panel content during reading.
+- **Library responsive grid** — Books display as Wrap grid on wide screens with 2-row limit + "load more" button. Category chips wrap instead of horizontal scroll.
+- **Card Collection responsive grid** — Same 2-row + load more pattern. Gray gradient background removed.
+- **My Word Bank redesign** — Material UI replaced with Duolingo-style: custom header, chip tabs, card-based word list, status circles, review badges.
+
+#### Changed
+- **Navigation tab order** — Learning Path first, then Home, Library, Card Collection, Leaderboards.
+- **Tab labels** — Full names: "Learning Path", "Card Collection", "Leaderboards" (no abbreviations).
+- **Shell layout** — Content + right panel constrained together (max 1060px) and centered. Learning Path route exempt (full-width for terrain background).
+- **TopNavbar** — Auto-hides on ≥1000px (stats move to right panel).
+- **Routes moved inside shell** — Profile, Avatar Customize, Word Bank, Reader, Activity routes moved from root navigator into shell branches so sidebar remains visible.
+- **Pack price** — Card collection and right panel now read `packCost` from system settings (was hardcoded 100).
+- **Locked card dialog** — Shows card name + collection name + unlock hint (was generic "Locked Card").
+
+#### Infrastructure
+- **Learning Path Redesign spec** — `docs/superpowers/specs/2026-03-29-learning-path-redesign.md`: tile-based map system replacing current 2000+ line programmatic path.
+- **Learning Path Redesign plan** — `docs/superpowers/plans/2026-03-29-learning-path-redesign.md`: 11-task implementation plan with file structure, node system, responsive behavior.
+
 ### Active Node Indicator & Auto-Scroll (2026-03-29)
 
 #### Added

@@ -45,6 +45,18 @@ enum ReaderTheme {
 }
 
 /// Reader settings state
+/// Available reader font families.
+enum ReaderFont {
+  nunito('Nunito'),
+  openSans('Open Sans'),
+  merriweather('Merriweather'),
+  lora('Lora'),
+  literata('Literata');
+
+  const ReaderFont(this.displayName);
+  final String displayName;
+}
+
 class ReaderSettings {
 
   const ReaderSettings({
@@ -52,23 +64,27 @@ class ReaderSettings {
     this.lineHeight = 1.6,
     this.theme = ReaderTheme.light,
     this.showVocabularyHighlights = true,
+    this.font = ReaderFont.nunito,
   });
   final double fontSize;
   final double lineHeight;
   final ReaderTheme theme;
   final bool showVocabularyHighlights;
+  final ReaderFont font;
 
   ReaderSettings copyWith({
     double? fontSize,
     double? lineHeight,
     ReaderTheme? theme,
     bool? showVocabularyHighlights,
+    ReaderFont? font,
   }) {
     return ReaderSettings(
       fontSize: fontSize ?? this.fontSize,
       lineHeight: lineHeight ?? this.lineHeight,
       theme: theme ?? this.theme,
       showVocabularyHighlights: showVocabularyHighlights ?? this.showVocabularyHighlights,
+      font: font ?? this.font,
     );
   }
 }
@@ -91,6 +107,7 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
           lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
           theme: _parseTheme(readerSettings['theme'] as String?),
           showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
+          font: _parseFont(readerSettings['font'] as String?),
         );
       }
     }
@@ -120,6 +137,7 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
       'lineHeight': state.lineHeight,
       'theme': state.theme.name,
       'showVocabularyHighlights': state.showVocabularyHighlights,
+      'font': state.font.name,
     };
 
     final updateUserUseCase = _ref.read(updateUserUseCaseProvider);
@@ -146,6 +164,15 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
       showVocabularyHighlights: !state.showVocabularyHighlights,
     );
     _saveToProfile();
+  }
+
+  void setFont(ReaderFont font) {
+    state = state.copyWith(font: font);
+    _saveToProfile();
+  }
+
+  ReaderFont _parseFont(String? font) {
+    return ReaderFont.values.where((f) => f.name == font).firstOrNull ?? ReaderFont.nunito;
   }
 }
 

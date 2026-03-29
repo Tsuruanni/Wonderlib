@@ -71,7 +71,8 @@ class LearningPath extends ConsumerWidget {
   }
 
   Widget _buildPath(BuildContext context, WidgetRef ref, List<PathUnitData> units, {required bool canStartNewList}) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    // Cap path width to mobile size so nodes stay centered on wide screens
+    final screenWidth = MediaQuery.of(context).size.width.clamp(0.0, 500.0);
     final connectors = <Widget>[];
     final nodes = <Widget>[];
     int globalRowIndex = 0;
@@ -275,9 +276,11 @@ class LearningPath extends ConsumerWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: SizedBox(
-        height: y,
-        child: Stack(
+      child: Center(
+        child: SizedBox(
+          width: screenWidth,
+          height: y,
+          child: Stack(
           clipBehavior: Clip.none,
           children: [
             // Background Path
@@ -293,6 +296,7 @@ class LearningPath extends ConsumerWidget {
             // Nodes (Buttons, Banners, etc)
             ...nodes,
           ],
+        ),
         ),
       ),
     );

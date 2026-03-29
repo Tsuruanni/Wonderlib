@@ -17,11 +17,15 @@ import '../../providers/system_settings_provider.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
+import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/top_navbar.dart';
 
 // --- Providers ---
 
 final selectedCategoryProvider = StateProvider.autoDispose<String?>((ref) => null);
+
+/// Tracks which levels are expanded in the library grid (web only).
+final expandedLevelsProvider = StateProvider<Set<String>>((ref) => {});
 
 /// Returns books filtered by Search and Category (Genre).
 /// Grouping by Level happens in the UI.
@@ -112,7 +116,7 @@ class LibraryScreen extends ConsumerWidget {
   Widget _buildTopBar(WidgetRef ref, String? selectedCategory, List<String> categories, bool isSearchActive) {
     if (isSearchActive) {
       return Container(
-        margin: const EdgeInsets.fromLTRB(20, 24, 20, 12), // Increased top margin
+        margin: const EdgeInsets.fromLTRB(16, 24, 16, 12),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
@@ -138,6 +142,8 @@ class LibraryScreen extends ConsumerWidget {
                    hintText: 'Search books...',
                    hintStyle: GoogleFonts.nunito(color: AppColors.neutralText),
                    border: InputBorder.none,
+                   enabledBorder: InputBorder.none,
+                   focusedBorder: InputBorder.none,
                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
                  ),
                  onChanged: (val) => ref.read(librarySearchQueryProvider.notifier).state = val,
@@ -155,49 +161,65 @@ class LibraryScreen extends ConsumerWidget {
       );
     }
 
+    final isWide = MediaQuery.sizeOf(ref.context).width >= 600;
+
+    final chipItems = <Widget>[
+      // Search Button as first item
+      GestureDetector(
+         onTap: () => ref.read(isSearchActiveProvider.notifier).state = true,
+         child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.neutral, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neutral.withOpacity(0.5),
+                  offset: const Offset(0, 2),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Icon(Icons.search_rounded, color: AppColors.neutralText, size: 20),
+         ),
+      ),
+      _buildChip(
+        label: 'All',
+        isSelected: selectedCategory == null,
+        onTap: () => ref.read(selectedCategoryProvider.notifier).state = null,
+      ),
+      ...categories.map((category) => _buildChip(
+            label: category,
+            isSelected: selectedCategory == category,
+            onTap: () {
+              ref.read(selectedCategoryProvider.notifier).state =
+                  selectedCategory == category ? null : category;
+            },
+          )),
+    ];
+
+    if (isWide) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: chipItems,
+        ),
+      );
+    }
+
     return Container(
-      height: 48, // Slightly taller
-      margin: const EdgeInsets.fromLTRB(0, 24, 0, 12), // Increased top margin
+      height: 48,
+      margin: const EdgeInsets.fromLTRB(0, 24, 0, 12),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          // Search Button as first item
-          GestureDetector(
-             onTap: () => ref.read(isSearchActiveProvider.notifier).state = true,
-             child: Container(
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.white, 
-                  borderRadius: BorderRadius.circular(14), 
-                  border: Border.all(color: AppColors.neutral, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.neutral.withOpacity(0.5),
-                      offset: const Offset(0, 2),
-                      blurRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Icon(Icons.search_rounded, color: AppColors.neutralText, size: 20),
-             ),
-          ),
-          
-          _buildChip(
-            label: 'All',
-            isSelected: selectedCategory == null,
-            onTap: () => ref.read(selectedCategoryProvider.notifier).state = null,
-          ),
-          ...categories.map((category) => _buildChip(
-                label: category,
-                isSelected: selectedCategory == category,
-                onTap: () {
-                  ref.read(selectedCategoryProvider.notifier).state =
-                      selectedCategory == category ? null : category;
-                },
-              )),
-        ],
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: chipItems.map((chip) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: chip,
+        )).toList(),
       ),
     );
   }
@@ -206,7 +228,6 @@ class LibraryScreen extends ConsumerWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.secondary : AppColors.white,
@@ -224,14 +245,12 @@ class LibraryScreen extends ConsumerWidget {
             ),
           ],
         ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.nunito(
-              color: isSelected ? Colors.white : AppColors.neutralText,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+        child: Text(
+          label,
+          style: GoogleFonts.nunito(
+            color: isSelected ? Colors.white : AppColors.neutralText,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
           ),
         ),
       ),
@@ -318,14 +337,18 @@ class _LibraryShelf extends ConsumerWidget {
 
   const _LibraryShelf({required this.level, required this.books});
 
+  static const _bookWidth = 140.0;
+  static const _bookHeight = 240.0;
+  static const _spacing = 16.0;
+
   Color _getLevelColor(String level) {
     switch (level.toUpperCase()) {
-      case 'A1': return AppColors.primary;       // Green
-      case 'A2': return AppColors.secondary;     // Blue
-      case 'B1': return AppColors.wasp;          // Yellow
-      case 'B2': return AppColors.streakOrange;  // Orange
-      case 'C1': return AppColors.cardEpic;      // Purple
-      case 'C2': return AppColors.danger;        // Red
+      case 'A1': return AppColors.primary;
+      case 'A2': return AppColors.secondary;
+      case 'B1': return AppColors.wasp;
+      case 'B2': return AppColors.streakOrange;
+      case 'C1': return AppColors.cardEpic;
+      case 'C2': return AppColors.danger;
       default: return AppColors.neutralText;
     }
   }
@@ -338,7 +361,6 @@ class _LibraryShelf extends ConsumerWidget {
     final completedCount = realBooks.where((b) => completedIds.contains(b.id)).length;
     final progress = realBooks.isEmpty ? 0.0 : completedCount / realBooks.length;
 
-    // Sort: completed books go to the end
     final sortedBooks = [...books]
       ..sort((a, b) {
         final aCompleted = completedIds.contains(a.id) ? 1 : 0;
@@ -346,15 +368,18 @@ class _LibraryShelf extends ConsumerWidget {
         return aCompleted.compareTo(bCompleted);
       });
 
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final expandedLevels = ref.watch(expandedLevelsProvider);
+    final isExpanded = expandedLevels.contains(level);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Section Header
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 8), // Adjusted vertical padding
+          padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
           child: Row(
             children: [
-              // Icon - using a generic book icon or could use level letter icon
               Container(
                  padding: const EdgeInsets.all(8),
                  decoration: BoxDecoration(
@@ -392,10 +417,10 @@ class _LibraryShelf extends ConsumerWidget {
             ],
           ),
         ),
-        
+
         // Progress Bar Line
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
@@ -406,22 +431,122 @@ class _LibraryShelf extends ConsumerWidget {
             ),
           ),
         ),
-        
-        const SizedBox(height: 16), // Space between line and books
 
-        SizedBox(
-          height: 240, // Height for book cards
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            itemCount: sortedBooks.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 16),
-            itemBuilder: (context, index) {
-              return _BookShelfItem(book: sortedBooks[index]);
-            },
+        const SizedBox(height: 16),
+
+        // Books: horizontal scroll on mobile, collapsible grid on wide
+        if (isWide)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final itemsPerRow = ((constraints.maxWidth + _spacing) / (_bookWidth + _spacing)).floor().clamp(1, 20);
+                final maxVisible = itemsPerRow * 2;
+                final hasMore = sortedBooks.length > maxVisible && !isExpanded;
+                final visibleCount = hasMore ? maxVisible - 1 : sortedBooks.length;
+
+                return Wrap(
+                  spacing: _spacing,
+                  runSpacing: _spacing,
+                  children: [
+                    for (int i = 0; i < visibleCount; i++)
+                      SizedBox(
+                        width: _bookWidth,
+                        height: _bookHeight,
+                        child: _BookShelfItem(book: sortedBooks[i]),
+                      ),
+                    if (hasMore)
+                      _LoadMoreButton(
+                        remaining: sortedBooks.length - visibleCount,
+                        color: color,
+                        onTap: () {
+                          ref.read(expandedLevelsProvider.notifier).state = {
+                            ...expandedLevels,
+                            level,
+                          };
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
+          )
+        else
+          SizedBox(
+            height: _bookHeight,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: sortedBooks.length,
+              separatorBuilder: (_, __) => const SizedBox(width: _spacing),
+              itemBuilder: (context, index) {
+                return SizedBox(
+                  width: _bookWidth,
+                  child: _BookShelfItem(book: sortedBooks[index]),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({
+    required this.remaining,
+    required this.color,
+    required this.onTap,
+  });
+
+  final int remaining;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 140,
+        height: 240,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+              width: 2,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.expand_more_rounded,
+                  color: color,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '+$remaining more',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -470,7 +595,6 @@ class _BookShelfItem extends ConsumerWidget {
         }
       },
       child: Container(
-        width: 140,
         margin: const EdgeInsets.only(bottom: 10), // For shadow
         decoration: BoxDecoration(
           color: AppColors.white,
@@ -635,7 +759,6 @@ class _MockBookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 140,
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -752,7 +875,7 @@ class _LockedLibraryBanner extends ConsumerWidget {
         
         return Container(
           width: double.infinity,
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.danger.withValues(alpha: 0.1),

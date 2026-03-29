@@ -266,33 +266,7 @@ GoRouter _createRouter() {
           return MainShellScaffold(navigationShell: navigationShell);
         },
         branches: [
-          StatefulShellBranch(
-            navigatorKey: _studentHomeKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _studentLibraryKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.library,
-                builder: (context, state) => const LibraryScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'book/:bookId',
-                    builder: (context, state) {
-                      final bookId = state.pathParameters['bookId']!;
-                      return BookDetailScreen(bookId: bookId);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
+          // Branch 0: Learning Path (Vocab)
           StatefulShellBranch(
             navigatorKey: _studentVocabKey,
             routes: [
@@ -340,6 +314,63 @@ GoRouter _createRouter() {
               ),
             ],
           ),
+          // Branch 1: Home
+          StatefulShellBranch(
+            navigatorKey: _studentHomeKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HomeScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.avatarCustomize,
+                builder: (context, state) => const AvatarCustomizeScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.wordBank,
+                builder: (context, state) => const VocabularyScreen(),
+              ),
+            ],
+          ),
+          // Branch 2: Library
+          StatefulShellBranch(
+            navigatorKey: _studentLibraryKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.library,
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'book/:bookId',
+                    builder: (context, state) {
+                      final bookId = state.pathParameters['bookId']!;
+                      return BookDetailScreen(bookId: bookId);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.reader,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ReaderScreen(bookId: bookId, chapterId: chapterId);
+                },
+              ),
+              GoRoute(
+                path: AppRoutes.activity,
+                builder: (context, state) {
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ActivityScreen(chapterId: chapterId);
+                },
+              ),
+            ],
+          ),
+          // Branch 3: Card Collection
           StatefulShellBranch(
             navigatorKey: _studentCardsKey,
             routes: [
@@ -349,6 +380,7 @@ GoRouter _createRouter() {
               ),
             ],
           ),
+          // Branch 4: Leaderboards
           StatefulShellBranch(
             navigatorKey: _studentLeaderboardKey,
             routes: [
@@ -378,12 +410,7 @@ GoRouter _createRouter() {
         },
       ),
 
-      // Profile (standalone, accessed from home avatar)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
+      // Profile moved inside Home branch to keep shell visible on wide screens
 
       // Downloaded books management (accessed from profile)
       GoRoute(
@@ -392,12 +419,7 @@ GoRouter _createRouter() {
         builder: (context, state) => const DownloadedBooksScreen(),
       ),
 
-      // Avatar customization (accessed from profile)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.avatarCustomize,
-        builder: (context, state) => const AvatarCustomizeScreen(),
-      ),
+      // Avatar customization moved inside Home branch to keep shell visible
 
       // Teacher Shell — top-level StatefulShellRoute (same pattern as student shell)
       // Each branch uses full paths for proper goBranch() navigation
@@ -512,12 +534,7 @@ GoRouter _createRouter() {
         ],
       ),
 
-      // Standalone routes
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.wordBank,
-        builder: (context, state) => const VocabularyScreen(),
-      ),
+      // Word Bank moved inside Home branch to keep shell visible
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.studentAssignments,
@@ -531,23 +548,7 @@ GoRouter _createRouter() {
           return StudentAssignmentDetailScreen(assignmentId: assignmentId);
         },
       ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.reader,
-        builder: (context, state) {
-          final bookId = state.pathParameters['bookId']!;
-          final chapterId = state.pathParameters['chapterId']!;
-          return ReaderScreen(bookId: bookId, chapterId: chapterId);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.activity,
-        builder: (context, state) {
-          final chapterId = state.pathParameters['chapterId']!;
-          return ActivityScreen(chapterId: chapterId);
-        },
-      ),
+      // Reader & Activity moved inside Library branch to keep shell visible
       // teacherClassDetail and teacherStudentDetail moved inside teacher shell branch
       // teacherCreateAssignment moved inside teacher shell branch
       // teacherAssignmentDetail moved inside teacher shell branch

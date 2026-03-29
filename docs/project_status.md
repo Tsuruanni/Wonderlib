@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-29 (Active node START bubble, auto-scroll, book completion XP fix)
+Son güncelleme: 2026-03-29 (Responsive web layout — Duolingo-style sidebar, right panel, library/cards/word bank redesign)
 
 ## Current Phase
 
@@ -145,6 +145,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Mock Library Mode (150 hardcoded demo books, admin toggle, frosted lock cards, Demo badge on real books)
 - [x] Auto Book Stats Trigger (word_count + estimated_minutes + chapter_count auto-recalculated from chapters on INSERT/UPDATE/DELETE)
 - [x] Active Node Indicator (Duolingo-style START bubble + auto-scroll to active node on screen open)
+- [x] Responsive Web Layout (Duolingo-style sidebar + right info panel + library/cards/word bank grid redesign)
+- [ ] Learning Path Redesign (tile-based map system — spec + plan done, implementation pending)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -155,6 +157,8 @@ See: CLAUDE.md for architecture guidelines
 |------|----------|--------|-------|
 | ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
 | ~~Teacher Panel Audit~~ | - | ~~Done~~ | ~~15 migrations, security fixes, class management redesign~~ |
+| Responsive Web Layout | - | In Progress | Sidebar + right panel done. Remaining: home, leaderboard, assignments, quiz, daily review screens |
+| Learning Path Redesign | - | Planned | Spec + plan written. Tile-based map system, 11 tasks. Pending asset generation. |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
