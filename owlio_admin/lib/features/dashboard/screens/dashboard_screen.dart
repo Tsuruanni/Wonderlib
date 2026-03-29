@@ -196,6 +196,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/vocabulary'),
                   ),
                   _DashboardCard(
+                    icon: Icons.grid_view_rounded,
+                    title: 'Üniteler',
+                    description: 'Kelime üniteleri ve tile tema atamaları',
+                    color: const Color(0xFF7C3AED),
+                    onTap: () => context.go('/units'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.route,
                     title: 'Öğrenme Yolları',
                     description: 'Şablonlar ve okul/sınıf atamaları',
