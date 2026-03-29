@@ -248,6 +248,7 @@ class NotificationCard extends StatefulWidget {
         subtitle: badge.badgeName,
         subtitleColor: AppColors.gray500,
         body: _XpChip(xp: badge.xpReward),
+        buttonColor: AppColors.wasp,
         onDismiss: onDismiss,
       );
     }
@@ -255,6 +256,7 @@ class NotificationCard extends StatefulWidget {
     return NotificationCard(
       icon: '🏅',
       title: '${badges.length} New Badges!',
+      buttonColor: AppColors.wasp,
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: badges

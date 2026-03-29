@@ -28,6 +28,7 @@ class NotificationEntry {
   });
 
   final NotificationType type;
+
   /// Payload stored for introspection (e.g. checking if a type is already shown).
   final Object? data;
   final OverlayEntry overlayEntry;
@@ -45,6 +46,7 @@ class NotificationOverlayManager {
       NotificationOverlayManager._();
 
   final List<NotificationEntry> _active = [];
+  final Set<NotificationEntry> _dismissing = {};
   OverlayEntry? _barrierEntry;
 
   static const int _maxVisible = 3;
@@ -77,9 +79,11 @@ class NotificationOverlayManager {
         if (index == -1) return const SizedBox.shrink();
 
         final depth = _active.length - 1 - index;
+        final isDismissing = _dismissing.contains(entry);
 
         return _CascadeCard(
           depth: depth,
+          isDismissing: isDismissing,
           child: cardBuilder(() => dismiss(entry)),
         );
       },
@@ -99,19 +103,28 @@ class NotificationOverlayManager {
     _rebuildAll();
   }
 
-  /// Remove a specific notification entry.
+  /// Dismiss with exit animation (200ms), then remove.
   void dismiss(NotificationEntry entry) {
     if (!_active.contains(entry)) return;
+    if (_dismissing.contains(entry)) return;
 
-    entry.overlayEntry.remove();
-    _active.remove(entry);
-    entry.onDismiss?.call();
+    _dismissing.add(entry);
+    _rebuildAll();
 
-    if (_active.isEmpty) {
-      _removeBarrier();
-    } else {
-      _rebuildAll();
-    }
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _dismissing.remove(entry);
+      if (!_active.contains(entry)) return;
+
+      entry.overlayEntry.remove();
+      _active.remove(entry);
+      entry.onDismiss?.call();
+
+      if (_active.isEmpty) {
+        _removeBarrier();
+      } else {
+        _rebuildAll();
+      }
+    });
   }
 
   /// Remove the topmost (most recently added) notification.
@@ -120,13 +133,14 @@ class NotificationOverlayManager {
     dismiss(_active.last);
   }
 
-  /// Remove all active notifications.
+  /// Remove all active notifications instantly (no animation).
   void dismissAll() {
     for (final entry in [..._active]) {
       entry.overlayEntry.remove();
       entry.onDismiss?.call();
     }
     _active.clear();
+    _dismissing.clear();
     _removeBarrier();
   }
 
@@ -155,7 +169,7 @@ class NotificationOverlayManager {
 }
 
 // ---------------------------------------------------------------------------
-// Semi-transparent backdrop behind the card stack
+// Semi-transparent backdrop behind the card stack (fades in)
 // ---------------------------------------------------------------------------
 
 class _NotificationBarrier extends StatelessWidget {
@@ -166,10 +180,14 @@ class _NotificationBarrier extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: GestureDetector(
-        onTap: onTap,
-        child: ColoredBox(
-          color: Colors.black.withValues(alpha: 0.4),
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 200),
+        builder: (context, opacity, _) => GestureDetector(
+          onTap: onTap,
+          child: ColoredBox(
+            color: Colors.black.withValues(alpha: 0.4 * opacity),
+          ),
         ),
       ),
     );
@@ -177,34 +195,51 @@ class _NotificationBarrier extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Depth-based cascade positioning wrapper
+// Depth-based cascade positioning with implicit animations
 // ---------------------------------------------------------------------------
 
 class _CascadeCard extends StatelessWidget {
   const _CascadeCard({
     required this.depth,
+    required this.isDismissing,
     required this.child,
   });
 
   final int depth;
+  final bool isDismissing;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    // Cards beyond _maxVisible are hidden
-    if (depth >= NotificationOverlayManager._maxVisible) {
+    // Cards beyond max visible are hidden (unless dismissing)
+    if (depth >= NotificationOverlayManager._maxVisible && !isDismissing) {
       return const SizedBox.shrink();
     }
 
-    final scale = 1.0 - depth * 0.05; // 1.0, 0.95, 0.90
-    final translateY = -20.0 * depth; // 0, -20, -40
+    final scale = isDismissing ? 0.8 : (1.0 - depth * 0.05);
+    final translateY = isDismissing ? 0.0 : (-20.0 * depth);
+    final opacity = isDismissing ? 0.0 : 1.0;
+    final duration = isDismissing
+        ? const Duration(milliseconds: 200)
+        : const Duration(milliseconds: 300);
+    final curve = isDismissing ? Curves.easeIn : Curves.easeOut;
 
     return Positioned.fill(
       child: Center(
-        child: Transform.translate(
-          offset: Offset(0, translateY),
-          child: Transform.scale(
-            scale: scale,
+        child: AnimatedOpacity(
+          opacity: opacity,
+          duration: duration,
+          curve: curve,
+          child: AnimatedContainer(
+            duration: duration,
+            curve: curve,
+            // ignore: deprecated_member_use
+            transform: Matrix4.identity()
+              // ignore: deprecated_member_use
+              ..translate(0.0, translateY)
+              // ignore: deprecated_member_use
+              ..scale(scale, scale),
+            transformAlignment: Alignment.center,
             child: child,
           ),
         ),
