@@ -791,7 +791,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
 // Word card with inline quick edit
 // ---------------------------------------------------------------------------
 
-class _WordCard extends StatefulWidget {
+class _WordCard extends ConsumerStatefulWidget {
   const _WordCard({
     super.key,
     required this.word,
@@ -814,20 +814,22 @@ class _WordCard extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_WordCard> createState() => _WordCardState();
+  ConsumerState<_WordCard> createState() => _WordCardState();
 }
 
-class _WordCardState extends State<_WordCard> {
+class _WordCardState extends ConsumerState<_WordCard> {
   bool _isEditing = false;
   late final TextEditingController _meaningTrController;
   late final TextEditingController _meaningEnController;
   late final TextEditingController _exampleController;
   bool _isSaving = false;
+  int _versionCount = 0;
 
   @override
   void initState() {
     super.initState();
     _initControllers();
+    _loadVersionCount();
   }
 
   void _initControllers() {
@@ -845,6 +847,19 @@ class _WordCardState extends State<_WordCard> {
     );
   }
 
+  Future<void> _loadVersionCount() async {
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final result = await supabase.storage
+          .from('word-images')
+          .list(path: 'words/${widget.word['id']}');
+      final count = result
+          .where((f) => f.name.endsWith('.png') || f.name.endsWith('.jpg'))
+          .length;
+      if (mounted) setState(() => _versionCount = count);
+    } catch (_) {}
+  }
+
   @override
   void didUpdateWidget(covariant _WordCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -858,6 +873,7 @@ class _WordCardState extends State<_WordCard> {
           ? examples.first as String
           : '';
       _isEditing = false;
+      _loadVersionCount();
     }
   }
 
@@ -909,7 +925,10 @@ class _WordCardState extends State<_WordCard> {
         currentImageUrl: widget.word['image_url'] as String?,
         onSelect: (url) async {
           await widget.onSaveField('image_url', url);
-          if (mounted) setState(() {});
+          if (mounted) {
+            setState(() {});
+            _loadVersionCount();
+          }
         },
       ),
     );
@@ -935,29 +954,26 @@ class _WordCardState extends State<_WordCard> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Image area (tap to see versions)
+            // Image area
             Stack(
               children: [
-                GestureDetector(
-                  onTap: _showImageVersions,
-                  child: Container(
-                    height: 160,
-                    color: Colors.grey.shade100,
-                    width: double.infinity,
-                    child: hasImage
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Center(
-                              child: Icon(Icons.broken_image_outlined,
-                                  color: Colors.grey.shade400, size: 40),
-                            ),
-                          )
-                        : Center(
-                            child: Icon(Icons.image_outlined,
-                                color: Colors.grey.shade300, size: 48),
+                Container(
+                  height: 160,
+                  color: Colors.grey.shade100,
+                  width: double.infinity,
+                  child: hasImage
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(Icons.broken_image_outlined,
+                                color: Colors.grey.shade400, size: 40),
                           ),
-                  ),
+                        )
+                      : Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.grey.shade300, size: 48),
+                        ),
                 ),
                 // Index badge
                 Positioned(
@@ -1106,7 +1122,31 @@ class _WordCardState extends State<_WordCard> {
                         ),
                       ),
                     const SizedBox(height: 6),
-                    // Action row
+                    // Version count + action row
+                    if (_versionCount > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: InkWell(
+                          onTap: _showImageVersions,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.photo_library_outlined,
+                                  size: 13,
+                                  color: const Color(0xFF4F46E5)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$_versionCount versiyon',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF4F46E5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     Row(
                       children: [
                         InkWell(
