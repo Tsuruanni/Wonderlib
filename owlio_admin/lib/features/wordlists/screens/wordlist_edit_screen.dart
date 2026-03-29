@@ -223,8 +223,11 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   Future<void> _showImageGenerationDialog() async {
     final promptController = TextEditingController(
       text:
-          'Generate a 2x3 grid image for a children\'s English learning app. '
-          'Each cell shows the word clearly with a simple illustration.',
+          'A 2x3 grid of 6 separate illustrations for a children\'s '
+          'English learning app. Each cell contains exactly one object/concept '
+          'illustration, clearly separated with visible borders. '
+          'All cells are equal size. White background for each cell. '
+          'No text or labels inside the cells.',
     );
     var selectedStyle = 'flat';
 
@@ -265,7 +268,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                       _styleChip('realistic', 'Realistic', selectedStyle, (v) {
                         setDialogState(() => selectedStyle = v);
                       }),
-                      _styleChip('pixel', 'Pixel', selectedStyle, (v) {
+                      _styleChip('pixel', 'Pixel Art', selectedStyle, (v) {
                         setDialogState(() => selectedStyle = v);
                       }),
                     ],
@@ -393,6 +396,10 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       selected: isSelected,
       onSelected: (_) => onSelected(value),
       selectedColor: const Color(0xFF4F46E5).withValues(alpha: 0.15),
+      labelStyle: TextStyle(
+        color: isSelected ? const Color(0xFF4F46E5) : null,
+        fontWeight: isSelected ? FontWeight.w600 : null,
+      ),
     );
   }
 
