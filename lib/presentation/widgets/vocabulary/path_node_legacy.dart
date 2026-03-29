@@ -11,7 +11,7 @@ import '../../../domain/entities/system_settings.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
-import 'path_special_nodes.dart' show pathNodeLabelStyle, StartBubble;
+import 'path_special_nodes_legacy.dart' show pathNodeLabelStyle, StartBubble;
 import '../common/pressable_scale.dart';
 
 /// Controls whether the text label appears to the left or to the right of the node circle.

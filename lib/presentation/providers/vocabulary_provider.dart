@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../widgets/learning_path/tile_themes.dart';
+
 import '../../domain/entities/book.dart';
 import '../../domain/entities/daily_review_session.dart';
 import '../../domain/entities/learning_path.dart';
@@ -45,19 +47,15 @@ import 'user_provider.dart';
 // ============================================
 
 /// Y position of the active (current) node in the learning path.
-/// Derived from learningPathProvider — mirrors the layout math in LearningPath._buildPath.
+/// Mirrors tile-based layout: each unit = kDividerHeight + kTileHeight.
+/// Node Y within tile = nodePosition.dy * kTileHeight.
 final activeNodeYProvider = Provider<double?>((ref) {
   final pathUnits = ref.watch(learningPathProvider).valueOrNull;
   if (pathUnits == null || pathUnits.isEmpty) return null;
 
-  var y = 0.0;
-
   for (int unitIdx = 0; unitIdx < pathUnits.length; unitIdx++) {
     final unit = pathUnits[unitIdx];
     final isUnitLocked = unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
-
-    if (unitIdx > 0) y += 36; // connector before banner
-    y += 56; // unit banner
 
     final locks = calculateLocks(
       items: unit.items,
@@ -66,23 +64,18 @@ final activeNodeYProvider = Provider<double?>((ref) {
       isUnitLocked: isUnitLocked,
     );
 
+    final theme = tileThemeForUnit(unitIdx);
+
     for (int itemIdx = 0; itemIdx < unit.items.length; itemIdx++) {
       final item = unit.items[itemIdx];
       final isItemLocked = locks[itemIdx];
 
       // First unlocked + incomplete non-DR node is active
       if (!isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
-        return y + 36 + 40; // connector + half node
+        if (itemIdx >= theme.nodePositions.length) continue;
+        final tileTop = unitIdx * (kDividerHeight + kTileHeight) + kDividerHeight;
+        return tileTop + theme.nodePositions[itemIdx].dy * kTileHeight;
       }
-
-      y += 36; // connector
-
-      // Daily review: active if not completed
-      if (item is PathDailyReviewItem && !item.isCompleted) {
-        return y + 40; // half node
-      }
-
-      y += 80; // node
     }
   }
 

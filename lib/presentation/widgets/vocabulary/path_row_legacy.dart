@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../providers/vocabulary_provider.dart';
-import 'path_node.dart';
+import 'path_node_legacy.dart';
 
 /// Positions a single PathNode in a zigzag pattern with a side label.
 class PathRow extends StatelessWidget {
