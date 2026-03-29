@@ -244,38 +244,29 @@ class _SpecialNodeCircle extends StatelessWidget {
       ),
     );
 
-    final showArrow = isActive && !isLocked && !isComplete;
-
-    final rowChildren = isLeftLabel
-        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
-        : [nodeContainer, const SizedBox(width: 70), labelWidget];
-
-    final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
-
-    Widget rowWidget = SizedBox(
-      width: 286,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: rowChildren,
-      ),
-    );
-
-    // Overlay arrow outside the Row so it doesn't affect 286px layout
-    if (showArrow) {
-      rowWidget = Stack(
+    // Wrap node in Stack for START bubble when active
+    final showBubble = isActive && !isLocked && !isComplete;
+    Widget nodeWithBubble = nodeContainer;
+    if (showBubble) {
+      nodeWithBubble = Stack(
         clipBehavior: Clip.none,
         children: [
-          rowWidget,
-          Positioned(
-            top: 28, // vertically center with 56px node circle
-            left: isLeftLabel ? null : -36,
-            right: isLeftLabel ? -36 : null,
-            child: _AnimatedArrow(pointsLeft: isLeftLabel),
+          nodeContainer,
+          const Positioned(
+            top: -40,
+            left: -10,
+            right: -10,
+            child: Center(child: StartBubble()),
           ),
         ],
       );
     }
+
+    final rowChildren = isLeftLabel
+        ? [labelWidget, const SizedBox(width: 70), nodeWithBubble]
+        : [nodeWithBubble, const SizedBox(width: 70), labelWidget];
+
+    final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
 
     return PressableScale(
       onTap: onTap,
@@ -287,7 +278,14 @@ class _SpecialNodeCircle extends StatelessWidget {
             Positioned(
               left: leftEdge,
               top: 0,
-              child: rowWidget,
+              child: SizedBox(
+                width: 286,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: rowChildren,
+                ),
+              ),
             ),
           ],
         ),
@@ -334,18 +332,15 @@ class _BounceWrapperState extends State<_BounceWrapper>
   }
 }
 
-/// Animated arrow that translates rhythmically toward the node.
-class _AnimatedArrow extends StatefulWidget {
-  const _AnimatedArrow({required this.pointsLeft});
-
-  /// If true, arrow points left (toward a node on its left). If false, points right.
-  final bool pointsLeft;
+/// Duolingo-style "START" speech bubble that bounces vertically above the active node.
+class StartBubble extends StatefulWidget {
+  const StartBubble({super.key});
 
   @override
-  State<_AnimatedArrow> createState() => _AnimatedArrowState();
+  State<StartBubble> createState() => _StartBubbleState();
 }
 
-class _AnimatedArrowState extends State<_AnimatedArrow>
+class _StartBubbleState extends State<StartBubble>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -355,7 +350,7 @@ class _AnimatedArrowState extends State<_AnimatedArrow>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 800),
     )..repeat(reverse: true);
     _animation = Tween<double>(begin: 0.0, end: 6.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -370,26 +365,80 @@ class _AnimatedArrowState extends State<_AnimatedArrow>
 
   @override
   Widget build(BuildContext context) {
-    final translateSign = widget.pointsLeft ? -1.0 : 1.0;
-    final flipX = widget.pointsLeft ? -1.0 : 1.0;
-
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) => Transform.translate(
-        offset: Offset(_animation.value * translateSign, 0),
+        offset: Offset(0, -_animation.value),
         child: child,
       ),
-      child: Transform.scale(
-        scaleX: flipX,
-        scaleY: 1.0,
-        child: Icon(
-          Icons.double_arrow_rounded,
-          size: 24,
-          color: AppColors.primary.withValues(alpha: 0.9),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Speech bubble
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.neutral, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neutralDark.withValues(alpha: 0.5),
+                  offset: const Offset(0, 3),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Text(
+              'START',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: AppColors.primary,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ),
+          // Triangle pointer
+          CustomPaint(
+            size: const Size(14, 8),
+            painter: _TrianglePainter(),
+          ),
+        ],
       ),
     );
   }
+}
+
+/// Draws a small downward-pointing triangle for the speech bubble tail.
+class _TrianglePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    final border = Paint()
+      ..color = AppColors.neutral
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0)
+      ..close();
+
+    canvas.drawPath(path, paint);
+    // Draw only left and right edges (not top, which is flush with bubble)
+    final edgePath = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..lineTo(size.width, 0);
+    canvas.drawPath(edgePath, border);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 // ============================================================
@@ -613,37 +662,29 @@ class PathTreasureNode extends StatelessWidget {
       ),
     );
 
-    final showArrow = isActive && !isLocked && !isUnitComplete;
-
-    final rowChildren = isLeftLabel
-        ? [labelWidget, const SizedBox(width: 70), nodeContainer]
-        : [nodeContainer, const SizedBox(width: 70), labelWidget];
-
-    final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
-
-    Widget rowWidget = SizedBox(
-      width: 286,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: rowChildren,
-      ),
-    );
-
-    if (showArrow) {
-      rowWidget = Stack(
+    // Wrap node in Stack for START bubble when active
+    final showBubble = isActive && !isLocked && !isUnitComplete;
+    Widget nodeWithBubble = nodeContainer;
+    if (showBubble) {
+      nodeWithBubble = Stack(
         clipBehavior: Clip.none,
         children: [
-          rowWidget,
-          Positioned(
-            top: 28,
-            left: isLeftLabel ? null : -36,
-            right: isLeftLabel ? -36 : null,
-            child: _AnimatedArrow(pointsLeft: isLeftLabel),
+          nodeContainer,
+          const Positioned(
+            top: -40,
+            left: -10,
+            right: -10,
+            child: Center(child: StartBubble()),
           ),
         ],
       );
     }
+
+    final rowChildren = isLeftLabel
+        ? [labelWidget, const SizedBox(width: 70), nodeWithBubble]
+        : [nodeWithBubble, const SizedBox(width: 70), labelWidget];
+
+    final leftEdge = _rowLeftEdge(screenWidth, globalRowIndex, isLeftLabel);
 
     return PressableScale(
       onTap: () {
@@ -664,7 +705,14 @@ class PathTreasureNode extends StatelessWidget {
             Positioned(
               left: leftEdge,
               top: 0,
-              child: rowWidget,
+              child: SizedBox(
+                width: 286,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: rowChildren,
+                ),
+              ),
             ),
           ],
         ),

@@ -11,7 +11,7 @@ import '../../../domain/entities/system_settings.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
-import 'path_special_nodes.dart' show pathNodeLabelStyle;
+import 'path_special_nodes.dart' show pathNodeLabelStyle, StartBubble;
 import '../common/pressable_scale.dart';
 
 /// Controls whether the text label appears to the left or to the right of the node circle.
@@ -44,21 +44,15 @@ class PathNode extends ConsumerStatefulWidget {
 }
 
 class _PathNodeState extends ConsumerState<PathNode>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   AnimationController? _bounceController;
   late Animation<double> _bounceAnimation;
-
-  AnimationController? _arrowController;
-  late Animation<double> _arrowAnimation;
-
-
 
   @override
   void didUpdateWidget(PathNode oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isActive != widget.isActive) {
       _setupBounce();
-      _setupArrow();
     }
   }
 
@@ -82,27 +76,9 @@ class _PathNodeState extends ConsumerState<PathNode>
     }
   }
 
-  void _setupArrow() {
-    if (widget.isActive && !widget.isLocked) {
-      _arrowController ??= AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 900),
-      );
-      _arrowAnimation = Tween<double>(begin: 0.0, end: 6.0).animate(
-        CurvedAnimation(parent: _arrowController!, curve: Curves.easeInOut),
-      );
-      _arrowController!.repeat(reverse: true);
-    } else {
-      _arrowController?.stop();
-      _arrowController?.dispose();
-      _arrowController = null;
-    }
-  }
-
   @override
   void dispose() {
     _bounceController?.dispose();
-    _arrowController?.dispose();
     super.dispose();
   }
 
@@ -459,41 +435,17 @@ class _PathNodeState extends ConsumerState<PathNode>
         ? [labelWidget, const SizedBox(width: 70), nodeWidget]
         : [nodeWidget, const SizedBox(width: 70), labelWidget];
 
-    final arrowWidget = _buildArrowIndicator();
-
-    Widget content = SizedBox(
-      width: 286, // 140 + 70 + 76
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: rowChildren,
-      ),
-    );
-
-    // Overlay arrow outside the Row so it doesn't affect 286px layout
-    if (arrowWidget != null) {
-      content = Stack(
-        clipBehavior: Clip.none,
-        children: [
-          content,
-          Positioned(
-            // Arrow on opposite side of label, 12px from node edge
-            // Node is 76px wide. When label is left: node is at right edge (x=210..286),
-            // arrow goes to the right of node. When label is right: node is at left (x=0..76),
-            // arrow goes to the left of node.
-            top: 28, // vertically center with node circle (half of 56px node)
-            left: isLeft ? null : -36, // 24 icon + 12 gap
-            right: isLeft ? -36 : null,
-            child: arrowWidget,
-          ),
-        ],
-      );
-    }
-
     return PressableScale(
       pressedScale: 0.92,
       onTap: () => _handleTap(context),
-      child: content,
+      child: SizedBox(
+        width: 286, // 140 + 70 + 76
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: rowChildren,
+        ),
+      ),
     );
   }
 
@@ -503,7 +455,6 @@ class _PathNodeState extends ConsumerState<PathNode>
   void initState() {
     super.initState();
     _setupBounce();
-    _setupArrow();
 
     // Calculate random rotation once on init
     final seed = widget.wordListWithProgress.wordList.id.hashCode;
@@ -607,6 +558,14 @@ class _PathNodeState extends ConsumerState<PathNode>
               top: 64,
               child: _buildStars(stars),
             ),
+          // START bubble above active node
+          if (showGlow)
+            const Positioned(
+              top: -36,
+              left: -10,
+              right: -10,
+              child: Center(child: StartBubble()),
+            ),
         ],
       ),
     );
@@ -624,39 +583,6 @@ class _PathNodeState extends ConsumerState<PathNode>
           color: filled ? AppColors.wasp : AppColors.neutralDark,
         );
       }),
-    );
-  }
-
-  /// Animated arrow indicator — appears on the opposite side of the label,
-  /// translates rhythmically toward the node.
-  Widget? _buildArrowIndicator() {
-    if (!widget.isActive || widget.isLocked || _arrowController == null) {
-      return null;
-    }
-
-    final isLeft = widget.labelPosition == LabelPosition.left;
-    // Arrow on opposite side of label: label left → arrow right, pointing left toward node
-    // Flip direction: if arrow is on the right side, point left (toward node)
-    // If arrow is on the left side, point right (toward node)
-    final flipX = isLeft ? -1.0 : 1.0; // -1 mirrors horizontally (points left)
-    // Translate direction: arrow moves toward the node
-    final translateSign = isLeft ? -1.0 : 1.0; // negative = move left, positive = move right
-
-    return AnimatedBuilder(
-      animation: _arrowAnimation,
-      builder: (context, child) => Transform.translate(
-        offset: Offset(_arrowAnimation.value * translateSign, 0),
-        child: child,
-      ),
-      child: Transform.scale(
-        scaleX: flipX,
-        scaleY: 1.0,
-        child: Icon(
-          Icons.double_arrow_rounded,
-          size: 24,
-          color: AppColors.primary.withValues(alpha: 0.9),
-        ),
-      ),
     );
   }
 
