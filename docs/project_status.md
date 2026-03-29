@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-29 (Notebook theme, reader settings auth fix, quiz navigation guard, sidebar label polish)
+Son güncelleme: 2026-03-29 (Notification overlay redesign — stacked cards, unified style, 3D buttons, GameButton integration)
 
 ## Current Phase
 
@@ -147,6 +147,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Active Node Indicator (Duolingo-style START bubble + auto-scroll to active node on screen open)
 - [x] Responsive Web Layout (Duolingo-style sidebar + right info panel + library/cards/word bank grid redesign)
 - [x] Reader Sidebar + Font Fix (300px reader sidebar with chapters/audio, GoogleFonts applied to reader text, quiz in shell)
+- [x] Notification Overlay Redesign (stacked Overlay system, unified white card, 3D GameButton, cascade animations, 3 dialog files consolidated)
 - [ ] Learning Path Redesign (tile-based map system — spec + plan done, implementation pending)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
@@ -217,6 +218,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Notification Overlay Redesign | 2026-03-29 | Replaced sequential `showDialog()` queue with stacked Overlay system. 8 notification types consolidated into unified white card with GameButton 3D press effect. Cascade positioning (scale+translate), entry/exit animations, barrier management. 3 dialog files deleted, net -400 lines. Specs + plan at `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`. |
 | User Profile Audit & Fixes | 2026-03-28 | 11-finding audit. Bug: teacher name edit used JWT refresh instead of profile re-fetch (stale UI). Quality: `AppClock.now()` in badge dates, retry button on error, Dart 3 record destructuring for type-safe casts. Full spec at `docs/specs/22-user-profile.md`. 4/11 fixed, 7 skipped/accepted. |
 | Auth Audit & Security Hardening | 2026-03-28 | 15-finding audit. Security: award-xp JWT + self-only, signup role forced to student, profiles school-wide SELECT restricted to teachers. Quality: router role strings → `UserRole.dbValue`. Dead code: stale test import + group. 1 migration, full spec at `docs/specs/21-auth.md`. 5/15 fixed, 10 skipped/accepted. |
 | Student Management Audit & Fixes | 2026-03-28 | 13-finding audit. Dead code: reset password stack removed (UseCase, provider, repo method, Edge Function, tests). Admin: class routes + dashboard card. Quality: role helpers extracted. Full spec at `docs/specs/20-student-management.md`. 4/13 fixed, 1 resolved, 8 skipped. |

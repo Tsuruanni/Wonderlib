@@ -8,6 +8,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Notification Overlay Redesign (2026-03-29)
+
+#### Added
+- **Stacked notification overlay** — Replaced sequential `showDialog()` queue with custom Overlay system. All active notifications visible simultaneously as cascading cards (max 3 visible, fan/cascade effect with scale reduction and upward offset).
+- **Unified notification card** — All 8 notification types (level-up, league, 4 streak variants, badge, assignment) now use a single Duolingo-style white card design with consistent Nunito typography, AppColors tokens, and `GameButton` 3D press effect.
+- **NotificationOverlayManager** — Singleton managing OverlayEntry lifecycle, semi-transparent barrier (tap to dismiss topmost), cascade positioning, and async exit animations.
+- **Entry/exit animations** — Cards enter with scale 0.8→1.0 (elasticOut) + fade-in. Exit with scale→0.8 + fade-out (200ms). Cascade repositioning animated via `AnimatedContainer` + `AnimatedOpacity`.
+- **3D card depth** — Cards float with gray bottom border and shadow for raised appearance, matching Duolingo's physical card aesthetic.
+
+#### Changed
+- **Barrier tap** — Dismisses topmost notification only (not all). Last card dismissed removes barrier.
+- **Assignment "View"** — Dismisses all notifications before navigating to assignment detail/list.
+- **Badge button color** — Changed to `wasp` (gold) per spec.
+- **Close button** — Circular icon with subtle gray background, visible outside card bounds via `Clip.none`.
+
+#### Removed
+- **3 dialog files** — `streak_event_dialog.dart`, `badge_earned_dialog.dart`, `assignment_notification_dialog.dart` consolidated into `notification_card.dart`.
+- **FIFO queue** — `_dialogQueue`, `_isShowingDialog`, `_processQueue` removed from `AppNotificationListener`.
+- **Inner dialog classes** — `_LevelUpDialog`, `_LeagueTierChangeDialog` removed from `notification_listener.dart`.
+
+#### Infrastructure
+- **Notification overlay redesign spec** — `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`
+- **Notification overlay redesign plan** — `docs/superpowers/plans/2026-03-29-notification-overlay-redesign.md`
+
 ### Notebook Theme + Reader Settings Polish + Quiz Guard (2026-03-29)
 
 #### Added
