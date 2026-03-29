@@ -58,7 +58,17 @@ Nullable — if no theme is assigned, app falls back to hardcoded `tileThemeForU
 
 ### Seed Data
 
-The 6 existing hardcoded themes (Forest, Beach, Mountain, Desert, Garden, Winter) are inserted as seed rows so existing behavior is preserved.
+The 6 existing hardcoded themes are inserted as seed rows so existing behavior is preserved:
+
+```sql
+INSERT INTO tile_themes (name, height, fallback_color_1, fallback_color_2, node_positions, sort_order) VALUES
+  ('Forest',   1000, '#2E7D32', '#81C784', '[{"x":0.50,"y":0.08},{"x":0.35,"y":0.22},{"x":0.58,"y":0.36},{"x":0.32,"y":0.50},{"x":0.55,"y":0.64},{"x":0.40,"y":0.78},{"x":0.50,"y":0.92}]', 0),
+  ('Beach',    1000, '#0288D1', '#81D4FA', '[{"x":0.48,"y":0.08},{"x":0.62,"y":0.22},{"x":0.38,"y":0.36},{"x":0.55,"y":0.50},{"x":0.35,"y":0.64},{"x":0.52,"y":0.78},{"x":0.45,"y":0.92}]', 1),
+  ('Mountain', 1000, '#546E7A', '#B0BEC5', '[{"x":0.50,"y":0.08},{"x":0.38,"y":0.22},{"x":0.60,"y":0.36},{"x":0.35,"y":0.50},{"x":0.58,"y":0.64},{"x":0.42,"y":0.78},{"x":0.50,"y":0.92}]', 2),
+  ('Desert',   1000, '#E65100', '#FFCC80', '[{"x":0.52,"y":0.08},{"x":0.36,"y":0.22},{"x":0.56,"y":0.36},{"x":0.40,"y":0.50},{"x":0.60,"y":0.64},{"x":0.38,"y":0.78},{"x":0.48,"y":0.92}]', 3),
+  ('Garden',   1000, '#C2185B', '#F48FB1', '[{"x":0.50,"y":0.08},{"x":0.40,"y":0.22},{"x":0.58,"y":0.36},{"x":0.35,"y":0.50},{"x":0.55,"y":0.64},{"x":0.45,"y":0.78},{"x":0.50,"y":0.92}]', 4),
+  ('Winter',   1000, '#1565C0', '#BBDEFB', '[{"x":0.48,"y":0.08},{"x":0.60,"y":0.22},{"x":0.36,"y":0.36},{"x":0.58,"y":0.50},{"x":0.38,"y":0.64},{"x":0.52,"y":0.78},{"x":0.45,"y":0.92}]', 5);
+```
 
 ---
 
@@ -70,7 +80,7 @@ The 6 existing hardcoded themes (Forest, Beach, Mountain, Desert, Garden, Winter
 TileThemeEntity:
   id: String
   name: String
-  height: int (default 1000)
+  height: int (default 1000, stored as INT in DB, cast to double in widgets)
   fallbackColor1: String (hex)
   fallbackColor2: String (hex)
   nodePositions: List<Offset> (percentage coordinates)
@@ -105,15 +115,19 @@ final tileThemesProvider = FutureProvider<List<TileThemeEntity>>((ref) async {
 });
 ```
 
-### Provider: `tileThemeForUnitProvider`
+### Theme Resolution (in LearningPathView orchestrator)
 
-```dart
-final tileThemeForUnitProvider = Provider.family<TileTheme, PathUnitData>((ref, unit) {
-  // If unit.unit.tileThemeId != null → find matching theme from tileThemesProvider
-  // Else → fallback to tileThemeForUnit(unitIndex) hardcoded cycling
-  // Convert TileThemeEntity → TileTheme (existing widget data class)
-});
+Theme resolution stays in the orchestrator (not a separate provider) because it needs the unit index for fallback cycling:
+
 ```
+for each unit at unitIdx:
+  if unit.unit.tileThemeId != null:
+    find matching theme from tileThemesProvider list
+  else:
+    use tileThemeForUnit(unitIdx) hardcoded fallback
+```
+
+No dedicated `tileThemeForUnitProvider` needed — the orchestrator already has both the unit and its index.
 
 ### Changes to `tile_themes.dart`
 
