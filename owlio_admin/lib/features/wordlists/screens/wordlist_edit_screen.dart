@@ -268,21 +268,22 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _styleChip('flat', 'Flat', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('cartoon', 'Cartoon', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('watercolor', 'Watercolor', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('realistic', 'Realistic', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('pixel', 'Pixel Art', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
+                      for (final entry in const {
+                        'flat': 'Flat',
+                        'cartoon': 'Cartoon',
+                        'watercolor': 'Watercolor',
+                        'realistic': 'Realistic',
+                        'pixel': 'Pixel Art',
+                        'clay': 'Clay 3D',
+                        'sticker': 'Sticker',
+                        'pencil': 'Pencil Sketch',
+                        'isometric': 'Isometric',
+                        'pop': 'Pop Art',
+                        'minimal': 'Minimal Line',
+                      }.entries)
+                        _styleChip(entry.key, entry.value, selectedStyle, (v) {
+                          setDialogState(() => selectedStyle = v);
+                        }),
                     ],
                   ),
                   const SizedBox(height: 16),

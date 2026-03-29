@@ -21,11 +21,16 @@ const BATCH_SIZE = GRID_COLS * GRID_ROWS; // 6
 
 const STYLE_PRESETS: Record<string, string> = {
   flat: "simple flat vector illustration, minimal, clean lines, solid colors",
-  cartoon:
-    "cute cartoon style, colorful, playful, rounded shapes, child-friendly",
+  cartoon: "cute cartoon style, colorful, playful, rounded shapes, child-friendly",
   watercolor: "soft watercolor painting, gentle pastel colors, artistic",
-  realistic: "realistic illustration, detailed, natural colors",
+  realistic: "realistic photograph, studio lighting, natural colors, high detail",
   pixel: "pixel art, 8-bit retro style, crisp pixels",
+  clay: "3D clay render, claymation style, soft shadows, matte texture, pastel tones",
+  sticker: "die-cut sticker design, thick white outline, vibrant colors, glossy finish",
+  pencil: "hand-drawn pencil sketch, graphite on white paper, detailed line work, cross-hatching",
+  isometric: "isometric 3D illustration, geometric shapes, clean angles, soft gradient colors",
+  pop: "pop art style, bold outlines, halftone dots, bright contrasting colors, comic book aesthetic",
+  minimal: "ultra-minimalist single line drawing, one continuous stroke, black on white, elegant simplicity",
 };
 
 const CELL_POSITIONS = [
