@@ -206,16 +206,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Info text
-                Text(
-                  'Yalnızca yönetici erişimi. Erişim için yöneticinizle iletişime geçin.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
+                // Dev tool - fast login
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  textAlign: TextAlign.center,
+                  child: Column(
+                    children: [
+                      Text(
+                        'Dev Tool',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _isLoading
+                              ? null
+                              : () {
+                                  _emailController.text = 'admin@demo.com';
+                                  _passwordController.text = 'Test1234';
+                                  _handleLogin();
+                                },
+                          icon: const Icon(Icons.bolt, size: 16),
+                          label: const Text('Hızlı Giriş'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
