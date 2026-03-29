@@ -55,6 +55,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isGeneratingAudio = false;
+  bool _isGeneratingImages = false;
 
   bool get isNewList => widget.listId == null;
 
@@ -219,6 +220,182 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     }
   }
 
+  Future<void> _showImageGenerationDialog() async {
+    final promptController = TextEditingController(
+      text:
+          'Generate a 2x3 grid image for a children\'s English learning app. '
+          'Each cell shows the word clearly with a simple illustration.',
+    );
+    var selectedStyle = 'flat';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final wordCount = _wordItems.length;
+          final apiCalls = (wordCount / 6).ceil();
+
+          return AlertDialog(
+            title: const Text('Görsel Üretimi'),
+            content: SizedBox(
+              width: 480,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Style selector
+                  const Text(
+                    'Stil',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _styleChip('flat', 'Flat', selectedStyle, (v) {
+                        setDialogState(() => selectedStyle = v);
+                      }),
+                      _styleChip('cartoon', 'Cartoon', selectedStyle, (v) {
+                        setDialogState(() => selectedStyle = v);
+                      }),
+                      _styleChip('watercolor', 'Watercolor', selectedStyle, (v) {
+                        setDialogState(() => selectedStyle = v);
+                      }),
+                      _styleChip('realistic', 'Realistic', selectedStyle, (v) {
+                        setDialogState(() => selectedStyle = v);
+                      }),
+                      _styleChip('pixel', 'Pixel', selectedStyle, (v) {
+                        setDialogState(() => selectedStyle = v);
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Prompt editor
+                  const Text(
+                    'Prompt',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: promptController,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Görsel üretim promptu...',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Info box
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '$wordCount kelime, $apiCalls API çağrısı yapılacak',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('İptal'),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(context, true),
+                icon: const Icon(Icons.auto_awesome, size: 18),
+                label: const Text('Üret'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    if (confirmed != true) {
+      promptController.dispose();
+      return;
+    }
+
+    setState(() => _isGeneratingImages = true);
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final response = await supabase.functions.invoke(
+        'generate-wordlist-images',
+        body: {
+          'wordListId': widget.listId,
+          'style': selectedStyle,
+          'prompt': promptController.text.trim(),
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception(
+            response.data?['error'] ?? 'Failed to generate images');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Görseller başarıyla üretildi!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        ref.invalidate(wordlistDetailProvider(widget.listId!));
+        ref.invalidate(wordlistsProvider);
+        _loadWordList();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Görsel üretme hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingImages = false);
+    }
+
+    promptController.dispose();
+  }
+
+  Widget _styleChip(
+    String value,
+    String label,
+    String selectedStyle,
+    ValueChanged<String> onSelected,
+  ) {
+    final isSelected = selectedStyle == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (_) => onSelected(value),
+      selectedColor: const Color(0xFF4F46E5).withValues(alpha: 0.15),
+    );
+  }
+
   Future<void> _handleDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -326,6 +503,19 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                     )
                   : const Icon(Icons.volume_up, size: 18),
               label: Text(_isGeneratingAudio ? 'Üretiliyor...' : 'Sesleri Üret'),
+            ),
+          const SizedBox(width: 8),
+          if (!isNewList && _wordItems.isNotEmpty)
+            OutlinedButton.icon(
+              onPressed: _isGeneratingImages ? null : _showImageGenerationDialog,
+              icon: _isGeneratingImages
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.image, size: 18),
+              label: Text(_isGeneratingImages ? 'Üretiliyor...' : 'Görselleri Üret'),
             ),
           const SizedBox(width: 8),
           if (!isNewList)
