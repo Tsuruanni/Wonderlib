@@ -294,15 +294,6 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
     final units = List<LearningPathUnitData>.from(widget.units);
     units[unitIndex].tileThemeId = themeId;
     _notifyChange(units);
-
-    // Also persist to vocabulary_units immediately
-    final supabase = ref.read(supabaseClientProvider);
-    supabase
-        .from(DbTables.vocabularyUnits)
-        .update({'tile_theme_id': themeId})
-        .eq('id', units[unitIndex].unitId)
-        .then((_) {})
-        .catchError((_) {});
   }
 
   Widget _buildThemeSelector(

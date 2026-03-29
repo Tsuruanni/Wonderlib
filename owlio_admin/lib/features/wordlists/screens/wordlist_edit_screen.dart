@@ -851,14 +851,21 @@ class _WordCardState extends ConsumerState<_WordCard> {
   Future<void> _loadVersionCount() async {
     try {
       final supabase = ref.read(supabaseClientProvider);
+      final wordId = widget.word['id'] as String;
+
+      // New format: words/{word_id}/ folder with timestamped files
       final result = await supabase.storage
           .from('word-images')
-          .list(path: 'words/${widget.word['id']}');
+          .list(path: 'words/$wordId');
       final count = result
-          .where((f) => f.name.endsWith('.png') || f.name.endsWith('.jpg'))
+          .where((f) =>
+              f.name.endsWith('.png') || f.name.endsWith('.jpg'))
           .length;
+
       if (mounted) setState(() => _versionCount = count);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Version count error for ${widget.word['id']}: $e');
+    }
   }
 
   @override

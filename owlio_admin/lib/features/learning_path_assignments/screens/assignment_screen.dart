@@ -203,7 +203,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             unitName: unitData['name'] as String? ?? '',
             unitIcon: unitData['icon'] as String?,
             unitColor: unitData['color'] as String?,
-            tileThemeId: unitData['tile_theme_id'] as String?,
+            tileThemeId: unitRow['tile_theme_id'] as String?,
             sortOrder: unitRow['sort_order'] as int? ?? 0,
             items: items,
           ));
@@ -461,6 +461,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           'scope_learning_path_id': path.id,
           'unit_id': unit.unitId,
           'sort_order': i,
+          'tile_theme_id': unit.tileThemeId,
         });
 
         // Insert items for this unit

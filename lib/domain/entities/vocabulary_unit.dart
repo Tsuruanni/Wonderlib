@@ -12,7 +12,6 @@ class VocabularyUnit extends Equatable {
     this.color,
     this.icon,
     this.isActive = true,
-    this.tileThemeId,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -24,7 +23,6 @@ class VocabularyUnit extends Equatable {
   final String? color; // Hex string: "#58CC02"
   final String? icon; // Emoji: "🌟"
   final bool isActive;
-  final String? tileThemeId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -37,7 +35,6 @@ class VocabularyUnit extends Equatable {
         color,
         icon,
         isActive,
-        tileThemeId,
         createdAt,
         updatedAt,
       ];

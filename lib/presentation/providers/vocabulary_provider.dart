@@ -93,16 +93,16 @@ final activeNodeYProvider = Provider<double?>((ref) {
 });
 
 double _resolveThemeHeight(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
-  if (unit.unit.tileThemeId != null && dbThemes.isNotEmpty) {
-    final match = dbThemes.where((t) => t.id == unit.unit.tileThemeId).firstOrNull;
+  if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+    final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
     if (match != null) return match.height.toDouble();
   }
   return tileThemeForUnit(unitIdx).height;
 }
 
 List<Offset> _resolveThemePositions(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
-  if (unit.unit.tileThemeId != null && dbThemes.isNotEmpty) {
-    final match = dbThemes.where((t) => t.id == unit.unit.tileThemeId).firstOrNull;
+  if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+    final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
     if (match != null) return match.nodePositions.map((p) => Offset(p.x, p.y)).toList();
   }
   return tileThemeForUnit(unitIdx).nodePositions;
@@ -573,6 +573,7 @@ class PathUnitData {
     required this.completedNodeTypes,
     required this.sequentialLock,
     required this.booksExemptFromLock,
+    this.tileThemeId,
   });
 
   final VocabularyUnit unit;
@@ -580,6 +581,7 @@ class PathUnitData {
   final Set<String> completedNodeTypes;
   final bool sequentialLock;
   final bool booksExemptFromLock;
+  final String? tileThemeId;
 
   /// Whether every required item is complete.
   /// Books exempt from lock are excluded from the "required" check.
@@ -745,7 +747,6 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         sortOrder: lpUnit.sortOrder,
         color: lpUnit.unitColor,
         icon: lpUnit.unitIcon,
-        tileThemeId: lpUnit.tileThemeId,
         createdAt: DateTime.now(), // not available from RPC, not used by widgets
         updatedAt: DateTime.now(),
       );
@@ -847,6 +848,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
           completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
           sequentialLock: path.sequentialLock,
           booksExemptFromLock: path.booksExemptFromLock,
+          tileThemeId: lpUnit.tileThemeId,
         ),
       );
     }

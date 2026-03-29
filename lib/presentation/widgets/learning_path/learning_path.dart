@@ -137,8 +137,8 @@ class LearningPathView extends ConsumerWidget {
   }
 
   TileTheme _resolveTheme(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
-    if (unit.unit.tileThemeId != null && dbThemes.isNotEmpty) {
-      final match = dbThemes.where((t) => t.id == unit.unit.tileThemeId).firstOrNull;
+    if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+      final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
       if (match != null) {
         return TileTheme(
           name: match.name,

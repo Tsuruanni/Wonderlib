@@ -5,7 +5,6 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
-import '../../tiles/screens/tile_theme_list_screen.dart';
 import 'unit_list_screen.dart';
 
 // ============================================
@@ -46,7 +45,6 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
   bool _isActive = true;
   bool _isLoading = false;
   bool _isInitialized = false;
-  String? _tileThemeId;
 
   bool get _isNew => widget.unitId == null;
 
@@ -70,7 +68,6 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
     _colorController.text = unit['color'] as String? ?? '#58CC02';
     _iconController.text = unit['icon'] as String? ?? '';
     _isActive = unit['is_active'] as bool? ?? true;
-    _tileThemeId = unit['tile_theme_id'] as String?;
   }
 
   Future<void> _save() async {
@@ -94,7 +91,6 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
             ? null
             : _iconController.text.trim(),
         'is_active': _isActive,
-        'tile_theme_id': _tileThemeId,
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -337,35 +333,6 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                           value: _isActive,
                           onChanged: (v) => setState(() => _isActive = v),
                         ),
-                        const SizedBox(height: 16),
-                        Consumer(builder: (context, ref, _) {
-                          final themesAsync = ref.watch(tileThemesAdminProvider);
-                          return themesAsync.when(
-                            loading: () => const LinearProgressIndicator(),
-                            error: (e, _) => Text('Tema yüklenemedi: $e'),
-                            data: (themes) {
-                              return DropdownButtonFormField<String?>(
-                                value: _tileThemeId, // ignore: deprecated_member_use
-                                decoration: const InputDecoration(
-                                  labelText: 'Tile Teması',
-                                  hintText: 'Otomatik (sıralı döngü)',
-                                  border: OutlineInputBorder(),
-                                ),
-                                items: [
-                                  const DropdownMenuItem<String?>(
-                                    value: null,
-                                    child: Text('Otomatik'),
-                                  ),
-                                  ...themes.map((t) => DropdownMenuItem<String?>(
-                                        value: t['id'] as String,
-                                        child: Text(t['name'] as String? ?? ''),
-                                      )),
-                                ],
-                                onChanged: (v) => setState(() => _tileThemeId = v),
-                              );
-                            },
-                          );
-                        }),
                       ],
                     ),
                   ),
