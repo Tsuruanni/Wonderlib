@@ -236,6 +236,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/avatars'),
                   ),
                   _DashboardCard(
+                    icon: Icons.map,
+                    title: 'Tile Temaları',
+                    description: 'Harita tile görünümleri ve node pozisyonları',
+                    color: const Color(0xFF2E7D32),
+                    onTap: () => context.go('/tiles'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.settings,
                     title: 'Ayarlar',
                     description: 'XP, oyun ve uygulama ayarları',
