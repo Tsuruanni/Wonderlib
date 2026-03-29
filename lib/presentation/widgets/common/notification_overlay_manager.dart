@@ -28,7 +28,8 @@ class NotificationEntry {
   });
 
   final NotificationType type;
-  final dynamic data;
+  /// Payload stored for introspection (e.g. checking if a type is already shown).
+  final Object? data;
   final OverlayEntry overlayEntry;
   final VoidCallback? onDismiss;
 }
@@ -57,7 +58,7 @@ class NotificationOverlayManager {
   void show({
     required BuildContext context,
     required NotificationType type,
-    required dynamic data,
+    required Object? data,
     required Widget Function(VoidCallback dismiss) cardBuilder,
     VoidCallback? onDismiss,
   }) {
@@ -146,6 +147,7 @@ class NotificationOverlayManager {
   // ---- helpers -----------------------------------------------------------
 
   void _rebuildAll() {
+    _barrierEntry?.markNeedsBuild();
     for (final entry in _active) {
       entry.overlayEntry.markNeedsBuild();
     }
