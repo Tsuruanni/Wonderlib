@@ -78,4 +78,7 @@ abstract class DbTables {
   static const avatarItemCategories = 'avatar_item_categories';
   static const avatarItems = 'avatar_items';
   static const userAvatarItems = 'user_avatar_items';
+
+  // Tile Themes
+  static const tileThemes = 'tile_themes';
 }
