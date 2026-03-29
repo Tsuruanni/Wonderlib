@@ -113,6 +113,17 @@ function splitImageGrid(
   return tiles;
 }
 
+// --- Filler mascots for empty grid cells ---
+
+const FILLER_MASCOTS = [
+  "a cute owl mascot waving",
+  "a friendly fox mascot reading a book",
+  "a happy penguin mascot with a backpack",
+  "a cheerful rabbit mascot holding a star",
+  "a playful cat mascot sitting",
+  "a smiling bear mascot giving a thumbs up",
+];
+
 // --- Prompt Building ---
 
 function buildGridPrompt(
@@ -137,6 +148,7 @@ function buildGridPrompt(
       `IMPORTANT: Do NOT include any text, letters, words, labels, or typography anywhere in the image. Only illustrations.`;
   }
 
+  let fillerIdx = 0;
   const cellDescriptions = batch.map((item, index) => {
     const position = CELL_POSITIONS[index];
     if (item) {
@@ -146,7 +158,10 @@ function buildGridPrompt(
       }
       return desc;
     }
-    return `Cell ${index + 1} (${position}): empty white cell`;
+    // Fill empty cells with mascot illustrations for grid consistency
+    const mascot = FILLER_MASCOTS[fillerIdx % FILLER_MASCOTS.length];
+    fillerIdx++;
+    return `Cell ${index + 1} (${position}): ${mascot}`;
   });
 
   return `${basePrompt}\n\n${cellDescriptions.join("\n")}`;
