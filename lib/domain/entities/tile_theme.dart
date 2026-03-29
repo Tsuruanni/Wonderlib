@@ -11,6 +11,7 @@ class TileThemeEntity extends Equatable {
     required this.nodePositions,
     required this.sortOrder,
     required this.isActive,
+    this.imageUrl,
   });
 
   final String id;
@@ -21,7 +22,8 @@ class TileThemeEntity extends Equatable {
   final List<({double x, double y})> nodePositions;
   final int sortOrder;
   final bool isActive;
+  final String? imageUrl;
 
   @override
-  List<Object?> get props => [id, name, height, fallbackColor1, fallbackColor2, nodePositions, sortOrder, isActive];
+  List<Object?> get props => [id, name, height, fallbackColor1, fallbackColor2, nodePositions, sortOrder, isActive, imageUrl];
 }

@@ -44,9 +44,18 @@ class MapTile extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
-              // Background — always use placeholder until real assets exist
+              // Background: remote image if available, gradient fallback
               Positioned.fill(
-                child: _PlaceholderBackground(colors: theme.fallbackColors),
+                child: theme.imageUrl != null
+                    ? Image.network(
+                        theme.imageUrl!,
+                        width: kTileWidth,
+                        height: theme.height,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _PlaceholderBackground(colors: theme.fallbackColors),
+                      )
+                    : _PlaceholderBackground(colors: theme.fallbackColors),
               ),
               // Nodes
               for (int i = 0; i < nodes.length; i++)

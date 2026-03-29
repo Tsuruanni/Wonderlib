@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -46,6 +50,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
   bool _isActive = true;
   bool _isLoading = false;
   bool _isInitialized = false;
+  String? _imageUrl;
+  Uint8List? _imageBytes; // local preview before save
 
   final List<_NodePosition> _nodes = [];
 
@@ -82,6 +88,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
     _color2Controller.text = theme['fallback_color_2'] as String? ?? '#81C784';
     _height = (theme['height'] as int? ?? 1000).toDouble();
     _isActive = theme['is_active'] as bool? ?? true;
+    _imageUrl = theme['image_url'] as String?;
 
     _nodes.clear();
     final positions = theme['node_positions'] as List? ?? [];
@@ -92,6 +99,58 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
           ((p['y'] as num?)?.toDouble() ?? 0.5) * 100,
         ));
       }
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['png', 'jpg', 'jpeg', 'webp'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    if (file.bytes == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+
+      final ext = file.extension ?? 'png';
+      final contentType = 'image/$ext';
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final slug = _nameController.text.trim().isNotEmpty
+          ? _nameController.text.trim().toLowerCase().replaceAll(' ', '_')
+          : '$ts';
+      final path = 'tiles/${slug}_$ts.$ext';
+
+      await supabase.storage.from('avatars').uploadBinary(
+            path,
+            file.bytes!,
+            fileOptions: FileOptions(contentType: contentType),
+          );
+
+      final url = supabase.storage.from('avatars').getPublicUrl(path);
+
+      setState(() {
+        _imageUrl = url;
+        _imageBytes = file.bytes;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Görsel yüklendi!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Yükleme hatası: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -118,6 +177,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
         'node_positions': nodePositionsJson,
         'sort_order': int.tryParse(_sortOrderController.text) ?? 0,
         'is_active': _isActive,
+        'image_url': _imageUrl,
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -313,13 +373,59 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        // Image upload
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey.shade300),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.image, color: Colors.grey),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        _imageUrl != null
+                                            ? 'Görsel yüklendi'
+                                            : 'Arka plan görseli (opsiyonel)',
+                                        style: TextStyle(
+                                          color: _imageUrl != null
+                                              ? Colors.green
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    if (_imageUrl != null)
+                                      IconButton(
+                                        icon: const Icon(Icons.clear, size: 20),
+                                        onPressed: () => setState(() {
+                                          _imageUrl = null;
+                                          _imageBytes = null;
+                                        }),
+                                      ),
+                                    FilledButton.icon(
+                                      onPressed: _isLoading ? null : _pickAndUploadImage,
+                                      icon: const Icon(Icons.upload, size: 18),
+                                      label: Text(_imageUrl != null ? 'Değiştir' : 'Yükle'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
                               child: TextFormField(
                                 controller: _color1Controller,
                                 decoration: const InputDecoration(
-                                  labelText: 'Gradient Renk 1',
+                                  labelText: 'Fallback Renk 1',
                                   hintText: '#2E7D32',
                                   border: OutlineInputBorder(),
                                 ),
@@ -331,7 +437,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               child: TextFormField(
                                 controller: _color2Controller,
                                 decoration: const InputDecoration(
-                                  labelText: 'Gradient Renk 2',
+                                  labelText: 'Fallback Renk 2',
                                   hintText: '#81C784',
                                   border: OutlineInputBorder(),
                                 ),
@@ -459,6 +565,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                         color2: _parseHex(_color2Controller.text),
                         height: _height,
                         nodes: _nodes,
+                        imageUrl: _imageUrl,
+                        imageBytes: _imageBytes,
                       ),
                     ],
                   ),
@@ -492,19 +600,23 @@ class _NodePosition {
   _NodePosition(this.x, this.y);
 }
 
-/// Scaled-down tile preview with gradient + numbered node dots.
+/// Scaled-down tile preview with image or gradient + numbered node dots.
 class _TilePreview extends StatelessWidget {
   const _TilePreview({
     required this.color1,
     required this.color2,
     required this.height,
     required this.nodes,
+    this.imageUrl,
+    this.imageBytes,
   });
 
   final Color color1;
   final Color color2;
   final double height;
   final List<_NodePosition> nodes;
+  final String? imageUrl;
+  final Uint8List? imageBytes;
 
   static const _previewWidth = 280.0;
 
@@ -520,16 +632,14 @@ class _TilePreview extends StatelessWidget {
         height: previewHeight,
         child: Stack(
           children: [
+            // Background: image if available, gradient fallback
             Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [color1, color2],
-                  ),
-                ),
-              ),
+              child: imageBytes != null
+                  ? Image.memory(imageBytes!, fit: BoxFit.cover)
+                  : imageUrl != null
+                      ? Image.network(imageUrl!, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _GradientFallback(color1: color1, color2: color2))
+                      : _GradientFallback(color1: color1, color2: color2),
             ),
             for (int i = 0; i < nodes.length; i++)
               Positioned(
@@ -562,6 +672,26 @@ class _TilePreview extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientFallback extends StatelessWidget {
+  const _GradientFallback({required this.color1, required this.color2});
+
+  final Color color1;
+  final Color color2;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [color1, color2],
         ),
       ),
     );

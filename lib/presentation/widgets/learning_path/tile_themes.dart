@@ -8,13 +8,17 @@ class TileTheme {
     required this.nodePositions,
     required this.fallbackColors,
     this.height = 1000.0,
+    this.imageUrl,
   });
 
   /// Theme display name (for debugging).
   final String name;
 
-  /// Asset path for the background image.
+  /// Asset path for the background image (legacy/local).
   final String assetPath;
+
+  /// Remote image URL from Supabase storage (takes priority over assetPath).
+  final String? imageUrl;
 
   /// Tile height in logical pixels (varies per theme).
   final double height;

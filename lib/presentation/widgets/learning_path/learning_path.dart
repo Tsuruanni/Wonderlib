@@ -146,6 +146,7 @@ class LearningPathView extends ConsumerWidget {
           height: match.height.toDouble(),
           nodePositions: match.nodePositions.map((p) => Offset(p.x, p.y)).toList(),
           fallbackColors: [_parseHex(match.fallbackColor1), _parseHex(match.fallbackColor2)],
+          imageUrl: match.imageUrl,
         );
       }
     }

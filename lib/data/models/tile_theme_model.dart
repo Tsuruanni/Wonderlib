@@ -10,6 +10,7 @@ class TileThemeModel {
     required this.nodePositions,
     required this.sortOrder,
     required this.isActive,
+    this.imageUrl,
   });
 
   factory TileThemeModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +36,7 @@ class TileThemeModel {
       nodePositions: positions,
       sortOrder: json['sort_order'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
+      imageUrl: json['image_url'] as String?,
     );
   }
 
@@ -46,6 +48,7 @@ class TileThemeModel {
   final List<({double x, double y})> nodePositions;
   final int sortOrder;
   final bool isActive;
+  final String? imageUrl;
 
   TileThemeEntity toEntity() {
     return TileThemeEntity(
@@ -57,6 +60,7 @@ class TileThemeModel {
       nodePositions: nodePositions,
       sortOrder: sortOrder,
       isActive: isActive,
+      imageUrl: imageUrl,
     );
   }
 }
