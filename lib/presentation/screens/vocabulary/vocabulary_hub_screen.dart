@@ -8,10 +8,8 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
-import '../../widgets/vocabulary/learning_path_legacy.dart';
 import '../../widgets/common/top_navbar.dart';
-
-import '../../widgets/common/terrain_background.dart';
+import '../../widgets/learning_path/learning_path.dart';
 
 /// Main vocabulary hub screen with word lists organized by sections
 class VocabularyHubScreen extends ConsumerStatefulWidget {
@@ -51,21 +49,19 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.terrain,
-      body: TerrainBackground(
-        child: SafeArea(
-          child: Column(
-            children: [
-              const TopNavbar(),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const LearningPath(),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const TopNavbar(),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const LearningPathView(),
                       ...storyListsAsync.when(
                         loading: () => [const SizedBox.shrink()],
                         error: (e, _) => [
@@ -84,9 +80,8 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
