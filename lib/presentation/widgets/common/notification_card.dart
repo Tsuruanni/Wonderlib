@@ -4,6 +4,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/badge_earned.dart';
+import 'game_button.dart';
 
 // ---------------------------------------------------------------------------
 // Unified notification card — Duolingo-style white card with entry animation
@@ -312,6 +313,16 @@ class NotificationCard extends StatefulWidget {
     );
   }
 
+  /// Map buttonColor to the closest GameButtonVariant.
+  static GameButtonVariant _colorToVariant(Color color) {
+    if (color == AppColors.primary) return GameButtonVariant.primary;
+    if (color == AppColors.secondary) return GameButtonVariant.secondary;
+    if (color == AppColors.danger) return GameButtonVariant.danger;
+    if (color == AppColors.wasp) return GameButtonVariant.wasp;
+    if (color == AppColors.streakOrange) return GameButtonVariant.wasp;
+    return GameButtonVariant.neutral;
+  }
+
   @override
   State<NotificationCard> createState() => _NotificationCardState();
 }
@@ -374,6 +385,7 @@ class _NotificationCardState extends State<NotificationCard>
           color: Colors.transparent,
           child: Container(
             width: 340,
+            clipBehavior: Clip.none,
             decoration: BoxDecoration(
               color: AppColors.gray300,
               borderRadius: BorderRadius.circular(24),
@@ -387,6 +399,7 @@ class _NotificationCardState extends State<NotificationCard>
             ),
             // 3D card: white face sits on top of gray bottom border
             child: Container(
+            clipBehavior: Clip.none,
             padding: const EdgeInsets.all(32),
             margin: const EdgeInsets.only(bottom: 4),
             decoration: BoxDecoration(
@@ -398,11 +411,12 @@ class _NotificationCardState extends State<NotificationCard>
               ),
             ),
             child: Stack(
+              clipBehavior: Clip.none,
               children: [
                 // X close button — top-right, circular with subtle bg
                 Positioned(
-                  top: -8,
-                  right: -8,
+                  top: -12,
+                  right: -12,
                   child: GestureDetector(
                     onTap: widget.onDismiss,
                     child: Container(
@@ -475,22 +489,23 @@ class _NotificationCardState extends State<NotificationCard>
 
                     const SizedBox(height: 24),
 
-                    // Buttons
+                    // Buttons — using existing GameButton for consistent 3D style
                     if (widget.secondaryButtonLabel != null)
                       Row(
                         children: [
                           Expanded(
-                            child: _DuoButton(
+                            child: GameButton(
                               label: widget.secondaryButtonLabel!,
-                              color: AppColors.gray300,
-                              onPressed: widget.onSecondaryButtonPressed ??
+                              onPressed:
+                                  widget.onSecondaryButtonPressed ??
                                   widget.onDismiss,
-                              outlined: true,
+                              variant: GameButtonVariant.outline,
+                              fullWidth: true,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _DuoButton(
+                            child: _variantButton(
                               label: widget.buttonLabel,
                               color: widget.buttonColor,
                               onPressed:
@@ -500,14 +515,12 @@ class _NotificationCardState extends State<NotificationCard>
                         ],
                       )
                     else
-                      SizedBox(
-                        width: double.infinity,
-                        child: _DuoButton(
-                          label: widget.buttonLabel,
-                          color: widget.buttonColor,
-                          onPressed:
-                              widget.onButtonPressed ?? widget.onDismiss,
-                        ),
+                      _variantButton(
+                        label: widget.buttonLabel,
+                        color: widget.buttonColor,
+                        onPressed:
+                            widget.onButtonPressed ?? widget.onDismiss,
+                        fullWidth: true,
                       ),
                   ],
                 ),
@@ -522,121 +535,26 @@ class _NotificationCardState extends State<NotificationCard>
 }
 
 // ---------------------------------------------------------------------------
-// Duolingo-style 3D button with bottom shadow and press animation
+// Helper — maps color to GameButton variant
 // ---------------------------------------------------------------------------
 
-class _DuoButton extends StatefulWidget {
-  const _DuoButton({
-    required this.label,
-    required this.color,
-    required this.onPressed,
-    this.outlined = false,
-  });
-
-  final String label;
-  final Color color;
-  final VoidCallback onPressed;
-  final bool outlined;
-
-  @override
-  State<_DuoButton> createState() => _DuoButtonState();
+Widget _variantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onPressed,
+  bool fullWidth = false,
+}) {
+  return GameButton(
+    label: label,
+    onPressed: onPressed,
+    variant: NotificationCard._colorToVariant(color),
+    fullWidth: fullWidth,
+  );
 }
 
-class _DuoButtonState extends State<_DuoButton> {
-  bool _pressed = false;
-
-  /// Darken a color by mixing with black.
-  Color _darken(Color c) {
-    return Color.lerp(c, Colors.black, 0.25)!;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final shadowHeight = _pressed ? 0.0 : 4.0;
-    final topOffset = _pressed ? 4.0 : 0.0;
-
-    if (widget.outlined) {
-      const borderColor = AppColors.gray300;
-      final shadowColor = _darken(borderColor);
-
-      return GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapUp: (_) {
-          setState(() => _pressed = false);
-          widget.onPressed();
-        },
-        onTapCancel: () => setState(() => _pressed = false),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          padding: EdgeInsets.only(bottom: shadowHeight),
-          decoration: BoxDecoration(
-            color: shadowColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 80),
-            transform: Matrix4.translationValues(0, topOffset, 0),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: borderColor, width: 2),
-            ),
-            child: Center(
-              child: Text(
-                widget.label,
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.gray600,
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Filled 3D button
-    final shadowColor = _darken(widget.color);
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        widget.onPressed();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 80),
-        padding: EdgeInsets.only(bottom: shadowHeight),
-        decoration: BoxDecoration(
-          color: shadowColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          transform: Matrix4.translationValues(0, topOffset, 0),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              widget.label,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// ---------------------------------------------------------------------------
+// End of button helpers
+// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // TransitionPill — "From → To" pill for level-up / league-change
