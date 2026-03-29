@@ -1,23 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
-
-// ---------------------------------------------------------------------------
-// Lightweight data class for badge-earned notifications
-// ---------------------------------------------------------------------------
-
-class BadgeEarnedData {
-  const BadgeEarnedData({
-    required this.icon,
-    required this.name,
-    required this.xpReward,
-  });
-
-  final String icon;
-  final String name;
-  final int xpReward;
-}
+import '../../../domain/entities/badge_earned.dart';
 
 // ---------------------------------------------------------------------------
 // Unified notification card — Duolingo-style white card with entry animation
@@ -103,29 +89,50 @@ class NotificationCard extends StatefulWidget {
   }
 
   static Widget leagueChange({
-    required String oldTierLabel,
-    required String newTierLabel,
-    required bool isPromotion,
-    required String tierEmoji,
-    required Color tierColor,
+    required LeagueTier oldTier,
+    required LeagueTier newTier,
     required VoidCallback onDismiss,
   }) {
+    final isPromotion = newTier.index > oldTier.index;
+    final tierColor = _leagueTierColor(newTier);
+    final tierEmoji = _leagueTierEmoji(newTier);
+
     return NotificationCard(
       icon: isPromotion ? tierEmoji : '📉',
-      title: isPromotion ? 'League Promotion!' : 'League Demotion',
+      title: isPromotion ? 'League Promoted!' : 'League Demoted',
       subtitle: isPromotion
-          ? 'You moved up! Keep competing!'
-          : 'Work harder next week!',
+          ? 'Great work this week! Keep climbing!'
+          : 'Keep practicing to climb back up!',
       subtitleColor: isPromotion ? tierColor : AppColors.danger,
       body: _TransitionPill(
-        from: oldTierLabel,
-        to: newTierLabel,
+        from: oldTier.label,
+        to: newTier.label,
         color: isPromotion ? tierColor : AppColors.danger,
         isUpward: isPromotion,
       ),
       buttonColor: isPromotion ? tierColor : AppColors.danger,
       onDismiss: onDismiss,
     );
+  }
+
+  static Color _leagueTierColor(LeagueTier tier) {
+    return switch (tier) {
+      LeagueTier.bronze => Colors.brown,
+      LeagueTier.silver => Colors.grey,
+      LeagueTier.gold => Colors.amber,
+      LeagueTier.platinum => Colors.blueGrey,
+      LeagueTier.diamond => Colors.cyan,
+    };
+  }
+
+  static String _leagueTierEmoji(LeagueTier tier) {
+    return switch (tier) {
+      LeagueTier.bronze => '🥉',
+      LeagueTier.silver => '🥈',
+      LeagueTier.gold => '🥇',
+      LeagueTier.platinum => '💎',
+      LeagueTier.diamond => '👑',
+    };
   }
 
   static Widget streakExtended({
@@ -228,7 +235,7 @@ class NotificationCard extends StatefulWidget {
   }
 
   static Widget badgeEarned({
-    required List<BadgeEarnedData> badges,
+    required List<BadgeEarned> badges,
     required VoidCallback onDismiss,
   }) {
     final isSingle = badges.length == 1;
@@ -236,9 +243,9 @@ class NotificationCard extends StatefulWidget {
     if (isSingle) {
       final badge = badges.first;
       return NotificationCard(
-        icon: badge.icon,
+        icon: badge.badgeIcon,
         title: 'New Badge!',
-        subtitle: badge.name,
+        subtitle: badge.badgeName,
         subtitleColor: AppColors.gray500,
         body: _XpChip(xp: badge.xpReward),
         onDismiss: onDismiss,
@@ -256,11 +263,14 @@ class NotificationCard extends StatefulWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   children: [
-                    Text(badge.icon, style: const TextStyle(fontSize: 32)),
+                    Text(
+                      badge.badgeIcon,
+                      style: const TextStyle(fontSize: 32),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        badge.name,
+                        badge.badgeName,
                         style: GoogleFonts.nunito(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -380,12 +390,14 @@ class _NotificationCardState extends State<NotificationCard>
                 Positioned(
                   top: -16,
                   right: -16,
-                  child: GestureDetector(
-                    onTap: widget.onDismiss,
-                    child: const Icon(
-                      Icons.close,
-                      size: 20,
-                      color: AppColors.gray400,
+                  child: IconButton(
+                    onPressed: widget.onDismiss,
+                    icon: const Icon(Icons.close, size: 20),
+                    color: AppColors.gray400,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
                     ),
                   ),
                 ),
