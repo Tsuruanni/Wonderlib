@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import '../../common/feedback_animation.dart';
 
@@ -313,30 +315,77 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
             ),
             if (!isCorrect) ...[
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: widget.onDismiss,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'GOT IT',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
-              ),
+              Center(
+                child: _GotItButton(onPressed: widget.onDismiss),
+              ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GotItButton extends StatefulWidget {
+  const _GotItButton({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  State<_GotItButton> createState() => _GotItButtonState();
+}
+
+class _GotItButtonState extends State<_GotItButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    const double borderHeight = 4.0;
+    final double faceTop = _isPressed ? borderHeight : 0.0;
+    final double faceBottom = _isPressed ? 0.0 : borderHeight;
+
+    return GestureDetector(
+      onTap: widget.onPressed,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: SizedBox(
+        width: 180,
+        height: 50 + borderHeight,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0, right: 0,
+              top: borderHeight, bottom: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.dangerDark,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 50),
+              curve: Curves.easeOut,
+              left: 0, right: 0,
+              top: faceTop,
+              bottom: faceBottom,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.danger,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  'GOT IT',
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.white,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
