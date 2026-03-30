@@ -75,9 +75,7 @@ class _QuestRow extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: route != null
-          ? () => context.go(route!)
-          : null,
+      onTap: route != null ? () => context.go(route!) : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
@@ -155,8 +153,8 @@ class _QuestRow extends StatelessWidget {
 
   String? _questRoute(String questType) {
     return switch (questType) {
-      'complete_chapters' => AppRoutes.library,
-      'review_words' => AppRoutes.vocabularyDailyReview,
+      'read_chapters' => AppRoutes.library,
+      'vocab_session' => AppRoutes.vocabularyDailyReview,
       _ => null,
     };
   }
