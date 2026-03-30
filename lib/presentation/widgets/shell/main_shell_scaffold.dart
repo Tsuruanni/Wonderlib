@@ -30,16 +30,16 @@ class MainShellScaffold extends ConsumerWidget {
       color: AppColors.wasp,
     ),
     _NavItem(
-      icon: Icons.home_outlined,
-      selectedIcon: Icons.home_rounded,
-      label: 'Home',
-      color: AppColors.primary,
-    ),
-    _NavItem(
       icon: Icons.local_library_outlined,
       selectedIcon: Icons.local_library_rounded,
       label: 'Library',
       color: AppColors.secondary,
+    ),
+    _NavItem(
+      icon: Icons.military_tech_outlined,
+      selectedIcon: Icons.military_tech_rounded,
+      label: 'Quests',
+      color: AppColors.streakOrange,
     ),
     _NavItem(
       icon: Icons.collections_bookmark_outlined,
