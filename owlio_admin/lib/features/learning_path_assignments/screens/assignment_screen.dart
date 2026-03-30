@@ -691,6 +691,14 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             'books_exempt_from_lock': lp.booksExemptFromLock,
           })
           .eq('id', lp.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kilit ayarları güncellendi'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
