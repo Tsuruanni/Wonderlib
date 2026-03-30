@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/theme.dart';
 import '../../../../core/services/letter_tap_sound_service.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_container.dart';
@@ -75,10 +77,124 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
     widget.onAnswer(answer);
   }
 
+  Widget _buildQuestionCard(ThemeData theme, bool isWide) {
+    return VocabQuestionContainer(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          VocabQuestionImage(
+            imageUrl: widget.question.imageUrl,
+            size: isWide ? 180 : 140,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              widget.question.targetMeaning,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.tertiary,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLetterArea() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Answer Slots
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 12,
+          children: List.generate(letters.length, (index) {
+            final isFilled = index < _selectedLetters.length;
+            final char = isFilled ? _selectedLetters[index] : '';
+
+            return GestureDetector(
+              onTap: isFilled ? () => _removeLetter(index) : null,
+              child: _LetterSlot(
+                char: char,
+                isFilled: isFilled,
+                status: _answered
+                    ? (_selectedLetters.join().toLowerCase() ==
+                            correctWord.toLowerCase()
+                        ? _SlotStatus.correct
+                        : _SlotStatus.incorrect)
+                    : _SlotStatus.neutral,
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 24),
+        // Letter Pool
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
+          children: List.generate(letters.length, (i) {
+            final isUsed = _usedIndices.contains(i);
+            return _LetterTile(
+              char: letters[i],
+              isUsed: isUsed,
+              onTap: () => _tapLetter(i),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
+    if (isWide) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Arrange letters to form the word',
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: _buildQuestionCard(theme, true)),
+                  const SizedBox(width: 24),
+                  Expanded(child: _buildLetterArea()),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      );
+    }
+
+    // Mobile
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -95,78 +211,10 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
               textAlign: TextAlign.center,
             ),
           ),
-
           const SizedBox(height: 12),
-
-          VocabQuestionContainer(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: Column(
-              children: [
-                // Image + Hint
-                VocabQuestionImage(imageUrl: widget.question.imageUrl),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    widget.question.targetMeaning,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.tertiary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Answer Slots
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 8,
-                  runSpacing: 12,
-                  children: List.generate(letters.length, (index) {
-                    final isFilled = index < _selectedLetters.length;
-                    final char = isFilled ? _selectedLetters[index] : '';
-
-                    return GestureDetector(
-                      onTap: isFilled ? () => _removeLetter(index) : null,
-                      child: _LetterSlot(
-                        char: char,
-                        isFilled: isFilled,
-                        status: _answered
-                            ? (_selectedLetters.join().toLowerCase() == correctWord.toLowerCase()
-                                ? _SlotStatus.correct
-                                : _SlotStatus.incorrect)
-                            : _SlotStatus.neutral,
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
-
+          _buildQuestionCard(theme, false),
           const SizedBox(height: 32),
-
-          // Letter Pool
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 12,
-            runSpacing: 12,
-            children: List.generate(letters.length, (i) {
-              final isUsed = _usedIndices.contains(i);
-              return _LetterTile(
-                char: letters[i],
-                isUsed: isUsed,
-                onTap: () => _tapLetter(i),
-              );
-            }),
-          ),
-
+          _buildLetterArea(),
           const SizedBox(height: 24),
         ],
       ),
