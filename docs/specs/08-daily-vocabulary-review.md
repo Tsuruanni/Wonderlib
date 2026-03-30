@@ -49,14 +49,12 @@ Daily Vocabulary Review is a spaced repetition drill that presents SM-2 due word
 
 | Table | Key Columns | Purpose |
 |-------|-------------|---------|
-| `daily_review_sessions` | user_id (FK profiles), session_date (DATE, UNIQUE with user_id), words_reviewed, correct_count, incorrect_count, xp_earned, is_perfect, completed_at, path_position | One row per user per day. Records session stats and XP. `path_position` saves where the DR node was in the learning path. |
-| `path_daily_review_completions` | user_id, scope_lp_unit_id (FK scope_learning_path_units), position, completed_at (DATE), UNIQUE(user_id, scope_lp_unit_id, completed_at) | Tracks DR completion per unit per day for learning path gate logic. |
+| `daily_review_sessions` | user_id (FK profiles), session_date (DATE, UNIQUE with user_id), words_reviewed, correct_count, incorrect_count, xp_earned, is_perfect, completed_at | One row per user per day. Records session stats and XP. |
 | `vocabulary_progress` | user_id, word_id, ease_factor, interval_days, repetitions, next_review_at, status | SM-2 word-level progress. `next_review_at <= NOW()` determines due words. Updated per-answer during session. |
 
 ### Key Relationships
 
 - `daily_review_sessions.user_id` → `profiles.id` (CASCADE)
-- `path_daily_review_completions.scope_lp_unit_id` → `scope_learning_path_units.id`
 - Words are fetched from `vocabulary_progress` JOIN `vocabulary_words` via `get_due_review_words` RPC
 
 ## Surfaces

@@ -58,7 +58,6 @@ Two parallel hierarchies:
 - Each scope path is an independent copy — editing a template does NOT update existing scope paths
 
 **Progress tracking:**
-- `path_daily_review_completions` — per-user, per-unit, per-day daily review gate tracking
 - `user_node_completions` — game/treasure node completions (in vocabulary tables)
 
 **Key relationships:**
@@ -115,7 +114,7 @@ Two parallel hierarchies:
 - Word list completion: tracked via `user_word_list_progress` (star rating 0–3 based on accuracy)
 - Book completion: tracked via `reading_progress.is_completed`
 - Game/treasure completion: tracked via `user_node_completions` table
-- DR completion: tracked via `path_daily_review_completions` (daily, per-unit)
+- DR completion: gated via `dailyReviewNeededProvider` (checks due word count + today's session)
 
 **Daily Word Limit:**
 - Students can start at most `dailyWordListLimit` (30) new words per day across all word lists
@@ -171,7 +170,7 @@ Two parallel hierarchies:
 
 - **Student with no assigned path**: Empty state shown — owl icon + message explaining teacher will assign a path
 - **Student changes class**: Trigger withdraws from old assignments, backfills into new class assignments. Old paths from different scope remain visible (school/grade-level paths persist).
-- **Admin re-saves scope path**: Delete-then-reinsert cascades to `path_daily_review_completions` — student DR progress for that path resets silently
+- **Admin re-saves scope path**: Delete-then-reinsert resets scope structure — students see refreshed path
 - **Concurrent template application**: Sort order calculation uses non-atomic `MAX(sort_order) + 1` — concurrent applications to same scope can produce duplicate sort_order values
 - **All items completed in path**: No explicit "path complete" event — students simply see all nodes as completed
 - **Daily word limit reached**: Word list nodes become non-tappable, showing a tooltip about the daily limit
@@ -209,11 +208,10 @@ Two parallel hierarchies:
 
 ## Known Issues & Tech Debt
 
-1. **Security: 3 RPCs missing auth checks** (#1, #2, #3) — `apply_learning_path_template`, `get_user_learning_paths`, `get_path_daily_reviews` need `auth.uid()` validation
+1. **Security: 2 RPCs missing auth checks** (#1, #2) — `apply_learning_path_template`, `get_user_learning_paths` need `auth.uid()` validation
 2. **Security: head_teacher role mismatch** (#5) — template RLS uses `'head_teacher'` but profiles CHECK uses `'head'`
-3. **Security: DR replay via DELETE** (#4) — `path_daily_review_completions` `FOR ALL` policy allows students to delete own records
-4. **Architecture: raw string itemType** (#8) — 3 entities use `String` instead of `LearningPathItemType` enum for type comparisons
-5. **Admin save strategy** (#19) — delete-then-reinsert cascades to progress tables, silently resetting DR completions
+3. **Architecture: raw string itemType** (#8) — 3 entities use `String` instead of `LearningPathItemType` enum for type comparisons
+4. **Admin save strategy** (#19) — delete-then-reinsert resets scope structure on re-save
 6. **`VocabularyUnit` adapter** (#15) — path widgets depend on legacy `VocabularyUnit` entity with fake timestamps
 7. **`dailyWordListLimit` hardcoded** (#21) — should come from `system_settings` (planned for type-based XP migration)
 8. **Orphaned tables in migration history** — `unit_book_assignments` and `unit_curriculum_assignments` creation migrations still exist (tables were dropped in `20260320000003`)
