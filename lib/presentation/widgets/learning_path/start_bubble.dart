@@ -71,6 +71,7 @@ class _StartBubbleState extends State<StartBubble>
               ),
             ),
           ),
+          // Triangle pointer
           CustomPaint(
             size: const Size(16, 8),
             painter: _TrianglePainter(color: AppColors.neutral),
