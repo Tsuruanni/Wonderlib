@@ -357,8 +357,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               child: Slider(
                                 value: _height,
                                 min: 300,
-                                max: 1500,
-                                divisions: 24,
+                                max: 5000,
+                                divisions: 94,
                                 label: '${_height.round()}px',
                                 onChanged: (v) =>
                                     setState(() => _height = v),
@@ -552,7 +552,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
             Expanded(
               flex: 1,
               child: Card(
-                child: Padding(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -625,15 +625,16 @@ class _TilePreview extends StatelessWidget {
     final scale = _previewWidth / 800.0;
     final previewHeight = height * scale;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: _previewWidth,
-        height: previewHeight,
-        child: Stack(
-          children: [
-            // Background: image if available, gradient fallback
-            Positioned.fill(
+    return SizedBox(
+      width: _previewWidth,
+      height: previewHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Background: rounded corners, fills tile
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
               child: imageBytes != null
                   ? Image.memory(imageBytes!, fit: BoxFit.cover)
                   : imageUrl != null
@@ -641,6 +642,7 @@ class _TilePreview extends StatelessWidget {
                           errorBuilder: (_, __, ___) => _GradientFallback(color1: color1, color2: color2))
                       : _GradientFallback(color1: color1, color2: color2),
             ),
+          ),
             for (int i = 0; i < nodes.length; i++)
               Positioned(
                 left: (nodes[i].x / 100) * _previewWidth - 14,
@@ -671,8 +673,7 @@ class _TilePreview extends StatelessWidget {
                   ),
                 ),
               ),
-          ],
-        ),
+        ],
       ),
     );
   }
