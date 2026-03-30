@@ -28,6 +28,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
   bool _isSaving = false;
   bool _sequentialLock = true;
   bool _booksExemptFromLock = true;
+  bool _unitGate = true;
 
   bool get _isNew => widget.templateId == null;
 
@@ -67,6 +68,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
       _descriptionController.text = template['description'] as String? ?? '';
       _sequentialLock = template['sequential_lock'] as bool? ?? true;
       _booksExemptFromLock = template['books_exempt_from_lock'] as bool? ?? true;
+      _unitGate = template['unit_gate'] as bool? ?? true;
 
       // 2. Fetch template units
       final unitsResponse = await supabase
@@ -219,6 +221,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           'description': description.isEmpty ? null : description,
           'sequential_lock': _sequentialLock,
           'books_exempt_from_lock': _booksExemptFromLock,
+          'unit_gate': _unitGate,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         });
@@ -232,6 +235,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
               'description': description.isEmpty ? null : description,
               'sequential_lock': _sequentialLock,
               'books_exempt_from_lock': _booksExemptFromLock,
+              'unit_gate': _unitGate,
               'updated_at': DateTime.now().toIso8601String(),
             })
             .eq('id', templateId);
@@ -455,6 +459,12 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
                 value: _booksExemptFromLock,
                 onChanged: (v) => setState(() => _booksExemptFromLock = v),
               ),
+            SwitchListTile(
+              title: const Text('Üniteler arası kilit'),
+              subtitle: const Text('Önceki ünite bitmeden sonraki açılmaz'),
+              value: _unitGate,
+              onChanged: (v) => setState(() => _unitGate = v),
+            ),
             const SizedBox(height: 32),
 
             // Content section
