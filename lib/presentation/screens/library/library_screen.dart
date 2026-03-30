@@ -961,12 +961,10 @@ class _ContinueReadingCard extends ConsumerWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                    child: Image.network(
-                      book.coverUrl ?? '',
+                    child: CachedBookImage(
+                      imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorWidget: Container(
                         color: AppColors.primary.withValues(alpha: 0.2),
                         child: Icon(Icons.book, color: AppColors.primary),
                       ),
