@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
@@ -825,6 +826,8 @@ class _WordCardState extends ConsumerState<_WordCard> {
   late final TextEditingController _exampleController;
   bool _isSaving = false;
   int _versionCount = 0;
+  AudioPlayer? _audioPlayer;
+  bool _isPlaying = false;
 
   @override
   void initState() {
@@ -887,10 +890,41 @@ class _WordCardState extends ConsumerState<_WordCard> {
 
   @override
   void dispose() {
+    _audioPlayer?.dispose();
     _meaningTrController.dispose();
     _meaningEnController.dispose();
     _exampleController.dispose();
     super.dispose();
+  }
+
+  Future<void> _playAudio() async {
+    final audioUrl = widget.word['audio_url'] as String?;
+    if (audioUrl == null || audioUrl.isEmpty) return;
+
+    try {
+      _audioPlayer ??= AudioPlayer();
+      final startMs = widget.word['audio_start_ms'] as int? ?? 0;
+      final endMs = widget.word['audio_end_ms'] as int? ?? 0;
+
+      // Strip query params to get the base URL
+      final baseUrl = audioUrl.split('?').first;
+
+      await _audioPlayer!.setUrl(baseUrl);
+
+      if (startMs > 0 || endMs > 0) {
+        await _audioPlayer!.setClip(
+          start: Duration(milliseconds: startMs),
+          end: endMs > 0 ? Duration(milliseconds: endMs) : null,
+        );
+      }
+
+      setState(() => _isPlaying = true);
+      await _audioPlayer!.play();
+      if (mounted) setState(() => _isPlaying = false);
+    } catch (e) {
+      if (mounted) setState(() => _isPlaying = false);
+      debugPrint('Audio play error: $e');
+    }
   }
 
   Future<void> _saveAll() async {
@@ -1046,8 +1080,18 @@ class _WordCardState extends ConsumerState<_WordCard> {
                         ),
                       ),
                       if (hasAudio)
-                        Icon(Icons.volume_up,
-                            size: 14, color: Colors.grey.shade400),
+                        GestureDetector(
+                          onTap: _isPlaying ? null : _playAudio,
+                          child: Icon(
+                            _isPlaying
+                                ? Icons.volume_up
+                                : Icons.volume_up_outlined,
+                            size: 16,
+                            color: _isPlaying
+                                ? const Color(0xFF4F46E5)
+                                : Colors.grey.shade500,
+                          ),
+                        ),
                     ],
                   ),
                   if (phonetic.isNotEmpty)
