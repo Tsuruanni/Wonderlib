@@ -185,7 +185,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             width: 200,
             child: GameButton(
               label: 'Continue',
-              onPressed: () => context.go(AppRoutes.vocabulary),
+              onPressed: () => context.go(AppRoutes.vocabularyListPath(widget.listId)),
               variant: GameButtonVariant.primary,
             ),
           ),
