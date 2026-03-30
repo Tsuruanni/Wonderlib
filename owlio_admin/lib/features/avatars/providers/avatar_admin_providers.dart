@@ -5,12 +5,12 @@ import '../../../core/supabase_client.dart';
 
 final avatarBasesAdminProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
-  return await supabase.from(DbTables.avatarBases).select().order('sort_order');
+  return await supabase.from(DbTables.avatarBases).select().order('sort_order', ascending: true);
 });
 
 final avatarItemCategoriesAdminProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
-  return await supabase.from(DbTables.avatarItemCategories).select().order('sort_order');
+  return await supabase.from(DbTables.avatarItemCategories).select().order('sort_order', ascending: true);
 });
 
 final avatarItemsAdminProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {

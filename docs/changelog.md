@@ -25,6 +25,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 #### Fixed
 - **Admin save race condition** — `_saveLearningPath` now snapshots units and items lists before async save loop. Previously, `path.units` was a live reference that could be mutated by `setState` callbacks between `await` calls, causing sort_order corruption.
+- **Supabase `.order()` missing `ascending: true`** — All `.order('sort_order')` and `.order('order_index')` calls across both apps now explicitly pass `ascending: true`. The Supabase Dart client (postgrest 2.6.0) returned descending order with embedded relations when `ascending` was omitted, causing unit/item sort_order to flip on every save cycle.
 
 #### Infrastructure
 - **DB migration** — `tile_theme_id` added to `scope_learning_paths` and `learning_path_templates`. RPCs `get_user_learning_paths` and `apply_learning_path_template` updated.

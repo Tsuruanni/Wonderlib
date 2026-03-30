@@ -19,7 +19,7 @@ class SupabaseTileThemeRepository implements TileThemeRepository {
           .from(DbTables.tileThemes)
           .select()
           .eq('is_active', true)
-          .order('sort_order');
+          .order('sort_order', ascending: true);
 
       final rows = List<Map<String, dynamic>>.from(response);
       final themes = rows.map((r) => TileThemeModel.fromJson(r).toEntity()).toList();

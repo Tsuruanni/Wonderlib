@@ -123,7 +123,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
                   .from(DbTables.wordListItems)
                   .select('vocabulary_words(word)')
                   .eq('word_list_id', itemId)
-                  .order('order_index')
+                  .order('order_index', ascending: true)
                   .limit(10);
               words = wordPreview
                   .map((row) {

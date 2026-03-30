@@ -1164,7 +1164,7 @@ final _activeUnitsProvider =
       .from(DbTables.vocabularyUnits)
       .select('id, name, sort_order, color, icon')
       .eq('is_active', true)
-      .order('sort_order');
+      .order('sort_order', ascending: true);
   return List<Map<String, dynamic>>.from(response);
 });
 

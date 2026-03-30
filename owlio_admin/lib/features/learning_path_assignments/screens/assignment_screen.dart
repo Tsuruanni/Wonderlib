@@ -166,7 +166,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
         query = query.isFilter('grade', null).isFilter('class_id', null);
       }
 
-      final pathsResponse = await query.order('sort_order');
+      final pathsResponse = await query.order('sort_order', ascending: true);
       final paths = <_ScopeLearningPathData>[];
 
       for (final pathRow in pathsResponse) {
@@ -178,7 +178,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             .select(
                 'id, unit_id, sort_order, tile_theme_id, vocabulary_units(id, name, icon, color)')
             .eq('scope_learning_path_id', pathId)
-            .order('sort_order');
+            .order('sort_order', ascending: true);
 
         final units = <LearningPathUnitData>[];
 
@@ -195,7 +195,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                   'word_lists(id, name, word_count), '
                   'books(id, title, level, chapter_count)')
               .eq('scope_lp_unit_id', scopeUnitId)
-              .order('sort_order');
+              .order('sort_order', ascending: true);
 
           final items = <LearningPathItemData>[];
 

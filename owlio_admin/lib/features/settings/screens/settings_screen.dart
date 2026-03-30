@@ -13,8 +13,8 @@ final settingsProvider =
       .from(DbTables.systemSettings)
       .select()
       .order('category')
-      .order('sort_order')
-      .order('key');
+      .order('sort_order', ascending: true)
+      .order('key', ascending: true);
 
   final settings = List<Map<String, dynamic>>.from(response);
 
