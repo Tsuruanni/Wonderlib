@@ -795,12 +795,12 @@ class _BadgesSection extends ConsumerWidget {
           // All badges — earned first, then unearned
           if (earned.isNotEmpty || unearned.isNotEmpty)
             GridView.count(
-              crossAxisCount: MediaQuery.sizeOf(context).width < 400 ? 3 : 4,
+              crossAxisCount: MediaQuery.sizeOf(context).width < 400 ? 5 : 6,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.85,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 0.9,
               children: [
                 ...earned.map((badge) => _BadgeTile(badge: badge, isEarned: true)),
                 ...unearned.map((badge) => _BadgeTile(badge: badge, isEarned: false)),
@@ -843,64 +843,159 @@ class _BadgeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: isEarned ? 1.0 : 0.4,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+    return GestureDetector(
+      onTap: () => _showBadgeDetail(context),
+      child: Opacity(
+        opacity: isEarned ? 1.0 : 0.35,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isEarned ? AppColors.primary : AppColors.neutral,
+              width: isEarned ? 2 : 1.5,
+            ),
+            boxShadow: isEarned
+                ? const [
+                    BoxShadow(
+                      color: AppColors.primaryDark,
+                      offset: Offset(0, 2),
+                      blurRadius: 0,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                badge.icon ?? '🏅',
+                style: const TextStyle(fontSize: 22),
+              ),
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  badge.name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showBadgeDetail(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isEarned ? AppColors.primary : AppColors.neutral,
-            width: isEarned ? 2 : 1.5,
-          ),
-          boxShadow: isEarned
-              ? const [
-                  BoxShadow(
-                    color: AppColors.primaryDark,
-                    offset: Offset(0, 3),
-                    blurRadius: 0,
-                  ),
-                ]
-              : null,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.neutral, width: 2),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Emoji icon
             Text(
               badge.icon ?? '🏅',
-              style: const TextStyle(fontSize: 26),
+              style: const TextStyle(fontSize: 48),
             ),
-            const SizedBox(height: 4),
-
-            // Name
+            const SizedBox(height: 12),
             Text(
               badge.name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
                 color: AppColors.black,
               ),
             ),
-
-            // Check icon for earned / lock for unearned
-            const SizedBox(height: 2),
+            if (badge.description != null &&
+                badge.description!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                badge.description!,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
             if (isEarned)
-              const Icon(
-                Icons.check_circle_rounded,
-                size: 16,
-                color: AppColors.primary,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 18, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Earned!',
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
               )
             else
-              Icon(
-                Icons.lock_rounded,
-                size: 14,
-                color: AppColors.neutralText,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.lock_rounded,
+                        size: 16, color: AppColors.neutralText),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Not yet earned',
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neutralText,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            if (badge.xpReward > 0) ...[
+              const SizedBox(height: 8),
+              Text(
+                '+${badge.xpReward} XP reward',
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.streakOrange,
+                ),
+              ),
+            ],
           ],
         ),
       ),
