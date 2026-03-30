@@ -310,6 +310,10 @@ class LibraryScreen extends ConsumerWidget {
                     physics: const BouncingScrollPhysics(),
                     slivers: [
                       const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                      // Continue Reading section
+                      SliverToBoxAdapter(
+                        child: _ContinueReadingSection(),
+                      ),
                       for (final level in booksByLevel.keys)
                         SliverToBoxAdapter(
                           child: _LibraryShelf(
@@ -852,6 +856,185 @@ class _EmptyState extends StatelessWidget {
              style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.neutralText),
            ),
         ],
+      ),
+    );
+  }
+}
+
+class _ContinueReadingSection extends ConsumerWidget {
+  const _ContinueReadingSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final continueReadingAsync = ref.watch(continueReadingProvider);
+
+    return continueReadingAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (books) {
+        if (books.isEmpty) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section header
+              Row(
+                children: [
+                  Text(
+                    'Continue Reading',
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${books.length}',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              // Horizontal book list
+              SizedBox(
+                height: 220,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: books.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemBuilder: (context, index) => _ContinueReadingCard(book: books[index]),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ContinueReadingCard extends ConsumerWidget {
+  const _ContinueReadingCard({required this.book});
+  final Book book;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isQuizReady =
+        ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
+    final progress =
+        ref.watch(readingProgressProvider(book.id)).valueOrNull;
+    final percentage = progress?.completionPercentage ?? 0;
+
+    return PressableScale(
+      onTap: () => context.go(AppRoutes.bookDetailPath(book.id)),
+      child: Container(
+        width: 140,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neutral, width: 2),
+          boxShadow: [
+            BoxShadow(color: AppColors.neutral, offset: Offset(0, 4)),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    child: Image.network(
+                      book.coverUrl ?? '',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        child: Icon(Icons.book, color: AppColors.primary),
+                      ),
+                    ),
+                  ),
+                  if (isQuizReady)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
+                            const SizedBox(width: 3),
+                            Text(
+                              'Quiz',
+                              style: GoogleFonts.nunito(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (percentage > 0 && percentage < 100)
+              ClipRRect(
+                child: LinearProgressIndicator(
+                  value: percentage / 100,
+                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                  color: AppColors.secondary,
+                  minHeight: 3,
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Text(
+                    book.level,
+                    style: GoogleFonts.nunito(
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
