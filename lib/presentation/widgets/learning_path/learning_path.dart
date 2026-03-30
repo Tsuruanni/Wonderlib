@@ -68,7 +68,7 @@ class LearningPathView extends ConsumerWidget {
 
     for (int unitIdx = 0; unitIdx < units.length; unitIdx++) {
       final unit = units[unitIdx];
-      final isUnitLocked = unitIdx > 0 && !units[unitIdx - 1].isAllComplete;
+      final isUnitLocked = unit.unitGate && unitIdx > 0 && !units[unitIdx - 1].isAllComplete;
 
       // Unit divider
       children.add(

@@ -62,7 +62,7 @@ final activeNodeYProvider = Provider<double?>((ref) {
 
   for (int unitIdx = 0; unitIdx < pathUnits.length; unitIdx++) {
     final unit = pathUnits[unitIdx];
-    final isUnitLocked = unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
+    final isUnitLocked = unit.unitGate && unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
 
     final themeHeight = _resolveThemeHeight(unit, unitIdx, dbThemes);
     final positions = _resolveThemePositions(unit, unitIdx, dbThemes);
@@ -573,6 +573,7 @@ class PathUnitData {
     required this.completedNodeTypes,
     required this.sequentialLock,
     required this.booksExemptFromLock,
+    required this.unitGate,
     this.tileThemeId,
   });
 
@@ -581,6 +582,7 @@ class PathUnitData {
   final Set<String> completedNodeTypes;
   final bool sequentialLock;
   final bool booksExemptFromLock;
+  final bool unitGate;
   final String? tileThemeId;
 
   /// Whether every required item is complete.
@@ -848,6 +850,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
           completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
           sequentialLock: path.sequentialLock,
           booksExemptFromLock: path.booksExemptFromLock,
+          unitGate: path.unitGate,
           tileThemeId: lpUnit.tileThemeId,
         ),
       );
