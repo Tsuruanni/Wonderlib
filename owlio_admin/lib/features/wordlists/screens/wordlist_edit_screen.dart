@@ -57,6 +57,8 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   bool _isSaving = false;
   bool _isGeneratingAudio = false;
   bool _isGeneratingImages = false;
+  bool _isGeneratingContent = false;
+  String _contentProgress = '';
 
   bool get isNewList => widget.listId == null;
 
@@ -219,6 +221,156 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     } finally {
       if (mounted) setState(() => _isGeneratingAudio = false);
     }
+  }
+
+  bool _wordHasMissingContent(Map<String, dynamic> word) {
+    final fields = ['meaning_tr', 'meaning_en', 'phonetic', 'example_sentences'];
+    for (final field in fields) {
+      final value = word[field];
+      if (value == null) return true;
+      if (value is String && value.trim().isEmpty) return true;
+      if (value is List && value.isEmpty) return true;
+    }
+    return false;
+  }
+
+  Future<void> _generateBulkContent() async {
+    final incompleteWords = _wordItems
+        .where(_wordHasMissingContent)
+        .toList();
+
+    if (incompleteWords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tüm kelimelerin içeriği tamamlanmış!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Toplu İçerik Üretimi'),
+        content: Text(
+          '${incompleteWords.length} kelimenin eksik içeriği AI ile doldurulacak '
+          '(phonetic, anlam, örnek cümleler).\n\n'
+          'Devam etmek istiyor musunuz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Üret'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      _isGeneratingContent = true;
+      _contentProgress = '0/${incompleteWords.length}';
+    });
+
+    int successCount = 0;
+    int failCount = 0;
+    final supabase = ref.read(supabaseClientProvider);
+
+    // Process 3 at a time to avoid rate limits
+    for (int i = 0; i < incompleteWords.length; i += 3) {
+      final batch = incompleteWords.skip(i).take(3).toList();
+
+      final futures = batch.map((word) async {
+        final wordName = word['word'] as String? ?? '';
+        try {
+          final response = await supabase.functions.invoke(
+            'generate-word-data',
+            body: {'word': wordName},
+          );
+
+          if (response.status != 200) return false;
+
+          final data = response.data as Map<String, dynamic>?;
+          if (data == null) return false;
+
+          // Only update fields that are currently empty
+          final updates = <String, dynamic>{};
+          if (_isEmpty(word['meaning_tr']) && data['meaning_tr'] != null) {
+            updates['meaning_tr'] = data['meaning_tr'];
+          }
+          if (_isEmpty(word['meaning_en']) && data['meaning_en'] != null) {
+            updates['meaning_en'] = data['meaning_en'];
+          }
+          if (_isEmpty(word['phonetic']) && data['phonetic'] != null) {
+            updates['phonetic'] = data['phonetic'];
+          }
+          if (_isEmptyList(word['example_sentences']) &&
+              data['example_sentences'] != null) {
+            updates['example_sentences'] = data['example_sentences'];
+          }
+          if (_isEmpty(word['part_of_speech']) &&
+              data['part_of_speech'] != null) {
+            updates['part_of_speech'] = data['part_of_speech'];
+          }
+
+          if (updates.isNotEmpty) {
+            await supabase
+                .from(DbTables.vocabularyWords)
+                .update(updates)
+                .eq('id', word['id']);
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      });
+
+      final results = await Future.wait(futures);
+      successCount += results.where((r) => r).length;
+      failCount += results.where((r) => !r).length;
+
+      if (mounted) {
+        setState(() {
+          _contentProgress =
+              '${successCount + failCount}/${incompleteWords.length}';
+        });
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isGeneratingContent = false;
+        _contentProgress = '';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '$successCount kelime güncellendi'
+            '${failCount > 0 ? ', $failCount başarısız' : ''}',
+          ),
+          backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
+        ),
+      );
+      _loadWordList();
+    }
+  }
+
+  bool _isEmpty(dynamic value) {
+    if (value == null) return true;
+    if (value is String) return value.trim().isEmpty;
+    return false;
+  }
+
+  bool _isEmptyList(dynamic value) {
+    if (value == null) return true;
+    if (value is List) return value.isEmpty;
+    return true;
   }
 
   Future<void> _showImageGenerationDialog() async {
@@ -586,6 +738,21 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           onPressed: () => context.go('/vocabulary'),
         ),
         actions: [
+          if (!isNewList && _wordItems.isNotEmpty)
+            OutlinedButton.icon(
+              onPressed: _isGeneratingContent ? null : _generateBulkContent,
+              icon: _isGeneratingContent
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.auto_fix_high, size: 18),
+              label: Text(_isGeneratingContent
+                  ? 'İçerik ($_contentProgress)'
+                  : 'İçerikleri Üret'),
+            ),
+          const SizedBox(width: 8),
           if (!isNewList && _wordItems.isNotEmpty)
             OutlinedButton.icon(
               onPressed: _isGeneratingAudio ? null : _generateWordlistAudio,
