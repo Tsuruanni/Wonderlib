@@ -35,40 +35,41 @@ class MapTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: SizedBox(
-        height: theme.height,
-        child: OverflowBox(
-          maxWidth: kTileWidth,
-          minWidth: kTileWidth,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final scale = w < kTileWidth ? w / kTileWidth : 1.0;
+        final h = theme.height * scale;
+
+        return SizedBox(
+          height: h,
           child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
-              // Background: remote image if available, gradient fallback
+              // Background: fills scaled area
               Positioned.fill(
                 child: theme.imageUrl != null
                     ? Image.network(
                         theme.imageUrl!,
-                        width: kTileWidth,
-                        height: theme.height,
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) =>
                             _PlaceholderBackground(colors: theme.fallbackColors),
                       )
                     : _PlaceholderBackground(colors: theme.fallbackColors),
               ),
-              // Nodes
+              // Nodes: scaled positions, original widget size
               for (int i = 0; i < nodes.length; i++)
                 if (i < theme.nodePositions.length)
                   _PositionedNode(
                     position: theme.nodePositions[i],
                     data: nodes[i],
-                    tileHeight: theme.height,
+                    tileWidth: w,
+                    tileHeight: h,
                   ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -78,16 +79,18 @@ class _PositionedNode extends StatelessWidget {
   const _PositionedNode({
     required this.position,
     required this.data,
+    required this.tileWidth,
     required this.tileHeight,
   });
 
   final Offset position;
   final MapTileNodeData data;
+  final double tileWidth;
   final double tileHeight;
 
   @override
   Widget build(BuildContext context) {
-    final left = position.dx * kTileWidth - 70; // center 140px wide node
+    final left = position.dx * tileWidth - 70; // center 140px wide node
     final top = position.dy * tileHeight - 40; // approximate vertical center
 
     return Positioned(
