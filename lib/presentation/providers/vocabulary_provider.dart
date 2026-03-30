@@ -568,6 +568,7 @@ class UnitBookWithProgress {
 /// One unit in the learning path (header + unified items list)
 class PathUnitData {
   const PathUnitData({
+    required this.pathId,
     required this.unit,
     required this.items,
     required this.completedNodeTypes,
@@ -577,6 +578,7 @@ class PathUnitData {
     this.tileThemeId,
   });
 
+  final String pathId;
   final VocabularyUnit unit;
   final List<PathItemData> items;
   final Set<String> completedNodeTypes;
@@ -845,6 +847,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
 
       result.add(
         PathUnitData(
+          pathId: path.id,
           unit: vocabUnit,
           items: items,
           completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},

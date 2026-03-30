@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/learning_path_tree_view.dart';
+import '../../tiles/screens/tile_theme_list_screen.dart';
 import 'template_list_screen.dart'; // for templatesProvider
 
 // ============================================
@@ -29,6 +30,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
   bool _sequentialLock = true;
   bool _booksExemptFromLock = true;
   bool _unitGate = true;
+  String? _pathTileThemeId;
 
   bool get _isNew => widget.templateId == null;
 
@@ -69,6 +71,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
       _sequentialLock = template['sequential_lock'] as bool? ?? true;
       _booksExemptFromLock = template['books_exempt_from_lock'] as bool? ?? true;
       _unitGate = template['unit_gate'] as bool? ?? true;
+      _pathTileThemeId = template['tile_theme_id'] as String?;
 
       // 2. Fetch template units
       final unitsResponse = await supabase
@@ -222,6 +225,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           'sequential_lock': _sequentialLock,
           'books_exempt_from_lock': _booksExemptFromLock,
           'unit_gate': _unitGate,
+          'tile_theme_id': _pathTileThemeId,
           'created_at': DateTime.now().toIso8601String(),
           'updated_at': DateTime.now().toIso8601String(),
         });
@@ -236,6 +240,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
               'sequential_lock': _sequentialLock,
               'books_exempt_from_lock': _booksExemptFromLock,
               'unit_gate': _unitGate,
+              'tile_theme_id': _pathTileThemeId,
               'updated_at': DateTime.now().toIso8601String(),
             })
             .eq('id', templateId);
@@ -247,9 +252,10 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           .delete()
           .eq('template_id', templateId);
 
-      // Re-insert all units with sort_order
-      for (int i = 0; i < _units.length; i++) {
-        final unit = _units[i];
+      // Re-insert all units with sort_order (snapshot to prevent race conditions)
+      final unitsSnapshot = List<LearningPathUnitData>.from(_units);
+      for (int i = 0; i < unitsSnapshot.length; i++) {
+        final unit = unitsSnapshot[i];
         final templateUnitId = const Uuid().v4();
 
         await supabase.from(DbTables.learningPathTemplateUnits).insert({
@@ -464,6 +470,43 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
               subtitle: const Text('Önceki ünite bitmeden sonraki açılmaz'),
               value: _unitGate,
               onChanged: (v) => setState(() => _unitGate = v),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Harita Teması',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, _) {
+                final themesAsync = ref.watch(tileThemesAdminProvider);
+                return themesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text('Tema yüklenemedi: $e'),
+                  data: (themes) {
+                    return DropdownButtonFormField<String?>(
+                      value: _pathTileThemeId,
+                      decoration: const InputDecoration(
+                        hintText: 'Tema seçin (ünite haritası arka planı)',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Tema yok (basit liste)'),
+                        ),
+                        ...themes.map(
+                          (t) => DropdownMenuItem<String?>(
+                            value: t['id'] as String,
+                            child: Text(t['name'] as String? ?? ''),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _pathTileThemeId = v),
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 32),
 

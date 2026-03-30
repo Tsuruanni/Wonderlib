@@ -18,6 +18,7 @@ class LearningPathModel {
           sequentialLock: row['sequential_lock'] as bool? ?? true,
           booksExemptFromLock: row['books_exempt_from_lock'] as bool? ?? true,
           unitGate: row['unit_gate'] as bool? ?? true,
+          tileThemeId: row['lp_tile_theme_id'] as String?,
         ),
       );
 
@@ -56,6 +57,7 @@ class LearningPathModel {
             sequentialLock: pb.sequentialLock,
             booksExemptFromLock: pb.booksExemptFromLock,
             unitGate: pb.unitGate,
+            tileThemeId: pb.tileThemeId,
             units: pb.units.values
                 .map(
                   (ub) => LearningPathUnit(
@@ -85,6 +87,7 @@ class _PathBuilder {
     required this.sequentialLock,
     required this.booksExemptFromLock,
     required this.unitGate,
+    this.tileThemeId,
   });
 
   final String id;
@@ -93,6 +96,7 @@ class _PathBuilder {
   final bool sequentialLock;
   final bool booksExemptFromLock;
   final bool unitGate;
+  final String? tileThemeId;
   final Map<String, _UnitBuilder> units = {};
 }
 

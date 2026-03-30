@@ -52,7 +52,8 @@ class UnitDetailScreen extends ConsumerWidget {
             }
 
             final lpUnit = path.units[unitIdx];
-            final unitData = allUnits.where((pu) => pu.unit.id == lpUnit.unitId).firstOrNull;
+            final pathUnits = allUnits.where((pu) => pu.pathId == pathId).toList();
+            final unitData = unitIdx < pathUnits.length ? pathUnits[unitIdx] : null;
             if (unitData == null) {
               return const Center(child: Text('Unit data not found'));
             }

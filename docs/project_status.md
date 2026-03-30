@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-30 (Tile theme editor + learning path redesign — configurable tile themes, admin editor with image upload, responsive scaling)
+Son güncelleme: 2026-03-30 (Unit map navigation — 3-layer vocab hub, path-level tile themes, admin save race condition fix)
 
 ## Current Phase
 
@@ -151,6 +151,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Learning Path Redesign (tile-based map system with configurable themes, admin editor, image upload, responsive scaling)
 - [x] Tile Theme Editor (admin CRUD, image upload, node position sliders, live preview, per-unit assignment)
 - [x] Unit Gate Toggle (inter-unit locking independent from sequential item lock)
+- [x] Unit Map Navigation (3-layer vocab hub: path selection → unit map → unit detail, path-level tile themes, admin save race condition fix)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -163,6 +164,7 @@ See: CLAUDE.md for architecture guidelines
 | ~~Teacher Panel Audit~~ | - | ~~Done~~ | ~~15 migrations, security fixes, class management redesign~~ |
 | Responsive Web Layout | - | In Progress | Sidebar + right panel done. Remaining: home, leaderboard, assignments, quiz, daily review screens |
 | ~~Learning Path Redesign~~ | - | ~~Done~~ | ~~Tile-based map, configurable themes, admin editor, responsive scaling~~ |
+| ~~Unit Map Navigation~~ | - | ~~Done~~ | ~~3-layer vocab hub, path-level themes, admin race condition fix~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |

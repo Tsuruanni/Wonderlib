@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Unit Map Navigation (2026-03-30)
+
+#### Added
+- **3-layer vocabulary navigation** — Path selection → unit map (tile-based) → unit detail. Single-path shortcut skips path selection, embedding unit map directly in hub.
+- **`UnitMapScreen`** — Displays learning path units as nodes on a tile-based map (with path-level theme) or as card list (no theme). Auto-scrolls to active unit.
+- **`UnitDetailScreen`** — Single unit's items (word lists, books, game, treasure, review) on a tile map. Same node-mapping logic as `LearningPathView`.
+- **Path-level `tile_theme_id`** — Each learning path can have its own tile theme for the unit map background, independent from per-unit item tile themes.
+- **Admin path-level tile theme dropdown** — "Harita Teması" selector in both template editor and assignment editor.
+
+#### Changed
+- **`VocabularyHubScreen` rewritten** — No longer renders all units in a single scrollable column. Routes to unit map → unit detail flow.
+- **`LearningPath` entity** — Added `tileThemeId` field, parsed from `lp_tile_theme_id` RPC column.
+- **`PathUnitData`** — Added `pathId` field for reliable filtering (prevents cross-path unit confusion).
+- **Router** — Added `/vocabulary/path/:pathId` and `/vocabulary/path/:pathId/unit/:unitIdx` routes.
+
+#### Fixed
+- **Admin save race condition** — `_saveLearningPath` now snapshots units and items lists before async save loop. Previously, `path.units` was a live reference that could be mutated by `setState` callbacks between `await` calls, causing sort_order corruption.
+
+#### Infrastructure
+- **DB migration** — `tile_theme_id` added to `scope_learning_paths` and `learning_path_templates`. RPCs `get_user_learning_paths` and `apply_learning_path_template` updated.
+
 ### Tile Theme Editor + Learning Path Redesign (2026-03-29 — 2026-03-30)
 
 #### Added

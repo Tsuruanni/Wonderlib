@@ -18,6 +18,8 @@ import '../presentation/screens/vocabulary/category_browse_screen.dart';
 import '../presentation/screens/vocabulary/vocabulary_session_screen.dart';
 import '../presentation/screens/vocabulary/session_summary_screen.dart';
 import '../presentation/screens/vocabulary/daily_review_screen.dart';
+import '../presentation/screens/vocabulary/unit_map_screen.dart';
+import '../presentation/screens/vocabulary/unit_detail_screen.dart';
 import '../presentation/screens/cards/card_collection_screen.dart';
 import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
@@ -98,6 +100,10 @@ abstract class AppRoutes {
       '/vocabulary/list/$listId/session/summary';
   static String vocabularyCategoryPath(String categoryName) =>
       '/vocabulary/category/$categoryName';
+  static String vocabularyPathUnits(String pathId) =>
+      '/vocabulary/path/$pathId';
+  static String vocabularyPathUnit(String pathId, int unitIdx) =>
+      '/vocabulary/path/$pathId/unit/$unitIdx';
   static const bookQuiz = '/quiz/:bookId';
   static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
@@ -309,6 +315,23 @@ GoRouter _createRouter() {
                       final categoryName = state.pathParameters['categoryName']!;
                       return CategoryBrowseScreen(categoryName: categoryName);
                     },
+                  ),
+                  GoRoute(
+                    path: 'path/:pathId',
+                    builder: (context, state) {
+                      final pathId = state.pathParameters['pathId']!;
+                      return UnitMapScreen(pathId: pathId);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'unit/:unitIdx',
+                        builder: (context, state) {
+                          final pathId = state.pathParameters['pathId']!;
+                          final unitIdx = int.parse(state.pathParameters['unitIdx']!);
+                          return UnitDetailScreen(pathId: pathId, unitIdx: unitIdx);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

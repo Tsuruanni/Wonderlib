@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/learning_path_tree_view.dart';
+import '../../tiles/screens/tile_theme_list_screen.dart';
 import '../../users/screens/user_list_screen.dart' show allSchoolsProvider;
 
 // ============================================
@@ -56,6 +57,7 @@ class _ScopeLearningPathData {
   bool sequentialLock;
   bool booksExemptFromLock;
   bool unitGate;
+  String? tileThemeId;
 
   _ScopeLearningPathData({
     this.id,
@@ -66,6 +68,7 @@ class _ScopeLearningPathData {
     this.sequentialLock = true,
     this.booksExemptFromLock = true,
     this.unitGate = true,
+    this.tileThemeId,
   });
 }
 
@@ -150,7 +153,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // Build query for scope_learning_paths matching current scope
       var query = supabase
           .from(DbTables.scopeLearningPaths)
-          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock, unit_gate')
+          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock, unit_gate, tile_theme_id')
           .eq('school_id', _schoolId!);
 
       if (_scopeType == _ScopeType.grade) {
@@ -259,6 +262,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           sequentialLock: pathRow['sequential_lock'] as bool? ?? true,
           booksExemptFromLock: pathRow['books_exempt_from_lock'] as bool? ?? true,
           unitGate: pathRow['unit_gate'] as bool? ?? true,
+          tileThemeId: pathRow['tile_theme_id'] as String?,
         ));
       }
 
@@ -484,6 +488,10 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
     final path = _learningPaths[pathIndex];
     if (path.id == null || _isSaving) return;
 
+    // Snapshot the units list to prevent race conditions during async save.
+    // Without this, path.units can be mutated by setState callbacks between awaits.
+    final unitsSnapshot = List<LearningPathUnitData>.from(path.units);
+
     setState(() => _isSaving = true);
 
     try {
@@ -515,8 +523,8 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // ── 2. Process units + items: INSERT new, UPDATE existing ──
       final memoryUnitIds = <String>{};
 
-      for (int i = 0; i < path.units.length; i++) {
-        final unit = path.units[i];
+      for (int i = 0; i < unitsSnapshot.length; i++) {
+        final unit = unitsSnapshot[i];
 
         if (unit.id == null) {
           // NEW unit → INSERT
@@ -532,8 +540,9 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           memoryUnitIds.add(newUnitId);
 
           // All items in a new unit are new → INSERT all
-          for (int j = 0; j < unit.items.length; j++) {
-            final item = unit.items[j];
+          final newItems = List<LearningPathItemData>.from(unit.items);
+          for (int j = 0; j < newItems.length; j++) {
+            final item = newItems[j];
             final newItemId = const Uuid().v4();
             final isWordList =
                 item.itemType == LearningPathItemType.wordList.dbValue;
@@ -561,9 +570,10 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           // Process items within this existing unit
           final existingItemIds = existingItemsByUnit[unit.id!] ?? {};
           final memoryItemIds = <String>{};
+          final existingItems = List<LearningPathItemData>.from(unit.items);
 
-          for (int j = 0; j < unit.items.length; j++) {
-            final item = unit.items[j];
+          for (int j = 0; j < existingItems.length; j++) {
+            final item = existingItems[j];
 
             if (item.id == null) {
               // NEW item → INSERT
@@ -693,6 +703,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             'sequential_lock': lp.sequentialLock,
             'books_exempt_from_lock': lp.booksExemptFromLock,
             'unit_gate': lp.unitGate,
+            'tile_theme_id': lp.tileThemeId,
           })
           .eq('id', lp.id!);
       if (mounted) {
@@ -1177,6 +1188,46 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
               setState(() => _learningPaths[pathIndex].unitGate = v);
               _updateLockSettings(_learningPaths[pathIndex]);
             },
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final themesAsync = ref.watch(tileThemesAdminProvider);
+                return themesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text('Tema yüklenemedi: $e'),
+                  data: (themes) {
+                    return DropdownButtonFormField<String?>(
+                      value: path.tileThemeId,
+                      decoration: const InputDecoration(
+                        labelText: 'Harita Teması',
+                        hintText: 'Ünite haritası arka planı',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Tema yok (basit liste)'),
+                        ),
+                        ...themes.map(
+                          (t) => DropdownMenuItem<String?>(
+                            value: t['id'] as String,
+                            child: Text(t['name'] as String? ?? ''),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => _learningPaths[pathIndex].tileThemeId = v);
+                        _updateLockSettings(_learningPaths[pathIndex]);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

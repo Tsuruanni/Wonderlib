@@ -5,48 +5,20 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
-import '../../../domain/entities/word_list.dart';
+import '../../../domain/entities/learning_path.dart';
 import '../../providers/vocabulary_provider.dart';
-import '../../utils/ui_helpers.dart';
 import '../../widgets/common/top_navbar.dart';
-import '../../widgets/learning_path/learning_path.dart';
+import 'unit_map_screen.dart';
 
-/// Main vocabulary hub screen with word lists organized by sections
-class VocabularyHubScreen extends ConsumerStatefulWidget {
+/// Vocabulary hub — entry point for learning paths.
+/// 1 path: shows unit map directly.
+/// 2+ paths: shows path selection cards.
+class VocabularyHubScreen extends ConsumerWidget {
   const VocabularyHubScreen({super.key});
 
   @override
-  ConsumerState<VocabularyHubScreen> createState() => _VocabularyHubScreenState();
-}
-
-class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
-  final _scrollController = ScrollController();
-  bool _hasScrolledToActive = false;
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final storyListsAsync = ref.watch(storyWordListsProvider);
-
-    // Auto-scroll to active node once when path data loads.
-    // activeNodeYProvider is computed from learningPathProvider (async),
-    // so it transitions from null → value when data resolves.
-    ref.listen<double?>(activeNodeYProvider, (prev, next) {
-      if (next != null && !_hasScrolledToActive && _scrollController.hasClients) {
-        _hasScrolledToActive = true;
-        final screenHeight = MediaQuery.of(context).size.height;
-        final targetOffset = (next - screenHeight / 2).clamp(
-          0.0,
-          _scrollController.position.maxScrollExtent,
-        );
-        _scrollController.jumpTo(targetOffset);
-      }
-    });
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pathsAsync = ref.watch(userLearningPathsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,31 +27,26 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
           children: [
             const TopNavbar(),
             Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                padding: const EdgeInsets.only(bottom: 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const LearningPathView(),
-                      ...storyListsAsync.when(
-                        loading: () => [const SizedBox.shrink()],
-                        error: (e, _) => [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                            child: Text('Failed to load word lists', style: TextStyle(color: Colors.red.shade300)),
-                          ),
-                        ],
-                        data: (storyLists) => storyLists.isEmpty
-                            ? []
-                            : [
-                                const _SectionHeader(title: 'My Word Lists'),
-                                _VerticalListSection(lists: storyLists),
-                              ],
-                      ),
-                    ],
+              child: pathsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(
+                  child: Text(
+                    'Could not load learning paths',
+                    style: GoogleFonts.nunito(color: AppColors.neutralText),
                   ),
                 ),
+                data: (paths) {
+                  if (paths.isEmpty) {
+                    return _EmptyState();
+                  }
+                  if (paths.length == 1) {
+                    // Single path — show unit map directly
+                    return UnitMapScreen(pathId: paths.first.id);
+                  }
+                  // Multiple paths — show selection
+                  return _PathSelectionList(paths: paths);
+                },
+              ),
             ),
           ],
         ),
@@ -88,165 +55,133 @@ class _VocabularyHubScreenState extends ConsumerState<VocabularyHubScreen> {
   }
 }
 
-/// Section header with centered text and gradient lines
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-
-  final String title;
+class _PathSelectionList extends ConsumerWidget {
+  const _PathSelectionList({required this.paths});
+  final List<LearningPath> paths;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-      child: Row(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final allUnits = ref.watch(learningPathProvider).valueOrNull ?? [];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neutral.withValues(alpha: 0),
-                    AppColors.neutral,
-                  ],
-                ),
-              ),
-            ),
-          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.only(bottom: 16, left: 4),
             child: Text(
-              title,
+              'Learning Paths',
               style: GoogleFonts.nunito(
-                fontSize: 16,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-                letterSpacing: 0.5,
+                color: AppColors.black,
               ),
             ),
           ),
-          Expanded(
-            child: Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.neutral,
-                    AppColors.neutral.withValues(alpha: 0),
-                  ],
-                ),
+          for (final path in paths)
+            _PathCard(
+              path: path,
+              allUnits: allUnits,
+              onTap: () => context.push(
+                AppRoutes.vocabularyPathUnits(path.id),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 }
 
-/// Vertical list of word list items
-class _VerticalListSection extends ConsumerWidget {
-
-  const _VerticalListSection({required this.lists});
-  final List<WordList> lists;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final allProgress = ref.watch(userWordListProgressProvider).valueOrNull ?? [];
-    final progressMap = {for (final p in allProgress) p.wordListId: p};
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: lists.map((list) {
-          return _WordListTile(
-            wordList: list,
-            progress: progressMap[list.id],
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-/// Tile widget for word list (used in vertical list)
-class _WordListTile extends StatelessWidget {
-
-  const _WordListTile({
-    required this.wordList,
-    this.progress,
+class _PathCard extends StatelessWidget {
+  const _PathCard({
+    required this.path,
+    required this.allUnits,
+    required this.onTap,
   });
-  final WordList wordList;
-  final UserWordListProgress? progress;
+
+  final LearningPath path;
+  final List<PathUnitData> allUnits;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final pathUnits =
+        allUnits.where((pu) => pu.pathId == path.id).toList();
+    final totalUnits = pathUnits.length;
+    final completedUnits = pathUnits.where((u) => u.isAllComplete).length;
+
     return GestureDetector(
-      onTap: () => context.push(AppRoutes.vocabularyListPath(wordList.id)),
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-           color: AppColors.white,
-           borderRadius: BorderRadius.circular(16),
-           border: Border.all(color: AppColors.neutral, width: 2),
-           boxShadow: [BoxShadow(color: AppColors.neutral, offset: Offset(0, 3))],
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.neutral, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.neutral,
+              offset: Offset(0, 4),
+              blurRadius: 0,
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-               width: 50,
-               height: 50,
-               alignment: Alignment.center,
-               decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-               ),
-               child: Text(wordList.category.icon, style: const TextStyle(fontSize: 24)),
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.route_rounded, color: AppColors.secondary, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(
-                     wordList.name,
-                     style: GoogleFonts.nunito(
-                       fontWeight: FontWeight.bold,
-                       fontSize: 16,
-                     ),
-                   ),
-                   Text(
-                     '${wordList.wordCount} words',
-                     style: GoogleFonts.nunito(
-                       color: AppColors.neutralText,
-                       fontWeight: FontWeight.bold,
-                       fontSize: 12,
-                     ),
-                   ),
+                  Text(
+                    path.name,
+                    style: GoogleFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$completedUnits / $totalUnits units completed',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                  if (totalUnits > 0) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: completedUnits / totalUnits,
+                        backgroundColor: AppColors.neutral,
+                        color: AppColors.primary,
+                        minHeight: 6,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            if (progress != null)
-              SizedBox(
-                width: 40,
-                height: 40,
-                child: Stack(
-                   alignment: Alignment.center,
-                   children: [
-                      CircularProgressIndicator(
-                         value: (progress!.bestAccuracy ?? 0) / 100.0,
-                         color: AppColors.primary,
-                         backgroundColor: AppColors.neutral,
-                         strokeWidth: 5,
-                      ),
-                      if (progress!.isComplete)
-                         Icon(Icons.check, size: 16, color: AppColors.primary),
-                   ],
-                ),
-              )
-            else
-               Icon(Icons.chevron_right_rounded, color: AppColors.neutralText),
+            const SizedBox(width: 12),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.neutralText,
+            ),
           ],
         ),
       ),
@@ -254,4 +189,41 @@ class _WordListTile extends StatelessWidget {
   }
 }
 
-
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.route_rounded,
+              size: 48,
+              color: AppColors.neutralText.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No learning path yet',
+              style: GoogleFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.neutralText,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Your teacher will assign one soon!',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                color: AppColors.neutralText.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
