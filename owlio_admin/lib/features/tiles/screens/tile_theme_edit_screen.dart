@@ -350,30 +350,6 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                           onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 16),
-                        // Info box
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, color: Colors.blue.shade600, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Görsel boyutu: 800 × yükseklik px. '
-                                  'Uygulama, ünite item sayısına göre görseli alttan kırpar. '
-                                  'Tüm nodeları kapsayacak kadar uzun bir görsel yükleyin.',
-                                  style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                         Row(
                           children: [
                             const Text('Yükseklik: '),
@@ -381,8 +357,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               child: Slider(
                                 value: _height,
                                 min: 300,
-                                max: 5000,
-                                divisions: 94,
+                                max: 1500,
+                                divisions: 24,
                                 label: '${_height.round()}px',
                                 onChanged: (v) =>
                                     setState(() => _height = v),
@@ -393,19 +369,6 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               child: Text('${_height.round()}px',
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
-                            ),
-                            const SizedBox(width: 8),
-                            // Auto-fit button
-                            Tooltip(
-                              message: 'Node sayısına göre otomatik ayarla',
-                              child: IconButton(
-                                icon: const Icon(Icons.auto_fix_high, size: 20),
-                                onPressed: _nodes.isEmpty ? null : () {
-                                  setState(() {
-                                    _height = (_nodes.length * 140.0).clamp(300, 5000);
-                                  });
-                                },
-                              ),
                             ),
                           ],
                         ),
@@ -589,7 +552,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
             Expanded(
               flex: 1,
               child: Card(
-                child: SingleChildScrollView(
+                child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -662,16 +625,15 @@ class _TilePreview extends StatelessWidget {
     final scale = _previewWidth / 800.0;
     final previewHeight = height * scale;
 
-    return SizedBox(
-      width: _previewWidth,
-      height: previewHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Background: rounded corners, fills tile
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        width: _previewWidth,
+        height: previewHeight,
+        child: Stack(
+          children: [
+            // Background: image if available, gradient fallback
+            Positioned.fill(
               child: imageBytes != null
                   ? Image.memory(imageBytes!, fit: BoxFit.cover)
                   : imageUrl != null
@@ -679,7 +641,6 @@ class _TilePreview extends StatelessWidget {
                           errorBuilder: (_, __, ___) => _GradientFallback(color1: color1, color2: color2))
                       : _GradientFallback(color1: color1, color2: color2),
             ),
-          ),
             for (int i = 0; i < nodes.length; i++)
               Positioned(
                 left: (nodes[i].x / 100) * _previewWidth - 14,
@@ -710,7 +671,8 @@ class _TilePreview extends StatelessWidget {
                   ),
                 ),
               ),
-        ],
+          ],
+        ),
       ),
     );
   }

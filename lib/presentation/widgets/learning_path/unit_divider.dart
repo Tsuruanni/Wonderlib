@@ -24,8 +24,11 @@ class UnitDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: kDividerHeight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: OverflowBox(
+        maxWidth: kTileWidth,
+        minWidth: kTileWidth,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Row(
             children: [
               const Expanded(child: Divider(color: AppColors.neutral, thickness: 2)),
@@ -44,6 +47,7 @@ class UnitDivider extends StatelessWidget {
               const Expanded(child: Divider(color: AppColors.neutral, thickness: 2)),
             ],
           ),
+        ),
       ),
     );
   }

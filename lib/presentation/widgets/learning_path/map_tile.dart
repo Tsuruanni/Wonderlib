@@ -33,67 +33,42 @@ class MapTile extends StatelessWidget {
   final TileTheme theme;
   final List<MapTileNodeData> nodes;
 
-  static const _bottomPadding = 200.0;
-
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth;
-        final scale = availableWidth < kTileWidth
-            ? availableWidth / kTileWidth
-            : 1.0;
-
-        // Full image height in scaled pixels
-        final fullScaledHeight = theme.height * scale;
-
-        // Crop height: last used node's pixel Y + padding
-        final double cropHeight;
-        if (nodes.isEmpty || theme.nodePositions.isEmpty) {
-          cropHeight = 300.0 * scale;
-        } else {
-          final usedCount = nodes.length.clamp(0, theme.nodePositions.length);
-          final lastNodePixelY = theme.nodePositions[usedCount - 1].dy * fullScaledHeight;
-          cropHeight = (lastNodePixelY + _bottomPadding * scale)
-              .clamp(200.0 * scale, fullScaledHeight);
-        }
-
-        return SizedBox(
-          height: cropHeight,
-          child: ClipRect(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Background: full image, top-aligned, overflows past cropHeight
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: fullScaledHeight,
-                  child: theme.imageUrl != null
-                      ? Image.network(
-                          theme.imageUrl!,
-                          fit: BoxFit.fitWidth,
-                          alignment: Alignment.topCenter,
-                          errorBuilder: (_, __, ___) =>
-                              _PlaceholderBackground(colors: theme.fallbackColors),
-                        )
-                      : _PlaceholderBackground(colors: theme.fallbackColors),
-                ),
-                // Nodes: positioned on full image coordinates, then clipped
-                for (int i = 0; i < nodes.length; i++)
-                  if (i < theme.nodePositions.length)
-                    _PositionedNode(
-                      position: theme.nodePositions[i],
-                      data: nodes[i],
-                      tileWidth: availableWidth,
-                      tileHeight: fullScaledHeight,
-                    ),
-              ],
-            ),
+    return ClipRect(
+      child: SizedBox(
+        height: theme.height,
+        child: OverflowBox(
+          maxWidth: kTileWidth,
+          minWidth: kTileWidth,
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              // Background: remote image if available, gradient fallback
+              Positioned.fill(
+                child: theme.imageUrl != null
+                    ? Image.network(
+                        theme.imageUrl!,
+                        width: kTileWidth,
+                        height: theme.height,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _PlaceholderBackground(colors: theme.fallbackColors),
+                      )
+                    : _PlaceholderBackground(colors: theme.fallbackColors),
+              ),
+              // Nodes
+              for (int i = 0; i < nodes.length; i++)
+                if (i < theme.nodePositions.length)
+                  _PositionedNode(
+                    position: theme.nodePositions[i],
+                    data: nodes[i],
+                    tileHeight: theme.height,
+                  ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
@@ -103,18 +78,16 @@ class _PositionedNode extends StatelessWidget {
   const _PositionedNode({
     required this.position,
     required this.data,
-    required this.tileWidth,
     required this.tileHeight,
   });
 
   final Offset position;
   final MapTileNodeData data;
-  final double tileWidth;
   final double tileHeight;
 
   @override
   Widget build(BuildContext context) {
-    final left = position.dx * tileWidth - 70; // center 140px wide node
+    final left = position.dx * kTileWidth - 70; // center 140px wide node
     final top = position.dy * tileHeight - 40; // approximate vertical center
 
     return Positioned(

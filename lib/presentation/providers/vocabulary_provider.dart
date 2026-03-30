@@ -64,10 +64,8 @@ final activeNodeYProvider = Provider<double?>((ref) {
     final unit = pathUnits[unitIdx];
     final isUnitLocked = unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
 
-    final fullHeight = _resolveThemeHeight(unit, unitIdx, dbThemes);
+    final themeHeight = _resolveThemeHeight(unit, unitIdx, dbThemes);
     final positions = _resolveThemePositions(unit, unitIdx, dbThemes);
-    final itemCount = unit.items.length;
-    final visibleHeight = _visibleTileHeight(fullHeight, positions, itemCount);
 
     cumulativeY += kDividerHeight;
 
@@ -84,23 +82,15 @@ final activeNodeYProvider = Provider<double?>((ref) {
 
       if (!isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
         if (itemIdx >= positions.length) continue;
-        return cumulativeY + positions[itemIdx].dy * fullHeight;
+        return cumulativeY + positions[itemIdx].dy * themeHeight;
       }
     }
 
-    cumulativeY += visibleHeight;
+    cumulativeY += themeHeight;
   }
 
   return null;
 });
-
-/// Visible tile height = last used node pixel Y + 200px padding (matches MapTile._bottomPadding)
-double _visibleTileHeight(double fullHeight, List<Offset> positions, int itemCount) {
-  if (itemCount == 0 || positions.isEmpty) return 300.0;
-  final usedCount = itemCount.clamp(0, positions.length);
-  final lastNodePixelY = positions[usedCount - 1].dy * fullHeight;
-  return (lastNodePixelY + 200.0).clamp(200.0, fullHeight);
-}
 
 double _resolveThemeHeight(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
   if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
