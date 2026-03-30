@@ -56,7 +56,9 @@ class QuestsScreen extends ConsumerWidget {
         children: [
           const TopNavbar(),
           Expanded(
-            child: SingleChildScrollView(
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+              child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Align(
                 alignment: Alignment.topCenter,
@@ -95,6 +97,7 @@ class QuestsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+            ),
             ),
           ),
         ],
