@@ -99,11 +99,6 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Unit review: SRS updates already saved per-word in answerWord().
     // Skip the daily review RPC (avoids UNIQUE constraint conflict).
     if (state.isUnitReview) {
-      // Mark daily_review node complete in the learning path lock chain
-      if (widget.unitId != null) {
-        await completePathNode(ref, widget.unitId!, 'daily_review');
-      }
-      // Refresh learning path so DR node shows as complete
       ref.invalidate(todayReviewSessionProvider);
       ref.invalidate(learningPathProvider);
       // Invalidate wordbank providers so Word Bank sees updated review dates
@@ -121,9 +116,6 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
 
     if (result == null || !mounted) return;
 
-    // Save DR position to daily_review_sessions so it stays fixed in the path
-    await _saveDrPosition(result.sessionId);
-
     // Invalidate providers so learning path refreshes (DR node shows as complete)
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
@@ -139,34 +131,6 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
-  }
-
-  Future<void> _saveDrPosition(String sessionId) async {
-    try {
-      final pathUnits = ref.read(learningPathProvider).valueOrNull;
-      if (pathUnits == null) return;
-
-      int? drPosition;
-      for (final unit in pathUnits) {
-        for (final item in unit.items) {
-          if (item is PathDailyReviewItem && !item.isComplete) {
-            drPosition = item.sortOrder;
-            break;
-          }
-        }
-        if (drPosition != null) break;
-      }
-
-      if (drPosition == null) return;
-
-      await ref.read(dailyReviewControllerProvider.notifier)
-          .saveDailyReviewPosition(
-            sessionId: sessionId,
-            pathPosition: drPosition,
-          );
-    } catch (_) {
-      // Non-critical
-    }
   }
 
   void _showCompletionDialog({
