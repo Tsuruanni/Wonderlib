@@ -8,8 +8,7 @@ enum NodeType {
   wordList(Icons.menu_book_rounded, AppColors.secondary, Color(0xFF1899D6)),
   book(Icons.auto_stories_rounded, Color(0xFF1565C0), Color(0xFFE3F2FD)),
   game(Icons.sports_esports_rounded, Color(0xFF7B1FA2), Color(0xFFF3E5F5)),
-  treasure(Icons.card_giftcard_rounded, AppColors.cardLegendary, Color(0xFFFFF8E1)),
-  review(Icons.style_rounded, Color(0xFFE65100), Color(0xFFFFF3E0));
+  treasure(Icons.card_giftcard_rounded, AppColors.cardLegendary, Color(0xFFFFF8E1));
 
   const NodeType(this.icon, this.color, this.bgColor);
   final IconData icon;

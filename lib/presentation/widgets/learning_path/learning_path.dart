@@ -95,12 +95,8 @@ class LearningPathView extends ConsumerWidget {
         final item = unit.items[itemIdx];
         final isItemLocked = locks[itemIdx];
 
-        // Active detection: first unlocked + incomplete (skip daily review)
         bool isActive = false;
-        if (!foundActive &&
-            !isItemLocked &&
-            !item.isComplete &&
-            item is! PathDailyReviewItem) {
+        if (!foundActive && !isItemLocked && !item.isComplete) {
           isActive = true;
           foundActive = true;
         }
@@ -232,13 +228,6 @@ class LearningPathView extends ConsumerWidget {
           onTap: () => completePathNode(ref, unit.unit.id, 'treasure'),
         );
 
-      case PathDailyReviewItem():
-        return MapTileNodeData(
-          type: NodeType.review,
-          state: state,
-          label: 'Review',
-          onTap: () => context.push(AppRoutes.vocabularyDailyReview),
-        );
     }
   }
 }
