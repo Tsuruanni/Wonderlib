@@ -74,12 +74,13 @@ class _QuestRow extends StatelessWidget {
     final route = _questRoute(quest.questType);
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: (!isCompleted && route != null)
-          ? () => context.go(route)
+          ? () => context.go(route!)
           : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
+        child: Row(
         children: [
           // Icon circle
           Container(
