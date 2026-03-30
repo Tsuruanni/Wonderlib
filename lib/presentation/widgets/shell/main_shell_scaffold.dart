@@ -138,22 +138,26 @@ class MainShellScaffold extends ConsumerWidget {
                       ? screenWidth >= 1400
                       : screenWidth >= 1000;
 
-                  if (isFullWidth || showReaderSidebar) {
-                    // Full-width: Learning Path (terrain bg) or Reader (sidebar)
+                  if (showReaderSidebar) {
+                    // Reader with sidebar — full width
                     return Row(
                       children: [
-                        if (showReaderSidebar) const ReaderSidebar(),
+                        const ReaderSidebar(),
                         Expanded(child: navigationShell),
                         if (showRightPanel) const RightInfoPanel(),
                       ],
                     );
                   }
 
+                  // All other pages: constrained center layout
+                  // (including Learning Path — terrain bg works within constrained width)
                   return Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: showRightPanel ? 1060 : 800,
+                        maxWidth: showRightPanel
+                            ? (isFullWidth ? 1200 : 1060)
+                            : 800,
                       ),
                       child: Row(
                         children: [
