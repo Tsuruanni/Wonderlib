@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:owlio/app/router.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
 
@@ -69,9 +71,14 @@ class _QuestRow extends StatelessWidget {
         goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
 
     final rewardText = _rewardText(quest);
+    final route = _questRoute(quest.questType);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    return GestureDetector(
+      onTap: (!isCompleted && route != null)
+          ? () => context.go(route)
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           // Icon circle
@@ -141,7 +148,16 @@ class _QuestRow extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
+  }
+
+  String? _questRoute(String questType) {
+    return switch (questType) {
+      'complete_chapters' => AppRoutes.library,
+      'review_words' => AppRoutes.vocabularyDailyReview,
+      _ => null,
+    };
   }
 
   String _rewardText(DailyQuest quest) {
