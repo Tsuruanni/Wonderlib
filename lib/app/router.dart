@@ -391,13 +391,24 @@ GoRouter _createRouter() {
               ),
             ],
           ),
-          // Branch 2: Quests (NEW)
+          // Branch 2: Quests
           StatefulShellBranch(
             navigatorKey: _studentQuestsKey,
             routes: [
               GoRoute(
                 path: AppRoutes.quests,
                 builder: (context, state) => const QuestsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.studentAssignments,
+                builder: (context, state) => const StudentAssignmentsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.studentAssignmentDetail,
+                builder: (context, state) {
+                  final assignmentId = state.pathParameters['assignmentId']!;
+                  return StudentAssignmentDetailScreen(assignmentId: assignmentId);
+                },
               ),
             ],
           ),
@@ -557,20 +568,7 @@ GoRouter _createRouter() {
         ],
       ),
 
-      // Word Bank moved inside Vocab branch to keep shell visible
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.studentAssignments,
-        builder: (context, state) => const StudentAssignmentsScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.studentAssignmentDetail,
-        builder: (context, state) {
-          final assignmentId = state.pathParameters['assignmentId']!;
-          return StudentAssignmentDetailScreen(assignmentId: assignmentId);
-        },
-      ),
+      // Assignment routes moved inside Quests branch to keep shell visible
       // Reader & Activity moved inside Library branch to keep shell visible
       // teacherClassDetail and teacherStudentDetail moved inside teacher shell branch
       // teacherCreateAssignment moved inside teacher shell branch
