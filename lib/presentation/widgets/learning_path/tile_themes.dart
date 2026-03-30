@@ -7,13 +7,21 @@ class TileTheme {
     required this.assetPath,
     required this.nodePositions,
     required this.fallbackColors,
+    this.height = 1000.0,
+    this.imageUrl,
   });
 
   /// Theme display name (for debugging).
   final String name;
 
-  /// Asset path for the background image.
+  /// Asset path for the background image (legacy/local).
   final String assetPath;
+
+  /// Remote image URL from Supabase storage (takes priority over assetPath).
+  final String? imageUrl;
+
+  /// Tile height in logical pixels (varies per theme).
+  final double height;
 
   /// Node positions as percentages (0.0–1.0) of tile width/height.
   /// Index 0 is the topmost node, last is the bottommost.
@@ -25,7 +33,6 @@ class TileTheme {
 
 /// Tile render dimensions (logical pixels).
 const kTileWidth = 800.0;
-const kTileHeight = 1000.0;
 
 /// Height of the unit divider widget between tiles.
 const kDividerHeight = 60.0;

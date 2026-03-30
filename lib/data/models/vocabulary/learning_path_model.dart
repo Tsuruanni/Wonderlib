@@ -29,6 +29,7 @@ class LearningPathModel {
           unitColor: row['unit_color'] as String?,
           unitIcon: row['unit_icon'] as String?,
           sortOrder: row['unit_sort_order'] as int,
+          tileThemeId: row['tile_theme_id'] as String?,
         ),
       );
 
@@ -61,6 +62,7 @@ class LearningPathModel {
                     unitColor: ub.unitColor,
                     unitIcon: ub.unitIcon,
                     sortOrder: ub.sortOrder,
+                    tileThemeId: ub.tileThemeId,
                     items: ub.items..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
                   ),
                 )
@@ -97,6 +99,7 @@ class _UnitBuilder {
     this.unitColor,
     this.unitIcon,
     required this.sortOrder,
+    this.tileThemeId,
   });
 
   final String unitId;
@@ -104,5 +107,6 @@ class _UnitBuilder {
   final String? unitColor;
   final String? unitIcon;
   final int sortOrder;
+  final String? tileThemeId;
   final List<LearningPathItem> items = [];
 }

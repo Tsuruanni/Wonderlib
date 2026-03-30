@@ -225,18 +225,30 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       text:
           'A 2x3 grid of 6 separate illustrations for a children\'s '
           'English learning app. Each cell contains exactly one object/concept '
-          'illustration, clearly separated with visible borders. '
-          'All cells are equal size. White background for each cell. '
-          'No text or labels inside the cells.',
+          'illustration. No borders, no frames, no dividing lines. '
+          'Seamless white background. '
+          'IMPORTANT: Do NOT include any text, letters, words or labels. Only illustrations.',
     );
     var selectedStyle = 'flat';
+    var includeExamples = false;
+    var overwrite = false;
+
+    final wordsWithImages =
+        _wordItems.where((w) {
+          final url = w['image_url'] as String?;
+          return url != null && url.isNotEmpty;
+        }).length;
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
-          final wordCount = _wordItems.length;
-          final apiCalls = (wordCount / 6).ceil();
+          final wordsToProcess = overwrite
+              ? _wordItems.length
+              : _wordItems.length - wordsWithImages;
+          final apiCalls = wordsToProcess > 0
+              ? (wordsToProcess / 6).ceil()
+              : 0;
 
           return AlertDialog(
             title: const Text('Görsel Üretimi'),
@@ -256,21 +268,22 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _styleChip('flat', 'Flat', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('cartoon', 'Cartoon', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('watercolor', 'Watercolor', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('realistic', 'Realistic', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
-                      _styleChip('pixel', 'Pixel Art', selectedStyle, (v) {
-                        setDialogState(() => selectedStyle = v);
-                      }),
+                      for (final entry in const {
+                        'flat': 'Flat',
+                        'cartoon': 'Cartoon',
+                        'watercolor': 'Watercolor',
+                        'realistic': 'Realistic',
+                        'pixel': 'Pixel Art',
+                        'clay': 'Clay 3D',
+                        'sticker': 'Sticker',
+                        'pencil': 'Pencil Sketch',
+                        'isometric': 'Isometric',
+                        'pop': 'Pop Art',
+                        'minimal': 'Minimal Line',
+                      }.entries)
+                        _styleChip(entry.key, entry.value, selectedStyle, (v) {
+                          setDialogState(() => selectedStyle = v);
+                        }),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -291,24 +304,69 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Options
+                  CheckboxListTile(
+                    value: includeExamples,
+                    onChanged: (v) =>
+                        setDialogState(() => includeExamples = v ?? false),
+                    title: const Text('Örnek cümle bağlamı ekle'),
+                    subtitle: const Text(
+                      'Çok anlamlı kelimelerde doğru görseli üretmek için',
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  CheckboxListTile(
+                    value: overwrite,
+                    onChanged: (v) =>
+                        setDialogState(() => overwrite = v ?? false),
+                    title: const Text('Mevcut görselleri yeniden üret'),
+                    subtitle: Text(
+                      '$wordsWithImages/${_wordItems.length} kelimenin görseli var',
+                    ),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
+                  const SizedBox(height: 12),
+
                   // Info box
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: wordsToProcess == 0
+                          ? Colors.orange.shade50
+                          : Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
+                      border: Border.all(
+                        color: wordsToProcess == 0
+                            ? Colors.orange.shade200
+                            : Colors.blue.shade200,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, size: 18, color: Colors.blue.shade700),
+                        Icon(
+                          wordsToProcess == 0
+                              ? Icons.warning_amber_rounded
+                              : Icons.info_outline,
+                          size: 18,
+                          color: wordsToProcess == 0
+                              ? Colors.orange.shade700
+                              : Colors.blue.shade700,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            '$wordCount kelime, $apiCalls API çağrısı yapılacak',
+                            wordsToProcess == 0
+                                ? 'Tüm kelimelerin görseli var. Yeniden üretmek için üstteki seçeneği işaretleyin.'
+                                : '$wordsToProcess kelime için $apiCalls API çağrısı yapılacak',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.blue.shade700,
+                              color: wordsToProcess == 0
+                                  ? Colors.orange.shade700
+                                  : Colors.blue.shade700,
                             ),
                           ),
                         ),
@@ -324,7 +382,9 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                 child: const Text('İptal'),
               ),
               FilledButton.icon(
-                onPressed: () => Navigator.pop(context, true),
+                onPressed: wordsToProcess > 0
+                    ? () => Navigator.pop(context, true)
+                    : null,
                 icon: const Icon(Icons.auto_awesome, size: 18),
                 label: const Text('Üret'),
               ),
@@ -349,6 +409,8 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           'wordListId': widget.listId,
           'style': selectedStyle,
           'prompt': promptController.text.trim(),
+          'includeExamples': includeExamples,
+          'overwrite': overwrite,
         },
       );
 
@@ -479,6 +541,30 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     });
   }
 
+  Future<void> _saveWordField(int index, String field, dynamic value) async {
+    final word = _wordItems[index];
+    final wordId = word['id'] as String;
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      await supabase
+          .from(DbTables.vocabularyWords)
+          .update({field: value}).eq('id', wordId);
+
+      setState(() {
+        final updated = Map<String, dynamic>.from(word);
+        updated[field] = value;
+        _wordItems[index] = updated;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Kaydetme hatası: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   void _moveWord(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) {
       newIndex -= 1;
@@ -552,249 +638,142 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Top: Form + Word list side by side
-                Expanded(
-                  flex: 3,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Form
-                      Expanded(
-                        flex: 1,
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
-                          child: Form(
-                            key: _formKey,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Liste Detayları',
-                                  style:
-                                      Theme.of(context).textTheme.titleLarge,
+                // Top: Form (centered, compact)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                    ),
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 600),
+                      child: Form(
+                        key: _formKey,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextFormField(
+                                controller: _nameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Ad',
+                                  hintText: 'ör. Yaygın A1 Kelimeler',
+                                  isDense: true,
                                 ),
-                                const SizedBox(height: 24),
-
-                                // Name
-                                TextFormField(
-                                  controller: _nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Ad',
-                                    hintText: 'ör. Yaygın A1 Kelimeler',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null ||
-                                        value.trim().isEmpty) {
-                                      return 'Ad zorunludur';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Description
-                                TextFormField(
-                                  controller: _descriptionController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Açıklama',
-                                    hintText: 'Bu kelime listesini açıklayın',
-                                  ),
-                                  maxLines: 3,
-                                ),
-                              ],
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.trim().isEmpty) {
+                                    return 'Ad zorunludur';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 3,
+                              child: TextFormField(
+                                controller: _descriptionController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Açıklama',
+                                  hintText: 'Bu kelime listesini açıklayın',
+                                  isDense: true,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
+                  ),
+                ),
 
-                      // Word list
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            border: Border(
-                              left:
-                                  BorderSide(color: Colors.grey.shade200),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Header
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Kelimeler (${_wordItems.length})',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
-                                    ),
-                                    TextButton.icon(
-                                      onPressed: _showAddWordDialog,
-                                      icon:
-                                          const Icon(Icons.add, size: 18),
-                                      label: const Text('Kelime Ekle'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Divider(height: 1),
-
-                              // Word list
-                              Expanded(
-                                child: _wordItems.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.list,
-                                              size: 48,
-                                              color: Colors.grey.shade400,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Henüz kelime yok',
-                                              style: TextStyle(
-                                                color:
-                                                    Colors.grey.shade600,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            TextButton.icon(
-                                              onPressed:
-                                                  _showAddWordDialog,
-                                              icon:
-                                                  const Icon(Icons.add),
-                                              label:
-                                                  const Text('Kelime Ekle'),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : ReorderableListView.builder(
-                                        padding:
-                                            const EdgeInsets.all(8),
-                                        itemCount: _wordItems.length,
-                                        onReorder: _moveWord,
-                                        itemBuilder: (context, index) {
-                                          final word =
-                                              _wordItems[index];
-                                          return Card(
-                                            key: ValueKey(word['id']),
-                                            margin:
-                                                const EdgeInsets
-                                                    .symmetric(
-                                              vertical: 4,
-                                            ),
-                                            child: ListTile(
-                                              leading:
-                                                  ReorderableDragStartListener(
-                                                index: index,
-                                                child: const Icon(
-                                                  Icons.drag_handle,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                              title: InkWell(
-                                                onTap: () => context.go(
-                                                    '/vocabulary/${word['id']}'),
-                                                child: Row(
-                                                  children: [
-                                                    Flexible(
-                                                      child: Text(
-                                                        word['word'] ??
-                                                            '',
-                                                        style:
-                                                            const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .w500,
-                                                          color: Color(
-                                                              0xFF4F46E5),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    const SizedBox(
-                                                        width: 4),
-                                                    const Icon(
-                                                      Icons.open_in_new,
-                                                      size: 14,
-                                                      color: Color(
-                                                          0xFF4F46E5),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              subtitle: Text(
-                                                word['meaning_tr'] ?? '',
-                                                maxLines: 1,
-                                                overflow: TextOverflow
-                                                    .ellipsis,
-                                              ),
-                                              trailing: Row(
-                                                mainAxisSize:
-                                                    MainAxisSize.min,
-                                                children: [
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets
-                                                            .symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 2,
-                                                    ),
-                                                    decoration:
-                                                        BoxDecoration(
-                                                      color: Colors
-                                                          .grey.shade200,
-                                                      borderRadius:
-                                                          BorderRadius
-                                                              .circular(
-                                                                  4),
-                                                    ),
-                                                    child: Text(
-                                                      '${index + 1}',
-                                                      style:
-                                                          const TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight
-                                                                .bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(
-                                                      width: 8),
-                                                  IconButton(
-                                                    icon: const Icon(
-                                                      Icons
-                                                          .delete_outline,
-                                                      size: 20,
-                                                    ),
-                                                    color: Colors.red,
-                                                    onPressed: () =>
-                                                        _removeWord(
-                                                            index),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ),
+                // Header bar
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
+                  color: Colors.grey.shade50,
+                  child: Row(
+                    children: [
+                      Text(
+                        'Kelimeler (${_wordItems.length})',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: _showAddWordDialog,
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Kelime Ekle'),
                       ),
                     ],
                   ),
+                ),
+                const Divider(height: 1),
+
+                // Word list (full height)
+                Expanded(
+                  child: _wordItems.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.list,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Henüz kelime yok',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton.icon(
+                                onPressed: _showAddWordDialog,
+                                icon: const Icon(Icons.add),
+                                label: const Text('Kelime Ekle'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: List.generate(_wordItems.length, (index) {
+                              final word = _wordItems[index];
+                              return _WordCard(
+                                key: ValueKey(word['id']),
+                                word: word,
+                                index: index,
+                                total: _wordItems.length,
+                                onRemove: () => _removeWord(index),
+                                onMoveLeft: index > 0
+                                    ? () => _moveWord(index, index - 1)
+                                    : null,
+                                onMoveRight: index < _wordItems.length - 1
+                                    ? () => _moveWord(index, index + 2)
+                                    : null,
+                                onSaveField: (field, value) =>
+                                    _saveWordField(index, field, value),
+                                onTap: () =>
+                                    context.go('/vocabulary/${word['id']}'),
+                              );
+                            }),
+                          ),
+                        ),
                 ),
 
                 // Bottom: Content completeness table
@@ -805,6 +784,443 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ),
               ],
             ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Word card with inline quick edit
+// ---------------------------------------------------------------------------
+
+class _WordCard extends ConsumerStatefulWidget {
+  const _WordCard({
+    super.key,
+    required this.word,
+    required this.index,
+    required this.total,
+    required this.onRemove,
+    required this.onMoveLeft,
+    required this.onMoveRight,
+    required this.onSaveField,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> word;
+  final int index;
+  final int total;
+  final VoidCallback onRemove;
+  final VoidCallback? onMoveLeft;
+  final VoidCallback? onMoveRight;
+  final Future<void> Function(String field, dynamic value) onSaveField;
+  final VoidCallback onTap;
+
+  @override
+  ConsumerState<_WordCard> createState() => _WordCardState();
+}
+
+class _WordCardState extends ConsumerState<_WordCard> {
+  bool _isEditing = false;
+  late final TextEditingController _meaningTrController;
+  late final TextEditingController _meaningEnController;
+  late final TextEditingController _exampleController;
+  bool _isSaving = false;
+  int _versionCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _initControllers();
+    _loadVersionCount();
+  }
+
+  void _initControllers() {
+    _meaningTrController = TextEditingController(
+      text: widget.word['meaning_tr'] as String? ?? '',
+    );
+    _meaningEnController = TextEditingController(
+      text: widget.word['meaning_en'] as String? ?? '',
+    );
+    final examples = widget.word['example_sentences'] as List?;
+    _exampleController = TextEditingController(
+      text: examples != null && examples.isNotEmpty
+          ? examples.first as String
+          : '',
+    );
+  }
+
+  Future<void> _loadVersionCount() async {
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final wordId = widget.word['id'] as String;
+
+      // New format: words/{word_id}/ folder with timestamped files
+      final result = await supabase.storage
+          .from('word-images')
+          .list(path: 'words/$wordId');
+      final count = result
+          .where((f) =>
+              f.name.endsWith('.png') || f.name.endsWith('.jpg'))
+          .length;
+
+      if (mounted) setState(() => _versionCount = count);
+    } catch (e) {
+      debugPrint('Version count error for ${widget.word['id']}: $e');
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _WordCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.word['id'] != widget.word['id']) {
+      _meaningTrController.text =
+          widget.word['meaning_tr'] as String? ?? '';
+      _meaningEnController.text =
+          widget.word['meaning_en'] as String? ?? '';
+      final examples = widget.word['example_sentences'] as List?;
+      _exampleController.text = examples != null && examples.isNotEmpty
+          ? examples.first as String
+          : '';
+      _isEditing = false;
+      _loadVersionCount();
+    }
+  }
+
+  @override
+  void dispose() {
+    _meaningTrController.dispose();
+    _meaningEnController.dispose();
+    _exampleController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveAll() async {
+    setState(() => _isSaving = true);
+    try {
+      final oldTr = widget.word['meaning_tr'] as String? ?? '';
+      final oldEn = widget.word['meaning_en'] as String? ?? '';
+      final oldExamples = widget.word['example_sentences'] as List?;
+      final oldExample = oldExamples != null && oldExamples.isNotEmpty
+          ? oldExamples.first as String
+          : '';
+
+      if (_meaningTrController.text.trim() != oldTr) {
+        await widget.onSaveField(
+            'meaning_tr', _meaningTrController.text.trim());
+      }
+      if (_meaningEnController.text.trim() != oldEn) {
+        await widget.onSaveField(
+            'meaning_en', _meaningEnController.text.trim());
+      }
+      if (_exampleController.text.trim() != oldExample) {
+        final newExamples = _exampleController.text.trim().isEmpty
+            ? <String>[]
+            : [_exampleController.text.trim()];
+        await widget.onSaveField('example_sentences', newExamples);
+      }
+
+      setState(() => _isEditing = false);
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _showImageVersions() {
+    final wordId = widget.word['id'] as String;
+    showDialog(
+      context: context,
+      builder: (_) => _ImageVersionDialog(
+        wordId: wordId,
+        currentImageUrl: widget.word['image_url'] as String?,
+        onSelect: (url) async {
+          await widget.onSaveField('image_url', url);
+          if (mounted) {
+            setState(() {});
+            _loadVersionCount();
+          }
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = widget.word['image_url'] as String?;
+    final hasImage = imageUrl != null && imageUrl.isNotEmpty;
+    final meaningTr = widget.word['meaning_tr'] as String? ?? '';
+    final meaningEn = widget.word['meaning_en'] as String? ?? '';
+    final phonetic = widget.word['phonetic'] as String? ?? '';
+    final hasAudio =
+        (widget.word['audio_url'] as String?)?.isNotEmpty == true;
+    final examples = widget.word['example_sentences'] as List?;
+
+    return SizedBox(
+      width: 220,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 2,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image area
+            Stack(
+              children: [
+                Container(
+                  height: 160,
+                  color: Colors.grey.shade100,
+                  width: double.infinity,
+                  child: hasImage
+                      ? Image.network(
+                          imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Center(
+                            child: Icon(Icons.broken_image_outlined,
+                                color: Colors.grey.shade400, size: 40),
+                          ),
+                        )
+                      : Center(
+                          child: Icon(Icons.image_outlined,
+                              color: Colors.grey.shade300, size: 48),
+                        ),
+                ),
+                // Index badge
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${widget.index + 1}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                // Reorder arrows
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.onMoveLeft != null)
+                        _miniButton(Icons.chevron_left, widget.onMoveLeft!),
+                      if (widget.onMoveRight != null)
+                        _miniButton(
+                            Icons.chevron_right, widget.onMoveRight!),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Content area
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Word name row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: widget.onTap,
+                          child: Text(
+                            widget.word['word'] ?? '',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF4F46E5),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      if (hasAudio)
+                        Icon(Icons.volume_up,
+                            size: 14, color: Colors.grey.shade400),
+                    ],
+                  ),
+                  if (phonetic.isNotEmpty)
+                    Text(
+                      '/$phonetic/',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  const Divider(height: 12),
+
+                  // Edit / View mode
+                  if (_isEditing) ...[
+                    _editField('TR', _meaningTrController),
+                    const SizedBox(height: 6),
+                    _editField('EN', _meaningEnController),
+                    const SizedBox(height: 6),
+                    _editField('Örnek', _exampleController),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () =>
+                              setState(() => _isEditing = false),
+                          style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
+                          child: const Text('İptal',
+                              style: TextStyle(fontSize: 12)),
+                        ),
+                        const SizedBox(width: 4),
+                        FilledButton(
+                          onPressed: _isSaving ? null : _saveAll,
+                          style: FilledButton.styleFrom(
+                              visualDensity: VisualDensity.compact),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white),
+                                )
+                              : const Text('Kaydet',
+                                  style: TextStyle(fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    if (meaningTr.isNotEmpty)
+                      Text(
+                        meaningTr,
+                        style: TextStyle(
+                            fontSize: 13, color: Colors.grey.shade800),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (meaningEn.isNotEmpty)
+                      Text(
+                        meaningEn,
+                        style: TextStyle(
+                            fontSize: 12, color: Colors.grey.shade500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    if (examples != null && examples.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '"${examples.first}"',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade400,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    const SizedBox(height: 6),
+                    // Version count + action row
+                    if (_versionCount > 1)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: InkWell(
+                          onTap: _showImageVersions,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.photo_library_outlined,
+                                  size: 13,
+                                  color: const Color(0xFF4F46E5)),
+                              const SizedBox(width: 4),
+                              Text(
+                                '$_versionCount versiyon',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF4F46E5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        InkWell(
+                          onTap: () =>
+                              setState(() => _isEditing = true),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.edit_outlined,
+                                  size: 14,
+                                  color: Colors.grey.shade500),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Düzenle',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: widget.onRemove,
+                          child: Icon(Icons.delete_outline,
+                              size: 16, color: Colors.red.shade300),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _miniButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        margin: const EdgeInsets.symmetric(horizontal: 1),
+        decoration: BoxDecoration(
+          color: Colors.black38,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Icon(icon, size: 16, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _editField(String label, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        border: const OutlineInputBorder(),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      ),
+      style: const TextStyle(fontSize: 12),
     );
   }
 }
@@ -1140,6 +1556,170 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('İptal'),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Image version picker dialog
+// ---------------------------------------------------------------------------
+
+class _ImageVersionDialog extends ConsumerStatefulWidget {
+  const _ImageVersionDialog({
+    required this.wordId,
+    required this.currentImageUrl,
+    required this.onSelect,
+  });
+
+  final String wordId;
+  final String? currentImageUrl;
+  final Future<void> Function(String url) onSelect;
+
+  @override
+  ConsumerState<_ImageVersionDialog> createState() =>
+      _ImageVersionDialogState();
+}
+
+class _ImageVersionDialogState extends ConsumerState<_ImageVersionDialog> {
+  List<String> _imageUrls = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersions();
+  }
+
+  Future<void> _loadVersions() async {
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final result = await supabase.storage
+          .from('word-images')
+          .list(path: 'words/${widget.wordId}');
+
+      final urls = <String>[];
+      for (final file in result) {
+        if (file.name.endsWith('.png') || file.name.endsWith('.jpg')) {
+          final publicUrl = supabase.storage
+              .from('word-images')
+              .getPublicUrl('words/${widget.wordId}/${file.name}');
+          urls.add(publicUrl);
+        }
+      }
+
+      // En yenisi önce
+      urls.sort((a, b) => b.compareTo(a));
+
+      setState(() {
+        _imageUrls = urls;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Görsel Versiyonları'),
+      content: SizedBox(
+        width: 500,
+        height: 400,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text('Hata: $_error'))
+                : _imageUrls.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Henüz görsel versiyonu yok',
+                          style: TextStyle(color: Colors.grey.shade500),
+                        ),
+                      )
+                    : GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: _imageUrls.length,
+                        itemBuilder: (context, index) {
+                          final url = _imageUrls[index];
+                          final isCurrent = widget.currentImageUrl == url;
+
+                          return GestureDetector(
+                            onTap: isCurrent
+                                ? null
+                                : () async {
+                                    await widget.onSelect(url);
+                                    if (context.mounted) {
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isCurrent
+                                      ? const Color(0xFF4F46E5)
+                                      : Colors.grey.shade300,
+                                  width: isCurrent ? 3 : 1,
+                                ),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.network(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Icon(
+                                          Icons.broken_image_outlined,
+                                          color: Colors.grey.shade400),
+                                    ),
+                                  ),
+                                  if (isCurrent)
+                                    Positioned(
+                                      bottom: 4,
+                                      right: 4,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF4F46E5),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: const Text(
+                                          'Aktif',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Kapat'),
         ),
       ],
     );

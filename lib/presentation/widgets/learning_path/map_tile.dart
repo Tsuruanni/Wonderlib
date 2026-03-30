@@ -37,16 +37,25 @@ class MapTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRect(
       child: SizedBox(
-        height: kTileHeight,
+        height: theme.height,
         child: OverflowBox(
           maxWidth: kTileWidth,
           minWidth: kTileWidth,
           child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
-              // Background — always use placeholder until real assets exist
+              // Background: remote image if available, gradient fallback
               Positioned.fill(
-                child: _PlaceholderBackground(colors: theme.fallbackColors),
+                child: theme.imageUrl != null
+                    ? Image.network(
+                        theme.imageUrl!,
+                        width: kTileWidth,
+                        height: theme.height,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _PlaceholderBackground(colors: theme.fallbackColors),
+                      )
+                    : _PlaceholderBackground(colors: theme.fallbackColors),
               ),
               // Nodes
               for (int i = 0; i < nodes.length; i++)
@@ -54,6 +63,7 @@ class MapTile extends StatelessWidget {
                   _PositionedNode(
                     position: theme.nodePositions[i],
                     data: nodes[i],
+                    tileHeight: theme.height,
                   ),
             ],
           ),
@@ -68,15 +78,17 @@ class _PositionedNode extends StatelessWidget {
   const _PositionedNode({
     required this.position,
     required this.data,
+    required this.tileHeight,
   });
 
   final Offset position;
   final MapTileNodeData data;
+  final double tileHeight;
 
   @override
   Widget build(BuildContext context) {
     final left = position.dx * kTileWidth - 70; // center 140px wide node
-    final top = position.dy * kTileHeight - 40; // approximate vertical center
+    final top = position.dy * tileHeight - 40; // approximate vertical center
 
     return Positioned(
       left: left,

@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../domain/entities/tile_theme.dart';
 import '../../providers/system_settings_provider.dart';
+import '../../providers/tile_theme_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
 import 'map_tile.dart';
@@ -58,6 +60,8 @@ class LearningPathView extends ConsumerWidget {
     final wordsToday =
         ref.watch(wordsStartedTodayFromListsProvider).valueOrNull ?? 0;
     final canStartNewList = wordsToday < dailyWordListLimit;
+
+    final dbThemes = ref.watch(tileThemesProvider).valueOrNull ?? [];
 
     final children = <Widget>[];
     bool foundActive = false;
@@ -125,11 +129,37 @@ class LearningPathView extends ConsumerWidget {
       }
 
       // Map tile
-      final theme = tileThemeForUnit(unitIdx);
+      final theme = _resolveTheme(unit, unitIdx, dbThemes);
       children.add(MapTile(theme: theme, nodes: tileNodes));
     }
 
     return Column(children: children);
+  }
+
+  TileTheme _resolveTheme(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
+    if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+      final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
+      if (match != null) {
+        return TileTheme(
+          name: match.name,
+          assetPath: '',
+          height: match.height.toDouble(),
+          nodePositions: match.nodePositions.map((p) => Offset(p.x, p.y)).toList(),
+          fallbackColors: [_parseHex(match.fallbackColor1), _parseHex(match.fallbackColor2)],
+          imageUrl: match.imageUrl,
+        );
+      }
+    }
+    return tileThemeForUnit(unitIdx);
+  }
+
+  static Color _parseHex(String hex) {
+    if (hex.length < 7) return const Color(0xFF58CC02);
+    try {
+      return Color(int.parse(hex.substring(1), radix: 16) + 0xFF000000);
+    } catch (_) {
+      return const Color(0xFF58CC02);
+    }
   }
 
   MapTileNodeData _mapItemToNode({

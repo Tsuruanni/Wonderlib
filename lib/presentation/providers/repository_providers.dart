@@ -25,6 +25,7 @@ import '../../data/repositories/supabase/supabase_system_settings_repository.dar
 import '../../data/repositories/supabase/supabase_teacher_repository.dart';
 import '../../data/repositories/supabase/supabase_user_repository.dart';
 import '../../data/repositories/supabase/supabase_vocabulary_repository.dart';
+import '../../data/repositories/supabase/supabase_tile_theme_repository.dart';
 import '../../data/repositories/supabase/supabase_word_list_repository.dart';
 import '../../domain/entities/system_settings.dart';
 import '../../domain/repositories/activity_repository.dart';
@@ -43,6 +44,7 @@ import '../../domain/repositories/system_settings_repository.dart';
 import '../../domain/repositories/teacher_repository.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../../domain/repositories/vocabulary_repository.dart';
+import '../../domain/repositories/tile_theme_repository.dart';
 import '../../domain/repositories/word_list_repository.dart';
 
 /// Repository providers
@@ -155,4 +157,8 @@ final dailyQuestRepositoryProvider = Provider<DailyQuestRepository>((ref) {
 
 final avatarRepositoryProvider = Provider<AvatarRepository>((ref) {
   return SupabaseAvatarRepository();
+});
+
+final tileThemeRepositoryProvider = Provider<TileThemeRepository>((ref) {
+  return SupabaseTileThemeRepository(Supabase.instance.client);
 });

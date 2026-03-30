@@ -38,6 +38,10 @@ import '../features/avatars/screens/avatar_item_edit_screen.dart';
 import '../features/avatars/screens/avatar_category_edit_screen.dart';
 import '../features/classes/screens/class_list_screen.dart';
 import '../features/classes/screens/class_edit_screen.dart';
+import '../features/tiles/screens/tile_theme_list_screen.dart';
+import '../features/tiles/screens/tile_theme_edit_screen.dart';
+import '../features/units/screens/unit_list_screen.dart';
+import '../features/units/screens/unit_edit_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -315,6 +319,36 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/avatars/categories/:id',
         builder: (_, state) => AvatarCategoryEditScreen(categoryId: state.pathParameters['id']),
+      ),
+      // Units
+      GoRoute(
+        path: '/units',
+        builder: (context, state) => const UnitListScreen(),
+      ),
+      GoRoute(
+        path: '/units/new',
+        builder: (context, state) => const UnitEditScreen(),
+      ),
+      GoRoute(
+        path: '/units/:unitId',
+        builder: (context, state) => UnitEditScreen(
+          unitId: state.pathParameters['unitId'],
+        ),
+      ),
+      // Tile Themes
+      GoRoute(
+        path: '/tiles',
+        builder: (context, state) => const TileThemeListScreen(),
+      ),
+      GoRoute(
+        path: '/tiles/new',
+        builder: (context, state) => const TileThemeEditScreen(),
+      ),
+      GoRoute(
+        path: '/tiles/:themeId',
+        builder: (context, state) => TileThemeEditScreen(
+          themeId: state.pathParameters['themeId'],
+        ),
       ),
       // Ayarlar (XP + Uygulama)
       GoRoute(

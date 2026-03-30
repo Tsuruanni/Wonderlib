@@ -21,11 +21,16 @@ const BATCH_SIZE = GRID_COLS * GRID_ROWS; // 6
 
 const STYLE_PRESETS: Record<string, string> = {
   flat: "simple flat vector illustration, minimal, clean lines, solid colors",
-  cartoon:
-    "cute cartoon style, colorful, playful, rounded shapes, child-friendly",
+  cartoon: "cute cartoon style, colorful, playful, rounded shapes, child-friendly",
   watercolor: "soft watercolor painting, gentle pastel colors, artistic",
-  realistic: "realistic illustration, detailed, natural colors",
+  realistic: "realistic photograph, studio lighting, natural colors, high detail",
   pixel: "pixel art, 8-bit retro style, crisp pixels",
+  clay: "3D clay render, claymation style, soft shadows, matte texture, pastel tones",
+  sticker: "die-cut sticker design, thick white outline, vibrant colors, glossy finish",
+  pencil: "hand-drawn pencil sketch, graphite on white paper, detailed line work, cross-hatching",
+  isometric: "isometric 3D illustration, geometric shapes, clean angles, soft gradient colors",
+  pop: "pop art style, bold outlines, halftone dots, bright contrasting colors, comic book aesthetic",
+  minimal: "ultra-minimalist single line drawing, one continuous stroke, black on white, elegant simplicity",
 };
 
 const CELL_POSITIONS = [
@@ -43,6 +48,8 @@ interface WordItem {
   word_id: string;
   word: string;
   meaning_tr: string;
+  example_sentence?: string;
+  has_image: boolean;
 }
 
 interface FalImageResponse {
@@ -95,7 +102,6 @@ function splitImageGrid(
               tileHeight
             )
           );
-          clone.rePage();
           clone.write(MagickFormat.Png, (data) => {
             tiles.push(new Uint8Array(data));
           });
@@ -107,12 +113,24 @@ function splitImageGrid(
   return tiles;
 }
 
+// --- Filler mascots for empty grid cells ---
+
+const FILLER_MASCOTS = [
+  "a cute owl mascot waving",
+  "a friendly fox mascot reading a book",
+  "a happy penguin mascot with a backpack",
+  "a cheerful rabbit mascot holding a star",
+  "a playful cat mascot sitting",
+  "a smiling bear mascot giving a thumbs up",
+];
+
 // --- Prompt Building ---
 
 function buildGridPrompt(
   batch: (WordItem | null)[],
   style?: string,
-  customPrompt?: string
+  customPrompt?: string,
+  includeExamples?: boolean,
 ): string {
   const styleDescription = style && STYLE_PRESETS[style]
     ? STYLE_PRESETS[style]
@@ -126,16 +144,24 @@ function buildGridPrompt(
       `Create a 2x3 grid image for a children's vocabulary learning app. ` +
       `Each cell should contain a single clear illustration of the word described. ` +
       `Style: ${styleDescription}. ` +
-      `The grid should have thin white dividing lines between cells. ` +
-      `No text or labels in the image.`;
+      `No borders, no frames, no dividing lines between cells. Seamless white background. ` +
+      `IMPORTANT: Do NOT include any text, letters, words, labels, or typography anywhere in the image. Only illustrations.`;
   }
 
+  let fillerIdx = 0;
   const cellDescriptions = batch.map((item, index) => {
     const position = CELL_POSITIONS[index];
     if (item) {
-      return `Cell ${index + 1} (${position}): "${item.word}" (${item.meaning_tr})`;
+      let desc = `Cell ${index + 1} (${position}): "${item.word}" (${item.meaning_tr})`;
+      if (includeExamples && item.example_sentence) {
+        desc += ` — context: "${item.example_sentence}"`;
+      }
+      return desc;
     }
-    return `Cell ${index + 1} (${position}): empty white cell`;
+    // Fill empty cells with mascot illustrations for grid consistency
+    const mascot = FILLER_MASCOTS[fillerIdx % FILLER_MASCOTS.length];
+    fillerIdx++;
+    return `Cell ${index + 1} (${position}): ${mascot}`;
   });
 
   return `${basePrompt}\n\n${cellDescriptions.join("\n")}`;
@@ -148,30 +174,42 @@ async function processBatch(
   falKey: string,
   supabase: ReturnType<typeof createClient>,
   style?: string,
-  customPrompt?: string
+  customPrompt?: string,
+  includeExamples?: boolean,
 ): Promise<WordResult[]> {
-  const prompt = buildGridPrompt(batch, style, customPrompt);
+  const prompt = buildGridPrompt(batch, style, customPrompt, includeExamples);
   console.log(`Grid prompt:\n${prompt}`);
 
-  // 1. Call fal.ai image generation
+  // 1. Call fal.ai image generation (with 120s timeout)
   console.log("Calling fal.ai image generation...");
-  const falResponse = await fetch(
-    "https://fal.run/fal-ai/nano-banana-pro",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Key ${falKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        prompt,
-        num_images: 1,
-        aspect_ratio: "2:3",
-        output_format: "png",
-        safety_tolerance: "6",
-      }),
-    }
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+
+  let falResponse: Response;
+  try {
+    falResponse = await fetch(
+      "https://fal.run/fal-ai/nano-banana-pro",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Key ${falKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          num_images: 1,
+          aspect_ratio: "2:3",
+          output_format: "png",
+          safety_tolerance: "6",
+        }),
+        signal: controller.signal,
+      }
+    );
+  } catch (e) {
+    clearTimeout(timeout);
+    throw new Error(`fal.ai request failed (timeout or network): ${e.message}`);
+  }
+  clearTimeout(timeout);
 
   if (!falResponse.ok) {
     const errorText = await falResponse.text();
@@ -204,24 +242,20 @@ async function processBatch(
   const tiles = splitImageGrid(imageBuffer, GRID_COLS, GRID_ROWS);
   console.log(`Split into ${tiles.length} tiles`);
 
-  // 4. Upload tiles and update DB
-  const results: WordResult[] = [];
+  // 4. Upload tiles and update DB (parallel)
+  console.log("Uploading tiles in parallel...");
+  const timestamp = Date.now();
 
-  for (let i = 0; i < batch.length; i++) {
-    const item = batch[i];
-    if (!item) continue; // Skip padding cells
-
+  const uploadPromises = batch.map(async (item, i) => {
+    if (!item) return null;
     if (i >= tiles.length) {
-      console.warn(
-        `No tile for word "${item.word}" at index ${i}, skipping`
-      );
-      continue;
+      console.warn(`No tile for word "${item.word}" at index ${i}, skipping`);
+      return null;
     }
 
     const tileData = tiles[i];
-    const storagePath = `words/${item.word_id}.png`;
+    const storagePath = `words/${item.word_id}/${timestamp}_${i}.png`;
 
-    // Upload tile to storage
     const { error: uploadError } = await supabase.storage
       .from(STORAGE_BUCKET)
       .upload(storagePath, tileData, {
@@ -230,40 +264,29 @@ async function processBatch(
       });
 
     if (uploadError) {
-      console.error(
-        `Failed to upload tile for "${item.word}": ${uploadError.message}`
-      );
-      throw new Error(
-        `Storage upload failed for "${item.word}": ${uploadError.message}`
-      );
+      throw new Error(`Storage upload failed for "${item.word}": ${uploadError.message}`);
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(storagePath);
     const imageUrl = publicUrlData.publicUrl;
 
-    // Update vocabulary_words with image URL
     const { error: updateError } = await supabase
       .from("vocabulary_words")
       .update({ image_url: imageUrl })
       .eq("id", item.word_id);
 
     if (updateError) {
-      throw new Error(
-        `DB update failed for "${item.word}": ${updateError.message}`
-      );
+      throw new Error(`DB update failed for "${item.word}": ${updateError.message}`);
     }
 
-    results.push({
-      wordId: item.word_id,
-      word: item.word,
-      imageUrl,
-    });
+    console.log(`"${item.word}" → ${imageUrl}`);
+    return { wordId: item.word_id, word: item.word, imageUrl } as WordResult;
+  });
 
-    console.log(`Uploaded tile for "${item.word}": ${imageUrl}`);
-  }
+  const settled = await Promise.all(uploadPromises);
+  const results = settled.filter((r): r is WordResult => r !== null);
 
   return results;
 }
@@ -276,7 +299,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { wordListId, prompt, style } = await req.json();
+    const { wordListId, prompt, style, includeExamples, overwrite } = await req.json();
 
     if (!wordListId) {
       return new Response(
@@ -307,7 +330,7 @@ Deno.serve(async (req) => {
     console.log(`Fetching words for list ${wordListId}...`);
     const { data: items, error: fetchError } = await supabase
       .from("word_list_items")
-      .select("word_id, vocabulary_words(id, word, meaning_tr)")
+      .select("word_id, vocabulary_words(id, word, meaning_tr, example_sentences, image_url)")
       .eq("word_list_id", wordListId)
       .order("order_index", { ascending: true });
 
@@ -324,19 +347,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    const words: WordItem[] = items
-      .map((item: any) => ({
-        word_id: item.vocabulary_words?.id,
-        word: item.vocabulary_words?.word,
-        meaning_tr: item.vocabulary_words?.meaning_tr,
-      }))
+    const allWords: WordItem[] = items
+      .map((item: any) => {
+        const v = item.vocabulary_words;
+        const examples = v?.example_sentences as string[] | null;
+        return {
+          word_id: v?.id,
+          word: v?.word,
+          meaning_tr: v?.meaning_tr,
+          example_sentence: examples && examples.length > 0 ? examples[0] : undefined,
+          has_image: !!(v?.image_url && (v.image_url as string).trim().length > 0),
+        };
+      })
       .filter(
         (w: WordItem) => w.word_id && w.word && w.meaning_tr
       );
 
+    // Filter: skip words that already have images (unless overwrite)
+    const words = overwrite !== true
+      ? allWords.filter((w) => !w.has_image)
+      : allWords;
+
     if (words.length === 0) {
+      const msg = overwrite !== true
+        ? "All words already have images. Use overwrite to regenerate."
+        : "No valid words found (missing word or meaning_tr)";
       return new Response(
-        JSON.stringify({ error: "No valid words found (missing word or meaning_tr)" }),
+        JSON.stringify({ error: msg, allHaveImages: overwrite !== true }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -344,7 +381,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Found ${words.length} words`);
+    console.log(`Found ${words.length} words to process (${allWords.length} total, overwrite=${overwrite ?? false})`);
 
     // 2. Ensure storage bucket exists
     await supabase.storage
@@ -377,7 +414,8 @@ Deno.serve(async (req) => {
         FAL_KEY,
         supabase,
         style,
-        prompt
+        prompt,
+        includeExamples,
       );
       allResults.push(...batchResults);
     }

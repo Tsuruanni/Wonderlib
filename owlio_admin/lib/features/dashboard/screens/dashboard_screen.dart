@@ -196,6 +196,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/vocabulary'),
                   ),
                   _DashboardCard(
+                    icon: Icons.grid_view_rounded,
+                    title: 'Üniteler',
+                    description: 'Kelime üniteleri ve tile tema atamaları',
+                    color: const Color(0xFF7C3AED),
+                    onTap: () => context.go('/units'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.route,
                     title: 'Öğrenme Yolları',
                     description: 'Şablonlar ve okul/sınıf atamaları',
@@ -234,6 +241,13 @@ class DashboardScreen extends ConsumerWidget {
                     description: 'Hayvanlar, kategoriler ve aksesuarlar',
                     color: const Color(0xFF8B5CF6),
                     onTap: () => context.go('/avatars'),
+                  ),
+                  _DashboardCard(
+                    icon: Icons.map,
+                    title: 'Tile Temaları',
+                    description: 'Harita tile görünümleri ve node pozisyonları',
+                    color: const Color(0xFF2E7D32),
+                    onTap: () => context.go('/tiles'),
                   ),
                   _DashboardCard(
                     icon: Icons.settings,

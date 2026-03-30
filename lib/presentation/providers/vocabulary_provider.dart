@@ -1,7 +1,11 @@
+import 'dart:ui' show Offset;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../domain/entities/tile_theme.dart';
 import '../widgets/learning_path/tile_themes.dart';
+import 'tile_theme_provider.dart';
 
 import '../../domain/entities/book.dart';
 import '../../domain/entities/daily_review_session.dart';
@@ -47,15 +51,23 @@ import 'user_provider.dart';
 // ============================================
 
 /// Y position of the active (current) node in the learning path.
-/// Mirrors tile-based layout: each unit = kDividerHeight + kTileHeight.
-/// Node Y within tile = nodePosition.dy * kTileHeight.
+/// Uses per-theme heights from DB when available, falls back to hardcoded themes.
 final activeNodeYProvider = Provider<double?>((ref) {
   final pathUnits = ref.watch(learningPathProvider).valueOrNull;
   if (pathUnits == null || pathUnits.isEmpty) return null;
 
+  final dbThemes = ref.watch(tileThemesProvider).valueOrNull ?? [];
+
+  var cumulativeY = 0.0;
+
   for (int unitIdx = 0; unitIdx < pathUnits.length; unitIdx++) {
     final unit = pathUnits[unitIdx];
     final isUnitLocked = unitIdx > 0 && !pathUnits[unitIdx - 1].isAllComplete;
+
+    final themeHeight = _resolveThemeHeight(unit, unitIdx, dbThemes);
+    final positions = _resolveThemePositions(unit, unitIdx, dbThemes);
+
+    cumulativeY += kDividerHeight;
 
     final locks = calculateLocks(
       items: unit.items,
@@ -64,23 +76,37 @@ final activeNodeYProvider = Provider<double?>((ref) {
       isUnitLocked: isUnitLocked,
     );
 
-    final theme = tileThemeForUnit(unitIdx);
-
     for (int itemIdx = 0; itemIdx < unit.items.length; itemIdx++) {
       final item = unit.items[itemIdx];
       final isItemLocked = locks[itemIdx];
 
-      // First unlocked + incomplete non-DR node is active
       if (!isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
-        if (itemIdx >= theme.nodePositions.length) continue;
-        final tileTop = unitIdx * (kDividerHeight + kTileHeight) + kDividerHeight;
-        return tileTop + theme.nodePositions[itemIdx].dy * kTileHeight;
+        if (itemIdx >= positions.length) continue;
+        return cumulativeY + positions[itemIdx].dy * themeHeight;
       }
     }
+
+    cumulativeY += themeHeight;
   }
 
-  return null; // all complete
+  return null;
 });
+
+double _resolveThemeHeight(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
+  if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+    final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
+    if (match != null) return match.height.toDouble();
+  }
+  return tileThemeForUnit(unitIdx).height;
+}
+
+List<Offset> _resolveThemePositions(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {
+  if (unit.tileThemeId != null && dbThemes.isNotEmpty) {
+    final match = dbThemes.where((t) => t.id == unit.tileThemeId).firstOrNull;
+    if (match != null) return match.nodePositions.map((p) => Offset(p.x, p.y)).toList();
+  }
+  return tileThemeForUnit(unitIdx).nodePositions;
+}
 
 // ============================================
 // VOCABULARY WORD PROVIDERS
@@ -547,6 +573,7 @@ class PathUnitData {
     required this.completedNodeTypes,
     required this.sequentialLock,
     required this.booksExemptFromLock,
+    this.tileThemeId,
   });
 
   final VocabularyUnit unit;
@@ -554,6 +581,7 @@ class PathUnitData {
   final Set<String> completedNodeTypes;
   final bool sequentialLock;
   final bool booksExemptFromLock;
+  final String? tileThemeId;
 
   /// Whether every required item is complete.
   /// Books exempt from lock are excluded from the "required" check.
@@ -820,6 +848,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
           completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
           sequentialLock: path.sequentialLock,
           booksExemptFromLock: path.booksExemptFromLock,
+          tileThemeId: lpUnit.tileThemeId,
         ),
       );
     }

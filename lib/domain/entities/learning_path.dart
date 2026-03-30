@@ -30,6 +30,7 @@ class LearningPathUnit extends Equatable {
     this.unitIcon,
     required this.sortOrder,
     required this.items,
+    this.tileThemeId,
   });
 
   final String unitId;
@@ -38,7 +39,8 @@ class LearningPathUnit extends Equatable {
   final String? unitIcon;
   final int sortOrder;
   final List<LearningPathItem> items;
+  final String? tileThemeId;
 
   @override
-  List<Object?> get props => [unitId, unitName, unitColor, unitIcon, sortOrder, items];
+  List<Object?> get props => [unitId, unitName, unitColor, unitIcon, sortOrder, items, tileThemeId];
 }

@@ -133,6 +133,7 @@ import '../../domain/usecases/settings/get_system_settings_usecase.dart';
 import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
 import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
+import '../../domain/usecases/tile_theme/get_tile_themes_usecase.dart';
 import 'repository_providers.dart';
 
 // ============================================
@@ -758,4 +759,12 @@ final equipAvatarItemUseCaseProvider = Provider((ref) {
 
 final unequipAvatarItemUseCaseProvider = Provider((ref) {
   return UnequipAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+// ============================================
+// TILE THEME USE CASES
+// ============================================
+
+final getTileThemesUseCaseProvider = Provider<GetTileThemesUseCase>((ref) {
+  return GetTileThemesUseCase(ref.watch(tileThemeRepositoryProvider));
 });
