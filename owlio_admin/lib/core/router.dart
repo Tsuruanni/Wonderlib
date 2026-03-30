@@ -257,10 +257,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           templateId: state.pathParameters['templateId'],
         ),
       ),
-      // Learning Path Assignments (create only — list is inside /learning-paths tab)
+      // Learning Path Assignments (create + edit via query params)
       GoRoute(
         path: '/learning-path-assignments/new',
-        builder: (context, state) => const AssignmentScreen(),
+        builder: (context, state) => AssignmentScreen(
+          initialSchoolId: state.uri.queryParameters['schoolId'],
+          initialGrade:
+              int.tryParse(state.uri.queryParameters['grade'] ?? ''),
+          initialClassId: state.uri.queryParameters['classId'],
+        ),
       ),
       // Teacher Assignments (read-only)
       GoRoute(

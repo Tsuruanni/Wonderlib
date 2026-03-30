@@ -376,7 +376,25 @@ class _AssignmentCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Düzenle',
+              onPressed: () {
+                final schoolId = assignment['school_id'] as String?;
+                final grade = assignment['grade'] as int?;
+                final classId = assignment['class_id'] as String?;
+
+                var url =
+                    '/learning-path-assignments/new?schoolId=$schoolId';
+                if (classId != null) {
+                  url += '&classId=$classId';
+                } else if (grade != null) {
+                  url += '&grade=$grade';
+                }
+                context.go(url);
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               tooltip: 'Sil',

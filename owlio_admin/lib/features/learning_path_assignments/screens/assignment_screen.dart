@@ -72,7 +72,16 @@ class _ScopeLearningPathData {
 // ============================================
 
 class AssignmentScreen extends ConsumerStatefulWidget {
-  const AssignmentScreen({super.key});
+  const AssignmentScreen({
+    super.key,
+    this.initialSchoolId,
+    this.initialGrade,
+    this.initialClassId,
+  });
+
+  final String? initialSchoolId;
+  final int? initialGrade;
+  final String? initialClassId;
 
   @override
   ConsumerState<AssignmentScreen> createState() => _AssignmentScreenState();
@@ -87,6 +96,27 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
   bool _isLoading = false;
   bool _isSaving = false;
   Timer? _saveDebounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSchoolId != null) {
+      _schoolId = widget.initialSchoolId;
+      if (widget.initialClassId != null) {
+        _scopeType = _ScopeType.classSpecific;
+        _selectedClassId = widget.initialClassId;
+      } else if (widget.initialGrade != null) {
+        _scopeType = _ScopeType.grade;
+        _selectedGrade = widget.initialGrade;
+      } else {
+        _scopeType = _ScopeType.school;
+      }
+      // Auto-load after frame so providers are ready
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadScopeAssignments();
+      });
+    }
+  }
 
   bool get _isScopeComplete {
     if (_schoolId == null) return false;
