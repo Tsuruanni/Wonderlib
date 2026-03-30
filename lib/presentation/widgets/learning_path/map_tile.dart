@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import 'path_node.dart';
 import 'start_bubble.dart';
 import 'tile_themes.dart';
@@ -42,36 +44,49 @@ class MapTile extends StatelessWidget {
         final scale = w < kTileWidth ? w / kTileWidth : 1.0;
         final h = theme.height * scale;
 
+        // On wide screens, add rounded corners so tile doesn't look flat
+        final isWide = constraints.maxWidth > kTileWidth;
+        final radius = isWide ? BorderRadius.circular(24.0) : BorderRadius.zero;
+
+        Widget tile = Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // Background: fills scaled area
+            Positioned.fill(
+              child: theme.imageUrl != null
+                  ? Image.network(
+                      theme.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          _PlaceholderBackground(colors: theme.fallbackColors),
+                    )
+                  : _PlaceholderBackground(colors: theme.fallbackColors),
+            ),
+            // Nodes: scaled positions, original widget size
+            for (int i = 0; i < nodes.length; i++)
+              if (i < theme.nodePositions.length)
+                _PositionedNode(
+                  position: theme.nodePositions[i],
+                  data: nodes[i],
+                  tileWidth: w,
+                  tileHeight: h,
+                ),
+          ],
+        );
+
+        if (isWide) {
+          tile = ClipRRect(
+            borderRadius: radius,
+            child: tile,
+          );
+        }
+
         return Center(
           child: SizedBox(
             width: w,
             height: h,
-            child: Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              // Background: fills scaled area
-              Positioned.fill(
-                child: theme.imageUrl != null
-                    ? Image.network(
-                        theme.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            _PlaceholderBackground(colors: theme.fallbackColors),
-                      )
-                    : _PlaceholderBackground(colors: theme.fallbackColors),
-              ),
-              // Nodes: scaled positions, original widget size
-              for (int i = 0; i < nodes.length; i++)
-                if (i < theme.nodePositions.length)
-                  _PositionedNode(
-                    position: theme.nodePositions[i],
-                    data: nodes[i],
-                    tileWidth: w,
-                    tileHeight: h,
-                  ),
-            ],
+            child: tile,
           ),
-        ),
         );
       },
     );
@@ -94,28 +109,74 @@ class _PositionedNode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final left = position.dx * tileWidth - 70; // center 140px wide node
-    final top = position.dy * tileHeight - 40; // approximate vertical center
+    final nodeX = position.dx * tileWidth;
+    final nodeY = position.dy * tileHeight;
+    final labelOnRight = position.dx < 0.5;
 
     return Positioned(
-      left: left,
-      top: top,
-      child: Column(
+      left: nodeX - 32, // center 64px wide node circle
+      top: nodeY - 32,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // START bubble above active node
-          if (data.state == NodeState.active) ...[
-            const StartBubble(),
-            const SizedBox(height: 4),
-          ],
-          PathNode(
-            type: data.type,
-            state: data.state,
-            label: data.label,
-            onTap: data.onTap,
-            starCount: data.starCount,
+          // Label on left side
+          if (!labelOnRight && data.label != null)
+            _SideLabel(label: data.label!, isLocked: data.state == NodeState.locked),
+          if (!labelOnRight && data.label != null)
+            const SizedBox(width: 8),
+          // Node column (START bubble + circle + stars)
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (data.state == NodeState.active) ...[
+                const StartBubble(),
+                const SizedBox(height: 4),
+              ],
+              PathNode(
+                type: data.type,
+                state: data.state,
+                onTap: data.onTap,
+                starCount: data.starCount,
+              ),
+            ],
           ),
+          // Label on right side
+          if (labelOnRight && data.label != null)
+            const SizedBox(width: 8),
+          if (labelOnRight && data.label != null)
+            _SideLabel(label: data.label!, isLocked: data.state == NodeState.locked),
         ],
+      ),
+    );
+  }
+}
+
+/// Label displayed beside a node with semi-transparent white background.
+class _SideLabel extends StatelessWidget {
+  const _SideLabel({required this.label, required this.isLocked});
+
+  final String label;
+  final bool isLocked;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 120),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.nunito(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: isLocked ? AppColors.neutralText : AppColors.black,
+        ),
       ),
     );
   }
