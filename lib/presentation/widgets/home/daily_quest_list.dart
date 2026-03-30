@@ -1,65 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
-import 'package:owlio/presentation/providers/daily_quest_provider.dart';
 
-/// Renders the unified daily quest card: teacher assignments + quest rows +
-/// bonus reward row.
-class DailyQuestList extends ConsumerStatefulWidget {
+/// Renders daily quest rows in a styled card.
+class DailyQuestList extends StatelessWidget {
   const DailyQuestList({
     super.key,
     required this.progress,
-    required this.bonusClaimed,
   });
 
   final List<DailyQuestProgress> progress;
-  final bool bonusClaimed;
-
-  @override
-  ConsumerState<DailyQuestList> createState() => _DailyQuestListState();
-}
-
-class _DailyQuestListState extends ConsumerState<DailyQuestList> {
-  bool _justClaimed = false;
-
-  Future<void> _claimBonus() async {
-    final controller = ref.read(dailyQuestControllerProvider.notifier);
-    if (controller.isMutating) return;
-
-    final error = await controller.claimBonus();
-
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
-    } else if (mounted) {
-      setState(() => _justClaimed = true);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> rows = [];
-
-    // Daily quest rows
-    for (final questProgress in widget.progress) {
-      rows.add(_QuestRow(progress: questProgress));
-    }
-
-    // Bonus reward row
-    final isClaiming = ref.watch(dailyQuestControllerProvider) is AsyncLoading;
-    rows.add(const _ThickDivider());
-    rows.add(_BonusRow(
-      allComplete: widget.progress.isNotEmpty &&
-          widget.progress.every((q) => q.isCompleted),
-      claimed: widget.bonusClaimed || _justClaimed,
-      isClaiming: isClaiming,
-      onClaim: _claimBonus,
-    ),);
-
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -78,16 +32,14 @@ class _DailyQuestListState extends ConsumerState<DailyQuestList> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (var i = 0; i < rows.length; i++) ...[
-              if (i > 0 &&
-                  rows[i] is! _ThickDivider &&
-                  rows[i - 1] is! _ThickDivider)
+            for (var i = 0; i < progress.length; i++) ...[
+              if (i > 0)
                 Divider(
                   height: 1,
                   thickness: 1,
                   color: AppColors.neutral.withValues(alpha: 0.6),
                 ),
-              rows[i],
+              _QuestRow(progress: progress[i]),
             ],
           ],
         ),
@@ -98,17 +50,6 @@ class _DailyQuestListState extends ConsumerState<DailyQuestList> {
 
 // ---------------------------------------------------------------------------
 // Thick divider separating sections
-// ---------------------------------------------------------------------------
-
-class _ThickDivider extends StatelessWidget {
-  const _ThickDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(height: 3, color: AppColors.neutral);
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Single daily quest row
 // ---------------------------------------------------------------------------
@@ -220,189 +161,6 @@ class _QuestRow extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Bonus reward row (locked / claimable / claimed)
-// ---------------------------------------------------------------------------
-
-class _BonusRow extends StatelessWidget {
-  const _BonusRow({
-    required this.allComplete,
-    required this.claimed,
-    required this.isClaiming,
-    required this.onClaim,
-  });
-
-  final bool allComplete;
-  final bool claimed;
-  final bool isClaiming;
-  final VoidCallback onClaim;
-
-  @override
-  Widget build(BuildContext context) {
-    if (claimed) {
-      return Container(
-        color: AppColors.primary.withValues(alpha: 0.04),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check_rounded,
-                size: 24,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Bonus claimed! +1 pack',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.style_rounded, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(
-                    '+1',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (allComplete) {
-      return GestureDetector(
-        onTap: isClaiming ? null : onClaim,
-        child: Container(
-          color: AppColors.wasp.withValues(alpha: 0.06),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.wasp.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: isClaiming
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.wasp,
-                        ),
-                      )
-                    : const Text(
-                        '🎁',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 24),
-                      ),
-              )
-                  .animate(onPlay: (c) => c.repeat(reverse: true))
-                  .scale(
-                    begin: const Offset(0.95, 0.95),
-                    end: const Offset(1.05, 1.05),
-                    duration: 800.ms,
-                  ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Claim Reward!',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.waspDark,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'All quests complete! Claim your card pack',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutralText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: AppColors.wasp,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Locked — not all quests done yet
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.neutral.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.lock_rounded,
-              size: 20,
-              color: AppColors.neutralText,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Complete all quests → Card Pack',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutralText,
-              ),
-            ),
-          ),
-          const Text('📦', style: TextStyle(fontSize: 22)),
-        ],
-      ),
-    );
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Progress bar with centered text overlay

@@ -73,10 +73,13 @@ class QuestsScreen extends ConsumerWidget {
                       // Assignments
                       const _AssignmentsSection(),
                       // Daily Quests
-                      const _DailyQuestsHeader(),
+                      _DailyQuestsHeader(questCount: progress.length),
                       const SizedBox(height: 12),
-                      DailyQuestList(
-                        progress: progress,
+                      DailyQuestList(progress: progress),
+                      const SizedBox(height: 12),
+                      _BonusRewardCard(
+                        allComplete: progress.isNotEmpty &&
+                            progress.every((q) => q.isCompleted),
                         bonusClaimed: bonusClaimed,
                       ),
                       const SizedBox(height: 24),
@@ -504,7 +507,8 @@ class _MonthlyQuestCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _DailyQuestsHeader extends StatelessWidget {
-  const _DailyQuestsHeader();
+  const _DailyQuestsHeader({required this.questCount});
+  final int questCount;
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +517,6 @@ class _DailyQuestsHeader extends StatelessWidget {
     final hoursLeft = midnight.difference(now).inHours;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           'Daily Quests',
@@ -523,6 +526,23 @@ class _DailyQuestsHeader extends StatelessWidget {
             color: AppColors.black,
           ),
         ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            '$questCount',
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+        const Spacer(),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -543,6 +563,199 @@ class _DailyQuestsHeader extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bonus Reward Card — standalone card below quest list
+// ---------------------------------------------------------------------------
+
+class _BonusRewardCard extends ConsumerWidget {
+  const _BonusRewardCard({
+    required this.allComplete,
+    required this.bonusClaimed,
+  });
+
+  final bool allComplete;
+  final bool bonusClaimed;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Already claimed
+    if (bonusClaimed) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded, size: 22, color: AppColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Bonus claimed! +1 Card Pack',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.style_rounded, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '+1',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // All complete — claimable
+    if (allComplete) {
+      final isClaiming =
+          ref.watch(dailyQuestControllerProvider) is AsyncLoading;
+
+      return GestureDetector(
+        onTap: isClaiming
+            ? null
+            : () async {
+                final controller =
+                    ref.read(dailyQuestControllerProvider.notifier);
+                if (controller.isMutating) return;
+                final error = await controller.claimBonus();
+                if (error != null && context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error)),
+                  );
+                }
+              },
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFFC107), Color(0xFFFF9800)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFC76A00),
+                offset: const Offset(0, 3),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  shape: BoxShape.circle,
+                ),
+                child: isClaiming
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('🎁', style: TextStyle(fontSize: 22)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'All Quests Complete!',
+                      style: GoogleFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Tap to claim your Card Pack',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 16, color: Colors.white),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Locked — not all quests done
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.neutral.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.lock_rounded, size: 20, color: AppColors.neutralText),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Complete all quests to earn a Card Pack',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutralText,
+              ),
+            ),
+          ),
+          const Text('📦', style: TextStyle(fontSize: 22)),
+        ],
+      ),
     );
   }
 }
