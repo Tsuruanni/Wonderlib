@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -84,6 +86,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
   List<_ScopeLearningPathData> _learningPaths = [];
   bool _isLoading = false;
   bool _isSaving = false;
+  Timer? _saveDebounceTimer;
 
   bool get _isScopeComplete {
     if (_schoolId == null) return false;
@@ -92,6 +95,12 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       return false;
     }
     return true;
+  }
+
+  @override
+  void dispose() {
+    _saveDebounceTimer?.cancel();
+    super.dispose();
   }
 
   // ============================================
@@ -946,7 +955,11 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                 setState(() {
                   _learningPaths[pathIndex].units = updatedUnits;
                 });
-                _saveLearningPath(pathIndex);
+                _saveDebounceTimer?.cancel();
+                _saveDebounceTimer = Timer(
+                  const Duration(milliseconds: 500),
+                  () => _saveLearningPath(pathIndex),
+                );
               },
               showWordPreview: false,
             ),
