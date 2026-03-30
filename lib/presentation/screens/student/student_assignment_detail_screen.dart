@@ -9,6 +9,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
+import '../../../domain/entities/unit_assignment_item.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/student_assignment_provider.dart'
     show
@@ -687,7 +688,7 @@ class _UnitItemsList extends ConsumerWidget {
 
 class _UnitItemRow extends ConsumerWidget {
   const _UnitItemRow({required this.item, required this.assignment});
-  final dynamic item;
+  final UnitAssignmentItem item;
   final StudentAssignment assignment;
 
   @override
@@ -715,8 +716,11 @@ class _UnitItemRow extends ConsumerWidget {
         if (item.bookId != null) {
           onTap = () => _start(context, ref, bookId: item.bookId);
         }
-      default:
-        title = item.itemType.name;
+      case LearningPathItemType.game:
+        title = 'Game';
+        subtitle = 'Not graded';
+      case LearningPathItemType.treasure:
+        title = 'Treasure';
         subtitle = 'Not graded';
     }
 
