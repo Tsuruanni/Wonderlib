@@ -111,7 +111,7 @@ class UnitDetailScreen extends ConsumerWidget {
       final isItemLocked = locks[i];
 
       bool isActive = false;
-      if (!foundActive && !isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
+      if (!foundActive && !isItemLocked && !item.isComplete) {
         isActive = true;
         foundActive = true;
       }
@@ -206,14 +206,6 @@ class UnitDetailScreen extends ConsumerWidget {
           state: state,
           label: 'Treasure',
           onTap: () => completePathNode(ref, unitData.unit.id, 'treasure'),
-        );
-
-      case PathDailyReviewItem():
-        return MapTileNodeData(
-          type: NodeType.review,
-          state: state,
-          label: 'Review',
-          onTap: () => context.push(AppRoutes.vocabularyDailyReview),
         );
     }
   }

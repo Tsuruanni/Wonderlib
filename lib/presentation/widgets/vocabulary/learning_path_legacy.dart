@@ -151,9 +151,8 @@ class LearningPath extends ConsumerWidget {
         }
 
         // Active detection — first unlocked + incomplete node in the path
-        // Skip PathDailyReviewItem: it handles its own active state in the switch
         bool isActive = false;
-        if (!foundActive && !isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
+        if (!foundActive && !isItemLocked && !item.isComplete) {
           isActive = true;
           foundActive = true;
         }
@@ -249,23 +248,6 @@ class LearningPath extends ConsumerWidget {
                 ),
               ),
             );
-
-          case PathDailyReviewItem(:final isCompleted):
-            nodes.add(
-              Positioned(
-                top: y,
-                left: 0,
-                right: 0,
-                child: PathDailyReviewNode(
-                  globalRowIndex: globalRowIndex,
-                  unitId: unit.unit.id,
-                  isLocked: false, // DR gate is never locked — it IS the gate
-                  isComplete: isCompleted,
-                  isActive: !isCompleted && !foundActive,
-                ),
-              ),
-            );
-            if (!isCompleted && !foundActive) foundActive = true;
         }
 
         y += 80.0;

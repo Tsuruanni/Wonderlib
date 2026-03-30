@@ -110,7 +110,6 @@ import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usec
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
-import '../../domain/usecases/vocabulary/save_daily_review_position_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/lookup_word_definition_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
@@ -379,10 +378,6 @@ final getNodeCompletionsUseCaseProvider = Provider((ref) {
 
 final completeNodeUseCaseProvider = Provider((ref) {
   return CompleteNodeUseCase(ref.watch(vocabularyRepositoryProvider));
-});
-
-final saveDailyReviewPositionUseCaseProvider = Provider((ref) {
-  return SaveDailyReviewPositionUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
 // ============================================
