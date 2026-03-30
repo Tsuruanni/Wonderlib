@@ -792,26 +792,15 @@ class _BadgesSection extends ConsumerWidget {
             ),
           )
         else ...[
-          // Earned badges
-          if (earned.isNotEmpty) ...[
+          // All badges — earned first, then unearned
+          if (earned.isNotEmpty || unearned.isNotEmpty)
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: earned
-                  .map((badge) => _BadgeTile(badge: badge, isEarned: true))
-                  .toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // Unearned badges
-          if (unearned.isNotEmpty)
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: unearned
-                  .map((badge) => _BadgeTile(badge: badge, isEarned: false))
-                  .toList(),
+              children: [
+                ...earned.map((badge) => _BadgeTile(badge: badge, isEarned: true)),
+                ...unearned.map((badge) => _BadgeTile(badge: badge, isEarned: false)),
+              ],
             ),
 
           // Empty state
