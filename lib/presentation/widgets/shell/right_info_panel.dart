@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
@@ -28,6 +29,7 @@ class RightInfoPanel extends ConsumerWidget {
         location.startsWith('/quiz');
     final showPackCard = location.startsWith(AppRoutes.cards);
     final isVocab = location.startsWith(AppRoutes.vocabulary);
+    final isQuests = location.startsWith(AppRoutes.quests);
 
     return SizedBox(
       width: 330,
@@ -55,9 +57,15 @@ class RightInfoPanel extends ConsumerWidget {
                     const _ReaderSettingsCard(),
                     const SizedBox(height: 16),
                   ],
-                  const _LeagueCard(),
-                  const SizedBox(height: 16),
-                  const _DailyQuestsCard(),
+                  if (isQuests) ...[
+                    const _MonthlyQuestSidebarCard(),
+                    const SizedBox(height: 16),
+                    const _MonthlyBadgesSidebarCard(),
+                  ] else ...[
+                    const _LeagueCard(),
+                    const SizedBox(height: 16),
+                    const _DailyQuestsCard(),
+                  ],
                 ],
               ),
             ),
@@ -919,4 +927,185 @@ class _MiniNotebookPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_MiniNotebookPainter oldDelegate) => false;
+}
+
+// ─── Monthly Quest Sidebar Card (Quests route) ───
+
+class _MonthlyQuestSidebarCard extends StatelessWidget {
+  const _MonthlyQuestSidebarCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final monthName = DateFormat('MMMM').format(now);
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+    final daysLeft = lastDay.difference(now).inDays;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.streakOrange,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFC76A00),
+            offset: const Offset(0, 3),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.25),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              monthName.toUpperCase(),
+              style: GoogleFonts.nunito(
+                fontWeight: FontWeight.w900,
+                fontSize: 11,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$monthName Quest',
+            style: GoogleFonts.nunito(
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.access_time_rounded,
+                  size: 13, color: Colors.white.withValues(alpha: 0.8)),
+              const SizedBox(width: 3),
+              Text(
+                '$daysLeft DAYS',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Complete 20 quests',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: 0,
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.white,
+                    minHeight: 6,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '0 / 20',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Monthly Badges Sidebar Card (Quests route) ───
+
+class _MonthlyBadgesSidebarCard extends StatelessWidget {
+  const _MonthlyBadgesSidebarCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'MONTHLY BADGES',
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w800,
+              fontSize: 11,
+              color: AppColors.neutralText,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Earn your first badge!',
+            style: GoogleFonts.nunito(
+              fontWeight: FontWeight.w800,
+              fontSize: 15,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Complete each month's challenge to earn exclusive badges",
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              color: AppColors.neutralText,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.streakOrange.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.military_tech_rounded,
+                size: 36,
+                color: AppColors.streakOrange,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

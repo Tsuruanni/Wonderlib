@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/daily_quest.dart';
+import '../../../domain/entities/student_assignment.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/student_assignment_provider.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_quest_list.dart';
 import '../../widgets/home/quest_completion_dialog.dart';
@@ -44,126 +48,256 @@ class QuestsScreen extends ConsumerWidget {
     );
 
     final progress = progressAsync.valueOrNull ?? [];
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    // RightInfoPanel is shown at ≥1000px — monthly cards live there
+    final showRightPanel = MediaQuery.sizeOf(context).width >= 1000;
 
     return Scaffold(
       body: Column(
         children: [
           const TopNavbar(),
           Expanded(
-            child: isWide
-                ? _WideLayout(
-                    progress: progress,
-                    bonusClaimed: bonusClaimed,
-                  )
-                : _MobileLayout(
-                    progress: progress,
-                    bonusClaimed: bonusClaimed,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 700),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Monthly Quest — only when sidebar is hidden
+                      if (!showRightPanel) ...[
+                        const _MonthlyQuestCard(),
+                        const SizedBox(height: 24),
+                      ],
+                      // Assignments
+                      const _AssignmentsSection(),
+                      // Daily Quests
+                      const _DailyQuestsHeader(),
+                      const SizedBox(height: 12),
+                      DailyQuestList(
+                        progress: progress,
+                        bonusClaimed: bonusClaimed,
+                      ),
+                      const SizedBox(height: 24),
+                      // Badges
+                      const _BadgesSection(),
+                      const SizedBox(height: 24),
+                      // Monthly Badges — only when sidebar is hidden
+                      if (!showRightPanel) ...[
+                        const _MonthlyBadgesCard(),
+                        const SizedBox(height: 32),
+                      ],
+                    ],
                   ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Mobile layout — single scrollable column
-// ---------------------------------------------------------------------------
-
-class _MobileLayout extends StatelessWidget {
-  const _MobileLayout({
-    required this.progress,
-    required this.bonusClaimed,
-  });
-
-  final List<DailyQuestProgress> progress;
-  final bool bonusClaimed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _MonthlyQuestCard(),
-          const SizedBox(height: 24),
-          const _DailyQuestsHeader(),
-          const SizedBox(height: 12),
-          DailyQuestList(progress: progress, bonusClaimed: bonusClaimed),
-          const SizedBox(height: 24),
-          const _BadgesSection(),
-          const SizedBox(height: 24),
-          const _MonthlyBadgesCard(),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Wide layout — main content + sidebar
-// ---------------------------------------------------------------------------
-
-class _WideLayout extends StatelessWidget {
-  const _WideLayout({
-    required this.progress,
-    required this.bonusClaimed,
-  });
-
-  final List<DailyQuestProgress> progress;
-  final bool bonusClaimed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Main content
-        Expanded(
-          child: Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 700),
-              child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _MonthlyQuestCard(),
-                    const SizedBox(height: 24),
-                    const _DailyQuestsHeader(),
-                    const SizedBox(height: 12),
-                    DailyQuestList(
-                      progress: progress,
-                      bonusClaimed: bonusClaimed,
-                    ),
-                    const SizedBox(height: 24),
-                    const _BadgesSection(),
-                    const SizedBox(height: 32),
-                  ],
                 ),
               ),
             ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+}
 
-        // Sidebar
-        const SizedBox(
-          width: 280,
-          child: Padding(
-            padding: EdgeInsets.only(top: 16, right: 16),
+// ---------------------------------------------------------------------------
+// Assignments Section — teacher-assigned tasks
+// ---------------------------------------------------------------------------
+
+class _AssignmentsSection extends ConsumerWidget {
+  const _AssignmentsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignmentsAsync = ref.watch(activeAssignmentsProvider);
+    final assignments = assignmentsAsync.valueOrNull ?? [];
+
+    if (assignments.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Assignments',
+              style: GoogleFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${assignments.length}',
+                style: GoogleFonts.nunito(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.neutral, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.neutral,
+                offset: Offset(0, 3),
+                blurRadius: 0,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
             child: Column(
               children: [
-                _MonthlyBadgesCard(),
+                for (int i = 0; i < assignments.length; i++) ...[
+                  if (i > 0)
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: AppColors.neutral.withValues(alpha: 0.6),
+                    ),
+                  _AssignmentRow(assignment: assignments[i]),
+                ],
               ],
             ),
           ),
         ),
+        const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _AssignmentRow extends StatelessWidget {
+  const _AssignmentRow({required this.assignment});
+  final StudentAssignment assignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCompleted = assignment.status == StudentAssignmentStatus.completed;
+    final progress = (assignment.progress / 100).clamp(0.0, 1.0);
+
+    final IconData icon;
+    final Color iconColor;
+    switch (assignment.type) {
+      case StudentAssignmentType.book:
+        icon = Icons.auto_stories_rounded;
+        iconColor = AppColors.gemBlue;
+      case StudentAssignmentType.vocabulary:
+        icon = Icons.abc_rounded;
+        iconColor = AppColors.secondary;
+      case StudentAssignmentType.unit:
+        icon = Icons.route;
+        iconColor = AppColors.streakOrange;
+    }
+
+    final daysLeft = assignment.dueDate.difference(AppClock.now()).inDays;
+    final String dueText;
+    if (isCompleted) {
+      dueText = 'Completed';
+    } else if (daysLeft < 0) {
+      dueText = 'Overdue';
+    } else if (daysLeft == 0) {
+      dueText = 'Due today';
+    } else if (daysLeft == 1) {
+      dueText = '1 day left';
+    } else {
+      dueText = '$daysLeft days left';
+    }
+
+    return GestureDetector(
+      onTap: () => context.push(
+        AppRoutes.studentAssignmentDetailPath(assignment.assignmentId),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: isCompleted
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : iconColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isCompleted ? Icons.check_rounded : icon,
+                size: 24,
+                color: isCompleted ? AppColors.primary : iconColor,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    assignment.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isCompleted ? AppColors.neutralText : AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            backgroundColor: AppColors.neutral,
+                            color: isCompleted ? AppColors.primary : iconColor,
+                            minHeight: 6,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        dueText,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: daysLeft < 0 && !isCompleted
+                              ? AppColors.danger
+                              : AppColors.neutralText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isCompleted
+                  ? Icons.check_circle_rounded
+                  : Icons.chevron_right_rounded,
+              size: isCompleted ? 22 : 20,
+              color: isCompleted ? AppColors.primary : AppColors.neutralText,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
