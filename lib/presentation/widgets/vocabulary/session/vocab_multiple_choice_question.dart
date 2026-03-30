@@ -81,13 +81,16 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
         ? 'Select the correct meaning'
         : 'Select the correct English word';
 
+    final imageSize = isWide ? 220.0 : 140.0;
+
     final questionCard = VocabQuestionContainer(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (!q.isRemediation)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
-              child: VocabQuestionImage(imageUrl: q.imageUrl),
+              child: VocabQuestionImage(imageUrl: q.imageUrl, size: imageSize),
             ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -44,7 +44,6 @@ class _VocabImageMatchQuestionState extends State<VocabImageMatchQuestion> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -60,7 +59,7 @@ class _VocabImageMatchQuestionState extends State<VocabImageMatchQuestion> {
 
           const SizedBox(height: 8),
 
-          // Target word prominently displayed
+          // Target word
           VocabQuestionContainer(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             child: Text(
@@ -75,80 +74,92 @@ class _VocabImageMatchQuestionState extends State<VocabImageMatchQuestion> {
 
           const SizedBox(height: 24),
 
-          // 2 image options side by side
-          Row(
-            children: options.map((imageUrl) {
-              final isSelected = _selectedAnswer == imageUrl;
-              final isCorrect = imageUrl == widget.question.correctAnswer;
+          // 2 image options — Expanded to fill remaining space
+          Expanded(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Row(
+                  children: options.map((imageUrl) {
+                    final isSelected = _selectedAnswer == imageUrl;
+                    final isCorrect =
+                        imageUrl == widget.question.correctAnswer;
 
-              Color borderColor =
-                  theme.colorScheme.outline.withValues(alpha: 0.2);
-              double borderWidth = 2.0;
+                    Color borderColor =
+                        theme.colorScheme.outline.withValues(alpha: 0.2);
+                    double borderWidth = 2.0;
 
-              if (_answered) {
-                if (isCorrect) {
-                  borderColor = Colors.green;
-                  borderWidth = 3.0;
-                } else if (isSelected && !isCorrect) {
-                  borderColor = Colors.red;
-                  borderWidth = 3.0;
-                }
-              }
+                    if (_answered) {
+                      if (isCorrect) {
+                        borderColor = Colors.green;
+                        borderWidth = 3.0;
+                      } else if (isSelected && !isCorrect) {
+                        borderColor = Colors.red;
+                        borderWidth = 3.0;
+                      }
+                    }
 
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: GestureDetector(
-                    onTap: _answered ? null : () => _handleSelect(imageUrl),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        border:
-                            Border.all(color: borderColor, width: borderWidth),
-                        boxShadow: [
-                          BoxShadow(
-                            color:
-                                theme.colorScheme.shadow.withValues(alpha: 0.08),
-                            offset: const Offset(0, 4),
-                            blurRadius: 12,
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: AspectRatio(
-                          aspectRatio: 1.0,
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              child: Icon(
-                                Icons.image_rounded,
-                                size: 48,
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.3),
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: GestureDetector(
+                          onTap: _answered
+                              ? null
+                              : () => _handleSelect(imageUrl),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: borderColor, width: borderWidth),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.colorScheme.shadow
+                                      .withValues(alpha: 0.08),
+                                  offset: const Offset(0, 4),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: theme
+                                        .colorScheme.surfaceContainerHighest,
+                                    child: Icon(
+                                      Icons.image_rounded,
+                                      size: 48,
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                        )
+                            .animate(
+                              target: _answered && isCorrect ? 1.0 : 0.0,
+                            )
+                            .scaleXY(
+                              begin: 1.0,
+                              end: 1.05,
+                              duration: 300.ms,
+                              curve: Curves.easeOutBack,
+                            ),
                       ),
-                    ),
-                  )
-                      .animate(
-                        target: _answered && isCorrect ? 1.0 : 0.0,
-                      )
-                      .scaleXY(
-                        begin: 1.0,
-                        end: 1.05,
-                        duration: 300.ms,
-                        curve: Curves.easeOutBack,
-                      ),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
+              ),
+            ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
     );
