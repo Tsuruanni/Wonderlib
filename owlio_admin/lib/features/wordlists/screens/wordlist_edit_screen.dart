@@ -117,7 +117,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     try {
       final supabase = ref.read(supabaseClientProvider);
 
-      final data = {
+      final data = <String, dynamic>{
         'name': _nameController.text.trim(),
         'description': _descriptionController.text.trim(),
         'is_system': true,
@@ -128,6 +128,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       if (isNewList) {
         listId = const Uuid().v4();
         data['id'] = listId;
+        data['category'] = 'thematic';
         await supabase.from(DbTables.wordLists).insert(data);
       } else {
         listId = widget.listId!;
