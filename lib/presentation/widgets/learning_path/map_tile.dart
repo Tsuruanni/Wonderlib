@@ -35,14 +35,25 @@ class MapTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRect(
-      child: SizedBox(
-        height: theme.height,
-        child: OverflowBox(
-          maxWidth: kTileWidth,
-          minWidth: kTileWidth,
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
+    // Scale tile to fit screen width — no clipping on mobile
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final scale = availableWidth < kTileWidth
+            ? availableWidth / kTileWidth
+            : 1.0;
+        final scaledHeight = theme.height * scale;
+
+        return SizedBox(
+          height: scaledHeight,
+          child: FittedBox(
+            fit: BoxFit.fitWidth,
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: kTileWidth,
+              height: theme.height,
+              child: Stack(
+                clipBehavior: Clip.none,
             children: [
               // Background: remote image if available, gradient fallback
               Positioned.fill(
@@ -65,10 +76,12 @@ class MapTile extends StatelessWidget {
                     data: nodes[i],
                     tileHeight: theme.height,
                   ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
+      );
+      },
     );
   }
 }
