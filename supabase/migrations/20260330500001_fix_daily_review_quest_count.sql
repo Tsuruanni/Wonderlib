@@ -46,14 +46,14 @@ BEGIN
     LOOP
         CASE v_quest.quest_type
             WHEN 'daily_review' THEN
-                -- Count due words using same logic as get_due_review_words:
-                -- JOIN vocabulary_words to exclude orphan progress rows
+                -- Count due words using exact same query as get_due_review_words RPC
+                -- (uses NOW() not app_now() to match client-facing RPC)
                 SELECT COUNT(*)::INT
                 INTO v_due_word_count
-                FROM vocabulary_progress vp
-                INNER JOIN vocabulary_words vw ON vw.id = vp.word_id
+                FROM vocabulary_words vw
+                INNER JOIN vocabulary_progress vp ON vp.word_id = vw.id
                 WHERE vp.user_id = p_user_id
-                  AND vp.next_review_at <= app_now()
+                  AND vp.next_review_at <= NOW()
                   AND vp.status != 'mastered';
 
                 -- Skip quest if < 10 due words (matches Flutter minDailyReviewCount)
@@ -170,13 +170,13 @@ BEGIN
 
     PERFORM id FROM profiles WHERE id = p_user_id FOR UPDATE;
 
-    -- Count due words with JOIN (matches get_due_review_words)
+    -- Count due words using exact same query as get_due_review_words RPC
     SELECT COUNT(*)::INT
     INTO v_due_word_count
-    FROM vocabulary_progress vp
-    INNER JOIN vocabulary_words vw ON vw.id = vp.word_id
+    FROM vocabulary_words vw
+    INNER JOIN vocabulary_progress vp ON vp.word_id = vw.id
     WHERE vp.user_id = p_user_id
-      AND vp.next_review_at <= app_now()
+      AND vp.next_review_at <= NOW()
       AND vp.status != 'mastered';
 
     SELECT COUNT(*) INTO v_active_count

@@ -8,6 +8,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Home Page Removal & Quests Page (2026-03-30)
+
+#### Added
+- **Quests page** — New dedicated tab replacing Home. Daily quests with 3D press-effect buttons, badge gallery (earned/unearned grid with tap-to-reveal detail sheet), monthly quest + monthly badges placeholders, standalone assignments section with empty state and VIEW ALL link, compact bonus reward pill button (locked/claimable/claimed).
+- **Continue Reading → Library** — Horizontal book card section at top of Library screen, before level shelves. Uses `CachedBookImage`, hidden when no in-progress books.
+- **Daily Review → Learning Path** — Banner in VocabularyHubScreen (mobile) and RightInfoPanel sidebar (web ≥1000px). 3-state: completed, due, hidden.
+- **`getAllBadges` data layer** — New `BadgeRepository.getAllBadges()`, `GetAllBadgesUseCase`, `allBadgesProvider` for badge gallery.
+- **RightInfoPanel route-based content** — Quests route shows MonthlyQuest + MonthlyBadges instead of League + DailyQuests. Vocab route shows DailyReview card.
+- **Tappable quest rows** — `read_chapters` → Library, `vocab_session` → Daily Review navigation.
+- **Student assignment screens redesign** — Both list and detail screens rewritten with TopNavbar, AppColors, GoogleFonts.nunito, custom cards. Moved into shell (sidebar visible). Colored header cards, status pills, 3D GameButtons.
+
+#### Changed
+- **Navigation** — 5 tabs: Learning Path (default) · Library · Quests · Cards · Leaderboard. Home tab removed.
+- **DailyQuestList simplified** — Pure StatelessWidget, quest rows only. Bonus row and assignment rows extracted to separate widgets.
+- **Consistent RightInfoPanel position** — All pages use same ConstrainedBox layout (was full-width for Learning Path).
+
+#### Fixed
+- **Daily review quest eligibility** — RPC now uses `NOW()` + `INNER JOIN vocabulary_words` to match client-side due word count. Fixes quest showing for students with < 10 real due words.
+- **Vocab session web layouts** — All question types: side-by-side layout on web (card left, options/input right), 3D press-effect buttons, GameButton for Check Answer, image overflow fixes.
+- **Session summary** — Continue navigates back to unit detail (not hub). Two-column web layout (stats left, report right), centered header.
+- **Feedback overlay** — GOT IT button redesigned as 3D red press button, centered.
+
+#### Removed
+- **Home screen** — Deleted entirely (`home_screen.dart`). All sections redistributed.
+- **Recommended for You** — Provider, use case, repository method, and all references deleted.
+
+#### Infrastructure
+- **DB migration** — `get_daily_quest_progress` and `claim_daily_bonus` RPCs updated: `NOW()` instead of `app_now()`, `INNER JOIN vocabulary_words` for accurate due word count.
+
 ### Unit Map Navigation (2026-03-30)
 
 #### Added

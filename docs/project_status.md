@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-30 (Unit map navigation — 3-layer vocab hub, path-level tile themes, admin save race condition fix)
+Son güncelleme: 2026-03-30 (Home page removal, Quests page, assignment redesign, vocab session web layouts, daily review quest fix)
 
 ## Current Phase
 
@@ -152,6 +152,10 @@ See: CLAUDE.md for architecture guidelines
 - [x] Tile Theme Editor (admin CRUD, image upload, node position sliders, live preview, per-unit assignment)
 - [x] Unit Gate Toggle (inter-unit locking independent from sequential item lock)
 - [x] Unit Map Navigation (3-layer vocab hub: path selection → unit map → unit detail, path-level tile themes, admin save race condition fix)
+- [x] Home Page Removal & Quests Page (home eliminated, sections redistributed to Library/Vocab/Quests, dedicated Quests tab with badges + monthly placeholders)
+- [x] Student Assignment Screens Redesign (app design language, shell integration, colored header cards, 3D GameButtons)
+- [x] Vocabulary Session Web Layouts (side-by-side layouts, 3D option buttons, GameButton check/continue, image overflow fixes)
+- [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -162,9 +166,10 @@ See: CLAUDE.md for architecture guidelines
 |------|----------|--------|-------|
 | ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
 | ~~Teacher Panel Audit~~ | - | ~~Done~~ | ~~15 migrations, security fixes, class management redesign~~ |
-| Responsive Web Layout | - | In Progress | Sidebar + right panel done. Remaining: home, leaderboard, assignments, quiz, daily review screens |
+| ~~Responsive Web Layout~~ | - | ~~Done~~ | ~~Sidebar + right panel, vocab session layouts, assignment screens, quests page~~ |
 | ~~Learning Path Redesign~~ | - | ~~Done~~ | ~~Tile-based map, configurable themes, admin editor, responsive scaling~~ |
 | ~~Unit Map Navigation~~ | - | ~~Done~~ | ~~3-layer vocab hub, path-level themes, admin race condition fix~~ |
+| ~~Home Page Removal~~ | - | ~~Done~~ | ~~Quests page, assignments redesign, daily review quest fix~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
