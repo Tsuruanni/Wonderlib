@@ -268,6 +268,18 @@ class _AssignmentRow extends StatelessWidget {
       dueText = '$daysLeft days left';
     }
 
+    // Due pill color/urgency
+    final Color dueColor;
+    if (isCompleted) {
+      dueColor = AppColors.primary;
+    } else if (daysLeft < 0) {
+      dueColor = AppColors.danger;
+    } else if (daysLeft <= 2) {
+      dueColor = AppColors.streakOrange;
+    } else {
+      dueColor = AppColors.neutralText;
+    }
+
     return GestureDetector(
       onTap: () => context.push(
         AppRoutes.studentAssignmentDetailPath(assignment.assignmentId),
@@ -306,43 +318,40 @@ class _AssignmentRow extends StatelessWidget {
                       color: isCompleted ? AppColors.neutralText : AppColors.black,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress,
-                            backgroundColor: AppColors.neutral,
-                            color: isCompleted ? AppColors.primary : iconColor,
-                            minHeight: 6,
-                          ),
-                        ),
+                  if (!isCompleted && progress > 0) ...[
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: AppColors.neutral,
+                        color: iconColor,
+                        minHeight: 6,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        dueText,
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: daysLeft < 0 && !isCompleted
-                              ? AppColors.danger
-                              : AppColors.neutralText,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Icon(
-              isCompleted
-                  ? Icons.check_circle_rounded
-                  : Icons.chevron_right_rounded,
-              size: isCompleted ? 22 : 20,
-              color: isCompleted ? AppColors.primary : AppColors.neutralText,
+            const SizedBox(width: 10),
+            // Due pill — prominent
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: dueColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: daysLeft <= 1 && !isCompleted
+                    ? Border.all(color: dueColor.withValues(alpha: 0.3), width: 1.5)
+                    : null,
+              ),
+              child: Text(
+                dueText,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: dueColor,
+                ),
+              ),
             ),
           ],
         ),
