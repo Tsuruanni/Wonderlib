@@ -72,7 +72,9 @@ class _PathSelectionList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allUnits = ref.watch(learningPathProvider).valueOrNull ?? [];
 
-    return SingleChildScrollView(
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,6 +99,7 @@ class _PathSelectionList extends ConsumerWidget {
               ),
             ),
         ],
+      ),
       ),
     );
   }

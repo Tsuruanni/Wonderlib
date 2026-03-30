@@ -92,11 +92,14 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
           });
         }
 
-        return SingleChildScrollView(
-          controller: _scrollController,
-          child: theme != null
-              ? _buildTileMap(context, units, theme, activeIdx, path.unitGate)
-              : _buildSimpleUnitList(context, units, activeIdx, path.unitGate),
+        return ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            child: theme != null
+                ? _buildTileMap(context, units, theme, activeIdx, path.unitGate)
+                : _buildSimpleUnitList(context, units, activeIdx, path.unitGate),
+          ),
         );
       },
     );
