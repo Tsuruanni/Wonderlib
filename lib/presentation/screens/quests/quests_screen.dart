@@ -145,8 +145,7 @@ class _AssignmentsSection extends ConsumerWidget {
               ),
             ),
             const Spacer(),
-            if (assignments.isNotEmpty)
-              GestureDetector(
+            GestureDetector(
                 onTap: () => context.push(AppRoutes.studentAssignments),
                 child: Text(
                   'VIEW ALL',
