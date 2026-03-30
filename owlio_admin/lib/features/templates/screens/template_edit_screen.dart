@@ -72,7 +72,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
       final unitsResponse = await supabase
           .from(DbTables.learningPathTemplateUnits)
           .select(
-              'id, unit_id, sort_order, vocabulary_units(id, name, icon, color)')
+              'id, unit_id, sort_order, tile_theme_id, vocabulary_units(id, name, icon, color)')
           .eq('template_id', widget.templateId!)
           .order('sort_order', ascending: true);
 

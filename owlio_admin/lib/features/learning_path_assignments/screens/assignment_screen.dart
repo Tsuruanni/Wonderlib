@@ -171,7 +171,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
         final unitsResponse = await supabase
             .from(DbTables.scopeLearningPathUnits)
             .select(
-                'id, unit_id, sort_order, vocabulary_units(id, name, icon, color)')
+                'id, unit_id, sort_order, tile_theme_id, vocabulary_units(id, name, icon, color)')
             .eq('scope_learning_path_id', pathId)
             .order('sort_order');
 
