@@ -21,13 +21,20 @@ class VocabularyHubScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pathsAsync = ref.watch(userLearningPathsProvider);
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final showRightPanel = screenWidth >= 1000;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             const TopNavbar(),
-            const _DailyReviewBanner(),
+            // Daily review banner — only on mobile (on wide screens it's in the RightInfoPanel)
+            if (!showRightPanel) ...[
+              const _DailyReviewBanner(),
+              const SizedBox(height: 8),
+            ],
             Expanded(
               child: pathsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
