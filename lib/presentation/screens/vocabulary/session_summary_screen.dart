@@ -185,7 +185,15 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             width: 200,
             child: GameButton(
               label: 'Continue',
-              onPressed: () => context.go(AppRoutes.vocabularyListPath(widget.listId)),
+              onPressed: () {
+                    // Pop back through: summary → session → list detail
+                    // Landing on list detail which is nested under unit detail
+                    var count = 0;
+                    Navigator.of(context).popUntil((route) {
+                      // Pop summary and session screens (2 pops)
+                      return count++ >= 2;
+                    });
+                  },
               variant: GameButtonVariant.primary,
             ),
           ),
