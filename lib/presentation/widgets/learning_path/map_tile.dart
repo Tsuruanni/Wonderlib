@@ -37,13 +37,16 @@ class MapTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final w = constraints.maxWidth;
+        // Clamp width to kTileWidth max — don't stretch beyond design size
+        final w = constraints.maxWidth.clamp(0.0, kTileWidth);
         final scale = w < kTileWidth ? w / kTileWidth : 1.0;
         final h = theme.height * scale;
 
-        return SizedBox(
-          height: h,
-          child: Stack(
+        return Center(
+          child: SizedBox(
+            width: w,
+            height: h,
+            child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
               // Background: fills scaled area
@@ -68,6 +71,7 @@ class MapTile extends StatelessWidget {
                   ),
             ],
           ),
+        ),
         );
       },
     );
