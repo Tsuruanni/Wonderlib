@@ -155,9 +155,7 @@ class MainShellScaffold extends ConsumerWidget {
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: showRightPanel
-                            ? (isFullWidth ? 1200 : 1060)
-                            : 800,
+                        maxWidth: showRightPanel ? 1060 : 800,
                       ),
                       child: Row(
                         children: [
