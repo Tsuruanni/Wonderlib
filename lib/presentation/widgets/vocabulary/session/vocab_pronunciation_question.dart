@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 
+import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
+import '../../../widgets/common/game_button.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
 
@@ -36,7 +39,7 @@ class _VocabPronunciationQuestionState
   bool _isListening = false;
   bool _answered = false;
   bool _sttAvailable = false;
-  bool _waitingForResult = false; // true between stop and result/timeout
+  bool _waitingForResult = false;
   int _attemptsUsed = 0;
   String? _statusMessage;
 
@@ -60,9 +63,7 @@ class _VocabPronunciationQuestionState
     try {
       final available = await _stt.initialize(
         onError: (error) {
-          if (mounted && !_answered) {
-            _switchToFallback();
-          }
+          if (mounted && !_answered) _switchToFallback();
         },
       );
       if (mounted) {
@@ -90,11 +91,9 @@ class _VocabPronunciationQuestionState
     if (_answered) return;
 
     if (_isListening) {
-      // Stop listening — wait for final result
       await _stt.stop();
       if (mounted) {
         setState(() => _isListening = false);
-        // Fallback timeout if no final result arrives
         _noResultTimer?.cancel();
         _noResultTimer = Timer(const Duration(milliseconds: 3000), () {
           if (!_answered && _waitingForResult && mounted) {
@@ -103,7 +102,6 @@ class _VocabPronunciationQuestionState
         });
       }
     } else {
-      // Start listening
       if (!_sttAvailable) return;
       setState(() {
         _isListening = true;
@@ -135,15 +133,10 @@ class _VocabPronunciationQuestionState
   void _onSpeechResult(SpeechRecognitionResult result) {
     if (_answered) return;
 
-    debugPrint('STT result: "${result.recognizedWords}" final=${result.finalResult} conf=${result.confidence}');
-
     if (!result.finalResult) {
-      // Show partial result as status
       final partial = result.recognizedWords.trim();
       if (partial.isNotEmpty && mounted) {
         setState(() => _statusMessage = 'Hearing: "$partial"');
-
-        // Auto-accept if partial already matches the correct answer
         final correctAnswer = widget.question.correctAnswer.toLowerCase();
         if (partial.toLowerCase() == correctAnswer) {
           _stt.stop();
@@ -160,7 +153,6 @@ class _VocabPronunciationQuestionState
       return;
     }
 
-    // Final result
     _noResultTimer?.cancel();
     _waitingForResult = false;
     if (mounted) setState(() => _isListening = false);
@@ -175,7 +167,6 @@ class _VocabPronunciationQuestionState
 
     final correctAnswer = widget.question.correctAnswer.toLowerCase();
 
-    // Correct answer on any attempt → success
     if (recognizedWord != null && recognizedWord == correctAnswer) {
       setState(() => _answered = true);
       HapticFeedback.lightImpact();
@@ -183,19 +174,18 @@ class _VocabPronunciationQuestionState
       return;
     }
 
-    // Still have attempts left → show retry message
     if (_attemptsLeft > 0) {
       setState(() {
         if (recognizedWord == null) {
           _statusMessage = "Didn't catch that. Try again ($_attemptsLeft left)";
         } else {
-          _statusMessage = 'Heard "$recognizedWord" — try again ($_attemptsLeft left)';
+          _statusMessage =
+              'Heard "$recognizedWord" — try again ($_attemptsLeft left)';
         }
       });
       return;
     }
 
-    // All attempts used → fall back to spelling mode
     setState(() {
       _isFallbackMode = true;
       _statusMessage = "Try typing instead";
@@ -203,8 +193,6 @@ class _VocabPronunciationQuestionState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
-    // Note: do NOT call onMicDisabled here — this is a per-question fallback,
-    // not a session-level mic disable. "Say the word" can still appear next time.
   }
 
   void _submitSpelling() {
@@ -224,83 +212,63 @@ class _VocabPronunciationQuestionState
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildQuestionCard(ThemeData theme, bool isWide) {
+    return VocabQuestionContainer(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+          VocabQuestionImage(
+            imageUrl: widget.question.imageUrl,
+            size: isWide ? 200 : 140,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: 0.2),
+              ),
+            ),
             child: Text(
-              _isFallbackMode ? 'Type the English word' : 'Say the English word',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w600,
+              widget.question.targetMeaning,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-
-          const SizedBox(height: 12),
-
-          VocabQuestionContainer(
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
-            child: Column(
-              children: [
-                VocabQuestionImage(
-                  imageUrl: widget.question.imageUrl,
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Text(
-                    widget.question.targetMeaning,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          if (_isFallbackMode) _buildSpellingMode(theme) else _buildMicMode(theme),
         ],
       ),
     );
   }
 
+  Widget _buildActionSide(ThemeData theme) {
+    if (_isFallbackMode) return _buildSpellingMode(theme);
+    return _buildMicMode(theme);
+  }
+
   Widget _buildMicMode(ThemeData theme) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (_statusMessage != null) ...[
           Text(
             _statusMessage!,
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
               color: _statusMessage!.startsWith('Hearing')
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.error,
+                  ? AppColors.primary
+                  : AppColors.danger,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
         ],
-
-        // Tap to start/stop recording
         GestureDetector(
           onTap: _toggleListening,
           child: AnimatedContainer(
@@ -315,7 +283,8 @@ class _VocabPronunciationQuestionState
               boxShadow: _isListening
                   ? [
                       BoxShadow(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.4),
+                        color:
+                            theme.colorScheme.primary.withValues(alpha: 0.4),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
@@ -331,39 +300,37 @@ class _VocabPronunciationQuestionState
             ),
           ),
         ),
-
         const SizedBox(height: 8),
-
         Text(
           _isListening
               ? 'Listening... tap to stop'
               : _attemptsUsed == 0
                   ? 'Tap to speak'
                   : 'Tap to try again',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            color: AppColors.neutralText,
           ),
         ),
-
         if (_attemptsUsed > 0 && !_answered) ...[
           const SizedBox(height: 4),
           Text(
             '$_attemptsLeft attempt${_attemptsLeft == 1 ? '' : 's'} left',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.error.withValues(alpha: 0.7),
+            style: GoogleFonts.nunito(
+              fontSize: 12,
               fontWeight: FontWeight.w600,
+              color: AppColors.danger.withValues(alpha: 0.7),
             ),
           ),
         ],
-
         const SizedBox(height: 24),
-
         TextButton(
           onPressed: _answered ? null : _switchToFallback,
           child: Text(
             "Can't use microphone?",
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              color: AppColors.neutralText,
               decoration: TextDecoration.underline,
             ),
           ),
@@ -374,6 +341,7 @@ class _VocabPronunciationQuestionState
 
   Widget _buildSpellingMode(ThemeData theme) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         TextField(
           controller: _textController,
@@ -403,25 +371,89 @@ class _VocabPronunciationQuestionState
           ),
           onSubmitted: (_) => _submitSpelling(),
         ),
-
-        const SizedBox(height: 20),
-
+        const SizedBox(height: 16),
         if (!_answered)
-          FilledButton(
-            onPressed:
-                _textController.text.trim().isNotEmpty ? _submitSpelling : null,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+          Center(
+            child: SizedBox(
+              width: 200,
+              child: GameButton(
+                label: 'Check Answer',
+                onPressed: _textController.text.trim().isNotEmpty
+                    ? _submitSpelling
+                    : null,
+                variant: GameButtonVariant.primary,
               ),
-            ),
-            child: const Text(
-              'Check Answer',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
       ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final promptText =
+        _isFallbackMode ? 'Type the English word' : 'Say the English word';
+
+    if (isWide) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                promptText,
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: _buildQuestionCard(theme, true)),
+                  const SizedBox(width: 24),
+                  Expanded(child: _buildActionSide(theme)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      );
+    }
+
+    // Mobile
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              promptText,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildQuestionCard(theme, false),
+          const SizedBox(height: 32),
+          _buildActionSide(theme),
+        ],
+      ),
     );
   }
 }
