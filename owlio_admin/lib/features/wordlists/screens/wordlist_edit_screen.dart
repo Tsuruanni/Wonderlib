@@ -1689,6 +1689,44 @@ class _AddWordDialog extends ConsumerStatefulWidget {
 
 class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
   String _searchQuery = '';
+  bool _isCreating = false;
+
+  Future<void> _createAndAddWord(String wordText) async {
+    setState(() => _isCreating = true);
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final id = const Uuid().v4();
+      final word = wordText.trim().toLowerCase();
+
+      await supabase.from(DbTables.vocabularyWords).insert({
+        'id': id,
+        'word': word,
+      });
+
+      widget.onWordSelected({
+        'id': id,
+        'word': word,
+        'meaning_tr': null,
+        'meaning_en': null,
+        'phonetic': null,
+        'audio_url': null,
+        'image_url': null,
+        'example_sentences': null,
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Kelime oluşturulamadı: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isCreating = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1728,9 +1766,34 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
 
                   if (words.isEmpty) {
                     return Center(
-                      child: Text(
-                        'Kelime bulunamadı',
-                        style: TextStyle(color: Colors.grey.shade600),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '"$_searchQuery" bulunamadı',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          const SizedBox(height: 12),
+                          FilledButton.icon(
+                            onPressed: _isCreating
+                                ? null
+                                : () => _createAndAddWord(_searchQuery),
+                            icon: _isCreating
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white),
+                                  )
+                                : const Icon(Icons.add, size: 18),
+                            label: Text(
+                              _isCreating
+                                  ? 'Ekleniyor...'
+                                  : '"$_searchQuery" yeni kelime olarak ekle',
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   }
