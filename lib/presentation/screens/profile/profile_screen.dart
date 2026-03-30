@@ -911,7 +911,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                   Center(
                     child: TextButton(
                       onPressed: () {
-                        _showAllBadgesSheet(context, allBadges);
+                        context.go(AppRoutes.quests);
                       },
                       child: Text(
                         'See All ${allBadges.length} Badges',
@@ -929,57 +929,6 @@ class _RecentBadgesSection extends ConsumerWidget {
           ),
         );
       },
-    );
-  }
-
-  void _showAllBadgesSheet(BuildContext context, List<UserBadge> badges) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.4,
-        builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppColors.neutral,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'All Badges (${badges.length})',
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: controller,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: badges.length,
-                  itemBuilder: (_, i) => _BadgeRow(badge: badges[i]),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
