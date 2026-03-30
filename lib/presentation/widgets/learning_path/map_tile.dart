@@ -62,15 +62,14 @@ class MapTile extends StatelessWidget {
                     )
                   : _PlaceholderBackground(colors: theme.fallbackColors),
             ),
+            // Labels (behind nodes so they don't overlap circles)
+            for (int i = 0; i < nodes.length; i++)
+              if (i < theme.nodePositions.length && nodes[i].label != null)
+                _buildLabel(theme.nodePositions[i], nodes[i], w, h),
             // Nodes: scaled positions, original widget size
             for (int i = 0; i < nodes.length; i++)
               if (i < theme.nodePositions.length)
-                _PositionedNode(
-                  position: theme.nodePositions[i],
-                  data: nodes[i],
-                  tileWidth: w,
-                  tileHeight: h,
-                ),
+                _buildNode(theme.nodePositions[i], nodes[i], h),
           ],
         );
 
@@ -93,64 +92,52 @@ class MapTile extends StatelessWidget {
   }
 }
 
-/// A node positioned by percentage coordinates within the tile.
-class _PositionedNode extends StatelessWidget {
-  const _PositionedNode({
-    required this.position,
-    required this.data,
-    required this.tileWidth,
-    required this.tileHeight,
-  });
+const _nodeSize = 64.0;
 
-  final Offset position;
-  final MapTileNodeData data;
-  final double tileWidth;
-  final double tileHeight;
-
-  @override
-  Widget build(BuildContext context) {
-    final nodeX = position.dx * tileWidth;
-    final nodeY = position.dy * tileHeight;
-    final labelOnRight = position.dx < 0.5;
+/// Build a Positioned node circle (+ START bubble + stars).
+Positioned _buildNode(Offset pos, MapTileNodeData data, double tileH) {
+    // Use kTileWidth for X so node stays fixed regardless of screen width
+    final nodeX = pos.dx * kTileWidth;
+    final nodeY = pos.dy * tileH;
 
     return Positioned(
-      left: nodeX - 32, // center 64px wide node circle
-      top: nodeY - 32,
-      child: Row(
+      left: nodeX - _nodeSize / 2,
+      top: nodeY - _nodeSize / 2,
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Label on left side
-          if (!labelOnRight && data.label != null)
-            _SideLabel(label: data.label!, isLocked: data.state == NodeState.locked),
-          if (!labelOnRight && data.label != null)
-            const SizedBox(width: 8),
-          // Node column (START bubble + circle + stars)
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (data.state == NodeState.active) ...[
-                const StartBubble(),
-                const SizedBox(height: 4),
-              ],
-              PathNode(
-                type: data.type,
-                state: data.state,
-                onTap: data.onTap,
-                starCount: data.starCount,
-              ),
-            ],
+          if (data.state == NodeState.active) ...[
+            const StartBubble(),
+            const SizedBox(height: 4),
+          ],
+          PathNode(
+            type: data.type,
+            state: data.state,
+            onTap: data.onTap,
+            starCount: data.starCount,
           ),
-          // Label on right side
-          if (labelOnRight && data.label != null)
-            const SizedBox(width: 8),
-          if (labelOnRight && data.label != null)
-            _SideLabel(label: data.label!, isLocked: data.state == NodeState.locked),
         ],
       ),
     );
   }
-}
+
+/// Build a Positioned label beside the node.
+Positioned _buildLabel(
+      Offset pos, MapTileNodeData data, double tileW, double tileH) {
+    final nodeX = pos.dx * kTileWidth;
+    final nodeY = pos.dy * tileH;
+    final labelOnRight = pos.dx < 0.5;
+
+    return Positioned(
+      left: labelOnRight ? nodeX + _nodeSize / 2 + 4 : null,
+      right: labelOnRight ? null : tileW - nodeX + _nodeSize / 2 + 4,
+      top: nodeY - 12,
+      child: _SideLabel(
+        label: data.label!,
+        isLocked: data.state == NodeState.locked,
+      ),
+    );
+  }
 
 /// Label displayed beside a node with semi-transparent white background.
 class _SideLabel extends StatelessWidget {
@@ -162,20 +149,21 @@ class _SideLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(maxWidth: 120),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      constraints: const BoxConstraints(maxWidth: 130),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.75),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        label,
+        label.toUpperCase(),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.nunito(
           fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: isLocked ? AppColors.neutralText : AppColors.black,
+          fontWeight: FontWeight.w900,
+          color: isLocked ? AppColors.neutralText : AppColors.primary,
+          letterSpacing: 0.5,
         ),
       ),
     );
