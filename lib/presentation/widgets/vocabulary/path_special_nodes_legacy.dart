@@ -488,51 +488,6 @@ class PathBookNode extends StatelessWidget {
 }
 
 // ============================================================
-// Daily Review Node
-// ============================================================
-
-class PathDailyReviewNode extends StatelessWidget {
-  const PathDailyReviewNode({
-    super.key,
-    required this.globalRowIndex,
-    required this.unitId,
-    this.isLocked = false,
-    this.isComplete = false,
-    this.isActive = false,
-  });
-
-  final int globalRowIndex;
-  final String unitId;
-  final bool isLocked;
-  final bool isComplete;
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    return _SpecialNodeCircle(
-      globalRowIndex: globalRowIndex,
-      seedMultiplier: 555,
-      bgColor: const Color(0xFFFFF3E0),
-      icon: Icons.style_rounded,
-      iconColor: const Color(0xFFE65100),
-      label: 'Review',
-      isLocked: isLocked,
-      isComplete: isComplete,
-      isActive: isActive,
-      onTap: () {
-        if (isLocked) {
-          _showLockedSnackbar(context);
-          return;
-        }
-        if (isComplete) return; // Already done today
-        // Navigate to daily review
-        context.push(AppRoutes.vocabularyDailyReview);
-      },
-    );
-  }
-}
-
-// ============================================================
 // Game Node
 // ============================================================
 
