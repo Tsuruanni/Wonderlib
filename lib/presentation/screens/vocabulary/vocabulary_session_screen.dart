@@ -14,6 +14,7 @@ import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/game_button.dart';
 import '../../widgets/common/vocabulary_mascot_overlay.dart';
 import '../../widgets/vocabulary/session/vocab_image_match_question.dart';
 import '../../widgets/vocabulary/session/vocab_listening_question.dart';
@@ -513,6 +514,7 @@ class _VocabularySessionScreenState
   ) {
     final pair = sessionState.currentPair;
     if (pair.isEmpty) return const SizedBox.shrink();
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
     return Column(
       key: ValueKey('intro_${sessionState.introductionPairIndex}'),
@@ -526,22 +528,31 @@ class _VocabularySessionScreenState
             ),
           ),
         ),
-        ...pair.map((word) => Expanded(child: VocabWordIntroductionCard(word: word))),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: controller.finishIntroduction,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
+        // Cards: side by side on web, stacked on mobile
+        if (isWide)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (int i = 0; i < pair.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 16),
+                    Expanded(child: VocabWordIntroductionCard(word: pair[i])),
+                  ],
+                ],
               ),
-              child: const Text('Continue', style: TextStyle(fontSize: 16)),
             ),
+          )
+        else
+          ...pair.map((word) => Expanded(child: VocabWordIntroductionCard(word: word))),
+        const SizedBox(height: 12),
+        // Continue button — centered island style
+        Center(
+          child: GameButton(
+            label: 'Continue',
+            onPressed: controller.finishIntroduction,
+            variant: GameButtonVariant.primary,
           ),
         ),
         const SizedBox(height: 20),
