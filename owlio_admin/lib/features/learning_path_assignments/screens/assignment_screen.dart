@@ -496,6 +496,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             'tile_theme_id': unit.tileThemeId,
           });
           unit.id = newUnitId;
+          memoryUnitIds.add(newUnitId);
 
           // All items in a new unit are new → INSERT all
           for (int j = 0; j < unit.items.length; j++) {
