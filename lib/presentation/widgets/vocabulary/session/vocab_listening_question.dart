@@ -97,7 +97,53 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
     widget.onAnswer(_controller.text.trim());
   }
 
-  Widget _buildAudioCard(ThemeData theme) {
+  Widget _buildAudioCard(ThemeData theme, {bool compact = false}) {
+    if (compact) {
+      // Web: just the button + label, no container card
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: _playAudio,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primaryContainer,
+                    theme.colorScheme.surfaceContainerHighest,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.volume_up_rounded,
+                size: 36,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Tap to listen',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
+            ),
+          ),
+        ],
+      );
+    }
+
     return VocabQuestionContainer(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -254,8 +300,8 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(child: _buildAudioCard(theme)),
-                  const SizedBox(width: 24),
+                  _buildAudioCard(theme, compact: true),
+                  const SizedBox(width: 32),
                   Expanded(child: rightSide),
                 ],
               ),

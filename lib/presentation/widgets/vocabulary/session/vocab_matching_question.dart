@@ -174,7 +174,6 @@ class _VocabMatchingQuestionState extends State<VocabMatchingQuestion> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -189,55 +188,60 @@ class _VocabMatchingQuestionState extends State<VocabMatchingQuestion> {
           ),
           const SizedBox(height: 12),
 
-          VocabQuestionContainer(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Words column
-                Expanded(
-                  child: Column(
-                    children: _shuffledWords.map((word) {
-                      final isMatched = _matched.containsKey(word);
-                      final isSelected = _selectedWord == word;
-                      final isError = _errorWord == word;
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: VocabQuestionContainer(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Words column
+                    Expanded(
+                      child: Column(
+                        children: _shuffledWords.map((word) {
+                          final isMatched = _matched.containsKey(word);
+                          final isSelected = _selectedWord == word;
+                          final isError = _errorWord == word;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _MatchTile(
-                          text: word,
-                          isSelected: isSelected,
-                          isMatched: isMatched,
-                          isError: isError,
-                          onTap: () => _tapWord(word),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Meanings column
-                Expanded(
-                  child: Column(
-                    children: _shuffledMeanings.map((meaning) {
-                      final isMatched = _matched.containsValue(meaning);
-                      final isSelected = _selectedMeaning == meaning;
-                      final isError = _errorMeaning == meaning;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _MatchTile(
+                              text: word,
+                              isSelected: isSelected,
+                              isMatched: isMatched,
+                              isError: isError,
+                              onTap: () => _tapWord(word),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Meanings column
+                    Expanded(
+                      child: Column(
+                        children: _shuffledMeanings.map((meaning) {
+                          final isMatched = _matched.containsValue(meaning);
+                          final isSelected = _selectedMeaning == meaning;
+                          final isError = _errorMeaning == meaning;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _MatchTile(
-                          text: meaning,
-                          isSelected: isSelected,
-                          isMatched: isMatched,
-                          isError: isError,
-                          onTap: () => _tapMeaning(meaning),
-                        ),
-                      );
-                    }).toList(),
-                  ),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _MatchTile(
+                              text: meaning,
+                              isSelected: isSelected,
+                              isMatched: isMatched,
+                              isError: isError,
+                              onTap: () => _tapMeaning(meaning),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           const SizedBox(height: 16),
