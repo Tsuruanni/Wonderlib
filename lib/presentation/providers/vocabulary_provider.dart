@@ -8,7 +8,6 @@ import '../widgets/learning_path/tile_themes.dart';
 import 'tile_theme_provider.dart';
 
 import '../../domain/entities/book.dart';
-import '../../domain/entities/daily_review_session.dart';
 import '../../domain/entities/learning_path.dart';
 import '../../domain/entities/student_assignment.dart';
 import '../../domain/entities/vocabulary_session.dart';
@@ -80,7 +79,7 @@ final activeNodeYProvider = Provider<double?>((ref) {
       final item = unit.items[itemIdx];
       final isItemLocked = locks[itemIdx];
 
-      if (!isItemLocked && !item.isComplete && item is! PathDailyReviewItem) {
+      if (!isItemLocked && !item.isComplete) {
         if (itemIdx >= positions.length) continue;
         return cumulativeY + positions[itemIdx].dy * themeHeight;
       }
@@ -534,21 +533,8 @@ class PathTreasureItem extends PathItemData {
   bool get isComplete => isCompleted;
 }
 
-class PathDailyReviewItem extends PathItemData {
-  const PathDailyReviewItem({
-    required super.sortOrder,
-    required this.completedAt,
-    required this.isCompleted,
-  });
-  final DateTime? completedAt;
-  final bool isCompleted;
-
-  @override
-  bool get isComplete => isCompleted;
-}
-
 /// Node types for special path nodes (flipbook removed — replaced by book nodes)
-const allSpecialNodeTypes = ['daily_review', 'game', 'treasure'];
+const allSpecialNodeTypes = ['game', 'treasure'];
 
 /// A book assigned to a unit with its reading completion status.
 class UnitBookWithProgress {
@@ -589,11 +575,9 @@ class PathUnitData {
 
   /// Whether every required item is complete.
   /// Books exempt from lock are excluded from the "required" check.
-  /// Daily review is a daily gate, not a progression requirement — excluded.
   bool get isAllComplete {
     final requiredItems = items.where((i) {
       if (i is PathBookItem && booksExemptFromLock) return false;
-      if (i is PathDailyReviewItem) return false; // DR is a daily gate, not a progression requirement
       return true;
     });
     return requiredItems.every((i) => i.isComplete);
@@ -687,10 +671,6 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
     ref.watch(userWordListProgressProvider.future),     // [2]
     ref.watch(nodeCompletionsProvider.future),          // [3]
     ref.watch(completedBookIdsProvider.future),         // [4]
-    ref.watch(todayReviewSessionProvider.future)        // [5]
-        .catchError((_) => null),
-    ref.watch(dailyReviewWordsProvider.future)    // [6]
-        .catchError((_) => <VocabularyWord>[]),
   ]);
 
   final learningPaths = futures[0] as List<LearningPath>;
@@ -698,20 +678,12 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final progressList = futures[2] as List<UserWordListProgress>;
   final nodeCompletions = futures[3] as Map<String, Set<String>>;
   final completedBookIds = futures[4] as Set<String>;
-  final todaySession = futures[5] as DailyReviewSession?;
-  final dailyReviewDueWords = futures[6] as List<VocabularyWord>;
-  final dailyReviewDueCount = dailyReviewDueWords.length;
 
   if (learningPaths.isEmpty) return [];
 
   // Build lookup maps
   final progressMap = {for (final p in progressList) p.wordListId: p};
   final wordListMap = {for (final wl in allLists) wl.id: wl};
-
-  // --- Daily Review ---
-  final drDoneToday = todaySession != null;
-  final drNeeded = dailyReviewDueCount >= minDailyReviewCount;
-  bool drInjected = false; // only inject DR once across all units
 
   // Batch fetch all book items in a single query (instead of N+1 bookByIdProvider calls)
   final allBookIds = <String>{};
@@ -800,50 +772,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
         }
       }
 
-      // --- Daily Review injection (only once across all units) ---
-      if (!drInjected && (drNeeded || drDoneToday)) {
-        // Check if this unit has incomplete non-exempt items (DR belongs here)
-        final hasIncompleteHere = items.any((item) {
-          final isExempt = item is PathBookItem && path.booksExemptFromLock;
-          return !isExempt && !item.isComplete;
-        });
-
-        if (hasIncompleteHere || drDoneToday) {
-          int drSortOrder;
-
-          if (drDoneToday && todaySession!.pathPosition != null) {
-            // Completed DR: use the saved position (stays fixed)
-            drSortOrder = todaySession.pathPosition!;
-          } else {
-            // Pending DR: position before the first incomplete non-exempt item
-            drSortOrder = items.isEmpty ? 0 : items.last.sortOrder + 1;
-            for (int i = 0; i < items.length; i++) {
-              final item = items[i];
-              final isExempt = item is PathBookItem && path.booksExemptFromLock;
-              if (!isExempt && !item.isComplete) {
-                drSortOrder = item.sortOrder;
-                break;
-              }
-            }
-          }
-
-          items.add(PathDailyReviewItem(
-            sortOrder: drSortOrder,
-            completedAt: drDoneToday ? todaySession!.completedAt : null,
-            isCompleted: drDoneToday,
-          ));
-          drInjected = true; // Don't inject again in other units
-        }
-      }
-
-      // Re-sort: DR items come before other items with the same sortOrder
-      items.sort((a, b) {
-        final cmp = a.sortOrder.compareTo(b.sortOrder);
-        if (cmp != 0) return cmp;
-        if (a is PathDailyReviewItem && b is! PathDailyReviewItem) return -1;
-        if (b is PathDailyReviewItem && a is! PathDailyReviewItem) return 1;
-        return 0;
-      });
+      items.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 
       result.add(
         PathUnitData(
@@ -921,14 +850,16 @@ final wordsLearnedTodayProvider = FutureProvider<int>((ref) async {
 // DAILY REVIEW GATE
 // ============================================
 
-/// Whether a daily review gate is active in the learning path.
-/// Returns true when any unit has a pending (incomplete) PathDailyReviewItem.
+/// Whether a daily review gate is active.
+/// Returns true when there are enough due words and the user hasn't reviewed today.
 /// Used by PathNode to block word list navigation until DR is done.
 final dailyReviewNeededProvider = FutureProvider<bool>((ref) async {
-  final pathUnits = await ref.watch(learningPathProvider.future);
-  return pathUnits.any(
-    (unit) => unit.items.any((i) => i is PathDailyReviewItem && !i.isComplete),
-  );
+  final dueWords = await ref.watch(dailyReviewWordsProvider.future)
+      .catchError((_) => <VocabularyWord>[]);
+  if (dueWords.length < minDailyReviewCount) return false;
+  final todaySession = await ref.watch(todayReviewSessionProvider.future)
+      .catchError((_) => null);
+  return todaySession == null;
 });
 
 // ============================================
