@@ -75,7 +75,7 @@ class _QuestRow extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: (!isCompleted && route != null)
+      onTap: route != null
           ? () => context.go(route!)
           : null,
       child: Padding(
