@@ -94,12 +94,12 @@ final activeNodeYProvider = Provider<double?>((ref) {
   return null;
 });
 
-/// Visible tile height = last used node Y + 10% padding, same as MapTile._visibleHeight
+/// Visible tile height = last used node pixel Y + 200px padding (matches MapTile._bottomPadding)
 double _visibleTileHeight(double fullHeight, List<Offset> positions, int itemCount) {
-  if (itemCount == 0 || positions.isEmpty) return fullHeight * 0.3;
+  if (itemCount == 0 || positions.isEmpty) return 300.0;
   final usedCount = itemCount.clamp(0, positions.length);
-  final lastNodeY = positions[usedCount - 1].dy;
-  return ((lastNodeY + 0.10).clamp(0.2, 1.0) as double) * fullHeight;
+  final lastNodePixelY = positions[usedCount - 1].dy * fullHeight;
+  return (lastNodePixelY + 200.0).clamp(200.0, fullHeight);
 }
 
 double _resolveThemeHeight(PathUnitData unit, int unitIdx, List<TileThemeEntity> dbThemes) {

@@ -33,15 +33,7 @@ class MapTile extends StatelessWidget {
   final TileTheme theme;
   final List<MapTileNodeData> nodes;
 
-  /// Calculate visible height based on last used node position.
-  /// The theme image may be very tall but we only show up to the last node + padding.
-  double _visibleHeight(double fullHeight) {
-    if (nodes.isEmpty || theme.nodePositions.isEmpty) return fullHeight * 0.3;
-    final usedCount = nodes.length.clamp(0, theme.nodePositions.length);
-    final lastNodeY = theme.nodePositions[usedCount - 1].dy;
-    // Show up to last node + 10% padding at bottom
-    return (lastNodeY + 0.10).clamp(0.2, 1.0) * fullHeight;
-  }
+  static const _bottomPadding = 200.0;
 
   @override
   Widget build(BuildContext context) {
@@ -51,21 +43,33 @@ class MapTile extends StatelessWidget {
         final scale = availableWidth < kTileWidth
             ? availableWidth / kTileWidth
             : 1.0;
-        final visibleH = _visibleHeight(theme.height);
-        final scaledHeight = visibleH * scale;
+
+        // Full image height in scaled pixels
+        final fullScaledHeight = theme.height * scale;
+
+        // Crop height: last used node's pixel Y + padding
+        final double cropHeight;
+        if (nodes.isEmpty || theme.nodePositions.isEmpty) {
+          cropHeight = 300.0 * scale;
+        } else {
+          final usedCount = nodes.length.clamp(0, theme.nodePositions.length);
+          final lastNodePixelY = theme.nodePositions[usedCount - 1].dy * fullScaledHeight;
+          cropHeight = (lastNodePixelY + _bottomPadding * scale)
+              .clamp(200.0 * scale, fullScaledHeight);
+        }
 
         return SizedBox(
-          height: scaledHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Background: show top portion of image, crop at visible height
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: scaledHeight,
-                child: ClipRect(
+          height: cropHeight,
+          child: ClipRect(
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Background: full image, top-aligned, overflows past cropHeight
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: fullScaledHeight,
                   child: theme.imageUrl != null
                       ? Image.network(
                           theme.imageUrl!,
@@ -76,17 +80,17 @@ class MapTile extends StatelessWidget {
                         )
                       : _PlaceholderBackground(colors: theme.fallbackColors),
                 ),
-              ),
-              // Nodes: positioned using full theme height ratio, scaled to visible area
-              for (int i = 0; i < nodes.length; i++)
-                if (i < theme.nodePositions.length)
-                  _PositionedNode(
-                    position: theme.nodePositions[i],
-                    data: nodes[i],
-                    tileWidth: availableWidth,
-                    tileHeight: theme.height * scale,
-                  ),
-            ],
+                // Nodes: positioned on full image coordinates, then clipped
+                for (int i = 0; i < nodes.length; i++)
+                  if (i < theme.nodePositions.length)
+                    _PositionedNode(
+                      position: theme.nodePositions[i],
+                      data: nodes[i],
+                      tileWidth: availableWidth,
+                      tileHeight: fullScaledHeight,
+                    ),
+              ],
+            ),
           ),
         );
       },
