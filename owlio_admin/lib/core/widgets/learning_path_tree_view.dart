@@ -294,6 +294,25 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
     final units = List<LearningPathUnitData>.from(widget.units);
     units[unitIndex].tileThemeId = themeId;
     _notifyChange(units);
+
+    // Persist directly to DB for existing units (bypass debounce/save race)
+    final unitId = units[unitIndex].id;
+    if (unitId != null) {
+      final supabase = ref.read(supabaseClientProvider);
+      // Try both tables — unit could be scope or template
+      supabase
+          .from(DbTables.scopeLearningPathUnits)
+          .update({'tile_theme_id': themeId})
+          .eq('id', unitId)
+          .then((_) {})
+          .catchError((_) {});
+      supabase
+          .from(DbTables.learningPathTemplateUnits)
+          .update({'tile_theme_id': themeId})
+          .eq('id', unitId)
+          .then((_) {})
+          .catchError((_) {});
+    }
   }
 
   Widget _buildThemeSelector(
