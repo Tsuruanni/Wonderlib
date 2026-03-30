@@ -449,45 +449,178 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
 
   Future<void> _saveLearningPath(int pathIndex) async {
     final path = _learningPaths[pathIndex];
-    if (path.id == null) return; // Should not happen — we INSERT then reload
+    if (path.id == null || _isSaving) return;
+
+    setState(() => _isSaving = true);
 
     try {
       final supabase = ref.read(supabaseClientProvider);
+      final pathId = path.id!;
 
-      // Delete all existing units for this learning path (cascade deletes items)
-      await supabase
+      // ── 1. Fetch existing state from DB ──
+      final existingUnitsResponse = await supabase
           .from(DbTables.scopeLearningPathUnits)
-          .delete()
-          .eq('scope_learning_path_id', path.id!);
+          .select('id')
+          .eq('scope_learning_path_id', pathId);
+      final existingUnitIds =
+          existingUnitsResponse.map((r) => r['id'] as String).toSet();
 
-      // Re-insert all units with sort_order
+      final existingItemsByUnit = <String, Set<String>>{};
+      if (existingUnitIds.isNotEmpty) {
+        final existingItemsResponse = await supabase
+            .from(DbTables.scopeUnitItems)
+            .select('id, scope_lp_unit_id')
+            .inFilter('scope_lp_unit_id', existingUnitIds.toList());
+        for (final item in existingItemsResponse) {
+          final unitId = item['scope_lp_unit_id'] as String;
+          existingItemsByUnit
+              .putIfAbsent(unitId, () => <String>{})
+              .add(item['id'] as String);
+        }
+      }
+
+      // ── 2. Process units + items: INSERT new, UPDATE existing ──
+      final memoryUnitIds = <String>{};
+
       for (int i = 0; i < path.units.length; i++) {
         final unit = path.units[i];
-        final scopeUnitId = const Uuid().v4();
 
-        await supabase.from(DbTables.scopeLearningPathUnits).insert({
-          'id': scopeUnitId,
-          'scope_learning_path_id': path.id,
-          'unit_id': unit.unitId,
-          'sort_order': i,
-          'tile_theme_id': unit.tileThemeId,
-        });
-
-        // Insert items for this unit
-        for (int j = 0; j < unit.items.length; j++) {
-          final item = unit.items[j];
-          final isWordList =
-              item.itemType == LearningPathItemType.wordList.dbValue;
-          final isBook = item.itemType == LearningPathItemType.book.dbValue;
-
-          await supabase.from(DbTables.scopeUnitItems).insert({
-            'id': const Uuid().v4(),
-            'scope_lp_unit_id': scopeUnitId,
-            'item_type': item.itemType,
-            'word_list_id': isWordList ? item.itemId : null,
-            'book_id': isBook ? item.itemId : null,
-            'sort_order': j,
+        if (unit.id == null) {
+          // NEW unit → INSERT
+          final newUnitId = const Uuid().v4();
+          await supabase.from(DbTables.scopeLearningPathUnits).insert({
+            'id': newUnitId,
+            'scope_learning_path_id': pathId,
+            'unit_id': unit.unitId,
+            'sort_order': i,
+            'tile_theme_id': unit.tileThemeId,
           });
+          unit.id = newUnitId;
+
+          // All items in a new unit are new → INSERT all
+          for (int j = 0; j < unit.items.length; j++) {
+            final item = unit.items[j];
+            final newItemId = const Uuid().v4();
+            final isWordList =
+                item.itemType == LearningPathItemType.wordList.dbValue;
+            final isBook =
+                item.itemType == LearningPathItemType.book.dbValue;
+
+            await supabase.from(DbTables.scopeUnitItems).insert({
+              'id': newItemId,
+              'scope_lp_unit_id': newUnitId,
+              'item_type': item.itemType,
+              'word_list_id': isWordList ? item.itemId : null,
+              'book_id': isBook ? item.itemId : null,
+              'sort_order': j,
+            });
+            item.id = newItemId;
+          }
+        } else {
+          // EXISTING unit → UPDATE sort_order + tile_theme_id
+          memoryUnitIds.add(unit.id!);
+          await supabase
+              .from(DbTables.scopeLearningPathUnits)
+              .update({'sort_order': i, 'tile_theme_id': unit.tileThemeId})
+              .eq('id', unit.id!);
+
+          // Process items within this existing unit
+          final existingItemIds = existingItemsByUnit[unit.id!] ?? {};
+          final memoryItemIds = <String>{};
+
+          for (int j = 0; j < unit.items.length; j++) {
+            final item = unit.items[j];
+
+            if (item.id == null) {
+              // NEW item → INSERT
+              final newItemId = const Uuid().v4();
+              final isWordList =
+                  item.itemType == LearningPathItemType.wordList.dbValue;
+              final isBook =
+                  item.itemType == LearningPathItemType.book.dbValue;
+
+              await supabase.from(DbTables.scopeUnitItems).insert({
+                'id': newItemId,
+                'scope_lp_unit_id': unit.id!,
+                'item_type': item.itemType,
+                'word_list_id': isWordList ? item.itemId : null,
+                'book_id': isBook ? item.itemId : null,
+                'sort_order': j,
+              });
+              item.id = newItemId;
+            } else {
+              // EXISTING item → UPDATE sort_order
+              memoryItemIds.add(item.id!);
+              await supabase
+                  .from(DbTables.scopeUnitItems)
+                  .update({'sort_order': j})
+                  .eq('id', item.id!);
+            }
+          }
+
+          // DELETE removed items (items in DB but not in memory)
+          final deletedItemIds = existingItemIds.difference(memoryItemIds);
+          for (final itemId in deletedItemIds) {
+            await supabase
+                .from(DbTables.scopeUnitItems)
+                .delete()
+                .eq('id', itemId);
+          }
+        }
+      }
+
+      // ── 3. DELETE removed units (with assignment check) ──
+      final deletedUnitIds = existingUnitIds.difference(memoryUnitIds);
+
+      if (deletedUnitIds.isNotEmpty) {
+        // Check for active assignments referencing any deleted unit
+        final unitAssignments = await supabase
+            .from(DbTables.assignments)
+            .select('id, content_config')
+            .eq('assignment_type', AssignmentType.unit.dbValue);
+
+        final affectedCount = unitAssignments.where((a) {
+          final config = a['content_config'] as Map<String, dynamic>?;
+          return config != null &&
+              deletedUnitIds.contains(config['scopeLpUnitId']);
+        }).length;
+
+        if (affectedCount > 0 && mounted) {
+          final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Dikkat'),
+                  content: Text(
+                    'Silinen ünitelere bağlı $affectedCount aktif ödev var. '
+                    'Devam ederseniz bu ödevler yetim kalır.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('İptal'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Devam',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              ) ??
+              false;
+
+          if (!confirmed) {
+            // Admin cancelled — reload to restore deleted units
+            await _loadScopeAssignments();
+            return;
+          }
+        }
+
+        for (final unitId in deletedUnitIds) {
+          await supabase
+              .from(DbTables.scopeLearningPathUnits)
+              .delete()
+              .eq('id', unitId);
         }
       }
 
@@ -502,9 +635,13 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Kaydetme hatas\u0131: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Kaydetme hatası: $e'),
+              backgroundColor: Colors.red),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
