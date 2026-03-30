@@ -136,7 +136,12 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
 
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    final heroSection = Column(
+    final reportSection = _WordStatusList(words: session.words)
+        .animate()
+        .fadeIn(delay: 800.ms);
+
+    // Trophy + title + button are always centered (full width)
+    final headerSection = Column(
       children: [
         const SizedBox(height: 20),
         // Trophy
@@ -166,9 +171,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             .shimmer(
                 duration: 1200.ms,
                 color: Colors.white.withValues(alpha: 0.5)),
-
         const SizedBox(height: 24),
-
         Text(
           'Session Complete!',
           style: theme.textTheme.headlineMedium?.copyWith(
@@ -176,10 +179,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             color: theme.colorScheme.onSurface,
           ),
         ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
-
         const SizedBox(height: 16),
-
-        // Continue button — island style, right below title
         Center(
           child: SizedBox(
             width: 200,
@@ -190,10 +190,52 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             ),
           ),
         ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
-
         const SizedBox(height: 32),
+      ],
+    );
 
-        // Stats grid
+    return PopScope(
+      canPop: saved,
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Header: always centered full width
+                headerSection,
+                // Stats + Report: side by side on web
+                if (isWide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildStatsColumn(session, saveState, accuracy)),
+                      const SizedBox(width: 32),
+                      Expanded(child: reportSection),
+                    ],
+                  )
+                else ...[
+                  _buildStatsColumn(session, saveState, accuracy),
+                  const SizedBox(height: 32),
+                  reportSection,
+                  const SizedBox(height: 20),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsColumn(
+    VocabularySessionState session,
+    SessionSaveState saveState,
+    double accuracy,
+  ) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
         Row(
           children: [
             _StatCard(
@@ -235,8 +277,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             ),
           ],
         ),
-
-        // Surprise stat
         if (_surpriseStat != null) ...[
           const SizedBox(height: 16),
           Container(
@@ -272,40 +312,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
           ).animate().fadeIn(delay: 1000.ms).scale(),
         ],
       ],
-    );
-
-    final reportSection = _WordStatusList(words: session.words)
-        .animate()
-        .fadeIn(delay: 800.ms);
-
-    return PopScope(
-      canPop: saved,
-      child: Scaffold(
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: isWide
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Left: hero + stats
-                      Expanded(child: heroSection),
-                      const SizedBox(width: 32),
-                      // Right: session report
-                      Expanded(child: reportSection),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      heroSection,
-                      const SizedBox(height: 32),
-                      reportSection,
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-          ),
-        ),
-      ),
     );
   }
 
