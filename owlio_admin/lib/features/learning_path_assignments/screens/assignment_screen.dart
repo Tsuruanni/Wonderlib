@@ -55,6 +55,7 @@ class _ScopeLearningPathData {
   List<LearningPathUnitData> units;
   bool sequentialLock;
   bool booksExemptFromLock;
+  bool unitGate;
 
   _ScopeLearningPathData({
     this.id,
@@ -64,6 +65,7 @@ class _ScopeLearningPathData {
     required this.units,
     this.sequentialLock = true,
     this.booksExemptFromLock = true,
+    this.unitGate = true,
   });
 }
 
@@ -148,7 +150,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // Build query for scope_learning_paths matching current scope
       var query = supabase
           .from(DbTables.scopeLearningPaths)
-          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock')
+          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock, unit_gate')
           .eq('school_id', _schoolId!);
 
       if (_scopeType == _ScopeType.grade) {
@@ -256,6 +258,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           units: units,
           sequentialLock: pathRow['sequential_lock'] as bool? ?? true,
           booksExemptFromLock: pathRow['books_exempt_from_lock'] as bool? ?? true,
+          unitGate: pathRow['unit_gate'] as bool? ?? true,
         ));
       }
 
@@ -689,6 +692,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           .update({
             'sequential_lock': lp.sequentialLock,
             'books_exempt_from_lock': lp.booksExemptFromLock,
+            'unit_gate': lp.unitGate,
           })
           .eq('id', lp.id!);
       if (mounted) {
@@ -1165,6 +1169,15 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                 _updateLockSettings(_learningPaths[pathIndex]);
               },
             ),
+          SwitchListTile(
+            title: const Text('Üniteler arası kilit'),
+            subtitle: const Text('Önceki ünite bitmeden sonraki açılmaz'),
+            value: path.unitGate,
+            onChanged: (v) {
+              setState(() => _learningPaths[pathIndex].unitGate = v);
+              _updateLockSettings(_learningPaths[pathIndex]);
+            },
+          ),
         ],
       ),
     );
