@@ -8,6 +8,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Tile Theme Editor + Learning Path Redesign (2026-03-29 — 2026-03-30)
+
+#### Added
+- **Tile-based learning path map** — Replaced 2000+ line legacy zigzag path with clean tile-based map system (~700 lines). Each unit rendered as a gradient/image tile with positioned nodes (word lists, books, game, treasure, review).
+- **`tile_themes` DB table** — Configurable tile themes: name, height (300-5000px), gradient fallback colors, node positions (JSONB), image URL. 6 seed themes (Forest, Beach, Mountain, Desert, Garden, Winter). RLS: admin write, authenticated read.
+- **Admin tile theme editor** — Full CRUD at `/tiles`. Split layout: left form (name, height slider, color pickers, dynamic node position sliders, image upload) + right live preview (scaled gradient/image + numbered node dots). Scrollable preview for tall tiles.
+- **Admin tile theme assignment** — Theme dropdown on each unit card in learning path template/assignment editors. Persists `tile_theme_id` to `scope_learning_path_units` and `learning_path_template_units`.
+- **Image upload for tile backgrounds** — File picker → Supabase storage (`avatars/tiles/`). Image shown in admin preview and app MapTile. Gradient fallback when no image.
+- **Responsive tile scaling** — `LayoutBuilder` scales tile background to fit screen width on mobile. Node positions scale proportionally, node widgets stay original size.
+- **Domain layer** — `TileThemeEntity`, `TileThemeModel`, `TileThemeRepository`, `GetTileThemesUseCase`, `tileThemesProvider` with hardcoded fallback.
+- **Per-theme height** — Each tile has its own height (was global `kTileHeight=1000`). `activeNodeYProvider` uses per-theme heights for scroll calculation.
+- **Unit gate toggle** — `unit_gate` column on `scope_learning_paths` and `learning_path_templates`. Controls inter-unit locking independently from sequential item lock.
+
+#### Changed
+- **`tile_theme_id` architecture** — Moved from `vocabulary_units` to `scope_learning_path_units` / `learning_path_template_units`. Same unit can have different themes in different learning paths.
+- **RPC `get_user_learning_paths`** — Now returns `slpu.tile_theme_id` for theme resolution.
+- **`LearningPathUnit` entity** — Added `tileThemeId` field, propagated through model → provider → orchestrator.
+- **`PathUnitData`** — Added `tileThemeId` (from `LearningPathUnit`, not `VocabularyUnit`).
+- **Legacy path files** — Renamed to `_legacy.dart` suffix for safe migration.
+- **`vocabulary_units` RLS** — Added admin write policy (was SELECT-only, blocked unit creation).
+
+#### Infrastructure
+- **5 DB migrations** — `tile_themes` table, `image_url` column, RPC update, move `tile_theme_id` to path units, `vocabulary_units` RLS fix.
+- **Design spec** — `docs/superpowers/specs/2026-03-29-tile-theme-editor-design.md`
+- **Implementation plan** — `docs/superpowers/plans/2026-03-29-tile-theme-editor.md`
+
 ### Notification Overlay Redesign (2026-03-29)
 
 #### Added
