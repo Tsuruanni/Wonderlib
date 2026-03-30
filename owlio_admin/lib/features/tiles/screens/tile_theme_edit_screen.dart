@@ -365,8 +365,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               Expanded(
                                 child: Text(
                                   'Görsel boyutu: 800 × yükseklik px. '
-                                  'Önerilen yükseklik: ${_nodes.isEmpty ? "—" : "${(_nodes.length * 140).clamp(300, 5000)}px"} '
-                                  '(node başına ~140px)',
+                                  'Uygulama, ünite item sayısına göre görseli alttan kırpar. '
+                                  'Tüm nodeları kapsayacak kadar uzun bir görsel yükleyin.',
                                   style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
                                 ),
                               ),
