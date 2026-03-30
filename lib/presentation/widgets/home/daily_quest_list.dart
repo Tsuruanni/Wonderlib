@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:owlio/app/router.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
-import 'package:owlio/domain/entities/student_assignment.dart';
 import 'package:owlio/presentation/providers/daily_quest_provider.dart';
-import 'package:owlio/presentation/providers/student_assignment_provider.dart';
-
-import '../../../core/utils/app_clock.dart';
 
 /// Renders the unified daily quest card: teacher assignments + quest rows +
 /// bonus reward row.
@@ -48,19 +42,7 @@ class _DailyQuestListState extends ConsumerState<DailyQuestList> {
 
   @override
   Widget build(BuildContext context) {
-    final assignmentsAsync = ref.watch(activeAssignmentsProvider);
-    final assignments = assignmentsAsync.valueOrNull ?? [];
-
     final List<Widget> rows = [];
-
-    // Assignment rows (teacher-assigned tasks)
-    for (final assignment in assignments) {
-      rows.add(_AssignmentQuestRow(assignment: assignment));
-    }
-
-    if (assignments.isNotEmpty) {
-      rows.add(const _ThickDivider());
-    }
 
     // Daily quest rows
     for (final questProgress in widget.progress) {
@@ -484,111 +466,3 @@ class _ProgressBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Assignment quest row (teacher-assigned tasks)
-// ---------------------------------------------------------------------------
-
-class _AssignmentQuestRow extends StatelessWidget {
-  const _AssignmentQuestRow({required this.assignment});
-
-  final StudentAssignment assignment;
-
-  @override
-  Widget build(BuildContext context) {
-    final isCompleted = assignment.status == StudentAssignmentStatus.completed;
-    final progress = (assignment.progress / 100).clamp(0.0, 1.0);
-
-    final IconData icon;
-    final Color iconColor;
-    switch (assignment.type) {
-      case StudentAssignmentType.book:
-        icon = Icons.auto_stories_rounded;
-        iconColor = AppColors.gemBlue;
-      case StudentAssignmentType.vocabulary:
-        icon = Icons.abc_rounded;
-        iconColor = AppColors.secondary;
-      case StudentAssignmentType.unit:
-        icon = Icons.route;
-        iconColor = AppColors.streakOrange;
-    }
-
-    final dueText = _buildDueText(assignment);
-
-    return GestureDetector(
-      onTap: () => context.push(
-        AppRoutes.studentAssignmentDetailPath(assignment.assignmentId),
-      ),
-      child: Container(
-        color: iconColor.withValues(alpha: 0.04),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
-          children: [
-            // Circle icon
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : iconColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isCompleted ? Icons.check_rounded : icon,
-                size: 24,
-                color: isCompleted ? AppColors.primary : iconColor,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Title + progress bar
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    assignment.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color:
-                          isCompleted ? AppColors.neutralText : AppColors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _ProgressBar(
-                    progress: progress,
-                    progressText: dueText,
-                    isCompleted: isCompleted,
-                    fillColor: isCompleted ? AppColors.primary : iconColor,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Arrow / check
-            Icon(
-              isCompleted
-                  ? Icons.check_circle_rounded
-                  : Icons.arrow_forward_ios_rounded,
-              size: isCompleted ? 22 : 16,
-              color: isCompleted ? AppColors.primary : AppColors.neutralText,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _buildDueText(StudentAssignment a) {
-    if (a.status == StudentAssignmentStatus.completed) return 'Completed';
-    final daysLeft = a.dueDate.difference(AppClock.now()).inDays;
-    if (daysLeft < 0) return 'Overdue';
-    if (daysLeft == 0) return 'Due today';
-    if (daysLeft == 1) return '1 day left';
-    return '$daysLeft days left';
-  }
-}
