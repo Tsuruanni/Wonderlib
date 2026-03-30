@@ -1764,27 +1764,64 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                     );
                   }
 
-                  if (words.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '"$_searchQuery" bulunamadı',
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          const SizedBox(height: 12),
-                          FilledButton.icon(
+                  // Check if exact match exists
+                  final hasExactMatch = words.any((w) =>
+                      (w['word'] as String?)?.toLowerCase() ==
+                      _searchQuery.toLowerCase());
+
+                  return Column(
+                    children: [
+                      // Results list
+                      Expanded(
+                        child: words.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'Sonuç bulunamadı',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade600),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: words.length,
+                                itemBuilder: (context, index) {
+                                  final word = words[index];
+                                  return ListTile(
+                                    title: Text(word['word'] ?? ''),
+                                    subtitle:
+                                        Text(word['meaning_tr'] ?? ''),
+                                    trailing: Text(
+                                      word['level'] ?? '',
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    onTap: () =>
+                                        widget.onWordSelected(word),
+                                  );
+                                },
+                              ),
+                      ),
+                      // Always show "create new" if no exact match
+                      if (!hasExactMatch) ...[
+                        const Divider(height: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8),
+                          child: FilledButton.icon(
                             onPressed: _isCreating
                                 ? null
-                                : () => _createAndAddWord(_searchQuery),
+                                : () => _createAndAddWord(
+                                    _searchQuery),
                             icon: _isCreating
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white),
+                                    child:
+                                        CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : const Icon(Icons.add, size: 18),
                             label: Text(
@@ -1793,28 +1830,9 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                                   : '"$_searchQuery" yeni kelime olarak ekle',
                             ),
                           ),
-                        ],
-                      ),
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: words.length,
-                    itemBuilder: (context, index) {
-                      final word = words[index];
-                      return ListTile(
-                        title: Text(word['word'] ?? ''),
-                        subtitle: Text(word['meaning_tr'] ?? ''),
-                        trailing: Text(
-                          word['level'] ?? '',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                          ),
                         ),
-                        onTap: () => widget.onWordSelected(word),
-                      );
-                    },
+                      ],
+                    ],
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
