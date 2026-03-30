@@ -33,6 +33,16 @@ class MapTile extends StatelessWidget {
   final TileTheme theme;
   final List<MapTileNodeData> nodes;
 
+  /// Calculate visible height based on last used node position.
+  /// The theme image may be very tall but we only show up to the last node + padding.
+  double _visibleHeight(double fullHeight) {
+    if (nodes.isEmpty || theme.nodePositions.isEmpty) return fullHeight * 0.3;
+    final usedCount = nodes.length.clamp(0, theme.nodePositions.length);
+    final lastNodeY = theme.nodePositions[usedCount - 1].dy;
+    // Show up to last node + 10% padding at bottom
+    return (lastNodeY + 0.10).clamp(0.2, 1.0) * fullHeight;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -41,32 +51,40 @@ class MapTile extends StatelessWidget {
         final scale = availableWidth < kTileWidth
             ? availableWidth / kTileWidth
             : 1.0;
-        final scaledHeight = theme.height * scale;
+        final visibleH = _visibleHeight(theme.height);
+        final scaledHeight = visibleH * scale;
 
         return SizedBox(
           height: scaledHeight,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // Background: scales to fit width
-              Positioned.fill(
-                child: theme.imageUrl != null
-                    ? Image.network(
-                        theme.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            _PlaceholderBackground(colors: theme.fallbackColors),
-                      )
-                    : _PlaceholderBackground(colors: theme.fallbackColors),
+              // Background: show top portion of image, crop at visible height
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: scaledHeight,
+                child: ClipRect(
+                  child: theme.imageUrl != null
+                      ? Image.network(
+                          theme.imageUrl!,
+                          fit: BoxFit.fitWidth,
+                          alignment: Alignment.topCenter,
+                          errorBuilder: (_, __, ___) =>
+                              _PlaceholderBackground(colors: theme.fallbackColors),
+                        )
+                      : _PlaceholderBackground(colors: theme.fallbackColors),
+                ),
               ),
-              // Nodes: positioned with scaled coordinates, original size
+              // Nodes: positioned using full theme height ratio, scaled to visible area
               for (int i = 0; i < nodes.length; i++)
                 if (i < theme.nodePositions.length)
                   _PositionedNode(
                     position: theme.nodePositions[i],
                     data: nodes[i],
                     tileWidth: availableWidth,
-                    tileHeight: scaledHeight,
+                    tileHeight: theme.height * scale,
                   ),
             ],
           ),
