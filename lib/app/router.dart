@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
 import '../presentation/screens/auth/login_screen.dart';
-import '../presentation/screens/home/home_screen.dart';
+import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
 import '../presentation/screens/library/book_detail_screen.dart';
 import '../presentation/screens/reader/reader_screen.dart';
@@ -48,7 +48,7 @@ import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
 abstract class AppRoutes {
   static const splash = '/splash';
   static const login = '/login';
-  static const home = '/';
+  static const quests = '/quests';
   static const library = '/library';
   static const bookDetail = '/library/book';
   static const reader = '/reader/:bookId/:chapterId';
@@ -149,7 +149,7 @@ class _SplashScreenState extends State<_SplashScreen> {
           role == UserRole.admin.dbValue) {
         context.go(AppRoutes.teacherDashboard);
       } else {
-        context.go(AppRoutes.home);
+        context.go(AppRoutes.vocabulary);
       }
     }
   }
@@ -181,7 +181,7 @@ final _authNotifier = _AuthNotifier();
 
 // Navigator keys — one root, unique keys per shell branch
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _studentHomeKey = GlobalKey<NavigatorState>(debugLabel: 'studentHome');
+final _studentQuestsKey = GlobalKey<NavigatorState>(debugLabel: 'studentQuests');
 final _studentLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'studentLibrary');
 final _studentVocabKey = GlobalKey<NavigatorState>(debugLabel: 'studentVocab');
 final _studentCardsKey = GlobalKey<NavigatorState>(debugLabel: 'studentCards');
@@ -194,7 +194,7 @@ final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports
 GoRouter _createRouter() {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.splash,
+    initialLocation: kDevBypassAuth ? AppRoutes.vocabulary : AppRoutes.splash,
     debugLogDiagnostics: true,
     refreshListenable: _authNotifier,
     redirect: (context, state) {
@@ -223,7 +223,7 @@ GoRouter _createRouter() {
             role == UserRole.admin.dbValue) {
           return AppRoutes.teacherDashboard;
         }
-        return AppRoutes.home;
+        return AppRoutes.vocabulary;
       }
 
       // Role-based access control
@@ -240,11 +240,11 @@ GoRouter _createRouter() {
           return AppRoutes.teacherDashboard;
         }
 
-        if (isTeacherOrHigher && state.matchedLocation == AppRoutes.home) {
+        if (isTeacherOrHigher && state.matchedLocation == AppRoutes.vocabulary) {
           return AppRoutes.teacherDashboard;
         }
         if (!isTeacherOrHigher && isTeacherRoute) {
-          return AppRoutes.home;
+          return AppRoutes.vocabulary;
         }
       }
 
@@ -335,16 +335,7 @@ GoRouter _createRouter() {
                   ),
                 ],
               ),
-            ],
-          ),
-          // Branch 1: Home
-          StatefulShellBranch(
-            navigatorKey: _studentHomeKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
-              ),
+              // Relocated from Home branch:
               GoRoute(
                 path: AppRoutes.profile,
                 builder: (context, state) => const ProfileScreen(),
@@ -359,7 +350,7 @@ GoRouter _createRouter() {
               ),
             ],
           ),
-          // Branch 2: Library
+          // Branch 1: Library
           StatefulShellBranch(
             navigatorKey: _studentLibraryKey,
             routes: [
@@ -400,6 +391,16 @@ GoRouter _createRouter() {
               ),
             ],
           ),
+          // Branch 2: Quests (NEW)
+          StatefulShellBranch(
+            navigatorKey: _studentQuestsKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.quests,
+                builder: (context, state) => const QuestsScreen(),
+              ),
+            ],
+          ),
           // Branch 3: Card Collection
           StatefulShellBranch(
             navigatorKey: _studentCardsKey,
@@ -432,7 +433,7 @@ GoRouter _createRouter() {
 
       // Book quiz moved to library branch (shell visible with reader sidebar)
 
-      // Profile moved inside Home branch to keep shell visible on wide screens
+      // Profile moved inside Vocab branch to keep shell visible
 
       // Downloaded books management (accessed from profile)
       GoRoute(
@@ -441,7 +442,7 @@ GoRouter _createRouter() {
         builder: (context, state) => const DownloadedBooksScreen(),
       ),
 
-      // Avatar customization moved inside Home branch to keep shell visible
+      // Avatar customization moved inside Vocab branch to keep shell visible
 
       // Teacher Shell — top-level StatefulShellRoute (same pattern as student shell)
       // Each branch uses full paths for proper goBranch() navigation
@@ -556,7 +557,7 @@ GoRouter _createRouter() {
         ],
       ),
 
-      // Word Bank moved inside Home branch to keep shell visible
+      // Word Bank moved inside Vocab branch to keep shell visible
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.studentAssignments,
