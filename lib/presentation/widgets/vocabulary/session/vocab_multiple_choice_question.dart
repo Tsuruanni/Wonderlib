@@ -26,6 +26,7 @@ class VocabMultipleChoiceQuestion extends StatefulWidget {
 class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestion> {
   String? _selectedAnswer;
   bool _answered = false;
+  String? _pressedOption;
   final FlutterTts _tts = FlutterTts();
   final WordAudioPlayer _wordPlayer = WordAudioPlayer();
 
@@ -220,8 +221,15 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
 
     const double borderHeight = 4.0;
 
+    final isPressed = !_answered && _pressedOption == option;
+    final double faceTop = isPressed ? borderHeight : 0.0;
+    final double faceBottom = isPressed ? 0.0 : borderHeight;
+
     return GestureDetector(
       onTap: _answered ? null : () => _handleSelect(option),
+      onTapDown: _answered ? null : (_) => setState(() => _pressedOption = option),
+      onTapUp: _answered ? null : (_) => setState(() => _pressedOption = null),
+      onTapCancel: _answered ? null : () => setState(() => _pressedOption = null),
       child: SizedBox(
         height: 54,
         child: Stack(
@@ -239,12 +247,14 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
                 ),
               ),
             ),
-            // Top layer (face)
-            Positioned(
+            // Top layer (face) — shifts down when pressed to create 3D press illusion
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 50),
+              curve: Curves.easeOut,
               left: 0,
               right: 0,
-              top: 0,
-              bottom: borderHeight,
+              top: faceTop,
+              bottom: faceBottom,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 decoration: BoxDecoration(
