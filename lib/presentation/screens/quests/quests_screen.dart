@@ -112,8 +112,6 @@ class _AssignmentsSection extends ConsumerWidget {
     final assignmentsAsync = ref.watch(activeAssignmentsProvider);
     final assignments = assignmentsAsync.valueOrNull ?? [];
 
-    if (assignments.isEmpty) return const SizedBox.shrink();
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -143,9 +141,57 @@ class _AssignmentsSection extends ConsumerWidget {
                 ),
               ),
             ),
+            const Spacer(),
+            if (assignments.isNotEmpty)
+              GestureDetector(
+                onTap: () => context.push(AppRoutes.studentAssignments),
+                child: Text(
+                  'VIEW ALL',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.secondary,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),
+        if (assignments.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.neutral, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: AppColors.neutral,
+                  offset: Offset(0, 3),
+                  blurRadius: 0,
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.assignment_outlined,
+                    size: 32, color: AppColors.neutralText),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'No assignments from your teacher',
+                    style: GoogleFonts.nunito(
+                      color: AppColors.neutralText,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
         DecoratedBox(
           decoration: BoxDecoration(
             color: AppColors.white,
