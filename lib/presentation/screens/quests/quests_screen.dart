@@ -67,11 +67,6 @@ class QuestsScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Monthly Quest — only when sidebar is hidden
-                      if (!showRightPanel) ...[
-                        const _MonthlyQuestCard(),
-                        const SizedBox(height: 24),
-                      ],
                       // Assignments
                       const _AssignmentsSection(),
                       // Daily Quests
@@ -88,8 +83,10 @@ class QuestsScreen extends ConsumerWidget {
                       // Badges
                       const _BadgesSection(),
                       const SizedBox(height: 24),
-                      // Monthly Badges — only when sidebar is hidden
+                      // Monthly Quest + Monthly Badges — only when sidebar is hidden
                       if (!showRightPanel) ...[
+                        const _MonthlyQuestCard(),
+                        const SizedBox(height: 16),
                         const _MonthlyBadgesCard(),
                         const SizedBox(height: 32),
                       ],
