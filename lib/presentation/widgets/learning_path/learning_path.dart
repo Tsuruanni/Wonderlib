@@ -202,7 +202,7 @@ class LearningPathView extends ConsumerWidget {
                 ),
               );
             } else {
-              context.push(AppRoutes.vocabularyListPath(wl.wordList.id));
+              context.push(AppRoutes.vocabularySessionPath(wl.wordList.id));
             }
           },
         );
