@@ -69,7 +69,7 @@ N/A — Daily review is fully automatic. No admin configuration surface.
 
 **Entry points:**
 1. Home screen "Daily Review" button (visible when ≥ 10 due words)
-2. Learning path DR gate node (injected automatically when ≥ 10 due words)
+2. Learning path dialog gate (word list nodes show "Complete daily review first" dialog when ≥ 10 due words)
 3. Unit review node on learning path (cram mode — all unit words regardless of SRS schedule)
 
 **Daily Review flow:**
@@ -105,10 +105,9 @@ N/A — No teacher-facing view for daily review sessions.
 4. **Requeue limit**: Hard responses requeue a word up to 2 times per session.
 5. **XP formula**: `(correctCount × 5) + 10 session bonus [+ 20 perfect bonus if 100% first-pass accuracy]`. Only first-pass counts are used.
 6. **Idempotency**: One session per user per day. Re-calling the RPC on the same day returns `is_new_session = false` with 0 XP.
-7. **Learning path gate**: When daily review is needed (≥ 10 due words, not yet completed today), a DR node is injected into the learning path. Word list nodes are blocked until DR is completed.
-8. **Position persistence**: After completion, `path_position` is saved so the completed DR node stays at the same position when the path is revisited.
-9. **Streak**: NOT updated by daily review. Streak is login-based only (updated on app open).
-10. **Unit review isolation**: Unit review (cram mode) does not create a `daily_review_sessions` record, does not award session XP, and does not satisfy the daily review gate.
+7. **Learning path gate**: When daily review is needed (≥ 10 due words, not yet completed today), word list nodes are blocked via dialog until DR is completed. No path node is rendered.
+8. **Streak**: NOT updated by daily review. Streak is login-based only (updated on app open).
+9. **Unit review isolation**: Unit review (cram mode) does not create a `daily_review_sessions` record, does not award session XP, and does not satisfy the daily review gate.
 
 ## Cross-System Interactions
 
@@ -139,12 +138,11 @@ Quest type 'daily_review' in get_daily_quest_progress RPC:
 
 ### Learning Path Integration
 ```
-learningPathProvider builds path:
+dailyReviewNeededProvider:
   → Check dailyReviewWordsProvider.length >= 10
   → Check todayReviewSessionProvider (completed today?)
-  → IF needed and not done: inject PathDailyReviewItem before first locked non-exempt item
-  → dailyReviewNeededProvider = true → blocks word list navigation with dialog
-  → After completion: providers invalidated → gate clears → path rebuilds
+  → IF needed and not done: dailyReviewNeededProvider = true → blocks word list navigation with dialog
+  → After completion: providers invalidated → gate clears
 ```
 
 ## Edge Cases
@@ -185,12 +183,11 @@ learningPathProvider builds path:
 | UseCases | `lib/domain/usecases/vocabulary/complete_daily_review_usecase.dart` | Complete session RPC call |
 | UseCases | `lib/domain/usecases/vocabulary/get_due_for_review_usecase.dart` | Fetch due words |
 | UseCases | `lib/domain/usecases/vocabulary/get_today_review_session_usecase.dart` | Check today's completion |
-| UseCases | `lib/domain/usecases/vocabulary/save_daily_review_position_usecase.dart` | Save DR position in learning path |
 | Model | `lib/data/models/vocabulary/daily_review_session_model.dart` | JSON serialization |
 | Repository | `lib/data/repositories/supabase/supabase_vocabulary_repository.dart` | Supabase queries and RPC calls |
 | Provider | `lib/presentation/providers/daily_review_provider.dart` | `DailyReviewController`, state, FutureProviders |
 | Screen | `lib/presentation/screens/vocabulary/daily_review_screen.dart` | Flashcard UI, completion dialog |
-| Path Integration | `lib/presentation/providers/vocabulary_provider.dart` | DR injection, gate logic, `dailyReviewNeededProvider` |
+| Path Integration | `lib/presentation/providers/vocabulary_provider.dart` | `dailyReviewNeededProvider` gate logic |
 | Migration | `supabase/migrations/20260203000001_add_daily_review_sessions.sql` | Table + `complete_daily_review` RPC (original) |
 | Migration | `supabase/migrations/20260327000008_get_due_review_words_rpc.sql` | `get_due_review_words` RPC (original) |
 | Migration | `supabase/migrations/20260328000003_daily_review_audit_fixes.sql` | Auth checks + mastered filter (deployed) |

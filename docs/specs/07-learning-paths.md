@@ -97,7 +97,7 @@ Two parallel hierarchies:
    - **Book nodes** (`PathBookNode`) — book icon with cover, tap to open book reader
    - **Game nodes** (`PathGameNode`) — mini-game icon, tap to complete (one-time)
    - **Treasure nodes** (`PathTreasureNode`) — chest icon, tap to collect reward (one-time)
-   - **Daily Review gate** (`PathDailyReviewNode`) — injected dynamically before the first incomplete non-exempt item
+   - ~~Daily Review gate~~ — removed. Gating is now dialog-only (no visible path node).
 4. **Unit banners** (`PathUnitBanner`) separate units visually with unit name and icon
 
 **Sequential Lock System:**
@@ -107,10 +107,9 @@ Two parallel hierarchies:
 - Lock calculation runs in `calculateLocks()` function in `vocabulary_provider.dart`
 
 **Daily Review Gate:**
-- If student has ≥ `minDailyReviewCount` (10) words due for review, a DR node is injected into the path
-- DR node blocks forward progress until the daily review session is completed
-- Position: inserted before the first incomplete non-exempt item, or at the saved `pathPosition` if already completed today
-- After completing DR, the path refreshes and the gate shows as completed
+- If student has ≥ `minDailyReviewCount` (10) words due for review, word list nodes show a dialog prompting daily review completion
+- No visible node is rendered in the path — gating is dialog-only via `dailyReviewNeededProvider`
+- After completing DR (from home screen or daily quest), providers are invalidated and word lists become accessible
 
 **Progress Tracking:**
 - Word list completion: tracked via `user_word_list_progress` (star rating 0–3 based on accuracy)
@@ -136,7 +135,7 @@ Two parallel hierarchies:
 3. **Mutual exclusivity**: A scope path targets either a grade OR a class, never both (enforced by CHECK constraint). School-wide paths have both `grade` and `class_id` as NULL.
 4. **Sequential lock**: When enabled, each item in a unit must be completed before the next unlocks. The lock applies within units only — the first item of a new unit is always accessible.
 5. **Books exempt from lock**: When enabled, book-type items in the path are never locked, even if the previous item is incomplete. This allows students to read freely while vocabulary is gated.
-6. **Daily review gate injection**: A DR node is injected exactly once across all units when `totalDueWords >= minDailyReviewCount (10)`. It appears before the first incomplete non-exempt item. If already completed today, it appears at the saved position.
+6. **Daily review gate**: When `totalDueWords >= minDailyReviewCount (10)` and no session completed today, word list nodes are gated via dialog prompt. No path node is rendered.
 7. **Game and treasure nodes are non-trackable**: They do not count toward assignment progress calculations. Only `word_list` and `book` items contribute to unit assignment progress.
 8. **Daily word limit**: 30 new words per day across all lists (hardcoded, not from system_settings).
 9. **Node completion is idempotent**: Game/treasure nodes check `user_node_completions` before inserting. DR completion has a UNIQUE constraint on `(user_id, scope_lp_unit_id, completed_at)`.
