@@ -350,6 +350,30 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                           onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 16),
+                        // Info box
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.blue.shade600, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Görsel boyutu: 800 × yükseklik px. '
+                                  'Önerilen yükseklik: ${_nodes.isEmpty ? "—" : "${(_nodes.length * 140).clamp(300, 5000)}px"} '
+                                  '(node başına ~140px)',
+                                  style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             const Text('Yükseklik: '),
@@ -369,6 +393,19 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               child: Text('${_height.round()}px',
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(width: 8),
+                            // Auto-fit button
+                            Tooltip(
+                              message: 'Node sayısına göre otomatik ayarla',
+                              child: IconButton(
+                                icon: const Icon(Icons.auto_fix_high, size: 20),
+                                onPressed: _nodes.isEmpty ? null : () {
+                                  setState(() {
+                                    _height = (_nodes.length * 140.0).clamp(300, 5000);
+                                  });
+                                },
+                              ),
                             ),
                           ],
                         ),
