@@ -22,7 +22,6 @@ class HomeScreen extends ConsumerWidget {
     // 1. User & Stats
     // Data Providers
     final continueReadingAsync = ref.watch(continueReadingProvider);
-    final recommendedBooksAsync = ref.watch(recommendedBooksProvider);
     
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -73,30 +72,7 @@ class HomeScreen extends ConsumerWidget {
                   );
                 },
               ),
-              const SizedBox(height: 32),
-
-               // --- Recommended Section ---
-              _buildSectionHeader(context, 'Recommended for You'),
-              const SizedBox(height: 16),
-              recommendedBooksAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => _buildErrorRetry(context, ref),
-                data: (books) {
-                  if (books.isEmpty) return const Text('No recommendations yet.');
-                  return SizedBox(
-                    height: 220,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: books.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 16),
-                      itemBuilder: (context, index) {
-                         return _BookCard(book: books[index]);
-                      },
-                    ),
-                  );
-                },
-              ),
-                  const SizedBox(height: 80), // Bottom padding
+              const SizedBox(height: 80), // Bottom padding
                 ],
               ),
             ),
@@ -169,7 +145,6 @@ class HomeScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               ref.invalidate(continueReadingProvider);
-              ref.invalidate(recommendedBooksProvider);
             },
             child: const Text('Retry'),
           ),

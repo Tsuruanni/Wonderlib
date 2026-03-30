@@ -45,7 +45,6 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
-import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/remove_book_download_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
@@ -178,10 +177,6 @@ final getChaptersUseCaseProvider = Provider((ref) {
 
 final getContinueReadingUseCaseProvider = Provider((ref) {
   return GetContinueReadingUseCase(ref.watch(bookRepositoryProvider));
-});
-
-final getRecommendedBooksUseCaseProvider = Provider((ref) {
-  return GetRecommendedBooksUseCase(ref.watch(bookRepositoryProvider));
 });
 
 final getCompletedBookIdsUseCaseProvider = Provider((ref) {

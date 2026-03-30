@@ -10,7 +10,6 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
-import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
@@ -88,19 +87,6 @@ final bookSearchProvider = FutureProvider.autoDispose.family<List<Book>, String>
   if (query.isEmpty) return [];
   final useCase = ref.watch(searchBooksUseCaseProvider);
   final result = await useCase(SearchBooksParams(query: query));
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (books) => books,
-  );
-});
-
-/// Provides recommended books for current user
-final recommendedBooksProvider = FutureProvider<List<Book>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-
-  final useCase = ref.watch(getRecommendedBooksUseCaseProvider);
-  final result = await useCase(GetRecommendedBooksParams(userId: userId));
   return result.fold(
     (failure) => throw Exception(failure.message),
     (books) => books,

@@ -232,10 +232,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     await _markCurrentChapterComplete();
 
     if (mounted) {
-      // Invalidate providers to refresh home screen + book detail data
+      // Invalidate providers to refresh book detail data
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      ref.invalidate(recommendedBooksProvider);
       context.go(AppRoutes.bookDetailPath(widget.bookId));
     }
   }
@@ -251,7 +250,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (mounted) {
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      ref.invalidate(recommendedBooksProvider);
       context.go(AppRoutes.bookQuizPath(widget.bookId));
     }
   }
@@ -259,10 +257,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _handleClose() async {
     _stopCurrentAudio(); // Stop audio before navigation
     await _saveReadingTime();
-    // Invalidate providers to refresh home screen + book detail data
+    // Invalidate providers to refresh book detail data
     ref.invalidate(readingProgressProvider(widget.bookId));
     ref.invalidate(continueReadingProvider);
-    ref.invalidate(recommendedBooksProvider);
     if (mounted) {
       context.go(AppRoutes.library);
     }
