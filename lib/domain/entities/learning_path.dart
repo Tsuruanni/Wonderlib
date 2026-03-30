@@ -9,6 +9,7 @@ class LearningPath extends Equatable {
     required this.units,
     this.sequentialLock = true,
     this.booksExemptFromLock = true,
+    this.unitGate = true,
   });
 
   final String id;
@@ -17,9 +18,10 @@ class LearningPath extends Equatable {
   final List<LearningPathUnit> units;
   final bool sequentialLock;
   final bool booksExemptFromLock;
+  final bool unitGate;
 
   @override
-  List<Object?> get props => [id, name, sortOrder, units, sequentialLock, booksExemptFromLock];
+  List<Object?> get props => [id, name, sortOrder, units, sequentialLock, booksExemptFromLock, unitGate];
 }
 
 class LearningPathUnit extends Equatable {
