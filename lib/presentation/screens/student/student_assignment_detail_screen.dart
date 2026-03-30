@@ -68,7 +68,7 @@ class _AssignmentDetailContent extends ConsumerWidget {
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
               } else {
-                context.go(AppRoutes.home);
+                context.go(AppRoutes.vocabulary);
               }
             },
           ),
