@@ -549,10 +549,13 @@ class _VocabularySessionScreenState
         const SizedBox(height: 12),
         // Continue button — centered island style
         Center(
-          child: GameButton(
-            label: 'Continue',
-            onPressed: controller.finishIntroduction,
-            variant: GameButtonVariant.primary,
+          child: SizedBox(
+            width: 200,
+            child: GameButton(
+              label: 'Continue',
+              onPressed: controller.finishIntroduction,
+              variant: GameButtonVariant.primary,
+            ),
           ),
         ),
         const SizedBox(height: 20),
