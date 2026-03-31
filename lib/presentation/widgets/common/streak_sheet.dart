@@ -62,8 +62,6 @@ class _StreakSheetState extends ConsumerState<StreakSheet> {
     final user = ref.watch(userControllerProvider).valueOrNull;
     final settings = ref.watch(systemSettingsProvider).valueOrNull ??
         SystemSettings.defaults();
-    final calendarDays = ref.watch(loginDatesProvider).valueOrNull ?? {};
-
     if (user == null) return const SizedBox.shrink();
 
     return DraggableScrollableSheet(
@@ -101,7 +99,6 @@ class _StreakSheetState extends ConsumerState<StreakSheet> {
 
             // Calendar
             _StreakCalendar(
-              weeklyDays: calendarDays,
               userCreatedAt: user.createdAt,
             ),
             const SizedBox(height: 24),
@@ -267,11 +264,9 @@ const _kWeekDayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 class _StreakCalendar extends ConsumerStatefulWidget {
   const _StreakCalendar({
-    required this.weeklyDays,
     required this.userCreatedAt,
   });
 
-  final Map<DateTime, bool> weeklyDays;
   final DateTime userCreatedAt;
 
   @override
@@ -354,24 +349,35 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
     final monday = today.subtract(Duration(days: today.weekday - 1));
     final days = List.generate(7, (i) => monday.add(Duration(days: i)));
 
+    // Collect all months the week spans (e.g. week crosses month boundary)
+    final monthKeys = <({int year, int month})>{};
+    for (final d in days) {
+      monthKeys.add((year: d.year, month: d.month));
+    }
+    // Merge login data from all spanned months
+    final weekData = <DateTime, bool>{};
+    for (final key in monthKeys) {
+      final data = ref.watch(monthlyLoginDatesProvider(key)).valueOrNull ?? {};
+      weekData.addAll(data);
+    }
+
+    final createdDate = DateTime(
+      widget.userCreatedAt.year,
+      widget.userCreatedAt.month,
+      widget.userCreatedAt.day,
+    );
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: days.map((date) {
-        final dayLabel = _kWeekDayLabels[(date.weekday % 7)]; // Sun=0..Sat=6
+        final dayLabel = _kWeekDayLabels[(date.weekday % 7)];
         return _DayCell(
           day: date.day,
           label: dayLabel,
           isToday: date.year == today.year && date.month == today.month && date.day == today.day,
-          isLogin: _isLoginDay(widget.weeklyDays, date),
-          isFreeze: _isFreezeDay(widget.weeklyDays, date),
-          isFaded: date.isAfter(today) ||
-              date.isBefore(
-                DateTime(
-                  widget.userCreatedAt.year,
-                  widget.userCreatedAt.month,
-                  widget.userCreatedAt.day,
-                ),
-              ),
+          isLogin: _isLoginDay(weekData, date),
+          isFreeze: _isFreezeDay(weekData, date),
+          isFaded: date.isAfter(today) || date.isBefore(createdDate),
         );
       }).toList(),
     );
