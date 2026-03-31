@@ -329,3 +329,129 @@ INSERT INTO bot_profiles (first_name, last_name, avatar_equipped_cache, school_n
 ('Asya', 'Yıldız', '{"base_url": "animals/horse.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
 ('Arda', 'Kaya', '{"base_url": "animals/parrot.png", "layers": []}', 'Atatürk Ortaokulu'),
 ('Duru', 'Demir', '{"base_url": "animals/turtle.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu');
+
+-- =============================================
+-- Part 2: join_weekly_league RPC
+-- =============================================
+CREATE OR REPLACE FUNCTION join_weekly_league(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_week_start DATE := date_trunc('week', app_now())::DATE;
+    v_prev_week_start TIMESTAMPTZ := date_trunc('week', app_now()) - INTERVAL '7 days';
+    v_prev_week_end TIMESTAMPTZ := date_trunc('week', app_now());
+    v_tier VARCHAR(20);
+    v_school_id UUID;
+    v_last_week_xp BIGINT;
+    v_bucket INTEGER;
+    v_group_id UUID;
+BEGIN
+    -- Idempotency: already in a group this week?
+    IF EXISTS (
+        SELECT 1 FROM league_group_members
+        WHERE user_id = p_user_id AND week_start = v_week_start
+    ) THEN
+        RETURN;
+    END IF;
+
+    -- Get user's tier and school
+    SELECT league_tier, school_id INTO v_tier, v_school_id
+    FROM profiles WHERE id = p_user_id;
+
+    IF v_tier IS NULL THEN RETURN; END IF;
+
+    -- Calculate XP bucket from last week
+    SELECT COALESCE(SUM(amount), 0) INTO v_last_week_xp
+    FROM xp_logs
+    WHERE user_id = p_user_id
+    AND created_at >= v_prev_week_start
+    AND created_at < v_prev_week_end;
+
+    v_bucket := CASE
+        WHEN v_last_week_xp = 0 THEN 0
+        WHEN v_last_week_xp < 100 THEN 1
+        WHEN v_last_week_xp < 300 THEN 2
+        WHEN v_last_week_xp < 600 THEN 3
+        ELSE 4
+    END;
+
+    -- Priority a: same tier + same bucket + same school member
+    SELECT lg.id INTO v_group_id
+    FROM league_groups lg
+    WHERE lg.week_start = v_week_start AND lg.tier = v_tier AND lg.xp_bucket = v_bucket
+    AND lg.member_count < 30
+    AND EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.group_id = lg.id AND lgm.school_id = v_school_id
+    )
+    ORDER BY lg.member_count DESC
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED;
+
+    -- Priority b: same tier + same bucket
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier AND lg.xp_bucket = v_bucket
+        AND lg.member_count < 30
+        ORDER BY lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority c: neighbor bucket + same school
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.xp_bucket BETWEEN GREATEST(0, v_bucket - 1) AND LEAST(4, v_bucket + 1)
+        AND lg.member_count < 30
+        AND EXISTS (
+            SELECT 1 FROM league_group_members lgm
+            WHERE lgm.group_id = lg.id AND lgm.school_id = v_school_id
+        )
+        ORDER BY abs(lg.xp_bucket - v_bucket), lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority d: neighbor bucket
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.xp_bucket BETWEEN GREATEST(0, v_bucket - 1) AND LEAST(4, v_bucket + 1)
+        AND lg.member_count < 30
+        ORDER BY abs(lg.xp_bucket - v_bucket), lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority e: any bucket in same tier
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.member_count < 30
+        ORDER BY lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority f: create new group
+    IF v_group_id IS NULL THEN
+        INSERT INTO league_groups (week_start, tier, xp_bucket, member_count)
+        VALUES (v_week_start, v_tier, v_bucket, 0)
+        RETURNING id INTO v_group_id;
+    END IF;
+
+    -- Join the group
+    INSERT INTO league_group_members (group_id, user_id, week_start, school_id)
+    VALUES (v_group_id, p_user_id, v_week_start, v_school_id);
+
+    UPDATE league_groups SET member_count = member_count + 1
+    WHERE id = v_group_id;
+END;
+$$;
