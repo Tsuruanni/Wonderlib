@@ -51,7 +51,6 @@ class UnitDetailScreen extends ConsumerWidget {
               return const Center(child: Text('Unit not found'));
             }
 
-            final lpUnit = path.units[unitIdx];
             final pathUnits = allUnits.where((pu) => pu.pathId == pathId).toList();
             final unitData = unitIdx < pathUnits.length ? pathUnits[unitIdx] : null;
             if (unitData == null) {
@@ -61,12 +60,6 @@ class UnitDetailScreen extends ConsumerWidget {
             return Column(
               children: [
                 const TopNavbar(),
-                _UnitAppBar(
-                  unitName: lpUnit.unitName,
-                  unitIcon: lpUnit.unitIcon,
-                  unitIdx: unitIdx,
-                  onBack: () => context.pop(),
-                ),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -234,60 +227,5 @@ class UnitDetailScreen extends ConsumerWidget {
     } catch (_) {
       return const Color(0xFF58CC02);
     }
-  }
-}
-
-class _UnitAppBar extends StatelessWidget {
-  const _UnitAppBar({
-    required this.unitName,
-    this.unitIcon,
-    required this.unitIdx,
-    required this.onBack,
-  });
-
-  final String unitName;
-  final String? unitIcon;
-  final int unitIdx;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: onBack,
-          ),
-          const SizedBox(width: 4),
-          Text(unitIcon ?? '📚', style: const TextStyle(fontSize: 20)),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Unit ${unitIdx + 1}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutralText,
-                  ),
-                ),
-                Text(
-                  unitName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

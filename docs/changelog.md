@@ -53,6 +53,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 #### Infrastructure
 - **DB migration** `20260331000004` — Updated `get_daily_quest_progress` and `claim_daily_bonus` RPCs to keep daily_review quest visible after completion.
 
+### Learning Path UX Polish (2026-03-31)
+
+#### Added
+- **Zoom transition** — Unit map → unit detail navigates with a scale+fade animation originating from the tapped node's position. Custom `ZoomTransitionPage` in router.
+- **Active node bounce** — Active (current) path nodes gently bounce up/down via repeating animation to draw attention.
+- **Mobile node scaling** — Path nodes render 30% smaller on screens < 600px (`_mobileNodeScale = 0.7`). Stars, labels, START bubble all scale proportionally.
+- **Shell content border** — On wide screens (≥1000px), main content area wrapped in rounded border for visual separation from sidebar.
+
+#### Changed
+- **UnitAppBar removed** — Redundant app bar above unit detail content removed. TopNavbar handles navigation.
+- **DailyReviewBanner removed from VocabularyHub** — Was only shown on mobile; already available in RightInfoPanel on wide screens. Simplified hub layout.
+
 ### Learning Path Node Redesign (2026-03-31)
 
 #### Added

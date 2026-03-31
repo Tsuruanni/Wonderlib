@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/learning_path.dart';
-import '../../providers/daily_review_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/top_navbar.dart';
 import 'unit_map_screen.dart';
@@ -21,20 +20,12 @@ class VocabularyHubScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pathsAsync = ref.watch(userLearningPathsProvider);
 
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final showRightPanel = screenWidth >= 1000;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             const TopNavbar(),
-            // Daily review banner — only on mobile (on wide screens it's in the RightInfoPanel)
-            if (!showRightPanel) ...[
-              const _DailyReviewBanner(),
-              const SizedBox(height: 8),
-            ],
             Expanded(
               child: pathsAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
@@ -201,139 +192,6 @@ class _PathCard extends StatelessWidget {
   }
 }
 
-class _DailyReviewBanner extends ConsumerWidget {
-  const _DailyReviewBanner();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final todaySession = ref.watch(todayReviewSessionProvider).valueOrNull;
-    final dueWords = ref.watch(dailyReviewWordsProvider).valueOrNull ?? [];
-
-    // Already completed today
-    if (todaySession != null) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(
-                color: AppColors.primaryShadow,
-                offset: Offset(0, 3),
-                blurRadius: 0,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Review Complete!',
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      '+${todaySession.xpEarned} XP earned',
-                      style: GoogleFonts.nunito(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Enough words to start a review
-    if (dueWords.length >= minDailyReviewCount) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: GestureDetector(
-          onTap: () => context.push(AppRoutes.vocabularyDailyReview),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.streakOrange,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(color: Color(0xFFC76A00), offset: Offset(0, 3)),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Daily Review',
-                        style: GoogleFonts.nunito(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Text(
-                        '${dueWords.length} words ready!',
-                        style: GoogleFonts.nunito(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.play_arrow_rounded, color: AppColors.streakOrange, size: 20),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Not enough words — hide
-    return const SizedBox.shrink();
-  }
-}
 
 class _EmptyState extends StatelessWidget {
   @override

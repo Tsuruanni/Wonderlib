@@ -5,7 +5,9 @@ import '../../../app/theme.dart';
 
 /// Animated START bubble shown above the active node.
 class StartBubble extends StatefulWidget {
-  const StartBubble({super.key});
+  const StartBubble({super.key, this.scale = 1.0});
+
+  final double scale;
 
   @override
   State<StartBubble> createState() => _StartBubbleState();
@@ -36,11 +38,12 @@ class _StartBubbleState extends State<StartBubble>
 
   @override
   Widget build(BuildContext context) {
+    final s = widget.scale;
     return AnimatedBuilder(
       animation: _bounce,
       builder: (context, child) {
         return Transform.translate(
-          offset: Offset(0, -_bounce.value),
+          offset: Offset(0, -_bounce.value * s),
           child: child,
         );
       },
@@ -48,15 +51,15 @@ class _StartBubbleState extends State<StartBubble>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 20 * s, vertical: 8 * s),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.neutral, width: 2),
+              borderRadius: BorderRadius.circular(14 * s),
+              border: Border.all(color: AppColors.neutral, width: 2 * s),
               boxShadow: [
                 BoxShadow(
                   color: AppColors.neutral.withValues(alpha: 0.5),
-                  offset: const Offset(0, 3),
+                  offset: Offset(0, 3 * s),
                   blurRadius: 0,
                 ),
               ],
@@ -64,16 +67,16 @@ class _StartBubbleState extends State<StartBubble>
             child: Text(
               'START',
               style: GoogleFonts.nunito(
-                fontSize: 14,
+                fontSize: 14 * s,
                 fontWeight: FontWeight.w900,
                 color: AppColors.primary,
-                letterSpacing: 1,
+                letterSpacing: 1 * s,
               ),
             ),
           ),
           // Triangle pointer
           CustomPaint(
-            size: const Size(16, 8),
+            size: Size(16 * s, 8 * s),
             painter: _TrianglePainter(color: AppColors.neutral),
           ),
         ],

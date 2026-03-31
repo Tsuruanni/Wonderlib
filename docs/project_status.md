@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-31 (Daily quest system improvements: notification timing, auto-chapter-complete, review quest visibility fix)
+Son güncelleme: 2026-03-31 (Learning path UX polish: zoom transitions, active node bounce, mobile scaling, shell border)
 
 ## Current Phase
 
@@ -158,6 +158,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
 - [x] Daily Quest System Improvements (review quest visibility fix, instant notifications via AppNotificationListener, auto-chapter-complete, all-quests-done notification with claim, race condition + timezone fixes)
 - [x] Learning Path Node Redesign (3D glossy spheres, popup cards, press effects, unit numbers, gold stars, type-specific icons)
+- [x] Learning Path UX Polish (zoom transition, active node bounce, mobile scaling, shell border, DailyReviewBanner/UnitAppBar cleanup)
 - [x] Review Node Removal (path_daily_review_completions table + path_position column dropped)
 - [x] Admin Word List Image Generation (fal.ai nano-banana-pro, 11 styles, grid crop, version history, overwrite control, mascot fillers)
 - [x] Admin Word List Editor Redesign (horizontal card grid, quick edit, audio playback, bulk content generation, inline word creation)
@@ -234,6 +235,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Learning Path UX Polish | 2026-03-31 | Zoom transition (unit map → detail), active node bounce animation, mobile node scaling (0.7x on <600px), shell content border on wide screens, UnitAppBar + DailyReviewBanner removed. |
 | Learning Path Node Redesign | 2026-03-31 | 3D glossy sphere nodes with press-down effect, popup cards on tap (START/READ/PLAY/CLAIM), unit numbers in unit-map nodes, gold star crowns above nodes, completed = green pressed state. Library continue-reading card redesign. Review node artifacts removed. |
 | Tile Theme Editor + Learning Path Redesign | 2026-03-30 | Tile-based map system replacing legacy zigzag. Admin tile theme CRUD with image upload, node position sliders, live preview. Per-unit theme assignment in template/assignment editors. Responsive scaling (mobile-friendly). 5 DB migrations, domain layer (entity→model→repo→usecase→provider). `tile_theme_id` on learning path units (not vocabulary_units). Unit gate toggle for inter-unit locking. |
 | Notification Overlay Redesign | 2026-03-29 | Replaced sequential `showDialog()` queue with stacked Overlay system. 8 notification types consolidated into unified white card with GameButton 3D press effect. Cascade positioning (scale+translate), entry/exit animations, barrier management. 3 dialog files deleted, net -400 lines. Specs + plan at `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`. |

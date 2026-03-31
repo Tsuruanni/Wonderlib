@@ -35,8 +35,14 @@ class MapTile extends StatelessWidget {
   final TileTheme theme;
   final List<MapTileNodeData> nodes;
 
+  /// Nodes render 30% smaller on mobile (< 600px).
+  static const _mobileNodeScale = 0.7;
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final nodeScale = screenWidth < 600 ? _mobileNodeScale : 1.0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Fill available width; scale everything relative to design width
@@ -69,6 +75,7 @@ class MapTile extends StatelessWidget {
                     data: nodes[i],
                     tileWidth: w,
                     tileHeight: h,
+                    nodeScale: nodeScale,
                   ),
             ],
           ),
@@ -85,19 +92,20 @@ class _PositionedNode extends StatelessWidget {
     required this.data,
     required this.tileWidth,
     required this.tileHeight,
+    this.nodeScale = 1.0,
   });
 
   final Offset position;
   final MapTileNodeData data;
   final double tileWidth;
   final double tileHeight;
+  final double nodeScale;
 
   @override
   Widget build(BuildContext context) {
-    final left = position.dx * tileWidth - 70; // center 140px wide node
-    final top = position.dy * tileHeight - 40; // approximate vertical center
-
-
+    final scaledWidth = PathNode.baseWidth * nodeScale;
+    final left = position.dx * tileWidth - scaledWidth / 2;
+    final top = position.dy * tileHeight - 40 * nodeScale;
 
     // START bubble only on detail-page nodes (no unitNumber), not on unit map
     final showStartBubble =
@@ -110,8 +118,8 @@ class _PositionedNode extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showStartBubble) ...[
-            const StartBubble(),
-            const SizedBox(height: 4),
+            StartBubble(scale: nodeScale),
+            SizedBox(height: 4 * nodeScale),
           ],
           PathNode(
             type: data.type,
@@ -120,6 +128,7 @@ class _PositionedNode extends StatelessWidget {
             onTap: data.onTap,
             starCount: data.starCount,
             unitNumber: data.unitNumber,
+            scale: nodeScale,
           ),
         ],
       ),

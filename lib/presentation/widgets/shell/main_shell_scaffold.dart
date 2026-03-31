@@ -163,7 +163,22 @@ class MainShellScaffold extends ConsumerWidget {
                     final sideGap = ((available - maxW) / 2).clamp(0.0, available);
                     return Row(
                       children: [
-                        Expanded(child: shell),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: AppColors.neutral,
+                                  width: 2,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: shell,
+                            ),
+                          ),
+                        ),
                         if (showRightPanel) const RightInfoPanel(),
                         SizedBox(width: sideGap),
                       ],

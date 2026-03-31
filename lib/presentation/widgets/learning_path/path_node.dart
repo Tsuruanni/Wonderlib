@@ -32,6 +32,7 @@ class PathNode extends StatefulWidget {
     this.onTap,
     this.starCount = 0,
     this.unitNumber,
+    this.scale = 1.0,
   });
 
   final NodeType type;
@@ -43,19 +44,57 @@ class PathNode extends StatefulWidget {
   /// When set, displays this number inside the node instead of the icon.
   final int? unitNumber;
 
-  static const _size = 64.0;
+  /// Scale factor for the node. 1.0 = default (64px), 0.5 = half size.
+  final double scale;
+
+  static const baseSize = 64.0;
+  static const baseWidth = 140.0;
+
+  /// Captured by [_onTapUp] so the router can zoom from the tapped node.
+  static Offset? lastTapGlobalPosition;
 
   @override
   State<PathNode> createState() => _PathNodeState();
 }
 
-class _PathNodeState extends State<PathNode> {
+class _PathNodeState extends State<PathNode>
+    with SingleTickerProviderStateMixin {
   final _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   bool _isNodePressed = false;
 
   /// Tracks the currently open popup so only one shows at a time.
   static _PathNodeState? _activePopupState;
+
+  // Bounce animation for active nodes
+  late final AnimationController _bounceController;
+  late final Animation<double> _bounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _bounceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _bounce = Tween(begin: 0.0, end: 5.0).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+    if (widget.state == NodeState.active) {
+      _bounceController.repeat(reverse: true);
+    }
+  }
+
+  @override
+  void didUpdateWidget(PathNode oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state == NodeState.active && !_bounceController.isAnimating) {
+      _bounceController.repeat(reverse: true);
+    } else if (widget.state != NodeState.active && _bounceController.isAnimating) {
+      _bounceController.stop();
+      _bounceController.reset();
+    }
+  }
 
   /// Whether this node shows a popup on tap instead of calling onTap directly.
   bool get _showsPopup =>
@@ -89,8 +128,9 @@ class _PathNodeState extends State<PathNode> {
     setState(() => _isNodePressed = true);
   }
 
-  void _onTapUp(TapUpDetails _) {
+  void _onTapUp(TapUpDetails details) {
     setState(() => _isNodePressed = false);
+    PathNode.lastTapGlobalPosition = details.globalPosition;
     _handleTap();
   }
 
@@ -172,6 +212,7 @@ class _PathNodeState extends State<PathNode> {
   @override
   void dispose() {
     _dismissPopup();
+    _bounceController.dispose();
     super.dispose();
   }
 
@@ -181,13 +222,16 @@ class _PathNodeState extends State<PathNode> {
   Widget build(BuildContext context) {
     final isLocked = widget.state == NodeState.locked;
     final isCompleted = widget.state == NodeState.completed;
+    final s = widget.scale;
+    final nodeSize = PathNode.baseSize * s;
+    final nodeWidth = PathNode.baseWidth * s;
 
     return GestureDetector(
       onTapDown: isLocked ? null : _onTapDown,
       onTapUp: isLocked ? null : _onTapUp,
       onTapCancel: isLocked ? null : _onTapCancel,
       child: SizedBox(
-        width: 140,
+        width: nodeWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -196,31 +240,39 @@ class _PathNodeState extends State<PathNode> {
                 widget.starCount > 0 &&
                 !isLocked)
               Padding(
-                padding: const EdgeInsets.only(bottom: 2),
-                child: _StarRow(count: widget.starCount),
+                padding: EdgeInsets.only(bottom: 2 * s),
+                child: _StarRow(count: widget.starCount, scale: s),
               ),
             // Node circle — wrapped in target for popup positioning
-            CompositedTransformTarget(
-              link: _layerLink,
-              child: _NodeCircle(
-                type: widget.type,
-                state: widget.state,
-                size: PathNode._size,
-                unitNumber: widget.unitNumber,
-                isPressed: _isNodePressed && !isCompleted,
+            // Active nodes get a gentle bounce animation
+            AnimatedBuilder(
+              animation: _bounce,
+              builder: (_, child) => Transform.translate(
+                offset: Offset(0, -_bounce.value * s),
+                child: child,
+              ),
+              child: CompositedTransformTarget(
+                link: _layerLink,
+                child: _NodeCircle(
+                  type: widget.type,
+                  state: widget.state,
+                  size: nodeSize,
+                  unitNumber: widget.unitNumber,
+                  isPressed: _isNodePressed && !isCompleted,
+                ),
               ),
             ),
             // Label — only for unit-number nodes (unit map)
             if (!_showsPopup && widget.label != null)
               Padding(
-                padding: const EdgeInsets.only(top: 6),
+                padding: EdgeInsets.only(top: 6 * s),
                 child: Text(
                   widget.label!,
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.nunito(
-                    fontSize: 13,
+                    fontSize: 13 * s,
                     fontWeight: FontWeight.w700,
                     color: isLocked
                         ? AppColors.neutralText
@@ -589,9 +641,10 @@ class _NodeCircle extends StatelessWidget {
 
 /// Stylized star row above a word list node — gold with dark border.
 class _StarRow extends StatelessWidget {
-  const _StarRow({required this.count});
+  const _StarRow({required this.count, this.scale = 1.0});
 
   final int count;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
@@ -599,44 +652,43 @@ class _StarRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(3, (i) {
         final filled = i < count;
+        final shadowOffset = 1.2 * scale;
         return Padding(
           padding: EdgeInsets.only(
-            left: i == 0 ? 0 : 1,
+            left: i == 0 ? 0 : 1 * scale,
             // Middle star raised slightly for crown effect
-            bottom: i == 1 ? 4 : 0,
+            bottom: i == 1 ? 4 * scale : 0,
           ),
           child: Icon(
             filled ? Icons.star_rounded : Icons.star_outline_rounded,
-            size: filled ? 22 : 18,
+            size: (filled ? 22 : 18) * scale,
             color: filled ? const Color(0xFFFFD700) : AppColors.neutral,
             shadows: filled
-                ? const [
-                    // Dark gold border (4 directions)
+                ? [
                     Shadow(
-                      color: Color(0xFFB8860B),
+                      color: const Color(0xFFB8860B),
                       blurRadius: 0,
-                      offset: Offset(1.2, 0),
+                      offset: Offset(shadowOffset, 0),
                     ),
                     Shadow(
-                      color: Color(0xFFB8860B),
+                      color: const Color(0xFFB8860B),
                       blurRadius: 0,
-                      offset: Offset(-1.2, 0),
+                      offset: Offset(-shadowOffset, 0),
                     ),
                     Shadow(
-                      color: Color(0xFFB8860B),
+                      color: const Color(0xFFB8860B),
                       blurRadius: 0,
-                      offset: Offset(0, 1.2),
+                      offset: Offset(0, shadowOffset),
                     ),
                     Shadow(
-                      color: Color(0xFFB8860B),
+                      color: const Color(0xFFB8860B),
                       blurRadius: 0,
-                      offset: Offset(0, -1.2),
+                      offset: Offset(0, -shadowOffset),
                     ),
-                    // Glow
                     Shadow(
-                      color: Color(0x66FF8F00),
-                      blurRadius: 6,
-                      offset: Offset(0, 2),
+                      color: const Color(0x66FF8F00),
+                      blurRadius: 6 * scale,
+                      offset: Offset(0, 2 * scale),
                     ),
                   ]
                 : null,

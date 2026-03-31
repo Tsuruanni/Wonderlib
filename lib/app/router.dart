@@ -43,6 +43,7 @@ import '../presentation/screens/teacher/reports/leaderboard_report_screen.dart';
 import '../presentation/widgets/shell/main_shell_scaffold.dart';
 import '../presentation/screens/quiz/book_quiz_screen.dart';
 import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
+import '../presentation/widgets/learning_path/path_node.dart';
 
 // Route paths
 abstract class AppRoutes {
@@ -325,10 +326,13 @@ GoRouter _createRouter() {
                     routes: [
                       GoRoute(
                         path: 'unit/:unitIdx',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final pathId = state.pathParameters['pathId']!;
                           final unitIdx = int.parse(state.pathParameters['unitIdx']!);
-                          return UnitDetailScreen(pathId: pathId, unitIdx: unitIdx);
+                          return ZoomTransitionPage(
+                            key: state.pageKey,
+                            child: UnitDetailScreen(pathId: pathId, unitIdx: unitIdx),
+                          );
                         },
                       ),
                     ],
@@ -588,3 +592,46 @@ final GoRouter _appRouter = _createRouter();
 
 // Simple provider
 final routerProvider = Provider<GoRouter>((ref) => _appRouter);
+
+// ─── Zoom transition (unit map → unit detail) ───────────────
+
+/// Zooms in from the tapped node position.
+/// Falls back to center if no tap position was captured.
+class ZoomTransitionPage extends CustomTransitionPage<void> {
+  ZoomTransitionPage({
+    required super.child,
+    super.key,
+  }) : super(
+          transitionDuration: const Duration(milliseconds: 900),
+          reverseTransitionDuration: const Duration(milliseconds: 750),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            // Convert global tap position → fractional alignment
+            final origin = PathNode.lastTapGlobalPosition;
+            Alignment alignment;
+            if (origin != null) {
+              final size = MediaQuery.sizeOf(context);
+              alignment = Alignment(
+                (origin.dx / size.width) * 2 - 1,
+                (origin.dy / size.height) * 2 - 1,
+              );
+            } else {
+              alignment = Alignment.center;
+            }
+
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+              reverseCurve: Curves.easeInCubic,
+            );
+
+            return FadeTransition(
+              opacity: curved,
+              child: ScaleTransition(
+                scale: Tween(begin: 0.85, end: 1.0).animate(curved),
+                alignment: alignment,
+                child: child,
+              ),
+            );
+          },
+        );
+}
