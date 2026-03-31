@@ -240,7 +240,7 @@ class SupabaseActivityRepository implements ActivityRepository {
           'answers': resultModel.answers,
           'time_spent': resultModel.timeSpent,
           'attempt_number': attemptNumber,
-          'completed_at': resultModel.completedAt.toIso8601String(),
+          'completed_at': resultModel.completedAt.toUtc().toIso8601String(),
         })
         .select()
         .single();

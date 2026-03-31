@@ -112,7 +112,7 @@ class VocabularyWordModel {
       'categories': categories,
       'synonyms': synonyms,
       'antonyms': antonyms,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
       'source_book_id': sourceBookId,
     };
   }

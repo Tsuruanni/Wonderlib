@@ -64,8 +64,8 @@ class WordListModel {
       'source_book_id': sourceBookId,
       'unit_id': unitId,
       'order_in_unit': orderInUnit,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 

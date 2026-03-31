@@ -173,7 +173,7 @@ class SupabaseBookRepository implements BookRepository {
 
       if (response == null) {
         // Create new progress using upsert to avoid race conditions
-        final now = DateTime.now().toIso8601String();
+        final now = DateTime.now().toUtc().toIso8601String();
         final inserted = await _supabase
             .from(DbTables.readingProgress)
             .upsert({
@@ -214,12 +214,12 @@ class SupabaseBookRepository implements BookRepository {
         'completion_percentage': progress.completionPercentage,
         'total_reading_time': progress.totalReadingTime,
         'completed_chapter_ids': progress.completedChapterIds,
-        'completed_at': progress.completedAt?.toIso8601String(),
+        'completed_at': progress.completedAt?.toUtc().toIso8601String(),
         'quiz_passed': progress.quizPassed,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
-      data['started_at'] = progress.startedAt.toIso8601String();
+      data['started_at'] = progress.startedAt.toUtc().toIso8601String();
 
       final response = await _supabase
           .from(DbTables.readingProgress)
@@ -339,7 +339,7 @@ class SupabaseBookRepository implements BookRepository {
               final updatedProgress = progress.copyWith(
                 completedChapterIds: completedChapters,
                 completionPercentage: percentage,
-                updatedAt: DateTime.now(),
+                updatedAt: DateTime.now().toUtc(),
               );
 
               final result = await updateReadingProgress(updatedProgress);
@@ -396,7 +396,7 @@ class SupabaseBookRepository implements BookRepository {
         'inline_activity_id': activityId,
         'is_correct': isCorrect,
         'xp_earned': xpEarned,
-        'answered_at': DateTime.now().toIso8601String(),
+        'answered_at': DateTime.now().toUtc().toIso8601String(),
         'words_learned': wordsLearned,
       });
 
@@ -461,7 +461,7 @@ class SupabaseBookRepository implements BookRepository {
           'user_id': userId,
           'book_id': bookId,
           'chapter_id': chapterId,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         },
         onConflict: 'user_id,book_id',
       );
@@ -497,7 +497,7 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, bool>> hasReadToday(String userId) async {
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10); // YYYY-MM-DD
       final response = await _supabase
           .from(DbTables.dailyChapterReads)
           .select('id')
@@ -516,7 +516,7 @@ class SupabaseBookRepository implements BookRepository {
   Future<Either<Failure, int>> getCorrectAnswersTodayCount(String userId) async {
     try {
       final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+      final todayStart = DateTime(now.year, now.month, now.day).toUtc().toIso8601String();
 
       final response = await _supabase
           .from(DbTables.inlineActivityResults)
@@ -536,7 +536,7 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, int>> getWordsReadTodayCount(String userId) async {
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10); // YYYY-MM-DD
 
       // Get chapters read today with their word counts via join
       final response = await _supabase

@@ -62,7 +62,7 @@ class ActivityResultModel {
       'answers': answers,
       'time_spent': timeSpent,
       'attempt_number': attemptNumber,
-      'completed_at': completedAt.toIso8601String(),
+      'completed_at': completedAt.toUtc().toIso8601String(),
     };
   }
 
@@ -76,7 +76,7 @@ class ActivityResultModel {
       'answers': answers,
       'time_spent': timeSpent,
       'attempt_number': attemptNumber,
-      'completed_at': completedAt.toIso8601String(),
+      'completed_at': completedAt.toUtc().toIso8601String(),
     };
   }
 

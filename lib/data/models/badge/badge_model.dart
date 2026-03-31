@@ -72,7 +72,7 @@ class BadgeModel {
       'condition_value': conditionValue,
       'xp_reward': xpReward,
       'is_active': isActive,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
     };
   }
 

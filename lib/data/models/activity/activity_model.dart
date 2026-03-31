@@ -72,8 +72,8 @@ class ActivityModel {
       'instructions': instructions,
       'questions': questions.map((q) => q.toJson()).toList(),
       'settings': settings,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 

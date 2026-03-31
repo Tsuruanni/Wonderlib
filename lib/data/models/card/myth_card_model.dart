@@ -89,7 +89,7 @@ class MythCardModel {
       'category_icon': categoryIcon,
       'is_active': isActive,
       'image_url': imageUrl,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
     };
   }
 

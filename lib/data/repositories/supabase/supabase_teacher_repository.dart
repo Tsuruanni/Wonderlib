@@ -362,8 +362,8 @@ class SupabaseTeacherRepository implements TeacherRepository {
           'p_title': data.title,
           'p_description': data.description,
           'p_content_config': data.contentConfig,
-          'p_start_date': data.startDate.toIso8601String(),
-          'p_due_date': data.dueDate.toIso8601String(),
+          'p_start_date': data.startDate.toUtc().toIso8601String(),
+          'p_due_date': data.dueDate.toUtc().toIso8601String(),
           'p_student_ids': data.studentIds,
         },
       );

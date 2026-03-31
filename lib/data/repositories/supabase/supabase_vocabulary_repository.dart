@@ -214,11 +214,11 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         'ease_factor': progress.easeFactor,
         'interval_days': progress.intervalDays,
         'repetitions': progress.repetitions,
-        'next_review_at': progress.nextReviewAt?.toIso8601String(),
-        'last_reviewed_at': progress.lastReviewedAt?.toIso8601String(),
+        'next_review_at': progress.nextReviewAt?.toUtc().toIso8601String(),
+        'last_reviewed_at': progress.lastReviewedAt?.toUtc().toIso8601String(),
       };
 
-      data['created_at'] = progress.createdAt.toIso8601String();
+      data['created_at'] = progress.createdAt.toUtc().toIso8601String();
 
       final response = await _supabase
           .from(DbTables.vocabularyProgress)
@@ -326,7 +326,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       }
 
       // Get due for review count (includes mastered words)
-      final now = DateTime.now().toIso8601String();
+      final now = DateTime.now().toUtc().toIso8601String();
       final dueResponse = await _supabase
           .from(DbTables.vocabularyProgress)
           .select('id')
@@ -367,7 +367,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         if (immediate) {
           // User explicitly said "I didn't know this" — reset SM-2 progress
           // so the word re-enters the learning cycle, even if it was mastered.
-          final now = DateTime.now();
+          final now = DateTime.now().toUtc();
           final updated = await _supabase
               .from(DbTables.vocabularyProgress)
               .update({
@@ -387,7 +387,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
       }
 
       // Create new progress entry
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       final data = {
         'user_id': userId,
         'word_id': wordId,
@@ -473,7 +473,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     String userId,
   ) async {
     try {
-      final today = DateTime.now().toIso8601String().split('T').first;
+      final today = DateTime.now().toUtc().toIso8601String().split('T').first;
 
       final response = await _supabase
           .from(DbTables.dailyReviewSessions)
@@ -537,7 +537,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
         return const Right([]);
       }
 
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc();
       final results = <VocabularyProgress>[];
 
       // Get existing progress to avoid duplicates
@@ -612,7 +612,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, int>> getWordsLearnedTodayCount(String userId) async {
     try {
       final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+      final todayStart = DateTime(now.year, now.month, now.day).toUtc().toIso8601String();
 
       final response = await _supabase
           .from(DbTables.vocabularyProgress)
@@ -632,7 +632,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
   Future<Either<Failure, int>> getWordsLearnedFromListsTodayCount(String userId) async {
     try {
       final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day).toIso8601String();
+      final todayStart = DateTime(now.year, now.month, now.day).toUtc().toIso8601String();
 
       // 1. Get today's learned word IDs (small set - typically <50)
       final todayProgress = await _supabase

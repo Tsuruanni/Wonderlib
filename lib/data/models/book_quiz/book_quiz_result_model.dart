@@ -77,7 +77,7 @@ class BookQuizResultModel {
       'answers': answers,
       'time_spent': timeSpent,
       'attempt_number': attemptNumber,
-      'completed_at': completedAt.toIso8601String(),
+      'completed_at': completedAt.toUtc().toIso8601String(),
     };
   }
 
@@ -93,7 +93,7 @@ class BookQuizResultModel {
       'is_passing': isPassing,
       'answers': answers,
       'time_spent': timeSpent,
-      'completed_at': completedAt.toIso8601String(),
+      'completed_at': completedAt.toUtc().toIso8601String(),
     };
   }
 

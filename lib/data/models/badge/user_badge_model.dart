@@ -41,7 +41,7 @@ class UserBadgeModel {
       'id': id,
       'user_id': userId,
       'badge_id': badgeId,
-      'earned_at': earnedAt.toIso8601String(),
+      'earned_at': earnedAt.toUtc().toIso8601String(),
     };
   }
 
@@ -49,7 +49,7 @@ class UserBadgeModel {
     return {
       'user_id': userId,
       'badge_id': badgeId,
-      'earned_at': earnedAt.toIso8601String(),
+      'earned_at': earnedAt.toUtc().toIso8601String(),
     };
   }
 

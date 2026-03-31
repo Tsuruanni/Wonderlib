@@ -28,7 +28,18 @@ class SupabaseUserRepository implements UserRepository {
       return Right(UserModel.fromJson(response).toEntity());
     } on PostgrestException catch (e) {
       if (e.code == 'PGRST116') {
-        return const Left(NotFoundFailure('User not found'));
+        // Row not found — likely RLS restriction (student viewing peer).
+        // Fall back to safe_profiles view which omits sensitive fields.
+        try {
+          final safe = await _supabase
+              .from('safe_profiles')
+              .select()
+              .eq('id', id)
+              .single();
+          return Right(UserModel.fromJson(safe).toEntity());
+        } on PostgrestException {
+          return const Left(NotFoundFailure('User not found'));
+        }
       }
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -44,7 +55,7 @@ class SupabaseUserRepository implements UserRepository {
         'last_name': user.lastName,
         'avatar_url': user.avatarUrl,
         'settings': user.settings,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
       final response = await _supabase

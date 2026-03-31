@@ -73,10 +73,10 @@ class WordListProgressModel {
       'best_score': bestScore,
       'best_accuracy': bestAccuracy,
       'total_sessions': totalSessions,
-      'last_session_at': lastSessionAt?.toIso8601String(),
-      'started_at': startedAt?.toIso8601String(),
-      'completed_at': completedAt?.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'last_session_at': lastSessionAt?.toUtc().toIso8601String(),
+      'started_at': startedAt?.toUtc().toIso8601String(),
+      'completed_at': completedAt?.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 

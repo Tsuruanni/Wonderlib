@@ -48,7 +48,7 @@ class DailyReviewSessionModel {
       'incorrect_count': incorrectCount,
       'xp_earned': xpEarned,
       'is_perfect': isPerfect,
-      'completed_at': completedAt.toIso8601String(),
+      'completed_at': completedAt.toUtc().toIso8601String(),
     };
   }
 

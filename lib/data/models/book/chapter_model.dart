@@ -91,8 +91,8 @@ class ChapterModel {
       'word_count': wordCount,
       'estimated_minutes': estimatedMinutes,
       'vocabulary': vocabulary.map((v) => v.toJson()).toList(),
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
       'use_content_blocks': useContentBlocks,
     };
   }

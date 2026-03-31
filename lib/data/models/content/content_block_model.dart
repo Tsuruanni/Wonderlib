@@ -93,8 +93,8 @@ class ContentBlockModel {
       'image_url': imageUrl,
       'caption': caption,
       'activity_id': activityId,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 

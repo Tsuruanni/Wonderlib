@@ -62,7 +62,7 @@ class SupabaseBadgeRepository implements BadgeRepository {
           .insert({
             'user_id': userId,
             'badge_id': badgeId,
-            'earned_at': DateTime.now().toIso8601String(),
+            'earned_at': DateTime.now().toUtc().toIso8601String(),
           })
           .select('*, badges(*)')
           .single();

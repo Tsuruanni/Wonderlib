@@ -59,7 +59,8 @@ class UserModel {
       settings: (json['settings'] as Map<String, dynamic>?) ?? {},
       leagueTier: LeagueTier.fromDbValue(json['league_tier'] as String? ?? 'bronze'),
       createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: DateTime.parse(json['updated_at'] as String),
+      updatedAt: DateTime.parse(
+          (json['updated_at'] ?? json['created_at']) as String),
     );
   }
 
@@ -139,8 +140,8 @@ class UserModel {
       'streak_freeze_count': streakFreezeCount,
       'last_activity_date': lastActivityDate?.toIso8601String(),
       'settings': settings,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 
@@ -150,7 +151,7 @@ class UserModel {
       'last_name': lastName,
       'avatar_url': avatarUrl,
       'settings': settings,
-      'updated_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
     };
   }
 

@@ -23,6 +23,8 @@ When compressing context, preserve in priority order:
 | UseCase calls directly in Widget | Widget calls Provider, Provider calls UseCase |
 | Duplicate helper methods in screens | Use centralized `ui_helpers.dart` |
 | Hard-coded table/RPC names | Use `DbTables.x` and `RpcFunctions.x` from owlio_shared |
+| `DateTime.now().toIso8601String()` to Supabase | Local time without Z suffix → TIMESTAMPTZ interprets as UTC → 3h offset |
+| `app_now()` with `AT TIME ZONE` in SQL | Use plain `NOW()` for TIMESTAMPTZ; `AT TIME ZONE` only for DATE via `app_current_date()` |
 
 ### ALWAYS Do This
 
@@ -35,6 +37,8 @@ When compressing context, preserve in priority order:
 | Use `DbTables.x` for table names | `supabase.from(DbTables.books)` |
 | Use `RpcFunctions.x` for RPC calls | `supabase.rpc(RpcFunctions.awardXpTransaction)` |
 | UI in English | All user-facing text must be in English (except admin panel — stays in Turkish) |
+| UTC for Supabase timestamps | `DateTime.now().toUtc().toIso8601String()` — never send local time to TIMESTAMPTZ columns |
+| `NOW()` in SQL for TIMESTAMPTZ | `app_now()` = `NOW()` + debug offset; `app_current_date()` uses Istanbul TZ (correct for DATE only) |
 
 ### Admin Panel Impact Check
 

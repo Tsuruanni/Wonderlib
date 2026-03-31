@@ -87,9 +87,9 @@ class ReadingProgressModel {
       'total_reading_time': totalReadingTime,
       'completed_chapter_ids': completedChapterIds,
       'quiz_passed': quizPassed,
-      'started_at': startedAt.toIso8601String(),
-      'completed_at': completedAt?.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'started_at': startedAt.toUtc().toIso8601String(),
+      'completed_at': completedAt?.toUtc().toIso8601String(),
+      'updated_at': updatedAt.toUtc().toIso8601String(),
     };
   }
 

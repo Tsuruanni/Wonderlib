@@ -69,9 +69,9 @@ class VocabularyProgressModel {
       'ease_factor': easeFactor,
       'interval_days': intervalDays,
       'repetitions': repetitions,
-      'next_review_at': nextReviewAt?.toIso8601String(),
-      'last_reviewed_at': lastReviewedAt?.toIso8601String(),
-      'created_at': createdAt.toIso8601String(),
+      'next_review_at': nextReviewAt?.toUtc().toIso8601String(),
+      'last_reviewed_at': lastReviewedAt?.toUtc().toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
     };
   }
 
@@ -84,8 +84,8 @@ class VocabularyProgressModel {
       'ease_factor': easeFactor,
       'interval_days': intervalDays,
       'repetitions': repetitions,
-      'next_review_at': nextReviewAt?.toIso8601String(),
-      'last_reviewed_at': lastReviewedAt?.toIso8601String(),
+      'next_review_at': nextReviewAt?.toUtc().toIso8601String(),
+      'last_reviewed_at': lastReviewedAt?.toUtc().toIso8601String(),
     };
   }
 

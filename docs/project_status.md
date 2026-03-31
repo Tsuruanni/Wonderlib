@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-31 (Daily review flashcard redesign: playing card front, banner back, dismiss animation, fixed layout)
+Son güncelleme: 2026-04-01 (Timezone fix: app_now() + client UTC alignment across 20 files, migration pushed)
 
 ## Current Phase
 
@@ -165,6 +165,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Word Data Prompt Improvement (hint-style EN definitions, child-friendly, 3-6 words max)
 - [x] Dev Tool Fast Login (one-click admin login on login screen)
 - [x] Daily Review Flashcard Redesign (playing card front, banner+image back, dismiss animation, fixed layout, max width)
+- [x] Timezone Fix (app_now() UTC alignment, client .toUtc() across 20 files, CLAUDE.md rules)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

@@ -8,6 +8,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Timezone Fix — Client & Server UTC Alignment (2026-04-01)
+
+#### Fixed
+- **`app_now()` SQL function** — Was returning Istanbul wall-clock time labeled as UTC (`AT TIME ZONE 'Europe/Istanbul'` on TIMESTAMPTZ), causing a systematic +3h offset. Fixed to use plain `NOW()` + debug offset. `app_current_date()` unchanged (Istanbul TZ correct for DATE).
+- **Client-side timestamp serialization** — All `DateTime.now().toIso8601String()` calls across 20 files (~49 locations) changed to `DateTime.now().toUtc().toIso8601String()`. Without `.toUtc()`, Dart sends local time without Z suffix → Supabase TIMESTAMPTZ interprets as UTC → 3h offset for UTC+3 users.
+- **WRITE/READ mismatch** — `complete_vocabulary_session` wrote `next_review_at = app_now()` (3h ahead), but `get_due_review_words` checked `next_review_at <= NOW()` (correct UTC). Words answered wrong in vocab sessions didn't appear as due for 3 hours.
+- **Book reader "I didn't know this"** — Words added from books weren't immediately visible in the Due tab due to the same timezone offset.
+- **Daily review `answerWord`** — SM2 algorithm used `AppClock.now()` (local time) for `nextReviewAt`, then `updateWordProgress` serialized without UTC conversion.
+
+#### Infrastructure
+- **Migration** `20260331000005_fix_app_now_timezone.sql` — Fixes `app_now()` function
+- **CLAUDE.md** — Added NEVER/ALWAYS rules for timestamp handling
+
 ### Daily Review Flashcard Redesign (2026-03-31)
 
 #### Changed
