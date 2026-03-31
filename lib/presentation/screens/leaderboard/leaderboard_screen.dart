@@ -13,28 +13,31 @@ import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/top_navbar.dart';
 
-/// Prevents league join dialog from firing multiple times.
-final _leagueJoinDialogShownProvider = StateProvider<bool>((_) => false);
-
-class LeaderboardScreen extends ConsumerWidget {
+class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
+}
+
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
+  bool _joinDialogShown = false;
+
+  @override
+  Widget build(BuildContext context) {
     final scope = ref.watch(leaderboardScopeProvider);
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
     // Listen for league join transition (not joined → joined)
-    // StateProvider flag prevents multiple dialog triggers from provider rebuilds
     ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
+      if (_joinDialogShown) return;
       final wasJoined = prev?.valueOrNull?.joined ?? false;
       final isJoined = next.valueOrNull?.joined ?? false;
-      final alreadyShown = ref.read(_leagueJoinDialogShownProvider);
-      if (!wasJoined && isJoined && !alreadyShown) {
-        ref.read(_leagueJoinDialogShownProvider.notifier).state = true;
+      if (!wasJoined && isJoined) {
+        _joinDialogShown = true;
         final tier = next.valueOrNull?.tier ?? LeagueTier.bronze;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) _showLeagueJoinedDialog(context, tier);
+          if (mounted) _showLeagueJoinedDialog(context, tier);
         });
       }
     });
