@@ -13,6 +13,9 @@ import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/top_navbar.dart';
 
+/// Prevents league join dialog from firing multiple times.
+final _leagueJoinDialogShownProvider = StateProvider<bool>((_) => false);
+
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
 
@@ -22,11 +25,13 @@ class LeaderboardScreen extends ConsumerWidget {
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
     // Listen for league join transition (not joined → joined)
-    // Post-frame callback avoids "build dirty widget in wrong scope" error
+    // StateProvider flag prevents multiple dialog triggers from provider rebuilds
     ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
       final wasJoined = prev?.valueOrNull?.joined ?? false;
       final isJoined = next.valueOrNull?.joined ?? false;
-      if (!wasJoined && isJoined) {
+      final alreadyShown = ref.read(_leagueJoinDialogShownProvider);
+      if (!wasJoined && isJoined && !alreadyShown) {
+        ref.read(_leagueJoinDialogShownProvider.notifier).state = true;
         final tier = next.valueOrNull?.tier ?? LeagueTier.bronze;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) _showLeagueJoinedDialog(context, tier);
