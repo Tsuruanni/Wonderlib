@@ -8,6 +8,7 @@ import '../../domain/usecases/user/get_user_league_status_usecase.dart';
 import '../../domain/usecases/user/get_user_total_position_usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 
 enum LeaderboardScope { classScope, schoolScope, leagueScope }
 
@@ -16,10 +17,14 @@ final leaderboardScopeProvider = StateProvider<LeaderboardScope>(
 );
 
 /// League status for the current user (joined?, group_id, progress).
+/// Watches userControllerProvider so it rebuilds when user XP changes
+/// (e.g., after earning XP on another screen, lazy join triggers server-side).
 final leagueStatusProvider =
     FutureProvider.autoDispose<LeagueStatus?>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return null;
+  // Watch userControllerProvider to rebuild when XP changes
+  final user = ref.watch(userControllerProvider).valueOrNull;
+  if (user == null) return null;
+  final userId = user.id;
 
   final useCase = ref.watch(getUserLeagueStatusUseCaseProvider);
   final result = await useCase(
