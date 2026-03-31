@@ -294,7 +294,10 @@ class _ZonePreviewBanner extends StatelessWidget {
       );
     }
 
-    if (totalEntries > zoneSize * 2 && rank > totalEntries - zoneSize) {
+    // No demotion zone in Bronze (can't demote further)
+    final userTier = state.leagueStatus?.tier;
+    if (userTier != LeagueTier.bronze &&
+        totalEntries > zoneSize * 2 && rank > totalEntries - zoneSize) {
       return _buildBanner(
         icon: Icons.warning_amber_rounded,
         text: 'Danger zone — earn more XP to stay safe!',
@@ -426,8 +429,9 @@ class _LeaderboardList extends StatelessWidget {
         cardColor = const Color(0xFFE8F5E9);
         borderColor = const Color(0xFF66BB6A);
         borderWidth = 1.5;
-      } else if (totalEntries > zoneSize * 2 && entry.rank > totalEntries - zoneSize) {
-        // Demote zone
+      } else if (state.leagueStatus?.tier != LeagueTier.bronze &&
+                 totalEntries > zoneSize * 2 && entry.rank > totalEntries - zoneSize) {
+        // Demote zone (not shown in Bronze — can't demote further)
         cardColor = const Color(0xFFFCE4EC);
         borderColor = const Color(0xFFEF5350);
         borderWidth = 1.5;
