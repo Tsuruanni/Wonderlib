@@ -75,9 +75,10 @@ class _StreakSheetState extends ConsumerState<StreakSheet> {
       (year: prevDate.year, month: prevDate.month),
     )).valueOrNull ?? {};
     final allLoginData = {...prevMonth, ...curMonth};
-    final computedStreak = _countStreakFromLogins(allLoginData, today);
-    debugPrint('🔥 Streak sheet: today=$today, loginDays=${allLoginData.length}, '
-        'computedStreak=$computedStreak, profileStreak=${user.currentStreak}');
+    // Use computed streak when data is loaded, fall back to profile value while loading
+    final computedStreak = allLoginData.isEmpty
+        ? user.currentStreak
+        : _countStreakFromLogins(allLoginData, today);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
