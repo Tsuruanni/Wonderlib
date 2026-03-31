@@ -372,10 +372,23 @@ class _LeaderboardList extends StatelessWidget {
     final showDemotionZone = isLeague && !isBronze && totalEntries > zoneSize * 2;
     final demotionStart = totalEntries - zoneSize;
 
-    // Build list items with zone separators injected
+    // Build list items
     final items = <Widget>[];
 
-    for (var i = 0; i < state.entries.length; i++) {
+    // Class/School tabs: podium for top 3
+    if (!isLeague && state.entries.length >= 3) {
+      items.add(_PodiumSection(
+        entries: state.entries.take(3).toList(),
+        currentUserId: state.currentUserId,
+        useWeeklyXp: false,
+        onEntryTap: (entry) => showStudentProfileDialog(context, entry),
+      ));
+    }
+
+    // Determine start index (skip top 3 if podium shown)
+    final startIndex = (!isLeague && state.entries.length >= 3) ? 3 : 0;
+
+    for (var i = startIndex; i < state.entries.length; i++) {
       final entry = state.entries[i];
       final isCurrentUser = state.isCurrentUser(entry.userId);
 
@@ -421,18 +434,21 @@ class _LeaderboardList extends StatelessWidget {
       {required bool isCurrentUser}) {
     final isLeague = state.isLeagueMode;
 
+    // League mode: no frames (Duolingo style). Class/School: framed cards.
+    final bool frameless = isLeague;
+
     Color cardColor;
-    Color borderColor;
+    Color? borderColor;
     double borderWidth;
 
     if (isCurrentUser) {
       cardColor = AppColors.secondaryBackground;
-      borderColor = AppColors.secondary;
-      borderWidth = 2;
+      borderColor = frameless ? null : AppColors.secondary;
+      borderWidth = frameless ? 0 : 2;
     } else {
-      cardColor = AppColors.white;
-      borderColor = AppColors.neutral;
-      borderWidth = 1.5;
+      cardColor = frameless ? Colors.transparent : AppColors.white;
+      borderColor = frameless ? null : AppColors.neutral;
+      borderWidth = frameless ? 0 : 1.5;
     }
 
     return GestureDetector(
@@ -440,13 +456,18 @@ class _LeaderboardList extends StatelessWidget {
           ? null
           : () => showStudentProfileDialog(context, entry),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
+        margin: EdgeInsets.only(bottom: frameless ? 0 : 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: borderWidth),
-        ),
+        decoration: frameless
+            ? BoxDecoration(
+                color: isCurrentUser ? cardColor : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              )
+            : BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: borderColor!, width: borderWidth),
+              ),
         child: Row(
           children: [
             // Rank (colored circle for top 3)
@@ -823,6 +844,182 @@ class _XpBadge extends StatelessWidget {
         color: AppColors.neutralText,
       ),
     );
+  }
+}
+
+// ─────────────────────────────────────────────
+// Podium (Class/School tabs only)
+// ─────────────────────────────────────────────
+
+class _PodiumSection extends StatelessWidget {
+  const _PodiumSection({
+    required this.entries,
+    required this.currentUserId,
+    this.useWeeklyXp = false,
+    this.onEntryTap,
+  });
+
+  final List<LeaderboardEntry> entries;
+  final String currentUserId;
+  final bool useWeeklyXp;
+  final ValueChanged<LeaderboardEntry>? onEntryTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.waspBackground.withValues(alpha: 0.5),
+            AppColors.white,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.neutral,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (entries.length > 1)
+            Expanded(
+              child: _PodiumEntry(
+                entry: entries[1],
+                medal: '🥈',
+                height: 80,
+                isCurrentUser: entries[1].userId == currentUserId,
+                useWeeklyXp: useWeeklyXp,
+                onTap: onEntryTap != null
+                    ? () => onEntryTap!(entries[1])
+                    : null,
+              ),
+            ),
+          Expanded(
+            child: _PodiumEntry(
+              entry: entries[0],
+              medal: '🥇',
+              height: 110,
+              isCurrentUser: entries[0].userId == currentUserId,
+              useWeeklyXp: useWeeklyXp,
+              onTap: onEntryTap != null
+                  ? () => onEntryTap!(entries[0])
+                  : null,
+            ),
+          ),
+          if (entries.length > 2)
+            Expanded(
+              child: _PodiumEntry(
+                entry: entries[2],
+                medal: '🥉',
+                height: 60,
+                isCurrentUser: entries[2].userId == currentUserId,
+                useWeeklyXp: useWeeklyXp,
+                onTap: onEntryTap != null
+                    ? () => onEntryTap!(entries[2])
+                    : null,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PodiumEntry extends StatelessWidget {
+  const _PodiumEntry({
+    required this.entry,
+    required this.medal,
+    required this.height,
+    required this.isCurrentUser,
+    this.useWeeklyXp = false,
+    this.onTap,
+  });
+
+  final LeaderboardEntry entry;
+  final String medal;
+  final double height;
+  final bool isCurrentUser;
+  final bool useWeeklyXp;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(medal, style: const TextStyle(fontSize: 28)),
+          const SizedBox(height: 4),
+          _Avatar(
+            avatarUrl: entry.avatarUrl,
+            initials: entry.initials,
+            leagueTier: entry.leagueTier,
+            avatarEquippedCache: entry.avatarEquippedCache,
+            size: 48,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isCurrentUser ? 'You' : entry.firstName,
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              fontWeight: isCurrentUser ? FontWeight.w900 : FontWeight.w700,
+              color: isCurrentUser ? AppColors.secondary : AppColors.black,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            '${useWeeklyXp ? entry.weeklyXp : entry.totalXp} XP',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.waspDark,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: height,
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: _podiumColor(entry.rank),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Center(
+              child: Text(
+                '${entry.rank}',
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _podiumColor(int rank) {
+    return switch (rank) {
+      1 => const Color(0xFFFFD700),
+      2 => const Color(0xFFC0C0C0),
+      3 => const Color(0xFFCD7F32),
+      _ => AppColors.neutral,
+    };
   }
 }
 
