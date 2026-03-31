@@ -245,10 +245,27 @@ class _StreakBanner extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// _StreakCalendar — stub (implemented in Task 3)
+// _StreakCalendar — weekly / monthly toggle calendar
 // ---------------------------------------------------------------------------
 
-class _StreakCalendar extends StatefulWidget {
+const _kMonthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+
+const _kWeekDayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+class _StreakCalendar extends ConsumerStatefulWidget {
   const _StreakCalendar({
     required this.weeklyDays,
     required this.userCreatedAt,
@@ -258,13 +275,397 @@ class _StreakCalendar extends StatefulWidget {
   final DateTime userCreatedAt;
 
   @override
-  State<_StreakCalendar> createState() => _StreakCalendarState();
+  ConsumerState<_StreakCalendar> createState() => _StreakCalendarState();
 }
 
-class _StreakCalendarState extends State<_StreakCalendar> {
+class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
+  bool _isMonthly = false;
+  late int _displayYear;
+  late int _displayMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    final today = AppClock.today();
+    _displayYear = today.year;
+    _displayMonth = today.month;
+  }
+
+  // --- helpers --------------------------------------------------------------
+
+  bool _canGoBack() {
+    final created = widget.userCreatedAt;
+    return _displayYear > created.year ||
+        (_displayYear == created.year && _displayMonth > created.month);
+  }
+
+  bool _canGoForward() {
+    final today = AppClock.today();
+    return _displayYear < today.year ||
+        (_displayYear == today.year && _displayMonth < today.month);
+  }
+
+  void _prevMonth() {
+    if (!_canGoBack()) return;
+    setState(() {
+      _displayMonth--;
+      if (_displayMonth < 1) {
+        _displayMonth = 12;
+        _displayYear--;
+      }
+    });
+  }
+
+  void _nextMonth() {
+    if (!_canGoForward()) return;
+    setState(() {
+      _displayMonth++;
+      if (_displayMonth > 12) {
+        _displayMonth = 1;
+        _displayYear++;
+      }
+    });
+  }
+
+  // --- build ----------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(height: 100);
+    return Column(
+      children: [
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 300),
+          crossFadeState:
+              _isMonthly ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          firstChild: _buildWeeklyView(),
+          secondChild: _buildMonthlyView(),
+        ),
+        const SizedBox(height: 8),
+        _buildToggleButton(),
+      ],
+    );
+  }
+
+  // --- weekly view ----------------------------------------------------------
+
+  Widget _buildWeeklyView() {
+    final today = AppClock.today();
+    // Monday of current week
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    final days = List.generate(7, (i) => monday.add(Duration(days: i)));
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: days.map((date) {
+        final dayLabel = _kWeekDayLabels[(date.weekday % 7)]; // Sun=0..Sat=6
+        return _DayCell(
+          day: date.day,
+          label: dayLabel,
+          isToday: date == today,
+          isLogin: _isLoginDay(widget.weeklyDays, date),
+          isFreeze: _isFreezeDay(widget.weeklyDays, date),
+          isFaded: date.isAfter(today) ||
+              date.isBefore(
+                DateTime(
+                  widget.userCreatedAt.year,
+                  widget.userCreatedAt.month,
+                  widget.userCreatedAt.day,
+                ),
+              ),
+        );
+      }).toList(),
+    );
+  }
+
+  // --- monthly view ---------------------------------------------------------
+
+  Widget _buildMonthlyView() {
+    final monthData = ref
+            .watch(
+              monthlyLoginDatesProvider(
+                (year: _displayYear, month: _displayMonth),
+              ),
+            )
+            .valueOrNull ??
+        {};
+    final today = AppClock.today();
+    final daysInMonth =
+        DateTime(_displayYear, _displayMonth + 1, 0).day;
+    // weekday of 1st: DateTime weekday is 1=Mon..7=Sun → convert to Sun=0
+    final firstWeekday = DateTime(_displayYear, _displayMonth, 1).weekday % 7;
+    final createdDate = DateTime(
+      widget.userCreatedAt.year,
+      widget.userCreatedAt.month,
+      widget.userCreatedAt.day,
+    );
+
+    // Build grid cells
+    final cells = <Widget>[];
+    // Leading empty cells
+    for (var i = 0; i < firstWeekday; i++) {
+      cells.add(const SizedBox());
+    }
+    // Day cells
+    for (var d = 1; d <= daysInMonth; d++) {
+      final date = DateTime(_displayYear, _displayMonth, d);
+      final isFuture = date.isAfter(today);
+      final isBeforeCreated = date.isBefore(createdDate);
+      cells.add(
+        _DayCell(
+          day: d,
+          isToday: date == today,
+          isLogin: _isLoginDay(monthData, date),
+          isFreeze: _isFreezeDay(monthData, date),
+          isFaded: isFuture || isBeforeCreated,
+          compact: true,
+        ),
+      );
+    }
+    // Pad last row to multiple of 7
+    while (cells.length % 7 != 0) {
+      cells.add(const SizedBox());
+    }
+
+    return Column(
+      children: [
+        // Month navigation
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              onPressed: _canGoBack() ? _prevMonth : null,
+              icon: Icon(
+                Icons.chevron_left_rounded,
+                color: _canGoBack() ? AppColors.gray700 : AppColors.gray300,
+              ),
+            ),
+            Text(
+              '${_kMonthNames[_displayMonth - 1].toUpperCase()} $_displayYear',
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.gray700,
+              ),
+            ),
+            IconButton(
+              onPressed: _canGoForward() ? _nextMonth : null,
+              icon: Icon(
+                Icons.chevron_right_rounded,
+                color:
+                    _canGoForward() ? AppColors.gray700 : AppColors.gray300,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        // Weekday headers
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: _kWeekDayLabels
+              .map(
+                (l) => SizedBox(
+                  width: 36,
+                  child: Center(
+                    child: Text(
+                      l,
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.gray400,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 4),
+        // Grid rows
+        for (var row = 0; row < cells.length ~/ 7; row++)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: cells.sublist(row * 7, row * 7 + 7).map((cell) {
+                return SizedBox(width: 36, height: 36, child: cell);
+              }).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // --- toggle button --------------------------------------------------------
+
+  Widget _buildToggleButton() {
+    return GestureDetector(
+      onTap: () => setState(() {
+        _isMonthly = !_isMonthly;
+        if (_isMonthly) {
+          final today = AppClock.today();
+          _displayYear = today.year;
+          _displayMonth = today.month;
+        }
+      }),
+      child: Text(
+        _isMonthly ? 'Show weekly \u25B2' : 'Show monthly \u25BC',
+        style: GoogleFonts.nunito(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.gray500,
+        ),
+      ),
+    );
+  }
+
+  // --- date lookup helpers --------------------------------------------------
+
+  static bool _isLoginDay(Map<DateTime, bool> map, DateTime date) {
+    final key = DateTime(date.year, date.month, date.day);
+    return map.containsKey(key) && !(map[key] ?? true);
+  }
+
+  static bool _isFreezeDay(Map<DateTime, bool> map, DateTime date) {
+    final key = DateTime(date.year, date.month, date.day);
+    return map.containsKey(key) && (map[key] ?? false);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _DayCell — single day in the streak calendar
+// ---------------------------------------------------------------------------
+
+class _DayCell extends StatelessWidget {
+  const _DayCell({
+    required this.day,
+    this.label,
+    this.isToday = false,
+    this.isLogin = false,
+    this.isFreeze = false,
+    this.isFaded = false,
+    this.compact = false,
+  });
+
+  final int day;
+  final String? label;
+  final bool isToday;
+  final bool isLogin;
+  final bool isFreeze;
+  final bool isFaded;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = compact ? 30.0 : 38.0;
+
+    Widget dayContent;
+
+    if (isLogin || (isToday && isLogin)) {
+      // Login day (or today + logged in): orange circle with white checkmark
+      dayContent = Container(
+        width: size,
+        height: size,
+        decoration: const BoxDecoration(
+          color: AppColors.streakOrange,
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
+      );
+    } else if (isFreeze) {
+      // Freeze day: blue circle with white snowflake
+      dayContent = Container(
+        width: size,
+        height: size,
+        decoration: const BoxDecoration(
+          color: AppColors.gemBlue,
+          shape: BoxShape.circle,
+        ),
+        child:
+            const Icon(Icons.ac_unit_rounded, color: Colors.white, size: 16),
+      );
+    } else if (isToday) {
+      // Today (not logged in): orange outline circle with day number
+      dayContent = Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.streakOrange, width: 2),
+        ),
+        child: Center(
+          child: Text(
+            '$day',
+            style: GoogleFonts.nunito(
+              fontSize: compact ? 12 : 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.streakOrange,
+            ),
+          ),
+        ),
+      );
+    } else if (isFaded) {
+      // Before created_at or future: very faded
+      dayContent = SizedBox(
+        width: size,
+        height: size,
+        child: Center(
+          child: Text(
+            '$day',
+            style: GoogleFonts.nunito(
+              fontSize: compact ? 12 : 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.gray300,
+            ),
+          ),
+        ),
+      );
+    } else {
+      // Missed day (past, after created_at): plain grey
+      dayContent = SizedBox(
+        width: size,
+        height: size,
+        child: Center(
+          child: Text(
+            '$day',
+            style: GoogleFonts.nunito(
+              fontSize: compact ? 12 : 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.gray400,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // In weekly mode, show a label above and possibly a today marker below
+    if (!compact && label != null) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label!,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: isToday ? AppColors.streakOrange : AppColors.gray400,
+            ),
+          ),
+          const SizedBox(height: 4),
+          dayContent,
+          const SizedBox(height: 2),
+          if (isToday)
+            const Icon(
+              Icons.arrow_drop_down_rounded,
+              size: 16,
+              color: AppColors.streakOrange,
+            )
+          else
+            const SizedBox(height: 16),
+        ],
+      );
+    }
+
+    return dayContent;
   }
 }
 
