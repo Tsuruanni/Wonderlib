@@ -8,6 +8,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Learning Path Node Redesign (2026-03-31)
+
+#### Added
+- **3D glossy sphere nodes** — Duolingo-style node circles with radial gradient lighting, hard extrusion shadow, and glossy upper-arc highlight. Replaces flat bordered circles.
+- **Press-down effect on nodes** — Tap-down feedback: shadow shrinks 6→2px, circle shifts down 4px via `AnimatedPadding` + `AnimatedContainer` (60ms). Completed nodes stay permanently pressed.
+- **Popup card on tap** — All detail-page nodes show a tooltip-style overlay card below the node (via `CompositedTransformFollower` + `OverlayEntry`). Contains name + action button with type-specific text: START / READ / PLAY / CLAIM. Pop-in scale animation. Tap outside to dismiss.
+- **Pressable 3D button in popup** — White button with hard shadow + press-down effect using opposing margin swap (constant total height).
+- **Unit numbers in nodes** — Unit map nodes display 1, 2, 3… inside the circle instead of icons.
+- **Gold star crowns** — Stars moved above nodes, always gold (`0xFFFFD700`) with dark border via 4-directional shadows. Middle star raised for crown effect. Filled stars glow amber.
+
+#### Changed
+- **Node icons** — `wordList`: `menu_book` → `translate_rounded`. `treasure`: `card_giftcard` → `diamond_rounded` (orange). `book`: brighter blue (`0xFF1E88E5`). `game`: brighter purple (`0xFF8E24AA`).
+- **Completed state** — Node turns green (`AppColors.primary`) with check icon and pressed look, instead of separate green badge overlay.
+- **Labels removed from popup nodes** — Name shown in popup card instead of text below the node. Unit-number nodes still show labels.
+- **START bubble scope** — Now only appears on detail-page active nodes (no `unitNumber`), not on unit map.
+- **`NodeType` simplified** — Removed `bgColor` field (3D gradient computes light/dark from single `color`).
+- **Library continue-reading cards** — Redesigned with progress bar, completion badge, quiz/demo badges, 3D shadow.
+- **Profile screen** — UI refinements.
+- **Admin tile theme editor** — Map tile scaling fills available width.
+
+#### Infrastructure
+- **DB migration** — Remove review node artifacts (stale columns/tables).
+- **DB migration** — Increase avatars bucket file size limit.
+
 ### Home Page Removal & Quests Page (2026-03-30)
 
 #### Added

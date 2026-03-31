@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -133,9 +134,18 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
 
       final url = supabase.storage.from('avatars').getPublicUrl(path);
 
+      // Auto-calculate tile height from image aspect ratio
+      // Reference: kTileWidth = 800, so height = 800 * imgH / imgW
+      final codec = await ui.instantiateImageCodec(file.bytes!);
+      final frame = await codec.getNextFrame();
+      final imgW = frame.image.width;
+      final imgH = frame.image.height;
+      final autoHeight = (800.0 * imgH / imgW).roundToDouble();
+
       setState(() {
         _imageUrl = url;
         _imageBytes = file.bytes;
+        _height = autoHeight.clamp(300, 5000);
       });
 
       if (mounted) {
@@ -363,9 +373,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Görsel boyutu: 800 × yükseklik px. '
-                                  'Uygulama, ünite item sayısına göre görseli alttan kırpar. '
-                                  'Tüm nodeları kapsayacak kadar uzun bir görsel yükleyin.',
+                                  'Önerilen genişlik: 1920px. '
+                                  'Yükseklik görselin en-boy oranından otomatik hesaplanır.',
                                   style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
                                 ),
                               ),
@@ -376,23 +385,15 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                         Row(
                           children: [
                             const Text('Yükseklik: '),
-                            Expanded(
-                              child: Slider(
-                                value: _height,
-                                min: 300,
-                                max: 5000,
-                                divisions: 94,
-                                label: '${_height.round()}px',
-                                onChanged: (v) =>
-                                    setState(() => _height = v),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 70,
-                              child: Text('${_height.round()}px',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                            ),
+                            const SizedBox(width: 8),
+                            Text('${_height.round()}px',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            Text('(görselden hesaplandı)',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600)),
                           ],
                         ),
                         const SizedBox(height: 16),

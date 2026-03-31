@@ -649,52 +649,17 @@ class _BookShelfItem extends ConsumerWidget {
                         ),
                      ),
                   if (!isCompleted && isQuizReady)
-                    Positioned(
+                    const Positioned(
                       top: 6,
                       right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
-                            const SizedBox(width: 3),
-                            Text(
-                              'Quiz',
-                              style: GoogleFonts.nunito(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _QuizBadge(),
                     ),
                   // Demo badge (only when mock mode is on and book has no other badge)
                   if (mockEnabled && !isCompleted && !isQuizReady)
-                    Positioned(
+                    const Positioned(
                       top: 6,
                       right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.wasp,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Demo',
-                          style: GoogleFonts.nunito(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
+                      child: _DemoBadge(),
                     ),
                 ],
               ),
@@ -913,7 +878,7 @@ class _ContinueReadingSection extends ConsumerWidget {
               const SizedBox(height: 12),
               // Horizontal book list
               SizedBox(
-                height: 220,
+                height: 250,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: books.length,
@@ -935,6 +900,8 @@ class _ContinueReadingCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final mockEnabled = ref.watch(mockLibraryEnabledProvider);
+    final isCompleted = ref.watch(completedBookIdsProvider).valueOrNull?.contains(book.id) ?? false;
     final isQuizReady =
         ref.watch(isQuizReadyProvider(book.id)).valueOrNull ?? false;
     final progress =
@@ -945,12 +912,17 @@ class _ContinueReadingCard extends ConsumerWidget {
       onTap: () => context.go(AppRoutes.bookDetailPath(book.id)),
       child: Container(
         width: 140,
+        margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.neutral, width: 2),
           boxShadow: [
-            BoxShadow(color: AppColors.neutral, offset: Offset(0, 4)),
+            BoxShadow(
+              color: AppColors.neutral.withOpacity(0.6),
+              offset: const Offset(0, 4),
+              blurRadius: 0,
+            ),
           ],
         ),
         child: Column(
@@ -958,57 +930,56 @@ class _ContinueReadingCard extends ConsumerWidget {
           children: [
             Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     child: CachedBookImage(
                       imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
                       errorWidget: Container(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        child: Icon(Icons.book, color: AppColors.primary),
+                        color: AppColors.neutral.withOpacity(0.2),
+                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText)),
                       ),
                     ),
                   ),
-                  if (isQuizReady)
+                  if (isCompleted)
                     Positioned(
+                      top: 8, right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                      ),
+                    ),
+                  if (!isCompleted && isQuizReady)
+                    const Positioned(
                       top: 6,
                       right: 6,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
-                            const SizedBox(width: 3),
-                            Text(
-                              'Quiz',
-                              style: GoogleFonts.nunito(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _QuizBadge(),
+                    ),
+                  if (mockEnabled && !isCompleted && !isQuizReady)
+                    const Positioned(
+                      top: 6,
+                      right: 6,
+                      child: _DemoBadge(),
                     ),
                 ],
               ),
             ),
-            if (percentage > 0 && percentage < 100)
-              ClipRRect(
-                child: LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-                  color: AppColors.secondary,
-                  minHeight: 3,
-                ),
+            // Always show progress bar for continue reading
+            ClipRRect(
+              child: LinearProgressIndicator(
+                value: percentage / 100,
+                backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                color: AppColors.secondary,
+                minHeight: 4,
               ),
+            ),
             Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1016,16 +987,32 @@ class _ContinueReadingCard extends ConsumerWidget {
                 children: [
                   Text(
                     book.title,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  Text(
-                    book.level,
                     style: GoogleFonts.nunito(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      book.genre?.toUpperCase() ?? 'GENERAL',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.nunito(
+                        fontSize: 9,
+                        color: AppColors.neutralText,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                 ],
@@ -1036,6 +1023,122 @@ class _ContinueReadingCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+// ─── Shared Badges ───
+
+class _QuizBadge extends StatelessWidget {
+  const _QuizBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            offset: const Offset(0, 2),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
+          const SizedBox(width: 4),
+          Text(
+            'Take the Quiz!',
+            style: GoogleFonts.nunito(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 10,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DemoBadge extends StatelessWidget {
+  const _DemoBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashedBorderPainter(
+        color: AppColors.wasp,
+        borderRadius: 10,
+        dashWidth: 4,
+        dashGap: 3,
+        strokeWidth: 2,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.wasp.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          'DEMO',
+          style: GoogleFonts.nunito(
+            color: AppColors.wasp,
+            fontWeight: FontWeight.w900,
+            fontSize: 10,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DashedBorderPainter extends CustomPainter {
+  _DashedBorderPainter({
+    required this.color,
+    required this.borderRadius,
+    required this.dashWidth,
+    required this.dashGap,
+    required this.strokeWidth,
+  });
+
+  final Color color;
+  final double borderRadius;
+  final double dashWidth;
+  final double dashGap;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(borderRadius),
+    );
+
+    final path = Path()..addRRect(rrect);
+    final metrics = path.computeMetrics().first;
+    final totalLength = metrics.length;
+
+    double distance = 0;
+    while (distance < totalLength) {
+      final end = (distance + dashWidth).clamp(0.0, totalLength);
+      final segment = metrics.extractPath(distance, end);
+      canvas.drawPath(segment, paint);
+      distance += dashWidth + dashGap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _LockedLibraryBanner extends ConsumerWidget {

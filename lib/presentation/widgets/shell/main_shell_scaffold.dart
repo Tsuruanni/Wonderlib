@@ -126,8 +126,8 @@ class MainShellScaffold extends ConsumerWidget {
             ),
             // Content + optional reader sidebar + optional right panel
             Expanded(
-              child: Builder(
-                builder: (context) {
+              child: LayoutBuilder(
+                builder: (context, constraints) {
                   final location = GoRouterState.of(context).uri.path;
                   final isFullWidth = location.startsWith(AppRoutes.vocabulary);
                   final isReader = location.startsWith('/reader') ||
@@ -138,28 +138,46 @@ class MainShellScaffold extends ConsumerWidget {
                       ? screenWidth >= 1400
                       : screenWidth >= 1000;
 
+                  final shell = ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                    child: navigationShell,
+                  );
+
                   if (showReaderSidebar) {
                     // Reader with sidebar — full width
                     return Row(
                       children: [
                         const ReaderSidebar(),
-                        Expanded(child: navigationShell),
+                        Expanded(child: shell),
                         if (showRightPanel) const RightInfoPanel(),
                       ],
                     );
                   }
 
-                  // All other pages: constrained center layout
-                  // (including Learning Path — terrain bg works within constrained width)
+                  final maxW = showRightPanel ? 1060.0 : 800.0;
+
+                  if (isFullWidth) {
+                    // Vocabulary: map fills from left edge, right panel
+                    // stays at same absolute position as centered pages.
+                    final available = constraints.maxWidth;
+                    final sideGap = ((available - maxW) / 2).clamp(0.0, available);
+                    return Row(
+                      children: [
+                        Expanded(child: shell),
+                        if (showRightPanel) const RightInfoPanel(),
+                        SizedBox(width: sideGap),
+                      ],
+                    );
+                  }
+
+                  // Other pages: constrained center layout
                   return Align(
                     alignment: Alignment.topCenter,
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: showRightPanel ? 1060 : 800,
-                      ),
+                      constraints: BoxConstraints(maxWidth: maxW),
                       child: Row(
                         children: [
-                          Expanded(child: navigationShell),
+                          Expanded(child: shell),
                           if (showRightPanel) const RightInfoPanel(),
                         ],
                       ),

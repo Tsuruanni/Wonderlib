@@ -473,28 +473,24 @@ class _StudentProfileBody extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          // 1. Header
+          // 1. Header (avatar + name + level bar)
           _ProfileHeader(user: user).animate().fadeIn().moveY(begin: 10, end: 0),
           const SizedBox(height: 24),
 
-          // 2. Level & XP
-          _LevelXpSection(user: user).animate().fadeIn(delay: 100.ms),
+          // 2. Card Collection
+          const _CardCollectionSection().animate().fadeIn(delay: 100.ms),
           const SizedBox(height: 20),
 
-          // 3. Card Collection
-          const _CardCollectionSection().animate().fadeIn(delay: 200.ms),
+          // 3. Recent Badges
+          const _RecentBadgesSection().animate().fadeIn(delay: 200.ms),
           const SizedBox(height: 20),
 
-          // 4. Recent Badges
-          const _RecentBadgesSection().animate().fadeIn(delay: 300.ms),
+          // 4. Stats
+          const _StatsSection().animate().fadeIn(delay: 300.ms),
           const SizedBox(height: 20),
 
-          // 5. Stats (reading + vocab combined)
-          const _StatsSection().animate().fadeIn(delay: 400.ms),
-          const SizedBox(height: 20),
-
-          // 6. Daily Review
-          const _DailyReviewProfileCard().animate().fadeIn(delay: 500.ms),
+          // 5. Daily Review
+          const _DailyReviewProfileCard().animate().fadeIn(delay: 400.ms),
           const SizedBox(height: 32),
 
           // 8. Sign Out
@@ -517,22 +513,26 @@ class _ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileContext = ref.watch(profileContextProvider).valueOrNull;
+    final progress = LevelHelper.progress(user.xp, user.level);
 
-    return Column(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Avatar with edit button
-        Stack(
-          children: [
-            AvatarWidget(
-              avatar: ref.watch(equippedAvatarProvider),
-              size: 100,
-              fallbackInitials: user.initials,
-            ),
-            Positioned(
-              bottom: -4,
-              right: -4,
-              child: GestureDetector(
-                onTap: () => context.push(AppRoutes.avatarCustomize),
+        // Avatar — square, rounded rectangle
+        GestureDetector(
+          onTap: () => context.push(AppRoutes.avatarCustomize),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              AvatarWidget(
+                avatar: ref.watch(equippedAvatarProvider),
+                size: 130,
+                fallbackInitials: user.initials,
+                borderRadius: 22,
+              ),
+              Positioned(
+                bottom: 4,
+                right: 4,
                 child: Container(
                   width: 28,
                   height: 28,
@@ -544,36 +544,78 @@ class _ProfileHeader extends ConsumerWidget {
                   child: const Icon(Icons.edit, size: 14, color: Colors.white),
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Full Name
-        Text(
-          user.fullName,
-          style: GoogleFonts.nunito(
-            fontSize: 24,
-            fontWeight: FontWeight.w900,
-            color: AppColors.black,
+            ],
           ),
         ),
+        const SizedBox(width: 16),
 
-        // Username
-        if (user.username != null && user.username!.isNotEmpty)
-          Text(
-            '@${user.username}',
-            style: GoogleFonts.nunito(
-              fontSize: 15,
-              color: AppColors.neutralText,
-              fontWeight: FontWeight.w600,
-            ),
+        // Info column
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text(
+                user.fullName,
+                style: GoogleFonts.nunito(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.black,
+                ),
+              ),
+              if (user.username != null && user.username!.isNotEmpty)
+                Text(
+                  '@${user.username}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    color: AppColors.neutralText,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              if (profileContext != null) ...[
+                _buildSchoolClass(profileContext),
+                const SizedBox(height: 12),
+              ],
+              // Inline level indicator
+              Row(
+                children: [
+                  Text(
+                    'LVL ${user.level}',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                      color: AppColors.waspDark,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                        color: AppColors.wasp,
+                        minHeight: 8,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.bolt_rounded, size: 16, color: AppColors.wasp),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${user.xp}',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-
-        const SizedBox(height: 6),
-
-        // School & Class
-        if (profileContext != null) _buildSchoolClass(profileContext),
+        ),
       ],
     );
   }
@@ -585,115 +627,24 @@ class _ProfileHeader extends ConsumerWidget {
     if (parts.isEmpty) return const SizedBox.shrink();
 
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.school_rounded, size: 16, color: AppColors.neutralText),
         const SizedBox(width: 4),
-        Text(
-          parts.join(' • '),
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            color: AppColors.neutralText,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            parts.join(' • '),
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              color: AppColors.neutralText,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 }
-
-// ─────────────────────────────────────────────
-// 2. LEVEL & XP
-// ─────────────────────────────────────────────
-
-class _LevelXpSection extends StatelessWidget {
-  const _LevelXpSection({required this.user});
-  final User user;
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = LevelHelper.progress(user.xp, user.level);
-    final xpIn = LevelHelper.xpInCurrentLevel(user.xp, user.level);
-    final xpNeeded = LevelHelper.xpToNextLevel(user.level);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: [
-          BoxShadow(color: AppColors.neutral, offset: const Offset(0, 3)),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              // Level badge
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.wasp.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.wasp, width: 2),
-                ),
-                child: Text(
-                  'LVL ${user.level}',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    color: AppColors.waspDark,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              // XP count
-              Row(
-                children: [
-                  Icon(Icons.bolt_rounded, size: 20, color: AppColors.wasp),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${user.xp} XP',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: AppColors.wasp,
-              minHeight: 10,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Level ${user.level} — $xpIn / $xpNeeded XP to next level',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// PLACEHOLDER SECTIONS (implemented in next tasks)
-// ─────────────────────────────────────────────
 
 class _CardCollectionSection extends ConsumerWidget {
   const _CardCollectionSection();
@@ -707,10 +658,11 @@ class _CardCollectionSection extends ConsumerWidget {
       loading: () => const SizedBox(height: 80),
       error: (_, __) => const SizedBox.shrink(),
       data: (stats) {
+        if (stats.totalUniqueCards == 0) return const SizedBox.shrink();
+
         const totalCards = AppConstants.totalCardCount;
         final progress = stats.totalUniqueCards / totalCards;
 
-        // Sort cards: legendary first, then epic, rare, common
         final sortedCards = [...userCards]
           ..sort((a, b) => b.card.rarity.index.compareTo(a.card.rarity.index));
         final previewCards = sortedCards.take(5).toList();
@@ -720,17 +672,11 @@ class _CardCollectionSection extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardEpic.withValues(alpha: 0.06),
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.cardEpic.withValues(alpha: 0.3),
-                width: 2,
-              ),
+              border: Border.all(color: AppColors.neutral, width: 2),
               boxShadow: [
-                BoxShadow(
-                  color: AppColors.cardEpic.withValues(alpha: 0.1),
-                  offset: const Offset(0, 3),
-                ),
+                BoxShadow(color: AppColors.neutral, offset: const Offset(0, 3)),
               ],
             ),
             child: Column(
@@ -772,7 +718,6 @@ class _CardCollectionSection extends ConsumerWidget {
                     minHeight: 8,
                   ),
                 ),
-                // Card preview row
                 if (previewCards.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -798,18 +743,6 @@ class _CardCollectionSection extends ConsumerWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    '${stats.totalPacksOpened} packs opened',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -1035,8 +968,95 @@ class _StatsSection extends ConsumerWidget {
       return const SizedBox(height: 80);
     }
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Statistics',
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: AppColors.black,
+          ),
+        ),
+        const SizedBox(height: 14),
+        // 2x2 grid
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.menu_book_rounded,
+                iconColor: AppColors.secondary,
+                value: '$booksCompleted',
+                label: 'Books read',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.bookmark_rounded,
+                iconColor: AppColors.secondary,
+                value: '$chaptersCompleted',
+                label: 'Chapters read',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.schedule_rounded,
+                iconColor: AppColors.streakOrange,
+                value: _formatTime(readingTimeMin),
+                label: 'Reading time',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: PressableScale(
+                onTap: () => context.push(AppRoutes.wordBank),
+                child: _StatCard(
+                  icon: Icons.translate_rounded,
+                  iconColor: AppColors.gemBlue,
+                  value: '$learningWords',
+                  label: 'New words',
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  static String _formatTime(int minutes) {
+    if (minutes < 60) return '${minutes}m';
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+    if (mins == 0) return '${hours}h';
+    return '${hours}h ${mins}m';
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.label,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1050,143 +1070,24 @@ class _StatsSection extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.bar_chart_rounded,
-                  size: 22, color: AppColors.secondary),
+              Icon(icon, size: 22, color: iconColor),
               const SizedBox(width: 8),
               Text(
-                'Stats',
+                value,
                 style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
                   color: AppColors.black,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _MiniStat(
-                  icon: Icons.menu_book_rounded,
-                  value: '$booksCompleted',
-                  label: 'Books Read',
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MiniStat(
-                  icon: Icons.bookmark_rounded,
-                  value: '$chaptersCompleted',
-                  label: 'Chapters Read',
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MiniStat(
-                  icon: Icons.schedule_rounded,
-                  value: _formatTime(readingTimeMin),
-                  label: 'Reading Time',
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MiniStat(
-                  icon: Icons.translate_rounded,
-                  value: '$learningWords',
-                  label: 'New Words',
-                  color: AppColors.streakOrange,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // Word Bank shortcut
-          PressableScale(
-            onTap: () => context.push(AppRoutes.wordBank),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.gemBlue.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.library_books_rounded,
-                      size: 18, color: AppColors.gemBlue),
-                  const SizedBox(width: 8),
-                  Text(
-                    'My Word Bank',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: AppColors.gemBlue,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(Icons.chevron_right_rounded,
-                      size: 18, color: AppColors.gemBlue),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _formatTime(int minutes) {
-    if (minutes < 60) return '${minutes}m';
-    final hours = minutes ~/ 60;
-    final mins = minutes % 60;
-    if (mins == 0) return '${hours}h';
-    return '${hours}h ${mins}m';
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 22, color: color),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-              color: AppColors.black,
-            ),
-          ),
           Text(
             label,
             style: GoogleFonts.nunito(
               fontWeight: FontWeight.w600,
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.neutralText,
             ),
           ),

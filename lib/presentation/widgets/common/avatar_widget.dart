@@ -9,14 +9,25 @@ class AvatarWidget extends StatelessWidget {
     super.key,
     required this.avatar,
     this.size = 48,
+    this.width,
+    this.height,
     this.fallbackInitials,
     this.showBorder = true,
+    this.borderRadius,
+    this.stretch = false,
   });
 
   final EquippedAvatar avatar;
   final double size;
+  /// Override width/height independently for rectangular avatars.
+  final double? width;
+  final double? height;
   final String? fallbackInitials;
   final bool showBorder;
+  /// When set, uses rounded rectangle instead of circle.
+  final double? borderRadius;
+  /// When true, height expands to fill parent (use with IntrinsicHeight).
+  final bool stretch;
 
   @override
   Widget build(BuildContext context) {
@@ -43,24 +54,36 @@ class AvatarWidget extends StatelessWidget {
 
     allLayers.sort((a, b) => a.z.compareTo(b.z));
 
+    final w = width ?? size;
+    final isRounded = borderRadius != null;
+
     return Container(
-      width: size,
-      height: size,
+      width: w,
+      height: stretch ? null : (height ?? size),
       decoration: showBorder
           ? BoxDecoration(
-              shape: BoxShape.circle,
+              shape: isRounded ? BoxShape.rectangle : BoxShape.circle,
+              borderRadius: isRounded ? BorderRadius.circular(borderRadius!) : null,
               border: Border.all(
                 color: theme.colorScheme.primary.withValues(alpha: 0.5),
                 width: size > 60 ? 3 : 2,
               ),
             )
           : null,
-      child: ClipOval(
-        child: Stack(
-          fit: StackFit.expand,
-          children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
-        ),
-      ),
+      child: isRounded
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius!),
+              child: Stack(
+                fit: StackFit.expand,
+                children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+              ),
+            )
+          : ClipOval(
+              child: Stack(
+                fit: StackFit.expand,
+                children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+              ),
+            ),
     );
   }
 
@@ -89,11 +112,15 @@ class AvatarWidget extends StatelessWidget {
   }
 
   Widget _buildInitials(ThemeData theme) {
+    final w = width ?? size;
+    final isRounded = borderRadius != null;
+
     return Container(
-      width: size,
-      height: size,
+      width: w,
+      height: stretch ? null : (height ?? size),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: isRounded ? BoxShape.rectangle : BoxShape.circle,
+        borderRadius: isRounded ? BorderRadius.circular(borderRadius!) : null,
         color: theme.colorScheme.primary.withValues(alpha: 0.2),
         border: showBorder
             ? Border.all(color: theme.colorScheme.primary, width: size > 60 ? 3 : 2)

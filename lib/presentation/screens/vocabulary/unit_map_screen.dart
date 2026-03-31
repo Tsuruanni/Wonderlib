@@ -131,7 +131,7 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
         MapTileNodeData(
           type: NodeType.wordList,
           state: state,
-          label: unit.unit.name,
+          unitNumber: i + 1,
           onTap: isLocked
               ? null
               : () => context.push(

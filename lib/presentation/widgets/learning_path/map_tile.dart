@@ -12,6 +12,7 @@ class MapTileNodeData {
     this.label,
     this.onTap,
     this.starCount = 0,
+    this.unitNumber,
   });
 
   final NodeType type;
@@ -19,6 +20,7 @@ class MapTileNodeData {
   final String? label;
   final VoidCallback? onTap;
   final int starCount;
+  final int? unitNumber;
 }
 
 /// A single map tile: background image + positioned nodes.
@@ -37,13 +39,12 @@ class MapTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Clamp width to kTileWidth max — don't stretch beyond design size
-        final w = constraints.maxWidth.clamp(0.0, kTileWidth);
-        final scale = w < kTileWidth ? w / kTileWidth : 1.0;
+        // Fill available width; scale everything relative to design width
+        final w = constraints.maxWidth;
+        final scale = w / kTileWidth;
         final h = theme.height * scale;
 
-        return Center(
-          child: SizedBox(
+        return SizedBox(
             width: w,
             height: h,
             child: Stack(
@@ -71,7 +72,6 @@ class MapTile extends StatelessWidget {
                   ),
             ],
           ),
-        ),
         );
       },
     );
@@ -97,14 +97,19 @@ class _PositionedNode extends StatelessWidget {
     final left = position.dx * tileWidth - 70; // center 140px wide node
     final top = position.dy * tileHeight - 40; // approximate vertical center
 
+
+
+    // START bubble only on detail-page nodes (no unitNumber), not on unit map
+    final showStartBubble =
+        data.state == NodeState.active && data.unitNumber == null;
+
     return Positioned(
       left: left,
       top: top,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // START bubble above active node
-          if (data.state == NodeState.active) ...[
+          if (showStartBubble) ...[
             const StartBubble(),
             const SizedBox(height: 4),
           ],
@@ -114,6 +119,7 @@ class _PositionedNode extends StatelessWidget {
             label: data.label,
             onTap: data.onTap,
             starCount: data.starCount,
+            unitNumber: data.unitNumber,
           ),
         ],
       ),

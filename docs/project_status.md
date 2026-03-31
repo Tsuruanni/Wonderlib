@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-30 (Home page removal, Quests page, assignment redesign, vocab session web layouts, daily review quest fix)
+Son güncelleme: 2026-03-31 (Learning path node redesign: 3D glossy spheres, popup cards, press effects, unit numbers, gold stars)
 
 ## Current Phase
 
@@ -156,6 +156,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Student Assignment Screens Redesign (app design language, shell integration, colored header cards, 3D GameButtons)
 - [x] Vocabulary Session Web Layouts (side-by-side layouts, 3D option buttons, GameButton check/continue, image overflow fixes)
 - [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
+- [x] Learning Path Node Redesign (3D glossy spheres, popup cards, press effects, unit numbers, gold stars, type-specific icons)
+- [x] Review Node Removal (path_daily_review_completions table + path_position column dropped)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -227,6 +229,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Learning Path Node Redesign | 2026-03-31 | 3D glossy sphere nodes with press-down effect, popup cards on tap (START/READ/PLAY/CLAIM), unit numbers in unit-map nodes, gold star crowns above nodes, completed = green pressed state. Library continue-reading card redesign. Review node artifacts removed. |
 | Tile Theme Editor + Learning Path Redesign | 2026-03-30 | Tile-based map system replacing legacy zigzag. Admin tile theme CRUD with image upload, node position sliders, live preview. Per-unit theme assignment in template/assignment editors. Responsive scaling (mobile-friendly). 5 DB migrations, domain layer (entity→model→repo→usecase→provider). `tile_theme_id` on learning path units (not vocabulary_units). Unit gate toggle for inter-unit locking. |
 | Notification Overlay Redesign | 2026-03-29 | Replaced sequential `showDialog()` queue with stacked Overlay system. 8 notification types consolidated into unified white card with GameButton 3D press effect. Cascade positioning (scale+translate), entry/exit animations, barrier management. 3 dialog files deleted, net -400 lines. Specs + plan at `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`. |
 | User Profile Audit & Fixes | 2026-03-28 | 11-finding audit. Bug: teacher name edit used JWT refresh instead of profile re-fetch (stale UI). Quality: `AppClock.now()` in badge dates, retry button on error, Dart 3 record destructuring for type-safe casts. Full spec at `docs/specs/22-user-profile.md`. 4/11 fixed, 7 skipped/accepted. |
