@@ -22,12 +22,15 @@ class LeaderboardScreen extends ConsumerWidget {
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
     // Listen for league join transition (not joined → joined)
+    // Post-frame callback avoids "build dirty widget in wrong scope" error
     ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
       final wasJoined = prev?.valueOrNull?.joined ?? false;
       final isJoined = next.valueOrNull?.joined ?? false;
       if (!wasJoined && isJoined) {
         final tier = next.valueOrNull?.tier ?? LeagueTier.bronze;
-        _showLeagueJoinedDialog(context, tier);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) _showLeagueJoinedDialog(context, tier);
+        });
       }
     });
 
