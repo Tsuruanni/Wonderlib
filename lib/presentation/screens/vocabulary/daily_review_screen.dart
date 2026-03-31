@@ -29,10 +29,13 @@ class DailyReviewScreen extends ConsumerStatefulWidget {
 }
 
 class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _isFlipped = false;
+  bool _isDismissing = false;
+  double _dismissDirection = -1.0; // -1 = left (hard), +1 = right (good/easy)
   late AnimationController _flipController;
   late Animation<double> _flipAnimation;
+  late AnimationController _dismissController;
 
   @override
   void initState() {
@@ -43,6 +46,10 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     );
     _flipAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _flipController, curve: Curves.easeInOut),
+    );
+    _dismissController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
     );
 
     // Load session on init
@@ -59,25 +66,32 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
   @override
   void dispose() {
     _flipController.dispose();
+    _dismissController.dispose();
     super.dispose();
   }
 
   void _flipCard() {
+    if (_isFlipped || _isDismissing) return;
     HapticFeedback.lightImpact();
-    if (_isFlipped) {
-      _flipController.reverse();
-    } else {
-      _flipController.forward();
-    }
+    _flipController.forward();
     setState(() {
-      _isFlipped = !_isFlipped;
+      _isFlipped = true;
     });
   }
 
   void _handleResponse(SM2Response response) async {
-     HapticFeedback.mediumImpact();
+    if (_isDismissing) return;
+    HapticFeedback.mediumImpact();
 
-    // Answer and advance
+    // Dismiss direction: hard → left, good/easy → right
+    final direction = response == SM2Response.dontKnow ? -1.0 : 1.0;
+    setState(() {
+      _isDismissing = true;
+      _dismissDirection = direction;
+    });
+    await _dismissController.forward();
+
+    // Advance to next word
     await ref.read(dailyReviewControllerProvider.notifier).answerWord(response);
 
     // Check if session is complete
@@ -85,11 +99,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     if (state.isComplete) {
       _completeSession();
     } else {
-      // Reset flip state for next card
-      if (_isFlipped) {
-        _flipController.reverse();
-        setState(() => _isFlipped = false);
-      }
+      // Reset both controllers instantly for next card
+      _dismissController.value = 0;
+      _flipController.value = 0;
+      setState(() {
+        _isFlipped = false;
+        _isDismissing = false;
+      });
     }
   }
 
@@ -347,7 +363,10 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 450),
+            child: Column(
           children: [
             // Header
             Padding(
@@ -365,76 +384,136 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 ],
               ),
             ),
-            
+
             // Stats (optional, hidden or small)
-            
-            // Flashcard Area
+
+            // Flashcard Pile Area
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                child: GestureDetector(
-                  onTap: _flipCard,
-                  child: AnimatedBuilder(
-                    animation: _flipAnimation,
-                    builder: (context, child) {
-                      final angle = _flipAnimation.value * math.pi;
-                      final isFront = angle < math.pi / 2;
-  
-                      return Transform(
-                        alignment: Alignment.center,
-                        transform: Matrix4.identity()
-                          ..setEntry(3, 2, 0.001)
-                          ..rotateY(angle),
-                        child: isFront
-                            ? _CardFront(word: currentWord)
-                            : Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.identity()..rotateY(math.pi),
-                                child: _CardBack(word: currentWord),
-                              ),
-                      );
-                    },
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Next card behind active (same size, ready for dismiss reveal)
+                    final nextIdx = state.currentIndex + 1;
+                    final nextWord = nextIdx < state.words.length
+                        ? state.words[nextIdx]
+                        : null;
+
+                    return Stack(
+                      children: [
+                        // Next card — exact same position
+                        if (nextWord != null)
+                          Positioned.fill(
+                            child: _CardFront(word: nextWord),
+                          ),
+
+                        // Active card with dismiss + flip
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: Listenable.merge([_flipAnimation, _dismissController]),
+                            builder: (context, child) {
+                              final dismiss = _dismissController.value;
+                              final dir = _dismissDirection;
+                              final angle = _flipAnimation.value * math.pi;
+                              final isFront = angle < math.pi / 2;
+
+                              return Transform.translate(
+                                offset: Offset(
+                                  dir * dismiss * constraints.maxWidth * 0.8,
+                                  dismiss * constraints.maxHeight * 0.3,
+                                ),
+                                child: Transform.rotate(
+                                  angle: dir * dismiss * 0.3,
+                                  child: Opacity(
+                                    opacity: (1.0 - dismiss * 1.5).clamp(0.0, 1.0),
+                                    child: GestureDetector(
+                                      onTap: _flipCard,
+                                      child: Transform(
+                                        alignment: Alignment.center,
+                                        transform: Matrix4.identity()
+                                          ..setEntry(3, 2, 0.001)
+                                          ..rotateY(angle),
+                                        child: isFront
+                                            ? _CardFront(word: currentWord)
+                                            : Transform(
+                                                alignment: Alignment.center,
+                                                transform: Matrix4.identity()..rotateY(math.pi),
+                                                child: _CardBack(word: currentWord),
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
   
-            // Hint text
-            if (!_isFlipped)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  'Tap card to reveal answer',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.bold,
-                  ),
+            // Bottom area — fixed height so card doesn't resize on flip
+            SizedBox(
+              height: 120,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Hint text (before flip)
+                    AnimatedOpacity(
+                      opacity: _isFlipped ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                        'Tap card to reveal answer',
+                        style: GoogleFonts.nunito(
+                          color: AppColors.neutralText,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    // Question + buttons (after flip)
+                    AnimatedOpacity(
+                      opacity: _isFlipped ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: IgnorePointer(
+                        ignoring: !_isFlipped,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Is this word easy or hard for you?',
+                              style: GoogleFonts.nunito(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.neutralText,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(child: GameButton(label: '😕 Hard', variant: GameButtonVariant.danger, onPressed: () => _handleResponse(SM2Response.dontKnow))),
+                                const SizedBox(width: 12),
+                                Expanded(child: GameButton(label: '😊 Good', variant: GameButtonVariant.secondary, onPressed: () => _handleResponse(SM2Response.gotIt))),
+                                const SizedBox(width: 12),
+                                Expanded(child: GameButton(label: '🚀 Easy', variant: GameButtonVariant.primary, onPressed: () => _handleResponse(SM2Response.veryEasy))),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-  
-            // Response buttons
-             Container(
-               height: 100, // Fixed height for buttons area
-               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-               child: AnimatedOpacity(
-                  opacity: _isFlipped ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: IgnorePointer(
-                    ignoring: !_isFlipped,
-                    child: Row(
-                      children: [
-                        Expanded(child: GameButton(label: '😕 Hard', variant: GameButtonVariant.danger, onPressed: () => _handleResponse(SM2Response.dontKnow))),
-                        const SizedBox(width: 12),
-                        Expanded(child: GameButton(label: '😊 Good', variant: GameButtonVariant.secondary, onPressed: () => _handleResponse(SM2Response.gotIt))),
-                        const SizedBox(width: 12),
-                        Expanded(child: GameButton(label: '🚀 Easy', variant: GameButtonVariant.primary, onPressed: () => _handleResponse(SM2Response.veryEasy))),
-                      ],
-                    ),
-                  ),
-               ),
-             ),
-             const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 12),
           ],
+        ),
+          ),
         ),
       ),
     );
@@ -446,53 +525,68 @@ class _CardFront extends StatelessWidget {
 
   final VocabularyWord word;
 
+  static const _gradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF1CB0F6), Color(0xFF1278A8)],
+  );
+  static const _qColor = Color(0x59FFFFFF); // white 35%
+  static const _frameColor = Color(0x33FFFFFF); // white 20%
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(32),
         border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: [
-           BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
-        ]
+        boxShadow: const [
+          BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
+        ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            word.word,
-            style: GoogleFonts.nunito(
-              fontSize: 40,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: _gradient,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Stack(
+          children: [
+            // Top-left "?"
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Text('?', style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w900, color: _qColor)),
             ),
-            textAlign: TextAlign.center,
-          ),
-          if (word.phonetic != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              word.phonetic!,
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.neutralText,
-                fontStyle: FontStyle.italic,
+            // Bottom-right "?" (rotated)
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Transform.rotate(
+                angle: math.pi,
+                child: Text('?', style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w900, color: _qColor)),
+              ),
+            ),
+            // Inner decorative frame + word
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _frameColor, width: 2),
+                ),
+                child: Text(
+                  word.word,
+                  style: GoogleFonts.nunito(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 24),
-          Container(
-             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-             decoration: BoxDecoration(color: AppColors.gemBlue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
-             child: Text(
-               word.partOfSpeech ?? word.level ?? 'Word',
-               style: GoogleFonts.nunito(color: AppColors.gemBlue, fontWeight: FontWeight.bold),
-             ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -507,30 +601,86 @@ class _CardBack extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(32),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(32),
-         border: Border.all(color: AppColors.neutral, width: 2),
-         boxShadow: [
-            BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
-         ]
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(color: AppColors.neutral, offset: Offset(0, 8)),
+        ],
       ),
-      child: SingleChildScrollView(
-        child: Column(
+      child: Stack(
+        children: [
+          Column(
             children: [
-               Text(
-                 word.word,
-                 style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.secondary),
-               ),
-               Divider(height: 32, thickness: 2, color: AppColors.neutral),
-               _InfoSection(label: 'Definition', content: word.meaningEN ?? word.meaningTR, icon: Icons.menu_book_rounded, color: AppColors.primary),
-               if (word.meaningTR != word.meaningEN)
-                 _InfoSection(label: 'Türkçe', content: word.meaningTR, icon: Icons.translate_rounded, color: AppColors.streakOrange),
-               if (word.exampleSentences.isNotEmpty)
-                 _InfoSection(label: 'Example', content: word.exampleSentences.first, icon: Icons.format_quote_rounded, color: AppColors.gemBlue),
+              // Banner — sadece Türkçe anlam
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                color: AppColors.secondary,
+                child: Text(
+                  word.meaningTR,
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+
+              // Image area (contained, white bg)
+              if (word.hasImage)
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    width: double.infinity,
+                    color: AppColors.white,
+                    child: Image.network(
+                      word.imageUrl!,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                ),
+
+              // Info sections
+              Expanded(
+                flex: word.hasImage ? 2 : 4,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(28, 20, 28, 16),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _InfoSection(label: 'Definition', content: word.meaningEN ?? word.meaningTR, icon: Icons.menu_book_rounded, color: AppColors.primary),
+                        if (word.exampleSentences.isNotEmpty)
+                          _InfoSection(label: 'Example', content: word.exampleSentences.first, icon: Icons.format_quote_rounded, color: AppColors.gemBlue),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ],
-        ),
+          ),
+
+          // Word label — bottom-right, card name style
+          Positioned(
+            bottom: 12,
+            right: 18,
+            child: Text(
+              word.word,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.neutralText,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-31 (Learning path UX polish: zoom transitions, active node bounce, mobile scaling, shell border)
+Son güncelleme: 2026-03-31 (Daily review flashcard redesign: playing card front, banner back, dismiss animation, fixed layout)
 
 ## Current Phase
 
@@ -164,6 +164,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Admin Word List Editor Redesign (horizontal card grid, quick edit, audio playback, bulk content generation, inline word creation)
 - [x] Word Data Prompt Improvement (hint-style EN definitions, child-friendly, 3-6 words max)
 - [x] Dev Tool Fast Login (one-click admin login on login screen)
+- [x] Daily Review Flashcard Redesign (playing card front, banner+image back, dismiss animation, fixed layout, max width)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

@@ -8,6 +8,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Daily Review Flashcard Redesign (2026-03-31)
+
+#### Changed
+- **Card front redesign** — Playing card style with gemBlue gradient, decorative inner frame, corner "?" icons. Removed phonetic and CEFR level badge — only the English word is displayed.
+- **Card back redesign** — Turkish meaning in a blue banner header, word image as full background (BoxFit.contain), Definition + Example sections below. English word displayed as small card-number label in bottom-right.
+- **One-way flip** — Cards can only be flipped once to reveal the answer; no flipping back.
+- **Dismiss animation** — Cards swipe left-down (Hard) or right-down (Good/Easy) with rotation and fade. Next card is pre-rendered behind for seamless transition.
+- **Fixed bottom area** — Hint text and response buttons share a fixed-height container (120px) so the card area doesn't resize on flip.
+- **Max width constraint** — Card area capped at 450px for better web layout.
+- **Question prompt** — Added "Is this word easy or hard for you?" text above Hard/Good/Easy buttons.
+
+#### Fixed
+- **Next card answer flash** — Previously, the next card's answer was briefly visible during the flip-back animation. Now uses instant reset after dismiss.
+- **Performance** — Gradient, colors pre-computed as static const to avoid per-frame allocation during flip animation.
+
 ### Admin Word List Image Generation & Editor Redesign (2026-03-29 – 2026-03-31)
 
 #### Added
