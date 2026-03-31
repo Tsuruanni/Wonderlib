@@ -14,6 +14,7 @@ import '../../providers/card_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/system_settings_provider.dart';
+import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../common/streak_status_dialog.dart';
 
@@ -182,26 +183,20 @@ class _LeagueCard extends ConsumerWidget {
     }
   }
 
-  IconData _tierIcon(LeagueTier tier) {
-    switch (tier) {
-      case LeagueTier.bronze:
-        return Icons.shield_outlined;
-      case LeagueTier.silver:
-        return Icons.shield_rounded;
-      case LeagueTier.gold:
-        return Icons.emoji_events_rounded;
-      case LeagueTier.platinum:
-        return Icons.workspace_premium_rounded;
-      case LeagueTier.diamond:
-        return Icons.diamond_rounded;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userControllerProvider).valueOrNull;
     final tier = user?.leagueTier ?? LeagueTier.bronze;
     final color = _tierColor(tier);
+    final statusAsync = ref.watch(leagueStatusProvider);
+    final status = statusAsync.valueOrNull;
+
+    // Days left until Sunday
+    final now = DateTime.now();
+    final weekEnd = now
+        .subtract(Duration(days: now.weekday - 1))
+        .add(const Duration(days: 6));
+    final daysLeft = weekEnd.difference(now).inDays + 1;
 
     return GestureDetector(
       onTap: () => context.go(AppRoutes.leaderboard),
@@ -239,22 +234,57 @@ class _LeagueCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
+                // Tier shield
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(_tierIcon(tier), color: color, size: 28),
+                  child: Icon(Icons.shield_rounded, color: color, size: 28),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    "This week's leaderboard is active",
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      color: AppColors.neutralText,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Rank or join status
+                      if (status != null && status.joined && status.rank != null)
+                        Text(
+                          "You're ranked #${status.rank}",
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.black,
+                          ),
+                        )
+                      else if (status != null && !status.joined)
+                        Text(
+                          'Earn ${20 - status.currentWeeklyXp} more XP to join',
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.neutralText,
+                          ),
+                        )
+                      else
+                        Text(
+                          "This week's league is active",
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                      // Days left
+                      Text(
+                        '$daysLeft days left',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
