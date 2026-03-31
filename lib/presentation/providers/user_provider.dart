@@ -130,6 +130,41 @@ final monthlyLoginDatesProvider = FutureProvider.family<
   );
 });
 
+/// Computed streak from daily_logins — counts consecutive days backward from
+/// today. Falls back to profiles.current_streak while data is loading.
+/// Use this for display instead of user.currentStreak so the number matches
+/// the calendar ticks.
+final displayStreakProvider = Provider<int>((ref) {
+  final user = ref.watch(userControllerProvider).valueOrNull;
+  if (user == null) return 0;
+
+  final today = AppClock.today();
+  final curData = ref.watch(monthlyLoginDatesProvider(
+    (year: today.year, month: today.month),
+  )).valueOrNull;
+  final prev = DateTime(today.year, today.month - 1, 1);
+  final prevData = ref.watch(monthlyLoginDatesProvider(
+    (year: prev.year, month: prev.month),
+  )).valueOrNull;
+
+  // Still loading — fall back to profile value
+  if (curData == null) return user.currentStreak;
+
+  final allDays = {...?prevData, ...curData};
+  var count = 0;
+  var date = today;
+  while (true) {
+    final key = DateTime(date.year, date.month, date.day);
+    if (allDays.containsKey(key)) {
+      count++;
+      date = date.subtract(const Duration(days: 1));
+    } else {
+      break;
+    }
+  }
+  return count;
+});
+
 /// User controller for XP and streak updates
 class UserController extends StateNotifier<AsyncValue<User?>> {
 

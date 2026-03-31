@@ -64,21 +64,7 @@ class _StreakSheetState extends ConsumerState<StreakSheet> {
         SystemSettings.defaults();
     if (user == null) return const SizedBox.shrink();
 
-    // Compute streak from daily_logins so banner matches calendar ticks.
-    // Fetch current + previous month (covers streaks up to ~60 days).
-    final today = AppClock.today();
-    final curMonth = ref.watch(monthlyLoginDatesProvider(
-      (year: today.year, month: today.month),
-    )).valueOrNull ?? {};
-    final prevDate = DateTime(today.year, today.month - 1, 1);
-    final prevMonth = ref.watch(monthlyLoginDatesProvider(
-      (year: prevDate.year, month: prevDate.month),
-    )).valueOrNull ?? {};
-    final allLoginData = {...prevMonth, ...curMonth};
-    // Use computed streak when data is loaded, fall back to profile value while loading
-    final computedStreak = allLoginData.isEmpty
-        ? user.currentStreak
-        : _countStreakFromLogins(allLoginData, today);
+    final computedStreak = ref.watch(displayStreakProvider);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.85,
@@ -134,27 +120,6 @@ class _StreakSheetState extends ConsumerState<StreakSheet> {
       ),
     );
   }
-}
-
-// ---------------------------------------------------------------------------
-// Streak computation from daily_logins data
-// ---------------------------------------------------------------------------
-
-/// Count consecutive days backward from [today] in the login data.
-/// Both login days (is_freeze=false) and freeze days (is_freeze=true) count.
-int _countStreakFromLogins(Map<DateTime, bool> loginData, DateTime today) {
-  var count = 0;
-  var date = today;
-  while (true) {
-    final key = DateTime(date.year, date.month, date.day);
-    if (loginData.containsKey(key)) {
-      count++;
-      date = date.subtract(const Duration(days: 1));
-    } else {
-      break;
-    }
-  }
-  return count;
 }
 
 // ---------------------------------------------------------------------------

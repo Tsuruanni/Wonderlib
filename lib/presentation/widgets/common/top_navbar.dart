@@ -20,10 +20,7 @@ class TopNavbar extends ConsumerWidget {
 
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
-    // Pre-warm loginDatesProvider so calendar data is ready when fire icon is tapped
-    ref.watch(loginDatesProvider);
-
-    final streak = user?.currentStreak ?? 0;
+    final streak = ref.watch(displayStreakProvider);
     final coins = user?.coins ?? 0;
 
     return Container(
