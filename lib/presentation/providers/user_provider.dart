@@ -107,6 +107,24 @@ final loginDatesProvider = FutureProvider<Map<DateTime, bool>>((ref) async {
   );
 });
 
+/// Monthly login/freeze dates for streak calendar (from daily_logins table).
+/// Keyed by (year, month) so each month is cached independently.
+final monthlyLoginDatesProvider = FutureProvider.family<
+    Map<DateTime, bool>,
+    ({int year, int month})>((ref, params) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return {};
+
+  final from = DateTime(params.year, params.month, 1);
+  final useCase = ref.watch(getLoginDatesUseCaseProvider);
+  final result =
+      await useCase(GetLoginDatesParams(userId: userId, from: from));
+  return result.fold(
+    (_) => <DateTime, bool>{},
+    (dates) => dates,
+  );
+});
+
 /// User controller for XP and streak updates
 class UserController extends StateNotifier<AsyncValue<User?>> {
 
