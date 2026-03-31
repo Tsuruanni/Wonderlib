@@ -8,7 +8,6 @@ class LeagueStatusModel {
     this.groupMemberCount,
     required this.tier,
     required this.weekStart,
-    this.weeklyXp = 0,
     this.rank,
     required this.joined,
     required this.thresholdMet,
@@ -21,7 +20,6 @@ class LeagueStatusModel {
       groupMemberCount: (json['group_member_count'] as num?)?.toInt(),
       tier: LeagueTier.fromDbValue(json['tier'] as String? ?? 'bronze'),
       weekStart: DateTime.parse(json['week_start'] as String),
-      weeklyXp: (json['weekly_xp'] as num?)?.toInt() ?? 0,
       rank: (json['rank'] as num?)?.toInt(),
       joined: json['joined'] as bool? ?? false,
       thresholdMet: json['threshold_met'] as bool? ?? false,
@@ -33,7 +31,6 @@ class LeagueStatusModel {
   final int? groupMemberCount;
   final LeagueTier tier;
   final DateTime weekStart;
-  final int weeklyXp;
   final int? rank;
   final bool joined;
   final bool thresholdMet;

@@ -32,8 +32,14 @@ class LeaderboardScreen extends ConsumerWidget {
           // Header with scope toggle
           _LeaderboardHeader(
             scope: scope,
-            onScopeChanged: (s) =>
-                ref.read(leaderboardScopeProvider.notifier).state = s,
+            onScopeChanged: (s) {
+                ref.read(leaderboardScopeProvider.notifier).state = s;
+                // Refresh league data when switching to League tab
+                if (s == LeaderboardScope.leagueScope) {
+                  ref.invalidate(leagueStatusProvider);
+                  ref.invalidate(leagueGroupEntriesProvider);
+                }
+              },
           ),
 
           // Weekly indicator + zone banner for league mode
@@ -345,6 +351,20 @@ class _LeaderboardList extends StatelessWidget {
   final LeaderboardDisplayState state;
   final bool showClassName;
 
+  /// Compute effective rank change: null for bots and cross-group comparisons.
+  int? _effectiveRankChange(LeaderboardEntry entry, LeaderboardDisplayState s) {
+    if (entry.isBot) return null;
+    if (entry.rankChange == null) return null;
+    // Suppress if previous group differs from current group
+    final currentGroupId = s.leagueStatus?.groupId;
+    if (currentGroupId != null &&
+        entry.previousGroupId != null &&
+        entry.previousGroupId != currentGroupId) {
+      return null;
+    }
+    return entry.rankChange;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -450,9 +470,10 @@ class _LeaderboardList extends StatelessWidget {
           ),
 
           // Rank change indicator (league mode only)
+          // Suppress for bots and cross-group comparisons (different group last week)
           if (isLeague) ...[
             const SizedBox(width: 2),
-            _RankChangeIndicator(rankChange: entry.isBot ? null : entry.rankChange),
+            _RankChangeIndicator(rankChange: _effectiveRankChange(entry, state)),
           ],
           const SizedBox(width: 10),
 
