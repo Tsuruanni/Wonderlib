@@ -694,6 +694,133 @@ class _StatsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(height: 100);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Stat cards row
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.local_fire_department_rounded,
+                iconColor: AppColors.streakOrange,
+                label: 'Longest',
+                value: '$longestStreak days',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.ac_unit_rounded,
+                iconColor: AppColors.gemBlue,
+                label: 'Freezes',
+                value: '$freezeCount / $freezeMax',
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Buy Freeze button or max message
+        if (freezeCount < freezeMax)
+          OutlinedButton.icon(
+            onPressed: (isBuying || userCoins < freezePrice) ? null : onBuyFreeze,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.gemBlue,
+              side: const BorderSide(color: AppColors.gemBlue),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: isBuying
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.gemBlue,
+                    ),
+                  )
+                : const Icon(Icons.ac_unit_rounded),
+            label: Text(
+              'Buy Freeze — $freezePrice coins',
+              style: GoogleFonts.nunito(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          )
+        else
+          Center(
+            child: Text(
+              'Max freezes reached',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.gray500,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _StatCard — small info card used in _StatsSection
+// ---------------------------------------------------------------------------
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.gray100,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.gray500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.black,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
