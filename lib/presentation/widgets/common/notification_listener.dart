@@ -8,6 +8,7 @@ import '../../../domain/entities/student_assignment.dart';
 import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/daily_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
@@ -58,17 +59,27 @@ class _AppNotificationListenerState
       if (next != null) _showAssignment(next);
     });
 
+    ref.listen<QuestCompletionEvent?>(
+        questCompletionEventProvider, (previous, next) {
+      if (next != null) _showQuestComplete(next);
+    });
+
     // Fire assignment notification AFTER user is fully loaded (students only).
     // This ensures streak/badge/league notifications fire first since they
     // are triggered during UserController._loadUserById().
     {
       final isTeacher = ref.watch(isTeacherProvider);
       if (!isTeacher) {
+        // Keep dailyQuestProgressProvider alive so invalidations from
+        // activity completions trigger a refetch and fire the quest
+        // completion event — even if QuestsScreen hasn't been visited yet.
+        ref.watch(dailyQuestProgressProvider);
         ref.listen<AsyncValue<User?>>(userControllerProvider, (previous, next) {
           // Reset flag on logout so next login can show notification
           if (next is AsyncData<User?> && next.value == null) {
             _hasShownAssignmentNotif = false;
             ref.read(assignmentNotificationEventProvider.notifier).state = null;
+            ref.read(questCompletionEventProvider.notifier).state = null;
             _manager.dismissAll();
             return;
           }
@@ -215,6 +226,56 @@ class _AppNotificationListenerState
       ),
       onDismiss: () {
         ref.read(assignmentNotificationEventProvider.notifier).state = null;
+      },
+    );
+  }
+
+  void _showQuestComplete(QuestCompletionEvent event) {
+    final overlay = _overlay;
+    if (overlay == null) return;
+
+    // Show individual quest notification (skip if all quests just completed —
+    // the all-quests card replaces it).
+    if (!event.allQuestsComplete) {
+      _manager.show(
+        overlay: overlay,
+        type: NotificationType.questComplete,
+        data: event,
+        cardBuilder: (dismiss) => NotificationCard.questComplete(
+          quests: event.completedQuests,
+          allQuestsComplete: false,
+          onDismiss: dismiss,
+        ),
+        onDismiss: () {
+          ref.read(questCompletionEventProvider.notifier).state = null;
+        },
+      );
+      return;
+    }
+
+    // All quests done — show special card with Claim button.
+    _manager.show(
+      overlay: overlay,
+      type: NotificationType.allQuestsComplete,
+      data: event,
+      cardBuilder: (dismiss) => NotificationCard.allQuestsComplete(
+        onClaim: () async {
+          dismiss();
+          final controller =
+              ref.read(dailyQuestControllerProvider.notifier);
+          final error = await controller.claimBonus();
+          if (error == null) return;
+          final ctx = rootNavigatorKey.currentContext;
+          if (ctx != null && ctx.mounted) {
+            ScaffoldMessenger.of(ctx).showSnackBar(
+              SnackBar(content: Text(error)),
+            );
+          }
+        },
+        onDismiss: dismiss,
+      ),
+      onDismiss: () {
+        ref.read(questCompletionEventProvider.notifier).state = null;
       },
     );
   }

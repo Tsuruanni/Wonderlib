@@ -8,14 +8,12 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/badge.dart';
-import '../../../domain/entities/daily_quest.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/badge_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_quest_list.dart';
-import '../../widgets/home/quest_completion_dialog.dart';
 
 // ---------------------------------------------------------------------------
 // Quests Screen — daily quests, badges gallery, monthly placeholders
@@ -28,24 +26,6 @@ class QuestsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progressAsync = ref.watch(dailyQuestProgressProvider);
     final bonusClaimed = ref.watch(dailyBonusClaimedProvider).valueOrNull ?? false;
-
-    // Listen for newly completed quests and show dialog
-    ref.listen<AsyncValue<List<DailyQuestProgress>>>(
-      dailyQuestProgressProvider,
-      (prev, next) {
-        final nextData = next.valueOrNull ?? [];
-        final newlyCompleted =
-            nextData.where((q) => q.newlyCompleted).toList();
-        if (newlyCompleted.isNotEmpty) {
-          final allComplete = nextData.every((q) => q.isCompleted);
-          QuestCompletionDialog.show(
-            context,
-            completedQuests: newlyCompleted,
-            allQuestsComplete: allComplete && !bonusClaimed,
-          );
-        }
-      },
-    );
 
     final progress = progressAsync.valueOrNull ?? [];
     // RightInfoPanel is shown at ≥1000px — monthly cards live there

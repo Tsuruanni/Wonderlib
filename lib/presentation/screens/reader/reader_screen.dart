@@ -267,6 +267,25 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep chapterCompletionProvider alive for the entire reader session.
+    // Without this, the autoDispose notifier gets disposed mid-async in
+    // markComplete(), causing "used after dispose" errors.
+    ref.watch(chapterCompletionProvider);
+
+    // Auto-complete chapter when all inline activities are done.
+    // Guard: only fire on false→true transition AND only when there are
+    // activities (activity-less chapters still need the Continue button).
+    ref.listen<bool>(isChapterCompleteProvider, (prev, next) {
+      debugPrint('📖 isChapterComplete: prev=$prev, next=$next');
+      if (prev == false && next == true) {
+        final total = ref.read(totalActivitiesProvider);
+        debugPrint('📖 All activities done (total=$total), auto-completing chapter');
+        if (total > 0) {
+          _markCurrentChapterComplete();
+        }
+      }
+    });
+
     final chapterAsync = ref.watch(chapterByIdProvider((bookId: widget.bookId, chapterId: widget.chapterId)));
     final chaptersAsync = ref.watch(chaptersProvider(widget.bookId));
     final bookAsync = ref.watch(bookByIdProvider(widget.bookId));

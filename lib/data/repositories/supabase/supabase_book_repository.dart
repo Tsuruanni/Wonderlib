@@ -1,8 +1,10 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
@@ -342,8 +344,9 @@ class SupabaseBookRepository implements BookRepository {
 
               final result = await updateReadingProgress(updatedProgress);
 
-              // 5. Log for daily tracking (fire-and-forget)
-              _logDailyChapterRead(userId, chapterId);
+              // 5. Log for daily tracking (awaited so the row exists
+              //    before dailyQuestProgressProvider is invalidated).
+              await _logDailyChapterRead(userId, chapterId);
 
               return result;
             },
@@ -556,10 +559,11 @@ class SupabaseBookRepository implements BookRepository {
     }
   }
 
-  /// Logs chapter read for daily tracking. Fire-and-forget - failures are swallowed.
+  /// Logs chapter read for daily tracking.
   Future<void> _logDailyChapterRead(String userId, String chapterId) async {
     try {
-      final today = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final today = AppClock.now().toUtc().toIso8601String().substring(0, 10);
+      debugPrint('📖 _logDailyChapterRead: userId=$userId, chapterId=$chapterId, date=$today');
       await _supabase.from(DbTables.dailyChapterReads).upsert(
         {
           'user_id': userId,
@@ -568,8 +572,9 @@ class SupabaseBookRepository implements BookRepository {
         },
         onConflict: 'user_id,chapter_id,read_date',
       );
-    } catch (_) {
-      // Non-critical - swallow errors. Don't block chapter completion.
+      debugPrint('📖 _logDailyChapterRead: SUCCESS');
+    } catch (e) {
+      debugPrint('📖 _logDailyChapterRead: FAILED - $e');
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/badge_earned.dart';
+import '../../../domain/entities/daily_quest.dart';
 import 'game_button.dart';
 
 // ---------------------------------------------------------------------------
@@ -311,6 +312,92 @@ class NotificationCard extends StatefulWidget {
       onButtonPressed: onView,
       onDismiss: onDismiss,
     );
+  }
+
+  static Widget questComplete({
+    required List<DailyQuestProgress> quests,
+    required bool allQuestsComplete,
+    required VoidCallback onDismiss,
+  }) {
+    final isSingle = quests.length == 1;
+
+    return NotificationCard(
+      icon: '🎯',
+      title: isSingle ? 'Quest Complete!' : '${quests.length} Quests Complete!',
+      subtitle: allQuestsComplete
+          ? 'All quests done! Claim your bonus card pack!'
+          : null,
+      subtitleColor: AppColors.wasp,
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: quests.map((p) {
+          final (text, color) = _questRewardTextAndColor(p.quest);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Text(p.quest.icon, style: const TextStyle(fontSize: 28)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    p.quest.title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    text,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+      buttonColor: AppColors.streakOrange,
+      onDismiss: onDismiss,
+    );
+  }
+
+  static Widget allQuestsComplete({
+    required VoidCallback onClaim,
+    required VoidCallback onDismiss,
+  }) {
+    return NotificationCard(
+      icon: '🏆',
+      title: 'All Quests Done!',
+      subtitle: 'Amazing work today!\nClaim your bonus card pack!',
+      subtitleColor: AppColors.wasp,
+      secondaryButtonLabel: 'Later',
+      buttonLabel: 'Claim Pack',
+      buttonColor: AppColors.streakOrange,
+      onButtonPressed: onClaim,
+      onDismiss: onDismiss,
+    );
+  }
+
+  static (String, Color) _questRewardTextAndColor(DailyQuest quest) {
+    return switch (quest.rewardType) {
+      QuestRewardType.xp => ('+${quest.rewardAmount} XP', AppColors.primary),
+      QuestRewardType.coins => ('+${quest.rewardAmount} coins', AppColors.wasp),
+      QuestRewardType.cardPack =>
+        ('+${quest.rewardAmount} pack', AppColors.gemBlue),
+    };
   }
 
   /// Map buttonColor to the closest GameButtonVariant.

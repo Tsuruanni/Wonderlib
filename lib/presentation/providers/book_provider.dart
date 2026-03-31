@@ -188,11 +188,13 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       // Check if this chapter was newly completed (prevent duplicate XP)
       final previousProgress = _ref.read(readingProgressProvider(bookId)).valueOrNull;
       final wasAlreadyCompleted = previousProgress?.completedChapterIds.contains(chapterId) ?? false;
+      debugPrint('📖 markComplete: bookId=$bookId, chapterId=$chapterId, wasAlreadyCompleted=$wasAlreadyCompleted');
 
       state = const AsyncValue.data(null);
       // Invalidate providers to refresh UI
       _ref.invalidate(readingProgressProvider(bookId));
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
+      debugPrint('📖 markComplete: invalidating dailyQuestProgressProvider');
       _ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
 
       // Award XP for new chapter completion

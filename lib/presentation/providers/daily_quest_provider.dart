@@ -9,6 +9,20 @@ import 'auth_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
 
+/// Event fired when one or more daily quests are newly completed.
+class QuestCompletionEvent {
+  const QuestCompletionEvent({
+    required this.completedQuests,
+    required this.allQuestsComplete,
+  });
+
+  final List<DailyQuestProgress> completedQuests;
+  final bool allQuestsComplete;
+}
+
+final questCompletionEventProvider =
+    StateProvider<QuestCompletionEvent?>((ref) => null);
+
 /// Provides daily quest progress for the current user.
 /// Returns list of DailyQuestProgress from server-side RPC.
 final dailyQuestProgressProvider = FutureProvider<List<DailyQuestProgress>>((ref) async {
@@ -22,7 +36,24 @@ final dailyQuestProgressProvider = FutureProvider<List<DailyQuestProgress>>((ref
       debugPrint('dailyQuestProgressProvider error: ${failure.message}');
       return [];
     },
-    (progress) => progress,
+    (progress) {
+      final newlyCompleted =
+          progress.where((q) => q.newlyCompleted).toList();
+      if (newlyCompleted.isNotEmpty) {
+        final allComplete = progress.every((q) => q.isCompleted);
+        // Schedule microtask so the event fires after provider settles.
+        Future.microtask(() {
+          // Skip if an event is already pending (prevents duplicate on rapid invalidations).
+          if (ref.read(questCompletionEventProvider) != null) return;
+          ref.read(questCompletionEventProvider.notifier).state =
+              QuestCompletionEvent(
+            completedQuests: newlyCompleted,
+            allQuestsComplete: allComplete,
+          );
+        });
+      }
+      return progress;
+    },
   );
 });
 

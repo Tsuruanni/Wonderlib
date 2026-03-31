@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-31 (Admin word list image generation, editor redesign, bulk content generation, dev fast login)
+Son güncelleme: 2026-03-31 (Daily quest system improvements: notification timing, auto-chapter-complete, review quest visibility fix)
 
 ## Current Phase
 
@@ -156,6 +156,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Student Assignment Screens Redesign (app design language, shell integration, colored header cards, 3D GameButtons)
 - [x] Vocabulary Session Web Layouts (side-by-side layouts, 3D option buttons, GameButton check/continue, image overflow fixes)
 - [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
+- [x] Daily Quest System Improvements (review quest visibility fix, instant notifications via AppNotificationListener, auto-chapter-complete, all-quests-done notification with claim, race condition + timezone fixes)
 - [x] Learning Path Node Redesign (3D glossy spheres, popup cards, press effects, unit numbers, gold stars, type-specific icons)
 - [x] Review Node Removal (path_daily_review_completions table + path_position column dropped)
 - [x] Admin Word List Image Generation (fal.ai nano-banana-pro, 11 styles, grid crop, version history, overwrite control, mascot fillers)

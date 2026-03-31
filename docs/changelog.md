@@ -31,6 +31,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Parallel tile uploads** — Image tiles uploaded concurrently instead of sequentially.
 - **120s timeout** on fal.ai API calls with AbortController.
 
+### Daily Quest System Improvements (2026-03-31)
+
+#### Fixed
+- **Daily review quest disappearing after completion** — RPC `CONTINUE` skipped the quest when due word count dropped below 10 after review. Now checks if session exists today before skipping.
+- **Quest completion notifications arriving late** — Moved listener from `QuestsScreen` (only active on Quests tab) to `AppNotificationListener` (always mounted). Notifications now fire immediately from any screen.
+- **`read_chapters` quest not updating in real-time** — Fixed race condition: `_logDailyChapterRead()` was fire-and-forget; now awaited so the row exists before the quest RPC runs. Fixed timezone mismatch: `DateTime.now()` → `AppClock.now().toUtc()`.
+- **Chapter completion notifier disposed mid-async** — `chapterCompletionProvider` (autoDispose) was getting disposed during `markComplete()` because nothing watched it. Added `ref.watch` in reader screen to keep it alive.
+
+#### Added
+- **Auto-chapter-complete on last activity** — When all inline activities in a chapter are completed, `markChapterComplete()` fires automatically. No need to press Continue (Continue still works for activity-less chapters).
+- **"All Quests Done!" notification with Claim button** — When the last quest is completed, a special notification replaces the individual quest card with a "Claim Pack" action button.
+- **Quest completion overlay notification** — New `NotificationType.questComplete` and `allQuestsComplete` types in the notification overlay system.
+- **Completed-all-quests banner** — `DailyQuestList` shows a green "You've completed all quests for today!" banner when all quests are done.
+
+#### Removed
+- **`DailyQuestWidget`** — Was defined but never mounted anywhere. Dead code removed.
+- **`QuestCompletionDialog`** — Replaced by the notification overlay system. Dialog file removed.
+- **Inline `ref.listen` in `QuestsScreen`** — Quest completion detection moved to `AppNotificationListener`.
+
+#### Infrastructure
+- **DB migration** `20260331000004` — Updated `get_daily_quest_progress` and `claim_daily_bonus` RPCs to keep daily_review quest visible after completion.
+
 ### Learning Path Node Redesign (2026-03-31)
 
 #### Added

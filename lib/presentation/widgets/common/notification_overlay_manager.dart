@@ -13,6 +13,8 @@ enum NotificationType {
   streakBroken,
   badgeEarned,
   assignment,
+  questComplete,
+  allQuestsComplete,
 }
 
 // ---------------------------------------------------------------------------

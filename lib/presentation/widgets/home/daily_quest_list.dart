@@ -16,6 +16,9 @@ class DailyQuestList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final allComplete =
+        progress.isNotEmpty && progress.every((q) => q.isCompleted);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -34,8 +37,32 @@ class DailyQuestList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (allComplete)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                color: AppColors.primary.withValues(alpha: 0.08),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle_rounded,
+                        size: 20, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "You've completed all quests for today!",
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             for (var i = 0; i < progress.length; i++) ...[
-              if (i > 0)
+              if (i > 0 || allComplete)
                 Divider(
                   height: 1,
                   thickness: 1,
