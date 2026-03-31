@@ -6,10 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
-import '../../../domain/entities/system_settings.dart';
-import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
-import 'streak_status_dialog.dart';
+import 'streak_sheet.dart';
 
 class TopNavbar extends ConsumerWidget {
   const TopNavbar({super.key});
@@ -22,9 +20,8 @@ class TopNavbar extends ConsumerWidget {
 
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
-    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     // Pre-warm loginDatesProvider so calendar data is ready when fire icon is tapped
-    final calendarDaysAsync = ref.watch(loginDatesProvider);
+    ref.watch(loginDatesProvider);
 
     final streak = user?.currentStreak ?? 0;
     final coins = user?.coins ?? 0;
@@ -57,21 +54,7 @@ class TopNavbar extends ConsumerWidget {
           // Streak
           GestureDetector(
             onTap: () {
-              if (user != null) {
-                final calendarDays = calendarDaysAsync.valueOrNull ?? {};
-                showDialog(
-                  context: context,
-                  builder: (context) => StreakStatusDialog(
-                    currentStreak: user.currentStreak,
-                    longestStreak: user.longestStreak,
-                    calendarDays: calendarDays,
-                    streakFreezeCount: user.streakFreezeCount,
-                    streakFreezeMax: settings.streakFreezeMax,
-                    streakFreezePrice: settings.streakFreezePrice,
-                    userCoins: user.coins,
-                  ),
-                );
-              }
+              if (user != null) showStreakSheet(context);
             },
             child: _buildNavStat(
               icon: Icons.local_fire_department,

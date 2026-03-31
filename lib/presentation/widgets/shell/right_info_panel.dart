@@ -8,7 +8,6 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/daily_quest.dart';
-import '../../../domain/entities/system_settings.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_quest_provider.dart';
@@ -16,7 +15,7 @@ import '../../providers/reader_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
-import '../common/streak_status_dialog.dart';
+import '../common/streak_sheet.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
 /// Contains stats bar, league card, and daily quests — like Duolingo's web layout.
@@ -85,9 +84,8 @@ class _StatsBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userControllerProvider).valueOrNull;
-    final settings = ref.watch(systemSettingsProvider).valueOrNull ??
-        SystemSettings.defaults();
-    final calendarDaysAsync = ref.watch(loginDatesProvider);
+    // Pre-warm loginDatesProvider so calendar data is ready when fire icon is tapped
+    ref.watch(loginDatesProvider);
 
     final streak = user?.currentStreak ?? 0;
     final coins = user?.coins ?? 0;
@@ -98,21 +96,7 @@ class _StatsBar extends ConsumerWidget {
         // Streak
         GestureDetector(
           onTap: () {
-            if (user != null) {
-              final calendarDays = calendarDaysAsync.valueOrNull ?? {};
-              showDialog(
-                context: context,
-                builder: (context) => StreakStatusDialog(
-                  currentStreak: user.currentStreak,
-                  longestStreak: user.longestStreak,
-                  calendarDays: calendarDays,
-                  streakFreezeCount: user.streakFreezeCount,
-                  streakFreezeMax: settings.streakFreezeMax,
-                  streakFreezePrice: settings.streakFreezePrice,
-                  userCoins: user.coins,
-                ),
-              );
-            }
+            if (user != null) showStreakSheet(context);
           },
           child: _StatChip(
             icon: Icons.local_fire_department,
