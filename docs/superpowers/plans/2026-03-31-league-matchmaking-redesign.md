@@ -172,7 +172,12 @@ INSERT INTO bot_profiles (first_name, last_name, avatar_equipped_cache, school_n
 -- Use the actual avatar base_url values from the avatar_items table in production
 ```
 
-**Implementation note:** The full 200 entries should use actual `base_url` values from the existing `avatar_items` table. Query `SELECT DISTINCT image_url FROM avatar_items WHERE category = 'base'` to get valid base avatar URLs for the seed data.
+**CRITICAL: The migration MUST contain all ~200 entries, not just 10.** With only 10 bots, every 30-person group would show 3 copies of each bot name — immediately visible as fake. Generate the full list by:
+1. Query `SELECT DISTINCT image_url FROM avatar_items WHERE category = 'base'` for valid base avatar URLs
+2. Use a script to generate 200 unique name combinations with varied school names
+3. Paste all 200 INSERT VALUES into this migration before pushing
+
+The 10 entries shown above are examples of the format. The implementer must expand to 200 before `supabase db push`.
 
 - [ ] **Step 3: Dry-run the migration**
 
@@ -388,8 +393,8 @@ BEGIN
         RAISE EXCEPTION 'Access denied: caller is not a member of this group';
     END IF;
 
-    -- Fetch group info once (snapshot for consistent bot count within this call)
-    SELECT * INTO v_group FROM league_groups WHERE id = p_group_id;
+    -- Fetch group info once (FOR SHARE prevents concurrent member_count changes during read)
+    SELECT * INTO v_group FROM league_groups WHERE id = p_group_id FOR SHARE;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Group not found';
     END IF;
@@ -770,6 +775,8 @@ $$;
 
 - [ ] **Step 2: Modify award_xp_transaction to trigger lazy join**
 
+**IMPORTANT:** Before writing this, run `grep -r "award_xp_transaction" supabase/migrations/ | sort` to find the LATEST version of the function. The code below is based on migration `20260328000004`. If newer migrations have modified this function (adding combo logic, badge triggers, streak updates, etc.), those changes MUST be preserved. Only ADD the lazy join block at the end — do NOT remove any existing logic.
+
 ```sql
 -- =============================================
 -- Part 4b: Add lazy join trigger to award_xp_transaction
@@ -1027,7 +1034,7 @@ class LeaderboardEntry extends Equatable {
   List<Object?> get props => [
         userId, firstName, lastName, avatarUrl, avatarEquippedCache,
         totalXp, weeklyXp, level, rank, previousRank, className,
-        leagueTier, totalCount, schoolName, isSameSchool, isBot, groupId,
+        leagueTier, totalCount, schoolName, isSameSchool, isBot, previousGroupId,
       ];
 }
 ```
@@ -1045,7 +1052,7 @@ class LeagueStatus extends Equatable {
     required this.joined,
     required this.thresholdMet,
     required this.currentWeeklyXp,
-    this.previousGroupId,
+    this.groupId,
     this.groupMemberCount,
     required this.tier,
     required this.weekStart,
@@ -1055,7 +1062,7 @@ class LeagueStatus extends Equatable {
   final bool joined;
   final bool thresholdMet;
   final int currentWeeklyXp;
-  final String? previousGroupId;
+  final String? groupId;
   final int? groupMemberCount;
   final LeagueTier tier;
   final DateTime weekStart;
@@ -1277,7 +1284,7 @@ import '../../../domain/entities/league_status.dart';
 
 class LeagueStatusModel {
   const LeagueStatusModel({
-    this.previousGroupId,
+    this.groupId,
     this.groupMemberCount,
     required this.tier,
     required this.weekStart,
@@ -1302,7 +1309,7 @@ class LeagueStatusModel {
     );
   }
 
-  final String? previousGroupId;
+  final String? groupId;
   final int? groupMemberCount;
   final LeagueTier tier;
   final DateTime weekStart;

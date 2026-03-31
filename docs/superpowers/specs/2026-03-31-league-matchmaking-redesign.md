@@ -615,8 +615,7 @@ int leagueZoneSize(int groupSize) {
 // rpc_functions.dart — remove old weekly RPCs, add new ones
 // Remove: getWeeklyClassLeaderboard, getWeeklySchoolLeaderboard,
 //         getUserWeeklyClassPosition, getUserWeeklySchoolPosition
-// Add:
-static const joinWeeklyLeague = 'join_weekly_league';
+// Add (joinWeeklyLeague is NOT added — it's called internally by award_xp_transaction, never from Dart):
 static const getLeagueGroupLeaderboard = 'get_league_group_leaderboard';
 static const getUserLeagueStatus = 'get_user_league_status';
 ```
