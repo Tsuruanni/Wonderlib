@@ -325,6 +325,17 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     final userResult = await getUserUseCase(GetUserByIdParams(userId: userId));
     userResult.fold((_) => null, (user) => state = AsyncValue.data(user));
     _ref.invalidate(loginDatesProvider);
+    // Invalidate monthly providers so streak sheet / navbar pick up new data
+    // (freeze days, today's login). Invalidate current + previous month to
+    // cover cross-month streaks.
+    final today = AppClock.today();
+    _ref.invalidate(monthlyLoginDatesProvider(
+      (year: today.year, month: today.month),
+    ));
+    final prev = DateTime(today.year, today.month - 1, 1);
+    _ref.invalidate(monthlyLoginDatesProvider(
+      (year: prev.year, month: prev.month),
+    ));
 
     // Fire streak event if settings allow it
     final s = _notifSettings;
