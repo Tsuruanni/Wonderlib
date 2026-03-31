@@ -21,6 +21,16 @@ class LeaderboardScreen extends ConsumerWidget {
     final scope = ref.watch(leaderboardScopeProvider);
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
+    // Listen for league join transition (not joined → joined)
+    ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
+      final wasJoined = prev?.valueOrNull?.joined ?? false;
+      final isJoined = next.valueOrNull?.joined ?? false;
+      if (!wasJoined && isJoined) {
+        final tier = next.valueOrNull?.tier ?? LeagueTier.bronze;
+        _showLeagueJoinedDialog(context, tier);
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -88,6 +98,78 @@ class LeaderboardScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showLeagueJoinedDialog(BuildContext context, LeagueTier tier) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: _TierShield._tierColor(tier).withValues(alpha: 0.15),
+                ),
+                child: Icon(
+                  Icons.shield_rounded,
+                  size: 40,
+                  color: _TierShield._tierColor(tier),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Welcome to ${tier.label} League!',
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You\'re now competing with 30 rivals.\nEarn XP to climb the ranks and get promoted!',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralText,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.waspDark,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'LET\'S GO!',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
