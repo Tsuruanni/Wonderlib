@@ -697,3 +697,257 @@ BEGIN
         TRUE, TRUE, v_current_weekly_xp;
 END;
 $$;
+
+-- =============================================
+-- Part 4a: Rewrite process_weekly_league_reset
+-- =============================================
+CREATE OR REPLACE FUNCTION process_weekly_league_reset()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_last_week_start DATE := (date_trunc('week', app_now()) - INTERVAL '7 days')::DATE;
+    v_last_week_ts TIMESTAMPTZ := date_trunc('week', app_now()) - INTERVAL '7 days';
+    v_this_week_ts TIMESTAMPTZ := date_trunc('week', app_now());
+    v_group RECORD;
+    v_total_bots INTEGER := (SELECT count(*)::INTEGER FROM bot_profiles);
+    v_bot_count INTEGER;
+    v_zone_size INTEGER;
+    v_entry RECORD;
+    v_new_tier VARCHAR(20);
+    v_result VARCHAR(20);
+    v_tier_order TEXT[] := ARRAY['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+    v_tier_idx INTEGER;
+BEGIN
+    -- Pre-aggregate weekly XP for the last week
+    CREATE TEMP TABLE IF NOT EXISTS tmp_weekly_xp AS
+    SELECT xl.user_id, COALESCE(SUM(xl.amount), 0)::BIGINT AS week_xp
+    FROM xp_logs xl
+    WHERE xl.created_at >= v_last_week_ts AND xl.created_at < v_this_week_ts
+    GROUP BY xl.user_id;
+    CREATE INDEX IF NOT EXISTS idx_tmp_wx_user ON tmp_weekly_xp(user_id);
+
+    -- Process each unprocessed group from last week
+    FOR v_group IN
+        SELECT * FROM league_groups
+        WHERE week_start = v_last_week_start AND processed = false
+        FOR UPDATE
+    LOOP
+        v_bot_count := GREATEST(0, 30 - v_group.member_count);
+
+        -- Zone size: with virtual bots, display count is always 30 → zone = 5
+        v_zone_size := 5;
+
+        -- Rank real + bot entries together
+        FOR v_entry IN
+            WITH real_entries AS (
+                SELECT
+                    p.id AS entry_id,
+                    COALESCE(wxc.week_xp, 0)::BIGINT AS entry_weekly_xp,
+                    p.xp AS entry_total_xp,
+                    p.league_tier AS entry_tier,
+                    lgm.school_id AS entry_school_id,
+                    p.class_id AS entry_class_id,
+                    FALSE AS entry_is_bot
+                FROM league_group_members lgm
+                JOIN profiles p ON lgm.user_id = p.id
+                LEFT JOIN tmp_weekly_xp wxc ON p.id = wxc.user_id
+                WHERE lgm.group_id = v_group.id
+            ),
+            bot_entries AS (
+                SELECT
+                    ('00000000-0000-0000-0000-' || LPAD(bp.id::text, 12, '0'))::UUID AS entry_id,
+                    bot_weekly_xp_target(v_group.id, slot_num, v_group.xp_bucket)::BIGINT AS entry_weekly_xp,
+                    0::INTEGER AS entry_total_xp,
+                    v_group.tier AS entry_tier,
+                    NULL::UUID AS entry_school_id,
+                    NULL::UUID AS entry_class_id,
+                    TRUE AS entry_is_bot
+                FROM generate_series(0, v_bot_count - 1) AS slot_num
+                JOIN bot_profiles bp ON bp.id = (abs(hashtext(v_group.id::text || '_slot_' || slot_num::text)) % v_total_bots) + 1
+                WHERE v_bot_count > 0 AND v_total_bots > 0
+            ),
+            all_entries AS (
+                SELECT * FROM real_entries UNION ALL SELECT * FROM bot_entries
+            ),
+            ranked AS (
+                SELECT *, RANK() OVER (ORDER BY entry_weekly_xp DESC, entry_total_xp DESC)::INTEGER AS entry_rank
+                FROM all_entries
+            )
+            SELECT * FROM ranked ORDER BY entry_rank
+        LOOP
+            -- Skip bots entirely
+            IF v_entry.entry_is_bot THEN CONTINUE; END IF;
+
+            v_result := 'stayed';
+            v_new_tier := v_entry.entry_tier;
+            v_tier_idx := array_position(v_tier_order, v_entry.entry_tier);
+
+            -- Promotion zone (top 5)
+            IF v_zone_size > 0 AND v_entry.entry_rank <= v_zone_size AND v_tier_idx < 5 THEN
+                v_new_tier := v_tier_order[v_tier_idx + 1];
+                v_result := 'promoted';
+            -- Demotion zone (bottom 5, i.e., rank > 25 out of 30)
+            ELSIF v_zone_size > 0 AND v_entry.entry_rank > (30 - v_zone_size) AND v_tier_idx > 1 THEN
+                v_new_tier := v_tier_order[v_tier_idx - 1];
+                v_result := 'demoted';
+            END IF;
+
+            INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result, group_id)
+            VALUES (v_entry.entry_id, v_entry.entry_class_id, v_entry.entry_school_id,
+                    v_last_week_start, v_new_tier, v_entry.entry_rank, v_entry.entry_weekly_xp, v_result, v_group.id);
+
+            IF v_new_tier != v_entry.entry_tier THEN
+                UPDATE profiles SET league_tier = v_new_tier WHERE id = v_entry.entry_id;
+            END IF;
+        END LOOP;
+
+        UPDATE league_groups SET processed = true WHERE id = v_group.id;
+    END LOOP;
+
+    -- Inactive tier decay: 4+ weeks without joining a group
+    -- IMPORTANT: Insert history FIRST (captures pre-decay tier), THEN update profiles
+    INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result)
+    SELECT p.id, p.class_id, p.school_id, v_last_week_start,
+           CASE p.league_tier
+               WHEN 'diamond' THEN 'platinum'
+               WHEN 'platinum' THEN 'gold'
+               WHEN 'gold' THEN 'silver'
+               WHEN 'silver' THEN 'bronze'
+               ELSE p.league_tier
+           END,
+           0, 0, 'inactive_demoted'
+    FROM profiles p
+    WHERE p.role = 'student'
+    AND p.league_tier != 'bronze'
+    AND NOT EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.user_id = p.id
+        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM league_history lh
+        WHERE lh.user_id = p.id AND lh.week_start = v_last_week_start
+    );
+
+    -- THEN update profiles (after history is captured)
+    UPDATE profiles SET league_tier = CASE league_tier
+        WHEN 'diamond' THEN 'platinum'
+        WHEN 'platinum' THEN 'gold'
+        WHEN 'gold' THEN 'silver'
+        WHEN 'silver' THEN 'bronze'
+        ELSE league_tier
+    END
+    WHERE role = 'student'
+    AND league_tier != 'bronze'
+    AND NOT EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.user_id = profiles.id
+        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
+    );
+
+    -- Cleanup old groups (> 8 weeks)
+    DELETE FROM league_groups
+    WHERE week_start < (date_trunc('week', app_now()) - INTERVAL '8 weeks')::DATE;
+
+    DROP TABLE IF EXISTS tmp_weekly_xp;
+END;
+$$;
+
+-- =============================================
+-- Part 4b: Rewrite award_xp_transaction with lazy league join
+-- =============================================
+CREATE OR REPLACE FUNCTION award_xp_transaction(
+    p_user_id UUID,
+    p_amount INTEGER,
+    p_source VARCHAR,
+    p_source_id UUID DEFAULT NULL,
+    p_description TEXT DEFAULT NULL
+)
+RETURNS TABLE(new_xp INTEGER, new_level INTEGER, level_up BOOLEAN)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_current_xp INTEGER;
+    v_current_coins INTEGER;
+    v_new_xp INTEGER;
+    v_new_coins INTEGER;
+    v_current_level INTEGER;
+    v_new_level INTEGER;
+    v_weekly_xp BIGINT;
+BEGIN
+    -- Auth check: ensure caller is the user they claim to be
+    IF p_user_id != auth.uid() THEN
+        RAISE EXCEPTION 'Not authorized: user mismatch';
+    END IF;
+
+    -- Lock the row FIRST to prevent race conditions
+    SELECT xp, level, coins INTO v_current_xp, v_current_level, v_current_coins
+    FROM profiles
+    WHERE id = p_user_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User not found: %', p_user_id;
+    END IF;
+
+    -- Idempotency check AFTER lock (prevents TOCTOU race condition)
+    IF p_source_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM xp_logs
+        WHERE user_id = p_user_id AND source = p_source AND source_id = p_source_id
+    ) THEN
+        -- Already awarded — return current state without modification
+        RETURN QUERY SELECT v_current_xp, v_current_level, false;
+        RETURN;
+    END IF;
+
+    -- Calculate new values
+    v_new_xp := v_current_xp + p_amount;
+    v_new_level := calculate_level(v_new_xp);
+    v_new_coins := v_current_coins + p_amount;
+
+    -- Update profile (XP + level + coins atomically)
+    UPDATE profiles
+    SET xp = v_new_xp,
+        level = v_new_level,
+        coins = v_new_coins,
+        updated_at = NOW()
+    WHERE id = p_user_id;
+
+    -- Log XP
+    INSERT INTO xp_logs (user_id, amount, source, source_id, description)
+    VALUES (p_user_id, p_amount, p_source, p_source_id, p_description);
+
+    -- Log coins
+    INSERT INTO coin_logs (user_id, amount, balance_after, source, source_id, description)
+    VALUES (p_user_id, p_amount, v_new_coins, p_source, p_source_id, p_description);
+
+    -- === Lazy join to weekly league ===
+    IF NOT EXISTS (
+        SELECT 1 FROM league_group_members
+        WHERE user_id = p_user_id
+        AND week_start = date_trunc('week', app_now())::DATE
+    ) THEN
+        SELECT COALESCE(SUM(amount), 0) INTO v_weekly_xp
+        FROM xp_logs
+        WHERE user_id = p_user_id
+        AND created_at >= date_trunc('week', app_now());
+
+        IF v_weekly_xp >= 20 THEN
+            PERFORM join_weekly_league(p_user_id);
+        END IF;
+    END IF;
+
+    RETURN QUERY SELECT v_new_xp, v_new_level, (v_new_level > v_current_level);
+END;
+$$;
+
+-- =============================================
+-- Part 4c: Drop old weekly RPCs
+-- =============================================
+DROP FUNCTION IF EXISTS get_weekly_class_leaderboard(UUID, INTEGER);
+DROP FUNCTION IF EXISTS get_weekly_school_leaderboard(UUID, INTEGER, VARCHAR);
+DROP FUNCTION IF EXISTS get_user_weekly_class_position(UUID, UUID);
+DROP FUNCTION IF EXISTS get_user_weekly_school_position(UUID, UUID, VARCHAR);
