@@ -1005,7 +1005,7 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
         _ref.invalidate(userVocabularyProgressProvider);
         _ref.invalidate(learnedWordsWithDetailsProvider);
         _ref.read(userControllerProvider.notifier).refreshProfileOnly();
-        _ref.invalidate(leaderboardEntriesProvider);
+        _ref.invalidate(leaderboardDisplayProvider);
         _ref.invalidate(dailyQuestProgressProvider);
 
         // Complete matching assignments (best-effort)

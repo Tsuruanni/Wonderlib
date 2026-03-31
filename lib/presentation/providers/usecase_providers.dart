@@ -79,10 +79,10 @@ import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.da
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
-import '../../domain/usecases/user/get_user_weekly_position_usecase.dart';
+import '../../domain/usecases/user/get_league_group_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_league_status_usecase.dart';
 import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_total_position_usecase.dart';
-import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
@@ -468,12 +468,12 @@ final getUserStatsUseCaseProvider = Provider((ref) {
   return GetUserStatsUseCase(ref.watch(userRepositoryProvider));
 });
 
-final getWeeklyLeaderboardUseCaseProvider = Provider((ref) {
-  return GetWeeklyLeaderboardUseCase(ref.watch(userRepositoryProvider));
+final getLeagueGroupLeaderboardUseCaseProvider = Provider((ref) {
+  return GetLeagueGroupLeaderboardUseCase(ref.watch(userRepositoryProvider));
 });
 
-final getUserWeeklyPositionUseCaseProvider = Provider((ref) {
-  return GetUserWeeklyPositionUseCase(ref.watch(userRepositoryProvider));
+final getUserLeagueStatusUseCaseProvider = Provider((ref) {
+  return GetUserLeagueStatusUseCase(ref.watch(userRepositoryProvider));
 });
 
 final getTotalLeaderboardUseCaseProvider = Provider((ref) {

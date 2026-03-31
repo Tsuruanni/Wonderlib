@@ -126,7 +126,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Refresh user state so XP/coins updates in navbar + triggers level-up
     ref.read(userControllerProvider.notifier).refreshProfileOnly();
     // Invalidate leaderboard so rank reflects new XP
-    ref.invalidate(leaderboardEntriesProvider);
+    ref.invalidate(leaderboardDisplayProvider);
 
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
