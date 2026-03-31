@@ -116,12 +116,17 @@ final monthlyLoginDatesProvider = FutureProvider.family<
   if (userId == null) return {};
 
   final from = DateTime(params.year, params.month, 1);
+  final nextMonth = DateTime(params.year, params.month + 1, 1);
   final useCase = ref.watch(getLoginDatesUseCaseProvider);
   final result =
       await useCase(GetLoginDatesParams(userId: userId, from: from));
   return result.fold(
     (_) => <DateTime, bool>{},
-    (dates) => dates,
+    (dates) {
+      // Filter to only this month (query has no upper bound)
+      dates.removeWhere((date, _) => !date.isBefore(nextMonth));
+      return dates;
+    },
   );
 });
 

@@ -361,7 +361,7 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
         return _DayCell(
           day: date.day,
           label: dayLabel,
-          isToday: date == today,
+          isToday: date.year == today.year && date.month == today.month && date.day == today.day,
           isLogin: _isLoginDay(widget.weeklyDays, date),
           isFreeze: _isFreezeDay(widget.weeklyDays, date),
           isFaded: date.isAfter(today) ||
@@ -413,7 +413,7 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
       cells.add(
         _DayCell(
           day: d,
-          isToday: date == today,
+          isToday: date.year == today.year && date.month == today.month && date.day == today.day,
           isLogin: _isLoginDay(monthData, date),
           isFreeze: _isFreezeDay(monthData, date),
           isFaded: isFuture || isBeforeCreated,
