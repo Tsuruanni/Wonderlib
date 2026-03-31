@@ -100,8 +100,14 @@ CREATE INDEX idx_league_group_members_group_user ON league_group_members(group_i
 ALTER TABLE league_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE league_group_members ENABLE ROW LEVEL SECURITY;
 
--- 1e. Add group_id to league_history
+-- 1e. Add group_id to league_history + update result CHECK constraint
 ALTER TABLE league_history ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES league_groups(id) ON DELETE SET NULL;
+
+DO $$ BEGIN
+  ALTER TABLE league_history DROP CONSTRAINT IF EXISTS league_history_result_check;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
+-- No CHECK constraint re-added — result column is free-form VARCHAR(20)
 
 -- 1f. Bot XP helper functions
 CREATE OR REPLACE FUNCTION bot_weekly_xp_target(
@@ -360,11 +366,11 @@ RETURNS TABLE(
     school_name VARCHAR,
     is_same_school BOOLEAN,
     is_bot BOOLEAN,
-    group_member_count INTEGER
+    group_member_count INTEGER,
+    previous_group_id UUID
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-STABLE
 AS $$
 DECLARE
     v_group RECORD;
@@ -382,8 +388,8 @@ BEGIN
         RAISE EXCEPTION 'Access denied: caller is not a member of this group';
     END IF;
 
-    -- Fetch group info once (FOR SHARE prevents concurrent member_count changes)
-    SELECT * INTO v_group FROM league_groups WHERE id = p_group_id FOR SHARE;
+    -- Fetch group info once (snapshot for consistent bot count within this call)
+    SELECT * INTO v_group FROM league_groups WHERE id = p_group_id;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'Group not found';
     END IF;
@@ -423,6 +429,7 @@ BEGIN
             COALESCE(wxc.week_xp, 0)::BIGINT AS e_weekly_xp,
             p.level AS e_level,
             pw.prev_rank AS e_previous_rank,
+            pw.prev_group_id AS e_prev_group_id,
             p.league_tier AS e_league_tier,
             s.name AS e_school_name,
             (p.school_id = v_caller_school_id) AS e_is_same_school,
@@ -445,6 +452,7 @@ BEGIN
             bot_current_xp(p_group_id, slot_num, v_group.xp_bucket, v_group.week_start)::BIGINT AS e_weekly_xp,
             GREATEST(1, bot_weekly_xp_target(p_group_id, slot_num, v_group.xp_bucket) / 50 + 1) AS e_level,
             NULL::INTEGER AS e_previous_rank,
+            NULL::UUID AS e_prev_group_id,
             v_group.tier AS e_league_tier,
             bp.school_name AS e_school_name,
             FALSE AS e_is_same_school,
@@ -467,7 +475,8 @@ BEGIN
         r.e_avatar_equipped_cache, r.e_total_xp::INTEGER, r.e_weekly_xp,
         r.e_level::INTEGER, r.e_rank, r.e_previous_rank,
         r.e_league_tier, r.e_school_name, r.e_is_same_school, r.e_is_bot,
-        30::INTEGER
+        30::INTEGER,
+        r.e_prev_group_id
     FROM ranked r
     ORDER BY r.e_rank
     LIMIT p_limit;
@@ -495,7 +504,6 @@ RETURNS TABLE(
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
-STABLE
 AS $$
 DECLARE
     v_week_start DATE := date_trunc('week', app_now())::DATE;
@@ -503,6 +511,11 @@ DECLARE
     v_current_weekly_xp BIGINT;
     v_group_id UUID;
     v_user_tier VARCHAR(20);
+    v_group_bucket INTEGER;
+    v_group_member_count INTEGER;
+    v_total_bots INTEGER;
+    v_bot_count INTEGER;
+    v_user_rank BIGINT;
 BEGIN
     -- Auth check
     IF p_user_id != auth.uid() THEN
@@ -532,20 +545,48 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Joined: compute rank using bot-merged ranking (same logic as leaderboard)
-    RETURN QUERY
-    WITH merged_rank AS (
-        SELECT r.e_user_id, r.e_rank
-        FROM get_league_group_leaderboard(v_group_id, 30) r
-    )
-    SELECT
+    -- Get group info for bot generation
+    SELECT lg.xp_bucket, lg.member_count INTO v_group_bucket, v_group_member_count
+    FROM league_groups lg WHERE lg.id = v_group_id;
+
+    v_total_bots := (SELECT count(*)::INTEGER FROM bot_profiles);
+    v_bot_count := GREATEST(0, 30 - v_group_member_count);
+
+    -- Compute rank using same bot-merge pattern as leaderboard (inlined, not called)
+    SELECT ranked.rnk INTO v_user_rank
+    FROM (
+        WITH weekly_xp_calc AS (
+            SELECT xl.user_id AS uid, COALESCE(SUM(xl.amount), 0) AS week_xp
+            FROM xp_logs xl WHERE xl.created_at >= v_week_start_ts GROUP BY xl.user_id
+        ),
+        real_entries AS (
+            SELECT p.id AS eid, COALESCE(wxc.week_xp, 0)::BIGINT AS ewxp, p.xp AS etxp
+            FROM league_group_members lgm
+            JOIN profiles p ON lgm.user_id = p.id
+            LEFT JOIN weekly_xp_calc wxc ON p.id = wxc.uid
+            WHERE lgm.group_id = v_group_id
+        ),
+        bot_entries AS (
+            SELECT
+                ('00000000-0000-0000-0000-' || LPAD(bp.id::text, 12, '0'))::UUID AS eid,
+                bot_current_xp(v_group_id, slot_num, v_group_bucket, v_week_start)::BIGINT AS ewxp,
+                0::INTEGER AS etxp
+            FROM generate_series(0, v_bot_count - 1) AS slot_num
+            JOIN bot_profiles bp ON bp.id = (abs(hashtext(v_group_id::text || '_slot_' || slot_num::text)) % v_total_bots) + 1
+            WHERE v_bot_count > 0 AND v_total_bots > 0
+        ),
+        all_entries AS (SELECT * FROM real_entries UNION ALL SELECT * FROM bot_entries),
+        ranked_all AS (
+            SELECT eid, RANK() OVER (ORDER BY ewxp DESC, etxp DESC) AS rnk FROM all_entries
+        )
+        SELECT * FROM ranked_all
+    ) ranked
+    WHERE ranked.eid = p_user_id;
+
+    RETURN QUERY SELECT
         v_group_id, 30::INTEGER, v_user_tier, v_week_start,
-        v_current_weekly_xp,
-        mr.e_rank,
-        TRUE, TRUE,
-        v_current_weekly_xp
-    FROM merged_rank mr
-    WHERE mr.e_user_id = p_user_id;
+        v_current_weekly_xp, v_user_rank,
+        TRUE, TRUE, v_current_weekly_xp;
 END;
 $$;
 ```
@@ -605,13 +646,9 @@ BEGIN
     LOOP
         v_bot_count := GREATEST(0, 30 - v_group.member_count);
 
-        -- Determine zone size based on display count (always 30 with bots)
-        IF (v_group.member_count + v_bot_count) < 5 THEN v_zone_size := 0;
-        ELSIF (v_group.member_count + v_bot_count) < 10 THEN v_zone_size := 1;
-        ELSIF (v_group.member_count + v_bot_count) < 15 THEN v_zone_size := 2;
-        ELSIF (v_group.member_count + v_bot_count) < 25 THEN v_zone_size := 3;
-        ELSE v_zone_size := 5;
-        END IF;
+        -- Zone size: with virtual bots, display count is always 30 → zone = 5
+        -- (bots fill empty slots, so total ranked entries = real + bots = 30)
+        v_zone_size := 5;
 
         -- Rank real + bot entries together
         FOR v_entry IN
@@ -681,6 +718,32 @@ BEGIN
     END LOOP;
 
     -- Inactive tier decay: 4+ weeks without joining a group
+    -- IMPORTANT: Insert history FIRST (captures pre-decay tier), THEN update profiles
+    INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result)
+    SELECT p.id, p.class_id, p.school_id, v_last_week_start,
+           -- Store the NEW (demoted) tier in league_history, consistent with promotion/demotion pattern
+           CASE p.league_tier
+               WHEN 'diamond' THEN 'platinum'
+               WHEN 'platinum' THEN 'gold'
+               WHEN 'gold' THEN 'silver'
+               WHEN 'silver' THEN 'bronze'
+               ELSE p.league_tier
+           END,
+           0, 0, 'inactive_demoted'
+    FROM profiles p
+    WHERE p.role = 'student'
+    AND p.league_tier != 'bronze'
+    AND NOT EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.user_id = p.id
+        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM league_history lh
+        WHERE lh.user_id = p.id AND lh.week_start = v_last_week_start
+    );
+
+    -- THEN update profiles (after history is captured)
     UPDATE profiles SET league_tier = CASE league_tier
         WHEN 'diamond' THEN 'platinum'
         WHEN 'platinum' THEN 'gold'
@@ -694,22 +757,6 @@ BEGIN
         SELECT 1 FROM league_group_members lgm
         WHERE lgm.user_id = profiles.id
         AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
-    );
-
-    -- Insert league_history for inactive demotions
-    INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result)
-    SELECT p.id, p.class_id, p.school_id, v_last_week_start, p.league_tier, 0, 0, 'inactive_demoted'
-    FROM profiles p
-    WHERE p.role = 'student'
-    AND p.league_tier != 'bronze'
-    AND NOT EXISTS (
-        SELECT 1 FROM league_group_members lgm
-        WHERE lgm.user_id = p.id
-        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
-    )
-    AND NOT EXISTS (
-        SELECT 1 FROM league_history lh
-        WHERE lh.user_id = p.id AND lh.week_start = v_last_week_start
     );
 
     -- Cleanup old groups (> 8 weeks)
@@ -892,9 +939,8 @@ static const getUserWeeklyClassPosition = 'get_user_weekly_class_position';
 static const getUserWeeklySchoolPosition = 'get_user_weekly_school_position';
 ```
 
-Add these lines:
+Add these lines (note: `joinWeeklyLeague` is NOT needed — it's called internally by `award_xp_transaction`, never from Dart):
 ```dart
-static const joinWeeklyLeague = 'join_weekly_league';
 static const getLeagueGroupLeaderboard = 'get_league_group_leaderboard';
 static const getUserLeagueStatus = 'get_user_league_status';
 ```
@@ -943,7 +989,7 @@ class LeaderboardEntry extends Equatable {
     this.schoolName,
     this.isSameSchool = false,
     this.isBot = false,
-    this.groupId,
+    this.previousGroupId,
   });
 
   final String userId;
@@ -962,7 +1008,7 @@ class LeaderboardEntry extends Equatable {
   final String? schoolName;
   final bool isSameSchool;
   final bool isBot;
-  final String? groupId;
+  final String? previousGroupId;
 
   String get fullName => '$firstName $lastName';
 
@@ -999,7 +1045,7 @@ class LeagueStatus extends Equatable {
     required this.joined,
     required this.thresholdMet,
     required this.currentWeeklyXp,
-    this.groupId,
+    this.previousGroupId,
     this.groupMemberCount,
     required this.tier,
     required this.weekStart,
@@ -1009,7 +1055,7 @@ class LeagueStatus extends Equatable {
   final bool joined;
   final bool thresholdMet;
   final int currentWeeklyXp;
-  final String? groupId;
+  final String? previousGroupId;
   final int? groupMemberCount;
   final LeagueTier tier;
   final DateTime weekStart;
@@ -1185,7 +1231,7 @@ factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
     schoolName: json['school_name'] as String?,
     isSameSchool: json['is_same_school'] as bool? ?? false,
     isBot: json['is_bot'] as bool? ?? false,
-    groupId: json['group_id'] as String?,
+    previousGroupId: json['previous_group_id'] as String?,
   );
 }
 ```
@@ -1231,7 +1277,7 @@ import '../../../domain/entities/league_status.dart';
 
 class LeagueStatusModel {
   const LeagueStatusModel({
-    this.groupId,
+    this.previousGroupId,
     this.groupMemberCount,
     required this.tier,
     required this.weekStart,
@@ -1256,7 +1302,7 @@ class LeagueStatusModel {
     );
   }
 
-  final String? groupId;
+  final String? previousGroupId;
   final int? groupMemberCount;
   final LeagueTier tier;
   final DateTime weekStart;
@@ -1323,7 +1369,14 @@ Future<Either<Failure, LeagueStatus>> getUserLeagueStatus({
     );
 
     if (result == null || (result as List).isEmpty) {
-      return const Left(NotFoundFailure('League status not found'));
+      // Return default "not joined" status rather than an error
+      return Right(LeagueStatus(
+        joined: false,
+        thresholdMet: false,
+        currentWeeklyXp: 0,
+        tier: LeagueTier.bronze,
+        weekStart: DateTime.now(),
+      ));
     }
 
     return Right(
@@ -1441,13 +1494,16 @@ final leagueGroupEntriesProvider =
   return result.fold((_) => [], (entries) => entries);
 });
 
-/// Total XP leaderboard entries (class/school scope).
+/// Total XP leaderboard entries (class/school scope only).
 final totalLeaderboardEntriesProvider =
     FutureProvider.autoDispose<List<LeaderboardEntry>>((ref) async {
   final currentUser = await ref.watch(currentUserProvider.future);
   if (currentUser == null) return [];
 
   final scope = ref.watch(leaderboardScopeProvider);
+  // League scope uses leagueGroupEntriesProvider, not this provider
+  if (scope == LeaderboardScope.leagueScope) return [];
+
   final useCase = ref.watch(getTotalLeaderboardUseCaseProvider);
 
   if (scope == LeaderboardScope.classScope) {
@@ -1588,25 +1644,115 @@ git commit -m "feat(providers): add league status and group providers, remove ol
 
 Key changes to `leaderboard_screen.dart`:
 
-1. **Add "Not Joined" state** — when `scope == leagueScope && !state.isLeagueJoined`:
-   - Show progress card with XP bar toward 20 XP threshold
+1. **Rename provider references:** `leaderboardEntriesProvider` → `totalLeaderboardEntriesProvider`, `currentUserPositionProvider` → `currentUserTotalPositionProvider` throughout the file.
 
-2. **Bot tap guard** — in `_buildEntryCard` and `_PodiumSection`:
-   - Wrap `GestureDetector.onTap` with `entry.isBot ? null : () => showStudentProfileDialog(...)`
+2. **Add "Not Joined" state** — in `build()`, when `scope == leagueScope && !state.isLeagueJoined`:
+```dart
+if (scope == LeaderboardScope.leagueScope && !state.isLeagueJoined) {
+  return _NotJoinedCard(status: state.leagueStatus);
+}
+```
+Create `_NotJoinedCard` widget with progress bar:
+```dart
+class _NotJoinedCard extends StatelessWidget {
+  const _NotJoinedCard({this.status});
+  final LeagueStatus? status;
 
-3. **Same-school badge** — in `_buildEntryCard`:
-   - Show school icon next to entries where `entry.isSameSchool == true`
+  @override
+  Widget build(BuildContext context) {
+    final xp = status?.currentWeeklyXp ?? 0;
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.neutral, width: 2),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline_rounded, size: 48, color: AppColors.waspDark),
+            const SizedBox(height: 16),
+            Text('Join this week\'s league!',
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
+            Text('Earn 20 XP to start competing.',
+              style: GoogleFonts.nunito(color: AppColors.neutralText, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 16),
+            LinearProgressIndicator(value: xp / 20, minHeight: 8,
+              backgroundColor: AppColors.neutral, color: AppColors.waspDark),
+            const SizedBox(height: 8),
+            Text('$xp / 20 XP', style: GoogleFonts.nunito(fontWeight: FontWeight.w800,
+              color: AppColors.waspDark)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
 
-4. **Zone size always 30** — in league mode:
-   - `leagueZoneSize(30)` = 5 (always)
+3. **Bot tap guard** — in `_buildEntryCard` and `_PodiumEntry`:
+```dart
+// In _buildEntryCard:
+GestureDetector(
+  onTap: entry.isBot ? null : () => showStudentProfileDialog(context, entry),
+  // ...
+)
 
-5. **Rank change suppression** — bots always show dash, cross-group deltas suppressed
+// In _PodiumEntry:
+GestureDetector(
+  onTap: entry.isBot ? null : onTap,
+  // ...
+)
+```
 
-6. **Pull-to-refresh** — wrap content in `RefreshIndicator`
+4. **Same-school badge** — in `_buildEntryCard`, after the name column:
+```dart
+if (state.isLeagueMode && entry.isSameSchool && !entry.isBot) ...[
+  const Icon(Icons.school_rounded, size: 14, color: AppColors.secondary),
+  const SizedBox(width: 4),
+],
+```
 
-7. **Remove `totalCount` / `leagueTotalCount` references** — use `state.totalCount` (always 30 for league)
+5. **Rank change suppression** — in `_RankChangeIndicator` or where it's used:
+```dart
+// Suppress rank change for bots and cross-group comparisons
+final effectiveRankChange = entry.isBot
+    ? null
+    : (state.leagueStatus?.groupId != null &&
+       entry.previousGroupId != null &&
+       entry.previousGroupId != state.leagueStatus!.groupId)
+        ? null  // different group → suppress
+        : entry.rankChange;
+```
 
-The full screen rewrite is substantial. Implement these changes one by one, verifying compile after each. The existing screen structure (podium, list, zone banner) stays — just add the new states and guards.
+6. **Zone size** — in `_ZonePreviewBanner` and `_buildEntryCard`:
+```dart
+// Replace: final totalEntries = state.leagueTotalCount ?? state.totalCount;
+final totalEntries = state.totalCount; // always 30 in league mode
+final zoneSize = leagueZoneSize(totalEntries);
+```
+
+7. **Pull-to-refresh** — wrap the `Expanded` content area:
+```dart
+Expanded(
+  child: RefreshIndicator(
+    onRefresh: () async {
+      ref.invalidate(leaderboardDisplayProvider);
+      if (scope == LeaderboardScope.leagueScope) {
+        ref.invalidate(leagueStatusProvider);
+        ref.invalidate(leagueGroupEntriesProvider);
+      }
+    },
+    child: displayAsync.when(/* ... existing content ... */),
+  ),
+),
+```
+
+Implement these changes one by one, verifying compile after each.
 
 - [ ] **Step 2: Verify full compile**
 

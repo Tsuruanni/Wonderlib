@@ -598,7 +598,7 @@ Add fields to entity and model:
 - `schoolName` (String?) — for cross-school display. For real players: joined from `schools.name` via `profiles.school_id`. For bots: from `bot_profiles.school_name`.
 - `isSameSchool` (bool) — for school badge rendering. Always false for bots.
 - `isBot` (bool) — for disabling profile popup tap
-- `groupId` (String?) — for rank change suppression logic
+- `previousGroupId` (String?) — from `league_history.group_id` of previous week entry. Used by UI to suppress rank change indicators when comparing across different groups.
 
 ### Shared Package Updates
 
