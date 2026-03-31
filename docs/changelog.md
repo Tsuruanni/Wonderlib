@@ -8,6 +8,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Admin Word List Image Generation & Editor Redesign (2026-03-29 – 2026-03-31)
+
+#### Added
+- **AI Image Generation for Word Lists** — New `generate-wordlist-images` Edge Function. Batches words in groups of 6, generates a 2x3 grid image via fal.ai nano-banana-pro (Gemini), crops with `@imagemagick/magick-wasm`, uploads tiles to Supabase Storage. 11 style presets (flat, cartoon, watercolor, realistic, pixel, clay 3D, sticker, pencil sketch, isometric, pop art, minimal line).
+- **Image Version History** — Images stored with timestamps (`words/{id}/{ts}.png`). Version picker dialog shows all previous generations, select any as active.
+- **Overwrite Control** — "Mevcut görselleri yeniden üret" checkbox. Default: only generate for words missing images.
+- **Example Sentence Context** — Optional checkbox includes example sentences in the AI prompt for better disambiguation (e.g., "bank" → building vs. riverbank).
+- **Mascot Filler Cells** — Empty grid cells filled with mascot illustrations (owl, fox, penguin, rabbit, cat, bear) for consistent grid layout.
+- **Bulk Content Generation** — "İçerikleri Üret" button fills missing phonetic, meaning_tr, meaning_en, example_sentences for all incomplete words in a list. Processes 3 words in parallel via `generate-word-data`.
+- **Inline Word Creation** — "Kelime Ekle" dialog now allows creating new `vocabulary_words` entries on the fly when search finds no match. Button always visible below results.
+- **Word Card Audio Playback** — Tap volume icon on word cards to play pronunciation via `just_audio` with start/end clipping.
+- **Dev Tool Fast Login** — One-click admin login button on login screen (`admin@demo.com` / `Test1234`).
+
+#### Changed
+- **Word List Editor Layout** — Redesigned from side-by-side form+list to compact top form bar + horizontal card grid. Cards show 160px image, word details, quick edit, reorder arrows.
+- **Quick Edit on Word Cards** — Inline editing of TR/EN meanings and example sentences directly on cards with DB save.
+- **Word Data Prompt Improved** — `generate-word-data` now produces hint-style definitions (3-6 words, e.g., "a flying vehicle") instead of verbose dictionary definitions.
+
+#### Infrastructure
+- **DB migration** — `vocabulary_words.meaning_tr` changed from NOT NULL to nullable.
+- **Parallel tile uploads** — Image tiles uploaded concurrently instead of sequentially.
+- **120s timeout** on fal.ai API calls with AbortController.
+
 ### Learning Path Node Redesign (2026-03-31)
 
 #### Added

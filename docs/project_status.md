@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-31 (Learning path node redesign: 3D glossy spheres, popup cards, press effects, unit numbers, gold stars)
+Son güncelleme: 2026-03-31 (Admin word list image generation, editor redesign, bulk content generation, dev fast login)
 
 ## Current Phase
 
@@ -46,7 +46,7 @@ Son güncelleme: 2026-03-31 (Learning path node redesign: 3D glossy spheres, pop
 - [x] Kitap ekleme arayüzü (books + chapters + content blocks)
 - [x] Vocabulary & Word List management
 - [x] Unit Curriculum Assignments (school/grade/class scoping)
-- [ ] İçerik pipeline (batch content creation)
+- [x] İçerik pipeline (batch content creation — AI image gen, bulk word data, inline word creation)
 
 ### Faz 5: Clean Architecture Refactor 🔄
 - [x] UseCase base class and initial 4 UseCases
@@ -158,6 +158,10 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
 - [x] Learning Path Node Redesign (3D glossy spheres, popup cards, press effects, unit numbers, gold stars, type-specific icons)
 - [x] Review Node Removal (path_daily_review_completions table + path_position column dropped)
+- [x] Admin Word List Image Generation (fal.ai nano-banana-pro, 11 styles, grid crop, version history, overwrite control, mascot fillers)
+- [x] Admin Word List Editor Redesign (horizontal card grid, quick edit, audio playback, bulk content generation, inline word creation)
+- [x] Word Data Prompt Improvement (hint-style EN definitions, child-friendly, 3-6 words max)
+- [x] Dev Tool Fast Login (one-click admin login on login screen)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
