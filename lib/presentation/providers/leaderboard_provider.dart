@@ -18,12 +18,12 @@ final leaderboardScopeProvider = StateProvider<LeaderboardScope>(
 /// League status for the current user (joined?, group_id, progress).
 final leagueStatusProvider =
     FutureProvider.autoDispose<LeagueStatus?>((ref) async {
-  final currentUser = await ref.watch(currentUserProvider.future);
-  if (currentUser == null) return null;
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return null;
 
   final useCase = ref.watch(getUserLeagueStatusUseCaseProvider);
   final result = await useCase(
-    GetUserLeagueStatusParams(userId: currentUser.id),
+    GetUserLeagueStatusParams(userId: userId),
   );
   return result.fold((_) => null, (status) => status);
 });
@@ -44,7 +44,7 @@ final leagueGroupEntriesProvider =
 /// Total XP leaderboard entries (class/school scope only).
 final totalLeaderboardEntriesProvider =
     FutureProvider.autoDispose<List<LeaderboardEntry>>((ref) async {
-  final currentUser = await ref.watch(currentUserProvider.future);
+  final currentUser = ref.watch(authStateChangesProvider).valueOrNull;
   if (currentUser == null) return [];
 
   final scope = ref.watch(leaderboardScopeProvider);
@@ -74,7 +74,7 @@ final totalLeaderboardEntriesProvider =
 /// Current user's total position (for class/school when outside top N).
 final currentUserTotalPositionProvider =
     FutureProvider.autoDispose<LeaderboardEntry?>((ref) async {
-  final currentUser = await ref.watch(currentUserProvider.future);
+  final currentUser = ref.watch(authStateChangesProvider).valueOrNull;
   if (currentUser == null) return null;
 
   final scope = ref.watch(leaderboardScopeProvider);
@@ -104,7 +104,7 @@ final currentUserTotalPositionProvider =
 final leaderboardDisplayProvider =
     FutureProvider.autoDispose<LeaderboardDisplayState>((ref) async {
   final scope = ref.watch(leaderboardScopeProvider);
-  final currentUser = await ref.watch(currentUserProvider.future);
+  final currentUser = ref.watch(authStateChangesProvider).valueOrNull;
 
   if (currentUser == null) {
     return const LeaderboardDisplayState(

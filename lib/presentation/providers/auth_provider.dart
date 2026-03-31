@@ -114,6 +114,7 @@ class AuthController extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true);
     final useCase = _ref.read(signOutUseCaseProvider);
     await useCase(const NoParams());
+    _ref.invalidate(currentUserProvider);
     state = const AuthState();
   }
 
