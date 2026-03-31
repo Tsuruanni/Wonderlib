@@ -21,7 +21,7 @@ class SupabaseAvatarRepository implements AvatarRepository {
       final response = await _supabase
           .from(DbTables.avatarBases)
           .select()
-          .order('sort_order');
+          .order('sort_order', ascending: true);
 
       final bases = (response as List)
           .map((json) => AvatarBaseModel.fromJson(json as Map<String, dynamic>).toEntity())

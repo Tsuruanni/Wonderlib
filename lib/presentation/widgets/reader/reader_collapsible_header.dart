@@ -73,6 +73,7 @@ class ReaderCollapsibleHeader extends StatelessWidget {
                         scrollProgress: scrollProgress,
                         textColor: textColor,
                         backgroundColor: backgroundColor,
+                        onClose: onClose,
                       ),
                     ),
                   ),
@@ -97,22 +98,8 @@ class ReaderCollapsibleHeader extends StatelessWidget {
                   ),
                 ),
 
-                // Close button (visible in expanded state)
-                if (!isCollapsed)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child: Opacity(
-                      opacity: (1 - collapseProgress * 2).clamp(0.0, 1.0),
-                      child: IconButton(
-                        icon: Icon(Icons.close, color: textColor),
-                        onPressed: onClose,
-                      ),
-                    ),
-                  ),
-
-                // Settings button (visible in expanded state)
-                if (!isCollapsed)
+                // Settings button (visible in expanded state, hidden on wide screens where right panel has settings)
+                if (!isCollapsed && MediaQuery.sizeOf(context).width < 1000)
                   Positioned(
                     top: 8,
                     right: 8,
@@ -143,6 +130,7 @@ class _ExpandedContent extends StatelessWidget {
     required this.scrollProgress,
     required this.textColor,
     required this.backgroundColor,
+    this.onClose,
   });
 
   final Book book;
@@ -151,6 +139,7 @@ class _ExpandedContent extends StatelessWidget {
   final double scrollProgress;
   final Color textColor;
   final Color backgroundColor;
+  final VoidCallback? onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -159,14 +148,27 @@ class _ExpandedContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Book title
-          Text(
-            book.title,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+          // Book title + close button row
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  book.title,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onClose,
+                child: Icon(Icons.close, color: textColor.withValues(alpha: 0.6), size: 24),
+              ),
+            ],
           ),
 
           const SizedBox(height: 12),
@@ -372,11 +374,12 @@ class _CollapsedContent extends StatelessWidget {
 
             const SizedBox(width: 12),
 
-            // Settings button
-            GestureDetector(
-              onTap: onSettingsTap,
-              child: Icon(Icons.tune_rounded, color: textColor.withValues(alpha: 0.6), size: 20),
-            ),
+            // Settings button (hidden on wide screens where right panel has settings)
+            if (MediaQuery.sizeOf(context).width < 1000)
+              GestureDetector(
+                onTap: onSettingsTap,
+                child: Icon(Icons.tune_rounded, color: textColor.withValues(alpha: 0.6), size: 20),
+              ),
           ],
         ),
       ),

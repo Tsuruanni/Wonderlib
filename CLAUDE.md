@@ -96,6 +96,10 @@ Before modifying any feature below, **read the corresponding doc first**.
 | Teacher Dashboard & Reports | `docs/specs/19-teacher-dashboard-reports.md` | Dashboard stats, 4 report types (class overview, reading progress, assignment performance, leaderboard), admin recent activity analytics, school-scoped RPCs |
 | Student Management | `docs/specs/20-student-management.md` | Admin user CRUD, bulk CSV import, tabbed detail view, credential cards, teacher student detail, class management routes |
 | Auth | `docs/specs/21-auth.md` | Admin/student/teacher login, role routing, username-based auth, session management, RLS helper functions, bulk-create edge function |
+| User Profile | `docs/specs/22-user-profile.md` | Profile screen, avatar display, level/XP bar, card collection preview, badges, stats, daily review, teacher name edit, peer profile popup |
+| System Settings | `docs/specs/23-system-settings.md` | Multi-category key-value config, admin editor, runtime XP/notification/streak consumption, server-side RPC reads, JSONB parsing, fallback defaults |
+| Notification System | `docs/specs/24-notification-system.md` | 8 notification types, event-driven dialog queue, admin toggle gallery, settings-gated display, streak/badge/level/league/assignment events |
+| Content Blocks | `docs/specs/25-content-blocks.md` | Block types (text/image/activity), progressive reveal, word-level audio sync, cache-aside offline, admin editor, JSON import, legacy bridge |
 | Riverpod & Audio Patterns | `docs/riverpod-audio-patterns.md` | Provider lifecycle, ref.listen, audio auto-play, listening mode, scroll follow |
 
 See `features.md` for full feature map with doc priority tracking.

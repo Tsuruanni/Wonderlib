@@ -7,6 +7,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../app/theme.dart';
 import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
+import '../../../domain/entities/league_status.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
@@ -38,28 +39,50 @@ class LeaderboardScreen extends ConsumerWidget {
           // Weekly indicator + zone banner for league mode
           if (scope == LeaderboardScope.leagueScope) ...[
             const _WeeklyIndicator(),
-            displayAsync.whenOrNull(
-              data: (state) => _ZonePreviewBanner(state: state),
-            ) ?? const SizedBox.shrink(),
+            if (displayAsync.valueOrNull?.isLeagueJoined ?? false)
+              displayAsync.whenOrNull(
+                data: (state) => _ZonePreviewBanner(state: state),
+              ) ?? const SizedBox.shrink(),
           ],
 
           // Content
           Expanded(
-            child: displayAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => ErrorStateWidget(
-                message: 'Could not load leaderboard',
-                onRetry: () => ref.invalidate(leaderboardDisplayProvider),
-              ),
-              data: (state) {
-                if (state.isEmpty) return _buildEmptyState();
-                return _LeaderboardList(
-                  state: state,
-                  showClassName:
-                      scope != LeaderboardScope.classScope,
-                );
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(leaderboardDisplayProvider);
+                if (scope == LeaderboardScope.leagueScope) {
+                  ref.invalidate(leagueStatusProvider);
+                  ref.invalidate(leagueGroupEntriesProvider);
+                } else {
+                  ref.invalidate(totalLeaderboardEntriesProvider);
+                  ref.invalidate(currentUserTotalPositionProvider);
+                }
               },
+              child: displayAsync.when(
+                loading: () => const SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(height: 300, child: Center(child: CircularProgressIndicator())),
+                ),
+                error: (e, _) => SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ErrorStateWidget(
+                    message: 'Could not load leaderboard',
+                    onRetry: () => ref.invalidate(leaderboardDisplayProvider),
+                  ),
+                ),
+                data: (state) {
+                  // League scope: not joined yet
+                  if (state.isLeagueMode && !state.isLeagueJoined) {
+                    return _NotJoinedCard(status: state.leagueStatus);
+                  }
+                  if (state.isEmpty) return _buildEmptyState();
+                  return _LeaderboardList(
+                    state: state,
+                    showClassName:
+                        scope != LeaderboardScope.classScope,
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -252,7 +275,7 @@ class _ZonePreviewBanner extends StatelessWidget {
     final rank = userEntry?.rank ?? state.currentUserEntry?.rank;
     if (rank == null || state.entries.isEmpty) return const SizedBox.shrink();
 
-    final totalEntries = state.leagueTotalCount ?? state.totalCount;
+    final totalEntries = state.totalCount;
     final zoneSize = leagueZoneSize(totalEntries);
 
     if (rank <= zoneSize) {
@@ -351,8 +374,7 @@ class _LeaderboardList extends StatelessWidget {
             entries: state.entries.take(3).toList(),
             currentUserId: state.currentUserId,
             useWeeklyXp: state.isLeagueMode,
-            onEntryTap: (entry) =>
-                showStudentProfileDialog(context, entry),
+            onEntryTap: (entry) => entry.isBot ? null : showStudentProfileDialog(context, entry),
           );
         }
         // Skip indices 1 and 2 since they're part of the podium
@@ -377,7 +399,7 @@ class _LeaderboardList extends StatelessWidget {
       borderColor = AppColors.secondary;
       borderWidth = 2;
     } else if (isLeague) {
-      final totalEntries = state.leagueTotalCount ?? state.totalCount;
+      final totalEntries = state.totalCount;
       final zoneSize = leagueZoneSize(totalEntries);
       if (entry.rank <= zoneSize) {
         // Promote zone
@@ -401,7 +423,7 @@ class _LeaderboardList extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: () => showStudentProfileDialog(context, entry),
+      onTap: entry.isBot ? null : () => showStudentProfileDialog(context, entry),
       child: Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -430,7 +452,7 @@ class _LeaderboardList extends StatelessWidget {
           // Rank change indicator (league mode only)
           if (isLeague) ...[
             const SizedBox(width: 2),
-            _RankChangeIndicator(rankChange: entry.rankChange),
+            _RankChangeIndicator(rankChange: entry.isBot ? null : entry.rankChange),
           ],
           const SizedBox(width: 10),
 
@@ -473,6 +495,12 @@ class _LeaderboardList extends StatelessWidget {
               ],
             ),
           ),
+
+          // Same-school indicator (league mode only)
+          if (state.isLeagueMode && entry.isSameSchool && !entry.isBot) ...[
+            const Icon(Icons.school_rounded, size: 14, color: AppColors.secondary),
+            const SizedBox(width: 6),
+          ],
 
           // League tier badge (hidden in league mode — all same tier)
           if (!isLeague) ...[
@@ -877,6 +905,62 @@ class _XpBadge extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NotJoinedCard extends StatelessWidget {
+  const _NotJoinedCard({this.status});
+  final LeagueStatus? status;
+
+  @override
+  Widget build(BuildContext context) {
+    final xp = status?.currentWeeklyXp ?? 0;
+    final progress = (xp / 20).clamp(0.0, 1.0);
+    return Center(
+      child: Container(
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.neutral, width: 2),
+          boxShadow: const [
+            BoxShadow(color: AppColors.neutral, offset: Offset(0, 4), blurRadius: 0),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.lock_outline_rounded, size: 48, color: AppColors.waspDark),
+            const SizedBox(height: 16),
+            Text(
+              'Join this week\'s league!',
+              style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.black),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Earn 20 XP to start competing.',
+              style: GoogleFonts.nunito(color: AppColors.neutralText, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 10,
+                backgroundColor: AppColors.neutral,
+                color: AppColors.waspDark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$xp / 20 XP',
+              style: GoogleFonts.nunito(fontWeight: FontWeight.w800, color: AppColors.waspDark),
+            ),
+          ],
+        ),
       ),
     );
   }

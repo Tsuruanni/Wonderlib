@@ -268,15 +268,6 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
           settings: widget.settings,
         );
 
-      case ContentBlockType.audio:
-        return ReaderTextBlock(
-          block: block,
-          settings: widget.settings,
-          vocabulary: widget.chapter.vocabulary,
-          onVocabularyTap: widget.onVocabularyTap,
-          onWordTap: widget.onWordTap,
-        );
-
       case ContentBlockType.activity:
         final activity = block.activityId != null
             ? activityMap[block.activityId]

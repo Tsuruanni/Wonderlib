@@ -17,6 +17,10 @@ class LeaderboardEntryModel {
     this.className,
     required this.leagueTier,
     this.totalCount,
+    this.schoolName,
+    this.isSameSchool = false,
+    this.isBot = false,
+    this.previousGroupId,
   });
 
   factory LeaderboardEntryModel.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,10 @@ class LeaderboardEntryModel {
         json['league_tier'] as String? ?? 'bronze',
       ),
       totalCount: (json['total_count'] as num?)?.toInt(),
+      schoolName: json['school_name'] as String?,
+      isSameSchool: json['is_same_school'] as bool? ?? false,
+      isBot: json['is_bot'] as bool? ?? false,
+      previousGroupId: json['previous_group_id'] as String?,
     );
   }
 
@@ -52,6 +60,10 @@ class LeaderboardEntryModel {
   final String? className;
   final LeagueTier leagueTier;
   final int? totalCount;
+  final String? schoolName;
+  final bool isSameSchool;
+  final bool isBot;
+  final String? previousGroupId;
 
   LeaderboardEntry toEntity() {
     return LeaderboardEntry(
@@ -68,6 +80,10 @@ class LeaderboardEntryModel {
       className: className,
       leagueTier: leagueTier,
       totalCount: totalCount,
+      schoolName: schoolName,
+      isSameSchool: isSameSchool,
+      isBot: isBot,
+      previousGroupId: previousGroupId,
     );
   }
 }

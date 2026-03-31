@@ -65,7 +65,6 @@ abstract class DbTables {
   static const scopeLearningPaths = 'scope_learning_paths';
   static const scopeLearningPathUnits = 'scope_learning_path_units';
   static const scopeUnitItems = 'scope_unit_items';
-  static const pathDailyReviewCompletions = 'path_daily_review_completions';
 
   // Assignments
   static const assignments = 'assignments';
@@ -78,4 +77,7 @@ abstract class DbTables {
   static const avatarItemCategories = 'avatar_item_categories';
   static const avatarItems = 'avatar_items';
   static const userAvatarItems = 'user_avatar_items';
+
+  // Tile Themes
+  static const tileThemes = 'tile_themes';
 }

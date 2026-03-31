@@ -25,7 +25,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -219,27 +219,58 @@ class _ThemeChip extends StatelessWidget {
                 ]
               : null,
         ),
-        child: Column(
-          children: [
-            Text(
-              'Aa',
-              style: TextStyle(
-                color: theme.text,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: CustomPaint(
+          painter: theme.hasLines
+              ? _MiniNotebookPainter(lineColor: theme.lineColor)
+              : null,
+          child: Column(
+            children: [
+              Text(
+                'Aa',
+                style: TextStyle(
+                  color: theme.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              theme.name,
-              style: TextStyle(
-                color: theme.text,
-                fontSize: 12,
+              const SizedBox(height: 4),
+              Text(
+                theme.name,
+                style: TextStyle(
+                  color: theme.text,
+                  fontSize: 12,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _MiniNotebookPainter extends CustomPainter {
+  _MiniNotebookPainter({required this.lineColor});
+
+  final Color lineColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.5;
+
+    final spacing = size.height / 4;
+    for (int i = 1; i <= 3; i++) {
+      final y = spacing * i;
+      canvas.drawLine(
+        Offset(size.width * 0.15, y),
+        Offset(size.width * 0.85, y),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MiniNotebookPainter oldDelegate) => false;
 }

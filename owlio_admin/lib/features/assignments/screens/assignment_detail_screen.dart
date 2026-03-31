@@ -395,6 +395,8 @@ class _StatusChip extends StatelessWidget {
         return Colors.green;
       case AssignmentStatus.overdue:
         return Colors.red;
+      case AssignmentStatus.withdrawn:
+        return Colors.orange;
     }
   }
 }

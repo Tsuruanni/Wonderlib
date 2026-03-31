@@ -5,6 +5,8 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../../domain/entities/system_settings.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../../core/utils/level_helper.dart';
 import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/avatar.dart';
@@ -672,6 +674,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
     final color = VocabularyColors.getCategoryColor(progress.wordListCategory);
     final wordsAsync = ref.watch(wordListWordsProvider(progress.wordListId));
 
@@ -745,13 +748,16 @@ class _HorizontalWordListCard extends ConsumerWidget {
                 children: [
                   ...List.generate(
                     3,
-                    (i) => Icon(
-                      i < progress.starCount ? Icons.star : Icons.star_border,
-                      size: 14,
-                      color: i < progress.starCount
-                          ? Colors.amber
-                          : AppColors.neutralDark,
-                    ),
+                    (i) {
+                      final stars = progress.starCountWith(star3: settings.starRating3, star2: settings.starRating2, star1: settings.starRating1);
+                      return Icon(
+                        i < stars ? Icons.star : Icons.star_border,
+                        size: 14,
+                        color: i < stars
+                            ? Colors.amber
+                            : AppColors.neutralDark,
+                      );
+                    },
                   ),
                   const SizedBox(width: 4),
                   Text(

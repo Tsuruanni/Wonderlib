@@ -180,14 +180,17 @@ class StudentWordListProgress extends Equatable {
 
   bool get isComplete => completedAt != null;
 
-  /// Star rating: 3 stars for ≥90%, 2 for ≥70%, 1 for ≥50%, 0 otherwise
-  int get starCount {
+  /// Star rating with configurable thresholds
+  int starCountWith({int star3 = 90, int star2 = 70, int star1 = 50}) {
     if (bestAccuracy == null) return 0;
-    if (bestAccuracy! >= 90) return 3;
-    if (bestAccuracy! >= 70) return 2;
-    if (bestAccuracy! >= 50) return 1;
+    if (bestAccuracy! >= star3) return 3;
+    if (bestAccuracy! >= star2) return 2;
+    if (bestAccuracy! >= star1) return 1;
     return 0;
   }
+
+  /// Star rating with default thresholds (convenience getter)
+  int get starCount => starCountWith();
 
   @override
   List<Object?> get props => [wordListId, wordListName, wordListLevel, wordListCategory, wordCount, bestScore, bestAccuracy, totalSessions, lastSessionAt, startedAt, completedAt];

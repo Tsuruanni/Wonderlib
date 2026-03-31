@@ -4,12 +4,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/router.dart';
 import '../../../domain/entities/book_quiz.dart';
 import '../../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/usecase_providers.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../app/theme.dart';
 import '../../widgets/common/animated_game_button.dart';
+import '../../widgets/common/game_button.dart';
 import '../../widgets/common/subtle_background.dart';
 import '../../widgets/book_quiz/book_quiz_progress_bar.dart';
 import '../../widgets/book_quiz/book_quiz_question_renderer.dart';
@@ -52,6 +56,10 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
     super.dispose();
   }
 
+  void _setQuizActive(bool active) {
+    ref.read(quizActiveProvider.notifier).state = active;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Keep controller alive during async submit to prevent autoDispose
@@ -60,19 +68,93 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
     // Guard: check reading progress
     final progressAsync = ref.watch(readingProgressProvider(widget.bookId));
 
-    return Scaffold(
-      body: SubtleBackground(
-        child: progressAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error loading progress: $e')),
-          data: (progress) {
-            // Guard: all chapters must be read
-            if (progress == null || progress.completionPercentage < 100) {
-              return _buildGuardScreen(context);
-            }
-            // Load quiz
-            return _buildQuizContent(context);
-          },
+    // Don't block navigation if results are showing or quiz hasn't started
+    final isQuizActive = !_showResults && _answers.isNotEmpty;
+
+    return PopScope(
+      canPop: !isQuizActive,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _showExitConfirmation(context);
+      },
+      child: Scaffold(
+        body: SubtleBackground(
+          child: progressAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(child: Text('Error loading progress: $e')),
+            data: (progress) {
+              // Guard: all chapters must be read
+              if (progress == null || progress.completionPercentage < 100) {
+                return _buildGuardScreen(context);
+              }
+              // Load quiz
+              return _buildQuizContent(context);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showExitConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.warning_rounded, color: AppColors.danger, size: 32),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Leave Quiz?',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your progress will be lost.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GameButton(
+                  label: 'Keep going',
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  variant: GameButtonVariant.primary,
+                  fullWidth: true,
+                ),
+                const SizedBox(height: 8),
+                GameButton(
+                  label: 'Leave',
+                  onPressed: () {
+                    _setQuizActive(false);
+                    Navigator.of(ctx).pop();
+                    context.go(AppRoutes.library);
+                  },
+                  variant: GameButtonVariant.danger,
+                  fullWidth: true,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -261,6 +343,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                                   setState(() {
                                     _answers[question.id] = answer;
                                   });
+                                  _setQuizActive(true);
                                 },
                                 currentAnswer: _answers[question.id],
                               ),
@@ -418,6 +501,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
         _isSubmitting = false;
         _showResults = true;
       });
+      _setQuizActive(false);
     }
   }
 
@@ -440,37 +524,16 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   }
 
   void _finishQuiz(BuildContext context) {
-    context.pop();
+    context.go(AppRoutes.library);
   }
 
   void _handleClose(BuildContext context) {
     if (_answers.isEmpty) {
-      context.pop();
+      _setQuizActive(false);
+      context.go(AppRoutes.library);
       return;
     }
 
-    // Confirm exit if user has answered some questions
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Leave quiz?'),
-        content: const Text(
-          'Your progress will be lost if you leave now.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Stay'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.pop();
-            },
-            child: const Text('Leave'),
-          ),
-        ],
-      ),
-    );
+    _showExitConfirmation(context);
   }
 }

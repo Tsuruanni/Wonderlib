@@ -129,11 +129,20 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 32),
             Expanded(
-              child: GridView.count(
-                crossAxisCount: 5,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth > 1200
+                      ? 5
+                      : constraints.maxWidth > 800
+                          ? 4
+                          : constraints.maxWidth > 500
+                              ? 3
+                              : 2;
+                  return GridView.count(
+                crossAxisCount: columns,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 1.2,
+                childAspectRatio: 1.1,
                 children: [
                   _DashboardCard(
                     icon: Icons.menu_book,
@@ -187,6 +196,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/vocabulary'),
                   ),
                   _DashboardCard(
+                    icon: Icons.grid_view_rounded,
+                    title: 'Üniteler',
+                    description: 'Kelime üniteleri ve tile tema atamaları',
+                    color: const Color(0xFF7C3AED),
+                    onTap: () => context.go('/units'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.route,
                     title: 'Öğrenme Yolları',
                     description: 'Şablonlar ve okul/sınıf atamaları',
@@ -227,6 +243,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/avatars'),
                   ),
                   _DashboardCard(
+                    icon: Icons.map,
+                    title: 'Tile Temaları',
+                    description: 'Harita tile görünümleri ve node pozisyonları',
+                    color: const Color(0xFF2E7D32),
+                    onTap: () => context.go('/tiles'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.settings,
                     title: 'Ayarlar',
                     description: 'XP, oyun ve uygulama ayarları',
@@ -234,6 +257,8 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/settings'),
                   ),
                 ],
+              );
+                },
               ),
             ),
           ],
@@ -276,47 +301,61 @@ class _DashboardCard extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(icon, color: color, size: 28),
+                    child: Icon(icon, color: color, size: 24),
                   ),
                   const Spacer(),
                   if (stat != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$stat${statSuffix ?? ''}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: color,
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$stat${statSuffix ?? ''}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
                         ),
                       ),
                     ),
                 ],
               ),
-              const Spacer(),
-              Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
               ),
             ],
           ),

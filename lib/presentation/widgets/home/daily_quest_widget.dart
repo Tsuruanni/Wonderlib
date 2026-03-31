@@ -33,7 +33,6 @@ class DailyQuestWidget extends ConsumerWidget {
     return progressAsync.when(
       data: (progress) => DailyQuestList(
         progress: progress,
-        bonusClaimed: bonusClaimed,
       ),
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),

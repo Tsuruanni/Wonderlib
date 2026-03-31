@@ -16,6 +16,10 @@ class TopNavbar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Hide on wide screens — stats move to RightInfoPanel
+    final isWide = MediaQuery.sizeOf(context).width >= 1000;
+    if (isWide) return const SizedBox.shrink();
+
     final userAsync = ref.watch(userControllerProvider);
     final user = userAsync.valueOrNull;
     final settings = ref.watch(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();

@@ -14,6 +14,7 @@ import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/game_button.dart';
 
 class SessionSummaryScreen extends ConsumerStatefulWidget {
   const SessionSummaryScreen({
@@ -133,6 +134,74 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
       }
     });
 
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    final reportSection = _WordStatusList(words: session.words)
+        .animate()
+        .fadeIn(delay: 800.ms);
+
+    // Trophy + title + button are always centered (full width)
+    final headerSection = Column(
+      children: [
+        const SizedBox(height: 20),
+        // Trophy
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [Colors.amber.shade300, Colors.amber.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.amber.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.emoji_events, size: 56, color: Colors.white),
+        )
+            .animate()
+            .scale(duration: 600.ms, curve: Curves.elasticOut)
+            .then(delay: 200.ms)
+            .shimmer(
+                duration: 1200.ms,
+                color: Colors.white.withValues(alpha: 0.5)),
+        const SizedBox(height: 24),
+        Text(
+          'Session Complete!',
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: theme.colorScheme.onSurface,
+          ),
+        ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+        const SizedBox(height: 16),
+        Center(
+          child: SizedBox(
+            width: 200,
+            child: GameButton(
+              label: 'Continue',
+              onPressed: () {
+                    // Pop back through: summary → session → list detail
+                    // Landing on list detail which is nested under unit detail
+                    var count = 0;
+                    Navigator.of(context).popUntil((route) {
+                      // Pop summary and session screens (2 pops)
+                      return count++ >= 2;
+                    });
+                  },
+              variant: GameButtonVariant.primary,
+            ),
+          ),
+        ).animate().fadeIn(delay: 400.ms).moveY(begin: 20, end: 0),
+        const SizedBox(height: 32),
+      ],
+    );
+
     return PopScope(
       canPop: saved,
       child: Scaffold(
@@ -141,156 +210,116 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                const SizedBox(height: 20),
-
-                // Trophy Animation
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Colors.amber.shade300, Colors.amber.shade600],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.amber.withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
+                // Header: always centered full width
+                headerSection,
+                // Stats + Report: side by side on web
+                if (isWide)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildStatsColumn(session, saveState, accuracy)),
+                      const SizedBox(width: 32),
+                      Expanded(child: reportSection),
                     ],
-                  ),
-                  child: const Icon(Icons.emoji_events, size: 56, color: Colors.white),
-                )
-                .animate()
-                .scale(duration: 600.ms, curve: Curves.elasticOut)
-                .then(delay: 200.ms)
-                .shimmer(duration: 1200.ms, color: Colors.white.withValues(alpha: 0.5)),
-
-                const SizedBox(height: 24),
-                
-                Text(
-                  'Session Complete!',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
-
-                const SizedBox(height: 32),
-
-                // Stats grid
-                Row(
-                  children: [
-                    _StatCard(
-                      icon: Icons.monetization_on,
-                      iconColor: Colors.amber,
-                      label: 'Coins Earned',
-                      value: '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
-                      subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,
-                      delay: 400.ms,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.gps_fixed,
-                      iconColor: Colors.blue,
-                      label: 'Accuracy',
-                      value: '${accuracy.toStringAsFixed(0)}%',
-                      delay: 500.ms,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _StatCard(
-                      icon: Icons.local_fire_department_rounded,
-                      iconColor: Colors.deepOrange,
-                      label: 'Max Combo',
-                      value: 'x${session.maxCombo}',
-                      delay: 600.ms,
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.timer_outlined,
-                      iconColor: Colors.teal,
-                      label: 'Time',
-                      value: _formatDuration(session.durationSeconds),
-                      delay: 700.ms,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                // Per-word status
-                _WordStatusList(words: session.words)
-                    .animate().fadeIn(delay: 800.ms),
-
-                // Surprise stat
-                if (_surpriseStat != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.purple.withValues(alpha: 0.1),
-                          Colors.blue.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.purple.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text('💡', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _surpriseStat!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.purple.shade700,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 1000.ms).scale(),
+                  )
+                else ...[
+                  _buildStatsColumn(session, saveState, accuracy),
+                  const SizedBox(height: 32),
+                  reportSection,
+                  const SizedBox(height: 20),
                 ],
-
-                const SizedBox(height: 48),
-
-                // Action buttons
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      context.go(AppRoutes.vocabulary);
-                    },
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Text('Continue', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                ).animate().fadeIn(delay: 1200.ms).moveY(begin: 40, end: 0),
-
-
-                const SizedBox(height: 20),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildStatsColumn(
+    VocabularySessionState session,
+    SessionSaveState saveState,
+    double accuracy,
+  ) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Row(
+          children: [
+            _StatCard(
+              icon: Icons.monetization_on,
+              iconColor: Colors.amber,
+              label: 'Coins Earned',
+              value:
+                  '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
+              subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,
+              delay: 500.ms,
+            ),
+            const SizedBox(width: 12),
+            _StatCard(
+              icon: Icons.gps_fixed,
+              iconColor: Colors.blue,
+              label: 'Accuracy',
+              value: '${accuracy.toStringAsFixed(0)}%',
+              delay: 600.ms,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _StatCard(
+              icon: Icons.local_fire_department_rounded,
+              iconColor: Colors.deepOrange,
+              label: 'Max Combo',
+              value: 'x${session.maxCombo}',
+              delay: 700.ms,
+            ),
+            const SizedBox(width: 12),
+            _StatCard(
+              icon: Icons.timer_outlined,
+              iconColor: Colors.teal,
+              label: 'Time',
+              value: _formatDuration(session.durationSeconds),
+              delay: 800.ms,
+            ),
+          ],
+        ),
+        if (_surpriseStat != null) ...[
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.purple.withValues(alpha: 0.1),
+                  Colors.blue.withValues(alpha: 0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.purple.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Text('💡', style: TextStyle(fontSize: 20)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _surpriseStat!,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.purple.shade700,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 1000.ms).scale(),
+        ],
+      ],
     );
   }
 

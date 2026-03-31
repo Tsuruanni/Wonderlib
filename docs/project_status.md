@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-03-28 (Auth audit + security hardening: award-xp auth, signup role fix, profiles RLS)
+Son güncelleme: 2026-03-31 (Admin word list image generation, editor redesign, bulk content generation, dev fast login)
 
 ## Current Phase
 
@@ -46,7 +46,7 @@ Son güncelleme: 2026-03-28 (Auth audit + security hardening: award-xp auth, sig
 - [x] Kitap ekleme arayüzü (books + chapters + content blocks)
 - [x] Vocabulary & Word List management
 - [x] Unit Curriculum Assignments (school/grade/class scoping)
-- [ ] İçerik pipeline (batch content creation)
+- [x] İçerik pipeline (batch content creation — AI image gen, bulk word data, inline word creation)
 
 ### Faz 5: Clean Architecture Refactor 🔄
 - [x] UseCase base class and initial 4 UseCases
@@ -136,6 +136,32 @@ See: CLAUDE.md for architecture guidelines
 - [x] Vocabulary Session Save & Progress Bar Fixes (3 bugs fixed: save race condition, dispose crash, progress bar estimation. Reactive state via ref.watch/listen.)
 - [x] Student Management Audit & Fixes (13-finding audit, 4 fixed: dead password reset stack removed, admin class routes added, role helpers extracted. Full spec at `docs/specs/20-student-management.md`)
 - [x] Auth Audit & Security Hardening (15-finding audit, 5 fixed: award-xp JWT auth, signup role escalation, profiles RLS, router role strings, dead test code. Full spec at `docs/specs/21-auth.md`)
+- [x] User Profile Audit & Fixes (11-finding audit, 4 fixed: teacher stale UI, AppClock badge date, retry button, Dart 3 type-safe casts. Full spec at `docs/specs/22-user-profile.md`)
+- [x] System Settings Audit & Fixes (4-finding audit, all 4 fixed. Full spec at `docs/specs/23-system-settings.md`)
+- [x] Notification System Audit & Fixes (3-finding audit, all 3 fixed: AppNotificationListener rename, streak threshold, badge_earned sort_order. Full spec at `docs/specs/24-notification-system.md`)
+- [x] Content Blocks Audit & Fixes (1-finding audit, fixed: dead audio block type removed. Full spec at `docs/specs/25-content-blocks.md`)
+- [x] Configurable Settings Migration (11 hardcoded values → system_settings: pack cost, activity XP tiers, daily review XP, activity thresholds, star rating. Pity mismatch bugfix.)
+- [x] Admin Dashboard Responsive Fix (overflow fix: responsive grid + safe card layout)
+- [x] Mock Library Mode (150 hardcoded demo books, admin toggle, frosted lock cards, Demo badge on real books)
+- [x] Auto Book Stats Trigger (word_count + estimated_minutes + chapter_count auto-recalculated from chapters on INSERT/UPDATE/DELETE)
+- [x] Active Node Indicator (Duolingo-style START bubble + auto-scroll to active node on screen open)
+- [x] Responsive Web Layout (Duolingo-style sidebar + right info panel + library/cards/word bank grid redesign)
+- [x] Reader Sidebar + Font Fix (300px reader sidebar with chapters/audio, GoogleFonts applied to reader text, quiz in shell)
+- [x] Notification Overlay Redesign (stacked Overlay system, unified white card, 3D GameButton, cascade animations, 3 dialog files consolidated)
+- [x] Learning Path Redesign (tile-based map system with configurable themes, admin editor, image upload, responsive scaling)
+- [x] Tile Theme Editor (admin CRUD, image upload, node position sliders, live preview, per-unit assignment)
+- [x] Unit Gate Toggle (inter-unit locking independent from sequential item lock)
+- [x] Unit Map Navigation (3-layer vocab hub: path selection → unit map → unit detail, path-level tile themes, admin save race condition fix)
+- [x] Home Page Removal & Quests Page (home eliminated, sections redistributed to Library/Vocab/Quests, dedicated Quests tab with badges + monthly placeholders)
+- [x] Student Assignment Screens Redesign (app design language, shell integration, colored header cards, 3D GameButtons)
+- [x] Vocabulary Session Web Layouts (side-by-side layouts, 3D option buttons, GameButton check/continue, image overflow fixes)
+- [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
+- [x] Learning Path Node Redesign (3D glossy spheres, popup cards, press effects, unit numbers, gold stars, type-specific icons)
+- [x] Review Node Removal (path_daily_review_completions table + path_position column dropped)
+- [x] Admin Word List Image Generation (fal.ai nano-banana-pro, 11 styles, grid crop, version history, overwrite control, mascot fillers)
+- [x] Admin Word List Editor Redesign (horizontal card grid, quick edit, audio playback, bulk content generation, inline word creation)
+- [x] Word Data Prompt Improvement (hint-style EN definitions, child-friendly, 3-6 words max)
+- [x] Dev Tool Fast Login (one-click admin login on login screen)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -146,6 +172,10 @@ See: CLAUDE.md for architecture guidelines
 |------|----------|--------|-------|
 | ~~Type-Based XP + Combo Refactor~~ | - | ~~Done~~ | ~~Implemented: 12 settings, combo refactor, RPC update~~ |
 | ~~Teacher Panel Audit~~ | - | ~~Done~~ | ~~15 migrations, security fixes, class management redesign~~ |
+| ~~Responsive Web Layout~~ | - | ~~Done~~ | ~~Sidebar + right panel, vocab session layouts, assignment screens, quests page~~ |
+| ~~Learning Path Redesign~~ | - | ~~Done~~ | ~~Tile-based map, configurable themes, admin editor, responsive scaling~~ |
+| ~~Unit Map Navigation~~ | - | ~~Done~~ | ~~3-layer vocab hub, path-level themes, admin race condition fix~~ |
+| ~~Home Page Removal~~ | - | ~~Done~~ | ~~Quests page, assignments redesign, daily review quest fix~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
 | Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
@@ -203,6 +233,10 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Learning Path Node Redesign | 2026-03-31 | 3D glossy sphere nodes with press-down effect, popup cards on tap (START/READ/PLAY/CLAIM), unit numbers in unit-map nodes, gold star crowns above nodes, completed = green pressed state. Library continue-reading card redesign. Review node artifacts removed. |
+| Tile Theme Editor + Learning Path Redesign | 2026-03-30 | Tile-based map system replacing legacy zigzag. Admin tile theme CRUD with image upload, node position sliders, live preview. Per-unit theme assignment in template/assignment editors. Responsive scaling (mobile-friendly). 5 DB migrations, domain layer (entity→model→repo→usecase→provider). `tile_theme_id` on learning path units (not vocabulary_units). Unit gate toggle for inter-unit locking. |
+| Notification Overlay Redesign | 2026-03-29 | Replaced sequential `showDialog()` queue with stacked Overlay system. 8 notification types consolidated into unified white card with GameButton 3D press effect. Cascade positioning (scale+translate), entry/exit animations, barrier management. 3 dialog files deleted, net -400 lines. Specs + plan at `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`. |
+| User Profile Audit & Fixes | 2026-03-28 | 11-finding audit. Bug: teacher name edit used JWT refresh instead of profile re-fetch (stale UI). Quality: `AppClock.now()` in badge dates, retry button on error, Dart 3 record destructuring for type-safe casts. Full spec at `docs/specs/22-user-profile.md`. 4/11 fixed, 7 skipped/accepted. |
 | Auth Audit & Security Hardening | 2026-03-28 | 15-finding audit. Security: award-xp JWT + self-only, signup role forced to student, profiles school-wide SELECT restricted to teachers. Quality: router role strings → `UserRole.dbValue`. Dead code: stale test import + group. 1 migration, full spec at `docs/specs/21-auth.md`. 5/15 fixed, 10 skipped/accepted. |
 | Student Management Audit & Fixes | 2026-03-28 | 13-finding audit. Dead code: reset password stack removed (UseCase, provider, repo method, Edge Function, tests). Admin: class routes + dashboard card. Quality: role helpers extracted. Full spec at `docs/specs/20-student-management.md`. 4/13 fixed, 1 resolved, 8 skipped. |
 | Class Management Audit & Fixes | 2026-03-28 | 10-finding audit. Bug: edit dialog description field added (was silently clearing). Error: class/student providers now throw on failure (error UI reachable). Dead code: `ChangeStudentClassUseCase`, `GetClassmatesUseCase`, 4 model methods removed. Full spec at `docs/specs/18-class-management.md`. 6/10 fixed, 4 skipped. |

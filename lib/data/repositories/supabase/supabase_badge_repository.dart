@@ -134,6 +134,27 @@ class SupabaseBadgeRepository implements BadgeRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, List<Badge>>> getAllBadges() async {
+    try {
+      final response = await _supabase
+          .from(DbTables.badges)
+          .select()
+          .eq('is_active', true)
+          .order('created_at', ascending: true);
+
+      final badges = (response as List)
+          .map((json) => BadgeModel.fromJson(json).toEntity())
+          .toList();
+
+      return Right(badges);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   // ============================================
   // HELPER METHODS
   // ============================================

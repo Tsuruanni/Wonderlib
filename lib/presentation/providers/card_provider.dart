@@ -178,7 +178,7 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
   final Ref _ref;
 
   /// Buy a pack: deduct coins, add to inventory (does NOT open)
-  Future<void> buyPack({int cost = 100}) async {
+  Future<void> buyPack({required int cost}) async {
     if (state.phase != PackOpeningPhase.idle) return;
 
     state = state.copyWith(phase: PackOpeningPhase.buying, error: null, buySuccess: false);

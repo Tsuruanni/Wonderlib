@@ -718,21 +718,4 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, void>> saveDailyReviewPosition({
-    required String sessionId,
-    required int pathPosition,
-  }) async {
-    try {
-      await _supabase
-          .from(DbTables.dailyReviewSessions)
-          .update({'path_position': pathPosition})
-          .eq('id', sessionId);
-      return const Right(null);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
 }

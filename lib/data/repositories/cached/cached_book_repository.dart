@@ -499,11 +499,6 @@ class CachedBookRepository implements BookRepository {
   }
 
   @override
-  Future<Either<Failure, List<Book>>> getRecommendedBooks(String userId) {
-    return _remoteRepo.getRecommendedBooks(userId);
-  }
-
-  @override
   Future<Either<Failure, List<Book>>> getContinueReading(String userId) {
     return _remoteRepo.getContinueReading(userId);
   }

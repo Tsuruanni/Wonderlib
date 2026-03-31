@@ -6,7 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
 import '../presentation/screens/auth/login_screen.dart';
-import '../presentation/screens/home/home_screen.dart';
+import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
 import '../presentation/screens/library/book_detail_screen.dart';
 import '../presentation/screens/reader/reader_screen.dart';
@@ -18,6 +18,8 @@ import '../presentation/screens/vocabulary/category_browse_screen.dart';
 import '../presentation/screens/vocabulary/vocabulary_session_screen.dart';
 import '../presentation/screens/vocabulary/session_summary_screen.dart';
 import '../presentation/screens/vocabulary/daily_review_screen.dart';
+import '../presentation/screens/vocabulary/unit_map_screen.dart';
+import '../presentation/screens/vocabulary/unit_detail_screen.dart';
 import '../presentation/screens/cards/card_collection_screen.dart';
 import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
@@ -46,7 +48,7 @@ import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
 abstract class AppRoutes {
   static const splash = '/splash';
   static const login = '/login';
-  static const home = '/';
+  static const quests = '/quests';
   static const library = '/library';
   static const bookDetail = '/library/book';
   static const reader = '/reader/:bookId/:chapterId';
@@ -98,6 +100,10 @@ abstract class AppRoutes {
       '/vocabulary/list/$listId/session/summary';
   static String vocabularyCategoryPath(String categoryName) =>
       '/vocabulary/category/$categoryName';
+  static String vocabularyPathUnits(String pathId) =>
+      '/vocabulary/path/$pathId';
+  static String vocabularyPathUnit(String pathId, int unitIdx) =>
+      '/vocabulary/path/$pathId/unit/$unitIdx';
   static const bookQuiz = '/quiz/:bookId';
   static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
@@ -143,7 +149,7 @@ class _SplashScreenState extends State<_SplashScreen> {
           role == UserRole.admin.dbValue) {
         context.go(AppRoutes.teacherDashboard);
       } else {
-        context.go(AppRoutes.home);
+        context.go(AppRoutes.vocabulary);
       }
     }
   }
@@ -175,7 +181,7 @@ final _authNotifier = _AuthNotifier();
 
 // Navigator keys — one root, unique keys per shell branch
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _studentHomeKey = GlobalKey<NavigatorState>(debugLabel: 'studentHome');
+final _studentQuestsKey = GlobalKey<NavigatorState>(debugLabel: 'studentQuests');
 final _studentLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'studentLibrary');
 final _studentVocabKey = GlobalKey<NavigatorState>(debugLabel: 'studentVocab');
 final _studentCardsKey = GlobalKey<NavigatorState>(debugLabel: 'studentCards');
@@ -188,7 +194,7 @@ final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports
 GoRouter _createRouter() {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
-    initialLocation: kDevBypassAuth ? AppRoutes.home : AppRoutes.splash,
+    initialLocation: kDevBypassAuth ? AppRoutes.vocabulary : AppRoutes.splash,
     debugLogDiagnostics: true,
     refreshListenable: _authNotifier,
     redirect: (context, state) {
@@ -217,7 +223,7 @@ GoRouter _createRouter() {
             role == UserRole.admin.dbValue) {
           return AppRoutes.teacherDashboard;
         }
-        return AppRoutes.home;
+        return AppRoutes.vocabulary;
       }
 
       // Role-based access control
@@ -234,11 +240,11 @@ GoRouter _createRouter() {
           return AppRoutes.teacherDashboard;
         }
 
-        if (isTeacherOrHigher && state.matchedLocation == AppRoutes.home) {
+        if (isTeacherOrHigher && state.matchedLocation == AppRoutes.vocabulary) {
           return AppRoutes.teacherDashboard;
         }
         if (!isTeacherOrHigher && isTeacherRoute) {
-          return AppRoutes.home;
+          return AppRoutes.vocabulary;
         }
       }
 
@@ -266,33 +272,7 @@ GoRouter _createRouter() {
           return MainShellScaffold(navigationShell: navigationShell);
         },
         branches: [
-          StatefulShellBranch(
-            navigatorKey: _studentHomeKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const HomeScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: _studentLibraryKey,
-            routes: [
-              GoRoute(
-                path: AppRoutes.library,
-                builder: (context, state) => const LibraryScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'book/:bookId',
-                    builder: (context, state) {
-                      final bookId = state.pathParameters['bookId']!;
-                      return BookDetailScreen(bookId: bookId);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
+          // Branch 0: Learning Path (Vocab)
           StatefulShellBranch(
             navigatorKey: _studentVocabKey,
             routes: [
@@ -336,10 +316,103 @@ GoRouter _createRouter() {
                       return CategoryBrowseScreen(categoryName: categoryName);
                     },
                   ),
+                  GoRoute(
+                    path: 'path/:pathId',
+                    builder: (context, state) {
+                      final pathId = state.pathParameters['pathId']!;
+                      return UnitMapScreen(pathId: pathId);
+                    },
+                    routes: [
+                      GoRoute(
+                        path: 'unit/:unitIdx',
+                        builder: (context, state) {
+                          final pathId = state.pathParameters['pathId']!;
+                          final unitIdx = int.parse(state.pathParameters['unitIdx']!);
+                          return UnitDetailScreen(pathId: pathId, unitIdx: unitIdx);
+                        },
+                      ),
+                    ],
+                  ),
                 ],
+              ),
+              // Relocated from Home branch:
+              GoRoute(
+                path: AppRoutes.profile,
+                builder: (context, state) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.avatarCustomize,
+                builder: (context, state) => const AvatarCustomizeScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.wordBank,
+                builder: (context, state) => const VocabularyScreen(),
               ),
             ],
           ),
+          // Branch 1: Library
+          StatefulShellBranch(
+            navigatorKey: _studentLibraryKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.library,
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'book/:bookId',
+                    builder: (context, state) {
+                      final bookId = state.pathParameters['bookId']!;
+                      return BookDetailScreen(bookId: bookId);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.reader,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ReaderScreen(bookId: bookId, chapterId: chapterId);
+                },
+              ),
+              GoRoute(
+                path: AppRoutes.activity,
+                builder: (context, state) {
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ActivityScreen(chapterId: chapterId);
+                },
+              ),
+              GoRoute(
+                path: AppRoutes.bookQuiz,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  return BookQuizScreen(bookId: bookId);
+                },
+              ),
+            ],
+          ),
+          // Branch 2: Quests
+          StatefulShellBranch(
+            navigatorKey: _studentQuestsKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.quests,
+                builder: (context, state) => const QuestsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.studentAssignments,
+                builder: (context, state) => const StudentAssignmentsScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.studentAssignmentDetail,
+                builder: (context, state) {
+                  final assignmentId = state.pathParameters['assignmentId']!;
+                  return StudentAssignmentDetailScreen(assignmentId: assignmentId);
+                },
+              ),
+            ],
+          ),
+          // Branch 3: Card Collection
           StatefulShellBranch(
             navigatorKey: _studentCardsKey,
             routes: [
@@ -349,6 +422,7 @@ GoRouter _createRouter() {
               ),
             ],
           ),
+          // Branch 4: Leaderboards
           StatefulShellBranch(
             navigatorKey: _studentLeaderboardKey,
             routes: [
@@ -368,22 +442,9 @@ GoRouter _createRouter() {
         builder: (context, state) => const PackOpeningScreen(),
       ),
 
-      // Book quiz (standalone, full-screen quiz experience)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.bookQuiz,
-        builder: (context, state) {
-          final bookId = state.pathParameters['bookId']!;
-          return BookQuizScreen(bookId: bookId);
-        },
-      ),
+      // Book quiz moved to library branch (shell visible with reader sidebar)
 
-      // Profile (standalone, accessed from home avatar)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
+      // Profile moved inside Vocab branch to keep shell visible
 
       // Downloaded books management (accessed from profile)
       GoRoute(
@@ -392,12 +453,7 @@ GoRouter _createRouter() {
         builder: (context, state) => const DownloadedBooksScreen(),
       ),
 
-      // Avatar customization (accessed from profile)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.avatarCustomize,
-        builder: (context, state) => const AvatarCustomizeScreen(),
-      ),
+      // Avatar customization moved inside Vocab branch to keep shell visible
 
       // Teacher Shell — top-level StatefulShellRoute (same pattern as student shell)
       // Each branch uses full paths for proper goBranch() navigation
@@ -512,42 +568,8 @@ GoRouter _createRouter() {
         ],
       ),
 
-      // Standalone routes
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.wordBank,
-        builder: (context, state) => const VocabularyScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.studentAssignments,
-        builder: (context, state) => const StudentAssignmentsScreen(),
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.studentAssignmentDetail,
-        builder: (context, state) {
-          final assignmentId = state.pathParameters['assignmentId']!;
-          return StudentAssignmentDetailScreen(assignmentId: assignmentId);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.reader,
-        builder: (context, state) {
-          final bookId = state.pathParameters['bookId']!;
-          final chapterId = state.pathParameters['chapterId']!;
-          return ReaderScreen(bookId: bookId, chapterId: chapterId);
-        },
-      ),
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.activity,
-        builder: (context, state) {
-          final chapterId = state.pathParameters['chapterId']!;
-          return ActivityScreen(chapterId: chapterId);
-        },
-      ),
+      // Assignment routes moved inside Quests branch to keep shell visible
+      // Reader & Activity moved inside Library branch to keep shell visible
       // teacherClassDetail and teacherStudentDetail moved inside teacher shell branch
       // teacherCreateAssignment moved inside teacher shell branch
       // teacherAssignmentDetail moved inside teacher shell branch

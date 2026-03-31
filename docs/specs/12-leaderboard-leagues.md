@@ -1,5 +1,7 @@
 # Leaderboard / Leagues
 
+> **SUPERSEDED:** The league system has been redesigned with cross-school matchmaking, virtual bots, and lazy join. See `docs/superpowers/specs/2026-03-31-league-matchmaking-redesign.md` for the current design. The Class and School tabs described below remain unchanged.
+
 ## Audit
 
 ### Findings

@@ -10,7 +10,6 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
-import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
@@ -88,19 +87,6 @@ final bookSearchProvider = FutureProvider.autoDispose.family<List<Book>, String>
   if (query.isEmpty) return [];
   final useCase = ref.watch(searchBooksUseCaseProvider);
   final result = await useCase(SearchBooksParams(query: query));
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (books) => books,
-  );
-});
-
-/// Provides recommended books for current user
-final recommendedBooksProvider = FutureProvider<List<Book>>((ref) async {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return [];
-
-  final useCase = ref.watch(getRecommendedBooksUseCaseProvider);
-  final result = await useCase(GetRecommendedBooksParams(userId: userId));
   return result.fold(
     (failure) => throw Exception(failure.message),
     (books) => books,
@@ -218,25 +204,33 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
           sourceId: chapterId,
         );
 
-        // Check if book is now complete
+        // Check if book is now complete (quiz-less books complete here)
         final completionUseCase = _ref.read(handleBookCompletionUseCaseProvider);
-        final completionResult = await completionUseCase(HandleBookCompletionParams(
-          userId: userId,
-          bookId: bookId,
-        ));
-
-        completionResult.fold(
-          (_) {},
-          (result) async {
-            if (result.justCompleted && !result.hasQuiz) {
-              await _ref.read(userControllerProvider.notifier).addXP(
-                settings.xpBookComplete,
-                source: 'book_complete',
-                sourceId: bookId,
-              );
-            }
-          },
+        final completionResult = await completionUseCase(
+          HandleBookCompletionParams(
+            userId: userId,
+            bookId: bookId,
+          ),
         );
+
+        final justCompleted = completionResult.fold(
+          (_) => false,
+          (result) => result.justCompleted && !result.hasQuiz,
+        );
+
+        if (justCompleted) {
+          await _ref.read(userControllerProvider.notifier).addXP(
+            settings.xpBookComplete,
+            source: 'book_complete',
+            sourceId: bookId,
+          );
+
+          // Re-invalidate after completion write to avoid stale cache
+          // (first invalidation races against the completion DB write)
+          _ref.invalidate(readingProgressProvider(bookId));
+          _ref.invalidate(completedBookIdsProvider);
+          _ref.invalidate(continueReadingProvider);
+        }
       }
 
       // Update assignment progress if this book is part of an assignment
@@ -304,15 +298,35 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
 
           // Update assignment progress using UseCases
           if (progress >= 100) {
-            debugPrint('📋 Completing assignment: ${assignment.assignmentId}');
-            // All chapters complete - mark assignment as complete
-            final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
-            final result = await completeAssignmentUseCase(CompleteAssignmentParams(
-              studentId: userId,
-              assignmentId: assignment.assignmentId,
-              score: null, // No score for reading completion
-            ),);
-            debugPrint('📋 Complete assignment result: ${result.isRight() ? "success" : "failed"}');
+            // All chapters read — but book may require quiz to be "completed".
+            // Check reading_progress.isCompleted which respects quiz gates.
+            final rpUseCase = _ref.read(getReadingProgressUseCaseProvider);
+            final rpResult = await rpUseCase(
+              GetReadingProgressParams(userId: userId, bookId: bookId),
+            );
+            final isBookCompleted = rpResult.fold(
+              (_) => false,
+              (rp) => rp.isCompleted,
+            );
+
+            if (isBookCompleted) {
+              debugPrint('📋 Completing assignment: ${assignment.assignmentId}');
+              final completeAssignmentUseCase = _ref.read(completeAssignmentUseCaseProvider);
+              final result = await completeAssignmentUseCase(CompleteAssignmentParams(
+                studentId: userId,
+                assignmentId: assignment.assignmentId,
+                score: null,
+              ),);
+              debugPrint('📋 Complete assignment result: ${result.isRight() ? "success" : "failed"}');
+            } else {
+              debugPrint('📋 All chapters read but book not completed (quiz pending), updating progress only');
+              final updateAssignmentProgressUseCase = _ref.read(updateAssignmentProgressUseCaseProvider);
+              await updateAssignmentProgressUseCase(UpdateAssignmentProgressParams(
+                studentId: userId,
+                assignmentId: assignment.assignmentId,
+                progress: progress,
+              ),);
+            }
           } else {
             debugPrint('📋 Updating progress: ${assignment.assignmentId} to $progress%');
             // Update progress

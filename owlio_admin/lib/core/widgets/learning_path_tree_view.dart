@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../supabase_client.dart';
+import '../../features/tiles/screens/tile_theme_list_screen.dart';
 
 // ============================================
 // DATA CLASSES
@@ -14,6 +16,7 @@ class LearningPathUnitData {
   final String unitName;
   final String? unitIcon;
   final String? unitColor;
+  String? tileThemeId;
   int sortOrder;
   final List<LearningPathItemData> items;
 
@@ -23,6 +26,7 @@ class LearningPathUnitData {
     required this.unitName,
     this.unitIcon,
     this.unitColor,
+    this.tileThemeId,
     required this.sortOrder,
     required this.items,
   });
@@ -33,6 +37,7 @@ class LearningPathUnitData {
     String? unitName,
     String? unitIcon,
     String? unitColor,
+    String? tileThemeId,
     int? sortOrder,
     List<LearningPathItemData>? items,
   }) {
@@ -42,6 +47,7 @@ class LearningPathUnitData {
       unitName: unitName ?? this.unitName,
       unitIcon: unitIcon ?? this.unitIcon,
       unitColor: unitColor ?? this.unitColor,
+      tileThemeId: tileThemeId ?? this.tileThemeId,
       sortOrder: sortOrder ?? this.sortOrder,
       items: items ?? this.items,
     );
@@ -284,6 +290,90 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
     return ids;
   }
 
+  void _changeTileTheme(int unitIndex, String? themeId) {
+    final units = List<LearningPathUnitData>.from(widget.units);
+    units[unitIndex].tileThemeId = themeId;
+    _notifyChange(units);
+
+    // Persist directly to DB for existing units (bypass debounce/save race)
+    final unitId = units[unitIndex].id;
+    if (unitId != null) {
+      final supabase = ref.read(supabaseClientProvider);
+      // Try both tables — unit could be scope or template
+      supabase
+          .from(DbTables.scopeLearningPathUnits)
+          .update({'tile_theme_id': themeId})
+          .eq('id', unitId)
+          .then((_) {})
+          .catchError((_) {});
+      supabase
+          .from(DbTables.learningPathTemplateUnits)
+          .update({'tile_theme_id': themeId})
+          .eq('id', unitId)
+          .then((_) {})
+          .catchError((_) {});
+    }
+  }
+
+  Widget _buildThemeSelector(
+      BuildContext context, int unitIndex, LearningPathUnitData unit) {
+    final themesAsync = ref.watch(tileThemesAdminProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: themesAsync.when(
+        loading: () => const SizedBox.shrink(),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (themes) {
+          if (themes.isEmpty) return const SizedBox.shrink();
+          return Row(
+            children: [
+              const Icon(Icons.map, size: 16, color: Colors.grey),
+              const SizedBox(width: 8),
+              const Text('Tema: ', style: TextStyle(fontSize: 13, color: Colors.grey)),
+              const SizedBox(width: 4),
+              DropdownButton<String?>(
+                value: unit.tileThemeId,
+                isDense: true,
+                underline: const SizedBox.shrink(),
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
+                hint: const Text('Otomatik', style: TextStyle(fontSize: 13)),
+                items: [
+                  const DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('Otomatik'),
+                  ),
+                  ...themes.map((t) {
+                    final c1 = parseHexColor(t['fallback_color_1'] as String?);
+                    return DropdownMenuItem<String?>(
+                      value: t['id'] as String,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: c1,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(t['name'] as String? ?? ''),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+                onChanged: (v) => _changeTileTheme(unitIndex, v),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -373,6 +463,13 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
                   ),
                 ),
                 if (!widget.readOnly) ...[
+                  // Edit unit (opens unit editor with tile theme dropdown)
+                  IconButton(
+                    icon: Icon(Icons.edit, size: 18, color: unitColor),
+                    onPressed: () => context.go('/units/${unit.unitId}'),
+                    tooltip: 'Üniteyi düzenle',
+                    visualDensity: VisualDensity.compact,
+                  ),
                   // Move up
                   IconButton(
                     icon: const Icon(Icons.keyboard_arrow_up, size: 20),
@@ -400,6 +497,10 @@ class _LearningPathTreeViewState extends ConsumerState<LearningPathTreeView> {
               ],
             ),
           ),
+
+          // Tile theme selector
+          if (!widget.readOnly)
+            _buildThemeSelector(context, unitIndex, unit),
 
           // Items list
           if (unit.items.isEmpty)
@@ -1063,7 +1164,7 @@ final _activeUnitsProvider =
       .from(DbTables.vocabularyUnits)
       .select('id, name, sort_order, color, icon')
       .eq('is_active', true)
-      .order('sort_order');
+      .order('sort_order', ascending: true);
   return List<Map<String, dynamic>>.from(response);
 });
 

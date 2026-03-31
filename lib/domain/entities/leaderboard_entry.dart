@@ -16,6 +16,10 @@ class LeaderboardEntry extends Equatable {
     this.className,
     required this.leagueTier,
     this.totalCount,
+    this.schoolName,
+    this.isSameSchool = false,
+    this.isBot = false,
+    this.previousGroupId,
   });
 
   final String userId;
@@ -31,6 +35,10 @@ class LeaderboardEntry extends Equatable {
   final String? className;
   final LeagueTier leagueTier;
   final int? totalCount;
+  final String? schoolName;
+  final bool isSameSchool;
+  final bool isBot;
+  final String? previousGroupId;
 
   String get fullName => '$firstName $lastName';
 
@@ -62,5 +70,9 @@ class LeaderboardEntry extends Equatable {
         className,
         leagueTier,
         totalCount,
+        schoolName,
+        isSameSchool,
+        isBot,
+        previousGroupId,
       ];
 }

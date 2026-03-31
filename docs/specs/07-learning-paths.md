@@ -58,7 +58,6 @@ Two parallel hierarchies:
 - Each scope path is an independent copy — editing a template does NOT update existing scope paths
 
 **Progress tracking:**
-- `path_daily_review_completions` — per-user, per-unit, per-day daily review gate tracking
 - `user_node_completions` — game/treasure node completions (in vocabulary tables)
 
 **Key relationships:**
@@ -97,7 +96,7 @@ Two parallel hierarchies:
    - **Book nodes** (`PathBookNode`) — book icon with cover, tap to open book reader
    - **Game nodes** (`PathGameNode`) — mini-game icon, tap to complete (one-time)
    - **Treasure nodes** (`PathTreasureNode`) — chest icon, tap to collect reward (one-time)
-   - **Daily Review gate** (`PathDailyReviewNode`) — injected dynamically before the first incomplete non-exempt item
+   - ~~Daily Review gate~~ — removed. Gating is now dialog-only (no visible path node).
 4. **Unit banners** (`PathUnitBanner`) separate units visually with unit name and icon
 
 **Sequential Lock System:**
@@ -107,16 +106,15 @@ Two parallel hierarchies:
 - Lock calculation runs in `calculateLocks()` function in `vocabulary_provider.dart`
 
 **Daily Review Gate:**
-- If student has ≥ `minDailyReviewCount` (10) words due for review, a DR node is injected into the path
-- DR node blocks forward progress until the daily review session is completed
-- Position: inserted before the first incomplete non-exempt item, or at the saved `pathPosition` if already completed today
-- After completing DR, the path refreshes and the gate shows as completed
+- If student has ≥ `minDailyReviewCount` (10) words due for review, word list nodes show a dialog prompting daily review completion
+- No visible node is rendered in the path — gating is dialog-only via `dailyReviewNeededProvider`
+- After completing DR (from home screen or daily quest), providers are invalidated and word lists become accessible
 
 **Progress Tracking:**
 - Word list completion: tracked via `user_word_list_progress` (star rating 0–3 based on accuracy)
 - Book completion: tracked via `reading_progress.is_completed`
 - Game/treasure completion: tracked via `user_node_completions` table
-- DR completion: tracked via `path_daily_review_completions` (daily, per-unit)
+- DR completion: gated via `dailyReviewNeededProvider` (checks due word count + today's session)
 
 **Daily Word Limit:**
 - Students can start at most `dailyWordListLimit` (30) new words per day across all word lists
@@ -136,7 +134,7 @@ Two parallel hierarchies:
 3. **Mutual exclusivity**: A scope path targets either a grade OR a class, never both (enforced by CHECK constraint). School-wide paths have both `grade` and `class_id` as NULL.
 4. **Sequential lock**: When enabled, each item in a unit must be completed before the next unlocks. The lock applies within units only — the first item of a new unit is always accessible.
 5. **Books exempt from lock**: When enabled, book-type items in the path are never locked, even if the previous item is incomplete. This allows students to read freely while vocabulary is gated.
-6. **Daily review gate injection**: A DR node is injected exactly once across all units when `totalDueWords >= minDailyReviewCount (10)`. It appears before the first incomplete non-exempt item. If already completed today, it appears at the saved position.
+6. **Daily review gate**: When `totalDueWords >= minDailyReviewCount (10)` and no session completed today, word list nodes are gated via dialog prompt. No path node is rendered.
 7. **Game and treasure nodes are non-trackable**: They do not count toward assignment progress calculations. Only `word_list` and `book` items contribute to unit assignment progress.
 8. **Daily word limit**: 30 new words per day across all lists (hardcoded, not from system_settings).
 9. **Node completion is idempotent**: Game/treasure nodes check `user_node_completions` before inserting. DR completion has a UNIQUE constraint on `(user_id, scope_lp_unit_id, completed_at)`.
@@ -172,7 +170,7 @@ Two parallel hierarchies:
 
 - **Student with no assigned path**: Empty state shown — owl icon + message explaining teacher will assign a path
 - **Student changes class**: Trigger withdraws from old assignments, backfills into new class assignments. Old paths from different scope remain visible (school/grade-level paths persist).
-- **Admin re-saves scope path**: Delete-then-reinsert cascades to `path_daily_review_completions` — student DR progress for that path resets silently
+- **Admin re-saves scope path**: Delete-then-reinsert resets scope structure — students see refreshed path
 - **Concurrent template application**: Sort order calculation uses non-atomic `MAX(sort_order) + 1` — concurrent applications to same scope can produce duplicate sort_order values
 - **All items completed in path**: No explicit "path complete" event — students simply see all nodes as completed
 - **Daily word limit reached**: Word list nodes become non-tappable, showing a tooltip about the daily limit
@@ -210,11 +208,10 @@ Two parallel hierarchies:
 
 ## Known Issues & Tech Debt
 
-1. **Security: 3 RPCs missing auth checks** (#1, #2, #3) — `apply_learning_path_template`, `get_user_learning_paths`, `get_path_daily_reviews` need `auth.uid()` validation
+1. **Security: 2 RPCs missing auth checks** (#1, #2) — `apply_learning_path_template`, `get_user_learning_paths` need `auth.uid()` validation
 2. **Security: head_teacher role mismatch** (#5) — template RLS uses `'head_teacher'` but profiles CHECK uses `'head'`
-3. **Security: DR replay via DELETE** (#4) — `path_daily_review_completions` `FOR ALL` policy allows students to delete own records
-4. **Architecture: raw string itemType** (#8) — 3 entities use `String` instead of `LearningPathItemType` enum for type comparisons
-5. **Admin save strategy** (#19) — delete-then-reinsert cascades to progress tables, silently resetting DR completions
+3. **Architecture: raw string itemType** (#8) — 3 entities use `String` instead of `LearningPathItemType` enum for type comparisons
+4. **Admin save strategy** (#19) — delete-then-reinsert resets scope structure on re-save
 6. **`VocabularyUnit` adapter** (#15) — path widgets depend on legacy `VocabularyUnit` entity with fake timestamps
 7. **`dailyWordListLimit` hardcoded** (#21) — should come from `system_settings` (planned for type-based XP migration)
 8. **Orphaned tables in migration history** — `unit_book_assignments` and `unit_curriculum_assignments` creation migrations still exist (tables were dropped in `20260320000003`)

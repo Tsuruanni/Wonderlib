@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../domain/entities/chapter.dart';
@@ -22,10 +23,10 @@ enum ReaderTheme {
     text: Color(0xFF1E293B),
     name: 'Light',
   ),
-  sepia(
-    background: Color(0xFFF5E6D3),
-    text: Color(0xFF5C4033),
-    name: 'Sepia',
+  notebook(
+    background: Color(0xFFFFFDF5),
+    text: Color(0xFF1E293B),
+    name: 'Notebook',
   ),
   dark(
     background: Color(0xFF1E293B),
@@ -37,6 +38,15 @@ enum ReaderTheme {
   final Color text;
   final String name;
 
+  /// Whether this theme draws ruled lines behind text.
+  bool get hasLines => this == ReaderTheme.notebook;
+
+  /// Line color for ruled themes.
+  Color get lineColor => const Color(0xFFD6E5EF);
+
+  /// Left margin line color (red margin line on notebook paper).
+  Color get marginColor => const Color(0xFFE8A0A0);
+
   const ReaderTheme({
     required this.background,
     required this.text,
@@ -45,6 +55,42 @@ enum ReaderTheme {
 }
 
 /// Reader settings state
+/// Available reader font families.
+enum ReaderFont {
+  nunito('Nunito'),
+  openSans('Open Sans'),
+  merriweather('Merriweather'),
+  lora('Lora'),
+  literata('Literata');
+
+  const ReaderFont(this.displayName);
+  final String displayName;
+}
+
+/// Extension to convert ReaderFont enum to GoogleFonts TextStyle.
+extension ReaderFontX on ReaderFont {
+  TextStyle textStyle({
+    double? fontSize,
+    double? height,
+    Color? color,
+    FontWeight? fontWeight,
+    TextDecoration? decoration,
+    Color? decorationColor,
+    TextDecorationStyle? decorationStyle,
+  }) {
+    return GoogleFonts.getFont(
+      displayName,
+      fontSize: fontSize,
+      height: height,
+      color: color,
+      fontWeight: fontWeight,
+      decoration: decoration,
+      decorationColor: decorationColor,
+      decorationStyle: decorationStyle,
+    );
+  }
+}
+
 class ReaderSettings {
 
   const ReaderSettings({
@@ -52,23 +98,27 @@ class ReaderSettings {
     this.lineHeight = 1.6,
     this.theme = ReaderTheme.light,
     this.showVocabularyHighlights = true,
+    this.font = ReaderFont.nunito,
   });
   final double fontSize;
   final double lineHeight;
   final ReaderTheme theme;
   final bool showVocabularyHighlights;
+  final ReaderFont font;
 
   ReaderSettings copyWith({
     double? fontSize,
     double? lineHeight,
     ReaderTheme? theme,
     bool? showVocabularyHighlights,
+    ReaderFont? font,
   }) {
     return ReaderSettings(
       fontSize: fontSize ?? this.fontSize,
       lineHeight: lineHeight ?? this.lineHeight,
       theme: theme ?? this.theme,
       showVocabularyHighlights: showVocabularyHighlights ?? this.showVocabularyHighlights,
+      font: font ?? this.font,
     );
   }
 }
@@ -78,33 +128,33 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
 
   ReaderSettingsNotifier(this._ref) : super(const ReaderSettings()) {
     _loadFromProfile();
+    // Re-load when auth state becomes available (handles async session restore)
+    _ref.listen(authStateChangesProvider, (_, next) {
+      if (next.valueOrNull != null) _loadFromProfile();
+    });
   }
   final Ref _ref;
+  bool _loaded = false;
 
   void _loadFromProfile() {
     final user = _ref.read(authStateChangesProvider).valueOrNull;
-    if (user != null && user.settings.isNotEmpty) {
-      final readerSettings = user.settings['reader'] as Map<String, dynamic>?;
-      if (readerSettings != null) {
-        state = ReaderSettings(
-          fontSize: (readerSettings['fontSize'] as num?)?.toDouble() ?? 18,
-          lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
-          theme: _parseTheme(readerSettings['theme'] as String?),
-          showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
-        );
-      }
+    if (user == null || _loaded) return;
+    final readerSettings = user.settings['reader'] as Map<String, dynamic>?;
+    if (readerSettings != null) {
+      _loaded = true;
+      state = ReaderSettings(
+        fontSize: (readerSettings['fontSize'] as num?)?.toDouble() ?? 18,
+        lineHeight: (readerSettings['lineHeight'] as num?)?.toDouble() ?? 1.6,
+        theme: _parseTheme(readerSettings['theme'] as String?),
+        showVocabularyHighlights: readerSettings['showVocabularyHighlights'] as bool? ?? true,
+        font: _parseFont(readerSettings['font'] as String?),
+      );
     }
   }
 
   ReaderTheme _parseTheme(String? theme) {
-    switch (theme) {
-      case 'sepia':
-        return ReaderTheme.sepia;
-      case 'dark':
-        return ReaderTheme.dark;
-      default:
-        return ReaderTheme.light;
-    }
+    return ReaderTheme.values.where((t) => t.name == theme).firstOrNull ??
+        ReaderTheme.light;
   }
 
   Future<void> _saveToProfile() async {
@@ -120,6 +170,7 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
       'lineHeight': state.lineHeight,
       'theme': state.theme.name,
       'showVocabularyHighlights': state.showVocabularyHighlights,
+      'font': state.font.name,
     };
 
     final updateUserUseCase = _ref.read(updateUserUseCaseProvider);
@@ -146,6 +197,15 @@ class ReaderSettingsNotifier extends StateNotifier<ReaderSettings> {
       showVocabularyHighlights: !state.showVocabularyHighlights,
     );
     _saveToProfile();
+  }
+
+  void setFont(ReaderFont font) {
+    state = state.copyWith(font: font);
+    _saveToProfile();
+  }
+
+  ReaderFont _parseFont(String? font) {
+    return ReaderFont.values.where((f) => f.name == font).firstOrNull ?? ReaderFont.nunito;
   }
 }
 

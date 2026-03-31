@@ -114,9 +114,4 @@ abstract class VocabularyRepository {
     required String nodeType,
   });
 
-  /// Save the daily review's position in the learning path
-  Future<Either<Failure, void>> saveDailyReviewPosition({
-    required String sessionId,
-    required int pathPosition,
-  });
 }

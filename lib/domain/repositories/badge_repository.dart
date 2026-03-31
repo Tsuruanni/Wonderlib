@@ -18,4 +18,6 @@ abstract class BadgeRepository {
   });
 
   Future<Either<Failure, List<BadgeEarned>>> checkAndAwardBadges(String userId);
+
+  Future<Either<Failure, List<Badge>>> getAllBadges();
 }

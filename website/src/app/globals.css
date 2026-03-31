@@ -1,0 +1,46 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* ── Duolingo-inspired color palette ── */
+  --color-feather: #58CC02;
+  --color-feather-dark: #46A302;
+  --color-cardinal: #FF4B4B;
+  --color-bee: #FFC800;
+  --color-sky: #1CB0F6;
+  --color-sky-light: #BBE7FC;
+  --color-sky-dark: #1899D6;
+  --color-macaw: #CE82FF;
+  --color-fox: #FF9600;
+  --color-eel: #4B4B4B;
+  --color-hare: #AFAFAF;
+  --color-swan: #E5E5E5;
+  --color-polar: #F7F7F7;
+  --color-snow: #FFFFFF;
+
+  /* ── Typography ── */
+  --font-sans: var(--font-nunito), "Nunito", sans-serif;
+
+  /* ── Border radius ── */
+  --radius-duo: 15px;
+
+  /* ── Max width ── */
+  --max-width-site: 1140px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-snow);
+  color: var(--color-eel);
+  font-family: var(--font-sans);
+}
+
+/* Tighten Nunito spacing to match DIN Round Pro feel */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}

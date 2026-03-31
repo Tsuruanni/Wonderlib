@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../core/errors/failures.dart';
 import '../entities/leaderboard_entry.dart';
+import '../entities/league_status.dart';
 import '../entities/streak_result.dart';
 import '../entities/user.dart';
 
@@ -57,31 +57,14 @@ abstract class UserRepository {
     required String schoolId,
   });
 
-  /// Get weekly class leaderboard (ranked by weekly XP since Monday)
-  Future<Either<Failure, List<LeaderboardEntry>>> getWeeklyClassLeaderboard({
-    required String classId,
-    int limit = 10,
+  /// Get league group leaderboard (ranked by weekly XP within a matchmaking group)
+  Future<Either<Failure, List<LeaderboardEntry>>> getLeagueGroupLeaderboard({
+    required String groupId,
+    int limit = 30,
   });
 
-  /// Get weekly school leaderboard (ranked by weekly XP since Monday)
-  /// When [leagueTier] is provided, ranks within that tier only.
-  Future<Either<Failure, List<LeaderboardEntry>>> getWeeklySchoolLeaderboard({
-    required String schoolId,
-    int limit = 10,
-    LeagueTier? leagueTier,
-  });
-
-  /// Get current user's position in weekly class leaderboard
-  Future<Either<Failure, LeaderboardEntry>> getUserWeeklyClassPosition({
+  /// Get current user's league status (group membership, tier, threshold, etc.)
+  Future<Either<Failure, LeagueStatus>> getUserLeagueStatus({
     required String userId,
-    required String classId,
-  });
-
-  /// Get current user's position in weekly school leaderboard
-  /// When [leagueTier] is provided, ranks within that tier only.
-  Future<Either<Failure, LeaderboardEntry>> getUserWeeklySchoolPosition({
-    required String userId,
-    required String schoolId,
-    LeagueTier? leagueTier,
   });
 }

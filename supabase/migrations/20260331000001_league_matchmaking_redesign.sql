@@ -1,0 +1,953 @@
+-- =============================================
+-- LEAGUE MATCHMAKING REDESIGN — Part 1
+-- Tables, helper functions, and bot profile seed
+-- =============================================
+
+-- =============================================
+-- Part 1a: bot_profiles table
+-- =============================================
+CREATE TABLE IF NOT EXISTS bot_profiles (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR NOT NULL,
+    last_name VARCHAR NOT NULL,
+    avatar_equipped_cache JSONB,
+    school_name VARCHAR NOT NULL
+);
+
+-- =============================================
+-- Part 1b: league_groups table
+-- =============================================
+CREATE TABLE IF NOT EXISTS league_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    week_start DATE NOT NULL,
+    tier VARCHAR(20) NOT NULL,
+    xp_bucket INTEGER NOT NULL DEFAULT 0,
+    member_count INTEGER NOT NULL DEFAULT 0,
+    processed BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_league_groups_week_tier_bucket ON league_groups(week_start, tier, xp_bucket);
+CREATE INDEX idx_league_groups_unprocessed ON league_groups(week_start) WHERE processed = false;
+
+-- =============================================
+-- Part 1c: league_group_members table
+-- =============================================
+CREATE TABLE IF NOT EXISTS league_group_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    group_id UUID NOT NULL REFERENCES league_groups(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    week_start DATE NOT NULL,
+    school_id UUID,
+    joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE(user_id, week_start)
+);
+
+CREATE INDEX idx_league_group_members_user_week ON league_group_members(user_id, week_start);
+CREATE INDEX idx_league_group_members_group ON league_group_members(group_id);
+CREATE INDEX idx_league_group_members_group_user ON league_group_members(group_id, user_id);
+
+-- =============================================
+-- Part 1d: RLS
+-- =============================================
+ALTER TABLE league_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE league_group_members ENABLE ROW LEVEL SECURITY;
+
+-- =============================================
+-- Part 1e: Add group_id to league_history + handle CHECK constraint
+-- =============================================
+ALTER TABLE league_history ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES league_groups(id) ON DELETE SET NULL;
+
+DO $$ BEGIN
+  ALTER TABLE league_history DROP CONSTRAINT IF EXISTS league_history_result_check;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
+
+-- =============================================
+-- Part 1f: Bot XP helper functions
+-- =============================================
+CREATE OR REPLACE FUNCTION bot_weekly_xp_target(
+    p_group_id UUID,
+    p_slot INTEGER,
+    p_xp_bucket INTEGER
+) RETURNS INTEGER AS $$
+DECLARE
+    v_seed INTEGER := abs(hashtext(p_group_id::text || '_' || p_slot::text));
+    v_min INTEGER;
+    v_max INTEGER;
+BEGIN
+    CASE p_xp_bucket
+        WHEN 0 THEN v_min := 20;  v_max := 80;
+        WHEN 1 THEN v_min := 30;  v_max := 99;
+        WHEN 2 THEN v_min := 100; v_max := 299;
+        WHEN 3 THEN v_min := 300; v_max := 599;
+        WHEN 4 THEN v_min := 600; v_max := 1000;
+        ELSE         v_min := 20;  v_max := 80;
+    END CASE;
+    RETURN v_min + (v_seed % (v_max - v_min + 1));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION bot_current_xp(
+    p_group_id UUID,
+    p_slot INTEGER,
+    p_xp_bucket INTEGER,
+    p_week_start DATE
+) RETURNS INTEGER AS $$
+DECLARE
+    v_target INTEGER := bot_weekly_xp_target(p_group_id, p_slot, p_xp_bucket);
+    v_elapsed FLOAT := EXTRACT(EPOCH FROM (app_now() - p_week_start::timestamptz)) / (7.0 * 86400);
+    v_day_seed INTEGER := abs(hashtext(p_group_id::text || '_' || p_slot::text || '_' || EXTRACT(DOW FROM app_now())::text));
+    v_jitter FLOAT := (v_day_seed % 20 - 10) / 100.0;
+BEGIN
+    v_elapsed := GREATEST(0, LEAST(1, v_elapsed));
+    RETURN LEAST(v_target, GREATEST(0, (v_target * (v_elapsed + v_jitter))::INTEGER));
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- =============================================
+-- Part 1g: Seed bot_profiles (~200 entries)
+-- =============================================
+INSERT INTO bot_profiles (first_name, last_name, avatar_equipped_cache, school_name) VALUES
+-- 1-10
+('Emre', 'Yıldız', '{"base_url": "animals/fox.png", "layers": []}', 'Atatürk İlkokulu'),
+('Zeynep', 'Kaya', '{"base_url": "animals/cat.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Mehmet', 'Demir', '{"base_url": "animals/bear.png", "layers": []}', 'Fatih İlkokulu'),
+('Elif', 'Çelik', '{"base_url": "animals/rabbit.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Ahmet', 'Şahin', '{"base_url": "animals/owl.png", "layers": []}', 'İnönü İlkokulu'),
+('Defne', 'Arslan', '{"base_url": "animals/penguin.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+('Can', 'Özdemir', '{"base_url": "animals/dog.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Selin', 'Aydın', '{"base_url": "animals/panda.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Burak', 'Koç', '{"base_url": "animals/lion.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Ela', 'Yılmaz', '{"base_url": "animals/koala.png", "layers": []}', 'Gazi İlkokulu'),
+-- 11-20
+('Mert', 'Aktaş', '{"base_url": "animals/elephant.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Nehir', 'Polat', '{"base_url": "animals/giraffe.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Efe', 'Kurt', '{"base_url": "animals/monkey.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Ecrin', 'Öztürk', '{"base_url": "animals/dolphin.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Kerem', 'Aksoy', '{"base_url": "animals/tiger.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Yaren', 'Doğan', '{"base_url": "animals/wolf.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+('Baran', 'Erdoğan', '{"base_url": "animals/deer.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+('Lina', 'Güneş', '{"base_url": "animals/horse.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+('Yusuf', 'Karaca', '{"base_url": "animals/parrot.png", "layers": []}', 'İstiklal İlkokulu'),
+('Mira', 'Tunç', '{"base_url": "animals/turtle.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+-- 21-30
+('Ali', 'Acar', '{"base_url": "animals/fox.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Ada', 'Albayrak', '{"base_url": "animals/cat.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('Kaan', 'Korkmaz', '{"base_url": "animals/bear.png", "layers": []}', '23 Nisan İlkokulu'),
+('Asya', 'Sezer', '{"base_url": "animals/rabbit.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Arda', 'Uysal', '{"base_url": "animals/owl.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Duru', 'Yavuz', '{"base_url": "animals/penguin.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+('Emir', 'Bal', '{"base_url": "animals/dog.png", "layers": []}', 'Malazgirt İlkokulu'),
+('Azra', 'Taş', '{"base_url": "animals/panda.png", "layers": []}', 'Mevlana İlkokulu'),
+('Deniz', 'Coşkun', '{"base_url": "animals/lion.png", "layers": []}', 'Sakarya Ortaokulu'),
+('İrem', 'Kılıç', '{"base_url": "animals/koala.png", "layers": []}', 'Zafer İlkokulu'),
+-- 31-40
+('Berk', 'Yıldız', '{"base_url": "animals/elephant.png", "layers": []}', 'Atatürk İlkokulu'),
+('Melis', 'Kaya', '{"base_url": "animals/giraffe.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Onur', 'Demir', '{"base_url": "animals/monkey.png", "layers": []}', 'Fatih İlkokulu'),
+('Ceren', 'Çelik', '{"base_url": "animals/dolphin.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Oğuz', 'Şahin', '{"base_url": "animals/tiger.png", "layers": []}', 'İnönü İlkokulu'),
+('Büşra', 'Arslan', '{"base_url": "animals/wolf.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+('Serkan', 'Özdemir', '{"base_url": "animals/deer.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Pelin', 'Aydın', '{"base_url": "animals/horse.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Tolga', 'Koç', '{"base_url": "animals/parrot.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Cansu', 'Yılmaz', '{"base_url": "animals/turtle.png", "layers": []}', 'Gazi İlkokulu'),
+-- 41-50
+('Cem', 'Aktaş', '{"base_url": "animals/fox.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Ebru', 'Polat', '{"base_url": "animals/cat.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Eren', 'Kurt', '{"base_url": "animals/bear.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Gizem', 'Öztürk', '{"base_url": "animals/rabbit.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Alp', 'Aksoy', '{"base_url": "animals/owl.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Hande', 'Doğan', '{"base_url": "animals/penguin.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+('Umut', 'Erdoğan', '{"base_url": "animals/dog.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+('İpek', 'Güneş', '{"base_url": "animals/panda.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+('Barış', 'Karaca', '{"base_url": "animals/lion.png", "layers": []}', 'İstiklal İlkokulu'),
+('Naz', 'Tunç', '{"base_url": "animals/koala.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+-- 51-60
+('Tuna', 'Acar', '{"base_url": "animals/elephant.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Sude', 'Albayrak', '{"base_url": "animals/giraffe.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('Doruk', 'Korkmaz', '{"base_url": "animals/monkey.png", "layers": []}', 'Beşiktaş İlkokulu'),
+('Şeyma', 'Sezer', '{"base_url": "animals/dolphin.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Eymen', 'Uysal', '{"base_url": "animals/tiger.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Bengisu', 'Yavuz', '{"base_url": "animals/wolf.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+('Alperen', 'Bal', '{"base_url": "animals/deer.png", "layers": []}', 'Malazgirt İlkokulu'),
+('Buse', 'Taş', '{"base_url": "animals/horse.png", "layers": []}', 'Mevlana İlkokulu'),
+('Ömer', 'Coşkun', '{"base_url": "animals/parrot.png", "layers": []}', 'Sakarya Ortaokulu'),
+('Defne', 'Kılıç', '{"base_url": "animals/turtle.png", "layers": []}', 'Zafer İlkokulu'),
+-- 61-70
+('Emre', 'Polat', '{"base_url": "animals/fox.png", "layers": []}', '23 Nisan İlkokulu'),
+('Zeynep', 'Kurt', '{"base_url": "animals/cat.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Mehmet', 'Aksoy', '{"base_url": "animals/bear.png", "layers": []}', 'Gazi İlkokulu'),
+('Elif', 'Doğan', '{"base_url": "animals/rabbit.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+('Ahmet', 'Güneş', '{"base_url": "animals/owl.png", "layers": []}', 'İstiklal İlkokulu'),
+('Selin', 'Karaca', '{"base_url": "animals/penguin.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Can', 'Tunç', '{"base_url": "animals/dog.png", "layers": []}', 'Fatih İlkokulu'),
+('Ela', 'Acar', '{"base_url": "animals/panda.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Mert', 'Albayrak', '{"base_url": "animals/lion.png", "layers": []}', 'İnönü İlkokulu'),
+('Nehir', 'Korkmaz', '{"base_url": "animals/koala.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+-- 71-80
+('Efe', 'Sezer', '{"base_url": "animals/elephant.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Ecrin', 'Uysal', '{"base_url": "animals/giraffe.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Kerem', 'Yavuz', '{"base_url": "animals/monkey.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Yaren', 'Bal', '{"base_url": "animals/dolphin.png", "layers": []}', 'Atatürk İlkokulu'),
+('Baran', 'Taş', '{"base_url": "animals/tiger.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Lina', 'Coşkun', '{"base_url": "animals/wolf.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Yusuf', 'Kılıç', '{"base_url": "animals/deer.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Mira', 'Yıldız', '{"base_url": "animals/horse.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Ali', 'Kaya', '{"base_url": "animals/parrot.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+('Ada', 'Demir', '{"base_url": "animals/turtle.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+-- 81-90
+('Kaan', 'Çelik', '{"base_url": "animals/fox.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+('Asya', 'Şahin', '{"base_url": "animals/cat.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Arda', 'Arslan', '{"base_url": "animals/bear.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('Duru', 'Özdemir', '{"base_url": "animals/rabbit.png", "layers": []}', 'Beşiktaş İlkokulu'),
+('Emir', 'Aydın', '{"base_url": "animals/owl.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Azra', 'Koç', '{"base_url": "animals/penguin.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Deniz', 'Yılmaz', '{"base_url": "animals/dog.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+('İrem', 'Aktaş', '{"base_url": "animals/panda.png", "layers": []}', 'Malazgirt İlkokulu'),
+('Berk', 'Polat', '{"base_url": "animals/lion.png", "layers": []}', 'Mevlana İlkokulu'),
+('Melis', 'Kurt', '{"base_url": "animals/koala.png", "layers": []}', 'Sakarya Ortaokulu'),
+-- 91-100
+('Onur', 'Öztürk', '{"base_url": "animals/elephant.png", "layers": []}', 'Zafer İlkokulu'),
+('Ceren', 'Aksoy', '{"base_url": "animals/giraffe.png", "layers": []}', '23 Nisan İlkokulu'),
+('Oğuz', 'Doğan', '{"base_url": "animals/monkey.png", "layers": []}', 'Atatürk İlkokulu'),
+('Büşra', 'Erdoğan', '{"base_url": "animals/dolphin.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Serkan', 'Güneş', '{"base_url": "animals/tiger.png", "layers": []}', 'Fatih İlkokulu'),
+('Pelin', 'Karaca', '{"base_url": "animals/wolf.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Tolga', 'Tunç', '{"base_url": "animals/deer.png", "layers": []}', 'İnönü İlkokulu'),
+('Cansu', 'Acar', '{"base_url": "animals/horse.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+('Cem', 'Albayrak', '{"base_url": "animals/parrot.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Ebru', 'Korkmaz', '{"base_url": "animals/turtle.png", "layers": []}', 'Namık Kemal İlkokulu'),
+-- 101-110
+('Eren', 'Sezer', '{"base_url": "animals/fox.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Gizem', 'Uysal', '{"base_url": "animals/cat.png", "layers": []}', 'Gazi İlkokulu'),
+('Alp', 'Yavuz', '{"base_url": "animals/bear.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Hande', 'Bal', '{"base_url": "animals/rabbit.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Umut', 'Taş', '{"base_url": "animals/owl.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('İpek', 'Coşkun', '{"base_url": "animals/penguin.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Barış', 'Kılıç', '{"base_url": "animals/dog.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Naz', 'Yıldız', '{"base_url": "animals/panda.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+('Tuna', 'Kaya', '{"base_url": "animals/lion.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+('Sude', 'Demir', '{"base_url": "animals/koala.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+-- 111-120
+('Doruk', 'Çelik', '{"base_url": "animals/elephant.png", "layers": []}', 'İstiklal İlkokulu'),
+('Şeyma', 'Şahin', '{"base_url": "animals/giraffe.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+('Eymen', 'Arslan', '{"base_url": "animals/monkey.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Bengisu', 'Özdemir', '{"base_url": "animals/dolphin.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('Alperen', 'Aydın', '{"base_url": "animals/tiger.png", "layers": []}', 'Beşiktaş İlkokulu'),
+('Buse', 'Koç', '{"base_url": "animals/wolf.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Ömer', 'Yılmaz', '{"base_url": "animals/deer.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Emre', 'Aktaş', '{"base_url": "animals/horse.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+('Zeynep', 'Polat', '{"base_url": "animals/parrot.png", "layers": []}', 'Malazgirt İlkokulu'),
+('Mehmet', 'Kurt', '{"base_url": "animals/turtle.png", "layers": []}', 'Mevlana İlkokulu'),
+-- 121-130
+('Elif', 'Öztürk', '{"base_url": "animals/fox.png", "layers": []}', 'Sakarya Ortaokulu'),
+('Ahmet', 'Aksoy', '{"base_url": "animals/cat.png", "layers": []}', 'Zafer İlkokulu'),
+('Defne', 'Doğan', '{"base_url": "animals/bear.png", "layers": []}', '23 Nisan İlkokulu'),
+('Can', 'Erdoğan', '{"base_url": "animals/rabbit.png", "layers": []}', 'Atatürk İlkokulu'),
+('Selin', 'Güneş', '{"base_url": "animals/owl.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Ela', 'Karaca', '{"base_url": "animals/penguin.png", "layers": []}', 'Fatih İlkokulu'),
+('Mert', 'Tunç', '{"base_url": "animals/dog.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Nehir', 'Acar', '{"base_url": "animals/panda.png", "layers": []}', 'İnönü İlkokulu'),
+('Efe', 'Albayrak', '{"base_url": "animals/lion.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+('Ecrin', 'Korkmaz', '{"base_url": "animals/koala.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+-- 131-140
+('Kerem', 'Sezer', '{"base_url": "animals/elephant.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Yaren', 'Uysal', '{"base_url": "animals/giraffe.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Baran', 'Yavuz', '{"base_url": "animals/monkey.png", "layers": []}', 'Gazi İlkokulu'),
+('Lina', 'Bal', '{"base_url": "animals/dolphin.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Yusuf', 'Taş', '{"base_url": "animals/tiger.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Mira', 'Coşkun', '{"base_url": "animals/wolf.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Ali', 'Kılıç', '{"base_url": "animals/deer.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Ada', 'Yıldız', '{"base_url": "animals/horse.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Kaan', 'Kaya', '{"base_url": "animals/parrot.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+('Asya', 'Demir', '{"base_url": "animals/turtle.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+-- 141-150
+('Arda', 'Çelik', '{"base_url": "animals/fox.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+('Duru', 'Şahin', '{"base_url": "animals/cat.png", "layers": []}', 'İstiklal İlkokulu'),
+('Emir', 'Arslan', '{"base_url": "animals/bear.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+('Azra', 'Özdemir', '{"base_url": "animals/rabbit.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Deniz', 'Aydın', '{"base_url": "animals/owl.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('İrem', 'Koç', '{"base_url": "animals/penguin.png", "layers": []}', 'Beşiktaş İlkokulu'),
+('Berk', 'Yılmaz', '{"base_url": "animals/dog.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Melis', 'Aktaş', '{"base_url": "animals/panda.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Onur', 'Polat', '{"base_url": "animals/lion.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+('Ceren', 'Kurt', '{"base_url": "animals/koala.png", "layers": []}', 'Malazgirt İlkokulu'),
+-- 151-160
+('Oğuz', 'Öztürk', '{"base_url": "animals/elephant.png", "layers": []}', 'Mevlana İlkokulu'),
+('Büşra', 'Aksoy', '{"base_url": "animals/giraffe.png", "layers": []}', 'Sakarya Ortaokulu'),
+('Serkan', 'Doğan', '{"base_url": "animals/monkey.png", "layers": []}', 'Zafer İlkokulu'),
+('Pelin', 'Erdoğan', '{"base_url": "animals/dolphin.png", "layers": []}', '23 Nisan İlkokulu'),
+('Tolga', 'Güneş', '{"base_url": "animals/tiger.png", "layers": []}', 'Atatürk İlkokulu'),
+('Cansu', 'Karaca', '{"base_url": "animals/wolf.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Cem', 'Tunç', '{"base_url": "animals/deer.png", "layers": []}', 'Fatih İlkokulu'),
+('Ebru', 'Acar', '{"base_url": "animals/horse.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Eren', 'Albayrak', '{"base_url": "animals/parrot.png", "layers": []}', 'İnönü İlkokulu'),
+('Gizem', 'Korkmaz', '{"base_url": "animals/turtle.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+-- 161-170
+('Alp', 'Sezer', '{"base_url": "animals/fox.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Hande', 'Uysal', '{"base_url": "animals/cat.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Umut', 'Yavuz', '{"base_url": "animals/bear.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('İpek', 'Bal', '{"base_url": "animals/rabbit.png", "layers": []}', 'Gazi İlkokulu'),
+('Barış', 'Taş', '{"base_url": "animals/owl.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Naz', 'Coşkun', '{"base_url": "animals/penguin.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Tuna', 'Kılıç', '{"base_url": "animals/dog.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Sude', 'Yıldız', '{"base_url": "animals/panda.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Doruk', 'Kaya', '{"base_url": "animals/lion.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu'),
+('Şeyma', 'Demir', '{"base_url": "animals/koala.png", "layers": []}', 'Turgut Özal Ortaokulu'),
+-- 171-180
+('Eymen', 'Çelik', '{"base_url": "animals/elephant.png", "layers": []}', 'Necmettin Erbakan İlkokulu'),
+('Bengisu', 'Şahin', '{"base_url": "animals/giraffe.png", "layers": []}', 'Adnan Menderes Ortaokulu'),
+('Alperen', 'Arslan', '{"base_url": "animals/monkey.png", "layers": []}', 'İstiklal İlkokulu'),
+('Buse', 'Özdemir', '{"base_url": "animals/dolphin.png", "layers": []}', 'Kazım Karabekir Ortaokulu'),
+('Ömer', 'Aydın', '{"base_url": "animals/tiger.png", "layers": []}', 'Kurtuluş İlkokulu'),
+('Emre', 'Koç', '{"base_url": "animals/wolf.png", "layers": []}', 'Osmangazi Ortaokulu'),
+('Zeynep', 'Yılmaz', '{"base_url": "animals/deer.png", "layers": []}', 'Beşiktaş İlkokulu'),
+('Mehmet', 'Aktaş', '{"base_url": "animals/horse.png", "layers": []}', 'Alparslan Ortaokulu'),
+('Elif', 'Polat', '{"base_url": "animals/parrot.png", "layers": []}', 'Selçuklu İlkokulu'),
+('Ahmet', 'Kurt', '{"base_url": "animals/turtle.png", "layers": []}', 'Ertuğrul Gazi Ortaokulu'),
+-- 181-190
+('Defne', 'Öztürk', '{"base_url": "animals/fox.png", "layers": []}', 'Malazgirt İlkokulu'),
+('Can', 'Aksoy', '{"base_url": "animals/cat.png", "layers": []}', 'Mevlana İlkokulu'),
+('Selin', 'Doğan', '{"base_url": "animals/bear.png", "layers": []}', 'Sakarya Ortaokulu'),
+('Ela', 'Erdoğan', '{"base_url": "animals/rabbit.png", "layers": []}', 'Zafer İlkokulu'),
+('Mert', 'Güneş', '{"base_url": "animals/owl.png", "layers": []}', '23 Nisan İlkokulu'),
+('Nehir', 'Karaca', '{"base_url": "animals/penguin.png", "layers": []}', 'Atatürk İlkokulu'),
+('Efe', 'Tunç', '{"base_url": "animals/dog.png", "layers": []}', 'Cumhuriyet Ortaokulu'),
+('Ecrin', 'Acar', '{"base_url": "animals/panda.png", "layers": []}', 'Fatih İlkokulu'),
+('Kerem', 'Albayrak', '{"base_url": "animals/lion.png", "layers": []}', 'Mimar Sinan Ortaokulu'),
+('Yaren', 'Korkmaz', '{"base_url": "animals/koala.png", "layers": []}', 'İnönü İlkokulu'),
+-- 191-200
+('Baran', 'Sezer', '{"base_url": "animals/elephant.png", "layers": []}', 'Mehmet Akif Ersoy İlkokulu'),
+('Lina', 'Uysal', '{"base_url": "animals/giraffe.png", "layers": []}', 'Yunus Emre Ortaokulu'),
+('Yusuf', 'Yavuz', '{"base_url": "animals/monkey.png", "layers": []}', 'Namık Kemal İlkokulu'),
+('Mira', 'Bal', '{"base_url": "animals/dolphin.png", "layers": []}', 'Hasan Ali Yücel Ortaokulu'),
+('Ali', 'Taş', '{"base_url": "animals/tiger.png", "layers": []}', 'Gazi İlkokulu'),
+('Ada', 'Coşkun', '{"base_url": "animals/wolf.png", "layers": []}', 'Ziya Gökalp Ortaokulu'),
+('Kaan', 'Kılıç', '{"base_url": "animals/deer.png", "layers": []}', 'Barbaros Hayrettin İlkokulu'),
+('Asya', 'Yıldız', '{"base_url": "animals/horse.png", "layers": []}', 'Şehit Öğretmen İlkokulu'),
+('Arda', 'Kaya', '{"base_url": "animals/parrot.png", "layers": []}', 'Atatürk Ortaokulu'),
+('Duru', 'Demir', '{"base_url": "animals/turtle.png", "layers": []}', 'Kanuni Sultan Süleyman İlkokulu');
+
+-- =============================================
+-- Part 2: join_weekly_league RPC
+-- =============================================
+CREATE OR REPLACE FUNCTION join_weekly_league(p_user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_week_start DATE := date_trunc('week', app_now())::DATE;
+    v_prev_week_start TIMESTAMPTZ := date_trunc('week', app_now()) - INTERVAL '7 days';
+    v_prev_week_end TIMESTAMPTZ := date_trunc('week', app_now());
+    v_tier VARCHAR(20);
+    v_school_id UUID;
+    v_last_week_xp BIGINT;
+    v_bucket INTEGER;
+    v_group_id UUID;
+BEGIN
+    -- Idempotency: already in a group this week?
+    IF EXISTS (
+        SELECT 1 FROM league_group_members
+        WHERE user_id = p_user_id AND week_start = v_week_start
+    ) THEN
+        RETURN;
+    END IF;
+
+    -- Get user's tier and school
+    SELECT league_tier, school_id INTO v_tier, v_school_id
+    FROM profiles WHERE id = p_user_id;
+
+    IF v_tier IS NULL THEN RETURN; END IF;
+
+    -- Calculate XP bucket from last week
+    SELECT COALESCE(SUM(amount), 0) INTO v_last_week_xp
+    FROM xp_logs
+    WHERE user_id = p_user_id
+    AND created_at >= v_prev_week_start
+    AND created_at < v_prev_week_end;
+
+    v_bucket := CASE
+        WHEN v_last_week_xp = 0 THEN 0
+        WHEN v_last_week_xp < 100 THEN 1
+        WHEN v_last_week_xp < 300 THEN 2
+        WHEN v_last_week_xp < 600 THEN 3
+        ELSE 4
+    END;
+
+    -- Priority a: same tier + same bucket + same school member
+    SELECT lg.id INTO v_group_id
+    FROM league_groups lg
+    WHERE lg.week_start = v_week_start AND lg.tier = v_tier AND lg.xp_bucket = v_bucket
+    AND lg.member_count < 30
+    AND EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.group_id = lg.id AND lgm.school_id = v_school_id
+    )
+    ORDER BY lg.member_count DESC
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED;
+
+    -- Priority b: same tier + same bucket
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier AND lg.xp_bucket = v_bucket
+        AND lg.member_count < 30
+        ORDER BY lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority c: neighbor bucket + same school
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.xp_bucket BETWEEN GREATEST(0, v_bucket - 1) AND LEAST(4, v_bucket + 1)
+        AND lg.member_count < 30
+        AND EXISTS (
+            SELECT 1 FROM league_group_members lgm
+            WHERE lgm.group_id = lg.id AND lgm.school_id = v_school_id
+        )
+        ORDER BY abs(lg.xp_bucket - v_bucket), lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority d: neighbor bucket
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.xp_bucket BETWEEN GREATEST(0, v_bucket - 1) AND LEAST(4, v_bucket + 1)
+        AND lg.member_count < 30
+        ORDER BY abs(lg.xp_bucket - v_bucket), lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority e: any bucket in same tier
+    IF v_group_id IS NULL THEN
+        SELECT lg.id INTO v_group_id
+        FROM league_groups lg
+        WHERE lg.week_start = v_week_start AND lg.tier = v_tier
+        AND lg.member_count < 30
+        ORDER BY lg.member_count DESC
+        LIMIT 1
+        FOR UPDATE SKIP LOCKED;
+    END IF;
+
+    -- Priority f: create new group
+    IF v_group_id IS NULL THEN
+        INSERT INTO league_groups (week_start, tier, xp_bucket, member_count)
+        VALUES (v_week_start, v_tier, v_bucket, 0)
+        RETURNING id INTO v_group_id;
+    END IF;
+
+    -- Join the group
+    INSERT INTO league_group_members (group_id, user_id, week_start, school_id)
+    VALUES (v_group_id, p_user_id, v_week_start, v_school_id);
+
+    UPDATE league_groups SET member_count = member_count + 1
+    WHERE id = v_group_id;
+END;
+$$;
+
+-- =============================================
+-- Part 3: get_league_group_leaderboard RPC
+-- =============================================
+CREATE OR REPLACE FUNCTION get_league_group_leaderboard(
+    p_group_id UUID,
+    p_limit INTEGER DEFAULT 30
+)
+RETURNS TABLE(
+    user_id UUID,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    avatar_url VARCHAR,
+    avatar_equipped_cache JSONB,
+    total_xp INTEGER,
+    weekly_xp BIGINT,
+    level INTEGER,
+    rank BIGINT,
+    previous_rank INTEGER,
+    league_tier VARCHAR,
+    school_name VARCHAR,
+    is_same_school BOOLEAN,
+    is_bot BOOLEAN,
+    group_member_count INTEGER,
+    previous_group_id UUID
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_group RECORD;
+    v_total_bots INTEGER;
+    v_bot_count INTEGER;
+    v_caller_school_id UUID;
+    v_week_start_ts TIMESTAMPTZ;
+    v_prev_week_start DATE;
+BEGIN
+    -- Auth check: caller must be a member of this group
+    IF NOT EXISTS (
+        SELECT 1 FROM league_group_members
+        WHERE group_id = p_group_id AND user_id = auth.uid()
+    ) THEN
+        RAISE EXCEPTION 'Access denied: caller is not a member of this group';
+    END IF;
+
+    -- Fetch group info once (FOR SHARE prevents concurrent member_count changes during read)
+    SELECT * INTO v_group FROM league_groups WHERE id = p_group_id FOR SHARE;
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Group not found';
+    END IF;
+
+    v_total_bots := (SELECT count(*)::INTEGER FROM bot_profiles);
+    v_bot_count := GREATEST(0, 30 - v_group.member_count);
+    v_week_start_ts := v_group.week_start::timestamptz;
+    v_prev_week_start := (v_group.week_start - INTERVAL '7 days')::DATE;
+
+    SELECT school_id INTO v_caller_school_id FROM profiles WHERE id = auth.uid();
+
+    RETURN QUERY
+    WITH weekly_xp_calc AS (
+        SELECT
+            xl.user_id AS uid,
+            COALESCE(SUM(xl.amount), 0) AS week_xp
+        FROM xp_logs xl
+        WHERE xl.created_at >= v_week_start_ts
+        GROUP BY xl.user_id
+    ),
+    prev_week AS (
+        SELECT
+            lh.user_id AS uid,
+            lh.rank AS prev_rank,
+            lh.group_id AS prev_group_id
+        FROM league_history lh
+        WHERE lh.week_start = v_prev_week_start
+    ),
+    real_entries AS (
+        SELECT
+            p.id AS e_user_id,
+            p.first_name AS e_first_name,
+            p.last_name AS e_last_name,
+            p.avatar_url AS e_avatar_url,
+            p.avatar_equipped_cache AS e_avatar_equipped_cache,
+            p.xp AS e_total_xp,
+            COALESCE(wxc.week_xp, 0)::BIGINT AS e_weekly_xp,
+            p.level AS e_level,
+            pw.prev_rank AS e_previous_rank,
+            pw.prev_group_id AS e_prev_group_id,
+            p.league_tier AS e_league_tier,
+            s.name AS e_school_name,
+            (p.school_id = v_caller_school_id) AS e_is_same_school,
+            FALSE AS e_is_bot
+        FROM league_group_members lgm
+        JOIN profiles p ON lgm.user_id = p.id
+        LEFT JOIN schools s ON p.school_id = s.id
+        LEFT JOIN weekly_xp_calc wxc ON p.id = wxc.uid
+        LEFT JOIN prev_week pw ON p.id = pw.uid
+        WHERE lgm.group_id = p_group_id
+    ),
+    bot_entries AS (
+        SELECT
+            ('00000000-0000-0000-0000-' || LPAD(bp.id::text, 12, '0'))::UUID AS e_user_id,
+            bp.first_name AS e_first_name,
+            bp.last_name AS e_last_name,
+            NULL::VARCHAR AS e_avatar_url,
+            bp.avatar_equipped_cache AS e_avatar_equipped_cache,
+            0 AS e_total_xp,
+            bot_current_xp(p_group_id, slot_num, v_group.xp_bucket, v_group.week_start)::BIGINT AS e_weekly_xp,
+            GREATEST(1, bot_weekly_xp_target(p_group_id, slot_num, v_group.xp_bucket) / 50 + 1) AS e_level,
+            NULL::INTEGER AS e_previous_rank,
+            NULL::UUID AS e_prev_group_id,
+            v_group.tier AS e_league_tier,
+            bp.school_name AS e_school_name,
+            FALSE AS e_is_same_school,
+            TRUE AS e_is_bot
+        FROM generate_series(0, v_bot_count - 1) AS slot_num
+        JOIN bot_profiles bp ON bp.id = (abs(hashtext(p_group_id::text || '_slot_' || slot_num::text)) % v_total_bots) + 1
+        WHERE v_bot_count > 0 AND v_total_bots > 0
+    ),
+    all_entries AS (
+        SELECT * FROM real_entries
+        UNION ALL
+        SELECT * FROM bot_entries
+    ),
+    ranked AS (
+        SELECT *, RANK() OVER (ORDER BY e_weekly_xp DESC, e_total_xp DESC) AS e_rank
+        FROM all_entries
+    )
+    SELECT
+        r.e_user_id, r.e_first_name, r.e_last_name, r.e_avatar_url,
+        r.e_avatar_equipped_cache, r.e_total_xp::INTEGER, r.e_weekly_xp,
+        r.e_level::INTEGER, r.e_rank, r.e_previous_rank,
+        r.e_league_tier, r.e_school_name, r.e_is_same_school, r.e_is_bot,
+        30::INTEGER,
+        r.e_prev_group_id
+    FROM ranked r
+    ORDER BY r.e_rank
+    LIMIT p_limit;
+END;
+$$;
+
+-- =============================================
+-- Part 3b: get_user_league_status RPC
+-- =============================================
+CREATE OR REPLACE FUNCTION get_user_league_status(p_user_id UUID)
+RETURNS TABLE(
+    group_id UUID,
+    group_member_count INTEGER,
+    tier VARCHAR,
+    week_start DATE,
+    weekly_xp BIGINT,
+    rank BIGINT,
+    joined BOOLEAN,
+    threshold_met BOOLEAN,
+    current_weekly_xp BIGINT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_week_start DATE := date_trunc('week', app_now())::DATE;
+    v_week_start_ts TIMESTAMPTZ := date_trunc('week', app_now());
+    v_current_weekly_xp BIGINT;
+    v_group_id UUID;
+    v_user_tier VARCHAR(20);
+    v_group_bucket INTEGER;
+    v_group_member_count INTEGER;
+    v_total_bots INTEGER;
+    v_bot_count INTEGER;
+    v_user_rank BIGINT;
+BEGIN
+    -- Auth check
+    IF p_user_id != auth.uid() THEN
+        RAISE EXCEPTION 'Access denied: user mismatch';
+    END IF;
+
+    -- Get current weekly XP
+    SELECT COALESCE(SUM(amount), 0) INTO v_current_weekly_xp
+    FROM xp_logs
+    WHERE user_id = p_user_id AND created_at >= v_week_start_ts;
+
+    -- Get user's tier
+    SELECT league_tier INTO v_user_tier FROM profiles WHERE id = p_user_id;
+
+    -- Check if in a group
+    SELECT lgm.group_id INTO v_group_id
+    FROM league_group_members lgm
+    WHERE lgm.user_id = p_user_id AND lgm.week_start = v_week_start;
+
+    IF v_group_id IS NULL THEN
+        -- Not joined
+        RETURN QUERY SELECT
+            NULL::UUID, NULL::INTEGER, v_user_tier, v_week_start,
+            v_current_weekly_xp, NULL::BIGINT,
+            FALSE, (v_current_weekly_xp >= 20),
+            v_current_weekly_xp;
+        RETURN;
+    END IF;
+
+    -- Get group info for bot generation
+    SELECT lg.xp_bucket, lg.member_count INTO v_group_bucket, v_group_member_count
+    FROM league_groups lg WHERE lg.id = v_group_id;
+
+    v_total_bots := (SELECT count(*)::INTEGER FROM bot_profiles);
+    v_bot_count := GREATEST(0, 30 - v_group_member_count);
+
+    -- Compute rank using same bot-merge pattern as leaderboard (inlined, not called)
+    SELECT ranked.rnk INTO v_user_rank
+    FROM (
+        WITH weekly_xp_calc AS (
+            SELECT xl.user_id AS uid, COALESCE(SUM(xl.amount), 0) AS week_xp
+            FROM xp_logs xl WHERE xl.created_at >= v_week_start_ts GROUP BY xl.user_id
+        ),
+        real_entries AS (
+            SELECT p.id AS eid, COALESCE(wxc.week_xp, 0)::BIGINT AS ewxp, p.xp AS etxp
+            FROM league_group_members lgm
+            JOIN profiles p ON lgm.user_id = p.id
+            LEFT JOIN weekly_xp_calc wxc ON p.id = wxc.uid
+            WHERE lgm.group_id = v_group_id
+        ),
+        bot_entries AS (
+            SELECT
+                ('00000000-0000-0000-0000-' || LPAD(bp.id::text, 12, '0'))::UUID AS eid,
+                bot_current_xp(v_group_id, slot_num, v_group_bucket, v_week_start)::BIGINT AS ewxp,
+                0::INTEGER AS etxp
+            FROM generate_series(0, v_bot_count - 1) AS slot_num
+            JOIN bot_profiles bp ON bp.id = (abs(hashtext(v_group_id::text || '_slot_' || slot_num::text)) % v_total_bots) + 1
+            WHERE v_bot_count > 0 AND v_total_bots > 0
+        ),
+        all_entries AS (SELECT * FROM real_entries UNION ALL SELECT * FROM bot_entries),
+        ranked_all AS (
+            SELECT eid, RANK() OVER (ORDER BY ewxp DESC, etxp DESC) AS rnk FROM all_entries
+        )
+        SELECT * FROM ranked_all
+    ) ranked
+    WHERE ranked.eid = p_user_id;
+
+    RETURN QUERY SELECT
+        v_group_id, 30::INTEGER, v_user_tier, v_week_start,
+        v_current_weekly_xp, v_user_rank,
+        TRUE, TRUE, v_current_weekly_xp;
+END;
+$$;
+
+-- =============================================
+-- Part 4a: Rewrite process_weekly_league_reset
+-- =============================================
+CREATE OR REPLACE FUNCTION process_weekly_league_reset()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_last_week_start DATE := (date_trunc('week', app_now()) - INTERVAL '7 days')::DATE;
+    v_last_week_ts TIMESTAMPTZ := date_trunc('week', app_now()) - INTERVAL '7 days';
+    v_this_week_ts TIMESTAMPTZ := date_trunc('week', app_now());
+    v_group RECORD;
+    v_total_bots INTEGER := (SELECT count(*)::INTEGER FROM bot_profiles);
+    v_bot_count INTEGER;
+    v_zone_size INTEGER;
+    v_entry RECORD;
+    v_new_tier VARCHAR(20);
+    v_result VARCHAR(20);
+    v_tier_order TEXT[] := ARRAY['bronze', 'silver', 'gold', 'platinum', 'diamond'];
+    v_tier_idx INTEGER;
+BEGIN
+    -- Pre-aggregate weekly XP for the last week
+    CREATE TEMP TABLE IF NOT EXISTS tmp_weekly_xp AS
+    SELECT xl.user_id, COALESCE(SUM(xl.amount), 0)::BIGINT AS week_xp
+    FROM xp_logs xl
+    WHERE xl.created_at >= v_last_week_ts AND xl.created_at < v_this_week_ts
+    GROUP BY xl.user_id;
+    CREATE INDEX IF NOT EXISTS idx_tmp_wx_user ON tmp_weekly_xp(user_id);
+
+    -- Process each unprocessed group from last week
+    FOR v_group IN
+        SELECT * FROM league_groups
+        WHERE week_start = v_last_week_start AND processed = false
+        FOR UPDATE
+    LOOP
+        v_bot_count := GREATEST(0, 30 - v_group.member_count);
+
+        -- Zone size: with virtual bots, display count is always 30 → zone = 5
+        v_zone_size := 5;
+
+        -- Rank real + bot entries together
+        FOR v_entry IN
+            WITH real_entries AS (
+                SELECT
+                    p.id AS entry_id,
+                    COALESCE(wxc.week_xp, 0)::BIGINT AS entry_weekly_xp,
+                    p.xp AS entry_total_xp,
+                    p.league_tier AS entry_tier,
+                    lgm.school_id AS entry_school_id,
+                    p.class_id AS entry_class_id,
+                    FALSE AS entry_is_bot
+                FROM league_group_members lgm
+                JOIN profiles p ON lgm.user_id = p.id
+                LEFT JOIN tmp_weekly_xp wxc ON p.id = wxc.user_id
+                WHERE lgm.group_id = v_group.id
+            ),
+            bot_entries AS (
+                SELECT
+                    ('00000000-0000-0000-0000-' || LPAD(bp.id::text, 12, '0'))::UUID AS entry_id,
+                    bot_weekly_xp_target(v_group.id, slot_num, v_group.xp_bucket)::BIGINT AS entry_weekly_xp,
+                    0::INTEGER AS entry_total_xp,
+                    v_group.tier AS entry_tier,
+                    NULL::UUID AS entry_school_id,
+                    NULL::UUID AS entry_class_id,
+                    TRUE AS entry_is_bot
+                FROM generate_series(0, v_bot_count - 1) AS slot_num
+                JOIN bot_profiles bp ON bp.id = (abs(hashtext(v_group.id::text || '_slot_' || slot_num::text)) % v_total_bots) + 1
+                WHERE v_bot_count > 0 AND v_total_bots > 0
+            ),
+            all_entries AS (
+                SELECT * FROM real_entries UNION ALL SELECT * FROM bot_entries
+            ),
+            ranked AS (
+                SELECT *, RANK() OVER (ORDER BY entry_weekly_xp DESC, entry_total_xp DESC)::INTEGER AS entry_rank
+                FROM all_entries
+            )
+            SELECT * FROM ranked ORDER BY entry_rank
+        LOOP
+            -- Skip bots entirely
+            IF v_entry.entry_is_bot THEN CONTINUE; END IF;
+
+            v_result := 'stayed';
+            v_new_tier := v_entry.entry_tier;
+            v_tier_idx := array_position(v_tier_order, v_entry.entry_tier);
+
+            -- Promotion zone (top 5)
+            IF v_zone_size > 0 AND v_entry.entry_rank <= v_zone_size AND v_tier_idx < 5 THEN
+                v_new_tier := v_tier_order[v_tier_idx + 1];
+                v_result := 'promoted';
+            -- Demotion zone (bottom 5, i.e., rank > 25 out of 30)
+            ELSIF v_zone_size > 0 AND v_entry.entry_rank > (30 - v_zone_size) AND v_tier_idx > 1 THEN
+                v_new_tier := v_tier_order[v_tier_idx - 1];
+                v_result := 'demoted';
+            END IF;
+
+            INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result, group_id)
+            VALUES (v_entry.entry_id, v_entry.entry_class_id, v_entry.entry_school_id,
+                    v_last_week_start, v_new_tier, v_entry.entry_rank, v_entry.entry_weekly_xp, v_result, v_group.id);
+
+            IF v_new_tier != v_entry.entry_tier THEN
+                UPDATE profiles SET league_tier = v_new_tier WHERE id = v_entry.entry_id;
+            END IF;
+        END LOOP;
+
+        UPDATE league_groups SET processed = true WHERE id = v_group.id;
+    END LOOP;
+
+    -- Inactive tier decay: 4+ weeks without joining a group
+    -- IMPORTANT: Insert history FIRST (captures pre-decay tier), THEN update profiles
+    INSERT INTO league_history (user_id, class_id, school_id, week_start, league_tier, rank, weekly_xp, result)
+    SELECT p.id, p.class_id, p.school_id, v_last_week_start,
+           CASE p.league_tier
+               WHEN 'diamond' THEN 'platinum'
+               WHEN 'platinum' THEN 'gold'
+               WHEN 'gold' THEN 'silver'
+               WHEN 'silver' THEN 'bronze'
+               ELSE p.league_tier
+           END,
+           0, 0, 'inactive_demoted'
+    FROM profiles p
+    WHERE p.role = 'student'
+    AND p.league_tier != 'bronze'
+    AND NOT EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.user_id = p.id
+        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM league_history lh
+        WHERE lh.user_id = p.id AND lh.week_start = v_last_week_start
+    );
+
+    -- THEN update profiles (after history is captured)
+    UPDATE profiles SET league_tier = CASE league_tier
+        WHEN 'diamond' THEN 'platinum'
+        WHEN 'platinum' THEN 'gold'
+        WHEN 'gold' THEN 'silver'
+        WHEN 'silver' THEN 'bronze'
+        ELSE league_tier
+    END
+    WHERE role = 'student'
+    AND league_tier != 'bronze'
+    AND NOT EXISTS (
+        SELECT 1 FROM league_group_members lgm
+        WHERE lgm.user_id = profiles.id
+        AND lgm.week_start >= (date_trunc('week', app_now()) - INTERVAL '28 days')::DATE
+    );
+
+    -- Cleanup old groups (> 8 weeks)
+    DELETE FROM league_groups
+    WHERE week_start < (date_trunc('week', app_now()) - INTERVAL '8 weeks')::DATE;
+
+    DROP TABLE IF EXISTS tmp_weekly_xp;
+END;
+$$;
+
+-- =============================================
+-- Part 4b: Rewrite award_xp_transaction with lazy league join
+-- =============================================
+CREATE OR REPLACE FUNCTION award_xp_transaction(
+    p_user_id UUID,
+    p_amount INTEGER,
+    p_source VARCHAR,
+    p_source_id UUID DEFAULT NULL,
+    p_description TEXT DEFAULT NULL
+)
+RETURNS TABLE(new_xp INTEGER, new_level INTEGER, level_up BOOLEAN)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_current_xp INTEGER;
+    v_current_coins INTEGER;
+    v_new_xp INTEGER;
+    v_new_coins INTEGER;
+    v_current_level INTEGER;
+    v_new_level INTEGER;
+    v_weekly_xp BIGINT;
+BEGIN
+    -- Auth check: ensure caller is the user they claim to be
+    IF p_user_id != auth.uid() THEN
+        RAISE EXCEPTION 'Not authorized: user mismatch';
+    END IF;
+
+    -- Lock the row FIRST to prevent race conditions
+    SELECT xp, level, coins INTO v_current_xp, v_current_level, v_current_coins
+    FROM profiles
+    WHERE id = p_user_id
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User not found: %', p_user_id;
+    END IF;
+
+    -- Idempotency check AFTER lock (prevents TOCTOU race condition)
+    IF p_source_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM xp_logs
+        WHERE user_id = p_user_id AND source = p_source AND source_id = p_source_id
+    ) THEN
+        -- Already awarded — return current state without modification
+        RETURN QUERY SELECT v_current_xp, v_current_level, false;
+        RETURN;
+    END IF;
+
+    -- Calculate new values
+    v_new_xp := v_current_xp + p_amount;
+    v_new_level := calculate_level(v_new_xp);
+    v_new_coins := v_current_coins + p_amount;
+
+    -- Update profile (XP + level + coins atomically)
+    UPDATE profiles
+    SET xp = v_new_xp,
+        level = v_new_level,
+        coins = v_new_coins,
+        updated_at = NOW()
+    WHERE id = p_user_id;
+
+    -- Log XP
+    INSERT INTO xp_logs (user_id, amount, source, source_id, description)
+    VALUES (p_user_id, p_amount, p_source, p_source_id, p_description);
+
+    -- Log coins
+    INSERT INTO coin_logs (user_id, amount, balance_after, source, source_id, description)
+    VALUES (p_user_id, p_amount, v_new_coins, p_source, p_source_id, p_description);
+
+    -- === Lazy join to weekly league ===
+    IF NOT EXISTS (
+        SELECT 1 FROM league_group_members
+        WHERE user_id = p_user_id
+        AND week_start = date_trunc('week', app_now())::DATE
+    ) THEN
+        SELECT COALESCE(SUM(amount), 0) INTO v_weekly_xp
+        FROM xp_logs
+        WHERE user_id = p_user_id
+        AND created_at >= date_trunc('week', app_now());
+
+        IF v_weekly_xp >= 20 THEN
+            PERFORM join_weekly_league(p_user_id);
+        END IF;
+    END IF;
+
+    RETURN QUERY SELECT v_new_xp, v_new_level, (v_new_level > v_current_level);
+END;
+$$;
+
+-- =============================================
+-- Part 4c: Drop old weekly RPCs
+-- =============================================
+DROP FUNCTION IF EXISTS get_weekly_class_leaderboard(UUID, INTEGER);
+DROP FUNCTION IF EXISTS get_weekly_school_leaderboard(UUID, INTEGER, VARCHAR);
+DROP FUNCTION IF EXISTS get_user_weekly_class_position(UUID, UUID);
+DROP FUNCTION IF EXISTS get_user_weekly_school_position(UUID, UUID, VARCHAR);

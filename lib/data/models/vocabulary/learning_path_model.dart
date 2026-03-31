@@ -17,6 +17,8 @@ class LearningPathModel {
           sortOrder: row['lp_sort_order'] as int,
           sequentialLock: row['sequential_lock'] as bool? ?? true,
           booksExemptFromLock: row['books_exempt_from_lock'] as bool? ?? true,
+          unitGate: row['unit_gate'] as bool? ?? true,
+          tileThemeId: row['lp_tile_theme_id'] as String?,
         ),
       );
 
@@ -29,6 +31,7 @@ class LearningPathModel {
           unitColor: row['unit_color'] as String?,
           unitIcon: row['unit_icon'] as String?,
           sortOrder: row['unit_sort_order'] as int,
+          tileThemeId: row['tile_theme_id'] as String?,
         ),
       );
 
@@ -53,6 +56,8 @@ class LearningPathModel {
             sortOrder: pb.sortOrder,
             sequentialLock: pb.sequentialLock,
             booksExemptFromLock: pb.booksExemptFromLock,
+            unitGate: pb.unitGate,
+            tileThemeId: pb.tileThemeId,
             units: pb.units.values
                 .map(
                   (ub) => LearningPathUnit(
@@ -61,6 +66,7 @@ class LearningPathModel {
                     unitColor: ub.unitColor,
                     unitIcon: ub.unitIcon,
                     sortOrder: ub.sortOrder,
+                    tileThemeId: ub.tileThemeId,
                     items: ub.items..sort((a, b) => a.sortOrder.compareTo(b.sortOrder)),
                   ),
                 )
@@ -80,6 +86,8 @@ class _PathBuilder {
     required this.sortOrder,
     required this.sequentialLock,
     required this.booksExemptFromLock,
+    required this.unitGate,
+    this.tileThemeId,
   });
 
   final String id;
@@ -87,6 +95,8 @@ class _PathBuilder {
   final int sortOrder;
   final bool sequentialLock;
   final bool booksExemptFromLock;
+  final bool unitGate;
+  final String? tileThemeId;
   final Map<String, _UnitBuilder> units = {};
 }
 
@@ -97,6 +107,7 @@ class _UnitBuilder {
     this.unitColor,
     this.unitIcon,
     required this.sortOrder,
+    this.tileThemeId,
   });
 
   final String unitId;
@@ -104,5 +115,6 @@ class _UnitBuilder {
   final String? unitColor;
   final String? unitIcon;
   final int sortOrder;
+  final String? tileThemeId;
   final List<LearningPathItem> items = [];
 }

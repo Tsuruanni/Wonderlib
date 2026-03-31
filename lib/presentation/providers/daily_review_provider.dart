@@ -7,7 +7,6 @@ import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_due_for_review_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/get_word_progress_batch_usecase.dart';
-import '../../domain/usecases/vocabulary/save_daily_review_position_usecase.dart';
 import '../../domain/usecases/vocabulary/update_word_progress_usecase.dart';
 import '../../domain/usecases/wordlist/get_all_word_lists_usecase.dart';
 import '../../domain/usecases/wordlist/get_words_for_list_usecase.dart';
@@ -154,7 +153,6 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     required this.completeDailyReviewUseCase,
     required this.getAllWordListsUseCase,
     required this.getWordsForListUseCase,
-    required this.saveDailyReviewPositionUseCase,
   }) : super(const DailyReviewState());
 
   bool _isProcessingAnswer = false;
@@ -165,7 +163,6 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
   final CompleteDailyReviewUseCase completeDailyReviewUseCase;
   final GetAllWordListsUseCase getAllWordListsUseCase;
   final GetWordsForListUseCase getWordsForListUseCase;
-  final SaveDailyReviewPositionUseCase saveDailyReviewPositionUseCase;
 
   /// Load words for review session
   Future<void> loadSession() async {
@@ -400,18 +397,6 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     );
   }
 
-  /// Save DR position in learning path (uses session ID to avoid timezone issues)
-  Future<void> saveDailyReviewPosition({
-    required String sessionId,
-    required int pathPosition,
-  }) async {
-    await saveDailyReviewPositionUseCase(
-      SaveDailyReviewPositionParams(
-        sessionId: sessionId,
-        pathPosition: pathPosition,
-      ),
-    );
-  }
 }
 
 /// Provider for daily review controller
@@ -428,7 +413,6 @@ final dailyReviewControllerProvider =
         completeDailyReviewUseCase: ref.watch(completeDailyReviewUseCaseProvider),
         getAllWordListsUseCase: ref.watch(getAllWordListsUseCaseProvider),
         getWordsForListUseCase: ref.watch(getWordsForListUseCaseProvider),
-        saveDailyReviewPositionUseCase: ref.watch(saveDailyReviewPositionUseCaseProvider),
       );
       return controller;
     }
@@ -441,7 +425,6 @@ final dailyReviewControllerProvider =
       completeDailyReviewUseCase: ref.watch(completeDailyReviewUseCaseProvider),
       getAllWordListsUseCase: ref.watch(getAllWordListsUseCaseProvider),
       getWordsForListUseCase: ref.watch(getWordsForListUseCaseProvider),
-      saveDailyReviewPositionUseCase: ref.watch(saveDailyReviewPositionUseCaseProvider),
     );
   },
 );

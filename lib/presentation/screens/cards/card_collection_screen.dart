@@ -7,10 +7,14 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../../providers/system_settings_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/top_navbar.dart';
+
+/// Tracks which card categories are expanded (web only).
+final expandedCardCategoriesProvider = StateProvider<Set<CardCategory>>((ref) => {});
 
 class CardCollectionScreen extends ConsumerWidget {
   const CardCollectionScreen({super.key});
@@ -35,31 +39,28 @@ class CardCollectionScreen extends ConsumerWidget {
 
           // 2. Scrollable Content
           Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFFF5F7FA), Color(0xFFE4E7EB)],
-                ),
-              ),
-              child: catalogAsync.when(
+            child: catalogAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (_) {
                   return CustomScrollView(
                     slivers: [
-                      // Open Pack Banner
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                          child: _OpenPackBanner(
-                            onTap: () => context.push(AppRoutes.packOpening),
+                      // Open Pack Banner (mobile only — on wide screens it's in the right panel)
+                      if (MediaQuery.sizeOf(context).width < 1000)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                            child: _OpenPackBanner(
+                              onTap: () => context.push(AppRoutes.packOpening),
+                            ),
                           ),
                         ),
-                      ),
 
-                      // Categorized Sections (Netflix Style)
+                      // Top spacing when banner is hidden (wide screens)
+                      if (MediaQuery.sizeOf(context).width >= 1000)
+                        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+                      // Categorized Sections
                       ...CardCategory.values.map((category) {
                         final cards = categorizedCards[category] ?? [];
                         if (cards.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -85,7 +86,6 @@ class CardCollectionScreen extends ConsumerWidget {
                 },
               ),
             ),
-          ),
         ],
       ),
     );
@@ -137,16 +137,24 @@ class CardCollectionScreen extends ConsumerWidget {
             Icon(Icons.lock_rounded, size: 48, color: AppColors.neutral),
             const SizedBox(height: 16),
             Text(
-              'Locked Card',
+              card.name,
               style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
                 color: AppColors.black,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              '${card.category.label} collection',
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                color: AppColors.neutralText,
+              ),
+            ),
             const SizedBox(height: 8),
             Text(
-              'This card is part of the\n${card.category.label} collection.',
+              'Open booster packs to unlock this card!',
               textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 16,
@@ -185,7 +193,7 @@ class CardCollectionScreen extends ConsumerWidget {
   }
 }
 
-class _CategorySection extends StatelessWidget {
+class _CategorySection extends ConsumerWidget {
   const _CategorySection({
     required this.category,
     required this.cards,
@@ -204,16 +212,40 @@ class _CategorySection extends StatelessWidget {
   final Function(MythCard, int) onCardTap;
   final Function(MythCard) onLockedTap;
 
+  Widget _buildCardItem(MythCard card) {
+    final isOwned = ownedIds.contains(card.id);
+    if (isOwned) {
+      final userCard = userCards.where((uc) => uc.cardId == card.id).firstOrNull;
+      if (userCard == null) {
+        return LockedCardWidget(card: card, onTap: () => onLockedTap(card));
+      }
+      return MythCardWidget(
+        card: card,
+        quantity: userCard.quantity,
+        onTap: () => onCardTap(card, userCard.quantity),
+      );
+    }
+    return LockedCardWidget(card: card, onTap: () => onLockedTap(card));
+  }
+
+  static const _cardWidth = 140.0;
+  static const _cardHeight = 220.0;
+  static const _spacing = 12.0;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final progress = cards.isEmpty ? 0.0 : ownedCount / cards.length;
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final expandedCategories = ref.watch(expandedCardCategoriesProvider);
+    final isExpanded = expandedCategories.contains(category);
+    final categoryColor = CardColors.getCategoryColor(category);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section Header
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
               Text(
@@ -249,10 +281,10 @@ class _CategorySection extends StatelessWidget {
             ],
           ),
         ),
-        
+
         // Progress Bar Line
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
@@ -263,46 +295,62 @@ class _CategorySection extends StatelessWidget {
             ),
           ),
         ),
-        
+
         const SizedBox(height: 12),
 
-        // Horizontal List
-        SizedBox(
-          height: 220, // Height to accommodate aspect ratio
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            itemCount: cards.length,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final card = cards[index];
-              final isOwned = ownedIds.contains(card.id);
+        // Cards: horizontal scroll on mobile, 2-row grid + load more on wide
+        if (isWide)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final itemsPerRow = ((constraints.maxWidth + _spacing) / (_cardWidth + _spacing)).floor().clamp(1, 20);
+                final maxVisible = itemsPerRow * 2;
+                final hasMore = cards.length > maxVisible && !isExpanded;
+                final visibleCount = hasMore ? maxVisible - 1 : cards.length;
 
-              return SizedBox(
-                width: 140, // 220 height * 0.7 aspect ratio ~= 154
-                child: isOwned
-                  ? (() {
-                      final userCard = userCards.where((uc) => uc.cardId == card.id).firstOrNull;
-                      if (userCard == null) {
-                        return LockedCardWidget(
-                          card: card,
-                          onTap: () => onLockedTap(card),
-                        );
-                      }
-                      return MythCardWidget(
-                        card: card,
-                        quantity: userCard.quantity,
-                        onTap: () => onCardTap(card, userCard.quantity),
-                      );
-                    })()
-                  : LockedCardWidget(
-                      card: card,
-                      onTap: () => onLockedTap(card),
-                    ),
-              );
-            },
+                return Wrap(
+                  spacing: _spacing,
+                  runSpacing: _spacing,
+                  children: [
+                    for (int i = 0; i < visibleCount; i++)
+                      SizedBox(
+                        width: _cardWidth,
+                        height: _cardHeight,
+                        child: _buildCardItem(cards[i]),
+                      ),
+                    if (hasMore)
+                      _LoadMoreButton(
+                        remaining: cards.length - visibleCount,
+                        color: categoryColor,
+                        onTap: () {
+                          ref.read(expandedCardCategoriesProvider.notifier).state = {
+                            ...expandedCategories,
+                            category,
+                          };
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
+          )
+        else
+          SizedBox(
+            height: _cardHeight,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              scrollDirection: Axis.horizontal,
+              itemCount: cards.length,
+              separatorBuilder: (context, index) => const SizedBox(width: _spacing),
+              itemBuilder: (context, index) {
+                return SizedBox(
+                  width: _cardWidth,
+                  child: _buildCardItem(cards[index]),
+                );
+              },
+            ),
           ),
-        ),
         const SizedBox(height: 24),
       ],
     );
@@ -318,6 +366,7 @@ class _OpenPackBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final packs = ref.watch(unopenedPacksProvider);
     final hasPacks = packs > 0;
+    final packCost = ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
 
     return GestureDetector(
       onTap: onTap,
@@ -427,7 +476,7 @@ class _OpenPackBanner extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                '100',
+                                '$packCost',
                                 style: GoogleFonts.nunito(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w900,
@@ -447,3 +496,57 @@ class _OpenPackBanner extends ConsumerWidget {
   }
 }
 
+class _LoadMoreButton extends StatelessWidget {
+  const _LoadMoreButton({
+    required this.remaining,
+    required this.color,
+    required this.onTap,
+  });
+
+  final int remaining;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 140,
+        height: 220,
+        child: Container(
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: color.withValues(alpha: 0.3),
+              width: 2,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.expand_more_rounded, color: color, size: 32),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                '+$remaining more',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

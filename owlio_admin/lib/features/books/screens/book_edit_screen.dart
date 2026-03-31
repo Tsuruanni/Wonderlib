@@ -468,7 +468,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
             .select('text')
             .eq('chapter_id', chapter['id'])
             .eq('type', 'text')
-            .order('order_index');
+            .order('order_index', ascending: true);
 
         final blocks = blocksResponse as List;
         if (blocks.isNotEmpty) {

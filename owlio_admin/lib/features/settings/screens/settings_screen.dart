@@ -13,8 +13,8 @@ final settingsProvider =
       .from(DbTables.systemSettings)
       .select()
       .order('category')
-      .order('sort_order')
-      .order('key');
+      .order('sort_order', ascending: true)
+      .order('key', ascending: true);
 
   final settings = List<Map<String, dynamic>>.from(response);
 
@@ -47,7 +47,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': 'Reading XP',
     'xp_vocab': 'Vocab Session XP',
     'progression': 'Seviye ve İlerleme',
-    'game': 'Oyun Ayarları',
+    'game': 'Oyun Ekonomisi',
     'app': 'Uygulama Yapılandırması',
   };
 
@@ -55,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': Icons.auto_stories,
     'xp_vocab': Icons.school,
     'progression': Icons.trending_up,
-    'game': Icons.games,
+    'game': Icons.casino,
     'app': Icons.settings_applications,
   };
 
@@ -63,7 +63,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_reading': Color(0xFFF59E0B),
     'xp_vocab': Color(0xFF10B981),
     'progression': Color(0xFF8B5CF6),
-    'game': Color(0xFF3B82F6),
+    'game': Color(0xFFEC4899),
     'app': Color(0xFF6B7280),
   };
 
@@ -80,7 +80,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _updateSetting(String key, String value) async {
+  Future<void> _updateSetting(String key, dynamic value) async {
     if (_savingKeys.contains(key)) return;
 
     setState(() => _savingKeys.add(key));
@@ -208,7 +208,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Değişiklikler otomatik kaydedilir. Bu ayarlar veritabanında saklanır ancak ana uygulama entegrasyonu henüz yapılmadı.',
+                          'Değişiklikler otomatik kaydedilir. Ayar değişiklikleri, kullanıcılar uygulamayı yeniden başlattığında uygulanır.',
                           style: TextStyle(color: Colors.blue.shade900),
                         ),
                       ),
@@ -416,7 +416,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (value == 'true' || value == 'false') {
       return Switch(
         value: value == 'true',
-        onChanged: (v) => _updateSetting(key, v.toString()),
+        onChanged: (v) => _updateSetting(key, v),
       );
     }
 
@@ -444,7 +444,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           onFieldSubmitted: (v) {
             if (v.isNotEmpty && v != value) {
-              _updateSetting(key, v);
+              final parsed = int.tryParse(v) ?? double.tryParse(v);
+              _updateSetting(key, parsed ?? v);
             }
           },
         ),

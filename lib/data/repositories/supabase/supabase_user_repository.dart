@@ -5,9 +5,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
+import '../../../domain/entities/league_status.dart';
 import '../../../domain/entities/streak_result.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/repositories/user_repository.dart';
+import '../../models/user/league_status_model.dart';
 import '../../models/user/leaderboard_entry_model.dart';
 import '../../models/user/user_model.dart';
 
@@ -406,28 +408,24 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, List<LeaderboardEntry>>> getWeeklyClassLeaderboard({
-    required String classId,
-    int limit = 10,
+  Future<Either<Failure, List<LeaderboardEntry>>> getLeagueGroupLeaderboard({
+    required String groupId,
+    int limit = 30,
   }) async {
     try {
       final result = await _supabase.rpc(
-        RpcFunctions.getWeeklyClassLeaderboard,
-        params: {'p_class_id': classId, 'p_limit': limit},
+        RpcFunctions.getLeagueGroupLeaderboard,
+        params: {'p_group_id': groupId, 'p_limit': limit},
       );
 
       final data = result as List?;
-      if (data == null || data.isEmpty) {
-        return const Right([]);
-      }
+      if (data == null || data.isEmpty) return const Right([]);
 
-      final entries = data
+      return Right(data
           .map((json) =>
               LeaderboardEntryModel.fromJson(json as Map<String, dynamic>)
                   .toEntity())
-          .toList();
-
-      return Right(entries);
+          .toList());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {
@@ -436,93 +434,27 @@ class SupabaseUserRepository implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, List<LeaderboardEntry>>> getWeeklySchoolLeaderboard({
-    required String schoolId,
-    int limit = 10,
-    LeagueTier? leagueTier,
-  }) async {
-    try {
-      final params = <String, dynamic>{
-        'p_school_id': schoolId,
-        'p_limit': limit,
-      };
-      if (leagueTier != null) params['p_league_tier'] = leagueTier.dbValue;
-
-      final result = await _supabase.rpc(
-        RpcFunctions.getWeeklySchoolLeaderboard,
-        params: params,
-      );
-
-      final data = result as List?;
-      if (data == null || data.isEmpty) {
-        return const Right([]);
-      }
-
-      final entries = data
-          .map((json) =>
-              LeaderboardEntryModel.fromJson(json as Map<String, dynamic>)
-                  .toEntity())
-          .toList();
-
-      return Right(entries);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, LeaderboardEntry>> getUserWeeklyClassPosition({
+  Future<Either<Failure, LeagueStatus>> getUserLeagueStatus({
     required String userId,
-    required String classId,
   }) async {
     try {
       final result = await _supabase.rpc(
-        RpcFunctions.getUserWeeklyClassPosition,
-        params: {'p_user_id': userId, 'p_class_id': classId},
+        RpcFunctions.getUserLeagueStatus,
+        params: {'p_user_id': userId},
       );
 
       if (result == null || (result as List).isEmpty) {
-        return const Left(NotFoundFailure('User not found in class leaderboard'));
+        return Right(LeagueStatus(
+          joined: false,
+          thresholdMet: false,
+          currentWeeklyXp: 0,
+          tier: LeagueTier.bronze,
+          weekStart: DateTime.now(),
+        ));
       }
 
       return Right(
-        LeaderboardEntryModel.fromJson(result[0] as Map<String, dynamic>)
-            .toEntity(),
-      );
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, LeaderboardEntry>> getUserWeeklySchoolPosition({
-    required String userId,
-    required String schoolId,
-    LeagueTier? leagueTier,
-  }) async {
-    try {
-      final params = <String, dynamic>{
-        'p_user_id': userId,
-        'p_school_id': schoolId,
-      };
-      if (leagueTier != null) params['p_league_tier'] = leagueTier.dbValue;
-
-      final result = await _supabase.rpc(
-        RpcFunctions.getUserWeeklySchoolPosition,
-        params: params,
-      );
-
-      if (result == null || (result as List).isEmpty) {
-        return const Left(
-            NotFoundFailure('User not found in school leaderboard'));
-      }
-
-      return Right(
-        LeaderboardEntryModel.fromJson(result[0] as Map<String, dynamic>)
+        LeagueStatusModel.fromJson(result[0] as Map<String, dynamic>)
             .toEntity(),
       );
     } on PostgrestException catch (e) {

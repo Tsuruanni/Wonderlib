@@ -38,6 +38,10 @@ import '../features/avatars/screens/avatar_item_edit_screen.dart';
 import '../features/avatars/screens/avatar_category_edit_screen.dart';
 import '../features/classes/screens/class_list_screen.dart';
 import '../features/classes/screens/class_edit_screen.dart';
+import '../features/tiles/screens/tile_theme_list_screen.dart';
+import '../features/tiles/screens/tile_theme_edit_screen.dart';
+import '../features/units/screens/unit_list_screen.dart';
+import '../features/units/screens/unit_edit_screen.dart';
 import 'supabase_client.dart';
 
 /// Router configuration for admin panel
@@ -253,10 +257,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           templateId: state.pathParameters['templateId'],
         ),
       ),
-      // Learning Path Assignments (create only — list is inside /learning-paths tab)
+      // Learning Path Assignments (create + edit via query params)
       GoRoute(
         path: '/learning-path-assignments/new',
-        builder: (context, state) => const AssignmentScreen(),
+        builder: (context, state) => AssignmentScreen(
+          initialSchoolId: state.uri.queryParameters['schoolId'],
+          initialGrade:
+              int.tryParse(state.uri.queryParameters['grade'] ?? ''),
+          initialClassId: state.uri.queryParameters['classId'],
+        ),
       ),
       // Teacher Assignments (read-only)
       GoRoute(
@@ -315,6 +324,36 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/avatars/categories/:id',
         builder: (_, state) => AvatarCategoryEditScreen(categoryId: state.pathParameters['id']),
+      ),
+      // Units
+      GoRoute(
+        path: '/units',
+        builder: (context, state) => const UnitListScreen(),
+      ),
+      GoRoute(
+        path: '/units/new',
+        builder: (context, state) => const UnitEditScreen(),
+      ),
+      GoRoute(
+        path: '/units/:unitId',
+        builder: (context, state) => UnitEditScreen(
+          unitId: state.pathParameters['unitId'],
+        ),
+      ),
+      // Tile Themes
+      GoRoute(
+        path: '/tiles',
+        builder: (context, state) => const TileThemeListScreen(),
+      ),
+      GoRoute(
+        path: '/tiles/new',
+        builder: (context, state) => const TileThemeEditScreen(),
+      ),
+      GoRoute(
+        path: '/tiles/:themeId',
+        builder: (context, state) => TileThemeEditScreen(
+          themeId: state.pathParameters['themeId'],
+        ),
       ),
       // Ayarlar (XP + Uygulama)
       GoRoute(

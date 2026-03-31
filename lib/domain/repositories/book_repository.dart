@@ -22,8 +22,6 @@ abstract class BookRepository {
 
   Future<Either<Failure, List<Book>>> searchBooks(String query);
 
-  Future<Either<Failure, List<Book>>> getRecommendedBooks(String userId);
-
   Future<Either<Failure, List<Chapter>>> getChapters(String bookId);
 
   Future<Either<Failure, Chapter>> getChapterById(String chapterId);

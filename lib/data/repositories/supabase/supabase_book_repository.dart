@@ -117,39 +117,6 @@ class SupabaseBookRepository implements BookRepository {
   }
 
   @override
-  Future<Either<Failure, List<Book>>> getRecommendedBooks(String userId) async {
-    try {
-      // Get books the user hasn't started reading
-      final progressResponse = await _supabase
-          .from(DbTables.readingProgress)
-          .select('book_id')
-          .eq('user_id', userId);
-
-      final readBookIds = (progressResponse as List)
-          .map((p) => p['book_id'] as String)
-          .toList();
-
-      var query = _supabase.from(DbTables.books).select().eq('status', BookStatus.published.dbValue);
-
-      // Exclude books already being read (single filter instead of N loops)
-      if (readBookIds.isNotEmpty) {
-        query = query.not('id', 'in_', readBookIds);
-      }
-
-      final response = await query.limit(6).order('created_at', ascending: false);
-
-      final books =
-          (response as List).map((json) => _mapToBook(json)).toList();
-
-      return Right(books);
-    } on PostgrestException catch (e) {
-      return Left(ServerFailure(e.message, code: e.code));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<Chapter>>> getChapters(String bookId) async {
     try {
       final response = await _supabase

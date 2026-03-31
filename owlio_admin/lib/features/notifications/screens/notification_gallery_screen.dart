@@ -27,7 +27,7 @@ class _NotificationGalleryScreenState
     super.dispose();
   }
 
-  Future<void> _updateSetting(String key, String value) async {
+  Future<void> _updateSetting(String key, dynamic value) async {
     if (_savingKeys.contains(key)) return;
     setState(() => _savingKeys.add(key));
 
@@ -169,7 +169,7 @@ class _NotificationGalleryScreenState
       description: 'Shown every day when user opens the app',
       isEnabled: _getBool(grouped, 'notif_streak_extended'),
       isSaving: _savingKeys.contains('notif_streak_extended'),
-      onToggle: (v) => _updateSetting('notif_streak_extended', v.toString()),
+      onToggle: (v) => _updateSetting('notif_streak_extended', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -206,7 +206,7 @@ class _NotificationGalleryScreenState
       description: 'Triggers at days 7, 14, 30, 60, 100',
       isEnabled: _getBool(grouped, 'notif_milestone'),
       isSaving: _savingKeys.contains('notif_milestone'),
-      onToggle: (v) => _updateSetting('notif_milestone', v.toString()),
+      onToggle: (v) => _updateSetting('notif_milestone', v),
       preview: _previewRow(
           'Dialog', 'X-Day Streak!', '+YZ XP earned!'),
     );
@@ -221,7 +221,7 @@ class _NotificationGalleryScreenState
       description: 'When streak freeze prevents streak from breaking',
       isEnabled: _getBool(grouped, 'notif_freeze_saved'),
       isSaving: _savingKeys.contains('notif_freeze_saved'),
-      onToggle: (v) => _updateSetting('notif_freeze_saved', v.toString()),
+      onToggle: (v) => _updateSetting('notif_freeze_saved', v),
       preview: _previewRow('Dialog', 'Streak Freeze Saved You!',
           'Your X-day streak is safe. N freezes left.'),
     );
@@ -245,7 +245,7 @@ class _NotificationGalleryScreenState
       description: 'When user loses their streak',
       isEnabled: _getBool(grouped, 'notif_streak_broken'),
       isSaving: _savingKeys.contains('notif_streak_broken'),
-      onToggle: (v) => _updateSetting('notif_streak_broken', v.toString()),
+      onToggle: (v) => _updateSetting('notif_streak_broken', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -309,7 +309,7 @@ class _NotificationGalleryScreenState
       description: 'When user gains enough XP to level up',
       isEnabled: _getBool(grouped, 'notif_level_up'),
       isSaving: _savingKeys.contains('notif_level_up'),
-      onToggle: (v) => _updateSetting('notif_level_up', v.toString()),
+      onToggle: (v) => _updateSetting('notif_level_up', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -332,7 +332,7 @@ class _NotificationGalleryScreenState
       description: 'Shown when a student earns a new badge',
       isEnabled: _getBool(grouped, 'notif_badge_earned'),
       isSaving: _savingKeys.contains('notif_badge_earned'),
-      onToggle: (v) => _updateSetting('notif_badge_earned', v.toString()),
+      onToggle: (v) => _updateSetting('notif_badge_earned', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -355,7 +355,7 @@ class _NotificationGalleryScreenState
       description: 'Shown when student opens app with active assignments',
       isEnabled: _getBool(grouped, 'notif_assignment'),
       isSaving: _savingKeys.contains('notif_assignment'),
-      onToggle: (v) => _updateSetting('notif_assignment', v.toString()),
+      onToggle: (v) => _updateSetting('notif_assignment', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -378,7 +378,7 @@ class _NotificationGalleryScreenState
       description: 'Weekly league promotion or demotion',
       isEnabled: _getBool(grouped, 'notif_league_change'),
       isSaving: _savingKeys.contains('notif_league_change'),
-      onToggle: (v) => _updateSetting('notif_league_change', v.toString()),
+      onToggle: (v) => _updateSetting('notif_league_change', v),
       preview: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

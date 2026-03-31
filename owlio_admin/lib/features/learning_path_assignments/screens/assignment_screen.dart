@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +8,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/learning_path_tree_view.dart';
+import '../../tiles/screens/tile_theme_list_screen.dart';
 import '../../users/screens/user_list_screen.dart' show allSchoolsProvider;
 
 // ============================================
@@ -53,6 +56,8 @@ class _ScopeLearningPathData {
   List<LearningPathUnitData> units;
   bool sequentialLock;
   bool booksExemptFromLock;
+  bool unitGate;
+  String? tileThemeId;
 
   _ScopeLearningPathData({
     this.id,
@@ -62,6 +67,8 @@ class _ScopeLearningPathData {
     required this.units,
     this.sequentialLock = true,
     this.booksExemptFromLock = true,
+    this.unitGate = true,
+    this.tileThemeId,
   });
 }
 
@@ -70,7 +77,16 @@ class _ScopeLearningPathData {
 // ============================================
 
 class AssignmentScreen extends ConsumerStatefulWidget {
-  const AssignmentScreen({super.key});
+  const AssignmentScreen({
+    super.key,
+    this.initialSchoolId,
+    this.initialGrade,
+    this.initialClassId,
+  });
+
+  final String? initialSchoolId;
+  final int? initialGrade;
+  final String? initialClassId;
 
   @override
   ConsumerState<AssignmentScreen> createState() => _AssignmentScreenState();
@@ -84,6 +100,28 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
   List<_ScopeLearningPathData> _learningPaths = [];
   bool _isLoading = false;
   bool _isSaving = false;
+  Timer? _saveDebounceTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialSchoolId != null) {
+      _schoolId = widget.initialSchoolId;
+      if (widget.initialClassId != null) {
+        _scopeType = _ScopeType.classSpecific;
+        _selectedClassId = widget.initialClassId;
+      } else if (widget.initialGrade != null) {
+        _scopeType = _ScopeType.grade;
+        _selectedGrade = widget.initialGrade;
+      } else {
+        _scopeType = _ScopeType.school;
+      }
+      // Auto-load after frame so providers are ready
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadScopeAssignments();
+      });
+    }
+  }
 
   bool get _isScopeComplete {
     if (_schoolId == null) return false;
@@ -92,6 +130,12 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       return false;
     }
     return true;
+  }
+
+  @override
+  void dispose() {
+    _saveDebounceTimer?.cancel();
+    super.dispose();
   }
 
   // ============================================
@@ -109,7 +153,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // Build query for scope_learning_paths matching current scope
       var query = supabase
           .from(DbTables.scopeLearningPaths)
-          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock')
+          .select('id, name, template_id, sort_order, sequential_lock, books_exempt_from_lock, unit_gate, tile_theme_id')
           .eq('school_id', _schoolId!);
 
       if (_scopeType == _ScopeType.grade) {
@@ -122,7 +166,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
         query = query.isFilter('grade', null).isFilter('class_id', null);
       }
 
-      final pathsResponse = await query.order('sort_order');
+      final pathsResponse = await query.order('sort_order', ascending: true);
       final paths = <_ScopeLearningPathData>[];
 
       for (final pathRow in pathsResponse) {
@@ -132,9 +176,9 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
         final unitsResponse = await supabase
             .from(DbTables.scopeLearningPathUnits)
             .select(
-                'id, unit_id, sort_order, vocabulary_units(id, name, icon, color)')
+                'id, unit_id, sort_order, tile_theme_id, vocabulary_units(id, name, icon, color)')
             .eq('scope_learning_path_id', pathId)
-            .order('sort_order');
+            .order('sort_order', ascending: true);
 
         final units = <LearningPathUnitData>[];
 
@@ -151,7 +195,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                   'word_lists(id, name, word_count), '
                   'books(id, title, level, chapter_count)')
               .eq('scope_lp_unit_id', scopeUnitId)
-              .order('sort_order');
+              .order('sort_order', ascending: true);
 
           final items = <LearningPathItemData>[];
 
@@ -203,6 +247,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
             unitName: unitData['name'] as String? ?? '',
             unitIcon: unitData['icon'] as String?,
             unitColor: unitData['color'] as String?,
+            tileThemeId: unitRow['tile_theme_id'] as String?,
             sortOrder: unitRow['sort_order'] as int? ?? 0,
             items: items,
           ));
@@ -216,6 +261,8 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           units: units,
           sequentialLock: pathRow['sequential_lock'] as bool? ?? true,
           booksExemptFromLock: pathRow['books_exempt_from_lock'] as bool? ?? true,
+          unitGate: pathRow['unit_gate'] as bool? ?? true,
+          tileThemeId: pathRow['tile_theme_id'] as String?,
         ));
       }
 
@@ -439,44 +486,185 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
 
   Future<void> _saveLearningPath(int pathIndex) async {
     final path = _learningPaths[pathIndex];
-    if (path.id == null) return; // Should not happen — we INSERT then reload
+    if (path.id == null || _isSaving) return;
+
+    // Snapshot the units list to prevent race conditions during async save.
+    // Without this, path.units can be mutated by setState callbacks between awaits.
+    final unitsSnapshot = List<LearningPathUnitData>.from(path.units);
+
+    setState(() => _isSaving = true);
 
     try {
       final supabase = ref.read(supabaseClientProvider);
+      final pathId = path.id!;
 
-      // Delete all existing units for this learning path (cascade deletes items)
-      await supabase
+      // ── 1. Fetch existing state from DB ──
+      final existingUnitsResponse = await supabase
           .from(DbTables.scopeLearningPathUnits)
-          .delete()
-          .eq('scope_learning_path_id', path.id!);
+          .select('id')
+          .eq('scope_learning_path_id', pathId);
+      final existingUnitIds =
+          existingUnitsResponse.map((r) => r['id'] as String).toSet();
 
-      // Re-insert all units with sort_order
-      for (int i = 0; i < path.units.length; i++) {
-        final unit = path.units[i];
-        final scopeUnitId = const Uuid().v4();
+      final existingItemsByUnit = <String, Set<String>>{};
+      if (existingUnitIds.isNotEmpty) {
+        final existingItemsResponse = await supabase
+            .from(DbTables.scopeUnitItems)
+            .select('id, scope_lp_unit_id')
+            .inFilter('scope_lp_unit_id', existingUnitIds.toList());
+        for (final item in existingItemsResponse) {
+          final unitId = item['scope_lp_unit_id'] as String;
+          existingItemsByUnit
+              .putIfAbsent(unitId, () => <String>{})
+              .add(item['id'] as String);
+        }
+      }
 
-        await supabase.from(DbTables.scopeLearningPathUnits).insert({
-          'id': scopeUnitId,
-          'scope_learning_path_id': path.id,
-          'unit_id': unit.unitId,
-          'sort_order': i,
-        });
+      // ── 2. Process units + items: INSERT new, UPDATE existing ──
+      final memoryUnitIds = <String>{};
 
-        // Insert items for this unit
-        for (int j = 0; j < unit.items.length; j++) {
-          final item = unit.items[j];
-          final isWordList =
-              item.itemType == LearningPathItemType.wordList.dbValue;
-          final isBook = item.itemType == LearningPathItemType.book.dbValue;
+      for (int i = 0; i < unitsSnapshot.length; i++) {
+        final unit = unitsSnapshot[i];
 
-          await supabase.from(DbTables.scopeUnitItems).insert({
-            'id': const Uuid().v4(),
-            'scope_lp_unit_id': scopeUnitId,
-            'item_type': item.itemType,
-            'word_list_id': isWordList ? item.itemId : null,
-            'book_id': isBook ? item.itemId : null,
-            'sort_order': j,
+        if (unit.id == null) {
+          // NEW unit → INSERT
+          final newUnitId = const Uuid().v4();
+          await supabase.from(DbTables.scopeLearningPathUnits).insert({
+            'id': newUnitId,
+            'scope_learning_path_id': pathId,
+            'unit_id': unit.unitId,
+            'sort_order': i,
+            'tile_theme_id': unit.tileThemeId,
           });
+          unit.id = newUnitId;
+          memoryUnitIds.add(newUnitId);
+
+          // All items in a new unit are new → INSERT all
+          final newItems = List<LearningPathItemData>.from(unit.items);
+          for (int j = 0; j < newItems.length; j++) {
+            final item = newItems[j];
+            final newItemId = const Uuid().v4();
+            final isWordList =
+                item.itemType == LearningPathItemType.wordList.dbValue;
+            final isBook =
+                item.itemType == LearningPathItemType.book.dbValue;
+
+            await supabase.from(DbTables.scopeUnitItems).insert({
+              'id': newItemId,
+              'scope_lp_unit_id': newUnitId,
+              'item_type': item.itemType,
+              'word_list_id': isWordList ? item.itemId : null,
+              'book_id': isBook ? item.itemId : null,
+              'sort_order': j,
+            });
+            item.id = newItemId;
+          }
+        } else {
+          // EXISTING unit → UPDATE sort_order + tile_theme_id
+          memoryUnitIds.add(unit.id!);
+          await supabase
+              .from(DbTables.scopeLearningPathUnits)
+              .update({'sort_order': i, 'tile_theme_id': unit.tileThemeId})
+              .eq('id', unit.id!);
+
+          // Process items within this existing unit
+          final existingItemIds = existingItemsByUnit[unit.id!] ?? {};
+          final memoryItemIds = <String>{};
+          final existingItems = List<LearningPathItemData>.from(unit.items);
+
+          for (int j = 0; j < existingItems.length; j++) {
+            final item = existingItems[j];
+
+            if (item.id == null) {
+              // NEW item → INSERT
+              final newItemId = const Uuid().v4();
+              final isWordList =
+                  item.itemType == LearningPathItemType.wordList.dbValue;
+              final isBook =
+                  item.itemType == LearningPathItemType.book.dbValue;
+
+              await supabase.from(DbTables.scopeUnitItems).insert({
+                'id': newItemId,
+                'scope_lp_unit_id': unit.id!,
+                'item_type': item.itemType,
+                'word_list_id': isWordList ? item.itemId : null,
+                'book_id': isBook ? item.itemId : null,
+                'sort_order': j,
+              });
+              item.id = newItemId;
+            } else {
+              // EXISTING item → UPDATE sort_order
+              memoryItemIds.add(item.id!);
+              await supabase
+                  .from(DbTables.scopeUnitItems)
+                  .update({'sort_order': j})
+                  .eq('id', item.id!);
+            }
+          }
+
+          // DELETE removed items (items in DB but not in memory)
+          final deletedItemIds = existingItemIds.difference(memoryItemIds);
+          for (final itemId in deletedItemIds) {
+            await supabase
+                .from(DbTables.scopeUnitItems)
+                .delete()
+                .eq('id', itemId);
+          }
+        }
+      }
+
+      // ── 3. DELETE removed units (with assignment check) ──
+      final deletedUnitIds = existingUnitIds.difference(memoryUnitIds);
+
+      if (deletedUnitIds.isNotEmpty) {
+        // Check for active assignments referencing any deleted unit
+        final unitAssignments = await supabase
+            .from(DbTables.assignments)
+            .select('id, content_config')
+            .eq('assignment_type', AssignmentType.unit.dbValue);
+
+        final affectedCount = unitAssignments.where((a) {
+          final config = a['content_config'] as Map<String, dynamic>?;
+          return config != null &&
+              deletedUnitIds.contains(config['scopeLpUnitId']);
+        }).length;
+
+        if (affectedCount > 0 && mounted) {
+          final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text('Dikkat'),
+                  content: Text(
+                    'Silinen ünitelere bağlı $affectedCount aktif ödev var. '
+                    'Devam ederseniz bu ödevler yetim kalır.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('İptal'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Devam',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              ) ??
+              false;
+
+          if (!confirmed) {
+            // Admin cancelled — reload to restore deleted units
+            await _loadScopeAssignments();
+            return;
+          }
+        }
+
+        for (final unitId in deletedUnitIds) {
+          await supabase
+              .from(DbTables.scopeLearningPathUnits)
+              .delete()
+              .eq('id', unitId);
         }
       }
 
@@ -491,9 +679,13 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Kaydetme hatas\u0131: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Kaydetme hatası: $e'),
+              backgroundColor: Colors.red),
         );
       }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -510,8 +702,18 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
           .update({
             'sequential_lock': lp.sequentialLock,
             'books_exempt_from_lock': lp.booksExemptFromLock,
+            'unit_gate': lp.unitGate,
+            'tile_theme_id': lp.tileThemeId,
           })
           .eq('id', lp.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kilit ayarları güncellendi'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -944,7 +1146,11 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                 setState(() {
                   _learningPaths[pathIndex].units = updatedUnits;
                 });
-                _saveLearningPath(pathIndex);
+                _saveDebounceTimer?.cancel();
+                _saveDebounceTimer = Timer(
+                  const Duration(milliseconds: 500),
+                  () => _saveLearningPath(pathIndex),
+                );
               },
               showWordPreview: false,
             ),
@@ -974,6 +1180,55 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
                 _updateLockSettings(_learningPaths[pathIndex]);
               },
             ),
+          SwitchListTile(
+            title: const Text('Üniteler arası kilit'),
+            subtitle: const Text('Önceki ünite bitmeden sonraki açılmaz'),
+            value: path.unitGate,
+            onChanged: (v) {
+              setState(() => _learningPaths[pathIndex].unitGate = v);
+              _updateLockSettings(_learningPaths[pathIndex]);
+            },
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final themesAsync = ref.watch(tileThemesAdminProvider);
+                return themesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (e, _) => Text('Tema yüklenemedi: $e'),
+                  data: (themes) {
+                    return DropdownButtonFormField<String?>(
+                      value: path.tileThemeId,
+                      decoration: const InputDecoration(
+                        labelText: 'Harita Teması',
+                        hintText: 'Ünite haritası arka planı',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Tema yok (basit liste)'),
+                        ),
+                        ...themes.map(
+                          (t) => DropdownMenuItem<String?>(
+                            value: t['id'] as String,
+                            child: Text(t['name'] as String? ?? ''),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() => _learningPaths[pathIndex].tileThemeId = v);
+                        _updateLockSettings(_learningPaths[pathIndex]);
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );

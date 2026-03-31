@@ -6,7 +6,7 @@ import '../../repositories/card_repository.dart';
 import '../usecase.dart';
 
 class BuyPackParams {
-  const BuyPackParams({required this.userId, this.cost = 100, this.idempotencyKey});
+  const BuyPackParams({required this.userId, required this.cost, this.idempotencyKey});
   final String userId;
   final int cost;
   final String? idempotencyKey;

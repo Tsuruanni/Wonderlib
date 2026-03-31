@@ -42,6 +42,24 @@ class SystemSettings extends Equatable {
     this.streakMilestoneRepeatXp = 1000,
     // Debug
     this.debugDateOffset = 0,
+    // Card economy
+    this.packCost = 100,
+    // Activity result XP tiers
+    this.xpActivityResultPerfect = 10,
+    this.xpActivityResultGood = 7,
+    this.xpActivityResultPass = 5,
+    this.xpActivityResultParticipation = 2,
+    // Daily review
+    this.xpDailyReviewCorrect = 5,
+    // Activity thresholds
+    this.activityPassThreshold = 60,
+    this.activityExcellenceThreshold = 90,
+    // Star rating thresholds
+    this.starRating3 = 90,
+    this.starRating2 = 70,
+    this.starRating1 = 50,
+    // Mock library
+    this.mockLibraryEnabled = false,
   });
 
   // XP Rewards
@@ -90,6 +108,30 @@ class SystemSettings extends Equatable {
   // Debug
   final int debugDateOffset;
 
+  // Card economy
+  final int packCost;
+
+  // Activity result XP tiers
+  final int xpActivityResultPerfect;
+  final int xpActivityResultGood;
+  final int xpActivityResultPass;
+  final int xpActivityResultParticipation;
+
+  // Daily review
+  final int xpDailyReviewCorrect;
+
+  // Activity thresholds
+  final int activityPassThreshold;
+  final int activityExcellenceThreshold;
+
+  // Star rating thresholds
+  final int starRating3;
+  final int starRating2;
+  final int starRating1;
+
+  // Mock library
+  final bool mockLibraryEnabled;
+
   /// Default settings (fallback when database is unavailable)
   factory SystemSettings.defaults() => const SystemSettings();
 
@@ -125,5 +167,17 @@ class SystemSettings extends Equatable {
         streakMilestoneRepeatInterval,
         streakMilestoneRepeatXp,
         debugDateOffset,
+        packCost,
+        xpActivityResultPerfect,
+        xpActivityResultGood,
+        xpActivityResultPass,
+        xpActivityResultParticipation,
+        xpDailyReviewCorrect,
+        activityPassThreshold,
+        activityExcellenceThreshold,
+        starRating3,
+        starRating2,
+        starRating1,
+        mockLibraryEnabled,
       ];
 }

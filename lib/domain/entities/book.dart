@@ -56,6 +56,9 @@ class Book extends Equatable {
     return mins > 0 ? '${hours}h ${mins}m' : '${hours}h';
   }
 
+  /// Whether this is a client-side mock book (not from database)
+  bool get isMock => id.startsWith('mock_');
+
   @override
   List<Object?> get props => [
         id,

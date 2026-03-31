@@ -45,7 +45,6 @@ import '../../domain/usecases/book/get_books_usecase.dart';
 import '../../domain/usecases/book/get_chapters_usecase.dart';
 import '../../domain/usecases/book/get_completed_book_ids_usecase.dart';
 import '../../domain/usecases/book/get_continue_reading_usecase.dart';
-import '../../domain/usecases/book/get_recommended_books_usecase.dart';
 import '../../domain/usecases/book/remove_book_download_usecase.dart';
 import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
@@ -59,6 +58,7 @@ import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
 import '../../domain/usecases/badge/award_badge_usecase.dart';
 import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
+import '../../domain/usecases/badge/get_all_badges_usecase.dart';
 import '../../domain/usecases/badge/get_recently_earned_usecase.dart';
 import '../../domain/usecases/badge/get_user_badges_usecase.dart';
 import '../../domain/usecases/card/get_all_cards_usecase.dart';
@@ -79,10 +79,10 @@ import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.da
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
-import '../../domain/usecases/user/get_user_weekly_position_usecase.dart';
+import '../../domain/usecases/user/get_league_group_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_league_status_usecase.dart';
 import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_total_position_usecase.dart';
-import '../../domain/usecases/user/get_weekly_leaderboard_usecase.dart';
 import '../../domain/usecases/user/get_user_by_id_usecase.dart';
 import '../../domain/usecases/user/get_user_stats_usecase.dart';
 import '../../domain/usecases/user/get_weekly_activity_usecase.dart';
@@ -110,7 +110,6 @@ import '../../domain/usecases/vocabulary/get_words_from_lists_learned_today_usec
 import '../../domain/usecases/vocabulary/get_words_learned_today_usecase.dart';
 import '../../domain/usecases/vocabulary/add_words_batch_usecase.dart';
 import '../../domain/usecases/vocabulary/complete_daily_review_usecase.dart';
-import '../../domain/usecases/vocabulary/save_daily_review_position_usecase.dart';
 import '../../domain/usecases/vocabulary/get_today_review_session_usecase.dart';
 import '../../domain/usecases/vocabulary/lookup_word_definition_usecase.dart';
 import '../../domain/usecases/vocabulary/search_words_usecase.dart';
@@ -133,6 +132,7 @@ import '../../domain/usecases/settings/get_system_settings_usecase.dart';
 import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
 import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
+import '../../domain/usecases/tile_theme/get_tile_themes_usecase.dart';
 import 'repository_providers.dart';
 
 // ============================================
@@ -177,10 +177,6 @@ final getChaptersUseCaseProvider = Provider((ref) {
 
 final getContinueReadingUseCaseProvider = Provider((ref) {
   return GetContinueReadingUseCase(ref.watch(bookRepositoryProvider));
-});
-
-final getRecommendedBooksUseCaseProvider = Provider((ref) {
-  return GetRecommendedBooksUseCase(ref.watch(bookRepositoryProvider));
 });
 
 final getCompletedBookIdsUseCaseProvider = Provider((ref) {
@@ -384,10 +380,6 @@ final completeNodeUseCaseProvider = Provider((ref) {
   return CompleteNodeUseCase(ref.watch(vocabularyRepositoryProvider));
 });
 
-final saveDailyReviewPositionUseCaseProvider = Provider((ref) {
-  return SaveDailyReviewPositionUseCase(ref.watch(vocabularyRepositoryProvider));
-});
-
 // ============================================
 // WORD LIST USE CASES
 // ============================================
@@ -440,6 +432,10 @@ final checkAndAwardBadgesUseCaseProvider = Provider((ref) {
   return CheckAndAwardBadgesUseCase(ref.watch(badgeRepositoryProvider));
 });
 
+final getAllBadgesUseCaseProvider = Provider((ref) {
+  return GetAllBadgesUseCase(ref.watch(badgeRepositoryProvider));
+});
+
 // ============================================
 // USER USE CASES
 // ============================================
@@ -472,12 +468,12 @@ final getUserStatsUseCaseProvider = Provider((ref) {
   return GetUserStatsUseCase(ref.watch(userRepositoryProvider));
 });
 
-final getWeeklyLeaderboardUseCaseProvider = Provider((ref) {
-  return GetWeeklyLeaderboardUseCase(ref.watch(userRepositoryProvider));
+final getLeagueGroupLeaderboardUseCaseProvider = Provider((ref) {
+  return GetLeagueGroupLeaderboardUseCase(ref.watch(userRepositoryProvider));
 });
 
-final getUserWeeklyPositionUseCaseProvider = Provider((ref) {
-  return GetUserWeeklyPositionUseCase(ref.watch(userRepositoryProvider));
+final getUserLeagueStatusUseCaseProvider = Provider((ref) {
+  return GetUserLeagueStatusUseCase(ref.watch(userRepositoryProvider));
 });
 
 final getTotalLeaderboardUseCaseProvider = Provider((ref) {
@@ -758,4 +754,12 @@ final equipAvatarItemUseCaseProvider = Provider((ref) {
 
 final unequipAvatarItemUseCaseProvider = Provider((ref) {
   return UnequipAvatarItemUseCase(ref.watch(avatarRepositoryProvider));
+});
+
+// ============================================
+// TILE THEME USE CASES
+// ============================================
+
+final getTileThemesUseCaseProvider = Provider<GetTileThemesUseCase>((ref) {
+  return GetTileThemesUseCase(ref.watch(tileThemeRepositoryProvider));
 });

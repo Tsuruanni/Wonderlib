@@ -23,35 +23,34 @@ class ReaderParagraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If onWordTap is provided, make all words tappable
+    Widget content;
+
     if (onWordTap != null) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: settings.fontSize,
-              height: settings.lineHeight,
-              color: settings.theme.text,
-            ),
-            children: _buildTappableWordSpans(context),
+      content = RichText(
+        text: TextSpan(
+          style: settings.font.textStyle(
+            fontSize: settings.fontSize,
+            height: settings.lineHeight,
+            color: settings.theme.text,
           ),
+          children: _buildTappableWordSpans(context),
         ),
       );
-    }
-
-    // Legacy: use SelectableText.rich with vocabulary highlights only
-    final spans = _buildContentSpans(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: SelectableText.rich(
+    } else {
+      final spans = _buildContentSpans(context);
+      content = SelectableText.rich(
         TextSpan(children: spans),
-        style: TextStyle(
+        style: settings.font.textStyle(
           fontSize: settings.fontSize,
           height: settings.lineHeight,
           color: settings.theme.text,
         ),
-      ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: content,
     );
   }
 
@@ -100,7 +99,7 @@ class ReaderParagraph extends StatelessWidget {
         },
         child: Text(
           word,
-          style: TextStyle(
+          style: settings.font.textStyle(
             fontSize: settings.fontSize,
             height: settings.lineHeight,
             color: settings.theme.text,
@@ -184,7 +183,7 @@ class ReaderParagraph extends StatelessWidget {
           ),
           child: Text(
             displayText,
-            style: TextStyle(
+            style: settings.font.textStyle(
               fontSize: settings.fontSize,
               height: settings.lineHeight,
               color: settings.theme.text,

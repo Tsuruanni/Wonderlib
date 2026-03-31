@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../domain/entities/word_definition.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/word_definition_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../common/game_button.dart';
 
-/// Dark-themed popup for word-tap feature.
+/// Duolingo-style popup for word-tap feature.
 /// Shows word, pronunciation audio, part of speech, Turkish meaning,
 /// and "I didn't know this" button to add to vocabulary.
 class ReaderWordTapPopup extends ConsumerStatefulWidget {
@@ -34,25 +37,31 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
     final definitionAsync = ref.watch(wordDefinitionProvider(widget.word));
 
     // Popup dimensions
     const popupWidth = 280.0;
 
+    // Convert global tap position to local coordinates within this Stack
+    final renderBox = context.findRenderObject() as RenderBox?;
+    final localPos = renderBox != null
+        ? renderBox.globalToLocal(widget.position)
+        : widget.position;
+    final stackSize = renderBox?.size ?? MediaQuery.of(context).size;
+
     // Calculate position
-    double left = widget.position.dx - popupWidth / 2;
-    double top = widget.position.dy + 20; // Show below the word
+    double left = localPos.dx - popupWidth / 2;
+    double top = localPos.dy + 20; // Show below the word
 
     // Adjust if off screen horizontally
     if (left < 16) left = 16;
-    if (left + popupWidth > screenSize.width - 16) {
-      left = screenSize.width - popupWidth - 16;
+    if (left + popupWidth > stackSize.width - 16) {
+      left = stackSize.width - popupWidth - 16;
     }
 
     // Show above if not enough space below
-    if (top + 200 > screenSize.height - 100) {
-      top = widget.position.dy - 180;
+    if (top + 200 > stackSize.height - 100) {
+      top = localPos.dy - 180;
     }
 
     return Stack(
@@ -62,26 +71,33 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
           child: GestureDetector(
             onTap: widget.onClose,
             behavior: HitTestBehavior.opaque,
-            child: Container(color: Colors.black26),
+            child: const ColoredBox(color: Colors.transparent),
           ),
         ),
 
-        // Popup card
+        // Popup card — Duolingo style (white, rounded, bold border)
         Positioned(
           left: left,
           top: top,
-          child: Material(
-            elevation: 12,
-            borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFF2D2D2D), // Dark background
-            child: Container(
-              width: popupWidth,
-              padding: const EdgeInsets.all(16),
-              child: definitionAsync.when(
-                loading: () => _buildLoading(),
-                error: (_, __) => _buildError(),
-                data: (definition) => _buildContent(definition),
-              ),
+          child: Container(
+            width: popupWidth,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.neutral, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: definitionAsync.when(
+              loading: () => _buildLoading(),
+              error: (_, __) => _buildError(),
+              data: (definition) => _buildContent(definition),
             ),
           ),
         ),
@@ -90,12 +106,18 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
   }
 
   Widget _buildLoading() {
-    return const Column(
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(height: 20),
-        CircularProgressIndicator(strokeWidth: 2),
-        SizedBox(height: 20),
+        const SizedBox(height: 8),
+        _buildWordHeader(widget.word),
+        const SizedBox(height: 16),
+        const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.secondary),
+        ),
+        const SizedBox(height: 16),
       ],
     );
   }
@@ -104,18 +126,48 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _buildWordHeader(widget.word),
+        const SizedBox(height: 12),
         Text(
-          widget.word,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+          'Could not load definition',
+          style: GoogleFonts.nunito(
+            color: AppColors.neutralText,
+            fontSize: 14,
           ),
         ),
-        const SizedBox(height: 12),
-        const Text(
-          'Could not load definition',
-          style: TextStyle(color: Colors.white70),
+      ],
+    );
+  }
+
+  Widget _buildWordHeader(String word) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            word,
+            style: GoogleFonts.nunito(
+              color: AppColors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        // Speaker icon
+        GestureDetector(
+          onTap: widget.onPlayAudio,
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.volume_up_rounded,
+              color: AppColors.secondary,
+              size: 20,
+            ),
+          ),
         ),
       ],
     );
@@ -129,74 +181,28 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Header: word + speaker icon + close
-        Row(
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  Text(
-                    displayWord,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // Speaker icon - always enabled (uses TTS)
-                  GestureDetector(
-                    onTap: widget.onPlayAudio,
-                    child: const Icon(
-                      Icons.volume_up,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Close button
-            GestureDetector(
-              onTap: widget.onClose,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white70,
-                  size: 16,
-                ),
-              ),
-            ),
-          ],
-        ),
+        _buildWordHeader(displayWord),
 
         const SizedBox(height: 12),
 
-        // Meanings list (supports multiple meanings from different books)
+        // Meanings list
         if (hasDefinition)
           _buildMeaningsList(definition)
         else
-          const Text(
+          Text(
             'No definition available',
-            style: TextStyle(
-              color: Colors.white54,
+            style: GoogleFonts.nunito(
+              color: AppColors.neutralText,
               fontSize: 14,
               fontStyle: FontStyle.italic,
             ),
           ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
 
         // Action button
         if (hasDefinition && definition.isFromDatabase)
-          _buildActionButton(definition)
-        else if (!hasDefinition)
-          const SizedBox.shrink(),
+          _buildActionButton(definition),
       ],
     );
   }
@@ -220,7 +226,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
             return Column(
               children: [
                 if (index > 0)
-                  const Divider(color: Colors.white24, height: 16),
+                  const Divider(color: AppColors.neutral, height: 16),
                 _buildMeaningCard(meaning),
               ],
             );
@@ -239,16 +245,17 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: Colors.white10,
-                borderRadius: BorderRadius.circular(4),
+                color: AppColors.secondary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 _formatPartOfSpeech(meaning.partOfSpeech!),
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: GoogleFonts.nunito(
+                  color: AppColors.secondary,
                   fontSize: 12,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -256,20 +263,21 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         // Turkish meaning
         Text(
           meaning.meaningTR,
-          style: const TextStyle(
-            color: Colors.white,
+          style: GoogleFonts.nunito(
+            color: AppColors.black,
             fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        // Example sentence (if available)
+        // Example sentence
         if (meaning.exampleSentence != null &&
             meaning.exampleSentence!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               '"${meaning.exampleSentence}"',
-              style: const TextStyle(
-                color: Colors.white54,
+              style: GoogleFonts.nunito(
+                color: AppColors.neutralText,
                 fontSize: 13,
                 fontStyle: FontStyle.italic,
               ),
@@ -283,19 +291,19 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Book title (if available)
+        // Book title
         if (meaning.sourceBookTitle != null)
           Row(
             children: [
-              const Icon(Icons.menu_book, color: Colors.amber, size: 14),
+              const Icon(Icons.menu_book_rounded, color: AppColors.wasp, size: 14),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   meaning.sourceBookTitle!,
-                  style: const TextStyle(
-                    color: Colors.amber,
+                  style: GoogleFonts.nunito(
+                    color: AppColors.wasp,
                     fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w700,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -311,31 +319,32 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
             if (meaning.partOfSpeech != null)
               Text(
                 '${meaning.partOfSpeech} • ',
-                style: const TextStyle(
-                  color: Colors.white54,
+                style: GoogleFonts.nunito(
+                  color: AppColors.neutralText,
                   fontSize: 13,
                 ),
               ),
             Expanded(
               child: Text(
                 meaning.meaningTR,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: GoogleFonts.nunito(
+                  color: AppColors.black,
                   fontSize: 15,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ],
         ),
-        // Example sentence (if available)
+        // Example sentence
         if (meaning.exampleSentence != null &&
             meaning.exampleSentence!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               '"${meaning.exampleSentence}"',
-              style: const TextStyle(
-                color: Colors.white38,
+              style: GoogleFonts.nunito(
+                color: AppColors.neutralText,
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
               ),
@@ -349,59 +358,29 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
 
   Widget _buildActionButton(WordDefinition definition) {
     if (_wasAdded) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.green.shade700,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check, color: Colors.white, size: 18),
-            SizedBox(width: 8),
-            Text(
-              'Added',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
+      return GameButton(
+        label: 'Added',
+        onPressed: null,
+        variant: GameButtonVariant.primary,
+        fullWidth: true,
+        icon: const Icon(Icons.check_rounded),
       );
     }
 
-    return GestureDetector(
-      onTap: _isAdding ? null : () => _addToVocabulary(definition),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFC107), // Yellow/amber
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: _isAdding
-            ? const Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
-                  ),
-                ),
-              )
-            : const Text(
-                "I didn't know this",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-      ),
+    if (_isAdding) {
+      return GameButton(
+        label: "I didn't know this",
+        onPressed: null,
+        variant: GameButtonVariant.wasp,
+        fullWidth: true,
+      );
+    }
+
+    return GameButton(
+      label: "I didn't know this",
+      onPressed: () => _addToVocabulary(definition),
+      variant: GameButtonVariant.wasp,
+      fullWidth: true,
     );
   }
 

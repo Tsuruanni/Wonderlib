@@ -8,6 +8,281 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Admin Word List Image Generation & Editor Redesign (2026-03-29 – 2026-03-31)
+
+#### Added
+- **AI Image Generation for Word Lists** — New `generate-wordlist-images` Edge Function. Batches words in groups of 6, generates a 2x3 grid image via fal.ai nano-banana-pro (Gemini), crops with `@imagemagick/magick-wasm`, uploads tiles to Supabase Storage. 11 style presets (flat, cartoon, watercolor, realistic, pixel, clay 3D, sticker, pencil sketch, isometric, pop art, minimal line).
+- **Image Version History** — Images stored with timestamps (`words/{id}/{ts}.png`). Version picker dialog shows all previous generations, select any as active.
+- **Overwrite Control** — "Mevcut görselleri yeniden üret" checkbox. Default: only generate for words missing images.
+- **Example Sentence Context** — Optional checkbox includes example sentences in the AI prompt for better disambiguation (e.g., "bank" → building vs. riverbank).
+- **Mascot Filler Cells** — Empty grid cells filled with mascot illustrations (owl, fox, penguin, rabbit, cat, bear) for consistent grid layout.
+- **Bulk Content Generation** — "İçerikleri Üret" button fills missing phonetic, meaning_tr, meaning_en, example_sentences for all incomplete words in a list. Processes 3 words in parallel via `generate-word-data`.
+- **Inline Word Creation** — "Kelime Ekle" dialog now allows creating new `vocabulary_words` entries on the fly when search finds no match. Button always visible below results.
+- **Word Card Audio Playback** — Tap volume icon on word cards to play pronunciation via `just_audio` with start/end clipping.
+- **Dev Tool Fast Login** — One-click admin login button on login screen (`admin@demo.com` / `Test1234`).
+
+#### Changed
+- **Word List Editor Layout** — Redesigned from side-by-side form+list to compact top form bar + horizontal card grid. Cards show 160px image, word details, quick edit, reorder arrows.
+- **Quick Edit on Word Cards** — Inline editing of TR/EN meanings and example sentences directly on cards with DB save.
+- **Word Data Prompt Improved** — `generate-word-data` now produces hint-style definitions (3-6 words, e.g., "a flying vehicle") instead of verbose dictionary definitions.
+
+#### Infrastructure
+- **DB migration** — `vocabulary_words.meaning_tr` changed from NOT NULL to nullable.
+- **Parallel tile uploads** — Image tiles uploaded concurrently instead of sequentially.
+- **120s timeout** on fal.ai API calls with AbortController.
+
+### Learning Path Node Redesign (2026-03-31)
+
+#### Added
+- **3D glossy sphere nodes** — Duolingo-style node circles with radial gradient lighting, hard extrusion shadow, and glossy upper-arc highlight. Replaces flat bordered circles.
+- **Press-down effect on nodes** — Tap-down feedback: shadow shrinks 6→2px, circle shifts down 4px via `AnimatedPadding` + `AnimatedContainer` (60ms). Completed nodes stay permanently pressed.
+- **Popup card on tap** — All detail-page nodes show a tooltip-style overlay card below the node (via `CompositedTransformFollower` + `OverlayEntry`). Contains name + action button with type-specific text: START / READ / PLAY / CLAIM. Pop-in scale animation. Tap outside to dismiss.
+- **Pressable 3D button in popup** — White button with hard shadow + press-down effect using opposing margin swap (constant total height).
+- **Unit numbers in nodes** — Unit map nodes display 1, 2, 3… inside the circle instead of icons.
+- **Gold star crowns** — Stars moved above nodes, always gold (`0xFFFFD700`) with dark border via 4-directional shadows. Middle star raised for crown effect. Filled stars glow amber.
+
+#### Changed
+- **Node icons** — `wordList`: `menu_book` → `translate_rounded`. `treasure`: `card_giftcard` → `diamond_rounded` (orange). `book`: brighter blue (`0xFF1E88E5`). `game`: brighter purple (`0xFF8E24AA`).
+- **Completed state** — Node turns green (`AppColors.primary`) with check icon and pressed look, instead of separate green badge overlay.
+- **Labels removed from popup nodes** — Name shown in popup card instead of text below the node. Unit-number nodes still show labels.
+- **START bubble scope** — Now only appears on detail-page active nodes (no `unitNumber`), not on unit map.
+- **`NodeType` simplified** — Removed `bgColor` field (3D gradient computes light/dark from single `color`).
+- **Library continue-reading cards** — Redesigned with progress bar, completion badge, quiz/demo badges, 3D shadow.
+- **Profile screen** — UI refinements.
+- **Admin tile theme editor** — Map tile scaling fills available width.
+- **Admin tile preview LayoutBuilder fix** — Preview node positions now use actual rendered width (via `LayoutBuilder`) instead of hardcoded 280px. Fixes node position mismatch between admin preview and app when admin panel is viewed on narrow screens.
+- **Auto-height from image** — Height slider removed from admin tile editor. Tile height auto-calculated from uploaded image aspect ratio (`800 × imgH / imgW`), ensuring `BoxFit.cover` renders with zero crop.
+- **Vocabulary full-width layout** — Learning path tile map on vocabulary page now fills available width (left-aligned) instead of centered 800px constraint. Right info panel stays in same absolute position via calculated gap.
+
+#### Infrastructure
+- **DB migration** — Remove review node artifacts (stale columns/tables).
+- **DB migration** — Increase avatars bucket file size limit.
+
+### Home Page Removal & Quests Page (2026-03-30)
+
+#### Added
+- **Quests page** — New dedicated tab replacing Home. Daily quests with 3D press-effect buttons, badge gallery (earned/unearned grid with tap-to-reveal detail sheet), monthly quest + monthly badges placeholders, standalone assignments section with empty state and VIEW ALL link, compact bonus reward pill button (locked/claimable/claimed).
+- **Continue Reading → Library** — Horizontal book card section at top of Library screen, before level shelves. Uses `CachedBookImage`, hidden when no in-progress books.
+- **Daily Review → Learning Path** — Banner in VocabularyHubScreen (mobile) and RightInfoPanel sidebar (web ≥1000px). 3-state: completed, due, hidden.
+- **`getAllBadges` data layer** — New `BadgeRepository.getAllBadges()`, `GetAllBadgesUseCase`, `allBadgesProvider` for badge gallery.
+- **RightInfoPanel route-based content** — Quests route shows MonthlyQuest + MonthlyBadges instead of League + DailyQuests. Vocab route shows DailyReview card.
+- **Tappable quest rows** — `read_chapters` → Library, `vocab_session` → Daily Review navigation.
+- **Student assignment screens redesign** — Both list and detail screens rewritten with TopNavbar, AppColors, GoogleFonts.nunito, custom cards. Moved into shell (sidebar visible). Colored header cards, status pills, 3D GameButtons.
+
+#### Changed
+- **Navigation** — 5 tabs: Learning Path (default) · Library · Quests · Cards · Leaderboard. Home tab removed.
+- **DailyQuestList simplified** — Pure StatelessWidget, quest rows only. Bonus row and assignment rows extracted to separate widgets.
+- **Consistent RightInfoPanel position** — All pages use same ConstrainedBox layout (was full-width for Learning Path).
+
+#### Fixed
+- **Daily review quest eligibility** — RPC now uses `NOW()` + `INNER JOIN vocabulary_words` to match client-side due word count. Fixes quest showing for students with < 10 real due words.
+- **Vocab session web layouts** — All question types: side-by-side layout on web (card left, options/input right), 3D press-effect buttons, GameButton for Check Answer, image overflow fixes.
+- **Session summary** — Continue navigates back to unit detail (not hub). Two-column web layout (stats left, report right), centered header.
+- **Feedback overlay** — GOT IT button redesigned as 3D red press button, centered.
+
+#### Removed
+- **Home screen** — Deleted entirely (`home_screen.dart`). All sections redistributed.
+- **Recommended for You** — Provider, use case, repository method, and all references deleted.
+
+#### Infrastructure
+- **DB migration** — `get_daily_quest_progress` and `claim_daily_bonus` RPCs updated: `NOW()` instead of `app_now()`, `INNER JOIN vocabulary_words` for accurate due word count.
+
+### Unit Map Navigation (2026-03-30)
+
+#### Added
+- **3-layer vocabulary navigation** — Path selection → unit map (tile-based) → unit detail. Single-path shortcut skips path selection, embedding unit map directly in hub.
+- **`UnitMapScreen`** — Displays learning path units as nodes on a tile-based map (with path-level theme) or as card list (no theme). Auto-scrolls to active unit.
+- **`UnitDetailScreen`** — Single unit's items (word lists, books, game, treasure, review) on a tile map. Same node-mapping logic as `LearningPathView`.
+- **Path-level `tile_theme_id`** — Each learning path can have its own tile theme for the unit map background, independent from per-unit item tile themes.
+- **Admin path-level tile theme dropdown** — "Harita Teması" selector in both template editor and assignment editor.
+
+#### Changed
+- **`VocabularyHubScreen` rewritten** — No longer renders all units in a single scrollable column. Routes to unit map → unit detail flow.
+- **`LearningPath` entity** — Added `tileThemeId` field, parsed from `lp_tile_theme_id` RPC column.
+- **`PathUnitData`** — Added `pathId` field for reliable filtering (prevents cross-path unit confusion).
+- **Router** — Added `/vocabulary/path/:pathId` and `/vocabulary/path/:pathId/unit/:unitIdx` routes.
+
+#### Fixed
+- **Admin save race condition** — `_saveLearningPath` now snapshots units and items lists before async save loop. Previously, `path.units` was a live reference that could be mutated by `setState` callbacks between `await` calls, causing sort_order corruption.
+- **Supabase `.order()` missing `ascending: true`** — All `.order('sort_order')` and `.order('order_index')` calls across both apps now explicitly pass `ascending: true`. The Supabase Dart client (postgrest 2.6.0) returned descending order with embedded relations when `ascending` was omitted, causing unit/item sort_order to flip on every save cycle.
+
+#### Infrastructure
+- **DB migration** — `tile_theme_id` added to `scope_learning_paths` and `learning_path_templates`. RPCs `get_user_learning_paths` and `apply_learning_path_template` updated.
+
+### Tile Theme Editor + Learning Path Redesign (2026-03-29 — 2026-03-30)
+
+#### Added
+- **Tile-based learning path map** — Replaced 2000+ line legacy zigzag path with clean tile-based map system (~700 lines). Each unit rendered as a gradient/image tile with positioned nodes (word lists, books, game, treasure, review).
+- **`tile_themes` DB table** — Configurable tile themes: name, height (300-5000px), gradient fallback colors, node positions (JSONB), image URL. 6 seed themes (Forest, Beach, Mountain, Desert, Garden, Winter). RLS: admin write, authenticated read.
+- **Admin tile theme editor** — Full CRUD at `/tiles`. Split layout: left form (name, height slider, color pickers, dynamic node position sliders, image upload) + right live preview (scaled gradient/image + numbered node dots). Scrollable preview for tall tiles.
+- **Admin tile theme assignment** — Theme dropdown on each unit card in learning path template/assignment editors. Persists `tile_theme_id` to `scope_learning_path_units` and `learning_path_template_units`.
+- **Image upload for tile backgrounds** — File picker → Supabase storage (`avatars/tiles/`). Image shown in admin preview and app MapTile. Gradient fallback when no image.
+- **Responsive tile scaling** — `LayoutBuilder` scales tile background to fit screen width on mobile. Node positions scale proportionally, node widgets stay original size.
+- **Domain layer** — `TileThemeEntity`, `TileThemeModel`, `TileThemeRepository`, `GetTileThemesUseCase`, `tileThemesProvider` with hardcoded fallback.
+- **Per-theme height** — Each tile has its own height (was global `kTileHeight=1000`). `activeNodeYProvider` uses per-theme heights for scroll calculation.
+- **Unit gate toggle** — `unit_gate` column on `scope_learning_paths` and `learning_path_templates`. Controls inter-unit locking independently from sequential item lock.
+
+#### Changed
+- **`tile_theme_id` architecture** — Moved from `vocabulary_units` to `scope_learning_path_units` / `learning_path_template_units`. Same unit can have different themes in different learning paths.
+- **RPC `get_user_learning_paths`** — Now returns `slpu.tile_theme_id` for theme resolution.
+- **`LearningPathUnit` entity** — Added `tileThemeId` field, propagated through model → provider → orchestrator.
+- **`PathUnitData`** — Added `tileThemeId` (from `LearningPathUnit`, not `VocabularyUnit`).
+- **Legacy path files** — Renamed to `_legacy.dart` suffix for safe migration.
+- **`vocabulary_units` RLS** — Added admin write policy (was SELECT-only, blocked unit creation).
+
+#### Infrastructure
+- **5 DB migrations** — `tile_themes` table, `image_url` column, RPC update, move `tile_theme_id` to path units, `vocabulary_units` RLS fix.
+- **Design spec** — `docs/superpowers/specs/2026-03-29-tile-theme-editor-design.md`
+- **Implementation plan** — `docs/superpowers/plans/2026-03-29-tile-theme-editor.md`
+
+### Notification Overlay Redesign (2026-03-29)
+
+#### Added
+- **Stacked notification overlay** — Replaced sequential `showDialog()` queue with custom Overlay system. All active notifications visible simultaneously as cascading cards (max 3 visible, fan/cascade effect with scale reduction and upward offset).
+- **Unified notification card** — All 8 notification types (level-up, league, 4 streak variants, badge, assignment) now use a single Duolingo-style white card design with consistent Nunito typography, AppColors tokens, and `GameButton` 3D press effect.
+- **NotificationOverlayManager** — Singleton managing OverlayEntry lifecycle, semi-transparent barrier (tap to dismiss topmost), cascade positioning, and async exit animations.
+- **Entry/exit animations** — Cards enter with scale 0.8→1.0 (elasticOut) + fade-in. Exit with scale→0.8 + fade-out (200ms). Cascade repositioning animated via `AnimatedContainer` + `AnimatedOpacity`.
+- **3D card depth** — Cards float with gray bottom border and shadow for raised appearance, matching Duolingo's physical card aesthetic.
+
+#### Changed
+- **Barrier tap** — Dismisses topmost notification only (not all). Last card dismissed removes barrier.
+- **Assignment "View"** — Dismisses all notifications before navigating to assignment detail/list.
+- **Badge button color** — Changed to `wasp` (gold) per spec.
+- **Close button** — Circular icon with subtle gray background, visible outside card bounds via `Clip.none`.
+
+#### Removed
+- **3 dialog files** — `streak_event_dialog.dart`, `badge_earned_dialog.dart`, `assignment_notification_dialog.dart` consolidated into `notification_card.dart`.
+- **FIFO queue** — `_dialogQueue`, `_isShowingDialog`, `_processQueue` removed from `AppNotificationListener`.
+- **Inner dialog classes** — `_LevelUpDialog`, `_LeagueTierChangeDialog` removed from `notification_listener.dart`.
+
+#### Infrastructure
+- **Notification overlay redesign spec** — `docs/superpowers/specs/2026-03-29-notification-overlay-redesign.md`
+- **Notification overlay redesign plan** — `docs/superpowers/plans/2026-03-29-notification-overlay-redesign.md`
+
+### Notebook Theme + Reader Settings Polish + Quiz Guard (2026-03-29)
+
+#### Added
+- **Notebook reader theme** — Replaces sepia. Warm white background (`#FFFDF5`) with ruled blue lines and red margin line drawn via `CustomPaint`. Theme circle preview shows mini notebook lines.
+- **Reader settings auth fix** — `ReaderSettingsNotifier` now listens to `authStateChangesProvider` to re-load settings when user session restores asynchronously. Prevents settings reset on app reload.
+- **Quiz active guard on sidebar** — Chapter tiles in reader sidebar locked during active quiz. Prevents accidental chapter switch mid-quiz.
+- **Notebook line painter** — `_MiniNotebookPainter` renders 3 horizontal lines inside the theme preview circle for visual distinction.
+
+#### Changed
+- **Sidebar labels** — Switched from UPPERCASE to Title Case (Learning Path, Home, Library, etc.).
+- **Theme parsing** — `_parseTheme` now uses `ReaderTheme.values.where()` instead of manual switch — adding new themes requires zero parser changes.
+- **Settings load guard** — `_loaded` flag prevents double-loading when auth state fires multiple times.
+
+### Reader Sidebar + Font Fix + Quiz Integration (2026-03-29)
+
+#### Added
+- **Reader sidebar** — 300px dedicated left column on reader/quiz routes at ≥1000px. Contains chapters list, "Listen to the story" GameButton (auto-plays first audio block), and audio player controls. Replaces previous right panel reader widgets.
+- **Font applied to reader text** — `ReaderFontX` extension converts `ReaderFont` enum to `GoogleFonts.getFont()` TextStyle. Applied to `reader_word_highlight`, `reader_paragraph`, `reader_text_block`.
+- **Quiz in shell** — Book quiz route moved from root navigator into library branch. Reader sidebar stays visible during quiz with "Book Quiz" as natural chapter list item.
+- **Duolingo-style word-on-tap popup** — White card with rounded border, bold Nunito font, blue speaker circle, part-of-speech badge, "I DIDN'T KNOW THIS" yellow 3D GameButton.
+- **Duolingo-style Leave Quiz dialog** — Warning icon, "Keep going" green 3D button, "Leave" red 3D button. Consistent across shell nav, quiz X button, and PopScope back.
+- **Quiz navigation guard** — Chapter tiles locked during active quiz. Sidebar nav items show Leave Quiz confirmation before navigating away.
+
+#### Changed
+- **Reader breakpoints** — Reader route: right panel at ≥1400px (was ≥1000px). Reader sidebar at ≥1000px. Non-reader routes unchanged.
+- **Right info panel** — Removed `_ReaderPanel`, `_AudioControlBar`, `_ChaptersCard`, `_ChapterTile` (-329 lines). Reader route now shows Settings + League + Quests only.
+- **Floating audio controls** — Hidden at ≥1000px (reader sidebar has audio player). Visible on mobile only.
+- **Reader X button** — Navigates to library (was book detail). Positioned in title row (right side).
+- **Reader gear icon** — Hidden at ≥1000px (right panel has settings card).
+- **Word-on-tap positioning** — Uses `globalToLocal()` coordinate conversion to fix popup offset when reader sidebar is present.
+
+#### Infrastructure
+- **Reader sidebar spec** — `docs/superpowers/specs/2026-03-29-reader-sidebar-design.md`
+- **Reader sidebar plan** — `docs/superpowers/plans/2026-03-29-reader-sidebar.md`
+
+### Responsive Web Layout — Duolingo-Style (2026-03-29)
+
+#### Added
+- **Duolingo-style sidebar** — 250px sidebar with icon + text labels on screens ≥600px. Bottom nav preserved on mobile. Hover effect, always-colored icons, Boogaloo font.
+- **Right info panel** — 330px contextual panel on screens ≥1000px with stats bar, league card, daily quests. Route-aware: shows Open Pack card on Cards page, chapters + reader settings on Reader page.
+- **Reader font selection** — 5 Google Fonts options (Nunito, Open Sans, Merriweather, Lora, Literata) persisted to user profile. Dropdown shows each font in its own typeface.
+- **Reader right panel** — Audio controls, chapter list (with locked future chapters), inline reader settings (font, size, spacing, theme) replace default panel content during reading.
+- **Library responsive grid** — Books display as Wrap grid on wide screens with 2-row limit + "load more" button. Category chips wrap instead of horizontal scroll.
+- **Card Collection responsive grid** — Same 2-row + load more pattern. Gray gradient background removed.
+- **My Word Bank redesign** — Material UI replaced with Duolingo-style: custom header, chip tabs, card-based word list, status circles, review badges.
+
+#### Changed
+- **Navigation tab order** — Learning Path first, then Home, Library, Card Collection, Leaderboards.
+- **Tab labels** — Full names: "Learning Path", "Card Collection", "Leaderboards" (no abbreviations).
+- **Shell layout** — Content + right panel constrained together (max 1060px) and centered. Learning Path route exempt (full-width for terrain background).
+- **TopNavbar** — Auto-hides on ≥1000px (stats move to right panel).
+- **Routes moved inside shell** — Profile, Avatar Customize, Word Bank, Reader, Activity routes moved from root navigator into shell branches so sidebar remains visible.
+- **Pack price** — Card collection and right panel now read `packCost` from system settings (was hardcoded 100).
+- **Locked card dialog** — Shows card name + collection name + unlock hint (was generic "Locked Card").
+
+#### Infrastructure
+- **Learning Path Redesign spec** — `docs/superpowers/specs/2026-03-29-learning-path-redesign.md`: tile-based map system replacing current 2000+ line programmatic path.
+- **Learning Path Redesign plan** — `docs/superpowers/plans/2026-03-29-learning-path-redesign.md`: 11-task implementation plan with file structure, node system, responsive behavior.
+
+### Active Node Indicator & Auto-Scroll (2026-03-29)
+
+#### Added
+- **START bubble on active node** — Duolingo-style speech bubble with "START" text and triangle pointer above the active learning path node. Bounces vertically to draw attention. Works on all node types (vocabulary, book, game, treasure, daily review).
+- **Auto-scroll to active node** — Vocabulary hub screen now opens centered on the active node. Uses a computed `Provider` that derives Y position from path data, consumed via `ref.listen` + `jumpTo`.
+
+#### Fixed
+- **Book completion XP not awarded** — `BookQuizController` now awards `xpBookComplete` XP after quiz pass triggers book completion. Provider invalidation deferred to after completion write to avoid stale cache.
+- **Chapter-path book completion race** — `ChapterCompletionNotifier.markComplete` had the same invalidate-before-write race: providers re-fetched stale `is_completed=false` before `HandleBookCompletionUseCase` wrote. Also fixed un-awaited async fold callback for `xpBookComplete`, and added missing `completedBookIdsProvider` invalidation for quiz-less book completion.
+
+### Mock Library Mode (2026-03-28)
+
+#### Added
+- **Mock Library Mode** — Admin-toggleable demo mode that shows 150 hardcoded locked books (100 classics + 50 originals) in the library alongside real content. Mock books appear at the end of each CEFR level shelf with a frosted placeholder + lock icon. Real books get a yellow "Demo" badge. Controlled via `mock_library_enabled` system setting.
+- **Auto book stats calculation** — New DB trigger `recalculate_book_stats()` auto-updates `word_count`, `estimated_minutes`, and `chapter_count` on the parent book whenever chapters are inserted, updated, or deleted. Uses 150 WPM for ESL reading time estimation.
+
+#### Fixed
+- **Book metadata out of sync** — One-time migration fix for all existing books: `chapter_count` was doubled (6 instead of 3), `estimated_minutes` was manually set too high. All values now derived from actual chapter data.
+- **BackdropFilter on flat color** — Removed no-op `BackdropFilter` from mock book cards (blurring a solid color produces no visual effect but costs GPU compositing per card).
+
+#### Infrastructure
+- **2 DB migrations** — `20260329100001` (mock_library_enabled setting), `20260329200001` (auto book stats trigger + one-time fix).
+
+### Feature #24 & #25 Spec + Configurable Settings Migration (2026-03-28)
+
+#### Added
+- **Feature spec #24** — `docs/specs/24-notification-system.md` documents the Notification System (3 findings, all fixed). Covers 8 notification types, event-driven dialog queue, admin gallery, settings-gated display.
+- **Feature spec #25** — `docs/specs/25-content-blocks.md` documents the Content Blocks system (1 finding, fixed). Covers block types, progressive reveal, word-level audio sync, cache-aside offline, admin editor.
+- **11 configurable settings** — Card pack cost, activity XP tiers (4 levels), daily review XP per correct, activity pass/excellence thresholds, star rating thresholds (3 levels) — all now admin-editable via system_settings.
+- **Admin "Oyun Ekonomisi" category** — New settings category with pack cost, visible in admin settings screen.
+
+#### Changed
+- **Rename `LevelUpCelebrationListener` → `AppNotificationListener`** — Reflects that the widget orchestrates all 5 notification types, not just level-up.
+- **Responsive admin dashboard grid** — Fixed 5-column grid replaced with `LayoutBuilder` (2-5 columns based on screen width). Card layout uses `spaceBetween` + text overflow protection instead of `Spacer`.
+- **Star rating** — `starCount` getter now delegates to configurable `starCountWith(star3, star2, star1)` parameterized method. All UI callers read thresholds from system_settings.
+- **Activity XP calculation** — `SupabaseActivityRepository._calculateXP()` reads tier values from `SystemSettings` instead of hardcoded 10/7/5/2.
+- **Daily review RPC** — `complete_daily_review()` now reads `xp_daily_review_correct` from system_settings (was hardcoded `* 5`).
+
+#### Fixed
+- **Pity threshold mismatch** — Client `AppConstants.pityThreshold` was 15, SQL RPC uses `>= 14`. Client synced to 14.
+- **Dead `audio` block type** — Removed from `ContentBlockType` enum, DB CHECK constraint, and reader switch (was never created, text blocks with `audio_url` serve the purpose).
+- **`notif_badge_earned` sort_order** — Was missing (defaulted to 0), now set to 8 with normalized JSONB quoting.
+- **Hardcoded streak-broken threshold** — `streak_event_dialog.dart` had redundant `>= 3` check, removed (upstream `UserController` already filters via configurable `notifStreakBrokenMin`).
+- **Admin assignment detail crash** — Missing `AssignmentStatus.withdrawn` switch case caused non-exhaustive error.
+- **Admin dashboard overflow** — Bottom/right overflow on smaller screens due to fixed 5-column grid + `Spacer` in card layout.
+
+#### Removed
+- **`AppConstants.packCost`** — Moved to `SystemSettings.packCost`.
+- **`AppConstants.minimumPassScore` / `excellentScore`** — Moved to `SystemSettings.activityPassThreshold` / `activityExcellenceThreshold`.
+- **`ActivityResult.isPassing` / `isExcellent`** — Unused hardcoded getters removed.
+
+#### Infrastructure
+- **3 DB migrations** — `20260328800001` (badge_earned sort_order), `20260328900001` (remove audio block type), `20260329000001` (11 configurable settings + daily review RPC update).
+
+### User Profile Audit & Fixes (2026-03-28)
+
+#### Added
+- **Feature spec** — `docs/specs/22-user-profile.md` documents the User Profile system (11 findings: 4 fixed, 7 skipped/accepted). Covers student profile dashboard (avatar, level/XP, cards, badges, stats, daily review), teacher profile (editable name, password reset), peer profile popup, admin surface (via spec #20).
+
+#### Fixed
+- **Teacher name edit stale UI** — After editing name, `refreshCurrentUserUseCaseProvider` (JWT refresh) was used instead of `refreshProfileOnly()` (profile re-fetch). UI now updates immediately after save.
+- **Badge date display ignores debug time offset** — `_BadgeRow._formatDate()` used `DateTime.now()` instead of `AppClock.now()`, causing incorrect relative dates in debug time offset mode.
+- **No retry on profile error** — Profile error state showed raw error text with no way to retry. Added retry button with `ref.invalidate(userControllerProvider)`.
+- **Fragile runtime casts in peer profile popup** — `studentProfileExtraProvider` used `Future.wait` with `as` downcasts. Replaced with Dart 3 record destructuring (`(f1, f2, f3).wait`) for compile-time type safety.
+
 ### Auth Audit & Security Hardening (2026-03-28)
 
 #### Added
