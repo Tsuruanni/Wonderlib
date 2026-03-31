@@ -625,6 +625,8 @@ class _NodePosition {
 }
 
 /// Scaled-down tile preview with image or gradient + numbered node dots.
+/// Uses LayoutBuilder to get actual rendered width — never hardcodes a width
+/// that might differ from the real constraint.
 class _TilePreview extends StatelessWidget {
   const _TilePreview({
     required this.color1,
@@ -642,68 +644,72 @@ class _TilePreview extends StatelessWidget {
   final String? imageUrl;
   final Uint8List? imageBytes;
 
-  static const _previewWidth = 280.0;
-
   @override
   Widget build(BuildContext context) {
-    final scale = _previewWidth / 800.0;
-    final previewHeight = height * scale;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final scale = w / 800.0;
+        final h = height * scale;
 
-    Widget background = _GradientFallback(color1: color1, color2: color2);
-    if (imageBytes != null) {
-      background = Image.memory(imageBytes!, fit: BoxFit.cover);
-    } else if (imageUrl != null) {
-      background = Image.network(
-        imageUrl!,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _GradientFallback(color1: color1, color2: color2),
-      );
-    }
+        Widget background = _GradientFallback(color1: color1, color2: color2);
+        if (imageBytes != null) {
+          background = Image.memory(imageBytes!, fit: BoxFit.cover);
+        } else if (imageUrl != null) {
+          background = Image.network(
+            imageUrl!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                _GradientFallback(color1: color1, color2: color2),
+          );
+        }
 
-    return SizedBox(
-      width: _previewWidth,
-      height: previewHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: background,
-            ),
-          ),
-          for (int i = 0; i < nodes.length; i++)
-            Positioned(
-              left: (nodes[i].x / 100) * _previewWidth - 14,
-              top: (nodes[i].y / 100) * previewHeight - 14,
-              child: Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white70, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '${i + 1}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+        return SizedBox(
+          width: w,
+          height: h,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: background,
                 ),
               ),
-            ),
-        ],
-      ),
+              for (int i = 0; i < nodes.length; i++)
+                Positioned(
+                  left: (nodes[i].x / 100) * w - 14,
+                  top: (nodes[i].y / 100) * h - 14,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white70, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${i + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

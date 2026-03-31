@@ -50,6 +50,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Library continue-reading cards** — Redesigned with progress bar, completion badge, quiz/demo badges, 3D shadow.
 - **Profile screen** — UI refinements.
 - **Admin tile theme editor** — Map tile scaling fills available width.
+- **Admin tile preview LayoutBuilder fix** — Preview node positions now use actual rendered width (via `LayoutBuilder`) instead of hardcoded 280px. Fixes node position mismatch between admin preview and app when admin panel is viewed on narrow screens.
+- **Auto-height from image** — Height slider removed from admin tile editor. Tile height auto-calculated from uploaded image aspect ratio (`800 × imgH / imgW`), ensuring `BoxFit.cover` renders with zero crop.
+- **Vocabulary full-width layout** — Learning path tile map on vocabulary page now fills available width (left-aligned) instead of centered 800px constraint. Right info panel stays in same absolute position via calculated gap.
 
 #### Infrastructure
 - **DB migration** — Remove review node artifacts (stale columns/tables).
