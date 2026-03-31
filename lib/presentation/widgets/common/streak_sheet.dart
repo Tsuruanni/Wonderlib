@@ -345,9 +345,9 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
 
   Widget _buildWeeklyView() {
     final today = AppClock.today();
-    // Monday of current week
-    final monday = today.subtract(Duration(days: today.weekday - 1));
-    final days = List.generate(7, (i) => monday.add(Duration(days: i)));
+    // Last 7 days (today − 6 … today) so the full recent streak is visible
+    final start = today.subtract(const Duration(days: 6));
+    final days = List.generate(7, (i) => start.add(Duration(days: i)));
 
     // Collect all months the week spans (e.g. week crosses month boundary)
     final monthKeys = <({int year, int month})>{};
