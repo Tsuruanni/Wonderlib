@@ -185,22 +185,41 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     int coins,
     int packs,
   ) {
+    // Session-scoped key prefix prevents AnimatedSwitcher duplicate-key
+    // crashes when rapidly cycling through phases (old widgets still
+    // fading out can collide with new widgets of the same phase).
+    final s = state.sessionId;
     switch (state.phase) {
       case PackOpeningPhase.idle:
-        return _buildIdlePhase(controller, coins, packs, state.error);
+        return KeyedSubtree(
+          key: ValueKey('idle_$s'),
+          child: _buildIdlePhase(controller, coins, packs, state.error),
+        );
 
       case PackOpeningPhase.buying:
-        return _buildPurchasingPhase('Buying pack...');
+        return KeyedSubtree(
+          key: ValueKey('buying_$s'),
+          child: _buildPurchasingPhase('Buying pack...'),
+        );
 
       case PackOpeningPhase.opening:
-        return _buildPurchasingPhase('Opening pack...');
+        return KeyedSubtree(
+          key: ValueKey('opening_$s'),
+          child: _buildPurchasingPhase('Opening pack...'),
+        );
 
       case PackOpeningPhase.glowing:
-        return _buildGlowingPhase(state, controller);
+        return KeyedSubtree(
+          key: ValueKey('glowing_$s'),
+          child: _buildGlowingPhase(state, controller),
+        );
 
       case PackOpeningPhase.revealing:
       case PackOpeningPhase.complete:
-        return _buildRevealPhase(state, controller, packs);
+        return KeyedSubtree(
+          key: ValueKey('reveal_$s'),
+          child: _buildRevealPhase(state, controller, packs),
+        );
     }
   }
 
@@ -211,7 +230,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     final hasPacks = packs > 0;
 
     return Padding(
-      key: const ValueKey('idle'),
       padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -420,7 +438,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
   Widget _buildPurchasingPhase(String message) {
     return Column(
-      key: const ValueKey('purchasing'),
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(
@@ -447,7 +464,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   Widget _buildGlowingPhase(
       PackOpeningState state, PackOpeningController controller) {
     return PackGlowWidget(
-      key: const ValueKey('glowing'),
       glowRarity: state.packResult!.packGlowRarity,
       onAnimationComplete: () => controller.startRevealing(),
     );
@@ -464,7 +480,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     final packsRemaining = packResult.packsRemaining;
 
     return Padding(
-      key: const ValueKey('reveal'),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

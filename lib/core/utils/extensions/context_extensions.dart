@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/theme.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../presentation/widgets/common/game_button.dart';
 
 extension BuildContextExtensions on BuildContext {
   // Theme shortcuts
@@ -77,22 +80,69 @@ extension BuildContextExtensions on BuildContext {
   }) {
     return showDialog<bool>(
       context: this,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelText),
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: (isDestructive ? AppColors.danger : AppColors.secondary)
+                        .withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isDestructive
+                        ? Icons.warning_rounded
+                        : Icons.help_outline_rounded,
+                    color: isDestructive ? AppColors.danger : AppColors.secondary,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GameButton(
+                  label: cancelText,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  variant: GameButtonVariant.neutral,
+                  fullWidth: true,
+                ),
+                const SizedBox(height: 8),
+                GameButton(
+                  label: confirmText,
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  variant: isDestructive
+                      ? GameButtonVariant.danger
+                      : GameButtonVariant.primary,
+                  fullWidth: true,
+                ),
+              ],
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: isDestructive
-                ? TextButton.styleFrom(foregroundColor: colorScheme.error)
-                : null,
-            child: Text(confirmText),
-          ),
-        ],
+        ),
       ),
     );
   }

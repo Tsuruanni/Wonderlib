@@ -58,6 +58,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
 
   // For unit assignments
   String? _selectedScopeLpUnitId;
+  String? _selectedUnitId;
   String? _selectedUnitName;
   int? _selectedUnitTotalItems;
 
@@ -149,6 +150,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
         wordListId: _selectedWordListId,
         lockLibrary: _lockLibrary,
         scopeLpUnitId: _selectedScopeLpUnitId,
+        unitId: _selectedUnitId,
         unitName: _selectedUnitName,
         totalItems: _selectedUnitTotalItems,
         startDate: _startDate,
@@ -248,9 +250,10 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
           scrollController: scrollController,
           classId: _selectedClassId!,
           selectedScopeLpUnitId: _selectedScopeLpUnitId,
-          onUnitSelected: (scopeLpUnitId, unitName, totalItems) {
+          onUnitSelected: (scopeLpUnitId, unitId, unitName, totalItems) {
             setState(() {
               _selectedScopeLpUnitId = scopeLpUnitId;
+              _selectedUnitId = unitId;
               _selectedUnitName = unitName;
               _selectedUnitTotalItems = totalItems;
             });
@@ -313,6 +316,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   _selectedWordListId = null;
                   _selectedWordListName = null;
                   _selectedScopeLpUnitId = null;
+                  _selectedUnitId = null;
                   _selectedUnitName = null;
                   _selectedUnitTotalItems = null;
                 });
@@ -361,6 +365,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                       _selectedClassId = value;
                       // Clear unit selection when class changes
                       _selectedScopeLpUnitId = null;
+                      _selectedUnitId = null;
                       _selectedUnitName = null;
                       _selectedUnitTotalItems = null;
                     });
@@ -879,7 +884,7 @@ class _UnitSelectionSheet extends ConsumerWidget {
   final ScrollController scrollController;
   final String classId;
   final String? selectedScopeLpUnitId;
-  final void Function(String scopeLpUnitId, String unitName, int totalItems) onUnitSelected;
+  final void Function(String scopeLpUnitId, String unitId, String unitName, int totalItems) onUnitSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -943,6 +948,7 @@ class _UnitSelectionSheet extends ConsumerWidget {
                     isSelected: isSelected,
                     onTap: () => onUnitSelected(
                       unit.scopeLpUnitId,
+                      unit.unitId,
                       unit.unitName,
                       unit.trackableItemCount,
                     ),

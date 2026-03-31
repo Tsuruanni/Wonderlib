@@ -247,8 +247,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
         Row(
           children: [
             _StatCard(
-              icon: Icons.monetization_on,
-              iconColor: Colors.amber,
+              assetPath: 'assets/icons/gem_outline_256.png',
               label: 'Coins Earned',
               value:
                   '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
@@ -333,16 +332,18 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
-    required this.icon,
-    required this.iconColor,
+    this.icon,
+    this.iconColor,
+    this.assetPath,
     required this.label,
     required this.value,
     this.subtitle,
     required this.delay,
   });
 
-  final IconData icon;
-  final Color iconColor;
+  final IconData? icon;
+  final Color? iconColor;
+  final String? assetPath;
   final String label;
   final String value;
   final String? subtitle;
@@ -361,7 +362,10 @@ class _StatCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: iconColor, size: 28),
+            if (assetPath != null)
+              Image.asset(assetPath!, width: 28, height: 28, filterQuality: FilterQuality.high)
+            else
+              Icon(icon, color: iconColor, size: 28),
             const SizedBox(height: 12),
             Text(
               value,
@@ -376,7 +380,7 @@ class _StatCard extends StatelessWidget {
               Text(
                 subtitle!,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: iconColor.withValues(alpha: 0.8),
+                  color: (iconColor ?? Colors.amber).withValues(alpha: 0.8),
                   fontWeight: FontWeight.w600,
                 ),
               ),

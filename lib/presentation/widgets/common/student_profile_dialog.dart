@@ -33,7 +33,9 @@ class StudentProfileDialog extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -218,6 +220,7 @@ class StudentProfileDialog extends ConsumerWidget {
           ],
         ),
         ),
+      ),
       ),
     );
   }

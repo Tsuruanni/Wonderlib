@@ -290,10 +290,13 @@ GoRouter _createRouter() {
                     routes: [
                       GoRoute(
                         path: 'session',
-                        builder: (context, state) {
+                        pageBuilder: (context, state) {
                           final listId = state.pathParameters['listId']!;
-                          return VocabularySessionScreen(
-                            listId: listId,
+                          return ZoomTransitionPage(
+                            key: state.pageKey,
+                            child: VocabularySessionScreen(
+                              listId: listId,
+                            ),
                           );
                         },
                       ),
@@ -364,9 +367,12 @@ GoRouter _createRouter() {
                 routes: [
                   GoRoute(
                     path: 'book/:bookId',
-                    builder: (context, state) {
+                    pageBuilder: (context, state) {
                       final bookId = state.pathParameters['bookId']!;
-                      return BookDetailScreen(bookId: bookId);
+                      return ZoomTransitionPage(
+                        key: state.pageKey,
+                        child: BookDetailScreen(bookId: bookId),
+                      );
                     },
                   ),
                 ],

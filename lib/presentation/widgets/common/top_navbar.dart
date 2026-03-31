@@ -25,28 +25,21 @@ class TopNavbar extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      color: AppColors.primary,
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.neutral, width: 2),
+        ),
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Left: Language direction (EN → TR)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('🇬🇧', style: TextStyle(fontSize: 18)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  size: 14,
-                ),
-              ),
-              const Text('🇹🇷', style: TextStyle(fontSize: 18)),
-            ],
+          // Left: UK flag
+          Image.asset(
+            'assets/icons/uk-flag.png',
+            width: 32,
+            height: 32,
+            filterQuality: FilterQuality.high,
           ),
-
-          _buildNavDivider(),
 
           // Streak
           GestureDetector(
@@ -54,24 +47,16 @@ class TopNavbar extends ConsumerWidget {
               if (user != null) showStreakSheet(context);
             },
             child: _buildNavStat(
-              icon: Icons.local_fire_department,
+              assetPath: 'assets/icons/fire_menu_bar_256.png',
               value: streak,
-              iconColor: AppColors.streakOrange,
             ),
           ),
 
-          _buildNavDivider(),
-
           // Coins (Globally replaced XP)
           _buildNavStat(
-            icon: Icons.monetization_on_rounded, // Coin icon
+            assetPath: 'assets/icons/gem_outline_256.png',
             value: coins,
-            iconColor: AppColors.cardLegendary, // Gold color for coins
           ),
-
-  // ... (rest of file)
-
-          _buildNavDivider(),
 
           // Right: Profile Button
           GestureDetector(
@@ -83,25 +68,25 @@ class TopNavbar extends ConsumerWidget {
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
+                    border: Border.all(color: AppColors.neutral, width: 2),
                   ),
                   child: CircleAvatar(
                     radius: 14,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                     child: Text(
                       user?.initials ?? '?',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w800,
                         fontSize: 12,
-                        color: Colors.white,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(
+                const Icon(
                   Icons.chevron_right_rounded,
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.neutralText,
                   size: 20,
                 ),
               ],
@@ -112,42 +97,26 @@ class TopNavbar extends ConsumerWidget {
     );
   }
 
-  Widget _buildNavDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Container(
-        height: 24,
-        width: 2,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(1),
-        ),
-      ),
-    );
-  }
-
   Widget _buildNavStat({
-    required IconData icon,
+    IconData? icon,
+    String? assetPath,
     required int value,
-    required Color iconColor,
+    Color? iconColor,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Icon(icon, color: Colors.white.withValues(alpha: 0.3), size: 28),
-            Icon(icon, color: iconColor, size: 24),
-          ],
-        ),
+        if (assetPath != null)
+          Image.asset(assetPath, width: 24, height: 24, filterQuality: FilterQuality.high)
+        else
+          Icon(icon, color: iconColor, size: 24),
         const SizedBox(width: 4),
         Text(
           value.toString(),
           style: GoogleFonts.nunito(
             fontSize: 16,
             fontWeight: FontWeight.w800,
-            color: Colors.white,
+            color: AppColors.black,
           ),
         ),
       ],

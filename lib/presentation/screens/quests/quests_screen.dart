@@ -32,7 +32,8 @@ class QuestsScreen extends ConsumerWidget {
     final showRightPanel = MediaQuery.sizeOf(context).width >= 1000;
 
     return Scaffold(
-      body: Column(
+      body: SafeArea(
+        child: Column(
         children: [
           const TopNavbar(),
           Expanded(
@@ -78,6 +79,7 @@ class QuestsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -13,6 +13,11 @@ class MapTileNodeData {
     this.onTap,
     this.starCount = 0,
     this.unitNumber,
+    this.totalSessions,
+    this.bestAccuracy,
+    this.bestScore,
+    this.isFirstItem = false,
+    this.hasAssignment = false,
   });
 
   final NodeType type;
@@ -21,6 +26,17 @@ class MapTileNodeData {
   final VoidCallback? onTap;
   final int starCount;
   final int? unitNumber;
+
+  /// Progress stats — shown in popup card when available.
+  final int? totalSessions;
+  final double? bestAccuracy;
+  final int? bestScore;
+
+  /// True when this is the first item in the unit (index 0).
+  final bool isFirstItem;
+
+  /// True when this node has an active assignment from the teacher.
+  final bool hasAssignment;
 }
 
 /// A single map tile: background image + positioned nodes.
@@ -62,6 +78,15 @@ class MapTile extends StatelessWidget {
                     ? Image.network(
                         theme.imageUrl!,
                         fit: BoxFit.cover,
+                        frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
+                          if (wasSynchronouslyLoaded) return child;
+                          return AnimatedOpacity(
+                            opacity: frame != null ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 400),
+                            curve: Curves.easeOut,
+                            child: child,
+                          );
+                        },
                         errorBuilder: (_, __, ___) =>
                             _PlaceholderBackground(colors: theme.fallbackColors),
                       )
@@ -107,9 +132,10 @@ class _PositionedNode extends StatelessWidget {
     final left = position.dx * tileWidth - scaledWidth / 2;
     final top = position.dy * tileHeight - 40 * nodeScale;
 
-    // START bubble only on detail-page nodes (no unitNumber), not on unit map
-    final showStartBubble =
+    // Bubble only on detail-page nodes (no unitNumber), not on unit map
+    final showBubble =
         data.state == NodeState.active && data.unitNumber == null;
+    final bubbleText = data.isFirstItem ? 'START' : 'YOU ARE HERE';
 
     return Positioned(
       left: left,
@@ -117,8 +143,8 @@ class _PositionedNode extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showStartBubble) ...[
-            StartBubble(scale: nodeScale),
+          if (showBubble) ...[
+            StartBubble(scale: nodeScale, text: bubbleText),
             SizedBox(height: 4 * nodeScale),
           ],
           PathNode(
@@ -129,6 +155,10 @@ class _PositionedNode extends StatelessWidget {
             starCount: data.starCount,
             unitNumber: data.unitNumber,
             scale: nodeScale,
+            totalSessions: data.totalSessions,
+            bestAccuracy: data.bestAccuracy,
+            bestScore: data.bestScore,
+            hasAssignment: data.hasAssignment,
           ),
         ],
       ),
@@ -144,7 +174,7 @@ class _PlaceholderBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -152,29 +182,6 @@ class _PlaceholderBackground extends StatelessWidget {
           colors: colors,
         ),
       ),
-      child: CustomPaint(
-        painter: _DotPatternPainter(),
-      ),
     );
   }
-}
-
-/// Subtle dot pattern to indicate tile boundaries during development.
-class _DotPatternPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.1)
-      ..style = PaintingStyle.fill;
-
-    const spacing = 40.0;
-    for (double x = 0; x < size.width; x += spacing) {
-      for (double y = 0; y < size.height; y += spacing) {
-        canvas.drawCircle(Offset(x, y), 2, paint);
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

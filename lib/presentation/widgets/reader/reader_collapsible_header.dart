@@ -354,11 +354,7 @@ class _CollapsedContent extends StatelessWidget {
                 if (sessionXP > 0) ...[
                   const SizedBox(width: 12),
                   // Gold/XP indicator
-                  const Icon(
-                    Icons.monetization_on,
-                    color: Color(0xFFEAB308),
-                    size: 18,
-                  ),
+                  Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
                   const SizedBox(width: 3),
                   Text(
                     '+$sessionXP',

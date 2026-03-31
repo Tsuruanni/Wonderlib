@@ -24,11 +24,23 @@ class UnitMapScreen extends ConsumerStatefulWidget {
 class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
   final _scrollController = ScrollController();
   bool _hasScrolled = false;
+  final _precachedUrls = <String>{};
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Precache tile background images so they're ready when the user
+  /// navigates into a unit detail screen.
+  void _precacheTileImages(BuildContext context, List<TileThemeEntity> themes) {
+    for (final theme in themes) {
+      final url = theme.imageUrl;
+      if (url != null && _precachedUrls.add(url)) {
+        precacheImage(NetworkImage(url), context);
+      }
+    }
   }
 
   @override
@@ -46,6 +58,11 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
         ),
       ),
       data: (allUnits) {
+        // Precache all tile images in the background
+        if (dbThemes.isNotEmpty) {
+          _precacheTileImages(context, dbThemes);
+        }
+
         final path = paths.where((p) => p.id == widget.pathId).firstOrNull;
         if (path == null) {
           return Center(

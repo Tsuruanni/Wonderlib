@@ -242,7 +242,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.monetization_on, color: Color(0xFFEAB308), size: 20),
+                                Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
                                 const SizedBox(width: 4),
                                 Text(
                                   '+${widget.xpGained}',

@@ -6,12 +6,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/tile_theme.dart';
+import '../../providers/student_assignment_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/tile_theme_provider.dart';
 import '../../providers/vocabulary_provider.dart';
-import '../../utils/ui_helpers.dart';
 import 'map_tile.dart';
-import 'node_progress_sheet.dart';
 import 'path_node.dart';
 import 'tile_themes.dart';
 import 'unit_divider.dart';
@@ -63,11 +62,25 @@ class LearningPathView extends ConsumerWidget {
 
     final dbThemes = ref.watch(tileThemesProvider).valueOrNull ?? [];
 
+    // Build a set of assigned resource IDs for quick lookup
+    final activeAssignments = ref.watch(activeAssignmentsProvider).valueOrNull ?? [];
+    final assignedWordListIds = <String>{};
+    final assignedBookIds = <String>{};
+    final assignedUnitIds = <String>{};
+    for (final a in activeAssignments) {
+      debugPrint('🔍 Assignment: type=${a.type}, unitId=${a.unitId}, wordListId=${a.wordListId}, bookId=${a.bookId}, config=${a.contentConfig}');
+      if (a.wordListId != null) assignedWordListIds.add(a.wordListId!);
+      if (a.bookId != null) assignedBookIds.add(a.bookId!);
+      if (a.unitId != null) assignedUnitIds.add(a.unitId!);
+    }
+    debugPrint('🔍 assignedUnitIds=$assignedUnitIds, assignedWordListIds=$assignedWordListIds, assignedBookIds=$assignedBookIds');
+
     final children = <Widget>[];
     bool foundActive = false;
 
     for (int unitIdx = 0; unitIdx < units.length; unitIdx++) {
       final unit = units[unitIdx];
+      debugPrint('🔍 Unit[$unitIdx]: id=${unit.unit.id}, name=${unit.unit.name}, inAssigned=${assignedUnitIds.contains(unit.unit.id)}');
       final isUnitLocked = unit.unitGate && unitIdx > 0 && !units[unitIdx - 1].isAllComplete;
 
       // Unit divider
@@ -120,6 +133,10 @@ class LearningPathView extends ConsumerWidget {
             star2: star2,
             star1: star1,
             canStartNewList: canStartNewList,
+            isFirstItem: itemIdx == 0,
+            assignedWordListIds: assignedWordListIds,
+            assignedBookIds: assignedBookIds,
+            assignedUnitIds: assignedUnitIds,
           ),
         );
       }
@@ -168,39 +185,30 @@ class LearningPathView extends ConsumerWidget {
     required int star2,
     required int star1,
     required bool canStartNewList,
+    required bool isFirstItem,
+    required Set<String> assignedWordListIds,
+    required Set<String> assignedBookIds,
+    required Set<String> assignedUnitIds,
   }) {
+    // Check if the entire unit is assigned
+    final unitAssigned = assignedUnitIds.contains(unit.unit.id);
+
     switch (item) {
       case PathWordListItem(:final wordListWithProgress):
         final wl = wordListWithProgress;
         final stars =
             wl.starCountWith(star3: star3, star2: star2, star1: star1);
-        final unitColor = unit.unit.parsedColor;
-
         return MapTileNodeData(
           type: NodeType.wordList,
           state: state,
           label: wl.wordList.name,
           starCount: stars,
-          onTap: () {
-            if (wl.isStarted && wl.progress != null) {
-              showNodeProgressSheet(
-                context,
-                data: NodeProgressData(
-                  name: wl.wordList.name,
-                  totalSessions: wl.progress!.totalSessions,
-                  bestAccuracy: wl.progress!.bestAccuracy,
-                  bestScore: wl.progress!.bestScore,
-                  starCount: stars,
-                  unitColor: unitColor,
-                ),
-                onPractice: () => context.push(
-                  AppRoutes.vocabularySessionPath(wl.wordList.id),
-                ),
-              );
-            } else {
-              context.push(AppRoutes.vocabularySessionPath(wl.wordList.id));
-            }
-          },
+          totalSessions: wl.progress?.totalSessions,
+          bestAccuracy: wl.progress?.bestAccuracy,
+          bestScore: wl.progress?.bestScore,
+          isFirstItem: isFirstItem,
+          hasAssignment: unitAssigned || assignedWordListIds.contains(wl.wordList.id),
+          onTap: () => context.push(AppRoutes.vocabularySessionPath(wl.wordList.id)),
         );
 
       case PathBookItem(:final bookWithProgress):
@@ -208,6 +216,8 @@ class LearningPathView extends ConsumerWidget {
           type: NodeType.book,
           state: state,
           label: bookWithProgress.book.title,
+          isFirstItem: isFirstItem,
+          hasAssignment: unitAssigned || assignedBookIds.contains(bookWithProgress.bookId),
           onTap: () =>
               context.push(AppRoutes.bookDetailPath(bookWithProgress.bookId)),
         );
@@ -217,6 +227,8 @@ class LearningPathView extends ConsumerWidget {
           type: NodeType.game,
           state: state,
           label: 'Game',
+          isFirstItem: isFirstItem,
+          hasAssignment: unitAssigned,
           onTap: () => completePathNode(ref, unit.unit.id, 'game'),
         );
 
@@ -225,6 +237,8 @@ class LearningPathView extends ConsumerWidget {
           type: NodeType.treasure,
           state: state,
           label: 'Treasure',
+          isFirstItem: isFirstItem,
+          hasAssignment: unitAssigned,
           onTap: () => completePathNode(ref, unit.unit.id, 'treasure'),
         );
 

@@ -34,11 +34,7 @@ class XPBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.monetization_on,
-            color: Colors.white,
-            size: 20,
-          ),
+          Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
           const SizedBox(width: 4),
           Text(
             '+$xp',

@@ -469,11 +469,7 @@ class _OpenPackBanner extends ConsumerWidget {
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
-                                Icons.monetization_on_rounded,
-                                color: AppColors.wasp,
-                                size: 20,
-                              ),
+                              Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
                               const SizedBox(width: 6),
                               Text(
                                 '$packCost',

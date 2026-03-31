@@ -117,11 +117,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.monetization_on,
-                  color: AppColors.wasp,
-                  size: 20,
-                ),
+                Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
                 const SizedBox(width: 4),
                 Text(
                   '${item.coinPrice} coins',
@@ -344,11 +340,7 @@ class _PreviewSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.monetization_on,
-                color: AppColors.wasp,
-                size: 18,
-              ),
+              Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
               const SizedBox(width: 4),
               Text(
                 '$coins coins',
@@ -648,7 +640,7 @@ class _StatusLabel extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.monetization_on, color: AppColors.wasp, size: 10),
+        Image.asset('assets/icons/gem_outline_256.png', width: 10, height: 10, filterQuality: FilterQuality.high),
         const SizedBox(width: 2),
         Text(
           '$coinPrice',

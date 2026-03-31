@@ -28,30 +28,35 @@ class MainShellScaffold extends ConsumerWidget {
       selectedIcon: Icons.route_rounded,
       label: 'Learning Path',
       color: AppColors.wasp,
+      assetPath: 'assets/icons/map_256.png',
     ),
     _NavItem(
       icon: Icons.local_library_outlined,
       selectedIcon: Icons.local_library_rounded,
       label: 'Library',
       color: AppColors.secondary,
+      assetPath: 'assets/icons/library.png',
     ),
     _NavItem(
       icon: Icons.military_tech_outlined,
       selectedIcon: Icons.military_tech_rounded,
       label: 'Quests',
       color: AppColors.streakOrange,
+      assetPath: 'assets/icons/clipboard_256.png',
     ),
     _NavItem(
       icon: Icons.collections_bookmark_outlined,
       selectedIcon: Icons.collections_bookmark_rounded,
       label: 'Card Collection',
       color: AppColors.cardEpic,
+      assetPath: 'assets/icons/card.png',
     ),
     _NavItem(
       icon: Icons.emoji_events_outlined,
       selectedIcon: Icons.emoji_events_rounded,
       label: 'Leaderboards',
       color: AppColors.streakOrange,
+      assetPath: 'assets/icons/trophy_256.png',
     ),
   ];
 
@@ -379,11 +384,19 @@ class _SidebarItemState extends State<_SidebarItem> {
             ),
             child: Row(
               children: [
-                Icon(
-                  isSelected ? item.selectedIcon : item.icon,
-                  color: item.color,
-                  size: 28,
-                ),
+                if (item.assetPath != null)
+                  Image.asset(
+                    item.assetPath!,
+                    width: 28,
+                    height: 28,
+                    filterQuality: FilterQuality.high,
+                  )
+                else
+                  Icon(
+                    isSelected ? item.selectedIcon : item.icon,
+                    color: item.color,
+                    size: 28,
+                  ),
                 const SizedBox(width: 14),
                 Flexible(
                   child: Text(
@@ -439,11 +452,18 @@ class _BottomNavButton extends StatelessWidget {
                         color: item.color.withValues(alpha: 0.5), width: 2,)
                     : Border.all(color: Colors.transparent, width: 2),
               ),
-              child: Icon(
-                isSelected ? item.selectedIcon : item.icon,
-                size: 32,
-                color: item.color,
-              ),
+              child: item.assetPath != null
+                  ? Image.asset(
+                      item.assetPath!,
+                      width: 32,
+                      height: 32,
+                      filterQuality: FilterQuality.high,
+                    )
+                  : Icon(
+                      isSelected ? item.selectedIcon : item.icon,
+                      size: 32,
+                      color: item.color,
+                    ),
             ),
           ],
         ),
@@ -460,10 +480,12 @@ class _NavItem {
     required this.selectedIcon,
     required this.label,
     required this.color,
+    this.assetPath,
   });
 
   final IconData icon;
   final IconData selectedIcon;
   final String label;
   final Color color;
+  final String? assetPath;
 }

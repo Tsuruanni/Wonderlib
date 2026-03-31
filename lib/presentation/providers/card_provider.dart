@@ -144,6 +144,7 @@ class PackOpeningState {
     this.revealedIndices = const {},
     this.error,
     this.buySuccess = false,
+    this.sessionId = 0,
   });
 
   final PackOpeningPhase phase;
@@ -151,6 +152,7 @@ class PackOpeningState {
   final Set<int> revealedIndices;
   final String? error;
   final bool buySuccess;
+  final int sessionId;
 
   bool get allRevealed =>
       packResult != null && revealedIndices.length >= packResult!.cards.length;
@@ -161,6 +163,7 @@ class PackOpeningState {
     Set<int>? revealedIndices,
     String? error,
     bool? buySuccess,
+    int? sessionId,
   }) {
     return PackOpeningState(
       phase: phase ?? this.phase,
@@ -168,6 +171,7 @@ class PackOpeningState {
       revealedIndices: revealedIndices ?? this.revealedIndices,
       error: error,
       buySuccess: buySuccess ?? this.buySuccess,
+      sessionId: sessionId ?? this.sessionId,
     );
   }
 }
@@ -272,7 +276,7 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
 
   /// Reset to idle — invalidates dependent providers for fresh data
   void reset() {
-    state = const PackOpeningState();
+    state = PackOpeningState(sessionId: state.sessionId + 1);
     _ref.invalidate(userCardsProvider);
     _ref.invalidate(userCardStatsProvider);
     _ref.read(userControllerProvider.notifier).refreshProfileOnly();

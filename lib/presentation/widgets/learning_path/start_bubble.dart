@@ -5,9 +5,10 @@ import '../../../app/theme.dart';
 
 /// Animated START bubble shown above the active node.
 class StartBubble extends StatefulWidget {
-  const StartBubble({super.key, this.scale = 1.0});
+  const StartBubble({super.key, this.scale = 1.0, this.text = 'START'});
 
   final double scale;
+  final String text;
 
   @override
   State<StartBubble> createState() => _StartBubbleState();
@@ -65,7 +66,7 @@ class _StartBubbleState extends State<StartBubble>
               ],
             ),
             child: Text(
-              'START',
+              widget.text,
               style: GoogleFonts.nunito(
                 fontSize: 14 * s,
                 fontWeight: FontWeight.w900,

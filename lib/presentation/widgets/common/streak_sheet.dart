@@ -177,10 +177,14 @@ class _StreakBanner extends StatelessWidget {
             ),
           ),
           // Right: decorative fire icon
-          Icon(
-            Icons.local_fire_department_rounded,
-            size: 64,
-            color: AppColors.streakOrange.withValues(alpha: 0.3),
+          Opacity(
+            opacity: 0.3,
+            child: Image.asset(
+              'assets/icons/fire_256.png',
+              width: 64,
+              height: 64,
+              filterQuality: FilterQuality.high,
+            ),
           ),
         ],
       ),
@@ -577,7 +581,7 @@ class _DayCell extends StatelessWidget {
           color: AppColors.streakOrange,
           shape: BoxShape.circle,
         ),
-        child: const Icon(Icons.check_rounded, color: Colors.white, size: 18),
+        child: Image.asset('assets/icons/fire_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
       );
     } else if (isFreeze) {
       // Freeze day: blue circle with white snowflake
@@ -589,7 +593,7 @@ class _DayCell extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child:
-            const Icon(Icons.ac_unit_rounded, color: Colors.white, size: 16),
+            Image.asset('assets/icons/fire_blue_256.png', width: 16, height: 16, filterQuality: FilterQuality.high),
       );
     } else if (isToday) {
       // Today (not logged in): orange outline circle with day number
@@ -710,8 +714,7 @@ class _StatsSection extends StatelessWidget {
           children: [
             Expanded(
               child: _StatCard(
-                icon: Icons.local_fire_department_rounded,
-                iconColor: AppColors.streakOrange,
+                assetPath: 'assets/icons/fire_256.png',
                 label: 'Longest',
                 value: '$longestStreak days',
               ),
@@ -719,8 +722,7 @@ class _StatsSection extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _StatCard(
-                icon: Icons.ac_unit_rounded,
-                iconColor: AppColors.gemBlue,
+                assetPath: 'assets/icons/fire_blue_256.png',
                 label: 'Freezes',
                 value: '$freezeCount / $freezeMax',
               ),
@@ -751,7 +753,7 @@ class _StatsSection extends StatelessWidget {
                       color: AppColors.gemBlue,
                     ),
                   )
-                : const Icon(Icons.ac_unit_rounded),
+                : Image.asset('assets/icons/fire_blue_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
             label: Text(
               'Buy Freeze — $freezePrice coins',
               style: GoogleFonts.nunito(
@@ -782,14 +784,16 @@ class _StatsSection extends StatelessWidget {
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
-    required this.icon,
-    required this.iconColor,
+    this.icon,
+    this.iconColor,
+    this.assetPath,
     required this.label,
     required this.value,
   });
 
-  final IconData icon;
-  final Color iconColor;
+  final IconData? icon;
+  final Color? iconColor;
+  final String? assetPath;
   final String label;
   final String value;
 
@@ -806,7 +810,10 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: iconColor, size: 18),
+              if (assetPath != null)
+                Image.asset(assetPath!, width: 18, height: 18, filterQuality: FilterQuality.high)
+              else
+                Icon(icon, color: iconColor, size: 18),
               const SizedBox(width: 6),
               Text(
                 label,

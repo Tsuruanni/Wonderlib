@@ -5,14 +5,26 @@ import '../../../app/theme.dart';
 
 /// Node types on the learning path.
 enum NodeType {
-  wordList(Icons.translate_rounded, AppColors.secondary),
-  book(Icons.auto_stories_rounded, Color(0xFF1E88E5)),
-  game(Icons.sports_esports_rounded, Color(0xFF8E24AA)),
-  treasure(Icons.diamond_rounded, Color(0xFFFF9800));
+  wordList(Icons.translate_rounded, AppColors.secondary, 'voc'),
+  book(Icons.auto_stories_rounded, Color(0xFF1E88E5), 'book'),
+  game(Icons.sports_esports_rounded, Color(0xFF8E24AA), 'game'),
+  treasure(Icons.diamond_rounded, Color(0xFFFF9800), 'treasure');
 
-  const NodeType(this.icon, this.color);
+  const NodeType(this.icon, this.color, this._assetPrefix);
   final IconData icon;
   final Color color;
+  final String? _assetPrefix;
+
+  /// Returns the asset path for a given node state, or null if no custom assets.
+  String? assetFor(NodeState state, {bool pressed = false}) {
+    if (_assetPrefix == null) return null;
+    if (pressed) return 'assets/icons/${_assetPrefix}_pressed.png';
+    return switch (state) {
+      NodeState.locked => 'assets/icons/${_assetPrefix}_locked.png',
+      NodeState.available || NodeState.active => 'assets/icons/${_assetPrefix}_active.png',
+      NodeState.completed => 'assets/icons/${_assetPrefix}_completed.png',
+    };
+  }
 }
 
 /// Visual state of a node.
@@ -33,6 +45,10 @@ class PathNode extends StatefulWidget {
     this.starCount = 0,
     this.unitNumber,
     this.scale = 1.0,
+    this.totalSessions,
+    this.bestAccuracy,
+    this.bestScore,
+    this.hasAssignment = false,
   });
 
   final NodeType type;
@@ -46,6 +62,16 @@ class PathNode extends StatefulWidget {
 
   /// Scale factor for the node. 1.0 = default (64px), 0.5 = half size.
   final double scale;
+
+  /// Progress stats — shown in popup card when available.
+  final int? totalSessions;
+  final double? bestAccuracy;
+  final int? bestScore;
+
+  /// Whether this node has an active assignment.
+  final bool hasAssignment;
+
+  bool get hasProgress => totalSessions != null && totalSessions! > 0;
 
   static const baseSize = 64.0;
   static const baseWidth = 140.0;
@@ -142,17 +168,18 @@ class _PathNodeState extends State<PathNode>
 
   void _handleTap() {
     if (_showsPopup) {
-      _togglePopup();
+      // Toggle popup on tap
+      if (_overlayEntry != null) {
+        _dismissPopup();
+      } else {
+        _showPopup();
+      }
     } else {
       widget.onTap?.call();
     }
   }
 
-  void _togglePopup() {
-    if (_overlayEntry != null) {
-      _dismissPopup();
-      return;
-    }
+  void _showPopup() {
     // Dismiss any other open popup first
     _activePopupState?._dismissPopup();
 
@@ -185,6 +212,9 @@ class _PathNodeState extends State<PathNode>
                     label: widget.label ?? '',
                     color: _popupColor,
                     buttonText: _popupButtonText,
+                    totalSessions: widget.totalSessions,
+                    bestAccuracy: widget.bestAccuracy,
+                    bestScore: widget.bestScore,
                     onStart: () {
                       _dismissPopup();
                       widget.onTap?.call();
@@ -226,7 +256,11 @@ class _PathNodeState extends State<PathNode>
     final nodeSize = PathNode.baseSize * s;
     final nodeWidth = PathNode.baseWidth * s;
 
-    return GestureDetector(
+    return MouseRegion(
+      cursor: isLocked ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: isLocked ? null : (_) => setState(() => _isNodePressed = true),
+      onExit: isLocked ? null : (_) => setState(() => _isNodePressed = false),
+      child: GestureDetector(
       onTapDown: isLocked ? null : _onTapDown,
       onTapUp: isLocked ? null : _onTapUp,
       onTapCancel: isLocked ? null : _onTapCancel,
@@ -245,22 +279,49 @@ class _PathNodeState extends State<PathNode>
               ),
             // Node circle — wrapped in target for popup positioning
             // Active nodes get a gentle bounce animation
-            AnimatedBuilder(
-              animation: _bounce,
-              builder: (_, child) => Transform.translate(
-                offset: Offset(0, -_bounce.value * s),
-                child: child,
-              ),
-              child: CompositedTransformTarget(
-                link: _layerLink,
-                child: _NodeCircle(
-                  type: widget.type,
-                  state: widget.state,
-                  size: nodeSize,
-                  unitNumber: widget.unitNumber,
-                  isPressed: _isNodePressed && !isCompleted,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedBuilder(
+                  animation: _bounce,
+                  builder: (_, child) => Transform.translate(
+                    offset: Offset(0, -_bounce.value * s),
+                    child: child,
+                  ),
+                  child: CompositedTransformTarget(
+                    link: _layerLink,
+                    child: _NodeCircle(
+                      type: widget.type,
+                      state: widget.state,
+                      size: nodeSize,
+                      unitNumber: widget.unitNumber,
+                      isPressed: _isNodePressed && !isCompleted,
+                    ),
+                  ),
                 ),
-              ),
+                // Assignment badge — position varies per node
+                if (widget.hasAssignment && widget.state != NodeState.completed)
+                  Builder(builder: (_) {
+                    final badgeSize = 90.0 * s;
+                    // Deterministic "random" based on label so position is stable across rebuilds
+                    final hash = (widget.label ?? '').hashCode;
+                    final isRight = hash.isEven;
+                    final verticalOffset = ((hash % 5) - 2) * 4.0 * s; // -8 to +8
+                    // Push fully outside the node with a small gap
+                    final horizontalPush = (nodeSize / 2 + 4 * s);
+                    return Positioned(
+                      left: isRight ? null : -horizontalPush - badgeSize / 2,
+                      right: isRight ? -horizontalPush - badgeSize / 2 : null,
+                      top: (nodeSize / 2 - badgeSize / 2) + verticalOffset,
+                      child: Image.asset(
+                        'assets/icons/questnew.png',
+                        width: badgeSize,
+                        height: badgeSize,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    );
+                  }),
+              ],
             ),
             // Label — only for unit-number nodes (unit map)
             if (!_showsPopup && widget.label != null)
@@ -285,6 +346,7 @@ class _PathNodeState extends State<PathNode>
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -300,12 +362,20 @@ class _PopupCard extends StatelessWidget {
     required this.color,
     required this.buttonText,
     required this.onStart,
+    this.totalSessions,
+    this.bestAccuracy,
+    this.bestScore,
   });
 
   final String label;
   final Color color;
   final String buttonText;
   final VoidCallback onStart;
+  final int? totalSessions;
+  final double? bestAccuracy;
+  final int? bestScore;
+
+  bool get _hasProgress => totalSessions != null && totalSessions! > 0;
 
   @override
   Widget build(BuildContext context) {
@@ -355,6 +425,42 @@ class _PopupCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                // Progress stats
+                if (_hasProgress) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        _StatRow(
+                          icon: Icons.repeat_rounded,
+                          label: 'Sessions',
+                          value: '$totalSessions',
+                        ),
+                        if (bestAccuracy != null) ...[
+                          const SizedBox(height: 6),
+                          _StatRow(
+                            icon: Icons.star_rounded,
+                            label: 'Best Accuracy',
+                            value: '${bestAccuracy!.toInt()}%',
+                          ),
+                        ],
+                        if (bestScore != null) ...[
+                          const SizedBox(height: 6),
+                          _StatRow(
+                            icon: Icons.bolt_rounded,
+                            label: 'Top Coins',
+                            value: '$bestScore XP',
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 // Action button — pressable
                 _Pressable3DButton(
@@ -486,6 +592,54 @@ class _NodeCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Unit-number nodes: PNG background + number overlay
+    if (unitNumber != null) {
+      return SizedBox(
+        width: size,
+        height: size + 6,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              isPressed
+                  ? 'assets/icons/unit_nodes_pressed.png'
+                  : 'assets/icons/unit_nodes.png',
+              width: size,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: size * 0.08),
+              child: Text(
+                '$unitNumber',
+                style: GoogleFonts.nunito(
+                  fontSize: size * 0.38,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  height: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Check for custom asset-based node
+    final assetPath = type.assetFor(state, pressed: isPressed);
+    if (assetPath != null) {
+      return SizedBox(
+        width: size,
+        height: size + 6,
+        child: Image.asset(
+          assetPath,
+          width: size,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
+      );
+    }
+
     final isLocked = state == NodeState.locked;
     final isCompleted = state == NodeState.completed;
 
@@ -632,6 +786,50 @@ class _NodeCircle extends StatelessWidget {
     return hsl
         .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
         .toColor();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// Stat row (popup card)
+// ════════════════════════════════════════════════════════════
+
+class _StatRow extends StatelessWidget {
+  const _StatRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 14),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            label,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.8),
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+      ],
+    );
   }
 }
 

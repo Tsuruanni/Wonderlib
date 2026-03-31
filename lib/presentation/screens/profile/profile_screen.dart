@@ -1027,6 +1027,37 @@ class _StatsSection extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 14),
+        PressableScale(
+          onTap: () => context.push(AppRoutes.wordBank),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.gemBlue.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.library_books_rounded,
+                    size: 18, color: AppColors.gemBlue),
+                const SizedBox(width: 8),
+                Text(
+                  'My Word Bank',
+                  style: GoogleFonts.nunito(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: AppColors.gemBlue,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: AppColors.gemBlue),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

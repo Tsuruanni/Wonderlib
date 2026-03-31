@@ -17,6 +17,7 @@ class CreateAssignmentParams {
     this.wordListId,
     this.lockLibrary = false,
     this.scopeLpUnitId,
+    this.unitId,
     this.unitName,
     this.totalItems,
     required this.startDate,
@@ -32,6 +33,7 @@ class CreateAssignmentParams {
   final String? wordListId;
   final bool lockLibrary;
   final String? scopeLpUnitId;
+  final String? unitId;
   final String? unitName;
   final int? totalItems;
   final DateTime startDate;
@@ -77,6 +79,7 @@ class CreateAssignmentUseCase
       contentConfig['wordListId'] = params.wordListId;
     } else if (params.type == AssignmentType.unit) {
       contentConfig['scopeLpUnitId'] = params.scopeLpUnitId;
+      contentConfig['unitId'] = params.unitId;
       contentConfig['unitName'] = params.unitName;
       contentConfig['totalItems'] = params.totalItems;
     }

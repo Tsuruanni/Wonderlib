@@ -96,16 +96,14 @@ class _StatsBar extends ConsumerWidget {
             if (user != null) showStreakSheet(context);
           },
           child: _StatChip(
-            icon: Icons.local_fire_department,
-            iconColor: AppColors.streakOrange,
+            assetPath: 'assets/icons/fire_menu_bar_256.png',
             value: streak,
           ),
         ),
         const SizedBox(width: 12),
         // Coins
         _StatChip(
-          icon: Icons.monetization_on_rounded,
-          iconColor: AppColors.cardLegendary,
+          assetPath: 'assets/icons/gem_outline_256.png',
           value: coins,
         ),
       ],
@@ -115,13 +113,15 @@ class _StatsBar extends ConsumerWidget {
 
 class _StatChip extends StatelessWidget {
   const _StatChip({
-    required this.icon,
-    required this.iconColor,
+    this.icon,
+    this.iconColor,
+    this.assetPath,
     required this.value,
   });
 
-  final IconData icon;
-  final Color iconColor;
+  final IconData? icon;
+  final Color? iconColor;
+  final String? assetPath;
   final int value;
 
   @override
@@ -129,7 +129,10 @@ class _StatChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: iconColor, size: 24),
+        if (assetPath != null)
+          Image.asset(assetPath!, width: 24, height: 24, filterQuality: FilterQuality.high)
+        else
+          Icon(icon, color: iconColor, size: 24),
         const SizedBox(width: 4),
         Text(
           value.toString(),
@@ -661,7 +664,7 @@ class _OpenPackCard extends ConsumerWidget {
                   : Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.monetization_on_rounded, color: AppColors.wasp, size: 18),
+                        Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
                         const SizedBox(width: 4),
                         Text(
                           '$packCost',

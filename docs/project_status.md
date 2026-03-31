@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-01 (Timezone fix: app_now() + client UTC alignment across 20 files, migration pushed)
+Son güncelleme: 2026-04-01 (UI polish: custom icons, gamified dialogs, path enhancements, assignment badges)
 
 ## Current Phase
 
@@ -166,6 +166,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Dev Tool Fast Login (one-click admin login on login screen)
 - [x] Daily Review Flashcard Redesign (playing card front, banner+image back, dismiss animation, fixed layout, max width)
 - [x] Timezone Fix (app_now() UTC alignment, client .toUtc() across 20 files, CLAUDE.md rules)
+- [x] UI Polish — Custom Icons & Gamified Dialogs (PNG assets for nav/path/stats, confirm dialog redesign, path enhancements)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

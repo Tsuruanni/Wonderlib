@@ -8,6 +8,30 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### UI Polish — Custom Icons, Gamified Dialogs, Path Enhancements (2026-04-01)
+
+#### Changed
+- **Top Navbar redesign** — Green background removed, replaced with transparent bg + bottom border (Duolingo-style). Material Icons replaced with custom PNG assets (UK flag, fire, gem). Dividers removed for cleaner look.
+- **Confirm dialog gamified** — `showConfirmDialog()` utility upgraded from plain `AlertDialog` + `TextButton` to styled `Dialog` with circular icon, `GoogleFonts.nunito` typography, and `GameButton` widgets. Affects sign out, download removal, class deletion.
+- **Material Icons → custom PNG assets** — Coin/gem, fire/streak, freeze icons across 10+ widgets replaced with custom assets for consistent visual identity.
+- **Navigation bar icons** — Sidebar and bottom nav items now use custom PNG assets (map, library, clipboard, card, trophy).
+- **Path node assets** — Learning path nodes use type-specific PNG assets (voc, book, game, treasure) with state variants (active/completed/locked/pressed). Unit nodes use custom PNG.
+- **Start bubble → contextual** — "START" bubble now shows "YOU ARE HERE" for non-first nodes in a unit.
+- **Assignment badge** — Assigned nodes display a quest badge icon positioned outside the node circle.
+- **Node popup progress stats** — Word list popup cards now show sessions count, best accuracy, and top score.
+- **Unit detail auto-scroll** — Unit detail screen auto-scrolls to the active node on open.
+- **Unit detail back button** — Floating circular back button overlaid on tile map.
+- **Tile image fade-in** — Map tile background images now fade in with 400ms animation.
+- **Zoom page transitions** — Vocabulary session and book detail routes use `ZoomTransitionPage`.
+- **Pack opening session key** — `AnimatedSwitcher` duplicate-key crash fixed with session-scoped keys.
+- **Profile "My Word Bank"** — New button in stats section linking to vocabulary hub.
+- **Quests SafeArea** — Added missing `SafeArea` wrapper.
+- **Student profile dialog** — Added `maxWidth: 400` constraint for web.
+- **Mouse hover on path nodes** — Desktop hover state changes cursor and shows pressed visual.
+
+#### Infrastructure
+- **Assignment `unitId` field** — Added to `StudentAssignment` entity, `CreateAssignmentParams`, and unit selection sheet callback for proper unit-level assignment matching.
+
 ### Timezone Fix — Client & Server UTC Alignment (2026-04-01)
 
 #### Fixed

@@ -141,6 +141,14 @@ class StudentAssignment extends Equatable {
     return null;
   }
 
+  /// Get vocabulary unit ID if this is a unit assignment
+  String? get unitId {
+    if (type == StudentAssignmentType.unit) {
+      return contentConfig['unitId'] as String?;
+    }
+    return null;
+  }
+
   /// Whether this assignment locks the library to only the assigned book.
   bool get hasLibraryLock => contentConfig['lockLibrary'] == true;
 

@@ -296,7 +296,7 @@ class _VocabularySessionScreenState
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.monetization_on, color: Colors.amber, size: 18),
+                              Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
                               const SizedBox(width: 4),
                               Text(
                                 '${sessionState.xpEarned}',
