@@ -36,10 +36,8 @@ abstract class RpcFunctions {
   static const getUserSchoolPosition = 'get_user_school_position';
 
   // Leaderboard (weekly leagues)
-  static const getWeeklyClassLeaderboard = 'get_weekly_class_leaderboard';
-  static const getWeeklySchoolLeaderboard = 'get_weekly_school_leaderboard';
-  static const getUserWeeklyClassPosition = 'get_user_weekly_class_position';
-  static const getUserWeeklySchoolPosition = 'get_user_weekly_school_position';
+  static const getLeagueGroupLeaderboard = 'get_league_group_leaderboard';
+  static const getUserLeagueStatus = 'get_user_league_status';
   static const processWeeklyLeagueReset = 'process_weekly_league_reset';
 
   // Learning paths
