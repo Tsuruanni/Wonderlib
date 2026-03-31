@@ -28,14 +28,16 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final scope = ref.watch(leaderboardScopeProvider);
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
-    // Listen for league join transition (not joined → joined)
+    // Listen for league join transition (not-joined → joined)
+    // Only fires on data→data transition, NOT on initial load (loading→data)
     ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
       if (_joinDialogShown) return;
-      final wasJoined = prev?.valueOrNull?.joined ?? false;
-      final isJoined = next.valueOrNull?.joined ?? false;
-      if (!wasJoined && isJoined) {
+      final prevData = prev?.valueOrNull;
+      final nextData = next.valueOrNull;
+      // prev must be actual data with joined=false, next must be data with joined=true
+      if (prevData != null && !prevData.joined && nextData != null && nextData.joined) {
         _joinDialogShown = true;
-        final tier = next.valueOrNull?.tier ?? LeagueTier.bronze;
+        final tier = nextData.tier;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) _showLeagueJoinedDialog(context, tier);
         });
@@ -116,7 +118,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   void _showLeagueJoinedDialog(BuildContext context, LeagueTier tier) {
     showDialog(
       context: context,
-      builder: (_) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(28),
@@ -160,7 +162,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.waspDark,
                     foregroundColor: Colors.white,
