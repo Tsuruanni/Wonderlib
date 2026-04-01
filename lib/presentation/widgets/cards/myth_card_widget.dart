@@ -67,13 +67,21 @@ class MythCardWidget extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.1),
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.6),
-                    Colors.black.withValues(alpha: 0.9),
-                  ],
-                  stops: const [0.0, 0.4, 0.7, 1.0],
+                  colors: isFull
+                      ? [
+                          Colors.black.withValues(alpha: 0.1),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.6),
+                          Colors.black.withValues(alpha: 0.9),
+                        ]
+                      : [
+                          Colors.black.withValues(alpha: 0.7),
+                          Colors.transparent,
+                          Colors.transparent,
+                        ],
+                  stops: isFull
+                      ? const [0.0, 0.4, 0.7, 1.0]
+                      : const [0.0, 0.35, 1.0],
                 ),
               ),
             ),
@@ -184,14 +192,13 @@ class MythCardWidget extends StatelessWidget {
   }
 
   Widget _buildCardContent(bool isFull, Color rarityColor, Color rarityDark) {
-    // Mini mode: only card name at bottom
+    // Mini mode: only card name at top
     if (!isFull) {
       return Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Spacer(),
             Text(
               card.name,
               textAlign: TextAlign.center,
@@ -210,6 +217,7 @@ class MythCardWidget extends StatelessWidget {
                 ],
               ),
             ),
+            const Spacer(),
           ],
         ),
       );
