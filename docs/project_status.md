@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-01 (UI polish: custom icons, gamified dialogs, path enhancements, assignment badges)
+Son güncelleme: 2026-04-01 (Rive pack opening, leaderboard redesign, card images → Supabase)
 
 ## Current Phase
 
@@ -97,6 +97,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Notification Settings + Streak Extended (daily Day X! dialog, 7 admin-configurable notification toggles)
 - [x] Admin Notification Gallery (dedicated /notifications page with preview cards)
 - [x] Admin Units & Unit Books management (CRUD screens)
+- [x] Rive pack opening (dynamic image replacement, carousel reveal, preload pipeline)
+- [x] Leaderboard redesign (weekly tiers, rank icons, promotion/demotion zones)
 - [x] Shared Dart package (owlio_shared: DbTables, RpcFunctions, shared enums)
 - [x] Username Auth & Bulk Student Creation (synthetic email pattern, admin user creation screen, CSV bulk import)
 - [x] Admin Badge Improvements (dailyLogin removal, missing condition types, shared helper, per-badge stats, 3 new streak badges)

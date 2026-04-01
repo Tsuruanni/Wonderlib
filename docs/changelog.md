@@ -8,6 +8,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Rive Pack Opening & UI Overhaul (2026-04-01)
+
+#### Added
+- **Rive carousel reveal** — Pack opening reveal phase replaced with interactive Rive animation (`cards.riv`). Card images dynamically loaded from Supabase via `CallbackAssetLoader` with original-dimension resize for correct transforms.
+- **Card detail panel** — Rich info overlay (name, rarity, category, power, special skill, description) shown alongside carousel, responsive layout (right panel on web, bottom sheet on mobile).
+- **Preload pipeline** — Card images downloaded + Rive file loaded + image decode all happen during opening animation phase. 2s minimum opening ensures smooth transition.
+- **Idle screen redesign** — 3-card fan visual with breathing animation + shimmer, clean MYTHIC PACK title, responsive layout.
+- **Opening animation** — Animated card back with pulse + shimmer replaces plain spinner during pack RPC.
+
+#### Changed
+- **CoinBadge** — Coin circle icon replaced with `gem_outline_256.png` asset.
+- **GameButton** — Icon positioning moved from left to right side of label.
+- **Pack flow simplified** — Glow phase removed. Flow: idle → opening (animated) → revealing (Rive). Continue returns to idle directly.
+
+#### Fixed
+- **FutureBuilder instability** — `??` fallback replaced with `??=` to prevent unstable future recreation on rebuild.
+- **Legendary overlay re-fire** — Guard added to prevent duplicate overlay triggers on CONTINUE.
+- **Dead code cleanup** — Removed unused `startRevealing()`, consolidated `glowing` phase case, eliminated duplicate Rive widget construction.
+
+### Leaderboard Redesign & Profile Polish (2026-04-01)
+
+#### Changed
+- **Leaderboard** — Weekly tier system with promotion/demotion zones, custom rank PNG icons (bronze→diamond).
+- **Profile** — Layout improvements, stat section polish.
+- **MythCardWidget** — Image loading refined for Supabase Storage URLs.
+
+#### Infrastructure
+- **Card images removed from assets** — 95 PNGs (~150MB) migrated to Supabase Storage, loaded via `image_url` column at runtime.
+
 ### UI Polish — Custom Icons, Gamified Dialogs, Path Enhancements (2026-04-01)
 
 #### Changed
