@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-01 (Custom icon system, podium redesign, assignment badges)
+Son güncelleme: 2026-04-01 (Card panel widgets, trade system, custom icons, URL encoding fix)
 
 ## Current Phase
 

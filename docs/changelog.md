@@ -46,6 +46,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 #### Fixed
 - **AnimatedSwitcher crash** — Duplicate-key crash on pack reveal → idle transition fixed with session-scoped keys.
 - **Trade screen UX** — Continue returns to cards, tap only adds (doesn't toggle), mobile banner layout.
+- **Card image URL encoding** — Spaces in Supabase Storage URLs (`Holy Grail.png`) now percent-encoded for web compatibility.
 
 #### Infrastructure
 - **4 DB migrations** — `card_panel_rpcs`, `card_owners_in_class`, `duplicate_card_trade`, `trade_cost_7_uniform`.
