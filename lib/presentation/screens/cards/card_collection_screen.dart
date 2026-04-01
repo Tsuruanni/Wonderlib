@@ -319,10 +319,10 @@ class _CategorySection extends ConsumerWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final itemsPerRow = ((constraints.maxWidth + _spacing) / (_cardWidth + _spacing)).floor().clamp(1, 20);
-                // Show enough rows so all owned cards are visible
+                // Show enough rows so all owned cards are visible (min 1 row)
                 final lastOwnedIndex = cards.lastIndexWhere((c) => ownedIds.contains(c.id));
-                final minRowsForOwned = lastOwnedIndex < 0 ? 2 : ((lastOwnedIndex + 1) / itemsPerRow).ceil();
-                final minRows = minRowsForOwned.clamp(2, (cards.length / itemsPerRow).ceil());
+                final minRowsForOwned = lastOwnedIndex < 0 ? 1 : ((lastOwnedIndex + 1) / itemsPerRow).ceil();
+                final minRows = minRowsForOwned.clamp(1, (cards.length / itemsPerRow).ceil());
                 final maxVisible = isExpanded ? cards.length : (minRows * itemsPerRow).clamp(0, cards.length);
                 final hasMore = cards.length > maxVisible && !isExpanded;
                 final visibleCount = hasMore ? maxVisible - 1 : cards.length;

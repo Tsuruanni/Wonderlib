@@ -373,6 +373,8 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
     state = PackOpeningState(sessionId: state.sessionId + 1);
     _ref.invalidate(userCardsProvider);
     _ref.invalidate(userCardStatsProvider);
+    _ref.invalidate(classTopCollectorsProvider);
+    _ref.invalidate(exclusiveCardsProvider);
     _ref.read(userControllerProvider.notifier).refreshProfileOnly();
   }
 }

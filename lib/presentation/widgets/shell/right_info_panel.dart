@@ -739,7 +739,12 @@ class _OpenPackCard extends ConsumerWidget {
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text('✨', style: TextStyle(fontSize: 20)),
+                      child: Image.asset(
+                        'assets/icons/card.png',
+                        width: 24,
+                        height: 24,
+                        filterQuality: FilterQuality.high,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
