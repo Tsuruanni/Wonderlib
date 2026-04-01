@@ -8,6 +8,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Card Panel Sidebar, Trade System & League Sidebar Ranks (2026-04-01)
+
+#### Added
+- **Card panel sidebar widgets** — 5 new widgets for the right info panel on card collection page: collection progress, rarity showcase, rarest card owners, top collectors, and trade button.
+- **Card trade system** — Full-stack duplicate card trade feature: trade 7 duplicate cards for 1 guaranteed new card. DB migration (`card_trade_logs` table + `trade_duplicate_cards` RPC), domain layer (entity + usecase), provider layer (selection state, tradeable cards), and trade screen UI with tabs, selection, and reveal animation.
+- **Class & School rank in league sidebar** — Right info panel league card now shows class rank and school rank (total XP) below the league ranking, using two independent providers (`userClassRankProvider`, `userSchoolRankProvider`).
+- **Card panel RPCs** — `get_class_top_collectors` and `get_exclusive_cards` RPCs for sidebar widgets.
+- **Card class ownership** — Card detail dialog shows which classmates own the same card.
+
+#### Changed
+- **League card label** — "VIEW LEAGUE" → "VIEW STATS" in right info panel.
+- **Card mini preview** — Simplified to name only, quantity shown bottom-right.
+- **MythCardWidget** — Duplicate count merged into collection card, `DuplicateCounterCard` removed from panel.
+- **Pack banner** — Single-line redesign with packs-opened stat, duplicates removed.
+
+#### Fixed
+- **AnimatedSwitcher crash** — Duplicate-key crash on pack reveal → idle transition fixed with session-scoped keys.
+- **Trade screen UX** — Continue returns to cards, tap only adds (doesn't toggle), mobile banner layout.
+
+#### Infrastructure
+- **4 DB migrations** — `card_panel_rpcs`, `card_owners_in_class`, `duplicate_card_trade`, `trade_cost_7_uniform`.
+
 ### Rive Pack Opening & UI Overhaul (2026-04-01)
 
 #### Added

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-01 (Rive pack opening, leaderboard redesign, card images → Supabase)
+Son güncelleme: 2026-04-01 (Card panel sidebar, trade system, league sidebar ranks)
 
 ## Current Phase
 
@@ -169,6 +169,9 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Review Flashcard Redesign (playing card front, banner+image back, dismiss animation, fixed layout, max width)
 - [x] Timezone Fix (app_now() UTC alignment, client .toUtc() across 20 files, CLAUDE.md rules)
 - [x] UI Polish — Custom Icons & Gamified Dialogs (PNG assets for nav/path/stats, confirm dialog redesign, path enhancements)
+- [x] Card Panel Sidebar Widgets (5 widgets: collection progress, rarity showcase, rarest owners, top collectors, trade button)
+- [x] Duplicate Card Trade System (trade 7 dupes for 1 new, full-stack: RPC + entity + usecase + provider + screen)
+- [x] League Sidebar — Class & School Ranks (independent rank providers, VIEW STATS label)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -184,7 +187,7 @@ See: CLAUDE.md for architecture guidelines
 | ~~Unit Map Navigation~~ | - | ~~Done~~ | ~~3-layer vocab hub, path-level themes, admin race condition fix~~ |
 | ~~Home Page Removal~~ | - | ~~Done~~ | ~~Quests page, assignments redesign, daily review quest fix~~ |
 | Testing & Validation | User | Active | Manual testing on remote Supabase |
-| Main app card image migration | - | Pending | Switch from local assets to Storage URLs, remove 148MB assets |
+| ~~Main app card image migration~~ | - | ~~Done~~ | ~~Switched to Supabase Storage URLs, image_url column~~ |
 | Username Auth — Flutter app deploy | - | Pending | Build & deploy new login screen, then run migrate-student-emails |
 
 ## Deferred
@@ -240,6 +243,9 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| League Sidebar — Class & School Ranks | 2026-04-01 | Independent `userClassRankProvider`/`userSchoolRankProvider` (total XP). Divider + rank rows in league card. "VIEW LEAGUE" → "VIEW STATS". |
+| Card Trade System | 2026-04-01 | Full-stack: `card_trade_logs` table + `trade_duplicate_cards` RPC (uniform 7-dupe cost, pity-aware new card selection). Domain: `TradeResult` entity + `TradeDuplicateCardsUseCase`. UI: tabbed trade screen with card selection, reveal animation, shell integration. 2 DB migrations. |
+| Card Panel Sidebar Widgets | 2026-04-01 | 5 widgets: `CollectionProgressCard`, `RarityShowcaseCard`, `RarestCardOwnerCard`, `TopCollectorsCard`, `TradeButtonCard`. 2 new RPCs: `get_class_top_collectors`, `get_exclusive_cards`. Providers: `rarityBreakdownProvider`, `classTopCollectorsProvider`, `exclusiveCardsProvider`. Card detail dialog: class ownership display. Card mini preview simplified. 2 DB migrations. |
 | Learning Path UX Polish | 2026-03-31 | Zoom transition (unit map → detail), active node bounce animation, mobile node scaling (0.7x on <600px), shell content border on wide screens, UnitAppBar + DailyReviewBanner removed. |
 | Learning Path Node Redesign | 2026-03-31 | 3D glossy sphere nodes with press-down effect, popup cards on tap (START/READ/PLAY/CLAIM), unit numbers in unit-map nodes, gold star crowns above nodes, completed = green pressed state. Library continue-reading card redesign. Review node artifacts removed. |
 | Tile Theme Editor + Learning Path Redesign | 2026-03-30 | Tile-based map system replacing legacy zigzag. Admin tile theme CRUD with image upload, node position sliders, live preview. Per-unit theme assignment in template/assignment editors. Responsive scaling (mobile-friendly). 5 DB migrations, domain layer (entity→model→repo→usecase→provider). `tile_theme_id` on learning path units (not vocabulary_units). Unit gate toggle for inter-unit locking. |
