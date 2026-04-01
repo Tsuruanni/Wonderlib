@@ -117,6 +117,7 @@ DECLARE
     v_amount INTEGER;
     v_current_qty INTEGER;
     v_selected_card RECORD;
+    v_existing RECORD;
     v_is_new BOOLEAN;
     v_new_qty INTEGER;
     v_roll DOUBLE PRECISION;
@@ -128,36 +129,33 @@ BEGIN
 
     -- Idempotency check: return full result from previous trade
     IF p_idempotency_key IS NOT NULL THEN
-        DECLARE v_existing RECORD;
-        BEGIN
-            SELECT ctl.received_card_id, ctl.was_new_card,
-                   mc.card_no, mc.name, mc.category, mc.category_icon,
-                   mc.rarity, mc.power, mc.special_skill, mc.description, mc.image_url
-            INTO v_existing
-            FROM card_trade_logs ctl
-            JOIN myth_cards mc ON mc.id = ctl.received_card_id
-            WHERE ctl.idempotency_key = p_idempotency_key;
+        SELECT ctl.received_card_id, ctl.was_new_card,
+               mc.card_no, mc.name, mc.category, mc.category_icon,
+               mc.rarity, mc.power, mc.special_skill, mc.description, mc.image_url
+        INTO v_existing
+        FROM card_trade_logs ctl
+        JOIN myth_cards mc ON mc.id = ctl.received_card_id
+        WHERE ctl.idempotency_key = p_idempotency_key;
 
-            IF FOUND THEN
-                RETURN jsonb_build_object(
-                    'received_card', jsonb_build_object(
-                        'id', v_existing.received_card_id,
-                        'card_no', v_existing.card_no,
-                        'name', v_existing.name,
-                        'category', v_existing.category,
-                        'category_icon', v_existing.category_icon,
-                        'rarity', v_existing.rarity,
-                        'power', v_existing.power,
-                        'special_skill', v_existing.special_skill,
-                        'description', v_existing.description,
-                        'image_url', v_existing.image_url
-                    ),
-                    'is_new', v_existing.was_new_card,
-                    'quantity', (SELECT quantity FROM user_cards WHERE user_id = p_user_id AND card_id = v_existing.received_card_id),
-                    'already_processed', true
-                );
-            END IF;
-        END;
+        IF FOUND THEN
+            RETURN jsonb_build_object(
+                'received_card', jsonb_build_object(
+                    'id', v_existing.received_card_id,
+                    'card_no', v_existing.card_no,
+                    'name', v_existing.name,
+                    'category', v_existing.category,
+                    'category_icon', v_existing.category_icon,
+                    'rarity', v_existing.rarity,
+                    'power', v_existing.power,
+                    'special_skill', v_existing.special_skill,
+                    'description', v_existing.description,
+                    'image_url', v_existing.image_url
+                ),
+                'is_new', v_existing.was_new_card,
+                'quantity', (SELECT quantity FROM user_cards WHERE user_id = p_user_id AND card_id = v_existing.received_card_id),
+                'already_processed', true
+            );
+        END IF;
     END IF;
 
     -- Determine source rarity and required count from target
