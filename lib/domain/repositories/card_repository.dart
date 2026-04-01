@@ -27,4 +27,12 @@ abstract class CardRepository {
 
   /// Get classmates who own a specific card
   Future<Either<Failure, CardOwnersInClass>> getCardOwnersInClass(String userId, String cardId);
+
+  /// Trade duplicate cards for a higher-rarity card
+  Future<Either<Failure, TradeResult>> tradeDuplicateCards(
+    String userId, {
+    required Map<String, int> cardQuantities,
+    required String targetRarity,
+    String? idempotencyKey,
+  });
 }

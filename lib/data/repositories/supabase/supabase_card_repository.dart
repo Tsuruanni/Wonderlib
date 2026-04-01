@@ -193,7 +193,7 @@ class SupabaseCardRepository implements CardRepository {
 
   @override
   Future<Either<Failure, CardOwnersInClass>> getCardOwnersInClass(
-      String userId, String cardId) async {
+      String userId, String cardId,) async {
     try {
       final response = await _supabase.rpc(
         RpcFunctions.getCardOwnersInClass,
@@ -207,7 +207,54 @@ class SupabaseCardRepository implements CardRepository {
       return Right(CardOwnersInClass(
         ownerNames: owners,
         totalStudents: totalStudents,
-      ));
+      ),);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, TradeResult>> tradeDuplicateCards(
+    String userId, {
+    required Map<String, int> cardQuantities,
+    required String targetRarity,
+    String? idempotencyKey,
+  }) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.tradeDuplicateCards,
+        params: {
+          'p_user_id': userId,
+          'p_card_quantities': cardQuantities,
+          'p_target_rarity': targetRarity,
+          if (idempotencyKey != null) 'p_idempotency_key': idempotencyKey,
+        },
+      );
+
+      final json = response as Map<String, dynamic>;
+      final cardJson = json['received_card'] as Map<String, dynamic>;
+
+      final receivedCard = MythCard(
+        id: cardJson['id'] as String,
+        cardNo: cardJson['card_no'] as String,
+        name: cardJson['name'] as String,
+        category: CardCategory.fromDbValue(cardJson['category'] as String),
+        rarity: CardRarity.fromDbValue(cardJson['rarity'] as String),
+        power: (cardJson['power'] as num).toInt(),
+        specialSkill: cardJson['special_skill'] as String?,
+        description: cardJson['description'] as String?,
+        categoryIcon: cardJson['category_icon'] as String?,
+        imageUrl: cardJson['image_url'] as String?,
+        createdAt: DateTime.utc(2000),
+      );
+
+      return Right(TradeResult(
+        receivedCard: receivedCard,
+        isNew: json['is_new'] as bool,
+        quantity: (json['quantity'] as num).toInt(),
+      ),);
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

@@ -203,3 +203,19 @@ class CardOwnersInClass extends Equatable {
   @override
   List<Object?> get props => [ownerNames, totalStudents];
 }
+
+/// Result of a duplicate card trade
+class TradeResult extends Equatable {
+  const TradeResult({
+    required this.receivedCard,
+    required this.isNew,
+    required this.quantity,
+  });
+
+  final MythCard receivedCard;
+  final bool isNew;
+  final int quantity;
+
+  @override
+  List<Object?> get props => [receivedCard, isNew, quantity];
+}
