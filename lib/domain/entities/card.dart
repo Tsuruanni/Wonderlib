@@ -186,3 +186,20 @@ class TopCollectorsResult extends Equatable {
   @override
   List<Object?> get props => [top3, caller];
 }
+
+/// Result of get_card_owners_in_class RPC
+class CardOwnersInClass extends Equatable {
+  const CardOwnersInClass({
+    required this.ownerNames,
+    required this.totalStudents,
+  });
+
+  /// First names of classmates (excluding caller) who own this card
+  final List<String> ownerNames;
+
+  /// Total number of other students in the class
+  final int totalStudents;
+
+  @override
+  List<Object?> get props => [ownerNames, totalStudents];
+}

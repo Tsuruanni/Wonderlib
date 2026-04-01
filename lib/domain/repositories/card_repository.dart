@@ -24,4 +24,7 @@ abstract class CardRepository {
 
   /// Get cards only this user owns in their class (up to 2)
   Future<Either<Failure, List<MythCard>>> getExclusiveCards(String userId);
+
+  /// Get classmates who own a specific card
+  Future<Either<Failure, CardOwnersInClass>> getCardOwnersInClass(String userId, String cardId);
 }

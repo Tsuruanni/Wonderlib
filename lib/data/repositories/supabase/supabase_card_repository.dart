@@ -191,4 +191,27 @@ class SupabaseCardRepository implements CardRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, CardOwnersInClass>> getCardOwnersInClass(
+      String userId, String cardId) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getCardOwnersInClass,
+        params: {'p_user_id': userId, 'p_card_id': cardId},
+      );
+
+      final json = response as Map<String, dynamic>;
+      final owners = (json['owners'] as List).cast<String>();
+      final totalStudents = (json['total_students'] as num).toInt();
+
+      return Right(CardOwnersInClass(
+        ownerNames: owners,
+        totalStudents: totalStudents,
+      ));
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

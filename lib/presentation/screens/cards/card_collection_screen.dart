@@ -98,12 +98,26 @@ class CardCollectionScreen extends ConsumerWidget {
       builder: (context) => GestureDetector(
         onTap: () => Navigator.pop(context),
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-            child: MythCardWidget(
-              card: card,
-              isFull: true,
-              quantity: quantity,
+          child: GestureDetector(
+            onTap: () {}, // prevent dismiss on card tap
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 280),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Card image (mini mode — name/power/rarity already on it)
+                    MythCardWidget(
+                      card: card,
+                      quantity: quantity,
+                    ),
+                    const SizedBox(height: 12),
+                    // Info panel below
+                    _CardDetailInfo(card: card),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -543,6 +557,157 @@ class _LoadMoreButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Info panel shown below the card in the detail dialog.
+class _CardDetailInfo extends ConsumerWidget {
+  const _CardDetailInfo({required this.card});
+  final MythCard card;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rarityColor = Color(card.rarity.colorHex);
+    final ownersAsync = ref.watch(cardOwnersInClassProvider(card.id));
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Rarity row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: rarityColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: rarityColor.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  card.rarity.label,
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: rarityColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                CardColors.getRarityStars(card.rarity),
+                style: TextStyle(fontSize: 14, color: rarityColor),
+              ),
+            ],
+          ),
+
+          // Description if exists
+          if (card.description != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              card.description!,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                color: AppColors.neutralText,
+                height: 1.4,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+
+          // Special skill if exists
+          if (card.specialSkill != null) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: rarityColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '⚡ ${card.specialSkill}',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
+                ),
+              ),
+            ),
+          ],
+
+          // Who owns this card
+          const SizedBox(height: 14),
+          ownersAsync.when(
+            loading: () => const SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (data) => _buildOwnership(data, rarityColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOwnership(CardOwnersInClass data, Color rarityColor) {
+    final ownerCount = data.ownerNames.length;
+    final totalStudents = data.totalStudents;
+
+    if (totalStudents == 0) return const SizedBox.shrink();
+
+    if (ownerCount == 0) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.star_rounded, size: 18, color: rarityColor),
+          const SizedBox(width: 4),
+          Text(
+            'No one else in your class has this!',
+            style: GoogleFonts.nunito(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: rarityColor,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final names = ownerCount <= 3
+        ? data.ownerNames.join(', ')
+        : '${data.ownerNames.take(3).join(', ')} +${ownerCount - 3} more';
+
+    return Column(
+      children: [
+        Text(
+          '$ownerCount of $totalStudents classmates also own this',
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.neutralText,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          names,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            color: AppColors.neutralText,
+          ),
+        ),
+      ],
     );
   }
 }

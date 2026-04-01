@@ -26,6 +26,7 @@ abstract class RpcFunctions {
   static const openCardPack = 'open_card_pack';
   static const getClassTopCollectors = 'get_class_top_collectors';
   static const getExclusiveCards = 'get_exclusive_cards';
+  static const getCardOwnersInClass = 'get_card_owners_in_class';
   static const getDailyQuestProgress = 'get_daily_quest_progress';
   static const claimDailyBonus = 'claim_daily_bonus';
   static const getQuestCompletionStats = 'get_quest_completion_stats';

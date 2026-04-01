@@ -12,6 +12,7 @@ import '../../domain/usecases/card/get_exclusive_cards_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'repository_providers.dart';
 import 'user_provider.dart';
 
 // ============================================
@@ -192,6 +193,25 @@ final exclusiveCardsProvider = FutureProvider<List<MythCard>>((ref) async {
       return [];
     },
     (cards) => cards,
+  );
+});
+
+/// Classmates who own a specific card (for card detail dialog)
+final cardOwnersInClassProvider =
+    FutureProvider.family<CardOwnersInClass, String>((ref, cardId) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) {
+    return const CardOwnersInClass(ownerNames: [], totalStudents: 0);
+  }
+
+  final repo = ref.watch(cardRepositoryProvider);
+  final result = await repo.getCardOwnersInClass(userId, cardId);
+  return result.fold(
+    (failure) {
+      debugPrint('cardOwnersInClassProvider error: ${failure.message}');
+      return const CardOwnersInClass(ownerNames: [], totalStudents: 0);
+    },
+    (data) => data,
   );
 });
 
