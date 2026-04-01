@@ -68,6 +68,7 @@ import '../../domain/usecases/card/buy_pack_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
 import '../../domain/usecases/card/get_class_top_collectors_usecase.dart';
 import '../../domain/usecases/card/get_exclusive_cards_usecase.dart';
+import '../../domain/usecases/card/trade_duplicate_cards_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
@@ -688,6 +689,10 @@ final getClassTopCollectorsUseCaseProvider = Provider((ref) {
 
 final getExclusiveCardsUseCaseProvider = Provider((ref) {
   return GetExclusiveCardsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final tradeDuplicateCardsUseCaseProvider = Provider((ref) {
+  return TradeDuplicateCardsUseCase(ref.watch(cardRepositoryProvider));
 });
 
 // ============================================
