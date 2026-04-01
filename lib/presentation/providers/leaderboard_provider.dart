@@ -105,6 +105,38 @@ final currentUserTotalPositionProvider =
   }
 });
 
+/// User's class rank (total XP) — independent of leaderboard scope selection.
+final userClassRankProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final currentUser = ref.watch(authStateChangesProvider).valueOrNull;
+  if (currentUser == null || currentUser.classId == null) return null;
+
+  final useCase = ref.watch(getUserTotalPositionUseCaseProvider);
+  final result = await useCase(
+    GetUserTotalPositionParams(
+      userId: currentUser.id,
+      scope: TotalLeaderboardScope.classScope,
+      classId: currentUser.classId,
+    ),
+  );
+  return result.fold((_) => null, (entry) => entry.rank);
+});
+
+/// User's school rank (total XP) — independent of leaderboard scope selection.
+final userSchoolRankProvider = FutureProvider.autoDispose<int?>((ref) async {
+  final currentUser = ref.watch(authStateChangesProvider).valueOrNull;
+  if (currentUser == null) return null;
+
+  final useCase = ref.watch(getUserTotalPositionUseCaseProvider);
+  final result = await useCase(
+    GetUserTotalPositionParams(
+      userId: currentUser.id,
+      scope: TotalLeaderboardScope.schoolScope,
+      schoolId: currentUser.schoolId,
+    ),
+  );
+  return result.fold((_) => null, (entry) => entry.rank);
+});
+
 /// Combined leaderboard display state.
 final leaderboardDisplayProvider =
     FutureProvider.autoDispose<LeaderboardDisplayState>((ref) async {

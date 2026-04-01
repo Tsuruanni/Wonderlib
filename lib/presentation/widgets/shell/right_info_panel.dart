@@ -167,6 +167,16 @@ class _LeagueCard extends ConsumerWidget {
     }
   }
 
+  static String _tierAsset(LeagueTier tier) {
+    return switch (tier) {
+      LeagueTier.bronze => 'assets/icons/rank-bronze-1_large.png',
+      LeagueTier.silver => 'assets/icons/rank-silver-2_large.png',
+      LeagueTier.gold => 'assets/icons/rank-gold-3_large.png',
+      LeagueTier.platinum => 'assets/icons/rank-platinum-5_large.png',
+      LeagueTier.diamond => 'assets/icons/rank-diamond-7_large.png',
+    };
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(userControllerProvider).valueOrNull;
@@ -174,6 +184,8 @@ class _LeagueCard extends ConsumerWidget {
     final color = _tierColor(tier);
     final statusAsync = ref.watch(leagueStatusProvider);
     final status = statusAsync.valueOrNull;
+    final classRank = ref.watch(userClassRankProvider).valueOrNull;
+    final schoolRank = ref.watch(userSchoolRankProvider).valueOrNull;
 
     // Days left until Sunday
     final now = DateTime.now();
@@ -206,7 +218,7 @@ class _LeagueCard extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  'VIEW LEAGUE',
+                  'VIEW STATS',
                   style: GoogleFonts.nunito(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -218,14 +230,12 @@ class _LeagueCard extends ConsumerWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                // Tier shield
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.shield_rounded, color: color, size: 28),
+                // Tier rank icon
+                Image.asset(
+                  _tierAsset(tier),
+                  width: 44,
+                  height: 44,
+                  filterQuality: FilterQuality.high,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -273,9 +283,69 @@ class _LeagueCard extends ConsumerWidget {
                 ),
               ],
             ),
+            // Class & School rankings
+            if (classRank != null || schoolRank != null) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Divider(height: 1, color: AppColors.neutral),
+              ),
+              if (classRank != null)
+                _RankRow(
+                  icon: Icons.groups_rounded,
+                  label: 'Class Rank',
+                  rank: classRank,
+                ),
+              if (classRank != null && schoolRank != null)
+                const SizedBox(height: 6),
+              if (schoolRank != null)
+                _RankRow(
+                  icon: Icons.school_rounded,
+                  label: 'School Rank',
+                  rank: schoolRank,
+                ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _RankRow extends StatelessWidget {
+  const _RankRow({
+    required this.icon,
+    required this.label,
+    required this.rank,
+  });
+
+  final IconData icon;
+  final String label;
+  final int rank;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.neutralText),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.neutralText,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          '#$rank',
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: AppColors.black,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -544,7 +614,7 @@ class _DailyReviewCard extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 24),
+                child: Image.asset('assets/icons/xp_green_outline.png', width: 24, height: 24, filterQuality: FilterQuality.high),
               ),
               const SizedBox(width: 12),
               Expanded(

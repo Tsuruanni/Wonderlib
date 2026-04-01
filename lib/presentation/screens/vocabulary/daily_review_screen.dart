@@ -201,7 +201,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.bolt_rounded, color: AppColors.streakOrange, size: 32),
+                    Image.asset('assets/icons/xp_green_outline.png', width: 32, height: 32, filterQuality: FilterQuality.high),
                     const SizedBox(width: 8),
                     Text(
                       '+$xpEarned XP',

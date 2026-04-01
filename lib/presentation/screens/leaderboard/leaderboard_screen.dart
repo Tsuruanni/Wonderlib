@@ -125,18 +125,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
+              Image.asset(
+                _tierAsset(tier),
                 width: 72,
                 height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _TierShield._tierColor(tier).withValues(alpha: 0.15),
-                ),
-                child: Icon(
-                  Icons.shield_rounded,
-                  size: 40,
-                  color: _TierShield._tierColor(tier),
-                ),
+                filterQuality: FilterQuality.high,
               ),
               const SizedBox(height: 16),
               Text(
@@ -397,28 +390,13 @@ class _TierShield extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = isCurrent ? 44.0 : 28.0;
-    final color = _tierColor(tier);
+    final size = isCurrent ? 84.0 : 28.0;
 
-    return Container(
+    return Image.asset(
+      _tierAsset(tier),
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: isCurrent ? color : AppColors.neutral,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: isCurrent ? color.withValues(alpha: 0.8) : AppColors.neutral,
-          width: 2,
-        ),
-        boxShadow: isCurrent
-            ? [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8)]
-            : null,
-      ),
-      child: Icon(
-        Icons.shield_rounded,
-        size: isCurrent ? 24 : 14,
-        color: isCurrent ? Colors.white : AppColors.neutralDark,
-      ),
+      filterQuality: FilterQuality.high,
     );
   }
 
@@ -436,6 +414,16 @@ class _TierShield extends StatelessWidget {
 // ─────────────────────────────────────────────
 // Flat leaderboard list (Duolingo style)
 // ─────────────────────────────────────────────
+
+String _tierAsset(LeagueTier tier) {
+  return switch (tier) {
+    LeagueTier.bronze => 'assets/icons/rank-bronze-1_large.png',
+    LeagueTier.silver => 'assets/icons/rank-silver-2_large.png',
+    LeagueTier.gold => 'assets/icons/rank-gold-3_large.png',
+    LeagueTier.platinum => 'assets/icons/rank-platinum-5_large.png',
+    LeagueTier.diamond => 'assets/icons/rank-diamond-7_large.png',
+  };
+}
 
 class _LeaderboardList extends StatelessWidget {
   const _LeaderboardList({
@@ -530,7 +518,7 @@ class _LeaderboardList extends StatelessWidget {
     final isLeague = state.isLeagueMode;
 
     // League mode: no frames (Duolingo style). Class/School: framed cards.
-    final bool frameless = isLeague;
+    final bool frameless = true;
 
     Color cardColor;
     Color? borderColor;
@@ -583,25 +571,42 @@ class _LeaderboardList extends StatelessWidget {
               leagueTier: entry.leagueTier,
               avatarEquippedCache: entry.avatarEquippedCache,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
 
-            // Name + class
+            // League tier icon (between avatar and name — class/school only)
+            if (!isLeague) ...[
+              _TierBadge(tier: entry.leagueTier),
+              const SizedBox(width: 8),
+            ],
+
+            // Name + class + same-school indicator
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    isCurrentUser
-                        ? '${entry.fullName} (You)'
-                        : entry.fullName,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight:
-                          isCurrentUser ? FontWeight.w900 : FontWeight.w700,
-                      color: AppColors.black,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          isCurrentUser
+                              ? '${entry.fullName} (You)'
+                              : entry.fullName,
+                          style: GoogleFonts.nunito(
+                            fontSize: 14,
+                            fontWeight:
+                                isCurrentUser ? FontWeight.w900 : FontWeight.w700,
+                            color: AppColors.black,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (state.isLeagueMode && entry.isSameSchool && !entry.isBot) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.school_rounded,
+                            size: 14, color: AppColors.secondary),
+                      ],
+                    ],
                   ),
                   if (showClassName && entry.className != null)
                     Text(
@@ -616,20 +621,7 @@ class _LeaderboardList extends StatelessWidget {
               ),
             ),
 
-            // Same-school indicator
-            if (state.isLeagueMode && entry.isSameSchool && !entry.isBot) ...[
-              const Icon(Icons.school_rounded,
-                  size: 14, color: AppColors.secondary),
-              const SizedBox(width: 6),
-            ],
-
-            // League tier badge (hidden in league mode)
-            if (!isLeague) ...[
-              _TierBadge(tier: entry.leagueTier),
-              const SizedBox(width: 8),
-            ],
-
-            // XP
+            // XP with icon
             _XpBadge(xp: isLeague ? entry.weeklyXp : entry.totalXp),
           ],
         ),
@@ -770,19 +762,7 @@ class _RankChangeIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (rankChange == null || rankChange == 0) {
-      return SizedBox(
-        width: 22,
-        child: Center(
-          child: Text(
-            '–',
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: AppColors.neutralText,
-            ),
-          ),
-        ),
-      );
+      return const SizedBox(width: 22);
     }
 
     final isUp = rankChange! > 0;
@@ -901,21 +881,11 @@ class _TierBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: _Avatar._tierColor(tier).withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _Avatar._tierColor(tier), width: 1.5),
-      ),
-      child: Text(
-        tier.label,
-        style: GoogleFonts.nunito(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: _Avatar._tierColor(tier).withValues(alpha: 1),
-        ),
-      ),
+    return Image.asset(
+      _tierAsset(tier),
+      width: 24,
+      height: 24,
+      filterQuality: FilterQuality.high,
     );
   }
 }
@@ -931,13 +901,20 @@ class _XpBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      '$xp XP',
-      style: GoogleFonts.nunito(
-        fontSize: 14,
-        fontWeight: FontWeight.w800,
-        color: AppColors.neutralText,
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '$xp',
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: AppColors.neutralText,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Image.asset('assets/icons/xp_green_outline.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+      ],
     );
   }
 }
@@ -962,48 +939,29 @@ class _PodiumSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
+        gradient: const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
           colors: [
-            AppColors.waspBackground.withValues(alpha: 0.5),
-            AppColors.white,
+            Color(0xFFFFF3E0),
+            Color(0xFFFFF8F0),
+            Color(0xFFFFFFFF),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (entries.length > 1)
-            Expanded(
-              child: _PodiumEntry(
-                entry: entries[1],
-                medal: '🥈',
-                height: 80,
-                isCurrentUser: entries[1].userId == currentUserId,
-                useWeeklyXp: useWeeklyXp,
-                onTap: onEntryTap != null
-                    ? () => onEntryTap!(entries[1])
-                    : null,
-              ),
-            ),
+          // 1st place — left, biggest
           Expanded(
             child: _PodiumEntry(
               entry: entries[0],
               medal: '🥇',
-              height: 110,
+              avatarSize: 80,
               isCurrentUser: entries[0].userId == currentUserId,
               useWeeklyXp: useWeeklyXp,
               onTap: onEntryTap != null
@@ -1011,17 +969,38 @@ class _PodiumSection extends StatelessWidget {
                   : null,
             ),
           ),
+          // 2nd place — middle, medium
+          if (entries.length > 1)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: _PodiumEntry(
+                  entry: entries[1],
+                  medal: '🥈',
+                  avatarSize: 60,
+                  isCurrentUser: entries[1].userId == currentUserId,
+                  useWeeklyXp: useWeeklyXp,
+                  onTap: onEntryTap != null
+                      ? () => onEntryTap!(entries[1])
+                      : null,
+                ),
+              ),
+            ),
+          // 3rd place — right, smallest
           if (entries.length > 2)
             Expanded(
-              child: _PodiumEntry(
-                entry: entries[2],
-                medal: '🥉',
-                height: 60,
-                isCurrentUser: entries[2].userId == currentUserId,
-                useWeeklyXp: useWeeklyXp,
-                onTap: onEntryTap != null
-                    ? () => onEntryTap!(entries[2])
-                    : null,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 32),
+                child: _PodiumEntry(
+                  entry: entries[2],
+                  medal: '🥉',
+                  avatarSize: 44,
+                  isCurrentUser: entries[2].userId == currentUserId,
+                  useWeeklyXp: useWeeklyXp,
+                  onTap: onEntryTap != null
+                      ? () => onEntryTap!(entries[2])
+                      : null,
+                ),
               ),
             ),
         ],
@@ -1031,10 +1010,11 @@ class _PodiumSection extends StatelessWidget {
 }
 
 class _PodiumEntry extends StatelessWidget {
+
   const _PodiumEntry({
     required this.entry,
     required this.medal,
-    required this.height,
+    required this.avatarSize,
     required this.isCurrentUser,
     this.useWeeklyXp = false,
     this.onTap,
@@ -1042,79 +1022,105 @@ class _PodiumEntry extends StatelessWidget {
 
   final LeaderboardEntry entry;
   final String medal;
-  final double height;
+  final double avatarSize;
   final bool isCurrentUser;
   final bool useWeeklyXp;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final xp = useWeeklyXp ? entry.weeklyXp : entry.totalXp;
+    final isFirst = avatarSize > 60;
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(medal, style: const TextStyle(fontSize: 28)),
-          const SizedBox(height: 4),
-          _Avatar(
-            avatarUrl: entry.avatarUrl,
-            initials: entry.initials,
-            leagueTier: entry.leagueTier,
-            avatarEquippedCache: entry.avatarEquippedCache,
-            size: 48,
-          ),
-          const SizedBox(height: 6),
-          Text(
-            isCurrentUser ? 'You' : entry.firstName,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: isCurrentUser ? FontWeight.w900 : FontWeight.w700,
-              color: isCurrentUser ? AppColors.secondary : AppColors.black,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            '${useWeeklyXp ? entry.weeklyXp : entry.totalXp} XP',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.waspDark,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            height: height,
-            width: double.infinity,
-            margin: const EdgeInsets.symmetric(horizontal: 6),
-            decoration: BoxDecoration(
-              color: _podiumColor(entry.rank),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(8)),
-            ),
-            child: Center(
-              child: Text(
+          // Rank number (left) + content block (avatar, name, xp) centered
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Rank number — separate block, vertically centered
+              Text(
                 '${entry.rank}',
                 style: GoogleFonts.nunito(
-                  fontSize: 22,
+                  fontSize: isFirst ? 28 : 22,
                   fontWeight: FontWeight.w900,
-                  color: Colors.white,
+                  color: AppColors.black,
                 ),
               ),
-            ),
+              const SizedBox(width: 6),
+              // Content block: avatar + name + xp
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Avatar with tier badge
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _Avatar(
+                        avatarUrl: entry.avatarUrl,
+                        initials: entry.initials,
+                        leagueTier: entry.leagueTier,
+                        avatarEquippedCache: entry.avatarEquippedCache,
+                        size: avatarSize,
+                      ),
+                      Positioned(
+                        right: -2,
+                        bottom: -2,
+                        child: Image.asset(
+                          _tierAsset(entry.leagueTier),
+                          width: isFirst ? 24.0 : 18.0,
+                          height: isFirst ? 24.0 : 18.0,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  // Name
+                  Text(
+                    isCurrentUser ? '${entry.fullName} (You)' : entry.fullName,
+                    style: GoogleFonts.nunito(
+                      fontSize: isFirst ? 14 : 12,
+                      fontWeight: FontWeight.w900,
+                      color: isCurrentUser ? AppColors.secondary : AppColors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 2),
+                  // XP
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$xp',
+                        style: GoogleFonts.nunito(
+                          fontSize: isFirst ? 13 : 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.neutralText,
+                        ),
+                      ),
+                      const SizedBox(width: 3),
+                      Image.asset(
+                        'assets/icons/xp_green_outline.png',
+                        width: isFirst ? 16.0 : 14.0,
+                        height: isFirst ? 16.0 : 14.0,
+                        filterQuality: FilterQuality.high,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
     );
-  }
-
-  Color _podiumColor(int rank) {
-    return switch (rank) {
-      1 => const Color(0xFFFFD700),
-      2 => const Color(0xFFC0C0C0),
-      3 => const Color(0xFFCD7F32),
-      _ => AppColors.neutral,
-    };
   }
 }
 

@@ -1,37 +1,33 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Owlio Icon Inventory</title>
+<title>Owlio Icon Inventory — Session Update</title>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Round" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #e0e0e0; padding: 32px; }
-  h1 { font-size: 28px; margin-bottom: 8px; color: #fff; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f13; color: #e0e0e0; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 28px; margin-bottom: 4px; color: #fff; }
   .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
   h2 { font-size: 20px; margin: 32px 0 4px; color: #fff; }
-  h2 .badge { font-size: 12px; background: #5b5bf7; color: #fff; padding: 2px 10px; border-radius: 12px; margin-left: 8px; vertical-align: middle; }
+  h2 .badge { font-size: 11px; padding: 2px 10px; border-radius: 12px; margin-left: 8px; vertical-align: middle; color: #fff; }
+  .badge-done { background: #22c55e; }
+  .badge-todo { background: #ef4444; }
+  .badge-tier { background: #5b5bf7; }
   .description { color: #888; font-size: 13px; margin-bottom: 16px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 24px; }
   .card {
-    background: #1a1a24;
-    border: 1px solid #2a2a3a;
-    border-radius: 12px;
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: border-color 0.2s;
+    background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px;
+    padding: 14px; display: flex; align-items: center; gap: 12px; transition: border-color 0.2s;
   }
   .card:hover { border-color: #5b5bf7; }
   .card .icon-preview {
-    width: 48px; height: 48px;
-    background: #252535;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    overflow: hidden;
   }
+  .card .icon-preview img { width: 40px; height: 40px; object-fit: contain; }
   .card .icon-preview .material-icons,
   .card .icon-preview .material-icons-outlined,
   .card .icon-preview .material-icons-round { font-size: 28px; }
@@ -39,1080 +35,299 @@
   .card .label { font-size: 12px; font-weight: 600; color: #ccc; margin-bottom: 2px; }
   .card .code { font-size: 10px; color: #666; font-family: monospace; word-break: break-all; }
   .card .where { font-size: 10px; color: #5b5bf7; margin-top: 3px; }
+  .card .old { font-size: 10px; color: #ef4444; margin-top: 2px; text-decoration: line-through; }
 
-  .p1 .icon-preview { background: #2d1f3d; }
-  .p1 .icon-preview span { color: #c084fc; }
-  .p2 .icon-preview { background: #1f2d3d; }
-  .p2 .icon-preview span { color: #60a5fa; }
-  .p3 .icon-preview { background: #1f3d2d; }
-  .p3 .icon-preview span { color: #4ade80; }
-  .p4 .icon-preview { background: #2a2a2a; }
-  .p4 .icon-preview span { color: #999; }
+  .done .icon-preview { background: #0f2f1a; border: 1px solid #22c55e44; }
+  .todo .icon-preview { background: #2a1a1a; border: 1px solid #ef444444; }
+  .todo .icon-preview span { color: #ef4444; }
 
   .divider { border: none; border-top: 1px solid #2a2a3a; margin: 40px 0; }
   .stats { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
-  .stat-card { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px; padding: 16px 24px; text-align: center; }
-  .stat-card .num { font-size: 32px; font-weight: 700; color: #5b5bf7; }
+  .stat-card { background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px; padding: 16px 24px; text-align: center; min-width: 120px; }
+  .stat-card .num { font-size: 32px; font-weight: 700; }
+  .stat-card .num.green { color: #22c55e; }
+  .stat-card .num.red { color: #ef4444; }
+  .stat-card .num.purple { color: #5b5bf7; }
   .stat-card .txt { font-size: 12px; color: #888; margin-top: 4px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #2a2a3a; font-size: 13px; }
+  th { color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  td { color: #ccc; }
+  td code { background: #252535; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #aaa; }
+  .status-done { color: #22c55e; font-weight: 600; }
+  .status-todo { color: #ef4444; font-weight: 600; }
 </style>
 </head>
 <body>
 
 <h1>Owlio Icon Inventory</h1>
-<p class="subtitle">Tum iconlar Material Icons font ile gercek gorunumleriyle gosterilmistir. Tarayicida goruntuleyiniz.</p>
+<p class="subtitle">Updated: April 1, 2026 — Custom PNG icon migration progress</p>
 
 <div class="stats">
-  <div class="stat-card"><div class="num">262</div><div class="txt">Toplam Icon</div></div>
-  <div class="stat-card"><div class="num">~25</div><div class="txt">P1 - Her Zaman Gorunur</div></div>
-  <div class="stat-card"><div class="num">~25</div><div class="txt">P2 - Sik Gorunur</div></div>
-  <div class="stat-card"><div class="num">~15</div><div class="txt">P3 - Teacher</div></div>
-  <div class="stat-card"><div class="num">~80</div><div class="txt">P4 - Sekonder</div></div>
-  <div class="stat-card"><div class="num">~115</div><div class="txt">P5 - Admin</div></div>
+  <div class="stat-card"><div class="num green">30+</div><div class="txt">Replaced</div></div>
+  <div class="stat-card"><div class="num red">64</div><div class="txt">Remaining</div></div>
+  <div class="stat-card"><div class="num purple">30</div><div class="txt">Asset PNGs</div></div>
+  <div class="stat-card"><div class="num green">16</div><div class="txt">Node States</div></div>
 </div>
 
 <hr class="divider">
 
 <!-- ============================================ -->
-<!-- PRIORITY 1 -->
+<!-- COMPLETED REPLACEMENTS -->
 <!-- ============================================ -->
 
-<h2>Bottom Navigation / Sidebar <span class="badge">P1</span></h2>
-<p class="description">Ogrenci her ekranda goruyor — en kritik iconlar</p>
+<h2>Completed Replacements <span class="badge badge-done">DONE</span></h2>
+<p class="description">Custom PNG assets replacing Material Icons this session</p>
+
+<h2 style="font-size:16px; margin-top:20px">Bottom Navigation <span class="badge badge-done">5 tabs</span></h2>
 <div class="grid">
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">route</span></div>
-    <div class="info"><div class="label">Learning Path (unselected)</div><div class="code">Icons.route_outlined</div><div class="where">Bottom nav + sidebar</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/map_256.png"></div>
+    <div class="info"><div class="label">Learning Path</div><div class="code">map_256.png</div><div class="old">Icons.route_outlined / rounded</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">route</span></div>
-    <div class="info"><div class="label">Learning Path (selected)</div><div class="code">Icons.route_rounded</div><div class="where">Bottom nav + sidebar</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/library.png"></div>
+    <div class="info"><div class="label">Library</div><div class="code">library.png</div><div class="old">Icons.local_library_outlined / rounded</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">home</span></div>
-    <div class="info"><div class="label">Home (unselected)</div><div class="code">Icons.home_outlined</div><div class="where">Bottom nav + sidebar</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/clipboard_256.png"></div>
+    <div class="info"><div class="label">Quests</div><div class="code">clipboard_256.png</div><div class="old">Icons.military_tech_outlined / rounded</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">home</span></div>
-    <div class="info"><div class="label">Home (selected)</div><div class="code">Icons.home_rounded</div><div class="where">Bottom nav + sidebar</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/card.png"></div>
+    <div class="info"><div class="label">Card Collection</div><div class="code">card.png</div><div class="old">Icons.collections_bookmark_outlined / rounded</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">local_library</span></div>
-    <div class="info"><div class="label">Library (unselected)</div><div class="code">Icons.local_library_outlined</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">local_library</span></div>
-    <div class="info"><div class="label">Library (selected)</div><div class="code">Icons.local_library_rounded</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">collections_bookmark</span></div>
-    <div class="info"><div class="label">Card Collection (unselected)</div><div class="code">Icons.collections_bookmark_outlined</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">collections_bookmark</span></div>
-    <div class="info"><div class="label">Card Collection (selected)</div><div class="code">Icons.collections_bookmark_rounded</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">emoji_events</span></div>
-    <div class="info"><div class="label">Leaderboards (unselected)</div><div class="code">Icons.emoji_events_outlined</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">emoji_events</span></div>
-    <div class="info"><div class="label">Leaderboards (selected)</div><div class="code">Icons.emoji_events_rounded</div><div class="where">Bottom nav + sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined">person</span></div>
-    <div class="info"><div class="label">Profile (unselected)</div><div class="code">Icons.person_outline_rounded</div><div class="where">Sidebar</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">person</span></div>
-    <div class="info"><div class="label">Profile (selected)</div><div class="code">Icons.person_rounded</div><div class="where">Sidebar</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/trophy_256.png"></div>
+    <div class="info"><div class="label">Leaderboards</div><div class="code">trophy_256.png</div><div class="old">Icons.emoji_events_outlined / rounded</div></div>
   </div>
 </div>
 
-<h2>Top Bar Stats <span class="badge">P1</span></h2>
-<p class="description">Streak, coin ve XP — her ekranin ustunde gorunuyor</p>
+<h2 style="font-size:16px; margin-top:20px">Top Navbar & Stats <span class="badge badge-done">4 icons</span></h2>
 <div class="grid">
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons" style="color:#ff6b35">local_fire_department</span></div>
-    <div class="info"><div class="label">Streak (Fire)</div><div class="code">Icons.local_fire_department</div><div class="where">Top bar, right panel, feedback (20+ use)</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/uk-flag.png"></div>
+    <div class="info"><div class="label">Language Flag</div><div class="code">uk-flag.png</div><div class="old">🇬🇧→🇹🇷 emoji flags</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#fbbf24">monetization_on</span></div>
-    <div class="info"><div class="label">Coins</div><div class="code">Icons.monetization_on_rounded</div><div class="where">Top bar, right panel, XP badge (8+ use)</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/fire_menu_bar_256.png"></div>
+    <div class="info"><div class="label">Streak (navbar)</div><div class="code">fire_menu_bar_256.png</div><div class="old">Icons.local_fire_department</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#60a5fa">bolt</span></div>
-    <div class="info"><div class="label">XP / Energy</div><div class="code">Icons.bolt_rounded</div><div class="where">Home, daily review, quests (13+ use)</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/gem_outline_256.png"></div>
+    <div class="info"><div class="label">Coins (all 13 usages)</div><div class="code">gem_outline_256.png</div><div class="old">Icons.monetization_on / rounded</div></div>
+  </div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/xp_green_outline.png"></div>
+    <div class="info"><div class="label">XP Icon (partial)</div><div class="code">xp_green_outline.png</div><div class="old">Icons.bolt_rounded</div></div>
   </div>
 </div>
 
-<h2>Learning Path Nodes <span class="badge">P1</span></h2>
-<p class="description">Ogrenci yolculugunun ana gorsel elemanlari</p>
+<h2 style="font-size:16px; margin-top:20px">Streak Sheet <span class="badge badge-done">3 icons</span></h2>
 <div class="grid">
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">menu_book</span></div>
-    <div class="info"><div class="label">Word List Node</div><div class="code">Icons.menu_book_rounded</div><div class="where">Learning path tile</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/fire_256.png"></div>
+    <div class="info"><div class="label">Fire (active streak)</div><div class="code">fire_256.png</div><div class="old">Icons.local_fire_department_rounded</div><div class="where">Calendar days, decorative, longest stat</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">auto_stories</span></div>
-    <div class="info"><div class="label">Book Node</div><div class="code">Icons.auto_stories_rounded</div><div class="where">Learning path tile</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">sports_esports</span></div>
-    <div class="info"><div class="label">Game Node</div><div class="code">Icons.sports_esports_rounded</div><div class="where">Learning path tile</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">card_giftcard</span></div>
-    <div class="info"><div class="label">Treasure Node</div><div class="code">Icons.card_giftcard_rounded</div><div class="where">Learning path tile</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">style</span></div>
-    <div class="info"><div class="label">Review Node</div><div class="code">Icons.style_rounded</div><div class="where">Learning path tile</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round">lock</span></div>
-    <div class="info"><div class="label">Locked Node</div><div class="code">Icons.lock_rounded</div><div class="where">Learning path tile (locked state)</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#4ade80">check</span></div>
-    <div class="info"><div class="label">Completed Node</div><div class="code">Icons.check_rounded</div><div class="where">Learning path tile (done state)</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#fbbf24">star</span></div>
-    <div class="info"><div class="label">Star (filled)</div><div class="code">Icons.star_rounded</div><div class="where">Learning path tile stars</div></div>
-  </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#666">star_outline</span></div>
-    <div class="info"><div class="label">Star (empty)</div><div class="code">Icons.star_outline_rounded</div><div class="where">Learning path tile stars</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/fire_blue_256.png"></div>
+    <div class="info"><div class="label">Fire Blue (freeze)</div><div class="code">fire_blue_256.png</div><div class="old">Icons.ac_unit_rounded</div><div class="where">Freeze days, freeze stat, buy button</div></div>
   </div>
 </div>
 
-<h2>League Tier Icons <span class="badge">P1</span></h2>
-<p class="description">Liga kartinda gorunen seviye ikonlari</p>
+<h2 style="font-size:16px; margin-top:20px">League Rank Icons <span class="badge badge-done">5 tiers</span></h2>
 <div class="grid">
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-outlined" style="color:#cd7f32">shield</span></div>
-    <div class="info"><div class="label">Bronze Tier</div><div class="code">Icons.shield_outlined</div><div class="where">League card</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/rank-bronze-1_large.png"></div>
+    <div class="info"><div class="label">Bronze</div><div class="code">rank-bronze-1_large.png</div><div class="old">Icons.shield_rounded</div><div class="where">Leaderboard, right panel, profile, student dialog</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#c0c0c0">shield</span></div>
-    <div class="info"><div class="label">Silver Tier</div><div class="code">Icons.shield_rounded</div><div class="where">League card</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/rank-silver-2_large.png"></div>
+    <div class="info"><div class="label">Silver</div><div class="code">rank-silver-2_large.png</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#ffd700">emoji_events</span></div>
-    <div class="info"><div class="label">Gold Tier</div><div class="code">Icons.emoji_events_rounded</div><div class="where">League card</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/rank-gold-3_large.png"></div>
+    <div class="info"><div class="label">Gold</div><div class="code">rank-gold-3_large.png</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#a78bfa">workspace_premium</span></div>
-    <div class="info"><div class="label">Platinum Tier</div><div class="code">Icons.workspace_premium_rounded</div><div class="where">League card</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/rank-platinum-5_large.png"></div>
+    <div class="info"><div class="label">Platinum</div><div class="code">rank-platinum-5_large.png</div></div>
   </div>
-  <div class="card p1">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#22d3ee">diamond</span></div>
-    <div class="info"><div class="label">Diamond Tier</div><div class="code">Icons.diamond_rounded</div><div class="where">League card</div></div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/rank-diamond-7_large.png"></div>
+    <div class="info"><div class="label">Diamond</div><div class="code">rank-diamond-7_large.png</div></div>
+  </div>
+</div>
+
+<h2 style="font-size:16px; margin-top:20px">Learning Path Nodes <span class="badge badge-done">4 types × 4 states + unit</span></h2>
+<div class="grid">
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/voc_active.png"></div>
+    <div class="info"><div class="label">Vocab Node</div><div class="code">voc_active/pressed/locked/completed.png</div><div class="old">Programmatic 3D circle</div></div>
+  </div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/book_active.png"></div>
+    <div class="info"><div class="label">Book Node</div><div class="code">book_active/pressed/locked/completed.png</div><div class="old">Programmatic 3D circle</div></div>
+  </div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/game_active.png"></div>
+    <div class="info"><div class="label">Game Node</div><div class="code">game_active/pressed/locked/completed.png</div><div class="old">Programmatic 3D circle</div></div>
+  </div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/treasure_active.png"></div>
+    <div class="info"><div class="label">Treasure Node</div><div class="code">treasure_active/pressed/locked/completed.png</div><div class="old">Programmatic 3D circle</div></div>
+  </div>
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/unit_nodes.png"></div>
+    <div class="info"><div class="label">Unit Node</div><div class="code">unit_nodes.png + pressed</div><div class="old">Programmatic 3D circle + number</div></div>
+  </div>
+</div>
+
+<h2 style="font-size:16px; margin-top:20px">Special <span class="badge badge-done">1 icon</span></h2>
+<div class="grid">
+  <div class="card done">
+    <div class="icon-preview"><img src="../assets/icons/quest.png"></div>
+    <div class="info"><div class="label">Assignment Badge</div><div class="code">quest.png</div><div class="where">Shows next to assigned nodes on learning path</div></div>
   </div>
 </div>
 
 <hr class="divider">
 
 <!-- ============================================ -->
-<!-- PRIORITY 2 -->
+<!-- REMAINING ICONS -->
 <!-- ============================================ -->
 
-<h2>Home Screen <span class="badge">P2</span></h2>
-<p class="description">Ana ekran kartlari ve durumlari</p>
-<div class="grid">
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#60a5fa">bolt</span></div>
-    <div class="info"><div class="label">Daily Review Ready</div><div class="code">Icons.bolt_rounded</div><div class="where">Review card</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#4ade80">check</span></div>
-    <div class="info"><div class="label">Review Completed</div><div class="code">Icons.check_rounded</div><div class="where">Review card</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">play_arrow</span></div>
-    <div class="info"><div class="label">Play Button</div><div class="code">Icons.play_arrow_rounded</div><div class="where">Review card CTA</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons">auto_stories</span></div>
-    <div class="info"><div class="label">Empty State</div><div class="code">Icons.auto_stories</div><div class="where">No content placeholder</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons" style="color:#888">cloud_off</span></div>
-    <div class="info"><div class="label">Error / Offline</div><div class="code">Icons.cloud_off</div><div class="where">Network error state</div></div>
-  </div>
-</div>
+<h2>Remaining Material Icons <span class="badge badge-todo">64 icons / 94 usages</span></h2>
+<p class="description">Icons still using Material Icons — grouped by priority for replacement</p>
 
-<h2>Daily Quests <span class="badge">P2</span></h2>
-<p class="description">Gunluk gorev satir ikonlari</p>
+<h2 style="font-size:16px; margin-top:24px">Tier 1 — High Visibility <span class="badge badge-tier">6 icons / 15 usages</span></h2>
+<p class="description">Home screen, frequent feedback, always visible</p>
 <div class="grid">
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#60a5fa">bolt</span></div>
-    <div class="info"><div class="label">Quest: Earn XP</div><div class="code">Icons.bolt_rounded</div><div class="where">Quest row</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">check_circle</span></div>
+    <div class="info"><div class="label">Completion checkmark</div><div class="code">Icons.check_circle_rounded</div><div class="where">5x — quests, quiz, pack opening, profile</div></div>
   </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">timer</span></div>
-    <div class="info"><div class="label">Quest: Spend Time</div><div class="code">Icons.timer_rounded</div><div class="where">Quest row</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">check</span></div>
+    <div class="info"><div class="label">Check mark</div><div class="code">Icons.check_rounded</div><div class="where">3x — daily quests, library</div></div>
   </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">menu_book</span></div>
-    <div class="info"><div class="label">Quest: Complete Chapters</div><div class="code">Icons.menu_book_rounded</div><div class="where">Quest row</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">translate</span></div>
-    <div class="info"><div class="label">Quest: Review Words</div><div class="code">Icons.translate_rounded</div><div class="where">Quest row</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#fbbf24">star</span></div>
-    <div class="info"><div class="label">Quest: Default</div><div class="code">Icons.star_rounded</div><div class="where">Quest row fallback</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">lock</span></div>
-    <div class="info"><div class="label">Bonus Locked</div><div class="code">Icons.lock_rounded</div><div class="where">Bonus section</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">auto_stories</span></div>
-    <div class="info"><div class="label">Assignment: Book</div><div class="code">Icons.auto_stories_rounded</div><div class="where">Assignment quest</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">abc</span></div>
-    <div class="info"><div class="label">Assignment: Vocab</div><div class="code">Icons.abc_rounded</div><div class="where">Assignment quest</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons">route</span></div>
-    <div class="info"><div class="label">Assignment: Unit</div><div class="code">Icons.route</div><div class="where">Assignment quest</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#4ade80">check_circle</span></div>
-    <div class="info"><div class="label">Quest Completed</div><div class="code">Icons.check_circle_rounded</div><div class="where">Quest row checkmark</div></div>
-  </div>
-</div>
-
-<h2>Reader <span class="badge">P2</span></h2>
-<p class="description">Kitap okuma ekrani kontrolleri</p>
-<div class="grid">
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#4ade80">check</span></div>
-    <div class="info"><div class="label">Chapter Completed</div><div class="code">Icons.check_rounded</div><div class="where">Chapter list</div></div>
-  </div>
-  <div class="card p2">
+  <div class="card todo">
     <div class="icon-preview"><span class="material-icons-round">quiz</span></div>
-    <div class="info"><div class="label">Book Quiz</div><div class="code">Icons.quiz_rounded</div><div class="where">Quiz entry</div></div>
+    <div class="info"><div class="label">Quiz icon</div><div class="code">Icons.quiz_rounded</div><div class="where">3x — reader, library, book detail</div></div>
   </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">play_arrow</span></div>
-    <div class="info"><div class="label">Audio Play</div><div class="code">Icons.play_arrow_rounded</div><div class="where">Audio controls</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">chevron_right</span></div>
+    <div class="info"><div class="label">Chevron right</div><div class="code">Icons.chevron_right_rounded</div><div class="where">2x — navbar, profile</div></div>
   </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">pause</span></div>
-    <div class="info"><div class="label">Audio Pause</div><div class="code">Icons.pause_rounded</div><div class="where">Audio controls</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons">stars</span></div>
+    <div class="info"><div class="label">Legendary combo</div><div class="code">Icons.stars</div><div class="where">1x — vocab feedback</div></div>
   </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">close</span></div>
-    <div class="info"><div class="label">Close Audio Panel</div><div class="code">Icons.close_rounded</div><div class="where">Audio panel</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">headphones</span></div>
-    <div class="info"><div class="label">Listen Mode</div><div class="code">Icons.headphones_rounded</div><div class="where">Listen button</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">replay</span></div>
-    <div class="info"><div class="label">Replay Audio</div><div class="code">Icons.replay_rounded</div><div class="where">Audio controls</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">volume_up</span></div>
-    <div class="info"><div class="label">Volume / Sound</div><div class="code">Icons.volume_up_rounded</div><div class="where">Audio/pronunciation</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">warning_amber</span></div>
+    <div class="info"><div class="label">Streak warning</div><div class="code">Icons.warning_amber_rounded</div><div class="where">1x — vocab feedback</div></div>
   </div>
 </div>
 
-<h2>Gamification Feedback <span class="badge">P2</span></h2>
-<p class="description">Combo, XP ve odul animasyonlarindaki ikonlar</p>
+<h2 style="font-size:16px; margin-top:24px">Tier 2 — Medium-High Visibility <span class="badge badge-tier">6 icons / 20 usages</span></h2>
+<p class="description">Library, quiz, quests, profile — visited often</p>
 <div class="grid">
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons" style="color:#ff6b35">local_fire_department</span></div>
-    <div class="info"><div class="label">Nice Streak (5 combo)</div><div class="code">Icons.local_fire_department</div><div class="where">Combo feedback</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons" style="color:#fbbf24">bolt</span></div>
-    <div class="info"><div class="label">Unstoppable (10 combo)</div><div class="code">Icons.bolt</div><div class="where">Combo feedback</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons" style="color:#a78bfa">stars</span></div>
-    <div class="info"><div class="label">Legendary (15 combo)</div><div class="code">Icons.stars</div><div class="where">Combo feedback</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons" style="color:#fbbf24">monetization_on</span></div>
-    <div class="info"><div class="label">Coin Earned</div><div class="code">Icons.monetization_on</div><div class="where">XP badge floating</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">style</span></div>
-    <div class="info"><div class="label">Card Pack</div><div class="code">Icons.style_rounded</div><div class="where">Pack display</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons-round">celebration</span></div>
-    <div class="info"><div class="label">Celebration</div><div class="code">Icons.celebration_rounded</div><div class="where">Achievement popup</div></div>
-  </div>
-  <div class="card p2">
-    <div class="icon-preview"><span class="material-icons">military_tech</span></div>
-    <div class="info"><div class="label">Badge / Medal</div><div class="code">Icons.military_tech</div><div class="where">Badge display</div></div>
-  </div>
-</div>
-
-<hr class="divider">
-
-<!-- ============================================ -->
-<!-- PRIORITY 3 -->
-<!-- ============================================ -->
-
-<h2>Teacher Navigation <span class="badge">P3</span></h2>
-<p class="description">Ogretmen paneli navigasyonu</p>
-<div class="grid">
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons-outlined">dashboard</span></div>
-    <div class="info"><div class="label">Dashboard (unselected)</div><div class="code">Icons.dashboard_outlined</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">dashboard</span></div>
-    <div class="info"><div class="label">Dashboard (selected)</div><div class="code">Icons.dashboard</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons-outlined">groups</span></div>
-    <div class="info"><div class="label">Classes (unselected)</div><div class="code">Icons.groups_outlined</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">groups</span></div>
-    <div class="info"><div class="label">Classes (selected)</div><div class="code">Icons.groups</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons-outlined">assignment</span></div>
-    <div class="info"><div class="label">Assignments (unselected)</div><div class="code">Icons.assignment_outlined</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">assignment</span></div>
-    <div class="info"><div class="label">Assignments (selected)</div><div class="code">Icons.assignment</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons-outlined">analytics</span></div>
-    <div class="info"><div class="label">Reports (unselected)</div><div class="code">Icons.analytics_outlined</div><div class="where">Teacher nav</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">analytics</span></div>
-    <div class="info"><div class="label">Reports (selected)</div><div class="code">Icons.analytics</div><div class="where">Teacher nav</div></div>
-  </div>
-</div>
-
-<h2>Teacher Dashboard Stats <span class="badge">P3</span></h2>
-<p class="description">Ogretmen ana ekrani istatistik kartlari</p>
-<div class="grid">
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">school</span></div>
-    <div class="info"><div class="label">School</div><div class="code">Icons.school</div><div class="where">Welcome header</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">groups</span></div>
-    <div class="info"><div class="label">Total Students</div><div class="code">Icons.groups</div><div class="where">Stat card</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">class</span></div>
-    <div class="info"><div class="label">Manage Classes</div><div class="code">Icons.class_</div><div class="where">Stat card</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">assignment</span></div>
-    <div class="info"><div class="label">Active Assignments</div><div class="code">Icons.assignment</div><div class="where">Stat card</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">trending_up</span></div>
-    <div class="info"><div class="label">Average Progress</div><div class="code">Icons.trending_up</div><div class="where">Stat card</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">add_circle_outline</span></div>
-    <div class="info"><div class="label">New Assignment</div><div class="code">Icons.add_circle_outline</div><div class="where">Action button</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">bar_chart</span></div>
-    <div class="info"><div class="label">Reports</div><div class="code">Icons.bar_chart</div><div class="where">Action button</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">leaderboard</span></div>
-    <div class="info"><div class="label">Leaderboard</div><div class="code">Icons.leaderboard</div><div class="where">Action button</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons">history</span></div>
-    <div class="info"><div class="label">Recent Activity</div><div class="code">Icons.history</div><div class="where">Activity section</div></div>
-  </div>
-  <div class="card p3">
-    <div class="icon-preview"><span class="material-icons" style="color:#fbbf24">star</span></div>
-    <div class="info"><div class="label">Activity XP</div><div class="code">Icons.star</div><div class="where">Activity row</div></div>
-  </div>
-</div>
-
-<hr class="divider">
-
-<!-- ============================================ -->
-<!-- PRIORITY 4 -->
-<!-- ============================================ -->
-
-<h2>Status & Feedback <span class="badge">P4</span></h2>
-<p class="description">Inline durum ikonlari — bircok ekranda kullaniliyor</p>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons" style="color:#4ade80">check_circle</span></div>
-    <div class="info"><div class="label">Success</div><div class="code">Icons.check_circle</div><div class="where">12 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#4ade80">check_circle</span></div>
-    <div class="info"><div class="label">Completion</div><div class="code">Icons.check_circle_rounded</div><div class="where">11 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">check_circle</span></div>
-    <div class="info"><div class="label">Check Outline</div><div class="code">Icons.check_circle_outline</div><div class="where">Misc</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons" style="color:#ef4444">error_outline</span></div>
-    <div class="info"><div class="label">Error</div><div class="code">Icons.error_outline</div><div class="where">6 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons" style="color:#ef4444">error</span></div>
-    <div class="info"><div class="label">Error (filled)</div><div class="code">Icons.error</div><div class="where">Misc</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#f59e0b">warning</span></div>
-    <div class="info"><div class="label">Warning</div><div class="code">Icons.warning_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round" style="color:#f59e0b">warning_amber</span></div>
-    <div class="info"><div class="label">Caution</div><div class="code">Icons.warning_amber_rounded</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">info</span></div>
-    <div class="info"><div class="label">Info</div><div class="code">Icons.info_outline</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">info</span></div>
-    <div class="info"><div class="label">Info (rounded)</div><div class="code">Icons.info_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">cancel</span></div>
-    <div class="info"><div class="label">Cancel</div><div class="code">Icons.cancel_rounded</div><div class="where">2 uses</div></div>
-  </div>
-</div>
-
-<h2>Content & Education <span class="badge">P4</span></h2>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">abc</span></div>
-    <div class="info"><div class="label">Vocabulary / ABC</div><div class="code">Icons.abc</div><div class="where">10 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">menu_book</span></div>
-    <div class="info"><div class="label">Book (filled)</div><div class="code">Icons.menu_book</div><div class="where">17 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">book</span></div>
-    <div class="info"><div class="label">Book (alt)</div><div class="code">Icons.book</div><div class="where">9 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">quiz</span></div>
-    <div class="info"><div class="label">Quiz</div><div class="code">Icons.quiz_rounded</div><div class="where">7 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">translate</span></div>
-    <div class="info"><div class="label">Translate / Review</div><div class="code">Icons.translate_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">format_quote</span></div>
-    <div class="info"><div class="label">Quote</div><div class="code">Icons.format_quote_rounded</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">text_fields</span></div>
-    <div class="info"><div class="label">Text Fields</div><div class="code">Icons.text_fields</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">text_increase</span></div>
-    <div class="info"><div class="label">Text Increase</div><div class="code">Icons.text_increase</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">text_decrease</span></div>
-    <div class="info"><div class="label">Text Decrease</div><div class="code">Icons.text_decrease</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">record_voice_over</span></div>
-    <div class="info"><div class="label">Pronunciation</div><div class="code">Icons.record_voice_over_outlined</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">library_books</span></div>
-    <div class="info"><div class="label">Library Books</div><div class="code">Icons.library_books_rounded</div><div class="where">1 use</div></div>
-  </div>
-</div>
-
-<h2>Gamification (extra) <span class="badge">P4</span></h2>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons" style="color:#fbbf24">star</span></div>
-    <div class="info"><div class="label">Star (filled)</div><div class="code">Icons.star</div><div class="where">7 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">star_border</span></div>
-    <div class="info"><div class="label">Star Border</div><div class="code">Icons.star_border</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">star_border</span></div>
-    <div class="info"><div class="label">Star Border (rounded)</div><div class="code">Icons.star_border_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">sports_esports</span></div>
-    <div class="info"><div class="label">Game</div><div class="code">Icons.sports_esports_rounded</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">card_giftcard</span></div>
-    <div class="info"><div class="label">Gift Card</div><div class="code">Icons.card_giftcard_rounded</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">workspace_premium</span></div>
-    <div class="info"><div class="label">Premium Badge</div><div class="code">Icons.workspace_premium</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">emoji_events</span></div>
-    <div class="info"><div class="label">Trophy (outline)</div><div class="code">Icons.emoji_events_outlined</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">emoji_events</span></div>
-    <div class="info"><div class="label">Trophy (filled)</div><div class="code">Icons.emoji_events</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">repeat</span></div>
-    <div class="info"><div class="label">Repeat</div><div class="code">Icons.repeat_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">leaderboard</span></div>
-    <div class="info"><div class="label">Leaderboard</div><div class="code">Icons.leaderboard_outlined</div><div class="where">1 use</div></div>
-  </div>
-</div>
-
-<h2>Media & Audio <span class="badge">P4</span></h2>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">play_arrow</span></div>
-    <div class="info"><div class="label">Play</div><div class="code">Icons.play_arrow_rounded</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">play_circle</span></div>
-    <div class="info"><div class="label">Play Circle</div><div class="code">Icons.play_circle</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">play_circle</span></div>
-    <div class="info"><div class="label">Play Circle Fill</div><div class="code">Icons.play_circle_fill</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">pause</span></div>
-    <div class="info"><div class="label">Pause</div><div class="code">Icons.pause_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">replay</span></div>
-    <div class="info"><div class="label">Replay</div><div class="code">Icons.replay_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">replay</span></div>
-    <div class="info"><div class="label">Replay (regular)</div><div class="code">Icons.replay</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">volume_up</span></div>
-    <div class="info"><div class="label">Volume Up</div><div class="code">Icons.volume_up_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">volume_up</span></div>
-    <div class="info"><div class="label">Volume Up (regular)</div><div class="code">Icons.volume_up</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">volume_up</span></div>
-    <div class="info"><div class="label">Volume Outlined</div><div class="code">Icons.volume_up_outlined</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">volume_off</span></div>
-    <div class="info"><div class="label">Volume Off</div><div class="code">Icons.volume_off</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">mic</span></div>
-    <div class="info"><div class="label">Microphone</div><div class="code">Icons.mic</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">music_note</span></div>
-    <div class="info"><div class="label">Music Note</div><div class="code">Icons.music_note</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">stop</span></div>
-    <div class="info"><div class="label">Stop</div><div class="code">Icons.stop</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">headphones</span></div>
-    <div class="info"><div class="label">Headphones</div><div class="code">Icons.headphones_rounded</div><div class="where">2 uses</div></div>
-  </div>
-</div>
-
-<h2>Navigation & Generic Actions <span class="badge">P4</span></h2>
-<p class="description">Bunlar Material kalabilir — standart UI elemanlari</p>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">arrow_back</span></div>
-    <div class="info"><div class="label">Back</div><div class="code">Icons.arrow_back</div><div class="where">47+ uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">arrow_back</span></div>
-    <div class="info"><div class="label">Back (rounded)</div><div class="code">Icons.arrow_back_rounded</div><div class="where">6 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">chevron_right</span></div>
-    <div class="info"><div class="label">Chevron Right</div><div class="code">Icons.chevron_right</div><div class="where">23 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">close</span></div>
-    <div class="info"><div class="label">Close</div><div class="code">Icons.close_rounded</div><div class="where">7 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">close</span></div>
-    <div class="info"><div class="label">Close (regular)</div><div class="code">Icons.close</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">add</span></div>
-    <div class="info"><div class="label">Add</div><div class="code">Icons.add</div><div class="where">50 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">more_vert</span></div>
-    <div class="info"><div class="label">More (vertical)</div><div class="code">Icons.more_vert</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">expand_more</span></div>
-    <div class="info"><div class="label">Expand More</div><div class="code">Icons.expand_more_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">expand_less</span></div>
-    <div class="info"><div class="label">Expand Less</div><div class="code">Icons.expand_less</div><div class="where">Misc</div></div>
-  </div>
-  <div class="card p4">
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">lock</span></div>
+    <div class="info"><div class="label">Locked content</div><div class="code">Icons.lock_rounded</div><div class="where">4x — login, quests, library, cards</div></div>
+  </div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">menu_book</span></div>
+    <div class="info"><div class="label">Book / reading</div><div class="code">Icons.menu_book_rounded</div><div class="where">4x — quiz, profile, library</div></div>
+  </div>
+  <div class="card todo">
     <div class="icon-preview"><span class="material-icons">refresh</span></div>
-    <div class="info"><div class="label">Refresh</div><div class="code">Icons.refresh</div><div class="where">4 uses</div></div>
+    <div class="info"><div class="label">Refresh</div><div class="code">Icons.refresh</div><div class="where">3x — profile, library, avatar</div></div>
   </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">search</span></div>
-    <div class="info"><div class="label">Search</div><div class="code">Icons.search_rounded</div><div class="where">2 uses</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-round">arrow_back</span></div>
+    <div class="info"><div class="label">Back navigation</div><div class="code">Icons.arrow_back_rounded</div><div class="where">3x — vocab, quiz, pack opening</div></div>
   </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">settings</span></div>
-    <div class="info"><div class="label">Settings</div><div class="code">Icons.settings</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">swap_horiz</span></div>
-    <div class="info"><div class="label">Swap</div><div class="code">Icons.swap_horiz</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">arrow_forward</span></div>
-    <div class="info"><div class="label">Forward</div><div class="code">Icons.arrow_forward_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">arrow_downward</span></div>
-    <div class="info"><div class="label">Down Arrow</div><div class="code">Icons.arrow_downward</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">arrow_upward</span></div>
-    <div class="info"><div class="label">Up Arrow</div><div class="code">Icons.arrow_upward_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">arrow_drop_down</span></div>
-    <div class="info"><div class="label">Dropdown</div><div class="code">Icons.arrow_drop_down_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">keyboard_arrow_down</span></div>
-    <div class="info"><div class="label">Keyboard Down</div><div class="code">Icons.keyboard_arrow_down</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">keyboard_arrow_up</span></div>
-    <div class="info"><div class="label">Keyboard Up</div><div class="code">Icons.keyboard_arrow_up</div><div class="where">1 use</div></div>
-  </div>
-</div>
-
-<h2>User & Social <span class="badge">P4</span></h2>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">person</span></div>
-    <div class="info"><div class="label">Person</div><div class="code">Icons.person_rounded</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">person</span></div>
-    <div class="info"><div class="label">Person (outline)</div><div class="code">Icons.person_outline</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">person</span></div>
-    <div class="info"><div class="label">Person (regular)</div><div class="code">Icons.person</div><div class="where">4 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">people</span></div>
-    <div class="info"><div class="label">People</div><div class="code">Icons.people</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">people</span></div>
-    <div class="info"><div class="label">People (outline)</div><div class="code">Icons.people_outline</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">groups</span></div>
-    <div class="info"><div class="label">Groups</div><div class="code">Icons.groups</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">class</span></div>
-    <div class="info"><div class="label">Class</div><div class="code">Icons.class_</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">school</span></div>
-    <div class="info"><div class="label">School</div><div class="code">Icons.school</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
+  <div class="card todo">
     <div class="icon-preview"><span class="material-icons-round">school</span></div>
-    <div class="info"><div class="label">School (rounded)</div><div class="code">Icons.school_rounded</div><div class="where">2 uses</div></div>
+    <div class="info"><div class="label">School</div><div class="code">Icons.school_rounded</div><div class="where">3x — vocab, profile, leaderboard</div></div>
   </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">face</span></div>
-    <div class="info"><div class="label">Face</div><div class="code">Icons.face</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">person_add</span></div>
-    <div class="info"><div class="label">Add Person</div><div class="code">Icons.person_add</div><div class="where">Admin</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">person_remove</span></div>
-    <div class="info"><div class="label">Remove Person</div><div class="code">Icons.person_remove</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">person_off</span></div>
-    <div class="info"><div class="label">Person Off</div><div class="code">Icons.person_off_outlined</div><div class="where">1 use</div></div>
+  <div class="card todo">
+    <div class="icon-preview"><span class="material-icons-outlined">error_outline</span></div>
+    <div class="info"><div class="label">Error state</div><div class="code">Icons.error_outline</div><div class="where">3x — vocab, quiz, reader</div></div>
   </div>
 </div>
 
-<h2>Management & CRUD <span class="badge">P4</span></h2>
-<div class="grid">
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">delete</span></div>
-    <div class="info"><div class="label">Delete</div><div class="code">Icons.delete_outline</div><div class="where">17 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">edit</span></div>
-    <div class="info"><div class="label">Edit</div><div class="code">Icons.edit</div><div class="where">8 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">edit</span></div>
-    <div class="info"><div class="label">Edit (outline)</div><div class="code">Icons.edit_outlined</div><div class="where">4 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">upload</span></div>
-    <div class="info"><div class="label">Upload</div><div class="code">Icons.upload</div><div class="where">7 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">upload_file</span></div>
-    <div class="info"><div class="label">Upload File</div><div class="code">Icons.upload_file</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">download</span></div>
-    <div class="info"><div class="label">Download</div><div class="code">Icons.download</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">download</span></div>
-    <div class="info"><div class="label">Download (rounded)</div><div class="code">Icons.download_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">sort</span></div>
-    <div class="info"><div class="label">Sort</div><div class="code">Icons.sort</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">drag_handle</span></div>
-    <div class="info"><div class="label">Drag Handle</div><div class="code">Icons.drag_handle</div><div class="where">4 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">content_paste</span></div>
-    <div class="info"><div class="label">Paste</div><div class="code">Icons.content_paste</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">copy</span></div>
-    <div class="info"><div class="label">Copy</div><div class="code">Icons.copy</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">lock</span></div>
-    <div class="info"><div class="label">Lock</div><div class="code">Icons.lock_rounded</div><div class="where">9 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">lock</span></div>
-    <div class="info"><div class="label">Lock (outline)</div><div class="code">Icons.lock_outline</div><div class="where">4 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">lock_open</span></div>
-    <div class="info"><div class="label">Lock Open</div><div class="code">Icons.lock_open</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">schedule</span></div>
-    <div class="info"><div class="label">Schedule</div><div class="code">Icons.schedule</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">calendar_today</span></div>
-    <div class="info"><div class="label">Calendar</div><div class="code">Icons.calendar_today</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">image</span></div>
-    <div class="info"><div class="label">Image</div><div class="code">Icons.image</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">flag</span></div>
-    <div class="info"><div class="label">Flag</div><div class="code">Icons.flag</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">timeline</span></div>
-    <div class="info"><div class="label">Timeline</div><div class="code">Icons.timeline</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">map</span></div>
-    <div class="info"><div class="label">Map</div><div class="code">Icons.map</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">map</span></div>
-    <div class="info"><div class="label">Map (outline)</div><div class="code">Icons.map_outlined</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">assignment</span></div>
-    <div class="info"><div class="label">Assignment</div><div class="code">Icons.assignment</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">assignment_turned_in</span></div>
-    <div class="info"><div class="label">Assignment Done</div><div class="code">Icons.assignment_turned_in</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">route</span></div>
-    <div class="info"><div class="label">Route</div><div class="code">Icons.route</div><div class="where">5 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">cloud_upload</span></div>
-    <div class="info"><div class="label">Cloud Upload</div><div class="code">Icons.cloud_upload</div><div class="where">4 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">cloud_off</span></div>
-    <div class="info"><div class="label">Cloud Off</div><div class="code">Icons.cloud_off</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">wifi_off</span></div>
-    <div class="info"><div class="label">WiFi Off</div><div class="code">Icons.wifi_off_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">broken_image</span></div>
-    <div class="info"><div class="label">Broken Image</div><div class="code">Icons.broken_image</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">visibility</span></div>
-    <div class="info"><div class="label">Visible</div><div class="code">Icons.visibility_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">visibility_off</span></div>
-    <div class="info"><div class="label">Hidden</div><div class="code">Icons.visibility_off_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">bookmark</span></div>
-    <div class="info"><div class="label">Bookmark</div><div class="code">Icons.bookmark_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">pets</span></div>
-    <div class="info"><div class="label">Pets / Avatar</div><div class="code">Icons.pets</div><div class="where">3 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">checkroom</span></div>
-    <div class="info"><div class="label">Wardrobe / Outfit</div><div class="code">Icons.checkroom</div><div class="where">2 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">category</span></div>
-    <div class="info"><div class="label">Category</div><div class="code">Icons.category</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">casino</span></div>
-    <div class="info"><div class="label">Casino / Rarity</div><div class="code">Icons.casino</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">auto_awesome</span></div>
-    <div class="info"><div class="label">Auto Generate</div><div class="code">Icons.auto_awesome</div><div class="where">3 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">auto_fix_high</span></div>
-    <div class="info"><div class="label">Magic Fix</div><div class="code">Icons.auto_fix_high</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">fiber_new</span></div>
-    <div class="info"><div class="label">New Badge</div><div class="code">Icons.fiber_new_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">gps_fixed</span></div>
-    <div class="info"><div class="label">GPS / Target</div><div class="code">Icons.gps_fixed</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">speed</span></div>
-    <div class="info"><div class="label">Speed</div><div class="code">Icons.speed</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">signal_cellular_alt</span></div>
-    <div class="info"><div class="label">Signal Level</div><div class="code">Icons.signal_cellular_alt_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">storage</span></div>
-    <div class="info"><div class="label">Storage</div><div class="code">Icons.storage_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">hourglass_top</span></div>
-    <div class="info"><div class="label">Hourglass</div><div class="code">Icons.hourglass_top_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">ac_unit</span></div>
-    <div class="info"><div class="label">Snowflake / Freeze</div><div class="code">Icons.ac_unit</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">event</span></div>
-    <div class="info"><div class="label">Event</div><div class="code">Icons.event</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">history</span></div>
-    <div class="info"><div class="label">History</div><div class="code">Icons.history</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">access_time</span></div>
-    <div class="info"><div class="label">Clock</div><div class="code">Icons.access_time</div><div class="where">3 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">notifications_active</span></div>
-    <div class="info"><div class="label">Notification</div><div class="code">Icons.notifications_active</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">email</span></div>
-    <div class="info"><div class="label">Email</div><div class="code">Icons.email</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">email</span></div>
-    <div class="info"><div class="label">Email (outline)</div><div class="code">Icons.email_outlined</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">alternate_email</span></div>
-    <div class="info"><div class="label">@ Email</div><div class="code">Icons.alternate_email</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">logout</span></div>
-    <div class="info"><div class="label">Logout</div><div class="code">Icons.logout</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">help</span></div>
-    <div class="info"><div class="label">Help</div><div class="code">Icons.help</div><div class="where">2 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">admin_panel_settings</span></div>
-    <div class="info"><div class="label">Admin Settings</div><div class="code">Icons.admin_panel_settings</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">open_in_new</span></div>
-    <div class="info"><div class="label">Open External</div><div class="code">Icons.open_in_new</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">compare_arrows</span></div>
-    <div class="info"><div class="label">Compare</div><div class="code">Icons.compare_arrows</div><div class="where">2 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">chat_bubble</span></div>
-    <div class="info"><div class="label">Chat</div><div class="code">Icons.chat_bubble_outline</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">touch_app</span></div>
-    <div class="info"><div class="label">Touch / Tap</div><div class="code">Icons.touch_app_outlined</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">tune</span></div>
-    <div class="info"><div class="label">Tune / Filter</div><div class="code">Icons.tune_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">inbox</span></div>
-    <div class="info"><div class="label">Inbox / Empty</div><div class="code">Icons.inbox_outlined</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">grid_view</span></div>
-    <div class="info"><div class="label">Grid View</div><div class="code">Icons.grid_view</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">grid_view</span></div>
-    <div class="info"><div class="label">Grid View (rounded)</div><div class="code">Icons.grid_view_rounded</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">list</span></div>
-    <div class="info"><div class="label">List View</div><div class="code">Icons.list</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">list_alt</span></div>
-    <div class="info"><div class="label">List Alt</div><div class="code">Icons.list_alt</div><div class="where">2 uses</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">account_tree</span></div>
-    <div class="info"><div class="label">Tree / Hierarchy</div><div class="code">Icons.account_tree_outlined</div><div class="where">5 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">account_tree</span></div>
-    <div class="info"><div class="label">Tree (filled)</div><div class="code">Icons.account_tree</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">folder</span></div>
-    <div class="info"><div class="label">Folder</div><div class="code">Icons.folder_outlined</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">folder_open</span></div>
-    <div class="info"><div class="label">Folder Open</div><div class="code">Icons.folder_open</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-round">folder</span></div>
-    <div class="info"><div class="label">Folder (rounded)</div><div class="code">Icons.folder_rounded</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">description</span></div>
-    <div class="info"><div class="label">Description</div><div class="code">Icons.description_outlined</div><div class="where">3 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">article</span></div>
-    <div class="info"><div class="label">Article</div><div class="code">Icons.article</div><div class="where">2 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">article</span></div>
-    <div class="info"><div class="label">Article (outline)</div><div class="code">Icons.article_outlined</div><div class="where">2 uses (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">view_agenda</span></div>
-    <div class="info"><div class="label">View Agenda</div><div class="code">Icons.view_agenda_outlined</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">photo_library</span></div>
-    <div class="info"><div class="label">Photo Library</div><div class="code">Icons.photo_library_outlined</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">settings_applications</span></div>
-    <div class="info"><div class="label">Settings App</div><div class="code">Icons.settings_applications</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons-outlined">settings</span></div>
-    <div class="info"><div class="label">Settings (outline)</div><div class="code">Icons.settings_outlined</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">checklist</span></div>
-    <div class="info"><div class="label">Checklist</div><div class="code">Icons.checklist</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">edit_note</span></div>
-    <div class="info"><div class="label">Edit Note</div><div class="code">Icons.edit_note</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">radio_button_checked</span></div>
-    <div class="info"><div class="label">Radio Checked</div><div class="code">Icons.radio_button_checked</div><div class="where">1 use (admin)</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">radio_button_unchecked</span></div>
-    <div class="info"><div class="label">Radio Unchecked</div><div class="code">Icons.radio_button_unchecked</div><div class="where">1 use</div></div>
-  </div>
-  <div class="card p4">
-    <div class="icon-preview"><span class="material-icons">circle</span></div>
-    <div class="info"><div class="label">Circle</div><div class="code">Icons.circle</div><div class="where">1 use</div></div>
-  </div>
-</div>
+<h2 style="font-size:16px; margin-top:24px">Tier 3 — Medium Visibility <span class="badge badge-tier">~14 usages</span></h2>
+<p class="description">2 usages each — secondary screens</p>
+<table>
+  <tr><th>Icon</th><th>Name</th><th>Usages</th><th>Context</th></tr>
+  <tr><td><span class="material-icons-round" style="color:#999">check</span></td><td><code>Icons.check</code></td><td>2</td><td>Various confirmations</td></tr>
+  <tr><td><span class="material-icons-round" style="color:#999">expand_more</span></td><td><code>Icons.expand_more_rounded</code></td><td>2</td><td>Expand sections</td></tr>
+  <tr><td><span class="material-icons-round" style="color:#999">style</span></td><td><code>Icons.style_rounded</code></td><td>2</td><td>Card pack display</td></tr>
+  <tr><td><span class="material-icons" style="color:#999">chevron_right</span></td><td><code>Icons.chevron_right</code></td><td>2</td><td>List navigation</td></tr>
+  <tr><td><span class="material-icons-outlined" style="color:#999">lock_outline</span></td><td><code>Icons.lock_outline</code></td><td>2</td><td>Locked variant</td></tr>
+  <tr><td><span class="material-icons-round" style="color:#999">close</span></td><td><code>Icons.close_rounded</code></td><td>2</td><td>Close/dismiss</td></tr>
+  <tr><td><span class="material-icons-round" style="color:#999">schedule</span></td><td><code>Icons.schedule_rounded</code></td><td>2</td><td>Time/schedule</td></tr>
+</table>
+
+<h2 style="font-size:16px; margin-top:24px">Tier 4 — Single Usage <span class="badge badge-tier">~30 icons</span></h2>
+<p class="description">One-off usages across various screens — may stay Material</p>
+<table>
+  <tr><th>Category</th><th>Icons</th></tr>
+  <tr><td>Navigation</td><td><code>arrow_forward</code> <code>arrow_back</code> <code>arrow_downward</code> <code>arrow_upward</code> <code>arrow_drop_down</code> <code>more_vert</code></td></tr>
+  <tr><td>Content</td><td><code>book</code> <code>book_rounded</code> <code>library_books</code> <code>menu_book</code> <code>text_fields</code></td></tr>
+  <tr><td>Tasks</td><td><code>assignment</code> <code>assignment_add</code> <code>abc_rounded</code></td></tr>
+  <tr><td>Discovery</td><td><code>search_rounded</code> <code>fiber_new_rounded</code> <code>inbox_outlined</code></td></tr>
+  <tr><td>Profile</td><td><code>bookmark_rounded</code> <code>school_outlined</code> <code>hourglass_top</code> <code>person</code> <code>edit</code> <code>replay_rounded</code></td></tr>
+  <tr><td>Media</td><td><code>play_circle_fill</code> <code>speed</code> <code>star_rounded</code></td></tr>
+  <tr><td>Status</td><td><code>warning_rounded</code> <code>lock_outline_rounded</code> <code>route</code></td></tr>
+</table>
+
+<h2 style="font-size:16px; margin-top:24px">Tier 5 — Low Visibility <span class="badge badge-tier">~15 usages</span></h2>
+<p class="description">File management, auth, avatar — rarely seen or can stay Material</p>
+<table>
+  <tr><th>Category</th><th>Icons</th><th>Where</th></tr>
+  <tr><td>File Mgmt</td><td><code>delete_outline</code> <code>delete_sweep</code> <code>download_done</code> <code>folder</code> <code>storage</code></td><td>downloaded_books_screen</td></tr>
+  <tr><td>Auth</td><td><code>visibility</code> <code>visibility_off</code></td><td>Login screen</td></tr>
+  <tr><td>Avatar</td><td><code>image</code> <code>arrow_back_ios_new</code></td><td>Avatar customize</td></tr>
+  <tr><td>Teacher</td><td><code>person_rounded</code> <code>edit_outlined</code></td><td>Teacher-facing screens</td></tr>
+</table>
+
+<hr class="divider">
+
+<!-- ============================================ -->
+<!-- ASSET INVENTORY -->
+<!-- ============================================ -->
+
+<h2>Asset Files in assets/icons/ <span class="badge badge-done">30 files</span></h2>
+<p class="description">All custom PNG icons currently in the project</p>
+<table>
+  <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
+  <tr><td><code>map_256.png</code></td><td>Learning Path tab</td><td>Nav</td></tr>
+  <tr><td><code>library.png</code></td><td>Library tab</td><td>Nav</td></tr>
+  <tr><td><code>clipboard_256.png</code></td><td>Quests tab</td><td>Nav</td></tr>
+  <tr><td><code>card.png</code></td><td>Card Collection tab</td><td>Nav</td></tr>
+  <tr><td><code>trophy_256.png</code></td><td>Leaderboards tab</td><td>Nav</td></tr>
+  <tr><td><code>uk-flag.png</code></td><td>Language flag</td><td>Navbar</td></tr>
+  <tr><td><code>fire_menu_bar_256.png</code></td><td>Streak (navbar)</td><td>Stats</td></tr>
+  <tr><td><code>fire_256.png</code></td><td>Active streak</td><td>Streak sheet</td></tr>
+  <tr><td><code>fire_blue_256.png</code></td><td>Freeze streak</td><td>Streak sheet</td></tr>
+  <tr><td><code>gem_outline_256.png</code></td><td>Coins (replaced monetization)</td><td>Global</td></tr>
+  <tr><td><code>xp_green_outline.png</code></td><td>XP icon (replaced bolt)</td><td>Global</td></tr>
+  <tr><td><code>quest.png</code></td><td>Assignment badge on nodes</td><td>Learning path</td></tr>
+  <tr><td><code>rank-bronze-1_large.png</code></td><td>Bronze league tier</td><td>Leaderboard</td></tr>
+  <tr><td><code>rank-silver-2_large.png</code></td><td>Silver league tier</td><td>Leaderboard</td></tr>
+  <tr><td><code>rank-gold-3_large.png</code></td><td>Gold league tier</td><td>Leaderboard</td></tr>
+  <tr><td><code>rank-platinum-5_large.png</code></td><td>Platinum league tier</td><td>Leaderboard</td></tr>
+  <tr><td><code>rank-diamond-7_large.png</code></td><td>Diamond league tier</td><td>Leaderboard</td></tr>
+  <tr><td><code>voc_active/pressed/locked/completed.png</code></td><td>Vocab node (4 states)</td><td>Path nodes</td></tr>
+  <tr><td><code>book_active/pressed/locked/completed.png</code></td><td>Book node (4 states)</td><td>Path nodes</td></tr>
+  <tr><td><code>game_active/pressed/locked/completed.png</code></td><td>Game node (4 states)</td><td>Path nodes</td></tr>
+  <tr><td><code>treasure_active/pressed/locked/completed.png</code></td><td>Treasure node (4 states)</td><td>Path nodes</td></tr>
+  <tr><td><code>unit_nodes.png / unit_nodes_pressed.png</code></td><td>Unit node (2 states)</td><td>Unit map</td></tr>
+</table>
 
 </body>
 </html>

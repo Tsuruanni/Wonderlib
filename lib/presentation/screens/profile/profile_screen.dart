@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:owlio_shared/owlio_shared.dart';
+
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
@@ -577,38 +579,96 @@ class _ProfileHeader extends ConsumerWidget {
                 _buildSchoolClass(profileContext),
                 const SizedBox(height: 12),
               ],
-              // Inline level indicator
+              // League & Level cards
               Row(
                 children: [
-                  Text(
-                    'LVL ${user.level}',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                      color: AppColors.waspDark,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
+                  // League card
                   Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(5),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-                        color: AppColors.wasp,
-                        minHeight: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.gray100,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            _tierAsset(user.leagueTier),
+                            width: 36,
+                            height: 36,
+                            filterQuality: FilterQuality.high,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.leagueTier.label,
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                    color: AppColors.black,
+                                  ),
+                                ),
+                                Text(
+                                  'League',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                    color: AppColors.neutralText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(Icons.bolt_rounded, size: 16, color: AppColors.wasp),
-                  const SizedBox(width: 2),
-                  Text(
-                    '${user.xp}',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: AppColors.black,
+                  // Level card
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.gray100,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/icons/xp_green_outline.png',
+                            width: 36,
+                            height: 36,
+                            filterQuality: FilterQuality.high,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Level ${user.level}',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                    color: AppColors.black,
+                                  ),
+                                ),
+                                Text(
+                                  '${user.xp} XP',
+                                  style: GoogleFonts.nunito(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                    color: AppColors.neutralText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -1232,8 +1292,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
                 color: AppColors.streakOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.bolt_rounded,
-                  color: AppColors.streakOrange, size: 24),
+              child: Image.asset('assets/icons/xp_green_outline.png', width: 24, height: 24, filterQuality: FilterQuality.high),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1352,4 +1411,14 @@ class _SignOutButton extends ConsumerWidget {
       fullWidth: true,
     );
   }
+}
+
+String _tierAsset(LeagueTier tier) {
+  return switch (tier) {
+    LeagueTier.bronze => 'assets/icons/rank-bronze-1_large.png',
+    LeagueTier.silver => 'assets/icons/rank-silver-2_large.png',
+    LeagueTier.gold => 'assets/icons/rank-gold-3_large.png',
+    LeagueTier.platinum => 'assets/icons/rank-platinum-5_large.png',
+    LeagueTier.diamond => 'assets/icons/rank-diamond-7_large.png',
+  };
 }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -217,10 +218,11 @@ class MythCardWidget extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.bolt_rounded,
-                      size: isFull ? 16 : 12,
-                      color: rarityColor,
+                    Image.asset(
+                      'assets/icons/xp_green_outline.png',
+                      width: isFull ? 16.0 : 12.0,
+                      height: isFull ? 16.0 : 12.0,
+                      filterQuality: FilterQuality.high,
                     ),
                     const SizedBox(width: 2),
                     Text(
@@ -335,19 +337,16 @@ class MythCardWidget extends StatelessWidget {
   }
 
   Widget _buildCardImage(String url) {
-    if (url.startsWith('assets/')) {
-      return Image.asset(
-        url,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) =>
-            _buildFallbackBackground(),
-      );
-    }
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) =>
-          _buildFallbackBackground(),
+      fadeInDuration: const Duration(milliseconds: 200),
+      placeholder: (context, url) => Container(
+        decoration: BoxDecoration(
+          gradient: CardColors.getRarityGradient(card.rarity),
+        ),
+      ),
+      errorWidget: (context, url, error) => _buildFallbackBackground(),
     );
   }
 

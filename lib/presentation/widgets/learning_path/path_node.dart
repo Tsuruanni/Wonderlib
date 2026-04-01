@@ -314,7 +314,7 @@ class _PathNodeState extends State<PathNode>
                       right: isRight ? -horizontalPush - badgeSize / 2 : null,
                       top: (nodeSize / 2 - badgeSize / 2) + verticalOffset,
                       child: Image.asset(
-                        'assets/icons/questnew.png',
+                        'assets/icons/quest.png',
                         width: badgeSize,
                         height: badgeSize,
                         filterQuality: FilterQuality.high,

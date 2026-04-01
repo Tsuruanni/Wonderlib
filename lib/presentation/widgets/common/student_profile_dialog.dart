@@ -107,7 +107,7 @@ class StudentProfileDialog extends ConsumerWidget {
               children: [
                 Expanded(
                   child: _StatItem(
-                    icon: Icons.bolt_rounded,
+                    assetPath: 'assets/icons/xp_green_outline.png',
                     value: '${entry.totalXp}',
                     label: 'Total XP',
                     color: AppColors.waspDark,
@@ -116,7 +116,7 @@ class StudentProfileDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatItem(
-                    icon: Icons.star_rounded,
+                    assetPath: _tierAsset(entry.leagueTier),
                     value: 'Lv. ${entry.level}',
                     label: entry.leagueTier.label,
                     color: AppColors.secondary,
@@ -287,7 +287,12 @@ class StudentProfileDialog extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.emoji_events_rounded, size: 16, color: tierColor),
+          Image.asset(
+            _tierAsset(entry.leagueTier),
+            width: 20,
+            height: 20,
+            filterQuality: FilterQuality.high,
+          ),
           const SizedBox(width: 6),
           Text(
             entry.leagueTier.label,
@@ -455,17 +460,29 @@ class StudentProfileDialog extends ConsumerWidget {
       LeagueTier.bronze => const Color(0xFFCD7F32),
     };
   }
+
+  static String _tierAsset(LeagueTier tier) {
+    return switch (tier) {
+      LeagueTier.bronze => 'assets/icons/rank-bronze-1_large.png',
+      LeagueTier.silver => 'assets/icons/rank-silver-2_large.png',
+      LeagueTier.gold => 'assets/icons/rank-gold-3_large.png',
+      LeagueTier.platinum => 'assets/icons/rank-platinum-5_large.png',
+      LeagueTier.diamond => 'assets/icons/rank-diamond-7_large.png',
+    };
+  }
 }
 
 class _StatItem extends StatelessWidget {
   const _StatItem({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.value,
     required this.label,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String value;
   final String label;
   final Color color;
@@ -481,7 +498,10 @@ class _StatItem extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 22),
+          if (assetPath != null)
+            Image.asset(assetPath!, width: 22, height: 22, filterQuality: FilterQuality.high)
+          else
+            Icon(icon, color: color, size: 22),
           const SizedBox(width: 8),
           Expanded(
             child: Column(

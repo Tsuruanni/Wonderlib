@@ -33,6 +33,9 @@ class $AssetsAnimationsGen {
   /// File path: assets/animations/cards.riv
   String get cards => 'assets/animations/cards.riv';
 
+  /// File path: assets/animations/diwali-cards.riv
+  String get diwaliCards => 'assets/animations/diwali-cards.riv';
+
   /// File path: assets/animations/flipbook.json
   LottieGenImage get flipbook =>
       const LottieGenImage('assets/animations/flipbook.json');
@@ -55,6 +58,7 @@ class $AssetsAnimationsGen {
         animationError,
         animationSuccess,
         cards,
+        diwaliCards,
         flipbook,
         gameController,
         starCards
@@ -67,8 +71,203 @@ class $AssetsIconsGen {
   /// File path: assets/icons/.gitkeep
   String get aGitkeep => 'assets/icons/.gitkeep';
 
+  /// File path: assets/icons/Check Mark 256.png
+  AssetGenImage get checkMark256 =>
+      const AssetGenImage('assets/icons/Check Mark 256.png');
+
+  /// File path: assets/icons/Warning Sign Outline 256.png
+  AssetGenImage get warningSignOutline256 =>
+      const AssetGenImage('assets/icons/Warning Sign Outline 256.png');
+
+  /// File path: assets/icons/book_active.png
+  AssetGenImage get bookActive =>
+      const AssetGenImage('assets/icons/book_active.png');
+
+  /// File path: assets/icons/book_completed.png
+  AssetGenImage get bookCompleted =>
+      const AssetGenImage('assets/icons/book_completed.png');
+
+  /// File path: assets/icons/book_locked.png
+  AssetGenImage get bookLocked =>
+      const AssetGenImage('assets/icons/book_locked.png');
+
+  /// File path: assets/icons/book_pressed.png
+  AssetGenImage get bookPressed =>
+      const AssetGenImage('assets/icons/book_pressed.png');
+
+  /// File path: assets/icons/book_red_256.png
+  AssetGenImage get bookRed256 =>
+      const AssetGenImage('assets/icons/book_red_256.png');
+
+  /// File path: assets/icons/card.png
+  AssetGenImage get card => const AssetGenImage('assets/icons/card.png');
+
+  /// File path: assets/icons/clipboard_256.png
+  AssetGenImage get clipboard256 =>
+      const AssetGenImage('assets/icons/clipboard_256.png');
+
+  /// File path: assets/icons/fire_256.png
+  AssetGenImage get fire256 => const AssetGenImage('assets/icons/fire_256.png');
+
+  /// File path: assets/icons/fire_blue_256.png
+  AssetGenImage get fireBlue256 =>
+      const AssetGenImage('assets/icons/fire_blue_256.png');
+
+  /// File path: assets/icons/fire_menu_bar_256.png
+  AssetGenImage get fireMenuBar256 =>
+      const AssetGenImage('assets/icons/fire_menu_bar_256.png');
+
+  /// File path: assets/icons/game_active.png
+  AssetGenImage get gameActive =>
+      const AssetGenImage('assets/icons/game_active.png');
+
+  /// File path: assets/icons/game_completed.png
+  AssetGenImage get gameCompleted =>
+      const AssetGenImage('assets/icons/game_completed.png');
+
+  /// File path: assets/icons/game_locked.png
+  AssetGenImage get gameLocked =>
+      const AssetGenImage('assets/icons/game_locked.png');
+
+  /// File path: assets/icons/game_pressed.png
+  AssetGenImage get gamePressed =>
+      const AssetGenImage('assets/icons/game_pressed.png');
+
+  /// File path: assets/icons/gem_outline_256.png
+  AssetGenImage get gemOutline256 =>
+      const AssetGenImage('assets/icons/gem_outline_256.png');
+
+  /// File path: assets/icons/library.png
+  AssetGenImage get library => const AssetGenImage('assets/icons/library.png');
+
+  /// File path: assets/icons/map_256.png
+  AssetGenImage get map256 => const AssetGenImage('assets/icons/map_256.png');
+
+  /// File path: assets/icons/quest.png
+  AssetGenImage get quest => const AssetGenImage('assets/icons/quest.png');
+
+  /// File path: assets/icons/questnew.png
+  AssetGenImage get questnew =>
+      const AssetGenImage('assets/icons/questnew.png');
+
+  /// File path: assets/icons/quiz.png
+  AssetGenImage get quiz => const AssetGenImage('assets/icons/quiz.png');
+
+  /// File path: assets/icons/rank-bronze-1_large.png
+  AssetGenImage get rankBronze1Large =>
+      const AssetGenImage('assets/icons/rank-bronze-1_large.png');
+
+  /// File path: assets/icons/rank-diamond-7_large.png
+  AssetGenImage get rankDiamond7Large =>
+      const AssetGenImage('assets/icons/rank-diamond-7_large.png');
+
+  /// File path: assets/icons/rank-gold-3_large.png
+  AssetGenImage get rankGold3Large =>
+      const AssetGenImage('assets/icons/rank-gold-3_large.png');
+
+  /// File path: assets/icons/rank-platinum-5_large.png
+  AssetGenImage get rankPlatinum5Large =>
+      const AssetGenImage('assets/icons/rank-platinum-5_large.png');
+
+  /// File path: assets/icons/rank-silver-2_large.png
+  AssetGenImage get rankSilver2Large =>
+      const AssetGenImage('assets/icons/rank-silver-2_large.png');
+
+  /// File path: assets/icons/treasure_active.png
+  AssetGenImage get treasureActive =>
+      const AssetGenImage('assets/icons/treasure_active.png');
+
+  /// File path: assets/icons/treasure_completed.png
+  AssetGenImage get treasureCompleted =>
+      const AssetGenImage('assets/icons/treasure_completed.png');
+
+  /// File path: assets/icons/treasure_locked.png
+  AssetGenImage get treasureLocked =>
+      const AssetGenImage('assets/icons/treasure_locked.png');
+
+  /// File path: assets/icons/treasure_pressed.png
+  AssetGenImage get treasurePressed =>
+      const AssetGenImage('assets/icons/treasure_pressed.png');
+
+  /// File path: assets/icons/trophy_256.png
+  AssetGenImage get trophy256 =>
+      const AssetGenImage('assets/icons/trophy_256.png');
+
+  /// File path: assets/icons/uk-flag.png
+  AssetGenImage get ukFlag => const AssetGenImage('assets/icons/uk-flag.png');
+
+  /// File path: assets/icons/unit_nodes.png
+  AssetGenImage get unitNodes =>
+      const AssetGenImage('assets/icons/unit_nodes.png');
+
+  /// File path: assets/icons/unit_nodes_pressed.png
+  AssetGenImage get unitNodesPressed =>
+      const AssetGenImage('assets/icons/unit_nodes_pressed.png');
+
+  /// File path: assets/icons/voc_active.png
+  AssetGenImage get vocActive =>
+      const AssetGenImage('assets/icons/voc_active.png');
+
+  /// File path: assets/icons/voc_completed.png
+  AssetGenImage get vocCompleted =>
+      const AssetGenImage('assets/icons/voc_completed.png');
+
+  /// File path: assets/icons/voc_locked.png
+  AssetGenImage get vocLocked =>
+      const AssetGenImage('assets/icons/voc_locked.png');
+
+  /// File path: assets/icons/voc_pressed.png
+  AssetGenImage get vocPressed =>
+      const AssetGenImage('assets/icons/voc_pressed.png');
+
+  /// File path: assets/icons/xp_green_outline.png
+  AssetGenImage get xpGreenOutline =>
+      const AssetGenImage('assets/icons/xp_green_outline.png');
+
   /// List of all assets
-  List<String> get values => [aGitkeep];
+  List<dynamic> get values => [
+        aGitkeep,
+        checkMark256,
+        warningSignOutline256,
+        bookActive,
+        bookCompleted,
+        bookLocked,
+        bookPressed,
+        bookRed256,
+        card,
+        clipboard256,
+        fire256,
+        fireBlue256,
+        fireMenuBar256,
+        gameActive,
+        gameCompleted,
+        gameLocked,
+        gamePressed,
+        gemOutline256,
+        library,
+        map256,
+        quest,
+        questnew,
+        quiz,
+        rankBronze1Large,
+        rankDiamond7Large,
+        rankGold3Large,
+        rankPlatinum5Large,
+        rankSilver2Large,
+        treasureActive,
+        treasureCompleted,
+        treasureLocked,
+        treasurePressed,
+        trophy256,
+        ukFlag,
+        unitNodes,
+        unitNodesPressed,
+        vocActive,
+        vocCompleted,
+        vocLocked,
+        vocPressed,
+        xpGreenOutline
+      ];
 }
 
 class $AssetsImagesGen {
@@ -76,9 +275,6 @@ class $AssetsImagesGen {
 
   /// File path: assets/images/.gitkeep
   String get aGitkeep => 'assets/images/.gitkeep';
-
-  /// Directory path: assets/images/cards
-  $AssetsImagesCardsGen get cards => const $AssetsImagesCardsGen();
 
   /// File path: assets/images/forest_texture.png
   AssetGenImage get forestTexture =>
@@ -186,482 +382,6 @@ class $AssetsAnimationsMascotGen {
         lovelyOwlMascot,
         notsureOwlMascot,
         puffOwlMascot
-      ];
-}
-
-class $AssetsImagesCardsGen {
-  const $AssetsImagesCardsGen();
-
-  /// File path: assets/images/cards/Albasti.png
-  AssetGenImage get albasti =>
-      const AssetGenImage('assets/images/cards/Albasti.png');
-
-  /// File path: assets/images/cards/Alkarisi.png
-  AssetGenImage get alkarisi =>
-      const AssetGenImage('assets/images/cards/Alkarisi.png');
-
-  /// File path: assets/images/cards/Anubis.png
-  AssetGenImage get anubis =>
-      const AssetGenImage('assets/images/cards/Anubis.png');
-
-  /// File path: assets/images/cards/Archura.png
-  AssetGenImage get archura =>
-      const AssetGenImage('assets/images/cards/Archura.png');
-
-  /// File path: assets/images/cards/Azure Dragon.png
-  AssetGenImage get azureDragon =>
-      const AssetGenImage('assets/images/cards/Azure Dragon.png');
-
-  /// File path: assets/images/cards/Banshee.png
-  AssetGenImage get banshee =>
-      const AssetGenImage('assets/images/cards/Banshee.png');
-
-  /// File path: assets/images/cards/Bastet.png
-  AssetGenImage get bastet =>
-      const AssetGenImage('assets/images/cards/Bastet.png');
-
-  /// File path: assets/images/cards/Bat Swarm.png
-  AssetGenImage get batSwarm =>
-      const AssetGenImage('assets/images/cards/Bat Swarm.png');
-
-  /// File path: assets/images/cards/Bukrek.png
-  AssetGenImage get bukrek =>
-      const AssetGenImage('assets/images/cards/Bukrek.png');
-
-  /// File path: assets/images/cards/Centaur.png
-  AssetGenImage get centaur =>
-      const AssetGenImage('assets/images/cards/Centaur.png');
-
-  /// File path: assets/images/cards/Cerberus.png
-  AssetGenImage get cerberus =>
-      const AssetGenImage('assets/images/cards/Cerberus.png');
-
-  /// File path: assets/images/cards/Chimera.png
-  AssetGenImage get chimera =>
-      const AssetGenImage('assets/images/cards/Chimera.png');
-
-  /// File path: assets/images/cards/Croc Guard.png
-  AssetGenImage get crocGuard =>
-      const AssetGenImage('assets/images/cards/Croc Guard.png');
-
-  /// File path: assets/images/cards/Cyclops.png
-  AssetGenImage get cyclops =>
-      const AssetGenImage('assets/images/cards/Cyclops.png');
-
-  /// File path: assets/images/cards/Dark Knight.png
-  AssetGenImage get darkKnight =>
-      const AssetGenImage('assets/images/cards/Dark Knight.png');
-
-  /// File path: assets/images/cards/Desert Scorpion.png
-  AssetGenImage get desertScorpion =>
-      const AssetGenImage('assets/images/cards/Desert Scorpion.png');
-
-  /// File path: assets/images/cards/Draugr.png
-  AssetGenImage get draugr =>
-      const AssetGenImage('assets/images/cards/Draugr.png');
-
-  /// File path: assets/images/cards/Dwarf Miner.png
-  AssetGenImage get dwarfMiner =>
-      const AssetGenImage('assets/images/cards/Dwarf Miner.png');
-
-  /// File path: assets/images/cards/Elf Archer.png
-  AssetGenImage get elfArcher =>
-      const AssetGenImage('assets/images/cards/Elf Archer.png');
-
-  /// File path: assets/images/cards/Excalibur.png
-  AssetGenImage get excalibur =>
-      const AssetGenImage('assets/images/cards/Excalibur.png');
-
-  /// File path: assets/images/cards/Fenrir.png
-  AssetGenImage get fenrir =>
-      const AssetGenImage('assets/images/cards/Fenrir.png');
-
-  /// File path: assets/images/cards/Flying Carpet.png
-  AssetGenImage get flyingCarpet =>
-      const AssetGenImage('assets/images/cards/Flying Carpet.png');
-
-  /// File path: assets/images/cards/Foo Dog.png
-  AssetGenImage get fooDog =>
-      const AssetGenImage('assets/images/cards/Foo Dog.png');
-
-  /// File path: assets/images/cards/Frost Giant.png
-  AssetGenImage get frostGiant =>
-      const AssetGenImage('assets/images/cards/Frost Giant.png');
-
-  /// File path: assets/images/cards/Ghost.png
-  AssetGenImage get ghost =>
-      const AssetGenImage('assets/images/cards/Ghost.png');
-
-  /// File path: assets/images/cards/Ghoul.png
-  AssetGenImage get ghoul =>
-      const AssetGenImage('assets/images/cards/Ghoul.png');
-
-  /// File path: assets/images/cards/Giant Spider.png
-  AssetGenImage get giantSpider =>
-      const AssetGenImage('assets/images/cards/Giant Spider.png');
-
-  /// File path: assets/images/cards/Goblin.png
-  AssetGenImage get goblin =>
-      const AssetGenImage('assets/images/cards/Goblin.png');
-
-  /// File path: assets/images/cards/Golden Dragon.png
-  AssetGenImage get goldenDragon =>
-      const AssetGenImage('assets/images/cards/Golden Dragon.png');
-
-  /// File path: assets/images/cards/Golden Fleece.png
-  AssetGenImage get goldenFleece =>
-      const AssetGenImage('assets/images/cards/Golden Fleece.png');
-
-  /// File path: assets/images/cards/Golem.png
-  AssetGenImage get golem =>
-      const AssetGenImage('assets/images/cards/Golem.png');
-
-  /// File path: assets/images/cards/Griffin.png
-  AssetGenImage get griffin =>
-      const AssetGenImage('assets/images/cards/Griffin.png');
-
-  /// File path: assets/images/cards/Grim Reaper.png
-  AssetGenImage get grimReaper =>
-      const AssetGenImage('assets/images/cards/Grim Reaper.png');
-
-  /// File path: assets/images/cards/Gulyabani.png
-  AssetGenImage get gulyabani =>
-      const AssetGenImage('assets/images/cards/Gulyabani.png');
-
-  /// File path: assets/images/cards/Gungnir.png
-  AssetGenImage get gungnir =>
-      const AssetGenImage('assets/images/cards/Gungnir.png');
-
-  /// File path: assets/images/cards/Harpy.png
-  AssetGenImage get harpy =>
-      const AssetGenImage('assets/images/cards/Harpy.png');
-
-  /// File path: assets/images/cards/Holy Grail.png
-  AssetGenImage get holyGrail =>
-      const AssetGenImage('assets/images/cards/Holy Grail.png');
-
-  /// File path: assets/images/cards/Horus.png
-  AssetGenImage get horus =>
-      const AssetGenImage('assets/images/cards/Horus.png');
-
-  /// File path: assets/images/cards/Hydra.png
-  AssetGenImage get hydra =>
-      const AssetGenImage('assets/images/cards/Hydra.png');
-
-  /// File path: assets/images/cards/Ibis Bird.png
-  AssetGenImage get ibisBird =>
-      const AssetGenImage('assets/images/cards/Ibis Bird.png');
-
-  /// File path: assets/images/cards/Ice Dwarf.png
-  AssetGenImage get iceDwarf =>
-      const AssetGenImage('assets/images/cards/Ice Dwarf.png');
-
-  /// File path: assets/images/cards/Jormungandr.png
-  AssetGenImage get jormungandr =>
-      const AssetGenImage('assets/images/cards/Jormungandr.png');
-
-  /// File path: assets/images/cards/Kappa.png
-  AssetGenImage get kappa =>
-      const AssetGenImage('assets/images/cards/Kappa.png');
-
-  /// File path: assets/images/cards/Kirin.png
-  AssetGenImage get kirin =>
-      const AssetGenImage('assets/images/cards/Kirin.png');
-
-  /// File path: assets/images/cards/Kitsune.png
-  AssetGenImage get kitsune =>
-      const AssetGenImage('assets/images/cards/Kitsune.png');
-
-  /// File path: assets/images/cards/Kraken.png
-  AssetGenImage get kraken =>
-      const AssetGenImage('assets/images/cards/Kraken.png');
-
-  /// File path: assets/images/cards/Lich.png
-  AssetGenImage get lich => const AssetGenImage('assets/images/cards/Lich.png');
-
-  /// File path: assets/images/cards/Magic Mushroom.png
-  AssetGenImage get magicMushroom =>
-      const AssetGenImage('assets/images/cards/Magic Mushroom.png');
-
-  /// File path: assets/images/cards/Magic Potion.png
-  AssetGenImage get magicPotion =>
-      const AssetGenImage('assets/images/cards/Magic Potion.png');
-
-  /// File path: assets/images/cards/Medusa Shield Aegis.png
-  AssetGenImage get medusaShieldAegis =>
-      const AssetGenImage('assets/images/cards/Medusa Shield Aegis.png');
-
-  /// File path: assets/images/cards/Medusa.png
-  AssetGenImage get medusa =>
-      const AssetGenImage('assets/images/cards/Medusa.png');
-
-  /// File path: assets/images/cards/Minotaur.png
-  AssetGenImage get minotaur =>
-      const AssetGenImage('assets/images/cards/Minotaur.png');
-
-  /// File path: assets/images/cards/Mjolnir.png
-  AssetGenImage get mjolnir =>
-      const AssetGenImage('assets/images/cards/Mjolnir.png');
-
-  /// File path: assets/images/cards/Mummy.png
-  AssetGenImage get mummy =>
-      const AssetGenImage('assets/images/cards/Mummy.png');
-
-  /// File path: assets/images/cards/Ninja Turtle.png
-  AssetGenImage get ninjaTurtle =>
-      const AssetGenImage('assets/images/cards/Ninja Turtle.png');
-
-  /// File path: assets/images/cards/Odin.png
-  AssetGenImage get odin => const AssetGenImage('assets/images/cards/Odin.png');
-
-  /// File path: assets/images/cards/Oni.png
-  AssetGenImage get oni => const AssetGenImage('assets/images/cards/Oni.png');
-
-  /// File path: assets/images/cards/Orc.png
-  AssetGenImage get orc => const AssetGenImage('assets/images/cards/Orc.png');
-
-  /// File path: assets/images/cards/Osiris.png
-  AssetGenImage get osiris =>
-      const AssetGenImage('assets/images/cards/Osiris.png');
-
-  /// File path: assets/images/cards/Pandoras Box.png
-  AssetGenImage get pandorasBox =>
-      const AssetGenImage('assets/images/cards/Pandoras Box.png');
-
-  /// File path: assets/images/cards/Paper Lantern Spirit.png
-  AssetGenImage get paperLanternSpirit =>
-      const AssetGenImage('assets/images/cards/Paper Lantern Spirit.png');
-
-  /// File path: assets/images/cards/Pegasus.png
-  AssetGenImage get pegasus =>
-      const AssetGenImage('assets/images/cards/Pegasus.png');
-
-  /// File path: assets/images/cards/Philosophers Stone.png
-  AssetGenImage get philosophersStone =>
-      const AssetGenImage('assets/images/cards/Philosophers Stone.png');
-
-  /// File path: assets/images/cards/Phoenix Feather.png
-  AssetGenImage get phoenixFeather =>
-      const AssetGenImage('assets/images/cards/Phoenix Feather.png');
-
-  /// File path: assets/images/cards/Phoenix.png
-  AssetGenImage get phoenix =>
-      const AssetGenImage('assets/images/cards/Phoenix.png');
-
-  /// File path: assets/images/cards/Ra.png
-  AssetGenImage get ra => const AssetGenImage('assets/images/cards/Ra.png');
-
-  /// File path: assets/images/cards/Red Dragon.png
-  AssetGenImage get redDragon =>
-      const AssetGenImage('assets/images/cards/Red Dragon.png');
-
-  /// File path: assets/images/cards/Samurai Ghost.png
-  AssetGenImage get samuraiGhost =>
-      const AssetGenImage('assets/images/cards/Samurai Ghost.png');
-
-  /// File path: assets/images/cards/Satyr.png
-  AssetGenImage get satyr =>
-      const AssetGenImage('assets/images/cards/Satyr.png');
-
-  /// File path: assets/images/cards/Scarab Beetle.png
-  AssetGenImage get scarabBeetle =>
-      const AssetGenImage('assets/images/cards/Scarab Beetle.png');
-
-  /// File path: assets/images/cards/Shadow Creature.png
-  AssetGenImage get shadowCreature =>
-      const AssetGenImage('assets/images/cards/Shadow Creature.png');
-
-  /// File path: assets/images/cards/Shahmeran.png
-  AssetGenImage get shahmeran =>
-      const AssetGenImage('assets/images/cards/Shahmeran.png');
-
-  /// File path: assets/images/cards/Simurgh.png
-  AssetGenImage get simurgh =>
-      const AssetGenImage('assets/images/cards/Simurgh.png');
-
-  /// File path: assets/images/cards/Skeleton Warrior.png
-  AssetGenImage get skeletonWarrior =>
-      const AssetGenImage('assets/images/cards/Skeleton Warrior.png');
-
-  /// File path: assets/images/cards/Sleipnir.png
-  AssetGenImage get sleipnir =>
-      const AssetGenImage('assets/images/cards/Sleipnir.png');
-
-  /// File path: assets/images/cards/Sobek.png
-  AssetGenImage get sobek =>
-      const AssetGenImage('assets/images/cards/Sobek.png');
-
-  /// File path: assets/images/cards/Sphinx.png
-  AssetGenImage get sphinx =>
-      const AssetGenImage('assets/images/cards/Sphinx.png');
-
-  /// File path: assets/images/cards/Spring Bird.png
-  AssetGenImage get springBird =>
-      const AssetGenImage('assets/images/cards/Spring Bird.png');
-
-  /// File path: assets/images/cards/Tanuki.png
-  AssetGenImage get tanuki =>
-      const AssetGenImage('assets/images/cards/Tanuki.png');
-
-  /// File path: assets/images/cards/Tepegoz.png
-  AssetGenImage get tepegoz =>
-      const AssetGenImage('assets/images/cards/Tepegoz.png');
-
-  /// File path: assets/images/cards/Tree Giant Ent.png
-  AssetGenImage get treeGiantEnt =>
-      const AssetGenImage('assets/images/cards/Tree Giant Ent.png');
-
-  /// File path: assets/images/cards/Trident.png
-  AssetGenImage get trident =>
-      const AssetGenImage('assets/images/cards/Trident.png');
-
-  /// File path: assets/images/cards/Troll.png
-  AssetGenImage get troll =>
-      const AssetGenImage('assets/images/cards/Troll.png');
-
-  /// File path: assets/images/cards/Tulpar.png
-  AssetGenImage get tulpar =>
-      const AssetGenImage('assets/images/cards/Tulpar.png');
-
-  /// File path: assets/images/cards/Umay Mother.png
-  AssetGenImage get umayMother =>
-      const AssetGenImage('assets/images/cards/Umay Mother.png');
-
-  /// File path: assets/images/cards/Unicorn.png
-  AssetGenImage get unicorn =>
-      const AssetGenImage('assets/images/cards/Unicorn.png');
-
-  /// File path: assets/images/cards/Valkyrie.png
-  AssetGenImage get valkyrie =>
-      const AssetGenImage('assets/images/cards/Valkyrie.png');
-
-  /// File path: assets/images/cards/Vampire Lord.png
-  AssetGenImage get vampireLord =>
-      const AssetGenImage('assets/images/cards/Vampire Lord.png');
-
-  /// File path: assets/images/cards/Wednesday Witch.png
-  AssetGenImage get wednesdayWitch =>
-      const AssetGenImage('assets/images/cards/Wednesday Witch.png');
-
-  /// File path: assets/images/cards/Werewolf.png
-  AssetGenImage get werewolf =>
-      const AssetGenImage('assets/images/cards/Werewolf.png');
-
-  /// File path: assets/images/cards/Wizard.png
-  AssetGenImage get wizard =>
-      const AssetGenImage('assets/images/cards/Wizard.png');
-
-  /// File path: assets/images/cards/Yeti.png
-  AssetGenImage get yeti => const AssetGenImage('assets/images/cards/Yeti.png');
-
-  /// File path: assets/images/cards/Yggdrasil Branch.png
-  AssetGenImage get yggdrasilBranch =>
-      const AssetGenImage('assets/images/cards/Yggdrasil Branch.png');
-
-  /// File path: assets/images/cards/Zeus.png
-  AssetGenImage get zeus => const AssetGenImage('assets/images/cards/Zeus.png');
-
-  /// File path: assets/images/cards/Zombie.png
-  AssetGenImage get zombie =>
-      const AssetGenImage('assets/images/cards/Zombie.png');
-
-  /// List of all assets
-  List<AssetGenImage> get values => [
-        albasti,
-        alkarisi,
-        anubis,
-        archura,
-        azureDragon,
-        banshee,
-        bastet,
-        batSwarm,
-        bukrek,
-        centaur,
-        cerberus,
-        chimera,
-        crocGuard,
-        cyclops,
-        darkKnight,
-        desertScorpion,
-        draugr,
-        dwarfMiner,
-        elfArcher,
-        excalibur,
-        fenrir,
-        flyingCarpet,
-        fooDog,
-        frostGiant,
-        ghost,
-        ghoul,
-        giantSpider,
-        goblin,
-        goldenDragon,
-        goldenFleece,
-        golem,
-        griffin,
-        grimReaper,
-        gulyabani,
-        gungnir,
-        harpy,
-        holyGrail,
-        horus,
-        hydra,
-        ibisBird,
-        iceDwarf,
-        jormungandr,
-        kappa,
-        kirin,
-        kitsune,
-        kraken,
-        lich,
-        magicMushroom,
-        magicPotion,
-        medusaShieldAegis,
-        medusa,
-        minotaur,
-        mjolnir,
-        mummy,
-        ninjaTurtle,
-        odin,
-        oni,
-        orc,
-        osiris,
-        pandorasBox,
-        paperLanternSpirit,
-        pegasus,
-        philosophersStone,
-        phoenixFeather,
-        phoenix,
-        ra,
-        redDragon,
-        samuraiGhost,
-        satyr,
-        scarabBeetle,
-        shadowCreature,
-        shahmeran,
-        simurgh,
-        skeletonWarrior,
-        sleipnir,
-        sobek,
-        sphinx,
-        springBird,
-        tanuki,
-        tepegoz,
-        treeGiantEnt,
-        trident,
-        troll,
-        tulpar,
-        umayMother,
-        unicorn,
-        valkyrie,
-        vampireLord,
-        wednesdayWitch,
-        werewolf,
-        wizard,
-        yeti,
-        yggdrasilBranch,
-        zeus,
-        zombie
       ];
 }
 
