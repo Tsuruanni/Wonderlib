@@ -180,7 +180,7 @@ class SupabaseCardRepository implements CardRepository {
                 rarity: CardRarity.fromDbValue(json['rarity'] as String),
                 power: (json['power'] as num).toInt(),
                 imageUrl: json['image_url'] as String?,
-                createdAt: DateTime.now(), // not returned by RPC, display-only
+                createdAt: DateTime.utc(2000), // not returned by RPC, display-only
               ),)
           .toList();
       return Right(cards);
