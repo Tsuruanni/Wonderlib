@@ -93,10 +93,11 @@ class MythCardWidget extends StatelessWidget {
 
              _buildCardContent(isFull, rarityColor, rarityDark),
 
-            // Quantity Badge (Top Right)
+            // Quantity Badge (bottom-right in mini, top-right in full)
             if (quantity != null && quantity! > 1)
               Positioned(
-                top: 8,
+                top: isFull ? 8 : null,
+                bottom: isFull ? null : 8,
                 right: 8,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -183,8 +184,40 @@ class MythCardWidget extends StatelessWidget {
   }
 
   Widget _buildCardContent(bool isFull, Color rarityColor, Color rarityDark) {
+    // Mini mode: only card name at bottom
+    if (!isFull) {
+      return Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Spacer(),
+            Text(
+              card.name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    color: Colors.black,
+                    offset: const Offset(0, 1),
+                    blurRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Full mode: category icon, power, name, stars, description, skill
     return Padding(
-      padding: EdgeInsets.all(isFull ? 16 : 10),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -193,14 +226,14 @@ class MythCardWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.all(isFull ? 8 : 4),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.4),
                   shape: BoxShape.circle,
                 ),
                 child: Text(
                   card.categoryIcon ?? card.category.icon,
-                  style: TextStyle(fontSize: isFull ? 24 : 16),
+                  style: const TextStyle(fontSize: 24),
                 ),
               ),
               Container(
@@ -220,15 +253,15 @@ class MythCardWidget extends StatelessWidget {
                   children: [
                     Image.asset(
                       'assets/icons/xp_green_outline.png',
-                      width: isFull ? 16.0 : 12.0,
-                      height: isFull ? 16.0 : 12.0,
+                      width: 16.0,
+                      height: 16.0,
                       filterQuality: FilterQuality.high,
                     ),
                     const SizedBox(width: 2),
                     Text(
                       '${card.power}',
                       style: GoogleFonts.nunito(
-                        fontSize: isFull ? 14 : 11,
+                        fontSize: 14,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
                       ),
@@ -241,17 +274,17 @@ class MythCardWidget extends StatelessWidget {
 
           const Spacer(),
 
-          // Bottom Content: Name, Rarity, (Desc/Skill if full)
+          // Bottom Content: Name, Rarity, Desc/Skill
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 card.name,
                 textAlign: TextAlign.center,
-                maxLines: isFull ? 2 : 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.nunito(
-                  fontSize: isFull ? 20 : 13,
+                  fontSize: 20,
                   fontWeight: FontWeight.w900,
                   color: Colors.white,
                   shadows: [
@@ -267,7 +300,7 @@ class MythCardWidget extends StatelessWidget {
               Text(
                 CardColors.getRarityStars(card.rarity),
                 style: TextStyle(
-                  fontSize: isFull ? 16 : 10,
+                  fontSize: 16,
                   color: rarityColor,
                   shadows: const [
                     Shadow(
