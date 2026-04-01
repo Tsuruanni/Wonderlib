@@ -7,6 +7,7 @@ import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/card_trade_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
+import '../../widgets/common/game_button.dart';
 
 class CardTradeScreen extends ConsumerStatefulWidget {
   const CardTradeScreen({super.key});
@@ -47,92 +48,96 @@ class _CardTradeScreenState extends ConsumerState<CardTradeScreen>
     final tradeState = ref.watch(tradeSelectionProvider);
 
     if (tradeState.phase == TradePhase.reveal && tradeState.result != null) {
-      return _TradeRevealOverlay(result: tradeState.result!);
+      return _TradeRevealView(result: tradeState.result!);
     }
 
     final dupCounts = ref.watch(tradeableDuplicateCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Trade Duplicates',
-          style: GoogleFonts.nunito(fontSize: 20, fontWeight: FontWeight.w800),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: Column(
-            children: [
-              // Segmented tab bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.gray100,
-                    borderRadius: BorderRadius.circular(12),
+      body: Column(
+        children: [
+          // Header
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_rounded),
                   ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 4,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    dividerHeight: 0,
-                    labelPadding: EdgeInsets.zero,
-                    padding: const EdgeInsets.all(4),
-                    labelStyle: GoogleFonts.nunito(
-                      fontSize: 13,
+                  Text(
+                    'Trade Duplicates',
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
-                    unselectedLabelStyle: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    labelColor: AppColors.black,
-                    unselectedLabelColor: AppColors.neutralText,
-                    tabs: [
-                      for (final tab in _tabs)
-                        Tab(
-                          height: 38,
-                          child: Opacity(
-                            opacity: (dupCounts[tab.source] ?? 0) >=
-                                    (tradeRequirements[tab.source]?.count ?? 99)
-                                ? 1.0
-                                : 0.4,
-                            child: Text(tab.label),
-                          ),
-                        ),
-                    ],
                   ),
-                ),
+                ],
               ),
+            ),
+          ),
 
-              // Tab content
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    for (final tab in _tabs)
-                      _TradeTab(sourceRarity: tab.source),
+          // Segmented tabs
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.gray100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                indicator: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
                   ],
                 ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerHeight: 0,
+                labelPadding: EdgeInsets.zero,
+                padding: const EdgeInsets.all(4),
+                labelStyle:
+                    GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800),
+                unselectedLabelStyle:
+                    GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600),
+                labelColor: AppColors.black,
+                unselectedLabelColor: AppColors.neutralText,
+                tabs: [
+                  for (final tab in _tabs)
+                    Tab(
+                      height: 38,
+                      child: Opacity(
+                        opacity: (dupCounts[tab.source] ?? 0) >=
+                                (tradeRequirements[tab.source]?.count ?? 99)
+                            ? 1.0
+                            : 0.4,
+                        child: Text(tab.label),
+                      ),
+                    ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+
+          // Tab content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                for (final tab in _tabs) _TradeTab(sourceRarity: tab.source),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -168,7 +173,6 @@ class _TradeTab extends ConsumerWidget {
 
     return Column(
       children: [
-        // Content area
         Expanded(
           child: CustomScrollView(
             slivers: [
@@ -229,7 +233,6 @@ class _TradeTab extends ConsumerWidget {
                 ),
               ),
 
-              // Warnings
               if (allTargetOwned)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -285,7 +288,7 @@ class _TradeTab extends ConsumerWidget {
 
               const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
-              // Card grid — same sizing as collection page
+              // Card grid
               if (cards.isEmpty)
                 SliverFillRemaining(
                   child: Center(
@@ -333,60 +336,26 @@ class _TradeTab extends ConsumerWidget {
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
           ),
         ),
 
         // Bottom trade button
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            border: Border(
-              top: BorderSide(color: AppColors.neutral.withValues(alpha: 0.5)),
-            ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isReady && !isTrading
-                    ? () => ref
-                        .read(tradeSelectionProvider.notifier)
-                        .executeTrade(sourceRarity)
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: AppColors.neutral,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: isTrading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : Text(
-                        isReady
-                            ? 'Trade Now'
-                            : 'Select ${req.count - selected} more',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-              ),
-            ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: GameButton(
+            label: isReady
+                ? (isTrading ? 'Trading...' : 'Trade Now')
+                : 'Select ${req.count - selected} more',
+            fullWidth: true,
+            variant:
+                isReady ? GameButtonVariant.primary : GameButtonVariant.neutral,
+            onPressed: isReady && !isTrading
+                ? () => ref
+                    .read(tradeSelectionProvider.notifier)
+                    .executeTrade(sourceRarity)
+                : null,
           ),
         ),
       ],
@@ -415,110 +384,119 @@ class _TradeCardItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maxTradeable = uc.quantity - 1;
     final isDisabled = maxTradeable <= 0;
+    final isSelected = selectedCount > 0;
 
     return GestureDetector(
       onTap: isDisabled || isTrading
           ? null
           : () {
               final notifier = ref.read(tradeSelectionProvider.notifier);
-              if (selectedCount > 0 && selectedCount >= maxTradeable) {
+              if (isSelected && selectedCount >= maxTradeable) {
                 notifier.removeCard(uc.cardId);
               } else if (totalSelected < requiredCount) {
                 notifier.addCard(uc.cardId, maxAvailable: maxTradeable);
               }
             },
-      onLongPress: isDisabled || isTrading || selectedCount == 0
+      onLongPress: isDisabled || isTrading || !isSelected
           ? null
           : () =>
               ref.read(tradeSelectionProvider.notifier).removeCard(uc.cardId),
       child: Opacity(
         opacity: isDisabled ? 0.4 : 1.0,
-        child: Stack(
-          children: [
-            MythCardWidget(card: uc.card),
-
-            if (selectedCount > 0)
+        child: Container(
+          decoration: isSelected
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.primary, width: 3),
+                )
+              : null,
+          child: Stack(
+            children: [
+              // Card fills the container (no gap when selected)
               Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: AppColors.primary, width: 3),
-                  ),
+                child: ClipRRect(
+                  borderRadius:
+                      BorderRadius.circular(isSelected ? 3 : 4),
+                  child: MythCardWidget(card: uc.card),
                 ),
               ),
 
-            if (selectedCount > 0)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '-$selectedCount',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+              // Selection count badge
+              if (isSelected)
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '-$selectedCount',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-            if (!isDisabled && selectedCount == 0)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'x${uc.quantity}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+              // Quantity badge
+              if (!isDisabled && !isSelected)
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      'x${uc.quantity}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-            if (isDisabled)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.black.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.lock_rounded,
-                    size: 14,
-                    color: Colors.white54,
+              // Lock for quantity=1
+              if (isDisabled)
+                Positioned(
+                  bottom: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.lock_rounded,
+                      size: 14,
+                      color: Colors.white54,
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// ─── Reveal Overlay ───
+// ─── Reveal View ───
 
-class _TradeRevealOverlay extends ConsumerWidget {
-  const _TradeRevealOverlay({required this.result});
+class _TradeRevealView extends ConsumerWidget {
+  const _TradeRevealView({required this.result});
   final TradeResult result;
 
   @override
@@ -526,86 +504,69 @@ class _TradeRevealOverlay extends ConsumerWidget {
     final rarityColor = Color(result.receivedCard.rarity.colorHex);
 
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: AppColors.background,
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Padding(
-            padding: const EdgeInsets.all(48),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  result.isNew ? 'NEW CARD!' : 'CARD RECEIVED',
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                result.isNew ? 'NEW CARD!' : 'CARD RECEIVED',
+                style: GoogleFonts.nunito(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: result.isNew ? rarityColor : AppColors.black,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 180,
+                height: 260,
+                child: MythCardWidget(
+                  card: result.receivedCard,
+                  showNewBadge: result.isNew,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                result.receivedCard.name,
+                style: GoogleFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: rarityColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border:
+                      Border.all(color: rarityColor.withValues(alpha: 0.4)),
+                ),
+                child: Text(
+                  result.receivedCard.rarity.label,
                   style: GoogleFonts.nunito(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: result.isNew ? rarityColor : Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: rarityColor,
                   ),
                 ),
-                const SizedBox(height: 24),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 200),
-                  child: MythCardWidget(
-                    card: result.receivedCard,
-                    showNewBadge: result.isNew,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  result.receivedCard.name,
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: rarityColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border:
-                        Border.all(color: rarityColor.withValues(alpha: 0.4)),
-                  ),
-                  child: Text(
-                    result.receivedCard.rarity.label,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: rarityColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(tradeSelectionProvider.notifier)
-                        .resetAfterReveal();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.black,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Continue',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+              GameButton(
+                label: 'Continue',
+                variant: GameButtonVariant.primary,
+                onPressed: () {
+                  ref
+                      .read(tradeSelectionProvider.notifier)
+                      .resetAfterReveal();
+                },
+              ),
+            ],
           ),
         ),
       ),

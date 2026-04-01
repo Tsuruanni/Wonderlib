@@ -431,6 +431,12 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.cards,
                 builder: (context, state) => const CardCollectionScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'trade',
+                    builder: (context, state) => const CardTradeScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -454,12 +460,7 @@ GoRouter _createRouter() {
         builder: (context, state) => const PackOpeningScreen(),
       ),
 
-      // Card trade (full-screen)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.cardTrade,
-        builder: (context, state) => const CardTradeScreen(),
-      ),
+      // Card trade moved to cards branch (shell visible)
 
       // Book quiz moved to library branch (shell visible with reader sidebar)
 
