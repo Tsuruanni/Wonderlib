@@ -66,6 +66,8 @@ import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/buy_pack_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
+import '../../domain/usecases/card/get_class_top_collectors_usecase.dart';
+import '../../domain/usecases/card/get_exclusive_cards_usecase.dart';
 import '../../domain/usecases/teacher/create_class_usecase.dart';
 import '../../domain/usecases/teacher/get_class_students_usecase.dart';
 import '../../domain/usecases/teacher/get_classes_usecase.dart';
@@ -678,6 +680,14 @@ final openPackUseCaseProvider = Provider((ref) {
 
 final buyPackUseCaseProvider = Provider((ref) {
   return BuyPackUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getClassTopCollectorsUseCaseProvider = Provider((ref) {
+  return GetClassTopCollectorsUseCase(ref.watch(cardRepositoryProvider));
+});
+
+final getExclusiveCardsUseCaseProvider = Provider((ref) {
+  return GetExclusiveCardsUseCase(ref.watch(cardRepositoryProvider));
 });
 
 // ============================================

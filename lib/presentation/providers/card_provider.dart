@@ -7,6 +7,8 @@ import '../../domain/usecases/card/buy_pack_usecase.dart';
 import '../../domain/usecases/card/get_user_cards_usecase.dart';
 import '../../domain/usecases/card/get_user_card_stats_usecase.dart';
 import '../../domain/usecases/card/open_pack_usecase.dart';
+import '../../domain/usecases/card/get_class_top_collectors_usecase.dart';
+import '../../domain/usecases/card/get_exclusive_cards_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
@@ -128,6 +130,69 @@ final categoryProgressProvider = Provider<Map<CardCategory, int>>((ref) {
     progress[cat] = (progress[cat] ?? 0) + 1;
   }
   return progress;
+});
+
+// ============================================
+// CARD PANEL SIDEBAR PROVIDERS
+// ============================================
+
+/// Rarity breakdown: count of owned cards per rarity vs total in catalog
+final rarityBreakdownProvider =
+    Provider<Map<CardRarity, ({int owned, int total})>>((ref) {
+  final userCards = ref.watch(userCardsProvider).valueOrNull ?? [];
+  final catalog = ref.watch(cardCatalogProvider).valueOrNull ?? [];
+
+  final owned = <CardRarity, int>{};
+  for (final uc in userCards) {
+    final r = uc.card.rarity;
+    owned[r] = (owned[r] ?? 0) + 1;
+  }
+
+  final total = <CardRarity, int>{};
+  for (final c in catalog) {
+    total[c.rarity] = (total[c.rarity] ?? 0) + 1;
+  }
+
+  return {
+    for (final r in CardRarity.values)
+      r: (owned: owned[r] ?? 0, total: total[r] ?? 0),
+  };
+});
+
+/// Top 3 card collectors in user's class + caller rank
+final classTopCollectorsProvider =
+    FutureProvider<TopCollectorsResult>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) {
+    return const TopCollectorsResult(top3: []);
+  }
+
+  final useCase = ref.watch(getClassTopCollectorsUseCaseProvider);
+  final result =
+      await useCase(GetClassTopCollectorsParams(userId: userId));
+  return result.fold(
+    (failure) {
+      debugPrint('classTopCollectorsProvider error: ${failure.message}');
+      return const TopCollectorsResult(top3: []);
+    },
+    (data) => data,
+  );
+});
+
+/// Cards only the current user owns in their class
+final exclusiveCardsProvider = FutureProvider<List<MythCard>>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return [];
+
+  final useCase = ref.watch(getExclusiveCardsUseCaseProvider);
+  final result = await useCase(GetExclusiveCardsParams(userId: userId));
+  return result.fold(
+    (failure) {
+      debugPrint('exclusiveCardsProvider error: ${failure.message}');
+      return [];
+    },
+    (cards) => cards,
+  );
 });
 
 // ============================================
