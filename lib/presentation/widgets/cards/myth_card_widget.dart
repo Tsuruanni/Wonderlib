@@ -378,8 +378,10 @@ class MythCardWidget extends StatelessWidget {
   }
 
   Widget _buildCardImage(String url) {
+    // Encode spaces for web compatibility
+    final encodedUrl = url.replaceAll(' ', '%20');
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: encodedUrl,
       fit: BoxFit.cover,
       fadeInDuration: const Duration(milliseconds: 200),
       placeholder: (context, url) => Container(
