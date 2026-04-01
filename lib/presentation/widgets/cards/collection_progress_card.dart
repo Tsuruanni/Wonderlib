@@ -89,6 +89,29 @@ class CollectionProgressCard extends ConsumerWidget {
             _buildRarityRow(rarity, breakdown[rarity]!),
             if (rarity != CardRarity.legendary) const SizedBox(height: 8),
           ],
+
+          // Duplicate count
+          Builder(builder: (_) {
+            final totalDuplicates = userCards.fold<int>(
+                0, (sum, c) => sum + (c.quantity > 1 ? c.quantity - 1 : 0));
+            if (totalDuplicates == 0) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '$totalDuplicates duplicate cards',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

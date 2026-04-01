@@ -16,7 +16,6 @@ import '../../providers/system_settings_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../cards/collection_progress_card.dart';
-import '../cards/duplicate_counter_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../common/streak_sheet.dart';
@@ -61,8 +60,6 @@ class RightInfoPanel extends ConsumerWidget {
                     const TopCollectorsCard(),
                     const SizedBox(height: 16),
                     const RarityShowcaseCard(),
-                    const SizedBox(height: 16),
-                    const DuplicateCounterCard(),
                     const SizedBox(height: 16),
                   ] else if (isReader) ...[
                     const _ReaderSettingsCard(),
