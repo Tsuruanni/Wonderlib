@@ -8,10 +8,9 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/system_settings_provider.dart';
-import '../../widgets/cards/card_flip_widget.dart';
 import '../../widgets/cards/card_reveal_effects.dart';
 import '../../widgets/cards/coin_badge.dart';
-import '../../widgets/cards/pack_glow_widget.dart';
+import '../../widgets/cards/rive_pack_reveal_widget.dart';
 import '../../widgets/common/game_button.dart';
 
 /// Full-screen immersive pack opening experience.
@@ -30,6 +29,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   bool _showLegendaryOverlay = false;
   String? _legendaryCardName;
   bool _showBuyFeedback = false;
+  Future<PreloadedRiveData>? _preloadFuture;
 
   @override
   void dispose() {
@@ -117,11 +117,9 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
                 // Content area based on phase
                 Expanded(
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 400),
-                      child: _buildPhaseContent(state, controller, coins, packs),
-                    ),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: _buildPhaseContent(state, controller, coins, packs),
                   ),
                 ),
               ],
@@ -189,6 +187,24 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     // crashes when rapidly cycling through phases (old widgets still
     // fading out can collide with new widgets of the same phase).
     final s = state.sessionId;
+    // Reset preload future when returning to idle
+    if (state.phase == PackOpeningPhase.idle) {
+      _preloadFuture = null;
+    }
+
+    // Start preloading as soon as RPC returns packResult during opening
+    if (state.phase == PackOpeningPhase.opening &&
+        state.packResult != null &&
+        _preloadFuture == null) {
+      final minWait = Future<void>.delayed(const Duration(seconds: 2));
+      _preloadFuture =
+          preloadRiveCards(state.packResult!.cards).then((data) async {
+        await minWait;
+        if (mounted) controller.forceReveal();
+        return data;
+      });
+    }
+
     switch (state.phase) {
       case PackOpeningPhase.idle:
         return KeyedSubtree(
@@ -203,15 +219,10 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
         );
 
       case PackOpeningPhase.opening:
+      case PackOpeningPhase.glowing:
         return KeyedSubtree(
           key: ValueKey('opening_$s'),
           child: _buildPurchasingPhase('Opening pack...'),
-        );
-
-      case PackOpeningPhase.glowing:
-        return KeyedSubtree(
-          key: ValueKey('glowing_$s'),
-          child: _buildGlowingPhase(state, controller),
         );
 
       case PackOpeningPhase.revealing:
@@ -225,247 +236,289 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
 
   Widget _buildIdlePhase(
       PackOpeningController controller, int coins, int packs, String? error) {
-    final packCost = ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
+    final packCost =
+        ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
     final canAfford = coins >= packCost;
     final hasPacks = packs > 0;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Premium 3D Pack Visual
-          Container(
-            width: 220,
-            height: 320,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF2C3E50), Color(0xFF1A1A2E)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.cardEpic.withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  spreadRadius: 5,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // Metallic sheen
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withValues(alpha: 0.1),
-                          Colors.transparent,
-                          Colors.white.withValues(alpha: 0.05),
-                        ],
-                        stops: const [0.0, 0.4, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                // Pack Content
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.cardEpic.withValues(alpha: 0.5),
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.cardEpic.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          '\u2726',
-                          style: TextStyle(
-                            fontSize: 48,
-                            color: AppColors.cardEpic,
-                            shadows: [
-                              Shadow(
-                                color: AppColors.cardEpic,
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'MYTHIC PACK',
-                        style: GoogleFonts.nunito(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.white,
-                          letterSpacing: 4,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withValues(alpha: 0.5),
-                              offset: const Offset(0, 2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.cardEpic.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppColors.cardEpic.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          '3 CARDS',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.cardEpic,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ).animate(onPlay: (c) => c.repeat(reverse: true)).scale(
-                begin: const Offset(0.98, 0.98),
-                end: const Offset(1.02, 1.02),
-                duration: 2000.ms,
-                curve: Curves.easeInOut,
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 600;
 
-          const SizedBox(height: 32),
-
-          // Pack count indicator
-          if (hasPacks)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                color: AppColors.cardEpic.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.cardEpic.withValues(alpha: 0.3),
+        final cardFan = SizedBox(
+          width: isWide ? 320 : 260,
+          height: isWide ? 340 : 280,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                left: isWide ? 20 : 10,
+                child: Transform.rotate(
+                  angle: -0.18,
+                  child: _buildCardBack(scale: isWide ? 0.95 : 0.85),
                 ),
               ),
-              child: Text(
-                'You have $packs pack${packs > 1 ? 's' : ''}',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.cardEpic,
+              Positioned(
+                right: isWide ? 20 : 10,
+                child: Transform.rotate(
+                  angle: 0.18,
+                  child: _buildCardBack(scale: isWide ? 0.95 : 0.85),
                 ),
               ),
-            ),
-
-          // OPEN PACK button (primary action — from inventory)
-          SizedBox(
-            width: 240,
-            height: 56,
-            child: GameButton(
-              label: 'OPEN PACK',
-              variant:
-                  hasPacks ? GameButtonVariant.wasp : GameButtonVariant.neutral,
-              onPressed: hasPacks ? () => controller.openPack() : null,
-            ),
+              _buildCardBack(scale: isWide ? 1.05 : 0.95),
+            ],
           ),
+        )
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .scale(
+              begin: const Offset(0.97, 0.97),
+              end: const Offset(1.03, 1.03),
+              duration: 2500.ms,
+              curve: Curves.easeInOut,
+            )
+            .shimmer(
+              duration: 3000.ms,
+              color: AppColors.cardEpic.withValues(alpha: 0.1),
+            );
 
-          const SizedBox(height: 12),
-
-          // BUY PACK button (secondary action — with coins)
-          SizedBox(
-            width: 240,
-            height: 48,
-            child: GameButton(
-              label: 'BUY PACK  \u00a2$packCost',
-              variant: canAfford ? GameButtonVariant.primary : GameButtonVariant.neutral,
-              onPressed: canAfford ? () => controller.buyPack(cost: packCost) : null,
-            ),
-          ),
-
-          // Error message
-          if (error != null) ...[
-            const SizedBox(height: 16),
+        final infoPanel = Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Title
             Text(
-              error,
+              'MYTHIC PACK',
               style: GoogleFonts.nunito(
-                fontSize: 14,
+                fontSize: isWide ? 28 : 24,
+                fontWeight: FontWeight.w900,
+                color: AppColors.white,
+                letterSpacing: 6,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '3 Mythology Cards Inside',
+              style: GoogleFonts.nunito(
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.danger,
+                color: AppColors.white.withValues(alpha: 0.4),
               ),
             ),
-          ],
+            const SizedBox(height: 24),
 
-          if (!hasPacks && !canAfford) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Complete daily quests or read books to get packs!',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.white.withValues(alpha: 0.6),
+            // Buttons
+            if (hasPacks) ...[
+              SizedBox(
+                width: 260,
+                height: 52,
+                child: GameButton(
+                  label: 'OPEN PACK  ($packs)',
+                  variant: GameButtonVariant.wasp,
+                  onPressed: () => controller.openPack(),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            SizedBox(
+              width: 260,
+              height: hasPacks ? 42 : 52,
+              child: GameButton(
+                label: 'BUY PACK  $packCost',
+                icon: Image.asset(
+                  'assets/icons/gem_outline_256.png',
+                  width: 18,
+                  height: 18,
+                  filterQuality: FilterQuality.high,
+                ),
+                variant: canAfford
+                    ? (hasPacks
+                        ? GameButtonVariant.neutral
+                        : GameButtonVariant.primary)
+                    : GameButtonVariant.neutral,
+                onPressed: canAfford
+                    ? () => controller.buyPack(cost: packCost)
+                    : null,
               ),
             ),
+
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                error,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.danger,
+                ),
+              ),
+            ],
+
+            if (!hasPacks && !canAfford) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Complete quests or read books\nto earn packs!',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  color: AppColors.white.withValues(alpha: 0.4),
+                ),
+              ),
+            ],
           ],
+        );
+
+        if (isWide) {
+          return Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                cardFan,
+                const SizedBox(width: 40),
+                infoPanel,
+              ],
+            ),
+          );
+        }
+
+        return Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                cardFan,
+                const SizedBox(height: 24),
+                infoPanel,
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCardBack({double scale = 1.0}) {
+    return Container(
+      width: 140 * scale,
+      height: 200 * scale,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12 * scale),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2A1A3E), Color(0xFF1A1A2E), Color(0xFF2A1A3E)],
+        ),
+        border: Border.all(
+          color: AppColors.cardEpic.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.5),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: AppColors.cardEpic.withValues(alpha: 0.1),
+            blurRadius: 20,
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Corner decorations
+          Positioned(
+            top: 12 * scale,
+            left: 12 * scale,
+            child: _buildCornerDot(scale),
+          ),
+          Positioned(
+            top: 12 * scale,
+            right: 12 * scale,
+            child: _buildCornerDot(scale),
+          ),
+          Positioned(
+            bottom: 12 * scale,
+            left: 12 * scale,
+            child: _buildCornerDot(scale),
+          ),
+          Positioned(
+            bottom: 12 * scale,
+            right: 12 * scale,
+            child: _buildCornerDot(scale),
+          ),
+          // Center emblem
+          Container(
+            width: 50 * scale,
+            height: 50 * scale,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.cardEpic.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                '\u2726',
+                style: TextStyle(
+                  fontSize: 24 * scale,
+                  color: AppColors.cardEpic.withValues(alpha: 0.6),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPurchasingPhase(String message) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox(
-          width: 50,
-          height: 50,
-          child: CircularProgressIndicator(
-            color: AppColors.cardEpic,
-            strokeWidth: 3,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          message,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          ),
-        ),
-      ],
+  Widget _buildCornerDot(double scale) {
+    return Container(
+      width: 6 * scale,
+      height: 6 * scale,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.cardEpic.withValues(alpha: 0.3),
+      ),
     );
   }
 
-  Widget _buildGlowingPhase(
-      PackOpeningState state, PackOpeningController controller) {
-    return PackGlowWidget(
-      glowRarity: state.packResult!.packGlowRarity,
-      onAnimationComplete: () => controller.startRevealing(),
+  Widget _buildPurchasingPhase(String message) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Animated card back with pulse
+          SizedBox(
+            width: 160,
+            height: 220,
+            child: _buildCardBack(scale: 1.1),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                begin: const Offset(0.95, 0.95),
+                end: const Offset(1.05, 1.05),
+                duration: 800.ms,
+                curve: Curves.easeInOut,
+              )
+              .shimmer(
+                duration: 1200.ms,
+                color: AppColors.cardEpic.withValues(alpha: 0.3),
+              ),
+          const SizedBox(height: 28),
+          Text(
+            message,
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.white,
+              letterSpacing: 2,
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .fadeIn(duration: 600.ms),
+        ],
+      ),
     );
   }
 
@@ -479,148 +532,116 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     final isComplete = state.phase == PackOpeningPhase.complete;
     final packsRemaining = packResult.packsRemaining;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // 3 cards side by side
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(cards.length, (index) {
-              final packCard = cards[index];
-              final isRevealed = state.revealedIndices.contains(index);
-
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: 180,
-                        child: CardFlipWidget(
-                          card: packCard.card,
-                          isRevealed: isRevealed,
-                          quantity: packCard.currentQuantity,
-                          isNew: packCard.isNew,
-                          index: index,
-                          onFlip: () {
-                            controller.revealCard(index);
-                            if (packCard.card.rarity == CardRarity.legendary) {
-                              Future.delayed(const Duration(milliseconds: 700),
-                                  () {
-                                if (mounted) {
-                                  setState(() {
-                                    _showLegendaryOverlay = true;
-                                    _legendaryCardName = packCard.card.name;
-                                  });
-                                }
-                              });
-                            }
-                          },
-                        ),
+    return Column(
+      children: [
+        // Rive card reveal animation
+        if (!isComplete)
+          Expanded(
+              child: FutureBuilder<PreloadedRiveData>(
+                future: _preloadFuture ??= preloadRiveCards(cards),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.cardEpic,
                       ),
-
-                      // NEW/duplicate indicator after reveal
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 20,
-                        child: isRevealed
-                            ? Center(
-                                child: packCard.isNew
-                                    ? const NewCardBadge()
-                                    : DuplicateCountBadge(
-                                        quantity: packCard.currentQuantity),
-                              )
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-
-          const SizedBox(height: 40),
+                    );
+                  }
+                  return RivePackRevealWidget(
+                    cards: cards,
+                    preloadedData: snapshot.data!,
+                    onCardRevealed: (index) {
+                      // Legendary overlay on first sight
+                      final revealedCard = cards[index].card;
+                      if (revealedCard.rarity == CardRarity.legendary &&
+                          !_showLegendaryOverlay) {
+                        Future.delayed(const Duration(milliseconds: 700), () {
+                          if (mounted) {
+                            setState(() {
+                              _showLegendaryOverlay = true;
+                              _legendaryCardName = revealedCard.name;
+                            });
+                          }
+                        });
+                      }
+                    },
+                    onAllRevealed: () {
+                      controller.reset();
+                    },
+                  );
+                },
+              ),
+            ),
 
           // Complete phase: summary + action buttons
           if (isComplete) ...[
-            // Remaining packs
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Packs remaining: ',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    color: AppColors.white.withValues(alpha: 0.6),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Packs remaining: ',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          color: AppColors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.cardEpic.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$packsRemaining',
+                          style: GoogleFonts.nunito(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.cardEpic,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardEpic.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (packsRemaining > 0)
+                        Expanded(
+                          child: GameButton(
+                            label: 'OPEN AGAIN',
+                            variant: GameButtonVariant.wasp,
+                            onPressed: () {
+                              controller.reset();
+                              controller.openPack();
+                            },
+                          ),
+                        ),
+                      if (packsRemaining > 0) const SizedBox(width: 16),
+                      Expanded(
+                        child: GameButton(
+                          label: 'DONE',
+                          variant: GameButtonVariant.neutral,
+                          onPressed: () {
+                            controller.reset();
+                            context.pop();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    '$packsRemaining',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.cardEpic,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (packsRemaining > 0)
-                  Expanded(
-                    child: GameButton(
-                      label: 'OPEN AGAIN',
-                      variant: GameButtonVariant.wasp,
-                      onPressed: () {
-                        controller.reset();
-                        controller.openPack();
-                      },
-                    ),
-                  ),
-                if (packsRemaining > 0) const SizedBox(width: 16),
-                Expanded(
-                  child: GameButton(
-                    label: 'DONE',
-                    variant: GameButtonVariant.neutral,
-                    onPressed: () {
-                      controller.reset();
-                      context.pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ] else ...[
-            // Hint to tap cards
-            Text(
-              'Tap cards to reveal',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white.withValues(alpha: 0.5),
+                ],
               ),
-            )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .fadeIn(duration: 800.ms),
+            ),
+            const Spacer(),
           ],
         ],
-      ),
-    );
+      );
   }
 }

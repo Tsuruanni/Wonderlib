@@ -166,31 +166,33 @@ class _GameButtonState extends State<GameButton> {
                     : null,
                 ),
                 alignment: Alignment.center,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.icon != null) ...[
-                      // Force icon color if needed
-                      IconTheme(
-                        data: IconThemeData(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.label.toUpperCase(),
+                        style: TextStyle(
                           color: textColor,
-                          size: 24,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Nunito',
+                          letterSpacing: 0.8,
                         ),
-                        child: widget.icon!,
                       ),
-                      const SizedBox(width: 8),
+                      if (widget.icon != null) ...[
+                        const SizedBox(width: 8),
+                        IconTheme(
+                          data: IconThemeData(
+                            color: textColor,
+                            size: 24,
+                          ),
+                          child: widget.icon!,
+                        ),
+                      ],
                     ],
-                    Text(
-                      widget.label.toUpperCase(),
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Nunito',
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),

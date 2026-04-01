@@ -218,11 +218,10 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
     );
   }
 
-  /// Open a pack from inventory: consumes 1 pack, rolls 3 cards
+  /// Open a pack from inventory: consumes 1 pack, rolls 3 cards.
+  /// Shows opening animation while RPC runs, then goes to revealing.
   Future<void> openPack() async {
     if (state.phase != PackOpeningPhase.idle) return;
-
-    state = state.copyWith(phase: PackOpeningPhase.opening, error: null, buySuccess: false);
 
     final userId = _ref.read(currentUserIdProvider);
     if (userId == null) {
@@ -232,6 +231,12 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
       );
       return;
     }
+
+    state = state.copyWith(
+      phase: PackOpeningPhase.opening,
+      error: null,
+      buySuccess: false,
+    );
 
     final useCase = _ref.read(openPackUseCaseProvider);
     final result = await useCase(OpenPackParams(userId: userId));
@@ -244,17 +249,21 @@ class PackOpeningController extends StateNotifier<PackOpeningState> {
         );
       },
       (packResult) {
-        state = PackOpeningState(
-          phase: PackOpeningPhase.glowing,
+        // Stay in opening phase — screen will transition to revealing
+        // once Rive preload is also complete.
+        state = state.copyWith(
+          phase: PackOpeningPhase.opening,
           packResult: packResult,
         );
       },
     );
   }
 
-  /// Move from glow to reveal phase (after glow animation completes)
-  void startRevealing() {
-    if (state.phase != PackOpeningPhase.glowing) return;
+  /// Transition to revealing when preload is complete.
+  void forceReveal() {
+    if (state.phase != PackOpeningPhase.opening || state.packResult == null) {
+      return;
+    }
     state = state.copyWith(phase: PackOpeningPhase.revealing);
   }
 

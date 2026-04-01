@@ -31,23 +31,11 @@ class CoinBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          Image.asset(
+            'assets/icons/gem_outline_256.png',
             width: fontSize + 4,
             height: fontSize + 4,
-            decoration: const BoxDecoration(
-              color: AppColors.wasp,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '\u00a2',
-                style: GoogleFonts.nunito(
-                  fontSize: fontSize - 2,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.white,
-                ),
-              ),
-            ),
+            filterQuality: FilterQuality.high,
           ),
           const SizedBox(width: 4),
           Text(
