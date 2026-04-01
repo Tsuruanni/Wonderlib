@@ -126,4 +126,69 @@ class SupabaseCardRepository implements CardRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, TopCollectorsResult>> getClassTopCollectors(
+      String userId,) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getClassTopCollectors,
+        params: {'p_user_id': userId},
+      );
+
+      final json = response as Map<String, dynamic>;
+
+      TopCollectorEntry parseEntry(Map<String, dynamic> e) {
+        return TopCollectorEntry(
+          userId: e['user_id'] as String,
+          firstName: e['first_name'] as String,
+          uniqueCards: (e['unique_cards'] as num).toInt(),
+          rank: (e['rank'] as num).toInt(),
+        );
+      }
+
+      final top3 = (json['top3'] as List)
+          .map((e) => parseEntry(e as Map<String, dynamic>))
+          .toList();
+      final callerJson = json['caller'] as Map<String, dynamic>?;
+
+      return Right(TopCollectorsResult(
+        top3: top3,
+        caller: callerJson != null ? parseEntry(callerJson) : null,
+      ),);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<MythCard>>> getExclusiveCards(
+      String userId,) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getExclusiveCards,
+        params: {'p_user_id': userId},
+      );
+
+      final cards = (response as List)
+          .map((json) => MythCard(
+                id: json['id'] as String,
+                cardNo: json['card_no'] as String,
+                name: json['name'] as String,
+                category: CardCategory.fromDbValue(json['category'] as String),
+                rarity: CardRarity.fromDbValue(json['rarity'] as String),
+                power: (json['power'] as num).toInt(),
+                imageUrl: json['image_url'] as String?,
+                createdAt: DateTime.now(), // not returned by RPC, display-only
+              ),)
+          .toList();
+      return Right(cards);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
 }
