@@ -11,6 +11,8 @@ import '../../providers/system_settings_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
+import '../../providers/card_trade_provider.dart';
+import '../../widgets/cards/trade_button_card.dart';
 import '../../widgets/common/top_navbar.dart';
 
 /// Tracks which card categories are expanded (web only).
@@ -45,16 +47,23 @@ class CardCollectionScreen extends ConsumerWidget {
                 data: (_) {
                   return CustomScrollView(
                     slivers: [
-                      // Open Pack Banner (mobile only — on wide screens it's in the right panel)
-                      if (MediaQuery.sizeOf(context).width < 1000)
+                      // Open Pack Banner + Trade Banner (mobile only — on wide screens they're in the right panel)
+                      if (MediaQuery.sizeOf(context).width < 1000) ...[
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
                             child: _OpenPackBanner(
                               onTap: () => context.push(AppRoutes.packOpening),
                             ),
                           ),
                         ),
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: const TradeButtonCard(),
+                          ),
+                        ),
+                      ],
 
                       // Top spacing when banner is hidden (wide screens)
                       if (MediaQuery.sizeOf(context).width >= 1000)

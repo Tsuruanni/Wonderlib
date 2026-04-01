@@ -390,11 +390,10 @@ class _TradeCardItem extends ConsumerWidget {
       onTap: isDisabled || isTrading
           ? null
           : () {
-              final notifier = ref.read(tradeSelectionProvider.notifier);
-              if (isSelected && selectedCount >= maxTradeable) {
-                notifier.removeCard(uc.cardId);
-              } else if (totalSelected < requiredCount) {
-                notifier.addCard(uc.cardId, maxAvailable: maxTradeable);
+              if (totalSelected < requiredCount) {
+                ref
+                    .read(tradeSelectionProvider.notifier)
+                    .addCard(uc.cardId, maxAvailable: maxTradeable);
               }
             },
       onLongPress: isDisabled || isTrading || !isSelected
@@ -564,6 +563,7 @@ class _TradeRevealView extends ConsumerWidget {
                   ref
                       .read(tradeSelectionProvider.notifier)
                       .resetAfterReveal();
+                  if (context.mounted) Navigator.of(context).pop();
                 },
               ),
             ],
