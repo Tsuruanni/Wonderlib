@@ -17,7 +17,6 @@ import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../cards/collection_progress_card.dart';
 import '../cards/duplicate_counter_card.dart';
-import '../cards/rarest_card_owner_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../common/streak_sheet.dart';
@@ -59,20 +58,16 @@ class RightInfoPanel extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const CollectionProgressCard(),
                     const SizedBox(height: 16),
-                    const RarityShowcaseCard(),
-                    const SizedBox(height: 16),
                     const TopCollectorsCard(),
                     const SizedBox(height: 16),
-                    const RarestCardOwnerCard(),
+                    const RarityShowcaseCard(),
                     const SizedBox(height: 16),
                     const DuplicateCounterCard(),
                     const SizedBox(height: 16),
-                  ],
-                  if (isReader) ...[
+                  ] else if (isReader) ...[
                     const _ReaderSettingsCard(),
                     const SizedBox(height: 16),
-                  ],
-                  if (isQuests) ...[
+                  ] else if (isQuests) ...[
                     const _MonthlyQuestSidebarCard(),
                     const SizedBox(height: 16),
                     const _MonthlyBadgesSidebarCard(),
@@ -683,87 +678,176 @@ class _OpenPackCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final packs = ref.watch(unopenedPacksProvider);
     final hasPacks = packs > 0;
-    final packCost = ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
+    final packCost =
+        ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
 
-    return GestureDetector(
-      onTap: () => context.push(AppRoutes.packOpening),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6B4CFE), Color(0xFFD355FF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6B4CFE), Color(0xFF9B3FE8), Color(0xFFD355FF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF6B4CFE).withValues(alpha: 0.4),
+            offset: const Offset(0, 6),
+            blurRadius: 16,
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hasPacks ? 'PACKS AVAILABLE' : 'GET NEW CARDS',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white.withValues(alpha: 0.8),
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    hasPacks ? 'Open Pack ($packs)' : 'Buy Booster Pack',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Decorative circles
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Container(
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
               ),
-              child: hasPacks
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.style_rounded, color: AppColors.cardEpic, size: 18),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$packs',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.cardEpic,
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
-                        const SizedBox(width: 4),
-                        Text(
-                          '$packCost',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.black,
-                          ),
-                        ),
-                      ],
-                    ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -15,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row: sparkle icon + pack count or buy prompt
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text('✨', style: TextStyle(fontSize: 20)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            hasPacks ? 'PACKS AVAILABLE' : 'BOOSTER PACKS',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white.withValues(alpha: 0.7),
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                          if (hasPacks) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              'x$packs',
+                              style: GoogleFonts.nunito(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Action buttons
+                if (hasPacks)
+                  // Open Packs button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => context.push(AppRoutes.packOpening),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF6B4CFE),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Open Packs',
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  // Buy Pack button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => context.push(AppRoutes.packOpening),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF6B4CFE),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Buy Pack',
+                            style: GoogleFonts.nunito(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Image.asset(
+                            'assets/icons/gem_outline_256.png',
+                            width: 16,
+                            height: 16,
+                            filterQuality: FilterQuality.high,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '$packCost',
+                            style: GoogleFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.cardEpic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

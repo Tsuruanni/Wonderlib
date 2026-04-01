@@ -18,11 +18,10 @@ class DuplicateCounterCard extends ConsumerWidget {
     final totalExtra =
         duplicates.fold<int>(0, (sum, c) => sum + c.quantity - 1);
 
-    UserCard? mostDuplicated;
-    if (duplicates.isNotEmpty) {
-      mostDuplicated = duplicates.reduce(
-          (a, b) => a.quantity >= b.quantity ? a : b,);
-    }
+    if (totalExtra == 0) return const SizedBox.shrink();
+
+    final mostDuplicated = duplicates.reduce(
+        (a, b) => a.quantity >= b.quantity ? a : b,);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -43,42 +42,29 @@ class DuplicateCounterCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          if (totalExtra == 0)
-            Text(
-              'No duplicates yet',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutralText,
+          Row(
+            children: [
+              Text(
+                '$totalExtra',
+                style: GoogleFonts.nunito(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.black,
+                ),
               ),
-            )
-          else ...[
-            Row(
-              children: [
-                Text(
-                  '$totalExtra',
-                  style: GoogleFonts.nunito(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.black,
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                'extra cards',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralText,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'extra cards',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.neutralText,
-                  ),
-                ),
-              ],
-            ),
-            if (mostDuplicated != null) ...[
-              const SizedBox(height: 12),
-              _buildMostDuplicated(mostDuplicated),
+              ),
             ],
-          ],
+          ),
+          const SizedBox(height: 12),
+          _buildMostDuplicated(mostDuplicated),
         ],
       ),
     );

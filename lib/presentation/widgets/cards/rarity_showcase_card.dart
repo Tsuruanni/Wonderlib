@@ -21,7 +21,9 @@ class RarityShowcaseCard extends ConsumerWidget {
         if (rarityCompare != 0) return rarityCompare;
         return b.card.power.compareTo(a.card.power);
       });
-    final top3 = sorted.take(3).toList();
+    final topCards = sorted.take(6).toList();
+    final firstRow = topCards.take(3).toList();
+    final secondRow = topCards.length > 3 ? topCards.skip(3).toList() : <UserCard>[];
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -42,16 +44,28 @@ class RarityShowcaseCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              for (int i = 0; i < top3.length; i++) ...[
-                if (i > 0) const SizedBox(width: 8),
-                Expanded(child: _buildCardPreview(top3[i].card)),
-              ],
-            ],
-          ),
+          _buildRow(firstRow),
+          if (secondRow.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            _buildRow(secondRow),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildRow(List<UserCard> cards) {
+    return Row(
+      children: [
+        for (int i = 0; i < 3; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(
+            child: i < cards.length
+                ? _buildCardPreview(cards[i].card)
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ],
     );
   }
 
