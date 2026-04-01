@@ -745,31 +745,13 @@ class _OpenPackCard extends ConsumerWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            hasPacks ? 'PACKS AVAILABLE' : 'BOOSTER PACKS',
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white.withValues(alpha: 0.7),
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                          if (hasPacks) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              'x$packs',
-                              style: GoogleFonts.nunito(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        hasPacks ? '$packs Packs Available' : 'Booster Packs',
+                        style: GoogleFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],

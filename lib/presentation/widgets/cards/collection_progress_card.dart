@@ -90,29 +90,28 @@ class CollectionProgressCard extends ConsumerWidget {
             if (rarity != CardRarity.legendary) const SizedBox(height: 8),
           ],
 
-          // Duplicate count
-          Builder(builder: (_) {
-            final totalDuplicates = userCards.fold<int>(
-                0, (sum, c) => sum + (c.quantity > 1 ? c.quantity - 1 : 0));
-            if (totalDuplicates == 0) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '$totalDuplicates duplicate cards',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
+          // Total packs opened
+          _buildPacksOpened(ref),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPacksOpened(WidgetRef ref) {
+    final stats = ref.watch(userCardStatsProvider).valueOrNull;
+    final total = stats?.totalPacksOpened ?? 0;
+    if (total == 0) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Text(
+        '$total packs opened',
+        textAlign: TextAlign.center,
+        style: GoogleFonts.nunito(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.neutralText,
+        ),
       ),
     );
   }
