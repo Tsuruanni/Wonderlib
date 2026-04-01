@@ -68,19 +68,16 @@ class LearningPathView extends ConsumerWidget {
     final assignedBookIds = <String>{};
     final assignedUnitIds = <String>{};
     for (final a in activeAssignments) {
-      debugPrint('🔍 Assignment: type=${a.type}, unitId=${a.unitId}, wordListId=${a.wordListId}, bookId=${a.bookId}, config=${a.contentConfig}');
       if (a.wordListId != null) assignedWordListIds.add(a.wordListId!);
       if (a.bookId != null) assignedBookIds.add(a.bookId!);
       if (a.unitId != null) assignedUnitIds.add(a.unitId!);
     }
-    debugPrint('🔍 assignedUnitIds=$assignedUnitIds, assignedWordListIds=$assignedWordListIds, assignedBookIds=$assignedBookIds');
 
     final children = <Widget>[];
     bool foundActive = false;
 
     for (int unitIdx = 0; unitIdx < units.length; unitIdx++) {
       final unit = units[unitIdx];
-      debugPrint('🔍 Unit[$unitIdx]: id=${unit.unit.id}, name=${unit.unit.name}, inAssigned=${assignedUnitIds.contains(unit.unit.id)}');
       final isUnitLocked = unit.unitGate && unitIdx > 0 && !units[unitIdx - 1].isAllComplete;
 
       // Unit divider

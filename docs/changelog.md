@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Custom Icon System & UI Polish (2026-04-01)
+
+#### Added
+- **Custom PNG icon system** — Replaced 30+ Material Icons with hand-crafted PNG assets across bottom nav, top navbar, streak sheet, learning path nodes, leaderboard, and profile.
+- **Learning path node assets** — 4 node types (vocab, book, game, treasure) × 4 states (active, pressed, locked, completed) = 16 custom PNG node images replacing programmatic 3D circles. Unit nodes also use custom PNG with number overlay.
+- **League rank icons** — 5 tier-specific rank icons (bronze→diamond) replacing generic shield icons across leaderboard, right panel, profile, and student profile dialog.
+- **Assignment badge on nodes** — Quest PNG badge appears next to assigned learning path nodes. Deterministic random positioning (left/right + vertical offset). Hidden on completed nodes.
+- **Assignment unitId tracking** — Unit assignments now store `unitId` (vocabulary_units) in contentConfig alongside `scopeLpUnitId` for direct learning path matching.
+- **Profile league & level cards** — Two side-by-side cards (league tier icon + label, XP icon + level) replacing inline level indicator.
+- **Leaderboard podium redesign** — Spotlight-style layout (1→2→3 left-to-right), gradient banner, rank numbers, tier badges on avatars, full names, XP with icon.
+
+#### Changed
+- **Bottom nav icons** — 5 tabs now use colorful PNG icons (map, library, clipboard, card, trophy) with FilterQuality.high.
+- **Top navbar** — UK flag PNG replaces EN→TR emoji flags. Fire outline icon for streak, gem icon for coins.
+- **Coin icons → gem** — All 13 `Icons.monetization_on` usages replaced with `gem_outline_256.png`.
+- **XP icons → green XP** — `Icons.bolt_rounded` partially replaced with `xp_green_outline.png` across profile, daily review, cards, right panel, student dialog.
+- **Streak sheet** — Active days show fire icon, freeze days show blue fire icon, stats use asset-based icons.
+- **Leaderboard rows** — Frameless design for all tabs, tier icon between avatar and name (class/school), XP shown as number + icon (no "XP" text), same-school indicator moved next to name.
+- **Pack opening** — `opening` phase now shows same screen as `buying` phase (no separate "Opening..." screen).
+
 ### Card Panel Sidebar, Trade System & League Sidebar Ranks (2026-04-01)
 
 #### Added

@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-01 (Card panel sidebar, trade system, league sidebar ranks)
+Son güncelleme: 2026-04-01 (Custom icon system, podium redesign, assignment badges)
 
 ## Current Phase
 
@@ -117,6 +117,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Class Grade Enforcement (NOT NULL + CHECK(1-12), required grade on create/edit)
 - [x] Assignment Notification System (in-app dialog on app open, direct detail navigation, admin toggle, gradient style)
 - [x] Student Class Change Assignment Sync (DB trigger, withdrawn status, unit progress backfill, stats RPC updates)
+- [x] Custom Icon System (30+ Material Icons → PNG assets, learning path nodes, league ranks, assignment badges, podium redesign)
 - [x] Book System Audit & Integrity Fixes (38-finding audit, XP idempotency, RLS fix, 5 new UseCases, dead code removal, admin English)
 - [x] Inline Activities Audit & Fixes (25-finding audit, data integrity, dead code removal (-628 lines), UX polish, admin validation)
 - [x] Book Quiz Audit & Fixes (16-finding audit, quiz_passed bug, RPC auth, 0-question guard, timer, admin English, shared enum)

@@ -267,22 +267,28 @@ These icons appear on every screen or on the most-used screens. Students see the
 
 ---
 
-## Summary
+## Migration Status (2026-04-01)
 
-| Priority | Count | Description |
-|----------|:-----:|-------------|
-| P1 — Always Visible | ~25 | Nav tabs, top bar stats, learning path nodes, league tiers |
-| P2 — Frequently Seen | ~25 | Home screen, daily quests, reader, gamification feedback |
-| P3 — Teacher Dashboard | ~15 | Teacher nav, stats, actions |
-| P4 — Secondary UI | ~80 | Status, content, media, generic actions |
-| P5 — Admin Only | ~115 | Internal admin panel |
+| Category | Replaced | Remaining | Notes |
+|----------|:--------:|:---------:|-------|
+| Bottom Nav | 5/5 | 0 | All tabs use PNG |
+| Top Navbar Stats | 3/3 | 0 | Fire, gem, UK flag |
+| Streak Sheet | 3/3 | 0 | Fire, fire blue |
+| Learning Path Nodes | 18/18 | 0 | 4 types × 4 states + unit × 2 |
+| League Tier Icons | 5/5 | 0 | All 5 tiers |
+| Coin Icons | 13/13 | 0 | All → gem_outline |
+| XP Icons | 6/13 | 7 | Partial (widget constraints) |
+| Assignment Badge | 1/1 | 0 | Quest PNG on nodes |
+| High Visibility (Tier 1) | 0/6 | 6 | check_circle, quiz, etc. |
+| Medium (Tier 2-4) | 0/~44 | ~44 | Secondary screens |
+| Low (Tier 5) | 0/~15 | ~15 | File mgmt, auth, teacher |
 
-### Recommended SVG icon needs for P1+P2 (~50 icons):
-- 6 navigation icons (home, path, library, cards, leaderboard, profile)
-- 3 stat icons (streak/fire, coin, XP/bolt)
-- 8 learning path node icons (word list, book, game, treasure, review, lock, check, star)
-- 5 league tier icons (bronze, silver, gold, platinum, diamond)
-- 10 quest/assignment icons (xp, time, chapters, review, vocab, book, unit, default, lock, check)
-- 6 reader icons (play, pause, close, headphones, quiz, check)
-- 4 gamification feedback icons (fire, bolt, stars, coin)
-- 8 home/misc icons (review, play, empty, error, card pack, buy, completed, bonus)
+**Total: 30+ PNG assets, 64 Material Icons remaining (94 usages)**
+
+### Remaining high-priority icons for next session:
+- check_circle_rounded (5x) — quest completion, quiz, profile
+- check_rounded (3x) — daily quests, library
+- quiz_rounded (3x) — reader, library, book detail
+- lock_rounded (4x) — login, quests, library, cards
+- menu_book_rounded (4x) — quiz, profile, library
+- Icons.bolt_rounded (7x remaining) — widget constraints need asset support
