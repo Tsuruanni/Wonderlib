@@ -18,4 +18,10 @@ abstract class CardRepository {
 
   /// Open a card pack from inventory (consumes 1 unopened pack, rolls 3 cards)
   Future<Either<Failure, PackResult>> openPack(String userId);
+
+  /// Get top 3 card collectors in user's class + caller's rank
+  Future<Either<Failure, TopCollectorsResult>> getClassTopCollectors(String userId);
+
+  /// Get cards only this user owns in their class (up to 2)
+  Future<Either<Failure, List<MythCard>>> getExclusiveCards(String userId);
 }

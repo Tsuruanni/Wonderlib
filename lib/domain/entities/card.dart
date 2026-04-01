@@ -154,3 +154,35 @@ class UserCardStats extends Equatable {
   @override
   List<Object?> get props => [userId, packsSinceLegendary, totalPacksOpened, totalUniqueCards];
 }
+
+/// A ranked student in the class card leaderboard
+class TopCollectorEntry extends Equatable {
+  const TopCollectorEntry({
+    required this.userId,
+    required this.firstName,
+    required this.uniqueCards,
+    required this.rank,
+  });
+
+  final String userId;
+  final String firstName;
+  final int uniqueCards;
+  final int rank;
+
+  @override
+  List<Object?> get props => [userId, firstName, uniqueCards, rank];
+}
+
+/// Result of get_class_top_collectors RPC
+class TopCollectorsResult extends Equatable {
+  const TopCollectorsResult({
+    required this.top3,
+    this.caller,
+  });
+
+  final List<TopCollectorEntry> top3;
+  final TopCollectorEntry? caller;
+
+  @override
+  List<Object?> get props => [top3, caller];
+}
