@@ -23,6 +23,7 @@ import '../presentation/screens/vocabulary/unit_detail_screen.dart';
 import '../presentation/screens/cards/card_collection_screen.dart';
 import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
+import '../presentation/screens/cards/card_trade_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/profile/downloaded_books_screen.dart';
 import '../presentation/screens/avatar/avatar_customize_screen.dart';
@@ -69,6 +70,7 @@ abstract class AppRoutes {
   static const cards = '/cards';
   static const leaderboard = '/leaderboard';
   static const packOpening = '/cards/open-pack';
+  static const cardTrade = '/cards/trade';
 
   // Teacher routes — dashboard now at /teacher/dashboard
   static const teacherDashboard = '/teacher/dashboard';
@@ -450,6 +452,13 @@ GoRouter _createRouter() {
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.packOpening,
         builder: (context, state) => const PackOpeningScreen(),
+      ),
+
+      // Card trade (full-screen)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutes.cardTrade,
+        builder: (context, state) => const CardTradeScreen(),
       ),
 
       // Book quiz moved to library branch (shell visible with reader sidebar)

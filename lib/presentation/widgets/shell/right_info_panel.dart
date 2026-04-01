@@ -18,6 +18,7 @@ import '../../providers/user_provider.dart';
 import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
+import '../cards/trade_button_card.dart';
 import '../common/streak_sheet.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
@@ -60,6 +61,8 @@ class RightInfoPanel extends ConsumerWidget {
                     const TopCollectorsCard(),
                     const SizedBox(height: 16),
                     const RarityShowcaseCard(),
+                    const SizedBox(height: 16),
+                    const TradeButtonCard(),
                     const SizedBox(height: 16),
                   ] else if (isReader) ...[
                     const _ReaderSettingsCard(),
