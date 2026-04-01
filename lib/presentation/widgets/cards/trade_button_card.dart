@@ -18,47 +18,30 @@ class TradeButtonCard extends ConsumerWidget {
     return GestureDetector(
       onTap: () => context.push(AppRoutes.cardTrade),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+          gradient: const LinearGradient(
+            colors: [Color(0xFF00B894), Color(0xFF00CEC9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.swap_horiz_rounded, color: AppColors.primary, size: 20),
-            ),
-            const SizedBox(width: 12),
+            const Icon(Icons.swap_horiz_rounded, color: Colors.white, size: 22),
+            const SizedBox(width: 10),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Trade Duplicates',
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
-                  ),
-                  Text(
-                    'Upgrade your cards',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                ],
+              child: Text(
+                'Trade Duplicates',
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                ),
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.neutralDark),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 22),
           ],
         ),
       ),

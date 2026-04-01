@@ -55,14 +55,14 @@ class RightInfoPanel extends ConsumerWidget {
                   ],
                   if (showPackCard) ...[
                     const _OpenPackCard(),
+                    const SizedBox(height: 12),
+                    const TradeButtonCard(),
                     const SizedBox(height: 16),
                     const CollectionProgressCard(),
                     const SizedBox(height: 16),
                     const TopCollectorsCard(),
                     const SizedBox(height: 16),
                     const RarityShowcaseCard(),
-                    const SizedBox(height: 16),
-                    const TradeButtonCard(),
                     const SizedBox(height: 16),
                   ] else if (isReader) ...[
                     const _ReaderSettingsCard(),

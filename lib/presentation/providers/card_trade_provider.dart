@@ -9,9 +9,9 @@ import 'usecase_providers.dart';
 
 /// Trade cost per source rarity
 const tradeRequirements = {
-  CardRarity.common: (count: 5, target: 'rare'),
-  CardRarity.rare: (count: 4, target: 'epic'),
-  CardRarity.epic: (count: 3, target: 'legendary'),
+  CardRarity.common: (count: 7, target: 'rare'),
+  CardRarity.rare: (count: 7, target: 'epic'),
+  CardRarity.epic: (count: 7, target: 'legendary'),
 };
 
 /// Whether user has enough duplicates for any trade
