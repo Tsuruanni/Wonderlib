@@ -566,7 +566,11 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                       }
                     },
                     onAllRevealed: () {
-                      controller.reset();
+                      // Delay reset to next frame so AnimatedSwitcher
+                      // can cleanly dispose the revealing widget.
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) controller.reset();
+                      });
                     },
                   );
                 },
