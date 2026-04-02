@@ -198,6 +198,7 @@ class _ItemsTab extends ConsumerStatefulWidget {
 
 class _ItemsTabState extends ConsumerState<_ItemsTab> {
   String? _selectedCategoryId; // null = show all
+  String? _selectedGender; // null = show all
 
   @override
   Widget build(BuildContext context) {
@@ -240,6 +241,46 @@ class _ItemsTabState extends ConsumerState<_ItemsTab> {
           ),
         ),
 
+        // Gender filter chips
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+          child: SizedBox(
+            height: 36,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                FilterChip(
+                  label: const Text('Tümü'),
+                  selected: _selectedGender == null,
+                  onSelected: (_) =>
+                      setState(() => _selectedGender = null),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Erkek'),
+                  selected: _selectedGender == 'male',
+                  onSelected: (_) =>
+                      setState(() => _selectedGender = 'male'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Kadın'),
+                  selected: _selectedGender == 'female',
+                  onSelected: (_) =>
+                      setState(() => _selectedGender = 'female'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Unisex'),
+                  selected: _selectedGender == 'unisex',
+                  onSelected: (_) =>
+                      setState(() => _selectedGender = 'unisex'),
+                ),
+              ],
+            ),
+          ),
+        ),
+
         // Items list
         Expanded(
           child: itemsAsync.when(
@@ -248,12 +289,19 @@ class _ItemsTabState extends ConsumerState<_ItemsTab> {
             error: (e, _) => Center(child: Text('Hata: $e')),
             data: (items) {
               // Apply category filter
-              final filtered = _selectedCategoryId == null
+              var filtered = _selectedCategoryId == null
                   ? items
                   : items
                       .where((i) =>
                           i['category_id'] == _selectedCategoryId)
                       .toList();
+
+              // Apply gender filter
+              if (_selectedGender != null) {
+                filtered = filtered
+                    .where((item) => item['gender'] == _selectedGender)
+                    .toList();
+              }
 
               if (filtered.isEmpty) {
                 return const Center(

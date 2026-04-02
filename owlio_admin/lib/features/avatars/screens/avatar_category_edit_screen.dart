@@ -21,6 +21,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
   final _displayNameCtrl = TextEditingController();
   final _zIndexCtrl = TextEditingController(text: '0');
   final _sortOrderCtrl = TextEditingController(text: '0');
+  bool _isRequired = true;
   bool _isLoading = false;
   bool _isEdit = false;
 
@@ -44,6 +45,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
     _displayNameCtrl.text = data['display_name'] as String? ?? '';
     _zIndexCtrl.text = '${data['z_index'] ?? 0}';
     _sortOrderCtrl.text = '${data['sort_order'] ?? 0}';
+    _isRequired = data['is_required'] as bool? ?? true;
   }
 
   Future<void> _save() async {
@@ -56,6 +58,7 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
         'display_name': _displayNameCtrl.text.trim(),
         'z_index': int.tryParse(_zIndexCtrl.text) ?? 0,
         'sort_order': int.tryParse(_sortOrderCtrl.text) ?? 0,
+        'is_required': _isRequired,
       };
       if (_isEdit) {
         await supabase.from(DbTables.avatarItemCategories).update(data).eq('id', widget.categoryId!);
@@ -136,6 +139,13 @@ class _AvatarCategoryEditScreenState extends ConsumerState<AvatarCategoryEditScr
               controller: _sortOrderCtrl,
               decoration: const InputDecoration(labelText: 'Sort Order'),
               keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('Zorunlu Kategori'),
+              subtitle: const Text('Zorunlu kategorilerde her zaman bir item seçili olmalı'),
+              value: _isRequired,
+              onChanged: (v) => setState(() => _isRequired = v),
             ),
             const SizedBox(height: 24),
             FilledButton(

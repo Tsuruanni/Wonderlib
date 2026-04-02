@@ -27,6 +27,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
 
   String? _categoryId;
   String _rarity = 'common';
+  String _gender = 'unisex';
   bool _isActive = true;
   String? _imageUrl;
   Uint8List? _imageBytes; // local bytes for instant preview
@@ -66,6 +67,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     _coinPriceCtrl.text = '${data['coin_price'] ?? 50}';
     _categoryId = data['category_id'] as String?;
     _rarity = data['rarity'] as String? ?? 'common';
+    _gender = data['gender'] as String? ?? 'unisex';
     _isActive = data['is_active'] as bool? ?? true;
     _imageUrl = data['image_url'] as String?;
   }
@@ -156,6 +158,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
         'display_name': _displayNameCtrl.text.trim(),
         'category_id': _categoryId,
         'rarity': _rarity,
+        'gender': _gender,
         'coin_price': int.tryParse(_coinPriceCtrl.text) ?? 50,
         'is_active': _isActive,
         'image_url': _imageUrl,
@@ -300,6 +303,18 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                         });
                       }
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _gender,
+                    decoration:
+                        const InputDecoration(labelText: 'Cinsiyet'),
+                    items: const [
+                      DropdownMenuItem(value: 'male', child: Text('Erkek')),
+                      DropdownMenuItem(value: 'female', child: Text('Kadın')),
+                      DropdownMenuItem(value: 'unisex', child: Text('Unisex')),
+                    ],
+                    onChanged: (v) => setState(() => _gender = v!),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
