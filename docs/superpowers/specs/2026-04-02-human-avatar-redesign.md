@@ -51,16 +51,23 @@ Image URLs will be set after uploading base body PNGs via admin.
 #### 4. Insert new categories
 
 ```sql
-INSERT INTO avatar_item_categories (id, name, display_name, z_index, sort_order) VALUES
-  (gen_random_uuid(), 'face',                    'Face',                     5,  1),
-  (gen_random_uuid(), 'ears',                    'Ears',                    10,  2),
-  (gen_random_uuid(), 'eyes',                    'Eyes',                    15,  3),
-  (gen_random_uuid(), 'brows',                   'Brows',                   20,  4),
-  (gen_random_uuid(), 'noses',                   'Noses',                   25,  5),
-  (gen_random_uuid(), 'mouth',                   'Mouth',                   30,  6),
-  (gen_random_uuid(), 'hair',                    'Hair',                    35,  7),
-  (gen_random_uuid(), 'clothes',                 'Clothes',                 40,  8),
-  (gen_random_uuid(), 'additional_accessories',  'Accessories',             45,  9);
+INSERT INTO avatar_item_categories (id, name, display_name, z_index, sort_order, is_required) VALUES
+  (gen_random_uuid(), 'face',                    'Face',                     5,  1, true),
+  (gen_random_uuid(), 'ears',                    'Ears',                    10,  2, true),
+  (gen_random_uuid(), 'eyes',                    'Eyes',                    15,  3, true),
+  (gen_random_uuid(), 'brows',                   'Brows',                   20,  4, true),
+  (gen_random_uuid(), 'noses',                   'Noses',                   25,  5, true),
+  (gen_random_uuid(), 'mouth',                   'Mouth',                   30,  6, true),
+  (gen_random_uuid(), 'hair',                    'Hair',                    35,  7, true),
+  (gen_random_uuid(), 'clothes',                 'Clothes',                 40,  8, true),
+  (gen_random_uuid(), 'additional_accessories',  'Accessories',             45,  9, false);
+```
+
+`is_required` marks categories where an item must always be equipped (cannot unequip). Only `additional_accessories` is optional.
+
+```sql
+ALTER TABLE avatar_item_categories
+  ADD COLUMN is_required BOOLEAN NOT NULL DEFAULT true;
 ```
 
 #### 5. Update RPCs
@@ -77,6 +84,19 @@ END IF;
 ```
 
 **`equip_avatar_item`** — Same gender guard.
+
+**`unequip_avatar_item`** — Add required-category guard:
+```sql
+-- Check if the item's category is required
+SELECT c.is_required INTO v_is_required
+FROM avatar_item_categories c
+JOIN avatar_items i ON i.category_id = c.id
+WHERE i.id = p_item_id;
+
+IF v_is_required THEN
+  RAISE EXCEPTION 'Cannot unequip required category item';
+END IF;
+```
 
 **`set_avatar_base`** — Add coin cost for gender change:
 ```sql
@@ -142,8 +162,11 @@ final genderFilteredShopProvider = Provider<AsyncValue<List<AvatarItem>>>((ref) 
 Flow:
 1. Full-screen welcome: "Let's create your avatar!"
 2. Two large cards: Boy silhouette / Girl silhouette
-3. Tap to select → navigates to customize screen with selected base
-4. Customize screen has "Done" button → saves and returns to main app
+3. Tap to select → calls `set_avatar_base` + server-side random equip of one item per required category
+4. Navigates to customize screen with a fully dressed random avatar ready to tweak
+5. Customize screen has "Done" button → saves and returns to main app
+
+**Random initial equip:** On first `set_avatar_base` (when `avatar_base_id` was NULL), the RPC picks one random gender-compatible free item (`coin_price = 0`) per required category and equips it. This guarantees the user never sees a naked/faceless avatar.
 
 This screen is shown once. After first setup, users go directly to the customize screen from profile.
 
@@ -247,9 +270,14 @@ Exactly how the current animal-switch flow works. No RPC logic changes needed fo
 | Scenario | Behavior |
 |----------|----------|
 | First login, no avatar | Redirect to avatar setup screen |
+| Onboarding gender select | `set_avatar_base` detects first-time (old base = NULL), randomly equips one free item per required category |
+| Unequip required category item | RPC raises error; client hides unequip option for required categories |
+| Equip different item in required category | Allowed — old item swapped for new (always one equipped) |
 | Gender change with insufficient coins | Error dialog: "You need 500 coins to change gender" |
 | Gender change resets equipped items | Outfit saved per-gender, restored when switching back |
+| Gender change, no saved outfit for target gender | Random equip of free items per required category (same as onboarding) |
 | Unisex item equipped, then switch gender | Item stays equipped (unisex works for both) |
 | Gender-specific item owned but wrong gender | Item stays in inventory, not visible in shop, cannot equip |
 | Admin creates item without gender | Defaults to 'unisex' |
 | All items in a category are other-gender | Category tab shows empty state |
+| Required category has no free items for gender | Admin must seed at least one free item per required category per gender — validated by admin panel warning |
