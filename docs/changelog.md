@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Human Avatar System Redesign (2026-04-02)
+
+#### Added
+- **Human avatar system** — Replaced 6 animal bases with 2 human bases (male/female). 9 customizable part categories (face, ears, eyes, brows, noses, mouth, hair, clothes, accessories) with layered PNG rendering.
+- **Avatar onboarding** — New setup screen shown on first login (`/avatar-setup`). Gender selection, server-side random equip of one free item per required category.
+- **Gender system** — `gender` column on `avatar_items` (male/female/unisex), client-side gender filtering, RPC gender guards on buy/equip.
+- **Required categories** — `is_required` column on `avatar_item_categories`. 8 required categories (can't unequip), 1 optional (additional_accessories). Enforced in `unequip_avatar_item` RPC.
+- **Gender change fee** — 500 coin charge via `spend_coins_transaction` when switching base. Free on first selection. Outfit memory preserved per-gender.
+- **Bulk seeding script** — `scripts/seed_avatar_items.sh` uploads PNGs to Supabase Storage and creates `avatar_items` rows via REST API.
+- **Avatar in navigation** — Sidebar profile button shows equipped avatar (40px, web). Mobile top navbar shows avatar (32px) replacing initials CircleAvatar.
+
+#### Changed
+- **Avatar customize screen** — Redesigned layout: vertical category sidebar on left, responsive item grid on right, large centered avatar preview (360px). Item cards show only image + label (no status text). Free items equip directly without buy dialog.
+- **AvatarWidget** — Base rendered at z=3 (behind face features, in front of clothes). Default `scale: 1.4` to fill frame (compensates for PNG canvas padding). `BoxFit.cover` for all layers.
+- **Full-width layout** — Avatar customize screen uses full-width shell layout (no centering gap).
+- **Admin panel** — Gender dropdown on item edit, gender filter chips on items tab, is_required toggle on category edit.
+
+#### Infrastructure
+- **1 DB migration** — `20260402000001_human_avatar_redesign.sql`: schema changes (gender, is_required columns), data swap (6 animals → 2 humans, 5 → 9 categories), 4 RPC rewrites with gender guards, required-category enforcement, random equip logic, and 500-coin gender change.
+
 ### Custom Icon System & UI Polish (2026-04-01)
 
 #### Added
