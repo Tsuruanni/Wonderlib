@@ -215,14 +215,14 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
       case PackOpeningPhase.buying:
         return KeyedSubtree(
           key: ValueKey('buying_$s'),
-          child: _buildPurchasingPhase('Buying pack...'),
+          child: _buildPurchasingPhase(),
         );
 
       case PackOpeningPhase.opening:
       case PackOpeningPhase.glowing:
         return KeyedSubtree(
           key: ValueKey('opening_$s'),
-          child: _buildPurchasingPhase('Opening pack...'),
+          child: _buildPurchasingPhase(),
         );
 
       case PackOpeningPhase.revealing:
@@ -483,7 +483,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
     );
   }
 
-  Widget _buildPurchasingPhase(String message) {
+  Widget _buildPurchasingPhase() {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -505,18 +505,6 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                 duration: 1200.ms,
                 color: AppColors.cardEpic.withValues(alpha: 0.3),
               ),
-          const SizedBox(height: 28),
-          Text(
-            message,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.white,
-              letterSpacing: 2,
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat(reverse: true))
-              .fadeIn(duration: 600.ms),
         ],
       ),
     );

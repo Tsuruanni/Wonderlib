@@ -100,10 +100,11 @@ class _AssignmentsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: 8),
         Row(
           children: [
             Text(
-              'Assignments',
+              'Quests from Your Teacher',
               style: GoogleFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -221,17 +222,13 @@ class _AssignmentRow extends StatelessWidget {
     final isCompleted = assignment.status == StudentAssignmentStatus.completed;
     final progress = (assignment.progress / 100).clamp(0.0, 1.0);
 
-    final IconData icon;
     final Color iconColor;
     switch (assignment.type) {
       case StudentAssignmentType.book:
-        icon = Icons.auto_stories_rounded;
         iconColor = AppColors.gemBlue;
       case StudentAssignmentType.vocabulary:
-        icon = Icons.abc_rounded;
         iconColor = AppColors.secondary;
       case StudentAssignmentType.unit:
-        icon = Icons.route;
         iconColor = AppColors.streakOrange;
     }
 
@@ -269,21 +266,22 @@ class _AssignmentRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: isCompleted
-                    ? AppColors.primary.withValues(alpha: 0.15)
-                    : iconColor.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isCompleted ? Icons.check_rounded : icon,
-                size: 24,
-                color: isCompleted ? AppColors.primary : iconColor,
-              ),
-            ),
+            isCompleted
+                ? Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.check_rounded, size: 24, color: AppColors.primary),
+                  )
+                : Image.asset(
+                    'assets/icons/clipboard_256.png',
+                    width: 38,
+                    height: 38,
+                    filterQuality: FilterQuality.high,
+                  ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
