@@ -505,10 +505,15 @@ class _ProfileSidebarItemState extends ConsumerState<_ProfileSidebarItem> {
             ),
             child: Row(
               children: [
-                AvatarWidget(
-                  avatar: equippedAvatar,
-                  size: 28,
-                  showBorder: false,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.primary, width: 2),
+                  ),
+                  child: AvatarWidget(
+                    avatar: equippedAvatar,
+                    size: 40,
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Flexible(

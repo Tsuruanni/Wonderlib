@@ -15,7 +15,7 @@ class AvatarWidget extends StatelessWidget {
     this.showBorder = true,
     this.borderRadius,
     this.stretch = false,
-    this.scale = 1.3,
+    this.scale = 1.4,
   });
 
   final EquippedAvatar avatar;

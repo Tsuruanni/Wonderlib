@@ -8,9 +8,12 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/daily_quest.dart';
+import '../../../core/utils/app_clock.dart';
+import '../../../domain/entities/student_assignment.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/student_assignment_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/leaderboard_provider.dart';
@@ -19,7 +22,9 @@ import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
+import '../common/avatar_widget.dart';
 import '../common/streak_sheet.dart';
+import '../../providers/avatar_provider.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
 /// Contains stats bar, league card, and daily quests — like Duolingo's web layout.
@@ -74,6 +79,8 @@ class RightInfoPanel extends ConsumerWidget {
                   ] else ...[
                     const _LeagueCard(),
                     const SizedBox(height: 16),
+                    const _TeacherQuestsCard(),
+                    const SizedBox(height: 16),
                     const _DailyQuestsCard(),
                   ],
                 ],
@@ -97,9 +104,26 @@ class _StatsBar extends ConsumerWidget {
     final streak = ref.watch(displayStreakProvider);
     final coins = user?.coins ?? 0;
 
+    final equippedAvatar = ref.watch(equippedAvatarProvider);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
+        // Avatar
+        GestureDetector(
+          onTap: () => context.push(AppRoutes.profile),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary, width: 2),
+            ),
+            child: AvatarWidget(
+              avatar: equippedAvatar,
+              size: 32,
+            ),
+          ),
+        ),
+        const Spacer(),
         // Streak
         GestureDetector(
           onTap: () {
@@ -360,6 +384,152 @@ class _RankRow extends StatelessWidget {
   }
 }
 
+// ─── Teacher Quests Card ───
+
+class _TeacherQuestsCard extends ConsumerWidget {
+  const _TeacherQuestsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignmentsAsync = ref.watch(activeAssignmentsProvider);
+    final assignments = assignmentsAsync.valueOrNull ?? [];
+
+    // Don't render the card at all while loading or if empty
+    if (assignmentsAsync.isLoading || assignments.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Quests from Your Teacher',
+            style: GoogleFonts.nunito(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          for (int i = 0; i < assignments.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _TeacherQuestRow(assignment: assignments[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TeacherQuestRow extends StatelessWidget {
+  const _TeacherQuestRow({required this.assignment});
+  final StudentAssignment assignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = (assignment.progress / 100).clamp(0.0, 1.0);
+
+    final Color iconColor;
+    switch (assignment.type) {
+      case StudentAssignmentType.book:
+        iconColor = AppColors.gemBlue;
+      case StudentAssignmentType.vocabulary:
+        iconColor = AppColors.secondary;
+      case StudentAssignmentType.unit:
+        iconColor = AppColors.streakOrange;
+    }
+
+    final daysLeft = assignment.dueDate.difference(AppClock.now()).inDays;
+    final String dueText;
+    if (daysLeft < 0) {
+      dueText = 'Overdue';
+    } else if (daysLeft == 0) {
+      dueText = 'Due today';
+    } else if (daysLeft == 1) {
+      dueText = '1 day left';
+    } else {
+      dueText = '$daysLeft days left';
+    }
+
+    final Color dueColor;
+    if (daysLeft < 0) {
+      dueColor = AppColors.danger;
+    } else if (daysLeft <= 2) {
+      dueColor = AppColors.streakOrange;
+    } else {
+      dueColor = AppColors.neutralText;
+    }
+
+    return GestureDetector(
+      onTap: () => context.push(
+        AppRoutes.studentAssignmentDetailPath(assignment.assignmentId),
+      ),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Image.asset(
+            'assets/icons/clipboard_256.png',
+            width: 32,
+            height: 32,
+            filterQuality: FilterQuality.high,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  assignment.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: AppColors.neutral,
+                    color: iconColor,
+                    minHeight: 8,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: dueColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              dueText,
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: dueColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Daily Quests Card ───
 
 class _DailyQuestsCard extends ConsumerWidget {
@@ -379,26 +549,13 @@ class _DailyQuestsCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Daily Quests',
-                style: GoogleFonts.nunito(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
-              ),
-              Text(
-                'VIEW ALL',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ],
+          Text(
+            'Daily Quests',
+            style: GoogleFonts.nunito(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black,
+            ),
           ),
           const SizedBox(height: 12),
           questsAsync.when(
