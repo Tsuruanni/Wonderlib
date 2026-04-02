@@ -108,22 +108,28 @@ class CardCollectionScreen extends ConsumerWidget {
         onTap: () => Navigator.pop(context),
         child: Center(
           child: GestureDetector(
-            onTap: () {}, // prevent dismiss on card tap
+            onTap: () {},
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 48),
+              padding: const EdgeInsets.all(32),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 280),
-                child: Column(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Card image (mini mode — name/power/rarity already on it)
-                    MythCardWidget(
-                      card: card,
-                      quantity: quantity,
+                    // Left: full-size card
+                    SizedBox(
+                      width: 220,
+                      child: MythCardWidget(
+                        card: card,
+                        quantity: quantity,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    // Info panel below
-                    _CardDetailInfo(card: card),
+                    const SizedBox(width: 20),
+                    // Right: info panel
+                    Flexible(
+                      child: _CardDetailInfo(card: card),
+                    ),
                   ],
                 ),
               ),
@@ -592,10 +598,20 @@ class _CardDetailInfo extends ConsumerWidget {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Card name
+          Text(
+            card.name,
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
           // Rarity row
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -620,13 +636,48 @@ class _CardDetailInfo extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+
+          // Power + Category
+          Row(
+            children: [
+              Image.asset(
+                'assets/icons/xp_green_outline.png',
+                width: 16,
+                height: 16,
+                filterQuality: FilterQuality.high,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '${card.power}',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.black,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                card.category.icon,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                card.category.label,
+                style: GoogleFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutralText,
+                ),
+              ),
+            ],
+          ),
 
           // Description if exists
           if (card.description != null) ...[
             const SizedBox(height: 12),
             Text(
               card.description!,
-              textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
                 fontSize: 13,
                 color: AppColors.neutralText,
@@ -647,7 +698,6 @@ class _CardDetailInfo extends ConsumerWidget {
               ),
               child: Text(
                 '⚡ ${card.specialSkill}',
-                textAlign: TextAlign.center,
                 style: GoogleFonts.nunito(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
