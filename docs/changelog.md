@@ -8,6 +8,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Teacher Quests Sidebar Widget & UI Polish (2026-04-02)
+
+#### Added
+- **"Quests from Your Teacher" sidebar widget** — New right panel card showing active teacher assignments with clipboard PNG icon, progress bars, due date chips, and tap-to-detail navigation. Appears between League and Daily Quests cards; hidden when no active assignments.
+
+#### Changed
+- **Quests screen rename** — "Assignments" section renamed to "Quests from Your Teacher" with top spacing.
+- **Assignment icons** — Material Icons (route, auto_stories, abc) replaced with `clipboard_256.png` across sidebar widget and quests screen.
+- **Daily Quests sidebar** — Removed "VIEW ALL" label from Daily Quests card header.
+- **Pack opening** — Removed "Buying pack..." / "Opening pack..." animated text from purchase phase.
+
 ### Human Avatar System Redesign (2026-04-02)
 
 #### Added
@@ -58,6 +69,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **Card class ownership** — Card detail dialog shows which classmates own the same card.
 
 #### Changed
+- **Card detail dialog** — Full-screen side-by-side layout: large card image on left (full viewport height, clean — no text overlay), info panel on right (name, rarity, power, category, description, skill, class ownership).
+- **Card shimmer/glow** — Rarity-tiered shimmer: legendary (alpha 0.35), epic (alpha 0.25, inner border visible), all cards shimmer in detail view. Uniform 2.5s speed.
 - **League card label** — "VIEW LEAGUE" → "VIEW STATS" in right info panel.
 - **Card mini preview** — Simplified to name only, quantity shown bottom-right.
 - **MythCardWidget** — Duplicate count merged into collection card, `DuplicateCounterCard` removed from panel.
