@@ -68,19 +68,14 @@ class MythCardWidget extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: isFull
-                      ? [
-                          Colors.transparent,
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.5),
-                          Colors.black.withValues(alpha: 0.8),
-                        ]
+                      ? [Colors.transparent, Colors.transparent]
                       : [
                           Colors.black.withValues(alpha: 0.7),
                           Colors.transparent,
                           Colors.transparent,
                         ],
                   stops: isFull
-                      ? const [0.0, 0.5, 0.75, 1.0]
+                      ? const [0.0, 1.0]
                       : const [0.0, 0.35, 1.0],
                 ),
               ),
@@ -163,21 +158,23 @@ class MythCardWidget extends StatelessWidget {
       ),
     );
 
-    // Apply shimmer to high rarity cards
-    if (card.rarity == CardRarity.epic) {
+    // Apply shimmer/glow based on rarity
+    // In full mode: all cards get shimmer. In mini: only epic/legendary.
+    final shouldShimmer = isFull ||
+        card.rarity == CardRarity.epic ||
+        card.rarity == CardRarity.legendary;
+
+    if (shouldShimmer) {
+      final shimmerColor = Color(card.rarity.colorHex);
+      final shimmerAlpha = card.rarity == CardRarity.legendary ? 0.3 : 0.2;
+      final shimmerDuration =
+          card.rarity == CardRarity.legendary ? 2500 : 3000;
+
       cardContent = cardContent
           .animate(onPlay: (c) => c.repeat(reverse: true))
           .shimmer(
-            duration: 3000.ms,
-            color: AppColors.cardEpic.withValues(alpha: 0.2),
-            angle: 0.5,
-          );
-    } else if (card.rarity == CardRarity.legendary) {
-      cardContent = cardContent
-          .animate(onPlay: (c) => c.repeat(reverse: true))
-          .shimmer(
-            duration: 2500.ms,
-            color: AppColors.cardLegendary.withValues(alpha: 0.3),
+            duration: shimmerDuration.ms,
+            color: shimmerColor.withValues(alpha: shimmerAlpha),
             angle: 0.5,
           );
     }
@@ -223,34 +220,8 @@ class MythCardWidget extends StatelessWidget {
       );
     }
 
-    // Full mode: clean card — only name at bottom (details shown in side panel)
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Spacer(),
-          Text(
-            card.name,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  color: Colors.black,
-                  offset: const Offset(0, 1),
-                  blurRadius: 2,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    // Full mode: completely clean — no text overlay (details in side panel)
+    return const SizedBox.shrink();
   }
 
   Widget _buildCardImage(String url) {

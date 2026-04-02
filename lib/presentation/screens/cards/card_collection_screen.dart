@@ -652,36 +652,47 @@ class _CardDetailInfo extends ConsumerWidget {
           const SizedBox(height: 10),
 
           // Power + Category
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
             children: [
-              Image.asset(
-                'assets/icons/xp_green_outline.png',
-                width: 16,
-                height: 16,
-                filterQuality: FilterQuality.high,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icons/xp_green_outline.png',
+                    width: 16,
+                    height: 16,
+                    filterQuality: FilterQuality.high,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${card.power}',
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 4),
-              Text(
-                '${card.power}',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                card.category.icon,
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                card.category.label,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    card.category.icon,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    card.category.label,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -744,16 +755,17 @@ class _CardDetailInfo extends ConsumerWidget {
 
     if (ownerCount == 0) {
       return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.star_rounded, size: 18, color: rarityColor),
           const SizedBox(width: 4),
-          Text(
-            'No one else in your class has this!',
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: rarityColor,
+          Flexible(
+            child: Text(
+              'No one else in your class has this!',
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: rarityColor,
+              ),
             ),
           ),
         ],
