@@ -175,14 +175,14 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                       // Square avatar preview, fills the width
                       Padding(
                         padding: const EdgeInsets.all(8),
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: AvatarWidget(
-                            avatar: equippedAvatar,
-                            size: 84,
-                            fallbackInitials: user?.initials ?? '?',
-                            borderRadius: 16,
-                          ),
+                        child: AvatarWidget(
+                          avatar: equippedAvatar,
+                          size: 84,
+                          width: 84,
+                          height: 84,
+                          fallbackInitials: user?.initials ?? '?',
+                          borderRadius: 16,
+                          showBorder: false,
                         ),
                       ),
                       const Divider(height: 1),

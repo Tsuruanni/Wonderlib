@@ -134,7 +134,8 @@ class MainShellScaffold extends ConsumerWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final location = GoRouterState.of(context).uri.path;
-                  final isFullWidth = location.startsWith(AppRoutes.vocabulary);
+                  final isFullWidth = location.startsWith(AppRoutes.vocabulary) ||
+                      location == AppRoutes.avatarCustomize;
                   final isReader = location.startsWith('/reader') ||
                       location.startsWith('/quiz');
                   final showReaderSidebar = isReader && screenWidth >= 1000;
