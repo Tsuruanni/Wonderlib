@@ -27,6 +27,7 @@ import '../presentation/screens/cards/card_trade_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/profile/downloaded_books_screen.dart';
 import '../presentation/screens/avatar/avatar_customize_screen.dart';
+import '../presentation/screens/avatar/avatar_setup_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
 import '../presentation/screens/student/student_assignment_detail_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
@@ -60,6 +61,7 @@ abstract class AppRoutes {
 
   static const profile = '/profile';
   static const profileDownloads = '/profile/downloads';
+  static const avatarSetup = '/avatar-setup';
   static const avatarCustomize = '/avatar-customize';
 
   static const wordBank = '/word-bank';
@@ -152,6 +154,24 @@ class _SplashScreenState extends State<_SplashScreen> {
           role == UserRole.admin.dbValue) {
         context.go(AppRoutes.teacherDashboard);
       } else {
+        // Student: check if avatar base has been chosen
+        try {
+          final profile = await Supabase.instance.client
+              .from('profiles')
+              .select('avatar_base_id')
+              .eq('id', session.user.id)
+              .single();
+          if (!mounted) return;
+          if (profile['avatar_base_id'] == null) {
+            _needsAvatarSetup = true;
+            context.go(AppRoutes.avatarSetup);
+            return;
+          }
+        } catch (_) {
+          // If profile fetch fails, proceed to normal flow
+        }
+        _needsAvatarSetup = false;
+        if (!mounted) return;
         context.go(AppRoutes.vocabulary);
       }
     }
@@ -181,6 +201,14 @@ class _AuthNotifier extends ChangeNotifier {
 }
 
 final _authNotifier = _AuthNotifier();
+
+/// Tracks whether the current student still needs avatar onboarding.
+/// Set by the splash screen after profile check; cleared when a base is chosen.
+/// This avoids async DB calls in the synchronous redirect function.
+bool _needsAvatarSetup = false;
+
+/// Called after the student picks an avatar base to allow normal navigation.
+void clearAvatarSetupGuard() => _needsAvatarSetup = false;
 
 // Navigator keys — one root, unique keys per shell branch
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -229,6 +257,14 @@ GoRouter _createRouter() {
         return AppRoutes.vocabulary;
       }
 
+      // Avatar onboarding guard — keep students on setup/customize until base is chosen
+      if (isAuthenticated && _needsAvatarSetup) {
+        if (state.matchedLocation != AppRoutes.avatarSetup &&
+            state.matchedLocation != AppRoutes.avatarCustomize) {
+          return AppRoutes.avatarSetup;
+        }
+      }
+
       // Role-based access control
       if (isAuthenticated) {
         final metadata = session.user.userMetadata;
@@ -266,6 +302,13 @@ GoRouter _createRouter() {
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+
+      // Avatar setup — full-screen onboarding (no shell)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutes.avatarSetup,
+        builder: (context, state) => const AvatarSetupScreen(),
       ),
 
       // Student Shell — only StatefulShellRoute at top level
