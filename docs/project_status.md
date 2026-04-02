@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-02 (Teacher quests sidebar widget, assignment icon overhaul, pack opening polish)
+Son güncelleme: 2026-04-02 (Human avatar redesign, card detail dialog, shimmer glow, trade UI polish)
 
 ## Current Phase
 
