@@ -133,7 +133,10 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
     final itemsByCategory = ref.watch(avatarItemsByCategoryProvider);
     final isMutating = ref.watch(avatarControllerProvider) is AsyncLoading;
 
-    final categories = itemsByCategory.keys.toList()..sort();
+    // Hide ears category (only 1 item, always equipped)
+    final categories = itemsByCategory.keys
+        .where((c) => c != 'ears')
+        .toList()..sort();
 
     // Auto-select first category
     if (_selectedCategory == null && categories.isNotEmpty) {
@@ -161,24 +164,39 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
       ),
       body: isMutating
           ? const Center(child: CircularProgressIndicator())
-          : Column(
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Square avatar preview (no coins, no base row) ────
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: AvatarWidget(
-                      avatar: equippedAvatar,
-                      size: 200,
-                      fallbackInitials: user?.initials ?? '?',
-                      borderRadius: 24,
-                    ),
+                // ── Left column: avatar preview + category list ──────
+                SizedBox(
+                  width: 100,
+                  child: Column(
+                    children: [
+                      // Square avatar preview, fills the width
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: AvatarWidget(
+                            avatar: equippedAvatar,
+                            size: 84,
+                            fallbackInitials: user?.initials ?? '?',
+                            borderRadius: 16,
+                          ),
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      // Category list
+                      Expanded(
+                        child: _buildCategoryList(categories),
+                      ),
+                    ],
                   ),
                 ),
 
-                const Divider(height: 1),
+                const VerticalDivider(width: 1),
 
-                // ── Category sidebar + item grid ─────────────────────
+                // ── Right: item grid ─────────────────────────────────
                 Expanded(
                   child: shopAsync.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
@@ -190,62 +208,15 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                         if (categories.isEmpty) {
                           return const Center(child: Text('No items available yet.'));
                         }
-                        return Row(
-                          children: [
-                            // ── Left: vertical category list ──
-                            SizedBox(
-                              width: 72,
-                              child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                itemCount: categories.length,
-                                itemBuilder: (context, index) {
-                                  final cat = categories[index];
-                                  final isSelected = cat == _selectedCategory;
-                                  return GestureDetector(
-                                    onTap: () => setState(() => _selectedCategory = cat),
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                                      decoration: BoxDecoration(
-                                        color: isSelected ? AppColors.primaryBackground : Colors.transparent,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: isSelected
-                                            ? Border.all(color: AppColors.primary, width: 1.5)
-                                            : null,
-                                      ),
-                                      child: Text(
-                                        _formatCategoryName(cat),
-                                        style: GoogleFonts.nunito(
-                                          fontSize: 10,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                          color: isSelected ? AppColors.primary : AppColors.neutralText,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-
-                            const VerticalDivider(width: 1),
-
-                            // ── Right: item grid ──
-                            Expanded(
-                              child: _ItemGrid(
-                                items: itemsByCategory[_selectedCategory] ?? [],
-                                ownedIds: ownedIds,
-                                equippedAvatar: equippedAvatar,
-                                userCoins: user?.coins ?? 0,
-                                onEquip: _equip,
-                                onUnequip: _unequip,
-                                onBuy: (item) => _showBuyConfirmation(item, user?.coins ?? 0),
-                                onBuyFree: _buy,
-                              ),
-                            ),
-                          ],
+                        return _ItemGrid(
+                          items: itemsByCategory[_selectedCategory] ?? [],
+                          ownedIds: ownedIds,
+                          equippedAvatar: equippedAvatar,
+                          userCoins: user?.coins ?? 0,
+                          onEquip: _equip,
+                          onUnequip: _unequip,
+                          onBuy: (item) => _showBuyConfirmation(item, user?.coins ?? 0),
+                          onBuyFree: _buy,
                         );
                       },
                     ),
@@ -253,6 +224,42 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildCategoryList(List<String> categories) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final cat = categories[index];
+        final isSelected = cat == _selectedCategory;
+        return GestureDetector(
+          onTap: () => setState(() => _selectedCategory = cat),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryBackground : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: isSelected
+                  ? Border.all(color: AppColors.primary, width: 1.5)
+                  : null,
+            ),
+            child: Text(
+              _formatCategoryName(cat),
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? AppColors.primary : AppColors.neutralText,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      },
     );
   }
 

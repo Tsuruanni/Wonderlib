@@ -94,7 +94,7 @@ class AvatarWidget extends StatelessWidget {
       return SizedBox.expand(
         child: SvgPicture.network(
           url,
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
           placeholderBuilder: (_) => const SizedBox.shrink(),
         ),
       );
@@ -102,7 +102,7 @@ class AvatarWidget extends StatelessWidget {
     return SizedBox.expand(
       child: CachedNetworkImage(
         imageUrl: url,
-        fit: BoxFit.contain,
+        fit: BoxFit.cover,
         errorWidget: (_, __, ___) => const SizedBox.shrink(),
       ),
     );
