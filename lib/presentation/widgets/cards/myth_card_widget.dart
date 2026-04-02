@@ -175,19 +175,12 @@ class MythCardWidget extends StatelessWidget {
 
     if (shouldShimmer) {
       final shimmerColor = Color(card.rarity.colorHex);
-      final double shimmerAlpha;
-      final int shimmerDuration;
-      switch (card.rarity) {
-        case CardRarity.legendary:
-          shimmerAlpha = 0.35;
-          shimmerDuration = 2500;
-        case CardRarity.epic:
-          shimmerAlpha = 0.25;
-          shimmerDuration = 3500;
-        default:
-          shimmerAlpha = 0.15;
-          shimmerDuration = 4000;
-      }
+      final double shimmerAlpha = switch (card.rarity) {
+        CardRarity.legendary => 0.35,
+        CardRarity.epic => 0.25,
+        _ => 0.15,
+      };
+      const shimmerDuration = 2500;
 
       cardContent = cardContent
           .animate(onPlay: (c) => c.repeat(reverse: true))
