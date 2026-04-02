@@ -69,10 +69,10 @@ class MythCardWidget extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: isFull
                       ? [
-                          Colors.black.withValues(alpha: 0.1),
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.6),
-                          Colors.black.withValues(alpha: 0.9),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.8),
                         ]
                       : [
                           Colors.black.withValues(alpha: 0.7),
@@ -80,7 +80,7 @@ class MythCardWidget extends StatelessWidget {
                           Colors.transparent,
                         ],
                   stops: isFull
-                      ? const [0.0, 0.4, 0.7, 1.0]
+                      ? const [0.0, 0.5, 0.75, 1.0]
                       : const [0.0, 0.35, 1.0],
                 ),
               ),
@@ -223,154 +223,30 @@ class MythCardWidget extends StatelessWidget {
       );
     }
 
-    // Full mode: category icon, power, name, stars, description, skill
+    // Full mode: clean card — only name at bottom (details shown in side panel)
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Top Row: Category Icon & Power
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  card.categoryIcon ?? card.category.icon,
-                  style: const TextStyle(fontSize: 24),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.black.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: rarityColor.withValues(alpha: 0.6),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/icons/xp_green_outline.png',
-                      width: 16.0,
-                      height: 16.0,
-                      filterQuality: FilterQuality.high,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${card.power}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
           const Spacer(),
-
-          // Bottom Content: Name, Rarity, Desc/Skill
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                card.name,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black,
-                      offset: const Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
+          Text(
+            card.name,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  color: Colors.black,
+                  offset: const Offset(0, 1),
+                  blurRadius: 2,
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                CardColors.getRarityStars(card.rarity),
-                style: TextStyle(
-                  fontSize: 16,
-                  color: rarityColor,
-                  shadows: const [
-                    Shadow(
-                      color: Colors.black,
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ],
-                ),
-              ),
-
-              // Full Variant Extras
-              if (isFull) ...[
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Container(
-                    height: 1,
-                    color: Colors.white.withValues(alpha: 0.2),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (card.specialSkill != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: rarityColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: rarityColor.withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(
-                      'Skill: ${card.specialSkill}',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: Color.lerp(
-                            rarityColor, Colors.white, 0.7),
-                      ),
-                    ),
-                  ),
-                if (card.description != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    card.description!,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color:
-                          Colors.white.withValues(alpha: 0.9),
-                      height: 1.4,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
               ],
-            ],
+            ),
           ),
         ],
       ),

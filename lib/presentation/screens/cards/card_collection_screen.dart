@@ -108,34 +108,42 @@ class CardCollectionScreen extends ConsumerWidget {
       builder: (context) => GestureDetector(
         onTap: () => Navigator.pop(context),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: GestureDetector(
-                onTap: () {},
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left: card fills full height
-                    AspectRatio(
-                      aspectRatio: 0.7,
-                      child: MythCardWidget(
-                        card: card,
-                        isFull: true,
-                        quantity: quantity,
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    // Right: info panel
-                    SizedBox(
-                      width: 280,
-                      child: Center(
-                        child: SingleChildScrollView(
-                          child: _CardDetailInfo(card: card),
+          child: Center(
+            child: GestureDetector(
+              onTap: () {},
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                child: IntrinsicHeight(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Left: card fills available height
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+                        ),
+                        child: AspectRatio(
+                          aspectRatio: 0.7,
+                          child: MythCardWidget(
+                            card: card,
+                            isFull: true,
+                            quantity: quantity,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 24),
+                      // Right: info panel
+                      SizedBox(
+                        width: 260,
+                        child: Center(
+                          child: SingleChildScrollView(
+                            child: _CardDetailInfo(card: card),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
