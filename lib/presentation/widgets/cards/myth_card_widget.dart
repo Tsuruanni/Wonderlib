@@ -82,14 +82,23 @@ class MythCardWidget extends StatelessWidget {
             ),
 
             // Rarity / Frame Overlay (Border glow for high rarity)
-            if (card.rarity == CardRarity.legendary ||
-                card.rarity == CardRarity.epic)
+            if (card.rarity == CardRarity.legendary)
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(2),
                   border: Border.all(
                     color: rarityColor.withValues(alpha: 0.3),
                     width: 4,
+                  ),
+                ),
+              ),
+            if (card.rarity == CardRarity.epic)
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(2),
+                  border: Border.all(
+                    color: rarityColor.withValues(alpha: 0.5),
+                    width: 3,
                   ),
                 ),
               ),
@@ -166,9 +175,19 @@ class MythCardWidget extends StatelessWidget {
 
     if (shouldShimmer) {
       final shimmerColor = Color(card.rarity.colorHex);
-      final shimmerAlpha = card.rarity == CardRarity.legendary ? 0.3 : 0.2;
-      final shimmerDuration =
-          card.rarity == CardRarity.legendary ? 2500 : 3000;
+      final double shimmerAlpha;
+      final int shimmerDuration;
+      switch (card.rarity) {
+        case CardRarity.legendary:
+          shimmerAlpha = 0.35;
+          shimmerDuration = 2500;
+        case CardRarity.epic:
+          shimmerAlpha = 0.25;
+          shimmerDuration = 3500;
+        default:
+          shimmerAlpha = 0.15;
+          shimmerDuration = 4000;
+      }
 
       cardContent = cardContent
           .animate(onPlay: (c) => c.repeat(reverse: true))
