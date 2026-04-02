@@ -66,9 +66,26 @@ final ownedAvatarItemIdsProvider = Provider<Set<String>>((ref) {
   return items.map((i) => i.item.id).toSet();
 });
 
+/// Current user's avatar gender name ('male' or 'female'), derived from base selection.
+final currentGenderProvider = Provider<String?>((ref) {
+  final user = ref.watch(userControllerProvider).valueOrNull;
+  if (user?.avatarBaseId == null) return null;
+  final bases = ref.watch(avatarBasesProvider).valueOrNull ?? [];
+  final base = bases.where((b) => b.id == user!.avatarBaseId).firstOrNull;
+  return base?.name;
+});
+
+/// Shop items filtered by current gender (shows unisex + matching gender only)
+final genderFilteredShopProvider = Provider<List<AvatarItem>>((ref) {
+  final items = ref.watch(avatarShopProvider).valueOrNull ?? [];
+  final gender = ref.watch(currentGenderProvider);
+  if (gender == null) return items;
+  return items.where((i) => i.gender == 'unisex' || i.gender == gender).toList();
+});
+
 /// Items grouped by category
 final avatarItemsByCategoryProvider = Provider<Map<String, List<AvatarItem>>>((ref) {
-  final items = ref.watch(avatarShopProvider).valueOrNull ?? [];
+  final items = ref.watch(genderFilteredShopProvider);
   final grouped = <String, List<AvatarItem>>{};
   for (final item in items) {
     grouped.putIfAbsent(item.category.name, () => []).add(item);

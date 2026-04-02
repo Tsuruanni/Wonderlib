@@ -29,6 +29,7 @@ class AvatarItemCategory extends Equatable {
     required this.displayName,
     required this.zIndex,
     this.sortOrder = 0,
+    this.isRequired = true,
   });
 
   final String id;
@@ -36,9 +37,10 @@ class AvatarItemCategory extends Equatable {
   final String displayName;
   final int zIndex;
   final int sortOrder;
+  final bool isRequired;
 
   @override
-  List<Object?> get props => [id, name, displayName, zIndex, sortOrder];
+  List<Object?> get props => [id, name, displayName, zIndex, sortOrder, isRequired];
 }
 
 /// Accessory item from the catalog
@@ -52,6 +54,7 @@ class AvatarItem extends Equatable {
     required this.coinPrice,
     required this.imageUrl,
     this.previewUrl,
+    this.gender = 'unisex',
   });
 
   final String id;
@@ -62,9 +65,10 @@ class AvatarItem extends Equatable {
   final int coinPrice;
   final String imageUrl;
   final String? previewUrl;
+  final String gender;
 
   @override
-  List<Object?> get props => [id, category, name, displayName, rarity, coinPrice, imageUrl, previewUrl];
+  List<Object?> get props => [id, category, name, displayName, rarity, coinPrice, imageUrl, previewUrl, gender];
 }
 
 /// An item owned by a user

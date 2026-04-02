@@ -13,6 +13,7 @@ class AvatarItemModel {
     required this.coinPrice,
     required this.imageUrl,
     this.previewUrl,
+    this.gender = 'unisex',
   });
 
   factory AvatarItemModel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +28,7 @@ class AvatarItemModel {
       coinPrice: json['coin_price'] as int,
       imageUrl: json['image_url'] as String,
       previewUrl: json['preview_url'] as String?,
+      gender: json['gender'] as String? ?? 'unisex',
     );
   }
 
@@ -38,6 +40,7 @@ class AvatarItemModel {
   final int coinPrice;
   final String imageUrl;
   final String? previewUrl;
+  final String gender;
 
   AvatarItem toEntity() {
     return AvatarItem(
@@ -49,6 +52,7 @@ class AvatarItemModel {
       coinPrice: coinPrice,
       imageUrl: imageUrl,
       previewUrl: previewUrl,
+      gender: gender,
     );
   }
 }
