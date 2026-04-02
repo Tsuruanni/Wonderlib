@@ -14,12 +14,17 @@ Current system: 6 free animal bases + 5 accessory categories (all paid, coin-bas
 
 Single migration that transforms existing avatar tables in-place.
 
-#### 1. Add `gender` column to `avatar_items`
+#### 1. Schema changes (before data manipulation)
 
 ```sql
+-- Add gender to items
 ALTER TABLE avatar_items
   ADD COLUMN gender VARCHAR(10) DEFAULT 'unisex'
   CHECK (gender IN ('male', 'female', 'unisex'));
+
+-- Add is_required to categories
+ALTER TABLE avatar_item_categories
+  ADD COLUMN is_required BOOLEAN NOT NULL DEFAULT true;
 ```
 
 #### 2. Clean existing data
@@ -63,12 +68,7 @@ INSERT INTO avatar_item_categories (id, name, display_name, z_index, sort_order,
   (gen_random_uuid(), 'additional_accessories',  'Accessories',             45,  9, false);
 ```
 
-`is_required` marks categories where an item must always be equipped (cannot unequip). Only `additional_accessories` is optional.
-
-```sql
-ALTER TABLE avatar_item_categories
-  ADD COLUMN is_required BOOLEAN NOT NULL DEFAULT true;
-```
+`is_required` marks categories where an item must always be equipped (cannot unequip). Only `additional_accessories` is optional. The `ALTER TABLE` for this column is in step 1 above.
 
 #### 5. Update RPCs
 
@@ -98,8 +98,13 @@ IF v_is_required THEN
 END IF;
 ```
 
-**`set_avatar_base`** — Add coin cost for gender change:
+**`set_avatar_base`** — Add coin cost for gender change + random equip for empty outfit:
 ```sql
+-- Guard: no-op if selecting the same base
+IF v_old_base_id = p_base_id THEN
+  RETURN;
+END IF;
+
 -- If user already has a base (not first time), charge 500 coins
 IF v_old_base_id IS NOT NULL THEN
   PERFORM spend_coins_transaction(
@@ -107,10 +112,37 @@ IF v_old_base_id IS NOT NULL THEN
     'Avatar gender change'
   );
 END IF;
--- Rest of existing logic (save outfit, switch base, restore outfit, rebuild cache)
+
+-- Existing logic: save outfit, switch base, restore outfit, rebuild cache
+
+-- After restore: if no items equipped for required categories (first time OR
+-- no saved outfit for this gender), randomly equip one free item per required
+-- category that matches the new base gender.
+FOR v_cat IN SELECT * FROM avatar_item_categories WHERE is_required = true LOOP
+  IF NOT EXISTS (
+    SELECT 1 FROM user_avatar_items uai
+    JOIN avatar_items ai ON ai.id = uai.item_id
+    WHERE uai.user_id = p_user_id AND uai.is_equipped = true
+      AND ai.category_id = v_cat.id
+  ) THEN
+    -- Pick random free gender-compatible item and equip
+    SELECT id INTO v_random_item FROM avatar_items
+    WHERE category_id = v_cat.id AND is_active = true AND coin_price = 0
+      AND (gender = 'unisex' OR gender = v_new_base_name)
+    ORDER BY random() LIMIT 1;
+
+    IF v_random_item IS NOT NULL THEN
+      INSERT INTO user_avatar_items (user_id, item_id, is_equipped, purchased_at)
+      VALUES (p_user_id, v_random_item, true, now())
+      ON CONFLICT (user_id, item_id) DO UPDATE SET is_equipped = true;
+    END IF;
+  END IF;
+END LOOP;
+
+-- Rebuild cache
 ```
 
-Note: First-time base selection (onboarding) is free because `avatar_base_id` is NULL.
+Note: First-time base selection (onboarding) is free because `avatar_base_id` is NULL. The random equip loop handles both onboarding and gender-change-with-no-saved-outfit scenarios.
 
 **`_rebuild_avatar_cache`** — No changes needed (already reads base + equipped items by z-index).
 
@@ -124,18 +156,26 @@ class AvatarItem extends Equatable {
 }
 ```
 
-No other entity changes. Repository interface and use cases remain unchanged.
+**`avatar.dart`** — Add `isRequired` field to `AvatarItemCategory` entity:
+```dart
+class AvatarItemCategory extends Equatable {
+  // ... existing fields ...
+  final bool isRequired; // true = cannot unequip, must always have one equipped
+}
+```
+
+Repository interface and use cases remain unchanged.
 
 ### Data Layer
 
 **`avatar_item_model.dart`** — Parse gender from JSON:
 ```dart
-factory AvatarItemModel.fromJson(Map<String, dynamic> json) {
-  return AvatarItemModel(
-    // ... existing fields ...
-    gender: json['gender'] as String? ?? 'unisex',
-  );
-}
+gender: json['gender'] as String? ?? 'unisex',
+```
+
+**`avatar_item_category_model.dart`** — Parse isRequired from JSON:
+```dart
+isRequired: json['is_required'] as bool? ?? true,
 ```
 
 ### Presentation Layer
