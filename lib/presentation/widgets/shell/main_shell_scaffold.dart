@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../providers/avatar_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../screens/cards/card_collection_screen.dart';
 import '../../screens/library/library_screen.dart';
+import '../common/avatar_widget.dart';
 import '../common/game_button.dart';
 import '../reader/reader_sidebar.dart';
 import 'right_info_panel.dart';
@@ -106,15 +108,8 @@ class MainShellScaffold extends ConsumerWidget {
 
                     const Spacer(),
 
-                    // Profile button at bottom
-                    _SidebarItem(
-                      item: const _NavItem(
-                        icon: Icons.person_outline_rounded,
-                        selectedIcon: Icons.person_rounded,
-                        label: 'Profile',
-                        color: AppColors.neutralDark,
-                      ),
-                      isSelected: false,
+                    // Profile button at bottom with avatar
+                    _ProfileSidebarItem(
                       onTap: () {
                         final isQuizActive = ref.read(quizActiveProvider);
                         if (isQuizActive) {
@@ -467,6 +462,69 @@ class _BottomNavButton extends StatelessWidget {
                     ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Profile Sidebar Item (with avatar) ───
+
+class _ProfileSidebarItem extends ConsumerStatefulWidget {
+  const _ProfileSidebarItem({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  ConsumerState<_ProfileSidebarItem> createState() => _ProfileSidebarItemState();
+}
+
+class _ProfileSidebarItemState extends ConsumerState<_ProfileSidebarItem> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final equippedAvatar = ref.watch(equippedAvatarProvider);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: _isHovered
+                  ? AppColors.neutral.withValues(alpha: 0.4)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                AvatarWidget(
+                  avatar: equippedAvatar,
+                  size: 28,
+                  showBorder: false,
+                ),
+                const SizedBox(width: 14),
+                Flexible(
+                  child: Text(
+                    'Profile',
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

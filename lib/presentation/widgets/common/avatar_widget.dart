@@ -15,6 +15,7 @@ class AvatarWidget extends StatelessWidget {
     this.showBorder = true,
     this.borderRadius,
     this.stretch = false,
+    this.scale = 1.3,
   });
 
   final EquippedAvatar avatar;
@@ -28,6 +29,8 @@ class AvatarWidget extends StatelessWidget {
   final double? borderRadius;
   /// When true, height expands to fill parent (use with IntrinsicHeight).
   final bool stretch;
+  /// Scale factor to zoom avatar layers (fills frame better when PNGs have padding).
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
@@ -70,15 +73,21 @@ class AvatarWidget extends StatelessWidget {
       child: isRounded
           ? ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius!),
-              child: Stack(
-                fit: StackFit.expand,
-                children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+              child: Transform.scale(
+                scale: scale,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+                ),
               ),
             )
           : ClipOval(
-              child: Stack(
-                fit: StackFit.expand,
-                children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+              child: Transform.scale(
+                scale: scale,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+                ),
               ),
             ),
     );
