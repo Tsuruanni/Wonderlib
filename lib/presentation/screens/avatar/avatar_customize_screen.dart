@@ -171,11 +171,11 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: AvatarWidget(
                     avatar: equippedAvatar,
-                    size: 120,
-                    width: 120,
-                    height: 120,
+                    size: 360,
+                    width: 360,
+                    height: 360,
                     fallbackInitials: user?.initials ?? '?',
-                    borderRadius: 20,
+                    borderRadius: 24,
                     showBorder: false,
                   ),
                 ),
@@ -303,8 +303,9 @@ class _ItemGrid extends StatelessWidget {
     }
     return GridView.builder(
       padding: const EdgeInsets.all(8),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 90,
+        childAspectRatio: 0.75,
         crossAxisSpacing: 6,
         mainAxisSpacing: 6,
       ),
@@ -314,8 +315,12 @@ class _ItemGrid extends StatelessWidget {
         final isOwned = ownedIds.contains(item.id);
         final isEquipped = _isItemEquipped(item);
         final canAfford = userCoins >= item.coinPrice;
+        // Extract short label: "Hair 1", "Eyes 3", etc.
+        final catName = item.category.displayName;
+        final label = '$catName ${index + 1}';
         return _ItemCard(
           item: item,
+          label: label,
           isEquipped: isEquipped,
           isDimmed: !isOwned && !canAfford && item.coinPrice > 0,
           onTap: () {
@@ -351,12 +356,14 @@ class _ItemGrid extends StatelessWidget {
 class _ItemCard extends StatelessWidget {
   const _ItemCard({
     required this.item,
+    required this.label,
     required this.isEquipped,
     required this.isDimmed,
     required this.onTap,
   });
 
   final AvatarItem item;
+  final String label;
   final bool isEquipped;
   final bool isDimmed;
   final VoidCallback onTap;
@@ -368,39 +375,56 @@ class _ItemCard extends StatelessWidget {
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 150),
         opacity: isDimmed ? 0.45 : 1.0,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: isEquipped ? AppColors.primaryBackground : AppColors.gray100,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: isEquipped ? AppColors.primary : Colors.transparent,
-              width: isEquipped ? 2 : 0,
-            ),
-          ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(4),
-                child: Center(
-                  child: _networkImage(item.previewUrl ?? item.imageUrl),
-                ),
-              ),
-              if (isEquipped)
-                Positioned(
-                  top: 3,
-                  right: 3,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.check, color: AppColors.white, size: 10),
+        child: Column(
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: isEquipped ? AppColors.primaryBackground : AppColors.gray100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isEquipped ? AppColors.primary : Colors.transparent,
+                    width: isEquipped ? 2 : 0,
                   ),
                 ),
-            ],
-          ),
+                child: Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Center(
+                        child: _networkImage(item.previewUrl ?? item.imageUrl),
+                      ),
+                    ),
+                    if (isEquipped)
+                      Positioned(
+                        top: 3,
+                        right: 3,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.check, color: AppColors.white, size: 10),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 9,
+                fontWeight: isEquipped ? FontWeight.bold : FontWeight.w600,
+                color: isEquipped ? AppColors.primary : AppColors.neutralText,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
