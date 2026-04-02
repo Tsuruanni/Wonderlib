@@ -104,31 +104,36 @@ class CardCollectionScreen extends ConsumerWidget {
     showDialog(
       context: context,
       barrierColor: Colors.black87,
+      useSafeArea: false,
       builder: (context) => GestureDetector(
         onTap: () => Navigator.pop(context),
-        child: Center(
-          child: GestureDetector(
-            onTap: () {},
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: GestureDetector(
+                onTap: () {},
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Left: full-size card
-                    SizedBox(
-                      width: 220,
+                    // Left: card fills full height
+                    AspectRatio(
+                      aspectRatio: 0.7,
                       child: MythCardWidget(
                         card: card,
+                        isFull: true,
                         quantity: quantity,
                       ),
                     ),
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 24),
                     // Right: info panel
-                    Flexible(
-                      child: _CardDetailInfo(card: card),
+                    SizedBox(
+                      width: 280,
+                      child: Center(
+                        child: SingleChildScrollView(
+                          child: _CardDetailInfo(card: card),
+                        ),
+                      ),
                     ),
                   ],
                 ),
