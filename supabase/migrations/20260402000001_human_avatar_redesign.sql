@@ -19,15 +19,16 @@ ALTER TABLE avatar_item_categories
 -- 2. CLEAN EXISTING DATA
 -- All 50 seeded items are is_active = false, no real purchases exist.
 -- =============================================
-DELETE FROM user_avatar_items;
-DELETE FROM avatar_items;
-DELETE FROM avatar_item_categories;
-DELETE FROM avatar_bases;
-
+-- Clear profile references FIRST (FK constraint on avatar_base_id)
 UPDATE profiles SET
     avatar_base_id = NULL,
     avatar_equipped_cache = NULL,
     avatar_outfits = '{}'::jsonb;
+
+DELETE FROM user_avatar_items;
+DELETE FROM avatar_items;
+DELETE FROM avatar_item_categories;
+DELETE FROM avatar_bases;
 
 -- =============================================
 -- 3. INSERT NEW BASES (male / female)
