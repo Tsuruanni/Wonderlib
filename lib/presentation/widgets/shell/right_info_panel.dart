@@ -22,9 +22,7 @@ import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
-import '../common/avatar_widget.dart';
 import '../common/streak_sheet.dart';
-import '../../providers/avatar_provider.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
 /// Contains stats bar, league card, and daily quests — like Duolingo's web layout.
@@ -104,26 +102,9 @@ class _StatsBar extends ConsumerWidget {
     final streak = ref.watch(displayStreakProvider);
     final coins = user?.coins ?? 0;
 
-    final equippedAvatar = ref.watch(equippedAvatarProvider);
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Avatar
-        GestureDetector(
-          onTap: () => context.push(AppRoutes.profile),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary, width: 2),
-            ),
-            child: AvatarWidget(
-              avatar: equippedAvatar,
-              size: 32,
-            ),
-          ),
-        ),
-        const Spacer(),
         // Streak
         GestureDetector(
           onTap: () {

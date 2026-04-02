@@ -6,7 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../providers/avatar_provider.dart';
 import '../../providers/user_provider.dart';
+import 'avatar_widget.dart';
 import 'streak_sheet.dart';
 
 class TopNavbar extends ConsumerWidget {
@@ -58,38 +60,19 @@ class TopNavbar extends ConsumerWidget {
             value: coins,
           ),
 
-          // Right: Profile Button
+          // Right: Profile avatar
           GestureDetector(
             onTap: () => context.push(AppRoutes.profile),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.neutral, width: 2),
-                  ),
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    child: Text(
-                      user?.initials ?? '?',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppColors.neutralText,
-                  size: 20,
-                ),
-              ],
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primary, width: 2),
+              ),
+              child: AvatarWidget(
+                avatar: ref.watch(equippedAvatarProvider),
+                size: 32,
+                fallbackInitials: user?.initials ?? '?',
+              ),
             ),
           ),
         ],
