@@ -164,39 +164,36 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
       ),
       body: isMutating
           ? const Center(child: CircularProgressIndicator())
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          : Column(
               children: [
-                // ── Left column: avatar preview + category list ──────
-                SizedBox(
-                  width: 100,
-                  child: Column(
-                    children: [
-                      // Square avatar preview, fills the width
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: AvatarWidget(
-                          avatar: equippedAvatar,
-                          size: 84,
-                          width: 84,
-                          height: 84,
-                          fallbackInitials: user?.initials ?? '?',
-                          borderRadius: 16,
-                          showBorder: false,
-                        ),
-                      ),
-                      const Divider(height: 1),
-                      // Category list
-                      Expanded(
-                        child: _buildCategoryList(categories),
-                      ),
-                    ],
+                // ── Top: avatar preview centered above item grid ─────
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: AvatarWidget(
+                    avatar: equippedAvatar,
+                    size: 120,
+                    width: 120,
+                    height: 120,
+                    fallbackInitials: user?.initials ?? '?',
+                    borderRadius: 20,
+                    showBorder: false,
                   ),
                 ),
+                const Divider(height: 1),
+                // ── Bottom: category sidebar + item grid ─────────────
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Left: category list ──
+                      SizedBox(
+                        width: 90,
+                        child: _buildCategoryList(categories),
+                      ),
 
-                const VerticalDivider(width: 1),
+                      const VerticalDivider(width: 1),
 
-                // ── Right: item grid ─────────────────────────────────
+                      // ── Right: item grid ─────────────────────────────────
                 Expanded(
                   child: shopAsync.when(
                     loading: () => const Center(child: CircularProgressIndicator()),
@@ -221,9 +218,12 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                       },
                     ),
                   ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
     );
   }
 
