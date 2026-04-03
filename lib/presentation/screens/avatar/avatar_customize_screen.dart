@@ -37,6 +37,46 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
+  Future<void> _changeGender() async {
+    final user = ref.read(userControllerProvider).valueOrNull;
+    if (user == null) return;
+    final coins = user.coins;
+    final bases = ref.read(avatarBasesProvider).valueOrNull ?? [];
+    final otherBase = bases.where((b) => b.id != user.avatarBaseId).firstOrNull;
+    if (otherBase == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Change Gender', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+        content: Text(
+          'Switch to ${otherBase.displayName} for 500 coins?\nYour current items will be saved.\n\nBalance: $coins coins',
+          style: GoogleFonts.nunito(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('Cancel', style: GoogleFonts.nunito()),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: coins >= 500 ? () => Navigator.of(ctx).pop(true) : null,
+            child: Text('Change (500)', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final error = await ref.read(avatarControllerProvider.notifier).setBase(otherBase.id);
+    if (error != null && mounted) _showSnack(error, isError: true);
+  }
+
   Future<void> _equip(AvatarItem item) async {
     final error = await ref.read(avatarControllerProvider.notifier).equipItem(item.id);
     if (error != null && mounted) _showSnack(error, isError: true);
@@ -169,14 +209,37 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                 // ── Top: avatar preview centered above item grid ─────
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: AvatarWidget(
-                    avatar: equippedAvatar,
-                    size: 360,
-                    width: 360,
-                    height: 360,
-                    fallbackInitials: user?.initials ?? '?',
-                    borderRadius: 24,
-                    showBorder: false,
+                  child: Column(
+                    children: [
+                      AvatarWidget(
+                        avatar: equippedAvatar,
+                        size: 360,
+                        width: 360,
+                        height: 360,
+                        fallbackInitials: user?.initials ?? '?',
+                        borderRadius: 24,
+                        showBorder: false,
+                      ),
+                      const SizedBox(height: 6),
+                      GestureDetector(
+                        onTap: _changeGender,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.swap_horiz_rounded, size: 14, color: AppColors.neutralText),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Change Gender',
+                              style: GoogleFonts.nunito(
+                                fontSize: 11,
+                                color: AppColors.neutralText,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const Divider(height: 1),
