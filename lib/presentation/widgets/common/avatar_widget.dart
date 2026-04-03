@@ -49,10 +49,30 @@ class AvatarWidget extends StatelessWidget {
     }
 
     for (final layer in avatar.layers) {
-      allLayers.add(_RenderLayer(z: layer.zIndex, url: layer.url));
+      allLayers.add(_RenderLayer(z: layer.zIndex, url: layer.url, category: layer.category));
     }
 
     allLayers.sort((a, b) => a.z.compareTo(b.z));
+
+    // Parse hair color for tinting
+    final hairColor = avatar.hairColor != null
+        ? Color(int.parse(avatar.hairColor!.replaceFirst('#', '0xFF')))
+        : null;
+
+    final layerWidgets = allLayers.map((layer) {
+      final image = _buildImage(layer.url);
+      // Apply color tint to hair layers
+      if (hairColor != null && layer.category == 'hair') {
+        return ShaderMask(
+          shaderCallback: (bounds) => LinearGradient(
+            colors: [hairColor, hairColor],
+          ).createShader(bounds),
+          blendMode: BlendMode.modulate,
+          child: image,
+        );
+      }
+      return image;
+    }).toList();
 
     final w = width ?? size;
     final isRounded = borderRadius != null;
@@ -77,7 +97,7 @@ class AvatarWidget extends StatelessWidget {
                 scale: scale,
                 child: Stack(
                   fit: StackFit.expand,
-                  children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+                  children: layerWidgets,
                 ),
               ),
             )
@@ -86,7 +106,7 @@ class AvatarWidget extends StatelessWidget {
                 scale: scale,
                 child: Stack(
                   fit: StackFit.expand,
-                  children: allLayers.map((layer) => _buildImage(layer.url)).toList(),
+                  children: layerWidgets,
                 ),
               ),
             ),
@@ -147,7 +167,8 @@ class AvatarWidget extends StatelessWidget {
 }
 
 class _RenderLayer {
-  const _RenderLayer({required this.z, required this.url});
+  const _RenderLayer({required this.z, required this.url, this.category});
   final int z;
   final String url;
+  final String? category;
 }

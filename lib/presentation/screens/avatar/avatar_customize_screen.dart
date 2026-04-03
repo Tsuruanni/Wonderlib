@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/avatar.dart';
 import '../../providers/avatar_provider.dart';
@@ -31,6 +32,23 @@ class AvatarCustomizeScreen extends ConsumerStatefulWidget {
   ConsumerState<AvatarCustomizeScreen> createState() =>
       _AvatarCustomizeScreenState();
 }
+
+const _kHairColorCategory = '_hair_color';
+
+const _hairColorPalette = <String, Color>{
+  '#1A1A1A': Color(0xFF1A1A1A), // black
+  '#4A3728': Color(0xFF4A3728), // dark brown
+  '#8B4513': Color(0xFF8B4513), // brown
+  '#C68642': Color(0xFFC68642), // light brown
+  '#E8B960': Color(0xFFE8B960), // blonde
+  '#F5DEB3': Color(0xFFF5DEB3), // platinum
+  '#B22222': Color(0xFFB22222), // red
+  '#CC5500': Color(0xFFCC5500), // auburn
+  '#8B008B': Color(0xFF8B008B), // purple
+  '#1E90FF': Color(0xFF1E90FF), // blue
+  '#2E8B57': Color(0xFF2E8B57), // green
+  '#FF69B4': Color(0xFFFF69B4), // pink
+};
 
 class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
   String? _selectedCategory;
@@ -75,6 +93,15 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
 
     final error = await ref.read(avatarControllerProvider.notifier).setBase(otherBase.id);
     if (error != null && mounted) _showSnack(error, isError: true);
+  }
+
+  Future<void> _setHairColor(String hexColor) async {
+    try {
+      await Supabase.instance.client.rpc('set_hair_color', params: {'p_color': hexColor});
+      ref.read(userControllerProvider.notifier).refreshProfileOnly();
+    } catch (e) {
+      if (mounted) _showSnack('Failed to set hair color', isError: true);
+    }
   }
 
   Future<void> _equip(AvatarItem item) async {
@@ -174,9 +201,14 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
     final isMutating = ref.watch(avatarControllerProvider) is AsyncLoading;
 
     // Hide ears category (only 1 item, always equipped)
+    // Insert "Hair Color" right after "hair"
     final categories = itemsByCategory.keys
         .where((c) => c != 'ears')
         .toList()..sort();
+    final hairIndex = categories.indexOf('hair');
+    if (hairIndex != -1) {
+      categories.insert(hairIndex + 1, _kHairColorCategory);
+    }
 
     // Auto-select first category
     if (_selectedCategory == null && categories.isNotEmpty) {
@@ -268,6 +300,12 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                         if (categories.isEmpty) {
                           return const Center(child: Text('No items available yet.'));
                         }
+                        if (_selectedCategory == _kHairColorCategory) {
+                          return _HairColorPalette(
+                            selectedColor: equippedAvatar.hairColor,
+                            onSelect: _setHairColor,
+                          );
+                        }
                         return _ItemGrid(
                           items: itemsByCategory[_selectedCategory] ?? [],
                           ownedIds: ownedIds,
@@ -327,6 +365,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
   }
 
   String _formatCategoryName(String name) {
+    if (name == _kHairColorCategory) return 'Hair Color';
     if (name.isEmpty) return name;
     return name[0].toUpperCase() + name.substring(1).replaceAll('_', ' ');
   }
@@ -489,6 +528,50 @@ class _ItemCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Hair color palette ──────────────────────────────────────────────────────
+
+class _HairColorPalette extends StatelessWidget {
+  const _HairColorPalette({required this.selectedColor, required this.onSelect});
+
+  final String? selectedColor;
+  final void Function(String hex) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: _hairColorPalette.entries.map((entry) {
+          final isSelected = selectedColor == entry.key;
+          return GestureDetector(
+            onTap: () => onSelect(entry.key),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: entry.value,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.transparent,
+                  width: 3,
+                ),
+                boxShadow: isSelected
+                    ? [BoxShadow(color: entry.value.withValues(alpha: 0.5), blurRadius: 8)]
+                    : null,
+              ),
+              child: isSelected
+                  ? const Icon(Icons.check, color: AppColors.white, size: 20)
+                  : null,
+            ),
+          );
+        }).toList(),
       ),
     );
   }

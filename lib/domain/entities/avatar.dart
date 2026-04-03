@@ -91,27 +91,29 @@ class UserAvatarItem extends Equatable {
 
 /// A single render layer in the composed avatar
 class AvatarLayer extends Equatable {
-  const AvatarLayer({required this.zIndex, required this.url});
+  const AvatarLayer({required this.zIndex, required this.url, this.category});
 
   final int zIndex;
   final String url;
+  final String? category;
 
   @override
-  List<Object?> get props => [zIndex, url];
+  List<Object?> get props => [zIndex, url, category];
 }
 
 /// Composed avatar state (parsed from avatar_equipped_cache JSONB)
 class EquippedAvatar extends Equatable {
-  const EquippedAvatar({this.baseUrl, this.layers = const []});
+  const EquippedAvatar({this.baseUrl, this.layers = const [], this.hairColor});
 
   final String? baseUrl;
   final List<AvatarLayer> layers;
+  final String? hairColor;
 
   bool get isEmpty => baseUrl == null && layers.isEmpty;
   bool get isNotEmpty => !isEmpty;
 
   @override
-  List<Object?> get props => [baseUrl, layers];
+  List<Object?> get props => [baseUrl, layers, hairColor];
 }
 
 /// Result of buying an avatar item
