@@ -43,9 +43,9 @@ class AvatarWidget extends StatelessWidget {
     // Build layers: background items (z < 5), base animal (z: 5), above items (z >= 5)
     final allLayers = <_RenderLayer>[];
 
-    // Base head at z=3: behind face/eyes/hair but in front of clothes/body
+    // Base always at the very bottom
     if (avatar.baseUrl != null) {
-      allLayers.add(_RenderLayer(z: 3, url: avatar.baseUrl!));
+      allLayers.add(_RenderLayer(z: -1, url: avatar.baseUrl!));
     }
 
     for (final layer in avatar.layers) {

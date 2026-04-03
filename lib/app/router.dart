@@ -28,7 +28,7 @@ import '../presentation/screens/cards/card_trade_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/profile/downloaded_books_screen.dart';
 import '../presentation/screens/avatar/avatar_customize_screen.dart';
-import '../presentation/screens/avatar/avatar_setup_screen.dart';
+import '../presentation/screens/onboarding/onboarding_screen.dart';
 import '../presentation/screens/student/student_assignments_screen.dart';
 import '../presentation/screens/student/student_assignment_detail_screen.dart';
 import '../presentation/screens/teacher/dashboard_screen.dart';
@@ -329,7 +329,7 @@ GoRouter _createRouter() {
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.avatarSetup,
-        builder: (context, state) => const AvatarSetupScreen(),
+        builder: (context, state) => const OnboardingScreen(),
       ),
 
       // Student Shell — only StatefulShellRoute at top level
