@@ -5,6 +5,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
+import '../presentation/providers/user_provider.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
@@ -257,11 +258,31 @@ GoRouter _createRouter() {
         return AppRoutes.vocabulary;
       }
 
-      // Avatar onboarding guard — keep students on setup/customize until base is chosen
-      if (isAuthenticated && _needsAvatarSetup) {
-        if (state.matchedLocation != AppRoutes.avatarSetup &&
-            state.matchedLocation != AppRoutes.avatarCustomize) {
-          return AppRoutes.avatarSetup;
+      // Avatar onboarding guard — keep students on setup/customize until base is chosen.
+      // Check both the splash-set flag AND the user profile (for page refresh scenarios).
+      if (isAuthenticated) {
+        final metadata = session.user.userMetadata;
+        final role = metadata?['role'] as String?;
+        final isStudent = role == null || role == UserRole.student.dbValue;
+        final isAvatarRoute = state.matchedLocation == AppRoutes.avatarSetup ||
+            state.matchedLocation == AppRoutes.avatarCustomize;
+
+        if (isStudent && !isAvatarRoute) {
+          // Check user provider for avatar_base_id (works after profile loads)
+          try {
+            final container = ProviderScope.containerOf(context);
+            final user = container.read(userControllerProvider).valueOrNull;
+            if (user != null && user.avatarBaseId == null) {
+              _needsAvatarSetup = true;
+              return AppRoutes.avatarSetup;
+            }
+          } catch (_) {
+            // ProviderScope not ready yet — fall through to flag check
+          }
+
+          if (_needsAvatarSetup) {
+            return AppRoutes.avatarSetup;
+          }
         }
       }
 
