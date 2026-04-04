@@ -110,6 +110,10 @@ abstract class AppRoutes {
       '/vocabulary/path/$pathId';
   static String vocabularyPathUnit(String pathId, int unitIdx) =>
       '/vocabulary/path/$pathId/unit/$unitIdx';
+  static String vocabularyPathFullscreen(String pathId) =>
+      '/vocabulary/path/$pathId/fullscreen';
+  static String vocabularyPathFullscreenUnit(String pathId, int unitIdx) =>
+      '/vocabulary/path/$pathId/fullscreen/unit/$unitIdx';
   static const bookQuiz = '/quiz/:bookId';
   static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
