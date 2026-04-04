@@ -101,25 +101,26 @@ class CardCollectionScreen extends ConsumerWidget {
   }
 
   void _showCardDetail(BuildContext context, MythCard card, int quantity) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
-
     showDialog(
       context: context,
       barrierColor: Colors.black87,
       useSafeArea: false,
-      builder: (context) => GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: SafeArea(
-          child: Center(
-            child: GestureDetector(
-              onTap: () {},
-              child: isWide
-                  ? _buildWideCardDetail(context, card, quantity)
-                  : _buildMobileCardDetail(context, card, quantity),
+      builder: (dialogContext) {
+        final isWide = MediaQuery.sizeOf(dialogContext).width >= 600;
+        return GestureDetector(
+          onTap: () => Navigator.pop(dialogContext),
+          child: SafeArea(
+            child: Center(
+              child: GestureDetector(
+                onTap: () {},
+                child: isWide
+                    ? _buildWideCardDetail(dialogContext, card, quantity)
+                    : _buildMobileCardDetail(dialogContext, card, quantity),
             ),
           ),
         ),
-      ),
+      );
+      },
     );
   }
 
