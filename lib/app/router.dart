@@ -21,6 +21,8 @@ import '../presentation/screens/vocabulary/session_summary_screen.dart';
 import '../presentation/screens/vocabulary/daily_review_screen.dart';
 import '../presentation/screens/vocabulary/unit_map_screen.dart';
 import '../presentation/screens/vocabulary/unit_detail_screen.dart';
+import '../presentation/screens/vocabulary/fullscreen_map_screen.dart';
+import '../presentation/screens/vocabulary/fullscreen_unit_detail_screen.dart';
 import '../presentation/screens/cards/card_collection_screen.dart';
 import '../presentation/screens/leaderboard/leaderboard_screen.dart';
 import '../presentation/screens/cards/pack_opening_screen.dart';
@@ -526,6 +528,29 @@ GoRouter _createRouter() {
         parentNavigatorKey: rootNavigatorKey,
         path: AppRoutes.packOpening,
         builder: (context, state) => const PackOpeningScreen(),
+      ),
+
+      // Fullscreen immersive learning path (no shell)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/vocabulary/path/:pathId/fullscreen',
+        builder: (context, state) {
+          final pathId = state.pathParameters['pathId']!;
+          return FullscreenMapScreen(pathId: pathId);
+        },
+        routes: [
+          GoRoute(
+            parentNavigatorKey: rootNavigatorKey,
+            path: 'unit/:unitIdx',
+            builder: (context, state) {
+              final pathId = state.pathParameters['pathId']!;
+              final unitIdx =
+                  int.parse(state.pathParameters['unitIdx']!);
+              return FullscreenUnitDetailScreen(
+                  pathId: pathId, unitIdx: unitIdx,);
+            },
+          ),
+        ],
       ),
 
       // Card trade moved to cards branch (shell visible)
