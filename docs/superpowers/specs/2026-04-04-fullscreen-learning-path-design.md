@@ -107,9 +107,19 @@ The fullscreen screens extract the build logic from `UnitMapScreen` and `UnitDet
 - **iOS swipe-back:** Push-based navigation automatically supports iOS edge-swipe gesture.
 - **Notch/punch-hole devices:** SafeArea wraps body content, buttons stay within safe insets.
 
+### Orientation
+
+Both fullscreen screens enable landscape orientation on entry and restore portrait-only on exit:
+
+- **On `initState`:** `SystemChrome.setPreferredOrientations([portraitUp, landscapeLeft, landscapeRight])` — allows both orientations
+- **On `dispose` / minimize / back to shell:** `SystemChrome.setPreferredOrientations([portraitUp])` — locks back to portrait
+- Android: orientation change is enforced immediately
+- iOS: orientation change is allowed (user must physically rotate device)
+- `MapTile` with `LayoutBuilder` automatically adapts to landscape width — nodes spread wider, no code changes needed
+- `SafeArea` handles landscape notch insets on both sides
+
 ### Out of Scope
 
 - Pinch-to-zoom / InteractiveViewer (can be added later)
 - Dark/immersive theme for fullscreen (uses same AppColors.background)
-- Landscape orientation lock
 - Fullscreen entry from VocabularyHubScreen path selection (only from UnitMapScreen)
