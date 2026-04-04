@@ -169,7 +169,7 @@ class CardCollectionScreen extends ConsumerWidget {
           children: [
             ConstrainedBox(
               constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+                maxHeight: MediaQuery.sizeOf(context).height * 0.6,
               ),
               child: AspectRatio(
                 aspectRatio: 0.7,
