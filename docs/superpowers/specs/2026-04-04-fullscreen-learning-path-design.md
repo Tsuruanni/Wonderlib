@@ -41,10 +41,10 @@ static String vocabularyPathFullscreenUnit(String pathId, int unitIdx) =>
 
 ### FullscreenMapScreen
 
-A `Scaffold` with no AppBar, no shell. Contents:
+A `Scaffold` with no AppBar, no shell. Body wrapped in `SafeArea` for notch/punch-hole devices. Contents:
 
 - **Background:** `AppColors.background`
-- **Body:** `Stack` containing:
+- **Body:** `SafeArea` → `Stack` containing:
   1. `SingleChildScrollView` → reuses `UnitMapScreen`'s tile-building logic (`_buildTileMap` or `_buildSimpleUnitList`) to render unit nodes on `MapTile`
   2. **Minimize button** — top-right, `Positioned(top: 12, right: 12)`, same circular style as `_BackButton` but with `Icons.close_fullscreen_rounded` icon. On tap: `context.pop()`
 - **Auto-scroll:** Same active-unit scroll logic from `UnitMapScreen`
@@ -52,12 +52,12 @@ A `Scaffold` with no AppBar, no shell. Contents:
 
 ### FullscreenUnitDetailScreen
 
-A `Scaffold` with no AppBar, no shell. Contents:
+A `Scaffold` with no AppBar, no shell. Body wrapped in `SafeArea` for notch/punch-hole devices. Contents:
 
-- **Body:** `Stack` containing:
+- **Body:** `SafeArea` → `Stack` containing:
   1. `SingleChildScrollView` → reuses `UnitDetailScreen`'s tile-building logic (`_buildUnitTile`) to render item nodes on `MapTile`
   2. **Back button** — top-left, `Positioned(top: 12, left: 12)`, existing `_BackButton` style with `Icons.arrow_back_rounded`. On tap: `context.pop()` (returns to FullscreenMapScreen)
-  3. **Minimize button** — top-right, `Positioned(top: 12, right: 12)`, same as FullscreenMapScreen. On tap: pops back to normal UnitMapScreen (pop until fullscreen routes are gone)
+  3. **Minimize button** — top-right, `Positioned(top: 12, right: 12)`, same as FullscreenMapScreen. On tap: `context.go(AppRoutes.vocabularyPathUnits(pathId))` — GoRouter `go()` clears the push stack and returns to the shell route. `StatefulShellRoute` preserves shell state so no rebuild occurs.
 - **Auto-scroll:** Same active-node scroll logic from `UnitDetailScreen`
 - **Node tap:** Opens popup card (existing PathNode behavior) → START navigates to existing `VocabularySessionScreen` route. When session completes and user pops back, they return to FullscreenUnitDetailScreen with updated state.
 
@@ -71,7 +71,7 @@ UnitMapScreen (normal, in shell)
           → [book node tap] → popup → READ → BookDetailScreen
           → [back button, top-left] → FullscreenMapScreen
       → [minimize button, top-right] → pop back to UnitMapScreen
-  → [minimize from unit detail, top-right] → pop all fullscreen routes, back to UnitMapScreen
+  → [minimize from unit detail, top-right] → context.go() to shell route, clears fullscreen stack
 ```
 
 ### Widget Reuse
@@ -103,7 +103,9 @@ The fullscreen screens extract the build logic from `UnitMapScreen` and `UnitDet
 - **No theme:** Falls back to `_buildSimpleUnitList` (card-based, no tile image) — fullscreen still works
 - **Session completion:** Provider rebuilds on pop → node states update automatically
 - **Mobile:** Bottom navbar already hidden (root navigator route). Expand button visible, minimize returns to shell.
-- **ESC / Android back:** Standard `pop` behavior — works correctly with GoRouter
+- **ESC / Android back:** Standard `pop` behavior — works correctly with GoRouter. From FullscreenMap pops to shell; from FullscreenUnitDetail pops to FullscreenMap.
+- **iOS swipe-back:** Push-based navigation automatically supports iOS edge-swipe gesture.
+- **Notch/punch-hole devices:** SafeArea wraps body content, buttons stay within safe insets.
 
 ### Out of Scope
 
