@@ -110,16 +110,35 @@ class CardCollectionScreen extends ConsumerWidget {
         return GestureDetector(
           onTap: () => Navigator.pop(dialogContext),
           child: SafeArea(
-            child: Center(
-              child: GestureDetector(
-                onTap: () {},
-                child: isWide
-                    ? _buildWideCardDetail(dialogContext, card, quantity)
-                    : _buildMobileCardDetail(dialogContext, card, quantity),
+            child: Stack(
+              children: [
+                Center(
+                  child: GestureDetector(
+                    onTap: () {},
+                    child: isWide
+                        ? _buildWideCardDetail(dialogContext, card, quantity)
+                        : _buildMobileCardDetail(dialogContext, card, quantity),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-      );
+        );
       },
     );
   }
