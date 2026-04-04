@@ -109,14 +109,48 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
           });
         }
 
-        return ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: theme != null
-                ? _buildTileMap(context, units, theme, activeIdx, path.unitGate)
-                : _buildSimpleUnitList(context, units, activeIdx, path.unitGate),
-          ),
+        return Stack(
+          children: [
+            ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                child: theme != null
+                    ? _buildTileMap(context, units, theme, activeIdx, path.unitGate)
+                    : _buildSimpleUnitList(context, units, activeIdx, path.unitGate),
+              ),
+            ),
+            // Expand to fullscreen button
+            Positioned(
+              top: 12,
+              right: 12,
+              child: GestureDetector(
+                onTap: () => context.push(
+                  AppRoutes.vocabularyPathFullscreen(widget.pathId),
+                ),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.85),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.open_in_full_rounded,
+                    size: 22,
+                    color: AppColors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
