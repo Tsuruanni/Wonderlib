@@ -116,6 +116,12 @@ abstract class AppRoutes {
       '/vocabulary/path/$pathId/fullscreen';
   static String vocabularyPathFullscreenUnit(String pathId, int unitIdx) =>
       '/vocabulary/path/$pathId/fullscreen/unit/$unitIdx';
+  static String fullscreenSessionPath(String pathId, int unitIdx, String listId) =>
+      '/vocabulary/path/$pathId/fullscreen/unit/$unitIdx/session/$listId';
+  static String fullscreenSessionSummaryPath(String pathId, int unitIdx, String listId) =>
+      '/vocabulary/path/$pathId/fullscreen/unit/$unitIdx/session/$listId/summary';
+  static String fullscreenBookDetailPath(String pathId, int unitIdx, String bookId) =>
+      '/vocabulary/path/$pathId/fullscreen/unit/$unitIdx/book/$bookId';
   static const bookQuiz = '/quiz/:bookId';
   static String bookQuizPath(String bookId) => '/quiz/$bookId';
 
@@ -549,6 +555,48 @@ GoRouter _createRouter() {
               return FullscreenUnitDetailScreen(
                   pathId: pathId, unitIdx: unitIdx,);
             },
+            routes: [
+              // Vocab session launched from fullscreen (stays in root navigator)
+              GoRoute(
+                parentNavigatorKey: rootNavigatorKey,
+                path: 'session/:listId',
+                pageBuilder: (context, state) {
+                  final pathId = state.pathParameters['pathId']!;
+                  final unitIdx = int.parse(state.pathParameters['unitIdx']!);
+                  final listId = state.pathParameters['listId']!;
+                  return ZoomTransitionPage(
+                    key: state.pageKey,
+                    child: VocabularySessionScreen(
+                      listId: listId,
+                      summaryRoute: AppRoutes.fullscreenSessionSummaryPath(
+                          pathId, unitIdx, listId),
+                    ),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: rootNavigatorKey,
+                    path: 'summary',
+                    builder: (context, state) {
+                      final listId = state.pathParameters['listId']!;
+                      return SessionSummaryScreen(listId: listId);
+                    },
+                  ),
+                ],
+              ),
+              // Book detail launched from fullscreen (stays in root navigator)
+              GoRoute(
+                parentNavigatorKey: rootNavigatorKey,
+                path: 'book/:bookId',
+                pageBuilder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  return ZoomTransitionPage(
+                    key: state.pageKey,
+                    child: BookDetailScreen(bookId: bookId),
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),

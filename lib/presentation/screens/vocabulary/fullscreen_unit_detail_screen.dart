@@ -276,10 +276,10 @@ class _FullscreenUnitDetailScreenState
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned ||
               assignedWordListIds.contains(wl.wordList.id),
-          onTap: () {
-            SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-            context.go(AppRoutes.vocabularySessionPath(wl.wordList.id));
-          },
+          onTap: () => context.push(
+            AppRoutes.fullscreenSessionPath(
+                widget.pathId, widget.unitIdx, wl.wordList.id),
+          ),
         );
 
       case PathBookItem(:final bookWithProgress):
@@ -290,10 +290,10 @@ class _FullscreenUnitDetailScreenState
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned ||
               assignedBookIds.contains(bookWithProgress.bookId),
-          onTap: () {
-            SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-            context.go(AppRoutes.bookDetailPath(bookWithProgress.bookId));
-          },
+          onTap: () => context.push(
+            AppRoutes.fullscreenBookDetailPath(
+                widget.pathId, widget.unitIdx, bookWithProgress.bookId),
+          ),
         );
 
       case PathGameItem():

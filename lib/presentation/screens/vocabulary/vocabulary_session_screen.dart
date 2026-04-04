@@ -33,9 +33,14 @@ class VocabularySessionScreen extends ConsumerStatefulWidget {
   const VocabularySessionScreen({
     super.key,
     required this.listId,
+    this.summaryRoute,
   });
 
   final String listId;
+
+  /// When non-null, session completion navigates here instead of the default
+  /// shell-branch summary route. Used by fullscreen learning path mode.
+  final String? summaryRoute;
 
   @override
   ConsumerState<VocabularySessionScreen> createState() =>
@@ -194,7 +199,7 @@ class _VocabularySessionScreenState
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.go(
-            AppRoutes.vocabularySessionSummaryPath(widget.listId),
+            widget.summaryRoute ?? AppRoutes.vocabularySessionSummaryPath(widget.listId),
           );
         }
       });
