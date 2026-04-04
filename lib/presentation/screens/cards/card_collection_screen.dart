@@ -101,6 +101,8 @@ class CardCollectionScreen extends ConsumerWidget {
   }
 
   void _showCardDetail(BuildContext context, MythCard card, int quantity) {
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
     showDialog(
       context: context,
       barrierColor: Colors.black87,
@@ -111,43 +113,75 @@ class CardCollectionScreen extends ConsumerWidget {
           child: Center(
             child: GestureDetector(
               onTap: () {},
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-                child: IntrinsicHeight(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Left: card fills available height
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
-                        ),
-                        child: AspectRatio(
-                          aspectRatio: 0.7,
-                          child: MythCardWidget(
-                            card: card,
-                            isFull: true,
-                            quantity: quantity,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 24),
-                      // Right: info panel
-                      SizedBox(
-                        width: 260,
-                        child: Center(
-                          child: SingleChildScrollView(
-                            child: _CardDetailInfo(card: card),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              child: isWide
+                  ? _buildWideCardDetail(context, card, quantity)
+                  : _buildMobileCardDetail(context, card, quantity),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWideCardDetail(BuildContext context, MythCard card, int quantity) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+              ),
+              child: AspectRatio(
+                aspectRatio: 0.7,
+                child: MythCardWidget(
+                  card: card,
+                  isFull: true,
+                  quantity: quantity,
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 24),
+            SizedBox(
+              width: 260,
+              child: Center(
+                child: SingleChildScrollView(
+                  child: _CardDetailInfo(card: card),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileCardDetail(BuildContext context, MythCard card, int quantity) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.5,
+              ),
+              child: AspectRatio(
+                aspectRatio: 0.7,
+                child: MythCardWidget(
+                  card: card,
+                  isFull: true,
+                  quantity: quantity,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CardDetailInfo(card: card),
+          ],
         ),
       ),
     );
