@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-02 (Human avatar redesign, card detail dialog, shimmer glow, trade UI polish)
+Son güncelleme: 2026-04-05 (Streak sheet redesign: Duolingo-style bottom sheet, monthly calendar, displayStreakProvider)
 
 ## Current Phase
 
@@ -175,6 +175,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Card Panel Sidebar Widgets (5 widgets: collection progress, rarity showcase, rarest owners, top collectors, trade button)
 - [x] Duplicate Card Trade System (trade 7 dupes for 1 new, full-stack: RPC + entity + usecase + provider + screen)
 - [x] League Sidebar — Class & School Ranks (independent rank providers, VIEW STATS label)
+- [x] Streak Sheet Redesign (Duolingo-style bottom sheet, gradient banner, weekly/monthly calendar toggle, displayStreakProvider)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -246,6 +247,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Streak Sheet Redesign | 2026-04-05 | Duolingo-inspired full-screen bottom sheet. Gradient banner, toggleable weekly/monthly calendar, distinct day icons, compact stat cards, displayStreakProvider for consistent streak count, monthly provider cache invalidation. |
 | League Sidebar — Class & School Ranks | 2026-04-01 | Independent `userClassRankProvider`/`userSchoolRankProvider` (total XP). Divider + rank rows in league card. "VIEW LEAGUE" → "VIEW STATS". |
 | Card Trade System | 2026-04-01 | Full-stack: `card_trade_logs` table + `trade_duplicate_cards` RPC (uniform 7-dupe cost, pity-aware new card selection). Domain: `TradeResult` entity + `TradeDuplicateCardsUseCase`. UI: tabbed trade screen with card selection, reveal animation, shell integration. 2 DB migrations. |
 | Card Panel Sidebar Widgets | 2026-04-01 | 5 widgets: `CollectionProgressCard`, `RarityShowcaseCard`, `RarestCardOwnerCard`, `TopCollectorsCard`, `TradeButtonCard`. 2 new RPCs: `get_class_top_collectors`, `get_exclusive_cards`. Providers: `rarityBreakdownProvider`, `classTopCollectorsProvider`, `exclusiveCardsProvider`. Card detail dialog: class ownership display. Card mini preview simplified. 2 DB migrations. |

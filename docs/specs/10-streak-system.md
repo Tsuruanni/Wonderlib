@@ -213,9 +213,9 @@ Quest progress is tracked implicitly via activity logs.
 - `lib/data/repositories/supabase/supabase_user_repository.dart` (lines 96–154) — RPC calls + JSON mapping
 
 ### Presentation Layer
-- `lib/presentation/providers/user_provider.dart` — `UserController` (streak logic at lines 194–313), `loginDatesProvider`, `streakEventProvider`
+- `lib/presentation/providers/user_provider.dart` — `UserController` (streak logic at lines 194–313), `loginDatesProvider`, `streakEventProvider`, `displayStreakProvider` (computes streak from `daily_logins` for consistent navbar/sheet count)
 - `lib/presentation/widgets/common/streak_event_dialog.dart` — milestone/freeze/broken/extended dialogs
-- `lib/presentation/widgets/common/streak_status_dialog.dart` — streak status with calendar + freeze purchase
+- `lib/presentation/widgets/common/streak_sheet.dart` — full-screen bottom sheet with banner, calendar (weekly/monthly), stats, freeze purchase
 - `lib/presentation/widgets/common/top_navbar.dart` — fire icon with streak count
 - `lib/presentation/widgets/common/level_up_celebration.dart` — listener that shows streak event dialogs
 

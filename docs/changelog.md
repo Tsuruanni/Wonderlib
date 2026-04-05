@@ -8,6 +8,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Streak Sheet Redesign (2026-04-05)
+
+#### Added
+- **Full-screen bottom sheet** — Replaces small centered dialog. `showModalBottomSheet` with drag handle, scrollable content, 85% height.
+- **Gradient banner** — Orange gradient header with streak count + contextual messages (5 tiers of rotating messages, milestone proximity override).
+- **Monthly calendar** — Full month grid with `< MONTH YEAR >` navigation. Navigable back to account creation month.
+- **Weekly/monthly toggle** — Single calendar area with animated transition via `AnimatedCrossFade`.
+- **Compact stat cards** — Side-by-side Longest Streak and Freeze cards.
+- **`monthlyLoginDatesProvider`** — `FutureProvider.family` keyed by `(year, month)` for monthly calendar data.
+- **`displayStreakProvider`** — Computes streak from `daily_logins` so navbar/sheet streak count always matches calendar ticks.
+
+#### Changed
+- **Day cell icons** — Distinct visuals: orange circle + fire (login), blue circle + snowflake (freeze), orange outline (today), grey number (missed).
+- **Weekly view range** — Shows last 7 days instead of calendar week (Mon-Sun), ensuring full recent streak is visible.
+- **Streak count source** — Navbar and sheet compute streak from `daily_logins` via `displayStreakProvider` instead of `profiles.current_streak`.
+
+#### Fixed
+- **Provider cache after streak update** — `monthlyLoginDatesProvider` now invalidated alongside `loginDatesProvider` after streak RPC, so freeze days appear immediately.
+
+#### Removed
+- **`streak_status_dialog.dart`** — Replaced entirely by `streak_sheet.dart`.
+
 ### Teacher Quests Sidebar Widget & UI Polish (2026-04-02)
 
 #### Added
