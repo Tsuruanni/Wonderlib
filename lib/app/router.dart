@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
-import '../presentation/providers/user_provider.dart';
 import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
@@ -167,18 +167,28 @@ class _SplashScreenState extends State<_SplashScreen> {
           role == UserRole.admin.dbValue) {
         context.go(AppRoutes.teacherDashboard);
       } else {
-        // Student: check if avatar base has been chosen
+        // Student: check if onboarding is enabled and avatar base is missing
         try {
-          final profile = await Supabase.instance.client
-              .from('profiles')
-              .select('avatar_base_id')
-              .eq('id', session.user.id)
-              .single();
-          if (!mounted) return;
-          if (profile['avatar_base_id'] == null) {
-            _needsAvatarSetup = true;
-            context.go(AppRoutes.avatarSetup);
-            return;
+          // Check system setting first
+          final settingRes = await Supabase.instance.client
+              .from('system_settings')
+              .select('value')
+              .eq('key', 'onboarding_enabled')
+              .maybeSingle();
+          final onboardingEnabled = settingRes?['value'] == 'true';
+
+          if (onboardingEnabled) {
+            final profile = await Supabase.instance.client
+                .from('profiles')
+                .select('avatar_base_id')
+                .eq('id', session.user.id)
+                .single();
+            if (!mounted) return;
+            if (profile['avatar_base_id'] == null) {
+              _needsAvatarSetup = true;
+              context.go(AppRoutes.avatarSetup);
+              return;
+            }
           }
         } catch (_) {
           // If profile fetch fails, proceed to normal flow
@@ -240,6 +250,7 @@ GoRouter _createRouter() {
     navigatorKey: rootNavigatorKey,
     initialLocation: kDevBypassAuth ? AppRoutes.vocabulary : AppRoutes.splash,
     debugLogDiagnostics: true,
+    observers: [SentryNavigatorObserver()],
     refreshListenable: _authNotifier,
     redirect: (context, state) {
       if (kDevBypassAuth) return null;
@@ -270,31 +281,13 @@ GoRouter _createRouter() {
         return AppRoutes.vocabulary;
       }
 
-      // Avatar onboarding guard — keep students on setup/customize until base is chosen.
-      // Check both the splash-set flag AND the user profile (for page refresh scenarios).
-      if (isAuthenticated) {
-        final metadata = session.user.userMetadata;
-        final role = metadata?['role'] as String?;
-        final isStudent = role == null || role == UserRole.student.dbValue;
+      // Avatar onboarding guard — disabled via system_settings (onboarding_enabled = false).
+      // When re-enabled, redirects students with no avatar_base_id to /avatar-setup.
+      if (isAuthenticated && _needsAvatarSetup) {
         final isAvatarRoute = state.matchedLocation == AppRoutes.avatarSetup ||
             state.matchedLocation == AppRoutes.avatarCustomize;
-
-        if (isStudent && !isAvatarRoute) {
-          // Check user provider for avatar_base_id (works after profile loads)
-          try {
-            final container = ProviderScope.containerOf(context);
-            final user = container.read(userControllerProvider).valueOrNull;
-            if (user != null && user.avatarBaseId == null) {
-              _needsAvatarSetup = true;
-              return AppRoutes.avatarSetup;
-            }
-          } catch (_) {
-            // ProviderScope not ready yet — fall through to flag check
-          }
-
-          if (_needsAvatarSetup) {
-            return AppRoutes.avatarSetup;
-          }
+        if (!isAvatarRoute) {
+          return AppRoutes.avatarSetup;
         }
       }
 
@@ -569,7 +562,7 @@ GoRouter _createRouter() {
                     child: VocabularySessionScreen(
                       listId: listId,
                       summaryRoute: AppRoutes.fullscreenSessionSummaryPath(
-                          pathId, unitIdx, listId),
+                          pathId, unitIdx, listId,),
                     ),
                   );
                 },
