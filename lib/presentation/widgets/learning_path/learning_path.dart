@@ -236,7 +236,9 @@ class LearningPathView extends ConsumerWidget {
           label: 'Treasure',
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned,
-          onTap: () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
+          onTap: state == NodeState.completed
+              ? null
+              : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
         );
 
     }

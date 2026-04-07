@@ -246,7 +246,9 @@ class LearningPath extends ConsumerWidget {
                   globalRowIndex: globalRowIndex,
                   isLocked: isItemLocked,
                   isActive: isActive,
-                  onComplete: () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
+                  onComplete: isCompleted
+                      ? null
+                      : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
                 ),
               ),
             );
