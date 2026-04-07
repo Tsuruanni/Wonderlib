@@ -328,7 +328,7 @@ class _LeagueCard extends ConsumerWidget {
     final schoolRank = ref.watch(userSchoolRankProvider).valueOrNull;
 
     // Days left until Sunday
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
     final weekEnd = now
         .subtract(Duration(days: now.weekday - 1))
         .add(const Duration(days: 6));
