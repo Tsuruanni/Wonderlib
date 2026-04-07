@@ -281,6 +281,12 @@ class _RewardView extends StatelessWidget {
                 curve: Curves.easeOut,
               ),
 
+          // DEBUG: remove after verifying
+          Text(
+            'DEBUG: index=${result.sliceIndex} type=${result.rewardType}',
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
+          ),
+
           if (!isCoin) ...[
             const SizedBox(height: 12),
             Text(

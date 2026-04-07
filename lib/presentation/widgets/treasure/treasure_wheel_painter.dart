@@ -82,21 +82,28 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
 
     final sliceCount = widget.slices.length;
     final sliceAngle = 2 * math.pi / sliceCount;
+    final twoPi = 2 * math.pi;
 
+    // Normalize current angle to [0, 2π) — no visual change
+    _currentAngle = _currentAngle % twoPi;
+
+    // Random offset within the target slice (20-80% of slice width)
     final random = math.Random();
     final offsetInSlice = (random.nextDouble() * 0.6 + 0.2) * sliceAngle;
 
-    // Where the wheel must end up (mod 2π) for targetIndex to be under the pointer
-    final twoPi = 2 * math.pi;
-    final targetMod = ((-(targetIndex * sliceAngle + offsetInSlice)) % twoPi + twoPi) % twoPi;
-    final currentMod = (_currentAngle % twoPi + twoPi) % twoPi;
+    // Wheel draws slice 0 at top (-π/2), going clockwise.
+    // When wheel rotates by +θ (clockwise), slices move clockwise.
+    // For slice i to be under the fixed pointer at top:
+    //   wheel angle = 2π - (i * sliceAngle + offset)
+    // This "pulls back" the target slice to 12 o'clock.
+    final targetFinal = (twoPi - (targetIndex * sliceAngle + offsetInSlice) % twoPi) % twoPi;
 
-    // How much extra to rotate to land on target (always positive, < 1 full spin)
-    var extraAngle = targetMod - currentMod;
-    if (extraAngle <= 0) extraAngle += twoPi;
+    // How far from current to target (always forward, < 1 full spin)
+    var delta = targetFinal - _currentAngle;
+    if (delta <= 0) delta += twoPi;
 
-    // Add 5 full spins for dramatic effect
-    final totalRotation = extraAngle + 5 * twoPi;
+    // 5 full spins + delta = total rotation
+    final totalRotation = delta + 5 * twoPi;
 
     final tween = Tween<double>(begin: 0.0, end: totalRotation);
     final curved = CurvedAnimation(parent: _spinController, curve: Curves.easeOutCubic);
