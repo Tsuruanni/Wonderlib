@@ -117,6 +117,24 @@ class NotificationCard extends StatefulWidget {
     );
   }
 
+  static Widget leagueJoined({
+    required LeagueTier tier,
+    required VoidCallback onDismiss,
+  }) {
+    final tierColor = _leagueTierColor(tier);
+    final tierEmoji = _leagueTierEmoji(tier);
+
+    return NotificationCard(
+      icon: tierEmoji,
+      title: 'Welcome to ${tier.label} League!',
+      subtitle: "You're now competing with 30 rivals.\nEarn XP to climb the ranks!",
+      subtitleColor: tierColor,
+      buttonLabel: "LET'S GO!",
+      buttonColor: tierColor,
+      onDismiss: onDismiss,
+    );
+  }
+
   static Color _leagueTierColor(LeagueTier tier) {
     return switch (tier) {
       LeagueTier.bronze => Colors.brown,

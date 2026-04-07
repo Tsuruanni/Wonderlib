@@ -11,6 +11,8 @@ import '../../providers/leaderboard_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/notification_card.dart';
+import '../../widgets/common/notification_overlay_manager.dart';
 import '../../widgets/common/top_navbar.dart';
 
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -29,17 +31,26 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     final displayAsync = ref.watch(leaderboardDisplayProvider);
 
     // Listen for league join transition (not-joined → joined)
-    // Only fires on data→data transition, NOT on initial load (loading→data)
+    // Uses NotificationOverlayManager (same system as level-up, badge, streak notifications)
     ref.listen<AsyncValue<LeagueStatus?>>(leagueStatusProvider, (prev, next) {
       if (_joinDialogShown) return;
       final prevData = prev?.valueOrNull;
       final nextData = next.valueOrNull;
-      // prev must be actual data with joined=false, next must be data with joined=true
       if (prevData != null && !prevData.joined && nextData != null && nextData.joined) {
         _joinDialogShown = true;
         final tier = nextData.tier;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _showLeagueJoinedDialog(context, tier);
+          if (!mounted) return;
+          final overlay = Overlay.of(context, rootOverlay: true);
+          NotificationOverlayManager.instance.show(
+            overlay: overlay,
+            type: NotificationType.leagueChange,
+            data: tier,
+            cardBuilder: (dismiss) => NotificationCard.leagueJoined(
+              tier: tier,
+              onDismiss: dismiss,
+            ),
+          );
         });
       }
     });
@@ -88,7 +99,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   physics: AlwaysScrollableScrollPhysics(),
                   child: SizedBox(
                       height: 300,
-                      child: Center(child: CircularProgressIndicator())),
+                      child: Center(child: CircularProgressIndicator()),),
                 ),
                 error: (e, _) => SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -115,78 +126,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
     );
   }
 
-  void _showLeagueJoinedDialog(BuildContext context, LeagueTier tier) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Image.asset(
-                _tierAsset(tier),
-                width: 72,
-                height: 72,
-                filterQuality: FilterQuality.high,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Welcome to ${tier.label} League!',
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'You\'re now competing with 30 rivals.\nEarn XP to climb the ranks and get promoted!',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.waspDark,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(
-                    'LET\'S GO!',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.emoji_events_outlined,
-              color: AppColors.neutralDark, size: 64),
+          const Icon(Icons.emoji_events_outlined,
+              color: AppColors.neutralDark, size: 64,),
           const SizedBox(height: 16),
           Text(
             'No students yet',
@@ -230,18 +176,22 @@ class _LeaderboardHeader extends StatelessWidget {
       child: Row(
         children: [
           const Icon(Icons.emoji_events_rounded,
-              color: AppColors.waspDark, size: 26),
+              color: AppColors.waspDark, size: 26,),
           const SizedBox(width: 10),
-          Text(
-            'Leaderboard',
-            style: GoogleFonts.nunito(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
+          Flexible(
+            child: Text(
+              'Leaderboard',
+              style: GoogleFonts.nunito(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: AppColors.black,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const Spacer(),
-          Container(
+          DecoratedBox(
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
@@ -399,16 +349,6 @@ class _TierShield extends StatelessWidget {
       filterQuality: FilterQuality.high,
     );
   }
-
-  static Color _tierColor(LeagueTier tier) {
-    return switch (tier) {
-      LeagueTier.bronze => const Color(0xFFCD7F32),
-      LeagueTier.silver => const Color(0xFFC0C0C0),
-      LeagueTier.gold => const Color(0xFFFFD700),
-      LeagueTier.platinum => const Color(0xFFE5E4E2),
-      LeagueTier.diamond => const Color(0xFF00BFFF),
-    };
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -465,7 +405,7 @@ class _LeaderboardList extends StatelessWidget {
         currentUserId: state.currentUserId,
         useWeeklyXp: false,
         onEntryTap: (entry) => showStudentProfileDialog(context, entry),
-      ));
+      ),);
     }
 
     // Determine start index (skip top 3 if podium shown)
@@ -479,22 +419,22 @@ class _LeaderboardList extends StatelessWidget {
       if (isLeague && i > 0 &&
           state.entries[i - 1].rank <= zoneSize &&
           entry.rank > zoneSize) {
-        items.add(_ZoneSeparator(
+        items.add(const _ZoneSeparator(
           text: 'PROMOTION ZONE',
-          color: const Color(0xFF4CAF50),
+          color: Color(0xFF4CAF50),
           icon: Icons.arrow_upward_rounded,
-        ));
+        ),);
       }
 
       // Inject demotion zone separator before rank > demotionStart
       if (showDemotionZone && i > 0 &&
           state.entries[i - 1].rank <= demotionStart &&
           entry.rank > demotionStart) {
-        items.add(_ZoneSeparator(
+        items.add(const _ZoneSeparator(
           text: 'DEMOTION ZONE',
-          color: const Color(0xFFE53935),
+          color: Color(0xFFE53935),
           icon: Icons.arrow_downward_rounded,
-        ));
+        ),);
       }
 
       items.add(_buildEntryCard(context, entry, isCurrentUser: isCurrentUser));
@@ -504,7 +444,7 @@ class _LeaderboardList extends StatelessWidget {
     if (state.currentUserEntry != null) {
       items.add(_buildListSeparator());
       items.add(
-          _buildEntryCard(context, state.currentUserEntry!, isCurrentUser: true));
+          _buildEntryCard(context, state.currentUserEntry!, isCurrentUser: true),);
     }
 
     return ListView(
@@ -514,43 +454,22 @@ class _LeaderboardList extends StatelessWidget {
   }
 
   Widget _buildEntryCard(BuildContext context, LeaderboardEntry entry,
-      {required bool isCurrentUser}) {
+      {required bool isCurrentUser,}) {
     final isLeague = state.isLeagueMode;
 
-    // League mode: no frames (Duolingo style). Class/School: framed cards.
-    final bool frameless = true;
-
-    Color cardColor;
-    Color? borderColor;
-    double borderWidth;
-
-    if (isCurrentUser) {
-      cardColor = AppColors.secondaryBackground;
-      borderColor = frameless ? null : AppColors.secondary;
-      borderWidth = frameless ? 0 : 2;
-    } else {
-      cardColor = frameless ? Colors.transparent : AppColors.white;
-      borderColor = frameless ? null : AppColors.neutral;
-      borderWidth = frameless ? 0 : 1.5;
-    }
+    final cardColor =
+        isCurrentUser ? AppColors.secondaryBackground : Colors.transparent;
 
     return GestureDetector(
       onTap: entry.isBot
           ? null
           : () => showStudentProfileDialog(context, entry),
       child: Container(
-        margin: EdgeInsets.only(bottom: frameless ? 0 : 6),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: frameless
-            ? BoxDecoration(
-                color: isCurrentUser ? cardColor : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              )
-            : BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: borderColor!, width: borderWidth),
-              ),
+        decoration: BoxDecoration(
+          color: isCurrentUser ? cardColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
           children: [
             // Rank (colored circle for top 3)
@@ -560,7 +479,7 @@ class _LeaderboardList extends StatelessWidget {
             if (isLeague) ...[
               const SizedBox(width: 4),
               _RankChangeIndicator(
-                  rankChange: _effectiveRankChange(entry, state)),
+                  rankChange: _effectiveRankChange(entry, state),),
             ],
             const SizedBox(width: 10),
 
@@ -604,7 +523,7 @@ class _LeaderboardList extends StatelessWidget {
                       if (state.isLeagueMode && entry.isSameSchool && !entry.isBot) ...[
                         const SizedBox(width: 4),
                         const Icon(Icons.school_rounded,
-                            size: 14, color: AppColors.secondary),
+                            size: 14, color: AppColors.secondary,),
                       ],
                     ],
                   ),
@@ -729,13 +648,17 @@ class _ZoneSeparator extends StatelessWidget {
               children: [
                 Icon(icon, size: 14, color: color),
                 const SizedBox(width: 4),
-                Text(
-                  text,
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: color,
-                    letterSpacing: 1,
+                Flexible(
+                  child: Text(
+                    text,
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: color,
+                      letterSpacing: 1,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 4),
@@ -844,7 +767,7 @@ class _Avatar extends StatelessWidget {
   }
 
   Widget _buildInitials() {
-    return Container(
+    return ColoredBox(
       color: AppColors.secondary.withValues(alpha: 0.15),
       child: Center(
         child: Text(
@@ -1053,68 +976,72 @@ class _PodiumEntry extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               // Content block: avatar + name + xp
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Avatar with tier badge
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      _Avatar(
-                        avatarUrl: entry.avatarUrl,
-                        initials: entry.initials,
-                        leagueTier: entry.leagueTier,
-                        avatarEquippedCache: entry.avatarEquippedCache,
-                        size: avatarSize,
+              // Constrain width to prevent overflow with long names
+              ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: isFirst ? 110 : 90),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Avatar with tier badge
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        _Avatar(
+                          avatarUrl: entry.avatarUrl,
+                          initials: entry.initials,
+                          leagueTier: entry.leagueTier,
+                          avatarEquippedCache: entry.avatarEquippedCache,
+                          size: avatarSize,
+                        ),
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Image.asset(
+                            _tierAsset(entry.leagueTier),
+                            width: isFirst ? 24.0 : 18.0,
+                            height: isFirst ? 24.0 : 18.0,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // Name
+                    Text(
+                      isCurrentUser ? '${entry.fullName} (You)' : entry.fullName,
+                      style: GoogleFonts.nunito(
+                        fontSize: isFirst ? 14 : 12,
+                        fontWeight: FontWeight.w900,
+                        color: isCurrentUser ? AppColors.secondary : AppColors.black,
                       ),
-                      Positioned(
-                        right: -2,
-                        bottom: -2,
-                        child: Image.asset(
-                          _tierAsset(entry.leagueTier),
-                          width: isFirst ? 24.0 : 18.0,
-                          height: isFirst ? 24.0 : 18.0,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 2),
+                    // XP
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$xp',
+                          style: GoogleFonts.nunito(
+                            fontSize: isFirst ? 13 : 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Image.asset(
+                          'assets/icons/xp_green_outline.png',
+                          width: isFirst ? 16.0 : 14.0,
+                          height: isFirst ? 16.0 : 14.0,
                           filterQuality: FilterQuality.high,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  // Name
-                  Text(
-                    isCurrentUser ? '${entry.fullName} (You)' : entry.fullName,
-                    style: GoogleFonts.nunito(
-                      fontSize: isFirst ? 14 : 12,
-                      fontWeight: FontWeight.w900,
-                      color: isCurrentUser ? AppColors.secondary : AppColors.black,
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 2),
-                  // XP
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '$xp',
-                        style: GoogleFonts.nunito(
-                          fontSize: isFirst ? 13 : 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.neutralText,
-                        ),
-                      ),
-                      const SizedBox(width: 3),
-                      Image.asset(
-                        'assets/icons/xp_green_outline.png',
-                        width: isFirst ? 16.0 : 14.0,
-                        height: isFirst ? 16.0 : 14.0,
-                        filterQuality: FilterQuality.high,
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -1148,27 +1075,27 @@ class _NotJoinedCard extends StatelessWidget {
             BoxShadow(
                 color: AppColors.neutral,
                 offset: Offset(0, 4),
-                blurRadius: 0),
+                blurRadius: 0,),
           ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.lock_outline_rounded,
-                size: 48, color: AppColors.waspDark),
+                size: 48, color: AppColors.waspDark,),
             const SizedBox(height: 16),
             Text(
               'Join this week\'s league!',
               style: GoogleFonts.nunito(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: AppColors.black),
+                  color: AppColors.black,),
             ),
             const SizedBox(height: 8),
             Text(
               'Earn 20 XP to start competing.',
               style: GoogleFonts.nunito(
-                  color: AppColors.neutralText, fontWeight: FontWeight.w600),
+                  color: AppColors.neutralText, fontWeight: FontWeight.w600,),
             ),
             const SizedBox(height: 16),
             ClipRRect(
@@ -1184,7 +1111,7 @@ class _NotJoinedCard extends StatelessWidget {
             Text(
               '$xp / 20 XP',
               style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800, color: AppColors.waspDark),
+                  fontWeight: FontWeight.w800, color: AppColors.waspDark,),
             ),
           ],
         ),
