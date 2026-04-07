@@ -673,6 +673,22 @@ class _NodeCircle extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // Background glow halo
+              if (!isLocked)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: mainColor.withValues(alpha: 0.35),
+                          blurRadius: 16,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               // Main 3D circle with gradient + extrusion shadow
               AnimatedContainer(
                 duration: const Duration(milliseconds: 60),
