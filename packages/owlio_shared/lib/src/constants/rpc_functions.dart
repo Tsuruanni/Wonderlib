@@ -79,4 +79,7 @@ abstract class RpcFunctions {
   static const buyAvatarItem = 'buy_avatar_item';
   static const equipAvatarItem = 'equip_avatar_item';
   static const unequipAvatarItem = 'unequip_avatar_item';
+
+  // Treasure Wheel
+  static const spinTreasureWheel = 'spin_treasure_wheel';
 }

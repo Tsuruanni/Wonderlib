@@ -80,4 +80,7 @@ abstract class DbTables {
 
   // Tile Themes
   static const tileThemes = 'tile_themes';
+
+  // Treasure Wheel
+  static const treasureWheelSlices = 'treasure_wheel_slices';
 }
