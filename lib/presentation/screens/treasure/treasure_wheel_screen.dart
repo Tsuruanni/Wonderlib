@@ -85,7 +85,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
           SafeArea(
             child: Center(child: _buildBody(state)),
           ),
-          if (_showConfetti) const _ConfettiOverlay(),
+          if (_showConfetti) const IgnorePointer(child: _ConfettiOverlay()),
         ],
       ),
     );
@@ -261,43 +261,13 @@ class _RewardView extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Reward badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: AppColors.waspBackground,
-              border: Border.all(color: AppColors.wasp.withValues(alpha: 0.4), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.wasp.withValues(alpha: 0.2),
-                  blurRadius: 16,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isCoin)
-                  Image.asset(
-                    'assets/icons/gem_outline_256.png',
-                    width: 28,
-                    height: 28,
-                    filterQuality: FilterQuality.high,
-                  )
-                else
-                  Icon(Icons.style_rounded, color: AppColors.cardEpic, size: 28),
-                const SizedBox(width: 10),
-                Text(
-                  result.sliceLabel,
-                  style: TextStyle(
-                    color: AppColors.waspDark,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
+          // Reward amount text
+          Text(
+            result.sliceLabel,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
             ),
           )
               .animate()
@@ -329,7 +299,6 @@ class _RewardView extends StatelessWidget {
               label: 'COLLECT',
               variant: GameButtonVariant.wasp,
               onPressed: onClaim,
-              icon: const Icon(Icons.check_circle_rounded),
             ),
           )
               .animate()
