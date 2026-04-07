@@ -82,29 +82,16 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
 
     final sliceCount = widget.slices.length;
     final sliceAngle = 2 * math.pi / sliceCount;
-    final twoPi = 2 * math.pi;
 
-    // Normalize current angle to [0, 2π) — no visual change
-    _currentAngle = _currentAngle % twoPi;
+    // Reset angle — wheel is spinning fast so user won't see the jump
+    _currentAngle = 0;
 
-    // Random offset within the target slice (20-80% of slice width)
+    // Random position within target slice (20-80%)
     final random = math.Random();
     final offsetInSlice = (random.nextDouble() * 0.6 + 0.2) * sliceAngle;
 
-    // Wheel draws slice 0 at top (-π/2), positive sweep clockwise.
-    // Rotating by +θ moves slices clockwise, so the pointer effectively
-    // moves counter-clockwise through the slices: 0 → 5 → 4 → 3 → ...
-    // To land on slice i, we rotate by the NEGATIVE of i*sliceAngle,
-    // which in positive terms is (sliceCount - i) * sliceAngle.
-    final stepsBack = sliceCount - targetIndex;
-    final targetFinal = ((stepsBack * sliceAngle + offsetInSlice) % twoPi + twoPi) % twoPi;
-
-    // How far from current to target (always forward, < 1 full spin)
-    var delta = targetFinal - _currentAngle;
-    if (delta <= 0) delta += twoPi;
-
-    // 5 full spins + delta = total rotation
-    final totalRotation = delta + 5 * twoPi;
+    // Simple approach: 5 full spins + targetIndex slices forward
+    final totalRotation = 5 * 2 * math.pi + targetIndex * sliceAngle + offsetInSlice;
 
     final tween = Tween<double>(begin: 0.0, end: totalRotation);
     final curved = CurvedAnimation(parent: _spinController, curve: Curves.easeOutCubic);
@@ -112,10 +99,9 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
     _spinController.reset();
     final animation = tween.animate(curved);
 
-    final startAngle = _currentAngle;
     animation.addListener(() {
       setState(() {
-        _currentAngle = startAngle + animation.value;
+        _currentAngle = animation.value;
       });
     });
 
