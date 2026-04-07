@@ -12,6 +12,10 @@ class LeagueStatusModel {
     required this.joined,
     required this.thresholdMet,
     required this.currentWeeklyXp,
+    this.lastWeekRank,
+    this.lastWeekResult,
+    this.lastWeekTier,
+    this.lastWeekXp,
   });
 
   factory LeagueStatusModel.fromJson(Map<String, dynamic> json) {
@@ -24,6 +28,12 @@ class LeagueStatusModel {
       joined: json['joined'] as bool? ?? false,
       thresholdMet: json['threshold_met'] as bool? ?? false,
       currentWeeklyXp: (json['current_weekly_xp'] as num?)?.toInt() ?? 0,
+      lastWeekRank: (json['last_week_rank'] as num?)?.toInt(),
+      lastWeekResult: json['last_week_result'] as String?,
+      lastWeekTier: json['last_week_tier'] != null
+          ? LeagueTier.fromDbValue(json['last_week_tier'] as String)
+          : null,
+      lastWeekXp: (json['last_week_xp'] as num?)?.toInt(),
     );
   }
 
@@ -35,6 +45,10 @@ class LeagueStatusModel {
   final bool joined;
   final bool thresholdMet;
   final int currentWeeklyXp;
+  final int? lastWeekRank;
+  final String? lastWeekResult;
+  final LeagueTier? lastWeekTier;
+  final int? lastWeekXp;
 
   LeagueStatus toEntity() {
     return LeagueStatus(
@@ -46,6 +60,10 @@ class LeagueStatusModel {
       joined: joined,
       thresholdMet: thresholdMet,
       currentWeeklyXp: currentWeeklyXp,
+      lastWeekRank: lastWeekRank,
+      lastWeekResult: lastWeekResult,
+      lastWeekTier: lastWeekTier,
+      lastWeekXp: lastWeekXp,
     );
   }
 }

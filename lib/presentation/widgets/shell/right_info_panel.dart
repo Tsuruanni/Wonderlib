@@ -75,6 +75,7 @@ class RightInfoPanel extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const _MonthlyBadgesSidebarCard(),
                   ] else ...[
+                    const _LastWeekCard(),
                     const _LeagueCard(),
                     const SizedBox(height: 16),
                     const _TeacherQuestsCard(),
@@ -158,6 +159,129 @@ class _StatChip extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Last Week Result Card ───
+
+class _LastWeekCard extends ConsumerWidget {
+  const _LastWeekCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = ref.watch(leagueStatusProvider).valueOrNull;
+    if (status == null || !status.hasLastWeekData) return const SizedBox.shrink();
+
+    final rank = status.lastWeekRank!;
+    final result = status.lastWeekResult ?? 'stayed';
+    final tier = status.lastWeekTier ?? LeagueTier.bronze;
+    final xp = status.lastWeekXp ?? 0;
+
+    final Color resultColor;
+    final IconData resultIcon;
+    final String resultText;
+
+    switch (result) {
+      case 'promoted':
+        resultColor = const Color(0xFF4CAF50);
+        resultIcon = Icons.arrow_upward_rounded;
+        resultText = 'Promoted to ${tier.label}!';
+      case 'demoted':
+        resultColor = const Color(0xFFE53935);
+        resultIcon = Icons.arrow_downward_rounded;
+        resultText = 'Demoted to ${tier.label}';
+      case 'inactive_demoted':
+        resultColor = const Color(0xFFFF9800);
+        resultIcon = Icons.schedule_rounded;
+        resultText = 'Inactive — moved to ${tier.label}';
+      default:
+        resultColor = AppColors.neutralText;
+        resultIcon = Icons.horizontal_rule_rounded;
+        resultText = 'Stayed in ${tier.label}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neutral, width: 2),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Last Week',
+              style: GoogleFonts.nunito(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                // Rank circle
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: resultColor.withValues(alpha: 0.12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '#$rank',
+                      style: GoogleFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: resultColor,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(resultIcon, size: 14, color: resultColor),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              resultText,
+                              style: GoogleFonts.nunito(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: resultColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '$xp XP earned',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.neutralText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
