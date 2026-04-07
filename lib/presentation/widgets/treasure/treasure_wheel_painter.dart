@@ -91,12 +91,13 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
     final random = math.Random();
     final offsetInSlice = (random.nextDouble() * 0.6 + 0.2) * sliceAngle;
 
-    // Wheel draws slice 0 at top (-π/2), going clockwise.
-    // When wheel rotates by +θ (clockwise), slices move clockwise.
-    // For slice i to be under the fixed pointer at top:
-    //   wheel angle = 2π - (i * sliceAngle + offset)
-    // This "pulls back" the target slice to 12 o'clock.
-    final targetFinal = (twoPi - (targetIndex * sliceAngle + offsetInSlice) % twoPi) % twoPi;
+    // Wheel draws slice 0 at top (-π/2), positive sweep clockwise.
+    // Rotating by +θ moves slices clockwise, so the pointer effectively
+    // moves counter-clockwise through the slices: 0 → 5 → 4 → 3 → ...
+    // To land on slice i, we rotate by the NEGATIVE of i*sliceAngle,
+    // which in positive terms is (sliceCount - i) * sliceAngle.
+    final stepsBack = sliceCount - targetIndex;
+    final targetFinal = ((stepsBack * sliceAngle - offsetInSlice) % twoPi + twoPi) % twoPi;
 
     // How far from current to target (always forward, < 1 full spin)
     var delta = targetFinal - _currentAngle;
