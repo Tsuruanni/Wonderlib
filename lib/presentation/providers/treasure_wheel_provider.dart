@@ -6,6 +6,7 @@ import '../../domain/usecases/treasure/spin_treasure_wheel_usecase.dart';
 import '../../domain/usecases/usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
+import 'user_provider.dart';
 import 'vocabulary_provider.dart';
 
 enum TreasureWheelPhase {
@@ -123,6 +124,7 @@ class TreasureWheelController extends StateNotifier<TreasureWheelState> {
   void complete() {
     _ref.invalidate(nodeCompletionsProvider);
     _ref.invalidate(currentUserProvider);
+    _ref.invalidate(userControllerProvider);
     state = state.copyWith(phase: TreasureWheelPhase.completed);
   }
 }

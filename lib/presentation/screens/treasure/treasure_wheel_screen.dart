@@ -153,23 +153,8 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
               curve: Curves.elasticOut,
             ),
         const SizedBox(height: 32),
-        // Spin button
-        if (isSpinning)
-          SizedBox(
-            width: 70,
-            height: 54,
-            child: Center(
-              child: SizedBox(
-                width: 28,
-                height: 28,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  color: AppColors.wasp,
-                ),
-              ),
-            ),
-          )
-        else
+        // Spin button — hidden during spin (wheel is the visual feedback)
+        if (!isSpinning)
           SizedBox(
             width: 220,
             child: GameButton(
@@ -281,11 +266,6 @@ class _RewardView extends StatelessWidget {
                 curve: Curves.easeOut,
               ),
 
-          // DEBUG: remove after verifying
-          Text(
-            'DEBUG: index=${result.sliceIndex} type=${result.rewardType}',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
-          ),
 
           if (!isCoin) ...[
             const SizedBox(height: 12),
