@@ -214,6 +214,13 @@ class DashboardScreen extends ConsumerWidget {
                     onTap: () => context.go('/learning-paths'),
                   ),
                   _DashboardCard(
+                    icon: Icons.casino,
+                    title: 'Hazine Çarkı',
+                    description: 'Çark dilimleri ve ödül ayarları',
+                    color: const Color(0xFFFF9800),
+                    onTap: () => context.go('/treasure-wheel'),
+                  ),
+                  _DashboardCard(
                     icon: Icons.timeline,
                     title: 'Son Etkinlikler',
                     description: 'Son eklenen içerikler ve kullanıcı aktivitesi',

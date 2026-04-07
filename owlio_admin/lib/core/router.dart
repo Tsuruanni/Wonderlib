@@ -40,6 +40,7 @@ import '../features/classes/screens/class_list_screen.dart';
 import '../features/classes/screens/class_edit_screen.dart';
 import '../features/tiles/screens/tile_theme_list_screen.dart';
 import '../features/tiles/screens/tile_theme_edit_screen.dart';
+import '../features/treasure_wheel/screens/treasure_wheel_config_screen.dart';
 import '../features/units/screens/unit_list_screen.dart';
 import '../features/units/screens/unit_edit_screen.dart';
 import 'supabase_client.dart';
@@ -354,6 +355,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => TileThemeEditScreen(
           themeId: state.pathParameters['themeId'],
         ),
+      ),
+      // Treasure Wheel
+      GoRoute(
+        path: '/treasure-wheel',
+        builder: (context, state) => const TreasureWheelConfigScreen(),
       ),
       // Ayarlar (XP + Uygulama)
       GoRoute(
