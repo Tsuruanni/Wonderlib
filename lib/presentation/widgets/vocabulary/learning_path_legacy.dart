@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/ui_helpers.dart';
@@ -244,7 +246,7 @@ class LearningPath extends ConsumerWidget {
                   globalRowIndex: globalRowIndex,
                   isLocked: isItemLocked,
                   isActive: isActive,
-                  onComplete: () => completePathNode(ref, unit.unit.id, 'treasure'),
+                  onComplete: () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
                 ),
               ),
             );

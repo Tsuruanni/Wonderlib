@@ -272,7 +272,7 @@ class _UnitDetailScreenState extends ConsumerState<UnitDetailScreen> {
           label: 'Treasure',
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned,
-          onTap: () => completePathNode(ref, unitData.unit.id, 'treasure'),
+          onTap: () => context.push(AppRoutes.treasureWheelPath(unitData.unit.id)),
         );
     }
   }
