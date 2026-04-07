@@ -169,6 +169,13 @@ class _StatChip extends StatelessWidget {
 class _LastWeekCard extends ConsumerWidget {
   const _LastWeekCard();
 
+  /// Derive the old tier from result + new tier
+  LeagueTier? _oldTier(String result, LeagueTier newTier) {
+    if (result == 'promoted') return newTier.previousTier;
+    if (result == 'demoted' || result == 'inactive_demoted') return newTier.nextTier;
+    return newTier; // stayed
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(leagueStatusProvider).valueOrNull;
@@ -176,31 +183,29 @@ class _LastWeekCard extends ConsumerWidget {
 
     final rank = status.lastWeekRank!;
     final result = status.lastWeekResult ?? 'stayed';
-    final tier = status.lastWeekTier ?? LeagueTier.bronze;
-    final xp = status.lastWeekXp ?? 0;
+    final newTier = status.lastWeekTier ?? LeagueTier.bronze;
+    final oldTier = _oldTier(result, newTier);
 
     final Color resultColor;
-    final IconData resultIcon;
     final String resultText;
 
     switch (result) {
       case 'promoted':
         resultColor = const Color(0xFF4CAF50);
-        resultIcon = Icons.arrow_upward_rounded;
-        resultText = 'Promoted to ${tier.label}!';
+        resultText = 'Promoted to ${newTier.label} from ${oldTier?.label ?? ''}!';
       case 'demoted':
         resultColor = const Color(0xFFE53935);
-        resultIcon = Icons.arrow_downward_rounded;
-        resultText = 'Demoted to ${tier.label}';
+        resultText = 'Demoted to ${newTier.label} from ${oldTier?.label ?? ''}';
       case 'inactive_demoted':
         resultColor = const Color(0xFFFF9800);
-        resultIcon = Icons.schedule_rounded;
-        resultText = 'Inactive — moved to ${tier.label}';
+        resultText = 'Inactive — moved to ${newTier.label}';
       default:
         resultColor = AppColors.neutralText;
-        resultIcon = Icons.horizontal_rule_rounded;
-        resultText = 'Stayed in ${tier.label}';
+        resultText = 'Stayed in ${newTier.label}';
     }
+
+    // Show the tier the student competed in (old tier for promoted/demoted, same for stayed)
+    final displayTier = (result == 'promoted' || result == 'demoted') ? oldTier ?? newTier : newTier;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -225,50 +230,32 @@ class _LastWeekCard extends ConsumerWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                // Rank circle
-                Container(
+                // Tier icon (the league they competed in)
+                Image.asset(
+                  _LeagueCard._tierAsset(displayTier),
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: resultColor.withValues(alpha: 0.12),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '#$rank',
-                      style: GoogleFonts.nunito(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: resultColor,
-                      ),
-                    ),
-                  ),
+                  filterQuality: FilterQuality.high,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(resultIcon, size: 14, color: resultColor),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              resultText,
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: resultColor,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Result text with icon
                       Text(
-                        '$xp XP earned',
+                        resultText,
+                        style: GoogleFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: resultColor,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // Rank
+                      Text(
+                        'Finished #$rank',
                         style: GoogleFonts.nunito(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
