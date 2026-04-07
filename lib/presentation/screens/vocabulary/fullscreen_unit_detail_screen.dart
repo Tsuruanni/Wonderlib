@@ -313,8 +313,8 @@ class _FullscreenUnitDetailScreenState
           label: 'Treasure',
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned,
-          onTap: () =>
-              completePathNode(ref, unitData.unit.id, 'treasure'),
+          onTap: () => context.push(
+              AppRoutes.treasureWheelPath(unitData.unit.id),),
         );
     }
   }
