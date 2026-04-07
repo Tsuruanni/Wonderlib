@@ -631,11 +631,33 @@ class _NodeCircle extends StatelessWidget {
       return SizedBox(
         width: size,
         height: size + 6,
-        child: Image.asset(
-          assetPath,
-          width: size,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            // Background glow halo
+            if (state != NodeState.locked)
+              Container(
+                width: size * 0.8,
+                height: size * 0.8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: type.color.withValues(alpha: 0.4),
+                      blurRadius: 18,
+                      spreadRadius: 6,
+                    ),
+                  ],
+                ),
+              ),
+            Image.asset(
+              assetPath,
+              width: size,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ],
         ),
       );
     }
