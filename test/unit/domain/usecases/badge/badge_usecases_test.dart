@@ -6,7 +6,6 @@ import 'package:owlio/core/errors/failures.dart';
 import 'package:owlio/domain/entities/badge.dart';
 import 'package:owlio/domain/repositories/badge_repository.dart';
 import 'package:owlio/domain/usecases/badge/get_user_badges_usecase.dart';
-import 'package:owlio/domain/usecases/badge/award_badge_usecase.dart';
 import 'package:owlio/domain/usecases/badge/get_recently_earned_usecase.dart';
 
 import '../../../../fixtures/badge_fixtures.dart';
@@ -85,92 +84,6 @@ void main() {
       expect(result.isLeft(), true);
       result.fold(
         (failure) => expect(failure, isA<ServerFailure>()),
-        (_) => fail('Should return failure'),
-      );
-    });
-  });
-
-  // ============================================
-  // AwardBadgeUseCase Tests
-  // ============================================
-  group('AwardBadgeUseCase', () {
-    late AwardBadgeUseCase usecase;
-
-    setUp(() {
-      usecase = AwardBadgeUseCase(mockBadgeRepository);
-    });
-
-    test('withValidParams_shouldReturnAwardedBadge', () async {
-      // Arrange
-      final userBadge = UserBadgeFixtures.newUserBadge();
-      when(mockBadgeRepository.awardBadge(
-        userId: 'user-123',
-        badgeId: 'badge-vocab-50',
-      )).thenAnswer((_) async => Right(userBadge));
-
-      const params = AwardBadgeParams(
-        userId: 'user-123',
-        badgeId: 'badge-vocab-50',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedUserBadge) {
-          expect(returnedUserBadge.userId, 'user-123');
-          expect(returnedUserBadge.badgeId, 'badge-vocab-50');
-          expect(returnedUserBadge.badge, isNotNull);
-          expect(returnedUserBadge.earnedAt, isNotNull);
-        },
-      );
-    });
-
-    test('withAlreadyEarnedBadge_shouldReturnConflictFailure', () async {
-      // Arrange
-      when(mockBadgeRepository.awardBadge(
-        userId: 'user-123',
-        badgeId: 'badge-123',
-      )).thenAnswer((_) async => const Left(ServerFailure('Badge already earned')));
-
-      const params = AwardBadgeParams(
-        userId: 'user-123',
-        badgeId: 'badge-123',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (failure) => expect(failure, isA<ServerFailure>()),
-        (_) => fail('Should return failure'),
-      );
-    });
-
-    test('withInvalidBadgeId_shouldReturnNotFoundFailure', () async {
-      // Arrange
-      when(mockBadgeRepository.awardBadge(
-        userId: 'user-123',
-        badgeId: 'non-existent',
-      )).thenAnswer((_) async => const Left(NotFoundFailure('Badge not found')));
-
-      const params = AwardBadgeParams(
-        userId: 'user-123',
-        badgeId: 'non-existent',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isLeft(), true);
-      result.fold(
-        (failure) => expect(failure, isA<NotFoundFailure>()),
         (_) => fail('Should return failure'),
       );
     });
@@ -291,38 +204,6 @@ void main() {
       );
     });
 
-    test('awardBadge_shouldReturnBadgeWithCorrectEarnedAt', () async {
-      // Arrange
-      final usecase = AwardBadgeUseCase(mockBadgeRepository);
-      final userBadge = UserBadgeFixtures.newUserBadge();
-      when(mockBadgeRepository.awardBadge(
-        userId: 'user-123',
-        badgeId: 'badge-vocab-50',
-      )).thenAnswer((_) async => Right(userBadge));
-
-      const params = AwardBadgeParams(
-        userId: 'user-123',
-        badgeId: 'badge-vocab-50',
-      );
-
-      // Act
-      final result = await usecase(params);
-
-      // Assert
-      expect(result.isRight(), true);
-      result.fold(
-        (failure) => fail('Should not return failure'),
-        (returnedUserBadge) {
-          // Earned at should be recent (within last minute)
-          expect(
-            returnedUserBadge.earnedAt.isAfter(
-              DateTime.now().subtract(const Duration(minutes: 1)),
-            ),
-            true,
-          );
-        },
-      );
-    });
   });
 
   // ============================================
@@ -335,18 +216,6 @@ void main() {
 
       // Assert
       expect(params.userId, 'test-user');
-    });
-
-    test('awardBadgeParams_shouldStoreUserIdAndBadgeId', () {
-      // Act
-      const params = AwardBadgeParams(
-        userId: 'test-user',
-        badgeId: 'test-badge',
-      );
-
-      // Assert
-      expect(params.userId, 'test-user');
-      expect(params.badgeId, 'test-badge');
     });
 
     test('getRecentlyEarnedParams_shouldHaveCorrectDefaults', () {

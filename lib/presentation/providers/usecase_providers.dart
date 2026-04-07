@@ -56,7 +56,6 @@ import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/reading/save_reading_progress_usecase.dart';
 import '../../domain/usecases/reading/update_current_chapter_usecase.dart';
 import '../../domain/usecases/reading/update_reading_progress_usecase.dart';
-import '../../domain/usecases/badge/award_badge_usecase.dart';
 import '../../domain/usecases/badge/check_and_award_badges_usecase.dart';
 import '../../domain/usecases/badge/get_all_badges_usecase.dart';
 import '../../domain/usecases/badge/get_recently_earned_usecase.dart';
@@ -421,10 +420,6 @@ final completeSessionUseCaseProvider = Provider((ref) {
 
 final getUserBadgesUseCaseProvider = Provider((ref) {
   return GetUserBadgesUseCase(ref.watch(badgeRepositoryProvider));
-});
-
-final awardBadgeUseCaseProvider = Provider((ref) {
-  return AwardBadgeUseCase(ref.watch(badgeRepositoryProvider));
 });
 
 final getRecentlyEarnedUseCaseProvider = Provider((ref) {

@@ -7,11 +7,6 @@ import '../entities/badge_earned.dart';
 abstract class BadgeRepository {
   Future<Either<Failure, List<UserBadge>>> getUserBadges(String userId);
 
-  Future<Either<Failure, UserBadge>> awardBadge({
-    required String userId,
-    required String badgeId,
-  });
-
   Future<Either<Failure, List<Badge>>> getRecentlyEarned({
     required String userId,
     int limit = 5,
