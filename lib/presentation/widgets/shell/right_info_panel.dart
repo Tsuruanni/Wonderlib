@@ -37,6 +37,7 @@ class RightInfoPanel extends ConsumerWidget {
     final showPackCard = location.startsWith(AppRoutes.cards);
     final isVocab = location.startsWith(AppRoutes.vocabulary);
     final isQuests = location.startsWith(AppRoutes.quests);
+    final isLeaderboard = location.startsWith(AppRoutes.leaderboard);
 
     return SizedBox(
       width: 330,
@@ -75,7 +76,7 @@ class RightInfoPanel extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const _MonthlyBadgesSidebarCard(),
                   ] else ...[
-                    const _LastWeekCard(),
+                    if (isLeaderboard) const _LastWeekCard(),
                     const _LeagueCard(),
                     const SizedBox(height: 16),
                     const _TeacherQuestsCard(),
