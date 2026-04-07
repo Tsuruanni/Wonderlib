@@ -61,9 +61,6 @@ class QuestsScreen extends ConsumerWidget {
                         bonusClaimed: bonusClaimed,
                       ),
                       const SizedBox(height: 24),
-                      // Badges
-                      const _BadgesSection(),
-                      const SizedBox(height: 24),
                       // Monthly Quest + Monthly Badges — only when sidebar is hidden
                       if (!showRightPanel) ...[
                         const _MonthlyQuestCard(),
