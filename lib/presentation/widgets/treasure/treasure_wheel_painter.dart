@@ -85,10 +85,20 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
 
     final random = math.Random();
     final offsetInSlice = (random.nextDouble() * 0.6 + 0.2) * sliceAngle;
-    final targetAngle = -(targetIndex * sliceAngle + offsetInSlice);
-    final totalRotation = targetAngle - _currentAngle + (5 * 2 * math.pi);
 
-    final tween = Tween<double>(begin: 0, end: totalRotation);
+    // Where the wheel must end up (mod 2π) for targetIndex to be under the pointer
+    final twoPi = 2 * math.pi;
+    final targetMod = ((-(targetIndex * sliceAngle + offsetInSlice)) % twoPi + twoPi) % twoPi;
+    final currentMod = (_currentAngle % twoPi + twoPi) % twoPi;
+
+    // How much extra to rotate to land on target (always positive, < 1 full spin)
+    var extraAngle = targetMod - currentMod;
+    if (extraAngle <= 0) extraAngle += twoPi;
+
+    // Add 5 full spins for dramatic effect
+    final totalRotation = extraAngle + 5 * twoPi;
+
+    final tween = Tween<double>(begin: 0.0, end: totalRotation);
     final curved = CurvedAnimation(parent: _spinController, curve: Curves.easeOutCubic);
 
     _spinController.reset();
