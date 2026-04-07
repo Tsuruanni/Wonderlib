@@ -96,14 +96,16 @@ class _PathNodeState extends State<PathNode>
   late final AnimationController _bounceController;
   late final Animation<double> _bounce;
 
+  bool get _isActive => widget.state == NodeState.active;
+
   @override
   void initState() {
     super.initState();
     _bounceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: Duration(milliseconds: _isActive ? 1200 : 2400),
     );
-    _bounce = Tween(begin: 0.0, end: 5.0).animate(
+    _bounce = Tween(begin: 0.0, end: _isActive ? 5.0 : 2.0).animate(
       CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
     if (widget.state != NodeState.locked) {
@@ -114,6 +116,13 @@ class _PathNodeState extends State<PathNode>
   @override
   void didUpdateWidget(PathNode oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.state != widget.state) {
+      _bounceController.stop();
+      _bounceController.duration = Duration(milliseconds: _isActive ? 1200 : 2400);
+      _bounce = Tween(begin: 0.0, end: _isActive ? 5.0 : 2.0).animate(
+        CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+      );
+    }
     final shouldBounce = widget.state != NodeState.locked;
     if (shouldBounce && !_bounceController.isAnimating) {
       _bounceController.repeat(reverse: true);
