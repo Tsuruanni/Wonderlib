@@ -3,9 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../app/theme.dart';
 import '../../../domain/entities/treasure_wheel.dart';
 import '../../providers/treasure_wheel_provider.dart';
+import '../../widgets/common/game_button.dart';
 import '../../widgets/treasure/treasure_wheel_painter.dart';
 
 class TreasureWheelScreen extends ConsumerStatefulWidget {
@@ -17,8 +20,7 @@ class TreasureWheelScreen extends ConsumerStatefulWidget {
   ConsumerState<TreasureWheelScreen> createState() => _TreasureWheelScreenState();
 }
 
-class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
-    with TickerProviderStateMixin {
+class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
   final _wheelKey = GlobalKey<TreasureWheelWidgetState>();
   bool _showConfetti = false;
 
@@ -49,7 +51,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
 
   void _onClaim() {
     ref.read(treasureWheelControllerProvider.notifier).complete();
-    Navigator.of(context).pop();
+    context.pop();
   }
 
   @override
@@ -74,18 +76,15 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
             ? const SizedBox.shrink()
             : IconButton(
                 icon: const Icon(Icons.close, color: Colors.white54),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => context.pop(),
               ),
       ),
       body: Stack(
         children: [
-          // Animated background
           const _AnimatedBackground(),
-          // Main content
           SafeArea(
             child: Center(child: _buildBody(state)),
           ),
-          // Confetti overlay
           if (_showConfetti) const _ConfettiOverlay(),
         ],
       ),
@@ -100,7 +99,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
       case TreasureWheelPhase.error:
         return _ErrorView(
           message: state.errorMessage ?? 'Something went wrong',
-          onBack: () => Navigator.of(context).pop(),
+          onBack: () => context.pop(),
         );
 
       case TreasureWheelPhase.ready:
@@ -118,6 +117,10 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
   }
 
   Widget _buildWheelView(TreasureWheelState state) {
+    final isReady = state.phase == TreasureWheelPhase.ready;
+    final isSpinning = state.phase == TreasureWheelPhase.spinning ||
+        state.phase == TreasureWheelPhase.revealing;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -125,12 +128,12 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
         Text(
           'SPIN TO WIN',
           style: TextStyle(
-            color: Colors.amber.shade300,
+            color: AppColors.wasp,
             fontSize: 32,
             fontWeight: FontWeight.w900,
             letterSpacing: 4,
             shadows: [
-              Shadow(blurRadius: 20, color: Colors.amber.withValues(alpha: 0.5)),
+              Shadow(blurRadius: 20, color: AppColors.wasp.withValues(alpha: 0.5)),
               const Shadow(blurRadius: 40, color: Colors.orange),
             ],
           ),
@@ -151,88 +154,38 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen>
             ),
         const SizedBox(height: 32),
         // Spin button
-        _SpinButton(
-          isReady: state.phase == TreasureWheelPhase.ready,
-          isSpinning: state.phase == TreasureWheelPhase.spinning ||
-              state.phase == TreasureWheelPhase.revealing,
-          onPressed: _onSpin,
-        ),
+        if (isSpinning)
+          SizedBox(
+            width: 70,
+            height: 54,
+            child: Center(
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: AppColors.wasp,
+                ),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            width: 220,
+            child: GameButton(
+              label: 'SPIN!',
+              variant: GameButtonVariant.wasp,
+              onPressed: isReady ? _onSpin : null,
+              icon: const Icon(Icons.diamond_rounded),
+            ),
+          )
+              .animate(
+                target: isReady ? 1 : 0,
+                onPlay: (c) => c.repeat(reverse: true),
+              )
+              .scaleXY(begin: 1.0, end: 1.04, duration: 800.ms, curve: Curves.easeInOut),
       ],
     );
-  }
-}
-
-// ─── Spin Button ────────────────────────────────────
-
-class _SpinButton extends StatelessWidget {
-  const _SpinButton({
-    required this.isReady,
-    required this.isSpinning,
-    required this.onPressed,
-  });
-
-  final bool isReady;
-  final bool isSpinning;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: isSpinning ? 70 : 220,
-      height: 60,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: isReady ? onPressed : null,
-          borderRadius: BorderRadius.circular(30),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              gradient: LinearGradient(
-                colors: isReady
-                    ? [const Color(0xFFFFD54F), const Color(0xFFFF8F00)]
-                    : [Colors.grey.shade700, Colors.grey.shade800],
-              ),
-              boxShadow: isReady
-                  ? [
-                      BoxShadow(
-                        color: Colors.amber.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : [],
-            ),
-            alignment: Alignment.center,
-            child: isSpinning
-                ? const SizedBox(
-                    width: 28,
-                    height: 28,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 3,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text(
-                    'SPIN!',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF3E2723),
-                      letterSpacing: 3,
-                    ),
-                  ),
-          ),
-        ),
-      ),
-    )
-        .animate(
-          target: isReady ? 1 : 0,
-          onPlay: (c) => c.repeat(reverse: true),
-        )
-        .scaleXY(begin: 1.0, end: 1.05, duration: 800.ms, curve: Curves.easeInOut);
   }
 }
 
@@ -248,151 +201,143 @@ class _RewardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCoin = result.rewardType == 'coin';
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Big reward icon with glow
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                Colors.amber.withValues(alpha: 0.3),
-                Colors.transparent,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Big reward icon with glow
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.wasp.withValues(alpha: 0.3),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+            child: Center(
+              child: isCoin
+                  ? Image.asset(
+                      'assets/icons/gem_outline_256.png',
+                      width: 72,
+                      height: 72,
+                      filterQuality: FilterQuality.high,
+                    )
+                  : Icon(Icons.style_rounded, color: AppColors.wasp, size: 72),
+            ),
+          )
+              .animate()
+              .scale(
+                begin: const Offset(0, 0),
+                end: const Offset(1, 1),
+                duration: 500.ms,
+                curve: Curves.elasticOut,
+              )
+              .then()
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scaleXY(begin: 1.0, end: 1.08, duration: 1200.ms),
+
+          const SizedBox(height: 16),
+
+          // "YOU WON" text
+          Text(
+            'YOU WON!',
+            style: TextStyle(
+              color: AppColors.wasp,
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 4,
+              shadows: [
+                Shadow(blurRadius: 20, color: AppColors.wasp.withValues(alpha: 0.6)),
               ],
             ),
-          ),
-          child: Icon(
-            isCoin ? Icons.monetization_on : Icons.card_giftcard,
-            color: Colors.amber,
-            size: 80,
-          ),
-        )
-            .animate()
-            .scale(
-              begin: const Offset(0, 0),
-              end: const Offset(1, 1),
-              duration: 500.ms,
-              curve: Curves.elasticOut,
-            )
-            .then()
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .scaleXY(begin: 1.0, end: 1.08, duration: 1200.ms),
+          )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 200.ms)
+              .slideY(begin: -0.3, end: 0, duration: 400.ms, curve: Curves.easeOut),
 
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        // "YOU WON" text
-        Text(
-          'YOU WON!',
-          style: TextStyle(
-            color: Colors.amber.shade300,
-            fontSize: 36,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 4,
-            shadows: [
-              Shadow(blurRadius: 20, color: Colors.amber.withValues(alpha: 0.6)),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: 200.ms)
-            .slideY(begin: -0.3, end: 0, duration: 400.ms, curve: Curves.easeOut),
-
-        const SizedBox(height: 12),
-
-        // Reward label
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white.withValues(alpha: 0.1),
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isCoin ? Icons.monetization_on : Icons.card_giftcard,
-                color: Colors.amber,
-                size: 28,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                result.sliceLabel,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          // Reward badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColors.waspBackground,
+              border: Border.all(color: AppColors.wasp.withValues(alpha: 0.4), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.wasp.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  spreadRadius: 2,
                 ),
-              ),
-            ],
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: 400.ms)
-            .scale(
-              begin: const Offset(0.8, 0.8),
-              end: const Offset(1, 1),
-              duration: 400.ms,
-              curve: Curves.easeOut,
+              ],
             ),
-
-        if (!isCoin) ...[
-          const SizedBox(height: 8),
-          Text(
-            'Added to your pack inventory!',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 14,
-            ),
-          ).animate().fadeIn(delay: 600.ms),
-        ],
-
-        const SizedBox(height: 40),
-
-        // Claim button
-        SizedBox(
-          width: 220,
-          height: 56,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onClaim,
-              borderRadius: BorderRadius.circular(28),
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.amber.withValues(alpha: 0.4),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'COLLECT',
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isCoin)
+                  Image.asset(
+                    'assets/icons/gem_outline_256.png',
+                    width: 28,
+                    height: 28,
+                    filterQuality: FilterQuality.high,
+                  )
+                else
+                  Icon(Icons.style_rounded, color: AppColors.cardEpic, size: 28),
+                const SizedBox(width: 10),
+                Text(
+                  result.sliceLabel,
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF3E2723),
-                    letterSpacing: 2,
+                    color: AppColors.waspDark,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: 600.ms)
-            .slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOut),
-      ],
+          )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 400.ms)
+              .scale(
+                begin: const Offset(0.8, 0.8),
+                end: const Offset(1, 1),
+                duration: 400.ms,
+                curve: Curves.easeOut,
+              ),
+
+          if (!isCoin) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Added to your pack inventory!',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 14,
+              ),
+            ).animate().fadeIn(delay: 600.ms),
+          ],
+
+          const SizedBox(height: 40),
+
+          // Collect button — GameButton
+          SizedBox(
+            width: 220,
+            child: GameButton(
+              label: 'COLLECT',
+              variant: GameButtonVariant.wasp,
+              onPressed: onClaim,
+              icon: const Icon(Icons.check_circle_rounded),
+            ),
+          )
+              .animate()
+              .fadeIn(duration: 400.ms, delay: 600.ms)
+              .slideY(begin: 0.5, end: 0, duration: 400.ms, curve: Curves.easeOut),
+        ],
+      ),
     );
   }
 }
@@ -407,14 +352,14 @@ class _LoadingView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.diamond, color: Colors.amber, size: 48)
+        Icon(Icons.diamond_rounded, color: AppColors.wasp, size: 48)
             .animate(onPlay: (c) => c.repeat())
             .rotate(duration: 2000.ms)
             .scaleXY(begin: 0.8, end: 1.2, duration: 1000.ms),
         const SizedBox(height: 16),
         Text(
           'Preparing your treasure...',
-          style: TextStyle(color: Colors.amber.shade200, fontSize: 16),
+          style: TextStyle(color: AppColors.wasp.withValues(alpha: 0.7), fontSize: 16),
         ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(duration: 800.ms),
       ],
     );
@@ -434,7 +379,7 @@ class _ErrorView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.error_outline, color: Colors.redAccent, size: 56),
+        const Icon(Icons.error_outline, color: AppColors.danger, size: 56),
         const SizedBox(height: 16),
         Text(
           message,
@@ -442,10 +387,13 @@ class _ErrorView extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: onBack,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.white12),
-          child: const Text('Go Back', style: TextStyle(color: Colors.white)),
+        SizedBox(
+          width: 180,
+          child: GameButton(
+            label: 'Go Back',
+            variant: GameButtonVariant.neutral,
+            onPressed: onBack,
+          ),
         ),
       ],
     ).animate().fadeIn(duration: 300.ms);
@@ -501,21 +449,15 @@ class _BackgroundPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Deep space gradient
     final bgPaint = Paint()
-      ..shader = LinearGradient(
+      ..shader = const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [
-          const Color(0xFF0D0D2B),
-          const Color(0xFF1A1A3E),
-          const Color(0xFF0D0D2B),
-        ],
+        colors: [Color(0xFF0D0D2B), Color(0xFF1A1A3E), Color(0xFF0D0D2B)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
 
-    // Floating particles/stars
-    final random = math.Random(42); // Fixed seed for consistent pattern
+    final random = math.Random(42);
     for (int i = 0; i < 40; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
@@ -531,7 +473,7 @@ class _BackgroundPainter extends CustomPainter {
       canvas.drawCircle(
         Offset(x, y),
         dotSize,
-        Paint()..color = Colors.amber.withValues(alpha: opacity.clamp(0.1, 0.5)),
+        Paint()..color = Color.fromRGBO(255, 200, 0, opacity.clamp(0.1, 0.5)),
       );
     }
   }
@@ -596,14 +538,14 @@ class _ConfettiParticle {
         drift = (r.nextDouble() - 0.5) * 0.3,
         rotation = r.nextDouble() * math.pi * 2,
         rotationSpeed = (r.nextDouble() - 0.5) * 6,
-        color = [
-          Colors.amber,
-          Colors.orange,
-          Colors.yellow,
-          Colors.red,
-          Colors.purple,
-          Colors.blue,
-          Colors.green,
+        color = const [
+          AppColors.wasp,
+          AppColors.streakOrange,
+          AppColors.primary,
+          AppColors.danger,
+          AppColors.cardEpic,
+          AppColors.secondary,
+          AppColors.cardLegendary,
         ][r.nextInt(7)];
 
   final double x;
