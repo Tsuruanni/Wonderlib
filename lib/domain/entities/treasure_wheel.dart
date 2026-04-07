@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import 'card.dart';
-
 /// A single slice on the treasure wheel (from admin config)
 class TreasureWheelSlice extends Equatable {
   const TreasureWheelSlice({
@@ -33,15 +31,13 @@ class TreasureSpinResult extends Equatable {
     required this.sliceLabel,
     required this.rewardType,
     required this.rewardAmount,
-    this.cards,
   });
 
   final int sliceIndex;
   final String sliceLabel;
   final String rewardType;
   final int rewardAmount;
-  final List<PackCard>? cards; // populated only for card_pack rewards
 
   @override
-  List<Object?> get props => [sliceIndex, sliceLabel, rewardType, rewardAmount, cards];
+  List<Object?> get props => [sliceIndex, sliceLabel, rewardType, rewardAmount];
 }
