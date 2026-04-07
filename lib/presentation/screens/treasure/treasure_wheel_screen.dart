@@ -261,9 +261,11 @@ class _RewardView extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Reward amount text
+          // Reward amount text — show explicitly what was won
           Text(
-            result.sliceLabel,
+            isCoin
+                ? '${result.rewardAmount} Coins'
+                : '${result.rewardAmount} Card ${result.rewardAmount == 1 ? 'Pack' : 'Packs'}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 28,
