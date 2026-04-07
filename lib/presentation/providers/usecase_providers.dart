@@ -135,6 +135,8 @@ import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart'
 import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
 import '../../domain/usecases/tile_theme/get_tile_themes_usecase.dart';
+import '../../domain/usecases/treasure/get_wheel_slices_usecase.dart';
+import '../../domain/usecases/treasure/spin_treasure_wheel_usecase.dart';
 import 'repository_providers.dart';
 
 // ============================================
@@ -772,4 +774,16 @@ final unequipAvatarItemUseCaseProvider = Provider((ref) {
 
 final getTileThemesUseCaseProvider = Provider<GetTileThemesUseCase>((ref) {
   return GetTileThemesUseCase(ref.watch(tileThemeRepositoryProvider));
+});
+
+// ============================================
+// TREASURE WHEEL USE CASES
+// ============================================
+
+final getWheelSlicesUseCaseProvider = Provider((ref) {
+  return GetWheelSlicesUseCase(ref.watch(treasureRepositoryProvider));
+});
+
+final spinTreasureWheelUseCaseProvider = Provider((ref) {
+  return SpinTreasureWheelUseCase(ref.watch(treasureRepositoryProvider));
 });
