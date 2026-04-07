@@ -1,9 +1,6 @@
--- =============================================
--- Catch-up loop for process_weekly_league_reset()
--- =============================================
--- Problem: The old version only processed (current_week - 7 days).
--- If the Monday cron missed a run, that week was permanently lost.
--- Fix: Loop from the oldest unprocessed week up to last week.
+-- Fix: prevent double-demotion when reset runs multiple times
+-- Uses INSERT ... RETURNING so UPDATE only affects newly-inserted users.
+-- ON CONFLICT DO NOTHING returns nothing for skipped rows → idempotent.
 
 CREATE OR REPLACE FUNCTION process_weekly_league_reset()
 RETURNS void
