@@ -97,7 +97,7 @@ class TreasureWheelWidgetState extends State<TreasureWheelWidget>
     // To land on slice i, we rotate by the NEGATIVE of i*sliceAngle,
     // which in positive terms is (sliceCount - i) * sliceAngle.
     final stepsBack = sliceCount - targetIndex;
-    final targetFinal = ((stepsBack * sliceAngle - offsetInSlice) % twoPi + twoPi) % twoPi;
+    final targetFinal = ((stepsBack * sliceAngle + offsetInSlice) % twoPi + twoPi) % twoPi;
 
     // How far from current to target (always forward, < 1 full spin)
     var delta = targetFinal - _currentAngle;
