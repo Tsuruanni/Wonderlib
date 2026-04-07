@@ -196,7 +196,8 @@ BEGIN
         AND NOT EXISTS (
             SELECT 1 FROM league_history lh
             WHERE lh.user_id = p.id AND lh.week_start = v_target_week
-        );
+        )
+        ON CONFLICT (user_id, week_start) DO NOTHING;
 
         -- Update profiles for inactive decay (after history capture)
         UPDATE profiles SET league_tier = CASE league_tier
