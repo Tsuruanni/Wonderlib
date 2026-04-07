@@ -357,25 +357,14 @@ class _WheelPainter extends CustomPainter {
     canvas.translate(textX, textY);
     canvas.rotate(textAngle + math.pi / 2);
 
-    // Draw reward icon
-    final iconPainter = TextPainter(
-      text: TextSpan(
-        text: slice.rewardType == 'coin' ? '\u{1FA99}' : '\u{1F0CF}',
-        style: const TextStyle(fontSize: 18),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    iconPainter.layout();
-    iconPainter.paint(canvas, Offset(-iconPainter.width / 2, -22));
-
-    // Draw label
+    // Draw label only (centered in slice)
     final textPainter = TextPainter(
       text: TextSpan(
         text: slice.label,
         style: TextStyle(
           color: Colors.white,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
           shadows: [
             Shadow(blurRadius: 4, color: Colors.black.withValues(alpha: 0.8)),
           ],
@@ -385,7 +374,7 @@ class _WheelPainter extends CustomPainter {
       textAlign: TextAlign.center,
     );
     textPainter.layout(maxWidth: radius * 0.45);
-    textPainter.paint(canvas, Offset(-textPainter.width / 2, 2));
+    textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
 
     canvas.restore();
   }

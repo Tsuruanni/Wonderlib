@@ -176,7 +176,6 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
               label: 'SPIN!',
               variant: GameButtonVariant.wasp,
               onPressed: isReady ? _onSpin : null,
-              icon: const Icon(Icons.diamond_rounded),
             ),
           )
               .animate(
