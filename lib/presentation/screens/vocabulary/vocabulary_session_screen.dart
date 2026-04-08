@@ -22,6 +22,7 @@ import '../../widgets/vocabulary/session/vocab_matching_question.dart';
 import '../../widgets/vocabulary/session/vocab_multiple_choice_question.dart';
 import '../../widgets/vocabulary/session/vocab_question_feedback.dart';
 import '../../widgets/vocabulary/session/vocab_scrambled_letters_question.dart';
+import '../../widgets/vocabulary/session/vocab_scrambled_words_question.dart';
 import '../../widgets/vocabulary/session/vocab_word_wheel_question.dart';
 import '../../widgets/vocabulary/session/vocab_sentence_gap_question.dart';
 import '../../widgets/vocabulary/session/vocab_session_progress_bar.dart';
@@ -274,7 +275,7 @@ class _VocabularySessionScreenState
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.close, size: 28),
+                          icon: Image.asset('assets/icons/x_outline_256.png', width: 28.0, height: 28.0, filterQuality: FilterQuality.high),
                           onPressed: () => _showExitDialog(context),
                           style: IconButton.styleFrom(
                             foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -636,6 +637,13 @@ class _VocabularySessionScreenState
 
       case QuestionType.wordWheel:
         return VocabWordWheelQuestion(
+          key: key,
+          question: question,
+          onAnswer: (ans) => _handleAnswer(controller, ans),
+        );
+
+      case QuestionType.scrambledWords:
+        return VocabScrambledWordsQuestion(
           key: key,
           question: question,
           onAnswer: (ans) => _handleAnswer(controller, ans),
