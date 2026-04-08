@@ -51,11 +51,11 @@ serve(async (req) => {
 
     const prompt = `You are an English vocabulary assistant for a children's English learning app (ages 6-12, Turkish students).
 
-Given the English word "${word}", provide the following data in JSON format:
+Given the English word or phrase "${word}", provide the following data in JSON format:
 
 {
   "phonetic": "IPA phonetic transcription (e.g. /ˈæp.əl/)",
-  "part_of_speech": "one of: noun, verb, adjective, adverb, pronoun, preposition, conjunction, interjection, article, determiner",
+  "part_of_speech": "one of: noun, verb, adjective, adverb, pronoun, preposition, conjunction, interjection, article, determiner, phrase",
   "meaning_tr": "Turkish meaning (1-2 words, e.g. 'elma', 'koşmak', 'büyük')",
   "meaning_en": "Ultra-short hint-style definition (3-6 words max, like a clue, e.g. 'a flying vehicle', 'the opposite of right', 'close in distance', 'a place to buy things', 'the season after winter')",
   "example_sentences": ["3 simple example sentences a child would understand"]
@@ -67,6 +67,7 @@ Rules:
 - meaning_en: Write like a hint or clue, NOT a dictionary definition. Maximum 6 words. Think "what is it?" style answers.
 - Example sentences: short, natural, age-appropriate
 - Phonetic: proper IPA notation
+- If the input contains spaces (it's a phrase), set part_of_speech to "phrase"
 - Return ONLY valid JSON, no markdown`;
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
