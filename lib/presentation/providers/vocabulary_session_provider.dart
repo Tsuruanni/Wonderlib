@@ -216,6 +216,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         return settings.xpVocabMatching;
       case QuestionType.scrambledLetters:
       case QuestionType.wordWheel:
+      case QuestionType.scrambledWords:
         return settings.xpVocabScrambledLetters;
       case QuestionType.spelling:
       case QuestionType.listeningWrite:
@@ -598,7 +599,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   }
 
   SessionQuestion _generateQuestionForWord(WordSessionState word) {
-    // Determine appropriate question types based on mastery
+    final isPhrase = word.word.contains(' ');
     List<QuestionType> eligibleTypes;
 
     switch (word.masteryLevel) {
@@ -610,12 +611,18 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
           QuestionType.listeningSelect,
         ];
       case WordMasteryLevel.recognized:
-        eligibleTypes = [
-          QuestionType.scrambledLetters,
-          QuestionType.wordWheel,
-          if (state.words.length >= 4) QuestionType.matching,
-        ];
-        // If struggling, also allow easier types
+        if (isPhrase) {
+          eligibleTypes = [
+            QuestionType.scrambledWords,
+            if (state.words.length >= 4) QuestionType.matching,
+          ];
+        } else {
+          eligibleTypes = [
+            QuestionType.scrambledLetters,
+            QuestionType.wordWheel,
+            if (state.words.length >= 4) QuestionType.matching,
+          ];
+        }
         if (state.isStruggling) {
           eligibleTypes.add(QuestionType.reverseMultipleChoice);
         }
@@ -624,13 +631,14 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         eligibleTypes = [
           QuestionType.spelling,
           QuestionType.listeningWrite,
-          if (!state.micDisabledForSession && word.word.length >= 3)
+          if (!isPhrase && !state.micDisabledForSession && word.word.length >= 3)
             QuestionType.pronunciation,
           if (word.exampleSentence != null) QuestionType.sentenceGap,
         ];
-        // If no production type available, fall back to bridge
         if (eligibleTypes.isEmpty) {
-          eligibleTypes = [QuestionType.scrambledLetters, QuestionType.wordWheel];
+          eligibleTypes = isPhrase
+              ? [QuestionType.scrambledWords]
+              : [QuestionType.scrambledLetters, QuestionType.wordWheel];
         }
     }
 
@@ -707,13 +715,19 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     final word = weak[state.finalQuestionsAsked % weak.length];
 
     // Use production-level questions for final phase
-    List<QuestionType> types = [
+    final isPhrase = word.word.contains(' ');
+
+    final List<QuestionType> types = [
       QuestionType.spelling,
-      if (!state.micDisabledForSession && word.word.length >= 3)
+      if (!isPhrase && !state.micDisabledForSession && word.word.length >= 3)
         QuestionType.pronunciation,
       if (word.exampleSentence != null) QuestionType.sentenceGap,
-      QuestionType.scrambledLetters,
-      QuestionType.wordWheel,
+      if (isPhrase)
+        QuestionType.scrambledWords
+      else ...[
+        QuestionType.scrambledLetters,
+        QuestionType.wordWheel,
+      ],
     ];
 
     final type = _pickAvoidingRepeat(types);
@@ -752,6 +766,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       case QuestionType.scrambledLetters:
       case QuestionType.wordWheel:
         return _buildScrambledLetters(word, type: type);
+      case QuestionType.scrambledWords:
+        return _buildScrambledWords(word);
       case QuestionType.spelling:
         return _buildSpelling(word);
       case QuestionType.listeningWrite:
@@ -879,6 +895,74 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       scrambledLetters: scrambled,
       imageUrl: word.imageUrl,
     );
+  }
+
+  static const _distractorFallbackPool = [
+    'the', 'is', 'very', 'not', 'can', 'do', 'go', 'my', 'it', 'has',
+    'was', 'but', 'or', 'an', 'up', 'out', 'so', 'no', 'if', 'at',
+  ];
+
+  SessionQuestion _buildScrambledWords(WordSessionState word) {
+    final phraseWords = word.word.split(' ');
+    final distractorCount = max(2, phraseWords.length - 1);
+
+    // Normalize phrase words for dedup comparison
+    final phraseWordsNormalized = phraseWords
+        .map((w) => _normalize(w))
+        .toSet();
+
+    // Source 1: single-word session entries
+    final sessionDistractors = state.words
+        .where((w) => !w.word.contains(' ') && w.wordId != word.wordId)
+        .where((w) => !phraseWordsNormalized.contains(_normalize(w.word)))
+        .map((w) => w.word)
+        .toList()
+      ..shuffle(_random);
+
+    // Source 2: fallback pool
+    final fallbackDistractors = _distractorFallbackPool
+        .where((w) => !phraseWordsNormalized.contains(w))
+        .toList()
+      ..shuffle(_random);
+
+    // Combine: session first, fallback fills remaining
+    final distractors = <String>[];
+    for (final d in sessionDistractors) {
+      if (distractors.length >= distractorCount) break;
+      distractors.add(d);
+    }
+    for (final d in fallbackDistractors) {
+      if (distractors.length >= distractorCount) break;
+      if (!distractors.contains(d)) distractors.add(d);
+    }
+
+    // Combine phrase words + distractors and shuffle
+    final allTiles = [...phraseWords, ...distractors];
+
+    // Ensure shuffled order differs from correct order
+    int attempts = 0;
+    do {
+      allTiles.shuffle(_random);
+      attempts++;
+    } while (_tilesMatchPhrase(allTiles, phraseWords) && attempts < 20);
+
+    return SessionQuestion(
+      type: QuestionType.scrambledWords,
+      targetWordId: word.wordId,
+      targetWord: word.word,
+      targetMeaning: word.meaningTR,
+      correctAnswer: word.word,
+      scrambledWordTiles: allTiles,
+      imageUrl: word.imageUrl,
+    );
+  }
+
+  bool _tilesMatchPhrase(List<String> tiles, List<String> phraseWords) {
+    if (tiles.length != phraseWords.length) return false;
+    for (int i = 0; i < phraseWords.length; i++) {
+      if (tiles[i] != phraseWords[i]) return false;
+    }
+    return true;
   }
 
   SessionQuestion _buildSpelling(WordSessionState word) {
@@ -1041,10 +1125,18 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   // HELPERS
   // ------------------------------------
 
+  String _normalize(String s) {
+    return s
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^\w\s]', unicode: true), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   bool _checkAnswer(String answer, SessionQuestion question) {
-    // Case-insensitive comparison, trim whitespace
-    final normalizedAnswer = answer.trim().toLowerCase();
-    final normalizedCorrect = question.correctAnswer.trim().toLowerCase();
+    final normalizedAnswer = _normalize(answer);
+    final normalizedCorrect = _normalize(question.correctAnswer);
     return normalizedAnswer == normalizedCorrect;
   }
 
