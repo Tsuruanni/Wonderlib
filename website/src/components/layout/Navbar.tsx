@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { Container } from "@/components/ui/Container";
 import { OwlLogo } from "@/components/ui/OwlLogo";
 
@@ -59,26 +60,34 @@ export function Navbar() {
       </Container>
 
       {/* Mobile dropdown */}
-      {mobileOpen && (
-        <div className="sm:hidden border-t border-swan bg-snow">
-          <Container className="py-4 flex flex-col gap-4">
-            <Link
-              href="/#for-teachers"
-              onClick={() => setMobileOpen(false)}
-              className="text-sm font-bold uppercase tracking-wider text-hare"
-            >
-              For Teachers
-            </Link>
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="rounded-duo border-2 border-swan bg-snow px-5 py-2 text-sm font-extrabold uppercase tracking-wider text-sky shadow-[0_2px_0_#E5E5E5] text-center"
-            >
-              Log in
-            </Link>
-          </Container>
-        </div>
-      )}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="sm:hidden overflow-hidden border-t border-swan bg-snow"
+          >
+            <Container className="py-4 flex flex-col gap-4">
+              <Link
+                href="/#for-teachers"
+                onClick={() => setMobileOpen(false)}
+                className="text-sm font-bold uppercase tracking-wider text-hare"
+              >
+                For Teachers
+              </Link>
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-duo border-2 border-swan bg-snow px-5 py-2 text-sm font-extrabold uppercase tracking-wider text-sky shadow-[0_2px_0_#E5E5E5] text-center"
+              >
+                Log in
+              </Link>
+            </Container>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
