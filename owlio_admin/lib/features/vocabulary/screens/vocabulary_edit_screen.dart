@@ -50,6 +50,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
     'interjection',
     'article',
     'determiner',
+    'phrase',
   ];
 
   static final _levels = CEFRLevel.allValues;
@@ -64,14 +65,23 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
   bool _isPlaying = false;
   bool _isGenerating = false;
   String _source = 'manual';
+  bool _isPhrase = false;
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   bool get isNewWord => widget.wordId == null;
 
+  void _checkPhrase() {
+    final isPhrase = _wordController.text.trim().contains(' ');
+    if (isPhrase != _isPhrase) {
+      setState(() => _isPhrase = isPhrase);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _wordController.addListener(_checkPhrase);
     if (!isNewWord) {
       _loadWord();
     }
@@ -104,6 +114,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
   @override
   void dispose() {
+    _wordController.removeListener(_checkPhrase);
     _wordController.dispose();
     _phoneticController.dispose();
     _meaningTrController.dispose();
@@ -535,6 +546,32 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
                         ),
                       ],
                     ),
+                    if (_isPhrase) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.blue.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Bu bir phrase olarak algılanacak. Harf karıştırma yerine '
+                                'kelime karıştırma egzersizi uygulanır.',
+                                style: TextStyle(fontSize: 13, color: Colors.blue),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 24),
 
                     Text(
