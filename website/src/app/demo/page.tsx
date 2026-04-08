@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import emailjs from "@emailjs/browser";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import {
+  EMAILJS_SERVICE_ID,
+  EMAILJS_PUBLIC_KEY,
+  EMAILJS_TEMPLATE_DEMO,
+} from "@/lib/emailjs";
 
 const countries = [
   "Turkey",
@@ -20,14 +26,31 @@ const countries = [
 ];
 
 export default function DemoPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("sending");
+
+    const form = e.currentTarget;
+    const data = {
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      school: (form.elements.namedItem("school") as HTMLInputElement).value,
+      country: (form.elements.namedItem("country") as HTMLSelectElement).value,
+      students: (form.elements.namedItem("students") as HTMLInputElement).value || "N/A",
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value || "N/A",
+    };
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_DEMO, data, EMAILJS_PUBLIC_KEY);
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
   }
 
-  if (submitted) {
+  if (status === "sent") {
     return (
       <div className="py-20 md:py-28">
         <Container className="max-w-lg text-center">
@@ -57,10 +80,7 @@ export default function DemoPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="name" className="block text-sm font-bold text-eel mb-1">
               Full Name <span className="text-cardinal">*</span>
             </label>
             <input
@@ -74,10 +94,7 @@ export default function DemoPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-bold text-eel mb-1">
               Email <span className="text-cardinal">*</span>
             </label>
             <input
@@ -91,10 +108,7 @@ export default function DemoPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="school"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="school" className="block text-sm font-bold text-eel mb-1">
               School Name <span className="text-cardinal">*</span>
             </label>
             <input
@@ -108,10 +122,7 @@ export default function DemoPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="country"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="country" className="block text-sm font-bold text-eel mb-1">
               Country <span className="text-cardinal">*</span>
             </label>
             <select
@@ -122,20 +133,14 @@ export default function DemoPage() {
             >
               <option value="">Select your country</option>
               {countries.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label
-              htmlFor="students"
-              className="block text-sm font-bold text-eel mb-1"
-            >
-              Number of Students{" "}
-              <span className="text-hare font-normal">(optional)</span>
+            <label htmlFor="students" className="block text-sm font-bold text-eel mb-1">
+              Number of Students <span className="text-hare font-normal">(optional)</span>
             </label>
             <input
               id="students"
@@ -148,12 +153,8 @@ export default function DemoPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="message"
-              className="block text-sm font-bold text-eel mb-1"
-            >
-              Message{" "}
-              <span className="text-hare font-normal">(optional)</span>
+            <label htmlFor="message" className="block text-sm font-bold text-eel mb-1">
+              Message <span className="text-hare font-normal">(optional)</span>
             </label>
             <textarea
               id="message"
@@ -164,9 +165,20 @@ export default function DemoPage() {
             />
           </div>
 
-          <Button type="submit" variant="green" size="lg" className="w-full">
-            Request a Demo
+          <Button
+            type="submit"
+            variant="green"
+            size="lg"
+            className={`w-full ${status === "sending" ? "opacity-70 pointer-events-none" : ""}`}
+          >
+            {status === "sending" ? "Sending..." : "Request a Demo"}
           </Button>
+
+          {status === "error" && (
+            <p className="text-sm text-cardinal text-center">
+              Something went wrong. Please try again.
+            </p>
+          )}
         </form>
       </Container>
     </div>
