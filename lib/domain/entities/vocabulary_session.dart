@@ -13,6 +13,7 @@ enum QuestionType {
   matching,              // Match 4 words ↔ 4 meanings
   scrambledLetters,      // Rearrange shuffled letter buttons
   wordWheel,             // Circular drag-to-connect letter wheel
+  scrambledWords,        // Rearrange shuffled word tiles (for phrases)
   spelling,              // TR meaning given → type EN word
   listeningWrite,        // Audio plays → type the word
   sentenceGap,           // Fill the blank in a sentence
@@ -32,6 +33,7 @@ extension QuestionTypeTier on QuestionType {
       case QuestionType.matching:
       case QuestionType.scrambledLetters:
       case QuestionType.wordWheel:
+      case QuestionType.scrambledWords:
         return QuestionTier.bridge;
       case QuestionType.spelling:
       case QuestionType.listeningWrite:
@@ -161,6 +163,7 @@ class SessionQuestion extends Equatable {
     this.imageUrl,
     this.matchingPairs,
     this.scrambledLetters,
+    this.scrambledWordTiles,
     this.isRemediation = false,
   });
 
@@ -177,6 +180,7 @@ class SessionQuestion extends Equatable {
   final String? imageUrl;              // For visual support
   final List<SessionMatchingPair>? matchingPairs; // For matching questions
   final List<String>? scrambledLetters;    // For scrambled letters
+  final List<String>? scrambledWordTiles;  // For scrambled words (phrases)
 
   final bool isRemediation; // Whether this is a remediation retry
 
@@ -184,7 +188,7 @@ class SessionQuestion extends Equatable {
   List<Object?> get props => [
         type, targetWordId, targetWord, targetMeaning, correctAnswer,
         options, sentence, audioUrl, audioStartMs, audioEndMs, imageUrl, matchingPairs,
-        scrambledLetters, isRemediation,
+        scrambledLetters, scrambledWordTiles, isRemediation,
       ];
 }
 
