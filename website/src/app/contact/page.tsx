@@ -1,18 +1,38 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import emailjs from "@emailjs/browser";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
+import {
+  EMAILJS_SERVICE_ID,
+  EMAILJS_PUBLIC_KEY,
+  EMAILJS_TEMPLATE_CONTACT,
+} from "@/lib/emailjs";
 
 export default function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus("sending");
+
+    const form = e.currentTarget;
+    const data = {
+      name: (form.elements.namedItem("name") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+    };
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CONTACT, data, EMAILJS_PUBLIC_KEY);
+      setStatus("sent");
+    } catch {
+      setStatus("error");
+    }
   }
 
-  if (submitted) {
+  if (status === "sent") {
     return (
       <div className="py-20 md:py-28">
         <Container className="max-w-lg text-center">
@@ -39,10 +59,7 @@ export default function ContactPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="name" className="block text-sm font-bold text-eel mb-1">
               Name <span className="text-cardinal">*</span>
             </label>
             <input
@@ -55,10 +72,7 @@ export default function ContactPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="email" className="block text-sm font-bold text-eel mb-1">
               Email <span className="text-cardinal">*</span>
             </label>
             <input
@@ -71,10 +85,7 @@ export default function ContactPage() {
           </div>
 
           <div>
-            <label
-              htmlFor="message"
-              className="block text-sm font-bold text-eel mb-1"
-            >
+            <label htmlFor="message" className="block text-sm font-bold text-eel mb-1">
               Message <span className="text-cardinal">*</span>
             </label>
             <textarea
@@ -86,9 +97,20 @@ export default function ContactPage() {
             />
           </div>
 
-          <Button type="submit" variant="green" size="lg" className="w-full">
-            Send Message
+          <Button
+            type="submit"
+            variant="green"
+            size="lg"
+            className={`w-full ${status === "sending" ? "opacity-70 pointer-events-none" : ""}`}
+          >
+            {status === "sending" ? "Sending..." : "Send Message"}
           </Button>
+
+          {status === "error" && (
+            <p className="text-sm text-cardinal text-center">
+              Something went wrong. Please try again.
+            </p>
+          )}
         </form>
       </Container>
     </div>
