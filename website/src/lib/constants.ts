@@ -8,5 +8,3 @@ export const SOCIAL_LINKS = {
   linkedin: "https://linkedin.com/company/owlio",
 } as const;
 
-export const APP_STORE_URL = "#";
-export const GOOGLE_PLAY_URL = "#";
