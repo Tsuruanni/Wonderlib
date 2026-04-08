@@ -87,8 +87,9 @@ Rules:
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
+      console.error(`Gemini API error for "${word}": ${geminiResponse.status} - ${errorText}`);
       return new Response(
-        JSON.stringify({ error: `Gemini API error: ${errorText}` }),
+        JSON.stringify({ error: `Gemini API error: ${geminiResponse.status}` }),
         {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -102,6 +103,7 @@ Rules:
       geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     if (!rawText) {
+      console.error(`Empty Gemini response for "${word}"`);
       return new Response(
         JSON.stringify({ error: "Empty response from Gemini" }),
         {
@@ -131,6 +133,7 @@ Rules:
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    console.error(`generate-word-data error: ${error.message}`);
     return new Response(
       JSON.stringify({ error: error.message || "Unknown error" }),
       {
