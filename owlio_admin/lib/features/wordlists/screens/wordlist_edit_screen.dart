@@ -358,6 +358,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
         ),
       );
+      ref.invalidate(wordlistDetailProvider(widget.listId!));
       _loadWordList();
     }
   }
