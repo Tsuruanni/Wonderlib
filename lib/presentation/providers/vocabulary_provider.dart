@@ -526,8 +526,9 @@ class PathGameItem extends PathItemData {
 }
 
 class PathTreasureItem extends PathItemData {
-  const PathTreasureItem({required super.sortOrder, required this.isCompleted});
+  const PathTreasureItem({required super.sortOrder, required this.isCompleted, required this.itemId});
   final bool isCompleted;
+  final String itemId;
 
   @override
   bool get isComplete => isCompleted;
@@ -567,7 +568,7 @@ class PathUnitData {
   final String pathId;
   final VocabularyUnit unit;
   final List<PathItemData> items;
-  final Set<String> completedNodeTypes;
+  final UnitCompletions completedNodeTypes;
   final bool sequentialLock;
   final bool booksExemptFromLock;
   final bool unitGate;
@@ -630,7 +631,16 @@ final userLearningPathsProvider = FutureProvider<List<LearningPath>>((ref) async
 });
 
 /// Node completions for the current user (Set of "unitId:nodeType" for fast lookup)
-final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) async {
+/// Node completions grouped by unitId.
+/// - `nodeTypes`: Set<nodeType> for legacy checks (flipbook, daily_review)
+/// - `itemIds`: Set<itemId> for per-node checks (treasure, game)
+class UnitCompletions {
+  final Set<String> nodeTypes;
+  final Set<String> itemIds;
+  const UnitCompletions({this.nodeTypes = const {}, this.itemIds = const {}});
+}
+
+final nodeCompletionsProvider = FutureProvider<Map<String, UnitCompletions>>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return {};
 
@@ -640,10 +650,13 @@ final nodeCompletionsProvider = FutureProvider<Map<String, Set<String>>>((ref) a
   return result.fold(
     (failure) => {},
     (completions) {
-      // Group by unitId → Set<nodeType>
-      final map = <String, Set<String>>{};
+      final map = <String, UnitCompletions>{};
       for (final c in completions) {
-        map.putIfAbsent(c.unitId, () => {}).add(c.nodeType);
+        final prev = map[c.unitId] ?? const UnitCompletions();
+        final nodeTypes = Set<String>.from(prev.nodeTypes)..add(c.nodeType);
+        final itemIds = Set<String>.from(prev.itemIds);
+        if (c.itemId != null) itemIds.add(c.itemId!);
+        map[c.unitId] = UnitCompletions(nodeTypes: nodeTypes, itemIds: itemIds);
       }
       return map;
     },
@@ -676,7 +689,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
   final learningPaths = futures[0] as List<LearningPath>;
   final allLists = futures[1] as List<WordList>;
   final progressList = futures[2] as List<UserWordListProgress>;
-  final nodeCompletions = futures[3] as Map<String, Set<String>>;
+  final nodeCompletions = futures[3] as Map<String, UnitCompletions>;
   final completedBookIds = futures[4] as Set<String>;
 
   if (learningPaths.isEmpty) return [];
@@ -758,16 +771,21 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
             );
           }
         } else if (item.itemType == LearningPathItemType.game) {
-          final isCompleted = nodeCompletions[lpUnit.unitId]?.contains('game') ?? false;
+          final completions = nodeCompletions[lpUnit.unitId];
+          final isCompleted = completions?.itemIds.contains(item.itemId) ??
+              completions?.nodeTypes.contains('game') ?? false;
           items.add(PathGameItem(
             sortOrder: item.sortOrder,
             isCompleted: isCompleted,
           ),);
         } else if (item.itemType == LearningPathItemType.treasure) {
-          final isCompleted = nodeCompletions[lpUnit.unitId]?.contains('treasure') ?? false;
+          final completions = nodeCompletions[lpUnit.unitId];
+          final isCompleted = completions?.itemIds.contains(item.itemId) ??
+              completions?.nodeTypes.contains('treasure') ?? false;
           items.add(PathTreasureItem(
             sortOrder: item.sortOrder,
             isCompleted: isCompleted,
+            itemId: item.itemId,
           ),);
         }
       }
@@ -779,7 +797,7 @@ final learningPathProvider = FutureProvider<List<PathUnitData>>((ref) async {
           pathId: path.id,
           unit: vocabUnit,
           items: items,
-          completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? {},
+          completedNodeTypes: nodeCompletions[lpUnit.unitId] ?? const UnitCompletions(),
           sequentialLock: path.sequentialLock,
           booksExemptFromLock: path.booksExemptFromLock,
           unitGate: path.unitGate,

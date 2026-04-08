@@ -306,7 +306,7 @@ class _FullscreenUnitDetailScreenState
           onTap: () => completePathNode(ref, unitData.unit.id, 'game'),
         );
 
-      case PathTreasureItem():
+      case PathTreasureItem(:final itemId):
         return MapTileNodeData(
           type: NodeType.treasure,
           state: state,
@@ -316,7 +316,7 @@ class _FullscreenUnitDetailScreenState
           onTap: state == NodeState.completed
               ? null
               : () => context.push(
-                  AppRoutes.treasureWheelPath(unitData.unit.id),),
+                  AppRoutes.treasureWheelPath(unitData.unit.id, itemId),),
         );
     }
   }

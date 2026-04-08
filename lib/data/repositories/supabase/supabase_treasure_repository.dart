@@ -39,6 +39,7 @@ class SupabaseTreasureRepository implements TreasureRepository {
   Future<Either<Failure, TreasureSpinResult>> spinWheel({
     required String userId,
     required String unitId,
+    required String itemId,
   }) async {
     try {
       final response = await _supabase.rpc(
@@ -46,6 +47,7 @@ class SupabaseTreasureRepository implements TreasureRepository {
         params: {
           'p_user_id': userId,
           'p_unit_id': unitId,
+          'p_item_id': itemId,
         },
       );
 

@@ -132,12 +132,14 @@ class NodeCompletion extends Equatable {
     required this.unitId,
     required this.nodeType,
     required this.completedAt,
+    this.itemId,
   });
 
   final String unitId;
   final String nodeType; // 'flipbook', 'daily_review', 'game', 'treasure'
   final DateTime completedAt;
+  final String? itemId;
 
   @override
-  List<Object?> get props => [unitId, nodeType, completedAt];
+  List<Object?> get props => [unitId, nodeType, completedAt, itemId];
 }

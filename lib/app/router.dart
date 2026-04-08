@@ -77,8 +77,8 @@ abstract class AppRoutes {
   static const leaderboard = '/leaderboard';
   static const packOpening = '/cards/open-pack';
   static const cardTrade = '/cards/trade';
-  static const treasureWheel = '/treasure-wheel/:unitId';
-  static String treasureWheelPath(String unitId) => '/treasure-wheel/$unitId';
+  static const treasureWheel = '/treasure-wheel/:unitId/:itemId';
+  static String treasureWheelPath(String unitId, String itemId) => '/treasure-wheel/$unitId/$itemId';
 
   // Teacher routes — dashboard now at /teacher/dashboard
   static const teacherDashboard = '/teacher/dashboard';
@@ -538,6 +538,7 @@ GoRouter _createRouter() {
         path: AppRoutes.treasureWheel,
         builder: (context, state) => TreasureWheelScreen(
           unitId: state.pathParameters['unitId']!,
+          itemId: state.pathParameters['itemId']!,
         ),
       ),
 

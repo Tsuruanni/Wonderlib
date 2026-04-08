@@ -229,7 +229,7 @@ class LearningPathView extends ConsumerWidget {
           onTap: () => completePathNode(ref, unit.unit.id, 'game'),
         );
 
-      case PathTreasureItem():
+      case PathTreasureItem(:final itemId):
         return MapTileNodeData(
           type: NodeType.treasure,
           state: state,
@@ -238,7 +238,7 @@ class LearningPathView extends ConsumerWidget {
           hasAssignment: unitAssigned,
           onTap: state == NodeState.completed
               ? null
-              : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
+              : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id, itemId)),
         );
 
     }

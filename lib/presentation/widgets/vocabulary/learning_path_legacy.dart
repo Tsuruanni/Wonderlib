@@ -235,7 +235,7 @@ class LearningPath extends ConsumerWidget {
               ),
             );
 
-          case PathTreasureItem(:final isCompleted):
+          case PathTreasureItem(:final isCompleted, :final itemId):
             nodes.add(
               Positioned(
                 top: y,
@@ -248,7 +248,7 @@ class LearningPath extends ConsumerWidget {
                   isActive: isActive,
                   onComplete: isCompleted
                       ? null
-                      : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id)),
+                      : () => context.push(AppRoutes.treasureWheelPath(unit.unit.id, itemId)),
                 ),
               ),
             );

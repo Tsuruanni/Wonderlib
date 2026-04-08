@@ -6,9 +6,10 @@ import '../../repositories/treasure_repository.dart';
 import '../usecase.dart';
 
 class SpinTreasureWheelParams {
-  const SpinTreasureWheelParams({required this.userId, required this.unitId});
+  const SpinTreasureWheelParams({required this.userId, required this.unitId, required this.itemId});
   final String userId;
   final String unitId;
+  final String itemId;
 }
 
 class SpinTreasureWheelUseCase implements UseCase<TreasureSpinResult, SpinTreasureWheelParams> {
@@ -17,6 +18,6 @@ class SpinTreasureWheelUseCase implements UseCase<TreasureSpinResult, SpinTreasu
 
   @override
   Future<Either<Failure, TreasureSpinResult>> call(SpinTreasureWheelParams params) {
-    return _repository.spinWheel(userId: params.userId, unitId: params.unitId);
+    return _repository.spinWheel(userId: params.userId, unitId: params.unitId, itemId: params.itemId);
   }
 }

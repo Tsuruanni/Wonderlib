@@ -81,7 +81,7 @@ class TreasureWheelController extends StateNotifier<TreasureWheelState> {
     );
   }
 
-  Future<void> spin(String unitId) async {
+  Future<void> spin({required String unitId, required String itemId}) async {
     if (state.phase != TreasureWheelPhase.ready) return;
 
     state = state.copyWith(phase: TreasureWheelPhase.spinning);
@@ -97,7 +97,7 @@ class TreasureWheelController extends StateNotifier<TreasureWheelState> {
 
     final useCase = _ref.read(spinTreasureWheelUseCaseProvider);
     final result = await useCase(
-      SpinTreasureWheelParams(userId: userId, unitId: unitId),
+      SpinTreasureWheelParams(userId: userId, unitId: unitId, itemId: itemId),
     );
 
     result.fold(

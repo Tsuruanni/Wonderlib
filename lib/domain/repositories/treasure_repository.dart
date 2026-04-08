@@ -11,5 +11,6 @@ abstract class TreasureRepository {
   Future<Either<Failure, TreasureSpinResult>> spinWheel({
     required String userId,
     required String unitId,
+    required String itemId,
   });
 }

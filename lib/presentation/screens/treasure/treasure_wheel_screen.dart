@@ -12,9 +12,10 @@ import '../../widgets/common/game_button.dart';
 import '../../widgets/treasure/treasure_wheel_painter.dart';
 
 class TreasureWheelScreen extends ConsumerStatefulWidget {
-  const TreasureWheelScreen({super.key, required this.unitId});
+  const TreasureWheelScreen({super.key, required this.unitId, required this.itemId});
 
   final String unitId;
+  final String itemId;
 
   @override
   ConsumerState<TreasureWheelScreen> createState() => _TreasureWheelScreenState();
@@ -34,7 +35,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
 
   void _onSpin() {
     _wheelKey.currentState?.startIdleSpin();
-    ref.read(treasureWheelControllerProvider.notifier).spin(widget.unitId);
+    ref.read(treasureWheelControllerProvider.notifier).spin(unitId: widget.unitId, itemId: widget.itemId);
   }
 
   void _onSpinAnimationComplete() {

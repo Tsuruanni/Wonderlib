@@ -265,7 +265,7 @@ class _UnitDetailScreenState extends ConsumerState<UnitDetailScreen> {
           onTap: () => completePathNode(ref, unitData.unit.id, 'game'),
         );
 
-      case PathTreasureItem():
+      case PathTreasureItem(:final itemId):
         return MapTileNodeData(
           type: NodeType.treasure,
           state: state,
@@ -274,7 +274,7 @@ class _UnitDetailScreenState extends ConsumerState<UnitDetailScreen> {
           hasAssignment: unitAssigned,
           onTap: state == NodeState.completed
               ? null
-              : () => context.push(AppRoutes.treasureWheelPath(unitData.unit.id)),
+              : () => context.push(AppRoutes.treasureWheelPath(unitData.unit.id, itemId)),
         );
     }
   }
