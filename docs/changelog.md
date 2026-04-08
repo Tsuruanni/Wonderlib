@@ -8,6 +8,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### League Reset System Fixes & Daily Review Navigation Guard (2026-04-08)
+
+#### Fixed
+- **League reset catch-up loop** — `process_weekly_league_reset()` now loops from oldest unprocessed `league_groups` week through last week, so missed cron runs don't permanently lose promotion/demotion data.
+- **Double-demotion on repeat calls** — Inactive decay INSERT and UPDATE are now atomic via `INSERT ... RETURNING` CTE. `ON CONFLICT DO NOTHING` returns nothing for skipped rows, so the UPDATE is a no-op on repeat.
+- **Edge function fail-closed auth** — `league-reset` edge function now rejects all requests if `CRON_SECRET` is unset (was fail-open).
+- **UTC days-left in league card** — `DateTime.now()` → `DateTime.now().toUtc()` for correct countdown relative to Monday 00:00 UTC reset.
+- **Daily review deferred DB writes** — SM-2 progress updates are now batched in memory and flushed only on session completion (`flushPendingProgress()`), preventing partial writes on abandoned sessions.
+- **Daily review navigation guard** — `PopScope` + `dailyReviewActiveProvider` blocks back button and shell navigation during active review. Exit confirmation dialog with "Keep going" / "Leave" options.
+- **Pack opening overflow** — `AnimatedSwitcher` layoutBuilder fix, `Flexible` wraps for text overflow on narrow screens.
+- **Rive reveal mobile layout** — Replaced `Stack` + `Positioned` with `Column` + `Expanded` + `ClipRect/OverflowBox` for consistent mobile rendering.
+
+#### Changed
+- **pg_cron replaces cron-job.org** — Weekly league reset now runs via PostgreSQL `pg_cron` extension (Monday 00:00 UTC) instead of external HTTP cron. No edge function round-trip, no secret management.
+- **Quiz icon → PNG asset** — `Icons.quiz_rounded` replaced with `assets/icons/quiz.png` across book detail, reader sidebar, chapter completion.
+- **Warning icon → PNG asset** — `Icons.warning_rounded` replaced with `assets/icons/warning_sign_outline_256.png` in trade screen and shell exit dialog.
+- **Shell exit dialog generalized** — `_showQuizExitConfirmation` → `_showSessionExitConfirmation` with configurable title and cleanup callback (reused for quiz + daily review).
+- **Daily review completion dialog** — XP icon → coin icon, "+X XP" → "+X Coins" to match XP=coins 1:1 rule.
+
+#### Removed
+- **Unused assets** — `Warning Sign Outline 256.png` (space in filename), `forest_texture.png`, 3 map images, `assets/images/avatars/` directory reference from pubspec.
+
+#### Infrastructure
+- **3 DB migrations** — `league_reset_catchup`, `league_reset_pg_cron`, `league_reset_idempotent_decay`.
+- **Database audit Phase 1 migration** — Initial audit fixes.
+
 ### Treasure Wheel — Spin to Win (2026-04-07)
 
 #### Added

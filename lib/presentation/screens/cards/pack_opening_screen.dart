@@ -71,7 +71,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back_rounded,
-                            color: AppColors.white),
+                            color: AppColors.white,),
                         onPressed: () => context.pop(),
                       ),
                       const Spacer(),
@@ -119,6 +119,15 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
+                    layoutBuilder: (currentChild, previousChildren) {
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          ...previousChildren,
+                          if (currentChild != null) currentChild,
+                        ],
+                      );
+                    },
                     child: _buildPhaseContent(state, controller, coins, packs),
                   ),
                 ),
@@ -150,12 +159,16 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                       children: [
                         const Icon(Icons.check_circle_rounded, color: AppColors.white, size: 20),
                         const SizedBox(width: 8),
-                        Text(
-                          'Pack added to inventory!',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
+                        Flexible(
+                          child: Text(
+                            'Pack added to inventory!',
+                            style: GoogleFonts.nunito(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -235,7 +248,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
   }
 
   Widget _buildIdlePhase(
-      PackOpeningController controller, int coins, int packs, String? error) {
+      PackOpeningController controller, int coins, int packs, String? error,) {
     final packCost =
         ref.watch(systemSettingsProvider).valueOrNull?.packCost ?? 100;
     final canAfford = coins >= packCost;

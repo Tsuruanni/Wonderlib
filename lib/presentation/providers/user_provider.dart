@@ -174,8 +174,10 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     _ref.listen(authStateChangesProvider, (previous, next) {
       final newUser = next.valueOrNull;
       final oldUserId = previous?.valueOrNull?.id;
+      debugPrint('🔑 AUTH STATE: newUser=${newUser?.id?.substring(0, 8)}, oldUser=${oldUserId?.substring(0, 8)}');
 
       if (newUser != null && newUser.id != oldUserId) {
+        debugPrint('🔑 AUTH → _loadUserById(${newUser.id.substring(0, 8)})');
         _loadUserById(newUser.id);
       } else if (newUser == null && oldUserId != null) {
         // User logged out — clear stale state
@@ -243,10 +245,13 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
     // Skip if already updated today (avoids redundant RPC on same-day re-opens)
     final today = AppClock.today();
     final lastActivity = user.lastActivityDate;
+    debugPrint('🔥 _updateStreakIfNeeded: user=${user.firstName}, today=$today, lastActivity=$lastActivity');
     if (lastActivity != null && DateTime(lastActivity.year, lastActivity.month, lastActivity.day) == today) {
+      debugPrint('🔥 _updateStreakIfNeeded: SKIP (already today)');
       return;
     }
     // First open of the day — check streak (broken/freeze/milestone notifications)
+    debugPrint('🔥 _updateStreakIfNeeded: CALLING updateStreak()');
     await updateStreak();
   }
 
@@ -311,14 +316,21 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> updateStreak() async {
     final userId = _ref.read(currentUserIdProvider);
+    debugPrint('🔥 updateStreak: userId=${userId?.substring(0, 8)}');
     if (userId == null) return;
 
     final useCase = _ref.read(updateStreakUseCaseProvider);
     final result = await useCase(UpdateStreakParams(userId: userId));
 
     // FIX: Extract from fold to properly await — Either.fold is not async-aware
-    final streakResult = result.fold<StreakResult?>((f) => null, (r) => r);
+    final streakResult = result.fold<StreakResult?>((f) {
+      debugPrint('🔥 updateStreak: RPC FAILED: ${f.message}');
+      return null;
+    }, (r) => r);
     if (streakResult == null) return;
+    debugPrint('🔥 updateStreak: SUCCESS streak=${streakResult.newStreak}, '
+        'broken=${streakResult.streakBroken}, extended=${streakResult.streakExtended}, '
+        'freezeUsed=${streakResult.freezeUsed}');
 
     // Re-fetch profile with updated streak data
     final getUserUseCase = _ref.read(getUserByIdUseCaseProvider);
@@ -344,6 +356,10 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
         (streakResult.freezeUsed && !streakResult.streakBroken && s.notifFreezeSaved) ||
         (streakResult.streakBroken && streakResult.previousStreak >= s.notifStreakBrokenMin && s.notifStreakBroken) ||
         (streakResult.streakExtended && s.notifStreakExtended);
+    debugPrint('🔥 streak notification: shouldShow=$shouldShow, '
+        'milestone=${streakResult.milestoneBonusXp}, freeze=${streakResult.freezeUsed}, '
+        'broken=${streakResult.streakBroken}, extended=${streakResult.streakExtended}, '
+        'notifExtended=${s.notifStreakExtended}');
     if (shouldShow) {
       _ref.read(streakEventProvider.notifier).state = streakResult;
     }

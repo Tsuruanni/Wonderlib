@@ -198,7 +198,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 18),
+                                Image.asset('assets/icons/warning_sign_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Careful! x${widget.combo} combo at risk',

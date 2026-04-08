@@ -411,7 +411,7 @@ class _BookDetailFAB extends ConsumerWidget {
               height: 54,
               child: GameButton(
                 label: 'Take the Quiz',
-                icon: const Icon(Icons.quiz_rounded),
+                icon: Image.asset('assets/icons/quiz.png', width: 24, height: 24, filterQuality: FilterQuality.high),
                 variant: GameButtonVariant.primary,
                 onPressed: () {
                   context.push(AppRoutes.bookQuizPath(bookId));
@@ -535,11 +535,7 @@ class _ProgressSection extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.quiz_rounded,
-                      size: 18,
-                      color: colorScheme.primary,
-                    ),
+                    Image.asset('assets/icons/quiz.png', width: 18, height: 18, filterQuality: FilterQuality.high),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

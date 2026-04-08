@@ -445,13 +445,7 @@ class _BookQuizTile extends ConsumerWidget {
                   child: isPassed && !isCurrent
                       ? const Icon(Icons.check_rounded,
                           color: Colors.white, size: 14)
-                      : Icon(
-                          Icons.quiz_rounded,
-                          size: 13,
-                          color: isCurrent || isPassed
-                              ? Colors.white
-                              : AppColors.neutralText,
-                        ),
+                      : Image.asset('assets/icons/quiz.png', width: 13, height: 13, filterQuality: FilterQuality.high),
                 ),
               ),
               const SizedBox(width: 10),

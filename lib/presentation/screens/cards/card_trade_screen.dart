@@ -245,8 +245,7 @@ class _TradeTab extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.warning_amber_rounded,
-                              color: AppColors.wasp, size: 16),
+                          Image.asset('assets/icons/warning_sign_outline_256.png', width: 16, height: 16, filterQuality: FilterQuality.high),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(

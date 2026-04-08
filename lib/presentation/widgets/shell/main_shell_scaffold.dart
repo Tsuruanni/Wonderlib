@@ -6,6 +6,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../providers/avatar_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/daily_review_provider.dart';
 import '../../screens/cards/card_collection_screen.dart';
 import '../../screens/library/library_screen.dart';
 import '../common/avatar_widget.dart';
@@ -113,7 +114,20 @@ class MainShellScaffold extends ConsumerWidget {
                       onTap: () {
                         final isQuizActive = ref.read(quizActiveProvider);
                         if (isQuizActive) {
-                          _showQuizExitConfirmation(context, ref, () => context.go(AppRoutes.profile));
+                          _showSessionExitConfirmation(context, ref,
+                            title: 'Leave Quiz?',
+                            onCleanup: () => ref.read(quizActiveProvider.notifier).state = false,
+                            onLeave: () => context.go(AppRoutes.profile),
+                          );
+                          return;
+                        }
+                        final isDailyReviewActive = ref.read(dailyReviewActiveProvider);
+                        if (isDailyReviewActive) {
+                          _showSessionExitConfirmation(context, ref,
+                            title: 'Leave Review?',
+                            onCleanup: () => ref.read(dailyReviewActiveProvider.notifier).state = false,
+                            onLeave: () => context.go(AppRoutes.profile),
+                          );
                           return;
                         }
                         context.go(AppRoutes.profile);
@@ -241,7 +255,22 @@ class MainShellScaffold extends ConsumerWidget {
     // Block navigation if quiz is active
     final isQuizActive = ref.read(quizActiveProvider);
     if (isQuizActive) {
-      _showQuizExitConfirmation(context, ref, () => _navigateToTab(context, ref, index));
+      _showSessionExitConfirmation(context, ref,
+        title: 'Leave Quiz?',
+        onCleanup: () => ref.read(quizActiveProvider.notifier).state = false,
+        onLeave: () => _navigateToTab(context, ref, index),
+      );
+      return;
+    }
+
+    // Block navigation if daily review is active
+    final isDailyReviewActive = ref.read(dailyReviewActiveProvider);
+    if (isDailyReviewActive) {
+      _showSessionExitConfirmation(context, ref,
+        title: 'Leave Review?',
+        onCleanup: () => ref.read(dailyReviewActiveProvider.notifier).state = false,
+        onLeave: () => _navigateToTab(context, ref, index),
+      );
       return;
     }
 
@@ -260,7 +289,11 @@ class MainShellScaffold extends ConsumerWidget {
     );
   }
 
-  void _showQuizExitConfirmation(BuildContext context, WidgetRef ref, VoidCallback onLeave) {
+  void _showSessionExitConfirmation(BuildContext context, WidgetRef ref, {
+    required String title,
+    required VoidCallback onCleanup,
+    required VoidCallback onLeave,
+  }) {
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -279,11 +312,11 @@ class MainShellScaffold extends ConsumerWidget {
                   color: AppColors.danger.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.warning_rounded, color: AppColors.danger, size: 32),
+                child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
               ),
               const SizedBox(height: 16),
               Text(
-                'Leave Quiz?',
+                title,
                 style: GoogleFonts.nunito(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -310,7 +343,7 @@ class MainShellScaffold extends ConsumerWidget {
               GameButton(
                 label: 'Leave',
                 onPressed: () {
-                  ref.read(quizActiveProvider.notifier).state = false;
+                  onCleanup();
                   Navigator.of(ctx).pop();
                   onLeave();
                 },

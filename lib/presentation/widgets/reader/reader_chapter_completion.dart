@@ -171,10 +171,11 @@ class _ReaderChapterCompletionState extends State<ReaderChapterCompletion> {
             color: Colors.blue.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
-            Icons.quiz_rounded,
-            size: 64,
-            color: Colors.blue,
+          child: Image.asset(
+            'assets/icons/quiz.png',
+            width: 64,
+            height: 64,
+            filterQuality: FilterQuality.high,
           ).animate().scale(
             duration: 600.ms,
             curve: Curves.elasticOut,
@@ -226,7 +227,7 @@ class _ReaderChapterCompletionState extends State<ReaderChapterCompletion> {
             label: 'Take the Quiz',
             onPressed: widget.onTakeQuiz ?? () {},
             variant: GameButtonVariant.primary,
-            icon: const Icon(Icons.quiz_rounded, color: Colors.white),
+            icon: Image.asset('assets/icons/quiz.png', width: 24, height: 24, filterQuality: FilterQuality.high),
           ),
         ),
 

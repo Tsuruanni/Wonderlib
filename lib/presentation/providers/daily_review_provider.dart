@@ -17,6 +17,10 @@ import 'usecase_providers.dart';
 /// Minimum words needed to start a daily review session
 const int minDailyReviewCount = 10;
 
+/// Whether a daily review session is actively in progress (at least one card answered).
+/// Used by the shell to guard sidebar/bottom-nav navigation.
+final dailyReviewActiveProvider = StateProvider<bool>((ref) => false);
+
 // ============================================================
 // Daily Review Providers
 // ============================================================
@@ -156,6 +160,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
   }) : super(const DailyReviewState());
 
   bool _isProcessingAnswer = false;
+  final List<VocabularyProgress> _pendingUpdates = [];
   final String userId;
   final GetDueForReviewUseCase getDueForReviewUseCase;
   final GetWordProgressBatchUseCase getWordProgressBatchUseCase;
@@ -328,7 +333,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
         return;
       }
 
-      // First time seeing this word: write to DB immediately
+      // First time seeing this word: calculate SM-2 and defer DB write
       final newFirstCorrect = state.firstPassCorrectCount + (isCorrect ? 1 : 0);
       final newFirstIncorrect = state.firstPassIncorrectCount + (isCorrect ? 0 : 1);
 
@@ -351,9 +356,7 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
         response.toQuality(),
       );
 
-      await updateWordProgressUseCase(
-        UpdateWordProgressParams(progress: updatedProgress),
-      );
+      _pendingUpdates.add(updatedProgress);
 
       final newProgressMap = Map<String, VocabularyProgress>.from(state.progressMap);
       newProgressMap[wordId] = updatedProgress;
@@ -377,8 +380,20 @@ class DailyReviewController extends StateNotifier<DailyReviewState> {
     }
   }
 
+  /// Flush all pending SM-2 progress updates to DB.
+  /// Called only when the full session is completed (all cards answered).
+  Future<void> flushPendingProgress() async {
+    for (final progress in _pendingUpdates) {
+      await updateWordProgressUseCase(
+        UpdateWordProgressParams(progress: progress),
+      );
+    }
+    _pendingUpdates.clear();
+  }
+
   /// Complete session and award XP (uses first-pass counts only)
   Future<DailyReviewResult?> completeSession() async {
+    await flushPendingProgress();
     final result = await completeDailyReviewUseCase(
       CompleteDailyReviewParams(
         userId: userId,

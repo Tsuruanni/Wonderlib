@@ -295,35 +295,41 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
   }
 
   Widget _buildNarrowLayout(PackCard? currentCard) {
-    return Stack(
+    return Column(
       children: [
-        // Rive — zoomed ~50%, shifted up
-        Positioned(
-          left: -100,
-          right: -100,
-          top: -160,
-          bottom: 80,
+        // Rive — zoomed via ClipRect + negative margins
+        Expanded(
+          flex: 5,
           child: ClipRect(
-            child: _buildRive(fit: BoxFit.contain),
+            child: OverflowBox(
+              maxWidth: double.infinity,
+              maxHeight: double.infinity,
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: 800,
+                height: 800,
+                child: _buildRive(fit: BoxFit.contain),
+              ),
+            ),
           ),
         ),
 
-        // Card info + continue at the bottom
-        Positioned(
-          left: 16,
-          right: 16,
-          bottom: 8,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (currentCard != null)
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _buildCardInfo(currentCard),
-                ),
-              const SizedBox(height: 12),
-              _buildContinueButton(),
-            ],
+        // Card info + continue — scrollable, safe from overflow
+        Expanded(
+          flex: 4,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              children: [
+                if (currentCard != null)
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: _buildCardInfo(currentCard),
+                  ),
+                const SizedBox(height: 12),
+                _buildContinueButton(),
+              ],
+            ),
           ),
         ),
       ],
@@ -401,25 +407,29 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
             ),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: rarityColor.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: rarityColor.withValues(alpha: 0.5),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
                     ),
-                  ),
-                  child: Text(
-                    card.rarity.label.toUpperCase(),
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: rarityColor,
-                      letterSpacing: 1,
+                    decoration: BoxDecoration(
+                      color: rarityColor.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: rarityColor.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      card.rarity.label.toUpperCase(),
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: rarityColor,
+                        letterSpacing: 1,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),

@@ -114,7 +114,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                     color: AppColors.danger.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.warning_rounded, color: AppColors.danger, size: 32),
+                  child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
                 ),
                 const SizedBox(height: 16),
                 Text(

@@ -1048,7 +1048,7 @@ class _QuizBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.quiz_rounded, size: 12, color: Colors.white),
+          Image.asset('assets/icons/quiz.png', width: 12, height: 12, filterQuality: FilterQuality.high),
           const SizedBox(width: 4),
           Text(
             'Take the Quiz!',

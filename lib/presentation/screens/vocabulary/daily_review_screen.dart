@@ -83,6 +83,12 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     if (_isDismissing) return;
     HapticFeedback.mediumImpact();
 
+    // Mark review as active on first answer (for shell navigation guard)
+    final currentState = ref.read(dailyReviewControllerProvider);
+    if (currentState.currentIndex == 0) {
+      ref.read(dailyReviewActiveProvider.notifier).state = true;
+    }
+
     // Dismiss direction: hard → left, good/easy → right
     final direction = response == SM2Response.dontKnow ? -1.0 : 1.0;
     setState(() {
@@ -112,9 +118,11 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
   Future<void> _completeSession() async {
     final state = ref.read(dailyReviewControllerProvider);
 
-    // Unit review: SRS updates already saved per-word in answerWord().
-    // Skip the daily review RPC (avoids UNIQUE constraint conflict).
+    ref.read(dailyReviewActiveProvider.notifier).state = false;
+
+    // Unit review: flush deferred SM-2 updates, skip daily review RPC.
     if (state.isUnitReview) {
+      await ref.read(dailyReviewControllerProvider.notifier).flushPendingProgress();
       ref.invalidate(todayReviewSessionProvider);
       ref.invalidate(learningPathProvider);
       // Invalidate wordbank providers so Word Bank sees updated review dates
@@ -147,6 +155,71 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     // Re-read state after completeSession updates it
     final updatedState = ref.read(dailyReviewControllerProvider);
     _showCompletionDialog(state: updatedState, xpEarned: result.isNewSession ? result.xpEarned : null, isPerfect: result.isPerfect);
+  }
+
+  void _showExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 340),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Leave Review?',
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Your progress will be lost.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.nunito(
+                    fontSize: 15,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GameButton(
+                  label: 'Keep going',
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  variant: GameButtonVariant.primary,
+                  fullWidth: true,
+                ),
+                const SizedBox(height: 8),
+                GameButton(
+                  label: 'Leave',
+                  onPressed: () {
+                    ref.read(dailyReviewActiveProvider.notifier).state = false;
+                    Navigator.of(ctx).pop();
+                    context.pop();
+                  },
+                  variant: GameButtonVariant.danger,
+                  fullWidth: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _showCompletionDialog({
@@ -201,10 +274,10 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset('assets/icons/xp_green_outline.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                    Image.asset('assets/icons/gem_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
                     const SizedBox(width: 8),
                     Text(
-                      '+$xpEarned XP',
+                      '+$xpEarned Coins',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w900,
                         fontSize: 24,
@@ -360,7 +433,14 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
         ? state.uniqueWordsReviewed / state.originalWordCount
         : 0.0;
 
-    return Scaffold(
+    final isSessionActive = state.currentIndex > 0;
+
+    return PopScope(
+      canPop: !isSessionActive,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _showExitConfirmation();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
@@ -374,7 +454,14 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
               child: Row(
                 children: [
                    GestureDetector(
-                     onTap: () => Navigator.of(context).pop(),
+                     onTap: () {
+                       final s = ref.read(dailyReviewControllerProvider);
+                       if (s.currentIndex > 0) {
+                         _showExitConfirmation();
+                       } else {
+                         context.pop();
+                       }
+                     },
                      child: Icon(Icons.close_rounded, color: AppColors.neutralText, size: 32),
                    ),
                    const SizedBox(width: 16),
@@ -515,6 +602,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
         ),
           ),
         ),
+      ),
       ),
     );
   }

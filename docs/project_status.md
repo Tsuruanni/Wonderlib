@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-08 (Treasure Wheel: spin-to-win feature, per-node tracking, admin config, visual effects)
+Son güncelleme: 2026-04-08 (League reset fixes, daily review navigation guard, pg_cron)
 
 ## Current Phase
 
@@ -177,6 +177,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] League Sidebar — Class & School Ranks (independent rank providers, VIEW STATS label)
 - [x] Streak Sheet Redesign (Duolingo-style bottom sheet, gradient banner, weekly/monthly calendar toggle, displayStreakProvider)
 - [x] Treasure Wheel — Spin to Win (spin-the-wheel on treasure nodes, admin-configurable slices, per-node tracking, visual effects, 6 migrations)
+- [x] League Reset System Fixes (catch-up loop, pg_cron, idempotent decay, edge function auth, UTC days-left)
+- [x] Daily Review Navigation Guard (deferred SM-2 writes, PopScope exit confirmation, shell nav block)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
@@ -248,6 +250,8 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| League Reset System Fixes | 2026-04-08 | Catch-up loop for missed weeks, pg_cron replaces cron-job.org, idempotent inactive decay (INSERT ... RETURNING CTE), edge function fail-closed auth, UTC days-left. 3 migrations + edge function deploy. |
+| Daily Review Navigation Guard | 2026-04-08 | Deferred SM-2 writes (`flushPendingProgress()`), `PopScope` exit confirmation, `dailyReviewActiveProvider` shell nav block, generalized `_showSessionExitConfirmation`. |
 | Streak Sheet Redesign | 2026-04-05 | Duolingo-inspired full-screen bottom sheet. Gradient banner, toggleable weekly/monthly calendar, distinct day icons, compact stat cards, displayStreakProvider for consistent streak count, monthly provider cache invalidation. |
 | League Sidebar — Class & School Ranks | 2026-04-01 | Independent `userClassRankProvider`/`userSchoolRankProvider` (total XP). Divider + rank rows in league card. "VIEW LEAGUE" → "VIEW STATS". |
 | Card Trade System | 2026-04-01 | Full-stack: `card_trade_logs` table + `trade_duplicate_cards` RPC (uniform 7-dupe cost, pity-aware new card selection). Domain: `TradeResult` entity + `TradeDuplicateCardsUseCase`. UI: tabbed trade screen with card selection, reveal animation, shell integration. 2 DB migrations. |

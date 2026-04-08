@@ -11,7 +11,6 @@ import '../../providers/system_settings_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
-import '../../providers/card_trade_provider.dart';
 import '../../widgets/cards/trade_button_card.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -57,10 +56,10 @@ class CardCollectionScreen extends ConsumerWidget {
                             ),
                           ),
                         ),
-                        SliverToBoxAdapter(
+                        const SliverToBoxAdapter(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: const TradeButtonCard(),
+                            padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: TradeButtonCard(),
                           ),
                         ),
                       ],
@@ -230,7 +229,7 @@ class CardCollectionScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            Icon(Icons.lock_rounded, size: 48, color: AppColors.neutral),
+            const Icon(Icons.lock_rounded, size: 48, color: AppColors.neutral),
             const SizedBox(height: 16),
             Text(
               card.name,
@@ -550,7 +549,7 @@ class _OpenPackBanner extends ConsumerWidget {
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.style_rounded,
                                 color: AppColors.cardEpic,
                                 size: 20,
@@ -610,7 +609,7 @@ class _LoadMoreButton extends StatelessWidget {
       child: SizedBox(
         width: 140,
         height: 220,
-        child: Container(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(18),
@@ -680,19 +679,23 @@ class _CardDetailInfo extends ConsumerWidget {
           // Rarity row
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: rarityColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: rarityColor.withValues(alpha: 0.4)),
-                ),
-                child: Text(
-                  card.rarity.label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: rarityColor,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: rarityColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: rarityColor.withValues(alpha: 0.4)),
+                  ),
+                  child: Text(
+                    card.rarity.label,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: rarityColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
