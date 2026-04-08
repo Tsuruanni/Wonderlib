@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
     }
 
     const wordSegments = mergedTimestamps
-      ? extractWordSegments(mergedTimestamps)
+      ? extractEntrySegments(mergedTimestamps, words, DELIMITER)
       : [];
     console.log(`Extracted ${wordSegments.length} word segments`);
 
@@ -235,35 +235,49 @@ Deno.serve(async (req) => {
   }
 });
 
-function extractWordSegments(
-  timestamps: TimestampData
+function extractEntrySegments(
+  timestamps: TimestampData,
+  words: WordItem[],
+  delimiter: string
 ): { word: string; startMs: number; endMs: number }[] {
   const chars = timestamps.characters;
   const starts = timestamps.character_start_times_seconds;
   const ends = timestamps.character_end_times_seconds;
 
+  // Reconstruct the combined text to find entry boundaries
+  const combinedText = words.map(w => w.word).join(delimiter);
+
   const segments: { word: string; startMs: number; endMs: number }[] = [];
-  let currentWord = "";
-  let wordStartIdx = -1;
+  let charOffset = 0;
 
-  for (let i = 0; i <= chars.length; i++) {
-    const ch = i < chars.length ? chars[i] : " ";
-    const isWordChar = /[a-zA-ZÀ-ÿ'\-]/.test(ch);
+  for (let i = 0; i < words.length; i++) {
+    const entryText = words[i].word;
+    const entryStart = charOffset;
+    const entryEnd = charOffset + entryText.length;
 
-    if (isWordChar) {
-      if (wordStartIdx === -1) wordStartIdx = i;
-      currentWord += ch;
-    } else {
-      if (currentWord.length > 0 && wordStartIdx !== -1) {
-        segments.push({
-          word: currentWord.toLowerCase(),
-          startMs: Math.floor((starts[wordStartIdx] || 0) * 1000),
-          endMs: Math.floor((ends[i - 1] || 0) * 1000),
-        });
-        currentWord = "";
-        wordStartIdx = -1;
+    // Find first and last non-silent character timestamps within this entry range
+    let startMs = 0;
+    let endMs = 0;
+    let foundStart = false;
+
+    for (let ci = entryStart; ci < entryEnd && ci < chars.length; ci++) {
+      if (starts[ci] !== undefined && ends[ci] !== undefined) {
+        if (!foundStart) {
+          startMs = Math.floor(starts[ci] * 1000);
+          foundStart = true;
+        }
+        endMs = Math.floor(ends[ci] * 1000);
       }
     }
+
+    segments.push({
+      word: entryText,
+      startMs,
+      endMs,
+    });
+
+    // Advance past this entry + delimiter
+    charOffset = entryEnd + delimiter.length;
   }
 
   return segments;
