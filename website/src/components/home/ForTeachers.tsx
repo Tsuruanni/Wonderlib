@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/Button";
+import { DashboardMockup } from "@/components/home/DashboardMockup";
 import { Container } from "@/components/ui/Container";
 import { ScrollReveal } from "@/components/ui/ScrollReveal";
 
@@ -63,12 +63,7 @@ export function ForTeachers() {
                 <div className="w-3 h-3 rounded-full bg-bee/40" />
                 <div className="w-3 h-3 rounded-full bg-feather/40" />
               </div>
-              <Image
-                src="/images/placeholder.svg"
-                alt="Teacher dashboard preview"
-                width={440}
-                height={320}
-              />
+              <DashboardMockup />
             </div>
           </div>
         </ScrollReveal>
