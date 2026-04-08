@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-05 (Streak sheet redesign: Duolingo-style bottom sheet, monthly calendar, displayStreakProvider)
+Son güncelleme: 2026-04-08 (Treasure Wheel: spin-to-win feature, per-node tracking, admin config, visual effects)
 
 ## Current Phase
 
@@ -176,6 +176,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Duplicate Card Trade System (trade 7 dupes for 1 new, full-stack: RPC + entity + usecase + provider + screen)
 - [x] League Sidebar — Class & School Ranks (independent rank providers, VIEW STATS label)
 - [x] Streak Sheet Redesign (Duolingo-style bottom sheet, gradient banner, weekly/monthly calendar toggle, displayStreakProvider)
+- [x] Treasure Wheel — Spin to Win (spin-the-wheel on treasure nodes, admin-configurable slices, per-node tracking, visual effects, 6 migrations)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

@@ -125,6 +125,7 @@ lib/
 │       ├── assignment/       # Assignment UseCases
 │       ├── content/          # ContentBlock UseCases
 │       ├── card/             # Card collection UseCases (6)
+│       ├── treasure/         # Treasure wheel UseCases (2)
 │       ├── avatar/           # Avatar customization UseCases (8)
 │       ├── student_assignment/ # Student assignment UseCases
 │       └── settings/         # SystemSettings UseCases
@@ -136,9 +137,10 @@ lib/
 │   │   ├── audio_sync_provider.dart  # Audio playback + auto-play orchestration
 │   │   ├── vocabulary_session_provider.dart  # Vocabulary quiz session state
 │   │   └── *_provider.dart   # Feature providers
-│   ├── screens/              # Page widgets (32 screens)
+│   ├── screens/              # Page widgets (33 screens)
 │   │   ├── avatar/           # Avatar customization screen
 │   │   ├── cards/            # Card collection + pack opening
+│   │   ├── treasure/         # Treasure wheel (spin to win)
 │   │   └── ...
 │   └── widgets/
 │       ├── book_quiz/        # BookQuiz* — final book quiz widgets (8)
@@ -182,6 +184,7 @@ readeng_admin/                 # Admin panel (separate Flutter web project)
 │       ├── curriculum/        # Unit curriculum assignments
 │       ├── dashboard/         # Overview with feature cards
 │       ├── avatars/           # Avatar management (bases, categories, items CRUD)
+│       ├── treasure_wheel/    # Treasure wheel slice configuration (Hazine Çarkı)
 │       ├── quests/            # Daily quest management (inline editing + stats)
 │       ├── gallery/           # Media gallery
 │       ├── quizzes/           # Book quiz + question editing
@@ -403,6 +406,11 @@ UserController (addXP/updateStreak)
 - `pack_purchases` - Pack purchase history
 - `daily_quest_pack_claims` - Daily quest reward claims (legacy, replaced by bonus_claims)
 - `coin_logs` - Coin transaction history
+
+### Treasure Wheel
+- `treasure_wheel_slices` - Admin-configurable wheel slices (label, reward_type, reward_amount, weight, color, sort_order, is_active)
+- `user_node_completions.item_id` - Per-node tracking for treasure/game completions
+- RPCs: `spin_treasure_wheel(p_user_id, p_unit_id, p_item_id)` — atomic weighted random + award + completion
 
 ### Daily Quests
 - `daily_quests` - Quest definitions (type, goal, reward, active flag). DB-driven, admin-configurable via `/quests` in admin panel.

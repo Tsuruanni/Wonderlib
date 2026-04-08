@@ -8,6 +8,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Treasure Wheel — Spin to Win (2026-04-07)
+
+#### Added
+- **Treasure Wheel screen** — Full-screen spin-the-wheel experience when students tap treasure nodes on the learning path. CustomPainter wheel with gradient slices, LED ring, glow pulse, animated pointer.
+- **spin_treasure_wheel RPC** — Atomic server-side function: weighted random selection + coin/card pack award + node completion in one transaction. Cheat-proof (randomness on server).
+- **treasure_wheel_slices table** — Admin-configurable wheel slices with label, reward type (coin/card_pack), amount, weight (probability), color, sort order, active toggle.
+- **Admin Hazine Çarkı screen** — Turkish CRUD page for managing wheel slices (add/edit/delete/reorder). Dashboard card with casino icon.
+- **Per-node completion tracking** — `item_id` column added to `user_node_completions`. Each treasure node tracked individually (previously one claim per unit marked all treasures as claimed).
+- **Visual effects** — Animated starfield background, confetti explosion on win, shimmer title, elastic scale-in reward view, two-phase spin animation (idle spin + deceleration to target).
+- **Subtle bounce on path nodes** — All unlocked nodes gently bounce (2px, 2.4s). Active "you are here" node keeps original stronger bounce (5px, 1.2s). Locked nodes stay static.
+
+#### Changed
+- **Treasure node tap** — Now navigates to wheel screen instead of instantly marking as complete. Completed nodes are non-tappable.
+- **Card pack rewards** — Packs added to inventory only (not auto-opened). Student can open packs later from the card collection screen.
+- **Coin/pack balance** — Updates immediately on collect via `userControllerProvider` invalidation.
+
+#### Infrastructure
+- **6 new migrations** — treasure_wheel_slices table, spin_treasure_wheel RPC, coin source constraint, item_id tracking, idempotency fix.
+- **New shared constants** — `DbTables.treasureWheelSlices`, `RpcFunctions.spinTreasureWheel`.
+- **Full Clean Architecture** — TreasureWheelSlice/TreasureSpinResult entities, models, TreasureRepository, 2 UseCases, StateNotifier provider, CustomPainter widget.
+
 ### Streak Sheet Redesign (2026-04-05)
 
 #### Added
