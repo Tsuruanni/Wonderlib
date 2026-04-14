@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-14 (Multi-word phrase support, batch content gen, AppIcons registry, admin polish)
+Son güncelleme: 2026-04-14 (Multi-word phrase support, batch content gen, AppIcons registry, league matchmaking redesign)
 
 ## Current Phase
 
@@ -107,6 +107,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Avatar Customization System (layered PNG avatars, 6 base animals, 52 accessories, per-animal outfit memory, admin CRUD)
 - [x] League system (weekly tier-based competition within schools)
 - [x] Leaderboard screen (class/school/league scopes with student profile popup)
+- [x] League Matchmaking Redesign (cross-school groups, virtual bots, lazy join, Duolingo-style UI, Last Week card)
 - [x] Codebase audit (RLS security, null safety, race conditions, architecture consistency)
 - [x] Teacher Panel Audit & Fixes (security, atomicity, broken features, code quality — 15 migrations)
 - [x] Teacher Profile Page (editable name, password reset, role badge, school name)

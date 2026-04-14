@@ -387,6 +387,9 @@ UserController (addXP/updateStreak)
 - `badges` - Badge definitions
 - `user_badges` - Earned badges
 - `xp_logs` - XP history
+- `league_groups` - Weekly ~30-person matchmaking groups (tier + XP bucket)
+- `league_group_members` - Students lazily assigned to groups (real players only)
+- `bot_profiles` - 200 pre-seeded virtual bot identities for league padding
 - `league_history` - Weekly league tier changes (promotion/demotion tracking)
 
 ### Avatar Customization

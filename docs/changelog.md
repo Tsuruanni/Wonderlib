@@ -49,6 +49,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **1 DB migration** — `20260408000007_add_phrase_part_of_speech.sql`
 - **Spec** — `docs/specs/28-multi-word-phrase-support.md`
 
+### League Matchmaking Redesign (2026-03-31 — 2026-04-07)
+
+#### Added
+- **Cross-school matchmaking** — Replaced school+tier league with Duolingo-style ~30-person competition groups. Students are lazily assigned when they earn 20+ weekly XP. Same-school rivals get priority placement.
+- **Virtual bot system** — 200 pre-seeded bot profiles fill empty group slots so every leaderboard displays 30 entries. Bot XP grows progressively throughout the week (deterministic formula, no storage). Bots automatically shrink as real players join.
+- **Duolingo-style league UI** — Tier badge header (5 shields), flat list with colored rank circles for top 3, promotion/demotion zone separators, countdown timer ("5 days left"), frameless cards in league mode.
+- **Last Week results card** — Right sidebar widget (leaderboard page only) showing previous week's rank, result (promoted/demoted/stayed), and tier transition ("Promoted to Gold from Silver!").
+- **League join celebration** — NotificationCard.leagueJoined notification via overlay system when first joining a weekly league.
+- **League sidebar enhancements** — Live rank display ("You're ranked #1"), XP threshold progress, countdown timer, class/school rank rows.
+- **Inactive tier decay** — Students absent for 4+ weeks soft-demoted by 1 tier during weekly reset.
+
+#### Changed
+- **Podium removed from league tab** — Flat list with zone separators replaces podium. Class/School tabs retain podium.
+- **Zone behavior in Bronze** — Demotion zone hidden (can't demote from lowest tier).
+- **Provider architecture** — `leagueStatusProvider` watches `userControllerProvider` for live XP-change reactivity. Tab-switch invalidation for fresh data.
+- **Bot XP rounding** — All bot XP values rounded to multiples of 5.
+
+#### Fixed
+- **Ambiguous column references** — `RETURNS TABLE` column names shadowing table columns in PL/pgSQL (table aliases added).
+- **League join dialog crashes** — `showDialog` replaced with `NotificationOverlayManager`, `ConsumerStatefulWidget` conversion, proper `dialogContext` for Navigator.pop.
+- **Cross-group rank deltas** — Rank change suppressed when `previousGroupId` differs from current group.
+
+#### Infrastructure
+- **3 new tables** — `league_groups`, `league_group_members`, `bot_profiles` (200 seed entries)
+- **6 new RPCs** — `join_weekly_league`, `get_league_group_leaderboard`, `get_user_league_status`, `bot_weekly_xp_target`, `bot_current_xp`, rewritten `process_weekly_league_reset`
+- **4 dropped RPCs** — `get_weekly_school_leaderboard`, `get_weekly_class_leaderboard`, `get_user_weekly_school_position`, `get_user_weekly_class_position`
+- **Spec** — `docs/superpowers/specs/2026-03-31-league-matchmaking-redesign.md`
+
 ### League Reset System Fixes & Daily Review Navigation Guard (2026-04-08)
 
 #### Fixed
