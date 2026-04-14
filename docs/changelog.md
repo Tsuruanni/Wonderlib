@@ -20,6 +20,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 - **IconData → Widget refactor** — 11 files refactored: widget parameters changed from `IconData` to `Widget` to support PNG icons. Affects `ui_helpers.dart`, `_StatCard`, `_MiniStat`, `_StatRow`, `_StatColumn`, `_questIcon()`, assignment type/status icons.
 - **Icons replaced** — `Icons.arrow_back` (9x), `Icons.close` (11x), `Icons.chevron_right` (7x), `Icons.check_rounded/check_circle` (12x), `Icons.menu_book_rounded` (5x), `Icons.star_rounded` (2x), `Icons.schedule_rounded` (3x), `Icons.volume_up_rounded` (3x), `Icons.headphones_rounded` (1x).
 
+### Multi-Word Phrase Support & Admin Polish (2026-04-08 — 2026-04-14)
+
+#### Added
+- **Multi-word phrase vocabulary support** — Phrases like "take a look!" work correctly across all exercises. Automatic detection via space check, no DB flag needed.
+- **`scrambledWords` question type** — Duolingo-style word tile arrangement for phrases with 3D raised chips, underlined answer slots, and distractor words.
+- **Punctuation-tolerant answer checking** — `_normalize()` strips punctuation before comparison across spelling, listening write, sentence gap, scrambled words.
+- **Batch content generation** — `generate-word-data` edge function accepts `{words: [...]}` for single Gemini API call, eliminating rate limiting.
+- **Admin "İçerikleri Temizle" button** — Clears all content fields for words in a list (preserves audio/images) for prompt iteration.
+- **Admin phrase info banner** — Blue info chip in vocabulary editor when word contains spaces.
+- **`phrase` part of speech** — DB CHECK constraint, Gemini prompt, and admin dropdown updated.
+- **Session summary return route** — Learning path vocab sessions return to unit page on "Continue".
+
+#### Changed
+- **Word introduction card layout** — Word and meaning stack vertically, `maxLines: 2`, prevents truncation on long phrases.
+- **Vocabulary edit back navigation** — `context.push` for word detail, back button returns to originating screen.
+- **Word list sort order** — `created_at DESC` (newest first) instead of alphabetical.
+- **Gemini prompt Turkish verbs** — meaning_tr uses infinitive form with -mek/-mak suffix.
+
+#### Fixed
+- **Audio timestamp extraction for phrases** — DELIMITER-aware `extractEntrySegments` prevents index shift in batch audio.
+- **Wordlist provider cache after bulk generation** — `ref.invalidate` after content generation.
+- **Word list save data loss guard** — No longer deletes `word_list_items` when `_wordItems` is empty.
+- **Wordlist reload direct DB fetch** — Avoids stale provider cache.
+- **Edge function error logging and JWT** — console.error logging, `--no-verify-jwt` deployment.
+
+#### Infrastructure
+- **1 DB migration** — `20260408000007_add_phrase_part_of_speech.sql`
+- **Spec** — `docs/specs/28-multi-word-phrase-support.md`
+
 ### League Reset System Fixes & Daily Review Navigation Guard (2026-04-08)
 
 #### Fixed

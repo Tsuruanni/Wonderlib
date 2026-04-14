@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-14 (AppIcons registry, full icon system migration)
+Son güncelleme: 2026-04-14 (Multi-word phrase support, batch content gen, AppIcons registry, admin polish)
 
 ## Current Phase
 
@@ -179,6 +179,8 @@ See: CLAUDE.md for architecture guidelines
 - [x] Treasure Wheel — Spin to Win (spin-the-wheel on treasure nodes, admin-configurable slices, per-node tracking, visual effects, 6 migrations)
 - [x] League Reset System Fixes (catch-up loop, pg_cron, idempotent decay, edge function auth, UTC days-left)
 - [x] Daily Review Navigation Guard (deferred SM-2 writes, PopScope exit confirmation, shell nav block)
+- [x] AppIcons Registry & Full Icon System Migration (centralized PNG registry, 37 assets, 90+ Image.asset calls migrated, IconData→Widget refactor)
+- [x] Multi-Word Phrase Support (scrambledWords question type, phrase routing, punctuation-tolerant answers, batch content gen, admin phrase tools, audio timestamp fix)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
