@@ -1,8 +1,7 @@
 -- =============================================
--- Card Pack Badge Trigger
--- Add PERFORM check_and_award_badges(p_user_id) at the end of open_card_pack
--- so cards_collected / myth_category_completed badges fire after pack opens.
--- Copied verbatim from 20260328200001_card_audit_fixes.sql with one added line.
+-- Hotfix: wrap check_and_award_badges in EXCEPTION block inside open_card_pack
+-- Prevents badge check failures from rolling back pack opens.
+-- Code review feedback from 2026-04-14.
 -- =============================================
 
 CREATE OR REPLACE FUNCTION open_card_pack(
