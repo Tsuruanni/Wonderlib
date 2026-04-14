@@ -33,17 +33,6 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
     super.dispose();
   }
 
-  /// Precache tile background images so they're ready when the user
-  /// navigates into a unit detail screen.
-  void _precacheTileImages(BuildContext context, List<TileThemeEntity> themes) {
-    for (final theme in themes) {
-      final url = theme.imageUrl;
-      if (url != null && _precachedUrls.add(url)) {
-        precacheImage(NetworkImage(url), context);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final pathDataAsync = ref.watch(learningPathProvider);
@@ -59,11 +48,6 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
         ),
       ),
       data: (allUnits) {
-        // Precache all tile images in the background
-        if (dbThemes.isNotEmpty) {
-          _precacheTileImages(context, dbThemes);
-        }
-
         final path = paths.where((p) => p.id == widget.pathId).firstOrNull;
         if (path == null) {
           return Center(
@@ -79,8 +63,14 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
             .where((pu) => pu.pathId == widget.pathId)
             .toList();
 
-        // Resolve path-level theme
+        // Resolve path-level theme and precache only this path's image
         final theme = _resolvePathTheme(path.tileThemeId, dbThemes);
+        if (theme != null) {
+          final url = theme.imageUrl;
+          if (url != null && _precachedUrls.add(url)) {
+            precacheImage(NetworkImage(url), context);
+          }
+        }
 
         // Find active unit index (first unlocked + incomplete)
         int? activeIdx;

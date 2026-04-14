@@ -67,45 +67,107 @@ class MapTile extends StatelessWidget {
         final h = theme.height * scale;
 
         return SizedBox(
-            width: w,
-            height: h,
-            child: Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              // Background: fills scaled area
-              Positioned.fill(
-                child: theme.imageUrl != null
-                    ? Image.network(
-                        theme.imageUrl!,
-                        fit: BoxFit.cover,
-                        frameBuilder: (_, child, frame, wasSynchronouslyLoaded) {
-                          if (wasSynchronouslyLoaded) return child;
-                          return AnimatedOpacity(
-                            opacity: frame != null ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 400),
-                            curve: Curves.easeOut,
-                            child: child,
-                          );
-                        },
-                        errorBuilder: (_, __, ___) =>
-                            _PlaceholderBackground(colors: theme.fallbackColors),
-                      )
-                    : _PlaceholderBackground(colors: theme.fallbackColors),
-              ),
-              // Nodes: scaled positions, original widget size
-              for (int i = 0; i < nodes.length; i++)
-                if (i < theme.nodePositions.length)
-                  _PositionedNode(
-                    position: theme.nodePositions[i],
-                    data: nodes[i],
+          width: w,
+          height: h,
+          child: ClipRect(
+            child: theme.imageUrl != null
+                ? Image.network(
+                    theme.imageUrl!,
+                    fit: BoxFit.cover,
+                    frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                      if (wasSynchronouslyLoaded) {
+                        return _TileContent(
+                          background: child,
+                          nodes: nodes,
+                          theme: theme,
+                          tileWidth: w,
+                          tileHeight: h,
+                          nodeScale: nodeScale,
+                        );
+                      }
+                      final loaded = frame != null;
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: loaded
+                            ? _TileContent(
+                                key: const ValueKey('loaded'),
+                                background: child,
+                                nodes: nodes,
+                                theme: theme,
+                                tileWidth: w,
+                                tileHeight: h,
+                                nodeScale: nodeScale,
+                              )
+                            : Container(
+                                key: const ValueKey('loading'),
+                                color: theme.fallbackColors.isNotEmpty
+                                    ? theme.fallbackColors.first
+                                    : Colors.grey.shade200,
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              ),
+                      );
+                    },
+                    errorBuilder: (_, __, ___) => _TileContent(
+                      background: _PlaceholderBackground(colors: theme.fallbackColors),
+                      nodes: nodes,
+                      theme: theme,
+                      tileWidth: w,
+                      tileHeight: h,
+                      nodeScale: nodeScale,
+                    ),
+                  )
+                : _TileContent(
+                    background: _PlaceholderBackground(colors: theme.fallbackColors),
+                    nodes: nodes,
+                    theme: theme,
                     tileWidth: w,
                     tileHeight: h,
                     nodeScale: nodeScale,
                   ),
-            ],
           ),
         );
       },
+    );
+  }
+}
+
+/// Combines the background image with positioned nodes in a Stack.
+/// Used to show nodes only after the background has loaded.
+class _TileContent extends StatelessWidget {
+  const _TileContent({
+    super.key,
+    required this.background,
+    required this.nodes,
+    required this.theme,
+    required this.tileWidth,
+    required this.tileHeight,
+    required this.nodeScale,
+  });
+
+  final Widget background;
+  final List<MapTileNodeData> nodes;
+  final TileTheme theme;
+  final double tileWidth;
+  final double tileHeight;
+  final double nodeScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(child: background),
+        for (int i = 0; i < nodes.length; i++)
+          if (i < theme.nodePositions.length)
+            _PositionedNode(
+              position: theme.nodePositions[i],
+              data: nodes[i],
+              tileWidth: tileWidth,
+              tileHeight: tileHeight,
+              nodeScale: nodeScale,
+            ),
+      ],
     );
   }
 }
