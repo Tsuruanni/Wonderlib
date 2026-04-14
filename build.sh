@@ -25,7 +25,7 @@ EOF
 echo "=== Running code generation ==="
 dart run build_runner build --delete-conflicting-outputs
 
-echo "=== Building Flutter web (WASM) ==="
-flutter build web --wasm --release
+echo "=== Building Flutter web ==="
+flutter build web --release
 
 echo "=== Build complete ==="
