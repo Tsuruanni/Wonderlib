@@ -5,8 +5,8 @@ set -e
 FLUTTER_VERSION="${FLUTTER_VERSION:-3.38.9}"
 
 echo "=== Installing Flutter SDK $FLUTTER_VERSION ==="
-git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git /opt/flutter
-export PATH="/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:$PATH"
+git clone --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git "$HOME/flutter"
+export PATH="$HOME/flutter/bin:$HOME/flutter/bin/cache/dart-sdk/bin:$PATH"
 
 flutter precache --web
 flutter doctor -v
