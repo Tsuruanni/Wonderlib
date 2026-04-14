@@ -95,7 +95,9 @@ class _UnitMapScreenState extends ConsumerState<UnitMapScreen> {
         // Auto-scroll to active unit
         if (activeIdx != null && !_hasScrolled && theme != null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!_hasScrolled && _scrollController.hasClients) {
+            if (!_hasScrolled &&
+                _scrollController.hasClients &&
+                _scrollController.position.hasContentDimensions) {
               _hasScrolled = true;
               final nodeY = activeIdx! < theme.nodePositions.length
                   ? theme.nodePositions[activeIdx].dy * theme.height
