@@ -59,6 +59,9 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     (BadgeConditionType.vocabularyLearned.dbValue, 'Öğrenilen Kelimeler'),
     (BadgeConditionType.perfectScores.dbValue, 'Tam Puan Etkinlik Skorları'),
     (BadgeConditionType.levelCompleted.dbValue, 'Ulaşılan Seviye'),
+    (BadgeConditionType.cardsCollected.dbValue, 'Toplanan Kart Sayısı'),
+    (BadgeConditionType.mythCategoryCompleted.dbValue, 'Kategori Bazlı Kart Toplama'),
+    (BadgeConditionType.leagueTierReached.dbValue, 'Ulaşılan Lig'),
   ];
 
   static const _categories = [
@@ -67,6 +70,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   ];
 
   String _conditionType = BadgeConditionType.xpTotal.dbValue;
+  String? _conditionParam;
   String _category = 'achievement';
   bool _isLoading = false;
   bool _isSaving = false;
@@ -98,6 +102,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
       _xpRewardController.text = (badge['xp_reward'] ?? 50).toString();
       setState(() {
         _conditionType = badge['condition_type'] ?? 'xp_total';
+        _conditionParam = badge['condition_param'] as String?;
         _category = badge['category'] ?? 'achievement';
         _isLoading = false;
       });
@@ -129,6 +134,17 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final ct = BadgeConditionType.fromDbValue(_conditionType);
+    if (ct.requiresParam && (_conditionParam == null || _conditionParam!.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bu koşul türü için parametre seçimi zorunludur.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
@@ -142,6 +158,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
         'category': _category,
         'condition_type': _conditionType,
         'condition_value': int.tryParse(_conditionValueController.text) ?? 100,
+        'condition_param': _conditionParam,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 50,
       };
 
@@ -386,17 +403,67 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                             }).toList(),
                             onChanged: (value) {
                               if (value != null) {
-                                setState(() => _conditionType = value);
+                                setState(() {
+                                  _conditionType = value;
+                                  final newCt = BadgeConditionType.fromDbValue(value);
+                                  if (!newCt.requiresParam) {
+                                    _conditionParam = null;
+                                  } else if (newCt == BadgeConditionType.mythCategoryCompleted) {
+                                    if (_conditionParam == null ||
+                                        !mythCategoryOptions.containsKey(_conditionParam)) {
+                                      _conditionParam = mythCategoryOptions.keys.first;
+                                    }
+                                  } else if (newCt == BadgeConditionType.leagueTierReached) {
+                                    if (_conditionParam == null ||
+                                        !leagueTierOptions.containsKey(_conditionParam)) {
+                                      _conditionParam = leagueTierOptions.keys.first;
+                                    }
+                                  }
+                                });
                               }
                             },
                           ),
+                          // Conditional param dropdown (only when condition type needs it)
+                          if (BadgeConditionType.fromDbValue(_conditionType).requiresParam) ...[
+                            const SizedBox(height: 16),
+                            DropdownButtonFormField<String>(
+                              value: _conditionParam,
+                              decoration: const InputDecoration(
+                                labelText: 'Parametre',
+                                helperText: 'Bu koşulun hedeflediği kategori / lig',
+                              ),
+                              items: (_conditionType == BadgeConditionType.mythCategoryCompleted.dbValue
+                                      ? mythCategoryOptions
+                                      : leagueTierOptions)
+                                  .entries
+                                  .map((e) => DropdownMenuItem(
+                                        value: e.key,
+                                        child: Text(e.value),
+                                      ))
+                                  .toList(),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setState(() => _conditionParam = value);
+                                }
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Parametre zorunludur';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+
                           const SizedBox(height: 16),
 
                           // Condition value
                           TextFormField(
                             controller: _conditionValueController,
                             decoration: InputDecoration(
-                              labelText: 'Koşul Değeri',
+                              labelText: _conditionType == 'league_tier_reached'
+                                  ? 'Koşul Değeri (lig için 1 bırakın)'
+                                  : 'Koşul Değeri',
                               hintText: 'ör. 100',
                               helperText: getConditionHelper(_conditionType),
                             ),
