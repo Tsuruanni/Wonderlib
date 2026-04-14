@@ -146,7 +146,9 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
         'icon': _iconController.text.trim(),
         'category': _category,
         'condition_type': _conditionType,
-        'condition_value': int.tryParse(_conditionValueController.text) ?? 100,
+        'condition_value': _conditionType == 'league_tier_reached'
+            ? 1  // placeholder — RPC evaluates league_tier_reached on condition_param only
+            : int.tryParse(_conditionValueController.text) ?? 100,
         'condition_param': _conditionParam,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 50,
       };
@@ -446,27 +448,26 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
                           const SizedBox(height: 16),
 
-                          // Condition value
-                          TextFormField(
-                            controller: _conditionValueController,
-                            decoration: InputDecoration(
-                              labelText: _conditionType == 'league_tier_reached'
-                                  ? 'Koşul Değeri (lig için 1 bırakın)'
-                                  : 'Koşul Değeri',
-                              hintText: 'ör. 100',
-                              helperText: getConditionHelper(_conditionType),
+                          // Condition value (hidden for league_tier_reached — RPC ignores it)
+                          if (_conditionType != 'league_tier_reached')
+                            TextFormField(
+                              controller: _conditionValueController,
+                              decoration: InputDecoration(
+                                labelText: 'Koşul Değeri',
+                                hintText: 'ör. 100',
+                                helperText: getConditionHelper(_conditionType),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Koşul değeri zorunludur';
+                                }
+                                if (int.tryParse(value) == null) {
+                                  return 'Sayı olmalıdır';
+                                }
+                                return null;
+                              },
                             ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Koşul değeri zorunludur';
-                              }
-                              if (int.tryParse(value) == null) {
-                                return 'Sayı olmalıdır';
-                              }
-                              return null;
-                            },
-                          ),
                           const SizedBox(height: 24),
 
                           Text(

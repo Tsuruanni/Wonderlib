@@ -104,6 +104,11 @@ INSERT INTO badges (name, slug, description, icon, category, condition_type, con
 
 ON CONFLICT (slug) DO NOTHING;
 
+-- NOTE: The UPDATE below is a recovery mechanism. On a fresh DB the INSERT above
+-- already provides English values, making this UPDATE a harmless no-op.
+-- The UPDATE handles the case where this migration was first applied with
+-- Turkish names (pre-hotfix) and the remote rows need translation.
+
 -- Update existing rows that might have been inserted with Turkish names (in case
 -- the original migration landed on remote first). Safe no-op if slugs don't exist.
 UPDATE badges SET
