@@ -134,17 +134,6 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final ct = BadgeConditionType.fromDbValue(_conditionType);
-    if (ct.requiresParam && (_conditionParam == null || _conditionParam!.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Bu koşul türü için parametre seçimi zorunludur.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isSaving = true);
 
     try {
