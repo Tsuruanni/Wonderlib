@@ -48,8 +48,9 @@ The Badge/Achievement system automatically awards badges to students when they r
 | description | TEXT | Optional help text |
 | icon | VARCHAR(50) | Emoji representation |
 | category | VARCHAR(50) | Grouping: achievement, streak, reading, vocabulary, activities, xp, level, special |
-| condition_type | VARCHAR(50) | CHECK constraint: xp_total, streak_days, books_completed, vocabulary_learned, perfect_scores, level_completed |
-| condition_value | INTEGER | Threshold to meet |
+| condition_type | VARCHAR(50) | CHECK constraint: xp_total, streak_days, books_completed, vocabulary_learned, perfect_scores, level_completed, daily_login, cards_collected, myth_category_completed, league_tier_reached |
+| condition_value | INTEGER | Threshold to meet (placeholder `1` for tier badges) |
+| condition_param | VARCHAR(50) NULL | Optional string param — category slug (myth_category_completed) or tier name (league_tier_reached) |
 | xp_reward | INTEGER DEFAULT 0 | XP awarded when badge is earned |
 | is_active | BOOLEAN DEFAULT TRUE | Soft-delete / disable |
 | created_at | TIMESTAMPTZ | |
@@ -142,14 +143,17 @@ The Badge/Achievement system automatically awards badges to students when they r
 
 ### Condition Types
 
-| Type | DB Value | Evaluated Against |
-|------|----------|-------------------|
-| Total XP | `xp_total` | `profiles.xp` |
-| Streak Days | `streak_days` | `profiles.current_streak` |
-| Books Completed | `books_completed` | COUNT of `reading_progress` WHERE `is_completed = TRUE` |
-| Vocabulary Learned | `vocabulary_learned` | COUNT of `vocabulary_progress` WHERE `status = 'mastered'` |
-| Perfect Scores | `perfect_scores` | COUNT of `activity_results` WHERE `score = max_score` |
-| Level Reached | `level_completed` | `profiles.level` |
+| Type | DB Value | Param? | Evaluated Against |
+|------|----------|--------|-------------------|
+| Total XP | `xp_total` | — | `profiles.xp` ≥ condition_value |
+| Streak Days | `streak_days` | — | `profiles.current_streak` ≥ condition_value |
+| Books Completed | `books_completed` | — | COUNT of `reading_progress` WHERE `is_completed = TRUE` ≥ condition_value |
+| Vocabulary Learned | `vocabulary_learned` | — | COUNT of `vocabulary_progress` WHERE `status = 'mastered'` ≥ condition_value |
+| Perfect Scores | `perfect_scores` | — | COUNT of `activity_results` WHERE `score = max_score` ≥ condition_value |
+| Level Reached | `level_completed` | — | `profiles.level` ≥ condition_value |
+| Cards Collected | `cards_collected` | — | COUNT of `user_cards` WHERE `user_id` = user ≥ condition_value |
+| Myth Category Completed | `myth_category_completed` | category slug | COUNT of `user_cards JOIN myth_cards` WHERE `category` = condition_param ≥ condition_value |
+| League Tier Reached | `league_tier_reached` | tier name | `profiles.league_tier` ordinal ≥ condition_param ordinal (bronze=1..diamond=5), AND current tier > 0 |
 
 ### Seeded Badges (17 total)
 
@@ -175,6 +179,27 @@ The Badge/Achievement system automatically awards badges to students when they r
 | XP | Legend | 10000 XP | 500 |
 | Level | Level 5 | Level 5 | 100 |
 | Level | Level 10 | Level 10 | 250 |
+
+### Seeded Card + League Badges (24 new — 2026-04-14)
+
+| Category | Badge | Condition | XP Reward |
+|----------|-------|-----------|-----------|
+| Card Collection | Apprentice Collector | 10 cards | 50 |
+| Card Collection | Card Master | 20 cards | 100 |
+| Card Collection | Card Collector | 50 cards | 250 |
+| Card Collection | Legendary Collector | 96 cards (all) | 1000 |
+| Myth — Turkish | Turkish Myths Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Greece | Ancient Greece Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Viking | Viking Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Egyptian | Egyptian Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Far East | Far East Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Medieval | Medieval Magic Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Weapons | Legendary Weapons Halfway / Master | 6 / 12 cards | 100 / 300 |
+| Myth — Dark | Dark Creatures Halfway / Master | 6 / 12 cards | 100 / 300 |
+| League Tier | Silver League | Reach Silver | 150 |
+| League Tier | Gold League | Reach Gold | 300 |
+| League Tier | Platinum League | Reach Platinum | 600 |
+| League Tier | Diamond League | Reach Diamond | 1200 |
 
 ## Cross-System Interactions
 
@@ -206,6 +231,24 @@ Vocabulary session complete (server-side)
   → complete_vocabulary_session RPC
     → award_xp_transaction (session XP)
     → PERFORM check_and_award_badges(p_user_id) (inside RPC)
+```
+
+```
+Card pack opening
+  → open_card_pack RPC
+    → UPSERT user_cards, UPDATE user_card_stats, INSERT pack_purchases
+    → BEGIN PERFORM check_and_award_badges(p_user_id); EXCEPTION NULL; END
+      → cards_collected / myth_category_completed badges may fire
+      → Badge check is best-effort — failures cannot roll back pack open
+```
+
+```
+Weekly league reset (scheduled, per-user)
+  → process_weekly_league_reset RPC
+    → per-user tier UPDATE (3 paths: per-user loop, early-return bulk CTE, in-WHILE-loop bulk CTE)
+    → BEGIN PERFORM check_and_award_badges_system(user_id); EXCEPTION NULL; END
+      → league_tier_reached badges may fire
+      → Uses _system variant (no auth.uid() check) because scheduled jobs have no session
 ```
 
 ### System Dependencies
@@ -271,6 +314,12 @@ Vocabulary session complete (server-side)
 ### Database
 - `supabase/migrations/20260131000006_create_gamification_tables.sql` — Table schemas
 - `supabase/migrations/20260325000004_badge_earned_notification.sql` — Latest `check_and_award_badges` RPC
+- `supabase/migrations/20260414000002_extend_badge_conditions.sql` — condition_param column + 3 new condition types + updated check_and_award_badges RPC
+- `supabase/migrations/20260414000003_card_pack_badge_trigger.sql` — open_card_pack invokes check_and_award_badges
+- `supabase/migrations/20260414000004_league_reset_badge_trigger.sql` — check_and_award_badges_system (no-auth) + process_weekly_league_reset wired
+- `supabase/migrations/20260414000005_seed_card_and_league_badges.sql` — 24 new seeded badges
+- `supabase/migrations/20260414000010_card_pack_badge_trigger_hotfix.sql` — EXCEPTION wrap hotfix
+- `supabase/migrations/20260414000011_seed_badges_english_hotfix.sql` — Turkish→English translation hotfix
 
 ### Shared
 - `packages/owlio_shared/lib/src/enums/badge_condition_type.dart` — Condition type enum
