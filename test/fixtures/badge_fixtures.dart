@@ -193,6 +193,66 @@ class BadgeFixtures {
         xpBadge(),
         streakBadge(),
       ];
+
+  static Badge mythCategoryBadge() => Badge(
+        id: 'badge-myth-cat',
+        name: 'Turkish Myths Master',
+        slug: 'myth-turkish-12',
+        description: 'Collect all 12 cards in the Turkish Myths category.',
+        icon: '🏛️',
+        category: 'achievement',
+        conditionType: BadgeConditionType.mythCategoryCompleted,
+        conditionValue: 12,
+        conditionParam: 'turkish_myths',
+        xpReward: 300,
+        isActive: true,
+        createdAt: DateTime.parse('2026-04-14T00:00:00Z'),
+      );
+
+  static Badge leagueTierBadge() => Badge(
+        id: 'badge-league-tier',
+        name: 'Gold League',
+        slug: 'league-tier-gold',
+        description: 'Reach the Gold League.',
+        icon: '🥇',
+        category: 'achievement',
+        conditionType: BadgeConditionType.leagueTierReached,
+        conditionValue: 1,
+        conditionParam: 'gold',
+        xpReward: 300,
+        isActive: true,
+        createdAt: DateTime.parse('2026-04-14T00:00:00Z'),
+      );
+
+  static Map<String, dynamic> mythCategoryBadgeJson() => {
+        'id': 'badge-myth-cat',
+        'name': 'Turkish Myths Master',
+        'slug': 'myth-turkish-12',
+        'description': 'Collect all 12 cards in the Turkish Myths category.',
+        'icon': '🏛️',
+        'category': 'achievement',
+        'condition_type': 'myth_category_completed',
+        'condition_value': 12,
+        'condition_param': 'turkish_myths',
+        'xp_reward': 300,
+        'is_active': true,
+        'created_at': '2026-04-14T00:00:00.000Z',
+      };
+
+  static Map<String, dynamic> leagueTierBadgeJson() => {
+        'id': 'badge-league-tier',
+        'name': 'Gold League',
+        'slug': 'league-tier-gold',
+        'description': 'Reach the Gold League.',
+        'icon': '🥇',
+        'category': 'achievement',
+        'condition_type': 'league_tier_reached',
+        'condition_value': 1,
+        'condition_param': 'gold',
+        'xp_reward': 300,
+        'is_active': true,
+        'created_at': '2026-04-14T00:00:00.000Z',
+      };
 }
 
 /// Test fixtures for UserBadge-related tests
