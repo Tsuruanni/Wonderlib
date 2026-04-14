@@ -114,6 +114,18 @@ REVOKE ALL ON FUNCTION check_and_award_badges_system(UUID) FROM authenticated;
 
 -- -----------------------------------------------
 -- Part B: process_weekly_league_reset — badge check injected after each tier update
+--
+-- INVARIANT: Every code path that modifies `profiles.league_tier` in this function
+-- MUST call `check_and_award_badges_system(user_id)` afterwards (wrapped in
+-- BEGIN/EXCEPTION/END so badge failures cannot roll back the league reset).
+-- Current paths: (1) per-user loop update, (2) early-return bulk decay CTE,
+-- (3) in-WHILE-loop bulk decay CTE.
+--
+-- Catch-up safety: multi-week catch-up runs may call the badge RPC multiple times
+-- for the same user across iterations. This is safe because the RPC's
+-- `INSERT ... ON CONFLICT DO NOTHING RETURNING` yields zero rows when the badge
+-- is already owned, so `award_xp_transaction` is only reached on genuinely new
+-- awards — no duplicate XP.
 -- -----------------------------------------------
 CREATE OR REPLACE FUNCTION process_weekly_league_reset()
 RETURNS void
