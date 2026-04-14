@@ -251,6 +251,12 @@ Weekly league reset (scheduled, per-user)
       → Uses _system variant (no auth.uid() check) because scheduled jobs have no session
 ```
 
+> ⚠️ **Maintenance invariant**: `check_and_award_badges` and `check_and_award_badges_system`
+> share their evaluation logic (~90 lines) for security reasons (the latter omits the auth check
+> for scheduled-job contexts). When adding, removing, or modifying any `condition_type` branch,
+> you MUST edit BOTH functions. Migration `20260414000012_badge_rpc_sync_warnings.sql` adds
+> COMMENT ON FUNCTION reminders on both RPCs.
+
 ### System Dependencies
 
 | System | Interaction |
