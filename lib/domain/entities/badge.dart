@@ -14,6 +14,7 @@ class Badge extends Equatable {
     this.category,
     required this.conditionType,
     required this.conditionValue,
+    this.conditionParam,
     this.xpReward = 0,
     this.isActive = true,
     required this.createdAt,
@@ -26,6 +27,7 @@ class Badge extends Equatable {
   final String? category;
   final BadgeConditionType conditionType;
   final int conditionValue;
+  final String? conditionParam;
   final int xpReward;
   final bool isActive;
   final DateTime createdAt;
@@ -40,6 +42,7 @@ class Badge extends Equatable {
         category,
         conditionType,
         conditionValue,
+        conditionParam,
         xpReward,
         isActive,
         createdAt,
