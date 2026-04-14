@@ -165,6 +165,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
           );
           ref.invalidate(wordDetailProvider(widget.wordId!));
           ref.invalidate(vocabularyProvider);
+          _loadWord();
         }
       }
     } catch (e) {
@@ -373,7 +374,7 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
         title: Text(isNewWord ? 'Yeni Kelime' : 'Kelime Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/vocabulary'),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/vocabulary'),
         ),
         actions: [
           if (!isNewWord)

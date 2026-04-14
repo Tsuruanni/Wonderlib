@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
+import '../../utils/app_icons.dart';
 
 /// Collapsible header for the reader screen
 /// Shows book info in expanded state, chapter card in collapsed state
@@ -166,7 +167,7 @@ class _ExpandedContent extends StatelessWidget {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: onClose,
-                child: Icon(Icons.close, color: textColor.withValues(alpha: 0.6), size: 24),
+                child: AppIcons.close(),
               ),
             ],
           ),
@@ -269,7 +270,7 @@ class _CollapsedContent extends StatelessWidget {
             // Close button
             GestureDetector(
               onTap: onClose,
-              child: Icon(Icons.close, color: textColor.withValues(alpha: 0.6), size: 20),
+              child: AppIcons.close(size: 20),
             ),
 
             const SizedBox(width: 12),
@@ -354,7 +355,7 @@ class _CollapsedContent extends StatelessWidget {
                 if (sessionXP > 0) ...[
                   const SizedBox(width: 12),
                   // Gold/XP indicator
-                  Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+                  AppIcons.gem(size: 18),
                   const SizedBox(width: 3),
                   Text(
                     '+$sessionXP',

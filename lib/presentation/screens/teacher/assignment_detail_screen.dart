@@ -646,7 +646,7 @@ class _StudentUnitItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = LearningPathItemDisplay.getIcon(item.itemType);
+    final iconWidget = LearningPathItemDisplay.getIcon(item.itemType, size: 20);
     final color = LearningPathItemDisplay.getColor(item.itemType);
     final String title;
     final List<Widget> details = [];
@@ -733,7 +733,7 @@ class _StudentUnitItemCard extends StatelessWidget {
               color: (item.isTracked ? color : Colors.grey).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: item.isTracked ? color : Colors.grey, size: 20),
+            child: iconWidget,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -842,7 +842,7 @@ class _UnitContentSection extends ConsumerWidget {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                     children: unit.items.map((item) {
-                      final icon = LearningPathItemDisplay.getIcon(item.itemType);
+                      final iconWidget = LearningPathItemDisplay.getIcon(item.itemType, size: 20);
                       final isTracked = LearningPathItemDisplay.isTracked(item.itemType);
                       final String label;
                       final String detail;
@@ -867,7 +867,7 @@ class _UnitContentSection extends ConsumerWidget {
                         children: [
                           ListTile(
                             dense: true,
-                            leading: Icon(icon, size: 20, color: isTracked ? null : context.colorScheme.outline),
+                            leading: iconWidget,
                             title: Text(
                               label,
                               style: TextStyle(

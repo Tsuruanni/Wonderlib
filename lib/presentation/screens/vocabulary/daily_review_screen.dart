@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/sm2_algorithm.dart';
+import '../../utils/app_icons.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/daily_review_provider.dart';
@@ -176,7 +177,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     color: AppColors.danger.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                  child: AppIcons.warning(size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -274,7 +275,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset('assets/icons/gem_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                    AppIcons.gem(size: 32),
                     const SizedBox(width: 8),
                     Text(
                       '+$xpEarned Coins',
@@ -393,7 +394,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.check_circle_rounded, size: 80, color: AppColors.primary),
+              AppIcons.check(size: 80),
               const SizedBox(height: 24),
               Text(
                 'All caught up!',
@@ -410,7 +411,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 height: 50,
                 child: GameButton(
                   label: 'Back',
-                  icon: const Icon(Icons.arrow_back_rounded),
+                  icon: AppIcons.arrowBack(),
                   onPressed: () => context.pop(),
                   variant: GameButtonVariant.secondary,
                 ),
@@ -462,7 +463,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                          context.pop();
                        }
                      },
-                     child: Icon(Icons.close_rounded, color: AppColors.neutralText, size: 32),
+                     child: AppIcons.close(size: 32),
                    ),
                    const SizedBox(width: 16),
                    Expanded(

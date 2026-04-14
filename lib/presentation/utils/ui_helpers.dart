@@ -8,6 +8,7 @@ import '../../domain/entities/student_assignment.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import 'app_icons.dart';
 
 /// Centralized color helpers for assignment UI elements (Teacher side)
 abstract class AssignmentColors {
@@ -77,14 +78,14 @@ abstract class StudentAssignmentColors {
     }
   }
 
-  static IconData getTypeIcon(StudentAssignmentType type) {
+  static Widget getTypeIcon(StudentAssignmentType type, {double size = 24}) {
     switch (type) {
       case StudentAssignmentType.book:
-        return Icons.menu_book;
+        return AppIcons.book(size: size);
       case StudentAssignmentType.vocabulary:
-        return Icons.abc;
+        return AppIcons.vocabulary(size: size);
       case StudentAssignmentType.unit:
-        return Icons.route;
+        return Icon(Icons.route, size: size);
     }
   }
 
@@ -103,18 +104,18 @@ abstract class StudentAssignmentColors {
     }
   }
 
-  static IconData getStatusIcon(StudentAssignmentStatus status) {
+  static Widget getStatusIcon(StudentAssignmentStatus status, {double size = 24}) {
     switch (status) {
       case StudentAssignmentStatus.pending:
-        return Icons.schedule;
+        return AppIcons.schedule(size: size);
       case StudentAssignmentStatus.inProgress:
-        return Icons.play_circle;
+        return Icon(Icons.play_circle, size: size);
       case StudentAssignmentStatus.completed:
-        return Icons.check_circle;
+        return Icon(Icons.check_circle, size: size);
       case StudentAssignmentStatus.overdue:
-        return Icons.warning;
+        return Icon(Icons.warning, size: size);
       case StudentAssignmentStatus.withdrawn:
-        return Icons.person_remove;
+        return Icon(Icons.person_remove, size: size);
     }
   }
 }
@@ -363,16 +364,16 @@ extension VocabularyUnitColor on VocabularyUnit {
 
 /// Centralized icon/color helpers for LearningPathItemType
 abstract class LearningPathItemDisplay {
-  static IconData getIcon(LearningPathItemType type) {
+  static Widget getIcon(LearningPathItemType type, {double size = 24}) {
     switch (type) {
       case LearningPathItemType.wordList:
-        return Icons.abc;
+        return AppIcons.vocabulary(size: size);
       case LearningPathItemType.book:
-        return Icons.menu_book;
+        return AppIcons.book(size: size);
       case LearningPathItemType.game:
-        return Icons.sports_esports;
+        return Icon(Icons.sports_esports, size: size);
       case LearningPathItemType.treasure:
-        return Icons.card_giftcard;
+        return Icon(Icons.card_giftcard, size: size);
     }
   }
 

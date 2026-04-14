@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/tile_theme.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/tile_theme_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/learning_path/map_tile.dart';
@@ -316,7 +317,7 @@ class _UnitCard extends StatelessWidget {
               ),
             ),
             if (unit.isAllComplete)
-              const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 28),
+              AppIcons.check(size: 28),
             if (isActive)
               const Icon(Icons.play_circle_rounded, color: AppColors.secondary, size: 28),
           ],

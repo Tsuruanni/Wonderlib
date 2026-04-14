@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../domain/entities/chapter.dart';
+import '../../utils/app_icons.dart';
 
 /// A popup widget that shows vocabulary word definition
 /// Appears when user taps on a highlighted word
@@ -99,7 +100,7 @@ class ReaderVocabHighlightPopup extends StatelessWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, size: 20),
+                        icon: AppIcons.close(size: 20),
                         onPressed: onClose,
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),

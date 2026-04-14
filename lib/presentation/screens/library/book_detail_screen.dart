@@ -10,6 +10,7 @@ import '../../providers/book_access_provider.dart';
 import '../../providers/book_download_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/game_button.dart';
@@ -411,7 +412,7 @@ class _BookDetailFAB extends ConsumerWidget {
               height: 54,
               child: GameButton(
                 label: 'Take the Quiz',
-                icon: Image.asset('assets/icons/quiz.png', width: 24, height: 24, filterQuality: FilterQuality.high),
+                icon: AppIcons.quiz(),
                 variant: GameButtonVariant.primary,
                 onPressed: () {
                   context.push(AppRoutes.bookQuizPath(bookId));
@@ -535,7 +536,7 @@ class _ProgressSection extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Image.asset('assets/icons/quiz.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+                    AppIcons.quiz(size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../utils/app_icons.dart';
+
 class XPBadge extends StatelessWidget {
   const XPBadge({
     super.key,
@@ -34,7 +36,7 @@ class XPBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
+          AppIcons.gem(size: 20),
           const SizedBox(width: 4),
           Text(
             '+$xp',

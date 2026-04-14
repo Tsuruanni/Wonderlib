@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 import '../../../../core/services/word_audio_player.dart';
+import '../../../utils/app_icons.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_image.dart';
 
@@ -48,9 +49,10 @@ class VocabWordIntroductionCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Word + speaker + meaning — single row
+            // Word + speaker
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 _SpeakerButton(
                   word: word.word,
@@ -66,30 +68,26 @@ class VocabWordIntroductionCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                       color: theme.colorScheme.onSurface,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '—',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    word.meaningTR,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 4),
+
+            // Meaning
+            Text(
+              word.meaningTR,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
 
             // Example sentence
@@ -183,11 +181,7 @@ class _SpeakerButtonState extends State<_SpeakerButton> {
       child: IconButton(
         padding: EdgeInsets.zero,
         onPressed: _isPlaying ? null : _speak,
-        icon: Icon(
-          _isPlaying ? Icons.volume_up : Icons.volume_up_outlined,
-          color: Theme.of(context).colorScheme.primary,
-          size: 22,
-        ),
+        icon: AppIcons.soundOn(size: 22),
       ),
     );
   }

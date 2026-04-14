@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_definition.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/word_definition_provider.dart';
 import '../../utils/ui_helpers.dart';
@@ -162,11 +163,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
               color: AppColors.secondary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.volume_up_rounded,
-              color: AppColors.secondary,
-              size: 20,
-            ),
+            child: AppIcons.soundOn(size: 20),
           ),
         ),
       ],
@@ -295,7 +292,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         if (meaning.sourceBookTitle != null)
           Row(
             children: [
-              const Icon(Icons.menu_book_rounded, color: AppColors.wasp, size: 14),
+              AppIcons.book(size: 14),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(

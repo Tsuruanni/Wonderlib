@@ -906,12 +906,10 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     final phraseWords = word.word.split(' ');
     final distractorCount = max(2, phraseWords.length - 1);
 
-    // Normalize phrase words for dedup comparison
     final phraseWordsNormalized = phraseWords
         .map((w) => _normalize(w))
         .toSet();
 
-    // Source 1: single-word session entries
     final sessionDistractors = state.words
         .where((w) => !w.word.contains(' ') && w.wordId != word.wordId)
         .where((w) => !phraseWordsNormalized.contains(_normalize(w.word)))
@@ -919,13 +917,11 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
         .toList()
       ..shuffle(_random);
 
-    // Source 2: fallback pool
     final fallbackDistractors = _distractorFallbackPool
         .where((w) => !phraseWordsNormalized.contains(w))
         .toList()
       ..shuffle(_random);
 
-    // Combine: session first, fallback fills remaining
     final distractors = <String>[];
     for (final d in sessionDistractors) {
       if (distractors.length >= distractorCount) break;
@@ -936,10 +932,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       if (!distractors.contains(d)) distractors.add(d);
     }
 
-    // Combine phrase words + distractors and shuffle
     final allTiles = [...phraseWords, ...distractors];
 
-    // Ensure shuffled order differs from correct order
     int attempts = 0;
     do {
       allTiles.shuffle(_random);

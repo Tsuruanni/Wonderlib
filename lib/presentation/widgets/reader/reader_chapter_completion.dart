@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/constants/reader_constants.dart';
 import '../../../domain/entities/chapter.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/reader_provider.dart';
 import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
@@ -227,7 +228,7 @@ class _ReaderChapterCompletionState extends State<ReaderChapterCompletion> {
             label: 'Take the Quiz',
             onPressed: widget.onTakeQuiz ?? () {},
             variant: GameButtonVariant.primary,
-            icon: Image.asset('assets/icons/quiz.png', width: 24, height: 24, filterQuality: FilterQuality.high),
+            icon: AppIcons.quiz(),
           ),
         ),
 
@@ -297,7 +298,7 @@ class _ReaderChapterCompletionState extends State<ReaderChapterCompletion> {
             label: 'Finish',
             onPressed: widget.onBackToBook,
             variant: GameButtonVariant.success, // Green for completion
-            icon: const Icon(Icons.check_rounded, color: Colors.white),
+            icon: AppIcons.check(),
           ),
         ),
       ],

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/treasure_wheel.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/treasure_wheel_provider.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/treasure/treasure_wheel_painter.dart';
@@ -76,7 +77,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
         leading: state.phase == TreasureWheelPhase.spinning
             ? const SizedBox.shrink()
             : IconButton(
-                icon: const Icon(Icons.close, color: Colors.white54),
+                icon: AppIcons.close(),
                 onPressed: () => context.pop(),
               ),
       ),

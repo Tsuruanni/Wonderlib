@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
+import '../../utils/app_icons.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/vocabulary_provider.dart';
 
@@ -56,7 +57,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.neutral, width: 2),
                       ),
-                      child: const Icon(Icons.arrow_back_rounded, color: AppColors.black, size: 22),
+                      child: AppIcons.arrowBack(size: 22),
                     ),
                   ),
                   const SizedBox(width: 14),

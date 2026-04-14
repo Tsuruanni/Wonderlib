@@ -8,8 +8,8 @@ import '../../../../domain/entities/vocabulary_session.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
 
-/// Scrambled words: tap word tiles in correct order to form the phrase.
-/// Includes distractor tiles that don't belong to the phrase.
+/// Scrambled words: Duolingo-style word tile arrangement for phrases.
+/// Shows meaning + optional image, answer line slots, and tappable word chips.
 class VocabScrambledWordsQuestion extends StatefulWidget {
   const VocabScrambledWordsQuestion({
     super.key,
@@ -32,8 +32,6 @@ class _VocabScrambledWordsQuestionState
   final _tapSound = LetterTapSoundService();
 
   List<String> get tiles => widget.question.scrambledWordTiles ?? [];
-
-  /// Number of answer slots = number of words in the phrase (not including distractors).
   int get phraseWordCount => widget.question.correctAnswer.split(' ').length;
 
   @override
@@ -46,66 +44,194 @@ class _VocabScrambledWordsQuestionState
     if (_answered || _selectedIndices.contains(index)) return;
     if (_selectedIndices.length >= phraseWordCount) return;
 
-    setState(() {
-      _selectedIndices.add(index);
-    });
-
+    setState(() => _selectedIndices.add(index));
     HapticFeedback.selectionClick();
     _tapSound.playTap(_selectedIndices.length - 1);
 
-    // Auto-submit when all phrase slots are filled
     if (_selectedIndices.length == phraseWordCount) {
       _submit();
     }
   }
 
   void _removeTile(int selectionIndex) {
-    if (_answered) return;
-    if (selectionIndex >= _selectedIndices.length) return;
-
-    setState(() {
-      _selectedIndices.removeAt(selectionIndex);
-    });
+    if (_answered || selectionIndex >= _selectedIndices.length) return;
+    setState(() => _selectedIndices.removeAt(selectionIndex));
     HapticFeedback.lightImpact();
   }
 
   void _submit() {
     if (_answered) return;
     setState(() => _answered = true);
-    final answer = _selectedIndices.map((i) => tiles[i]).join(' ');
-    widget.onAnswer(answer);
+    widget.onAnswer(_selectedIndices.map((i) => tiles[i]).join(' '));
   }
 
-  /// Capitalize first letter of first and last word for display.
-  String _displayWord(String word, int indexInPhrase) {
-    if (word.isEmpty) return word;
-    final phraseWords = widget.question.correctAnswer.split(' ');
-    if (indexInPhrase == 0 || indexInPhrase == phraseWords.length - 1) {
-      return word[0].toUpperCase() + word.substring(1);
+  static String _norm(String s) => s
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^\w\s]', unicode: true), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isWide = MediaQuery.sizeOf(context).width >= 600;
+
+    _FeedbackState feedback = _FeedbackState.none;
+    if (_answered) {
+      final answer = _selectedIndices.map((i) => tiles[i]).join(' ');
+      feedback = _norm(answer) == _norm(widget.question.correctAnswer)
+          ? _FeedbackState.correct
+          : _FeedbackState.incorrect;
     }
-    return word;
+
+    if (isWide) {
+      return _buildWideLayout(theme, feedback);
+    }
+    return _buildMobileLayout(theme, feedback);
   }
 
-  Widget _buildQuestionCard(ThemeData theme, bool isWide) {
+  // ── MOBILE ──────────────────────────────────────────────
+
+  Widget _buildMobileLayout(ThemeData theme, _FeedbackState feedback) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          const SizedBox(height: 4),
+          // Instruction
+          Text(
+            'Arrange words to form the phrase',
+            style: GoogleFonts.nunito(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutralText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+
+          // Prompt card
+          _PromptCard(question: widget.question),
+          const SizedBox(height: 20),
+
+          // Answer zone
+          Expanded(
+            child: Column(
+              children: [
+                _AnswerZone(
+                  phraseWordCount: phraseWordCount,
+                  selectedIndices: _selectedIndices,
+                  tiles: tiles,
+                  feedback: feedback,
+                  onRemove: _removeTile,
+                ),
+                const Spacer(),
+                // Tile pool
+                _TilePool(
+                  tiles: tiles,
+                  selectedIndices: _selectedIndices,
+                  onTap: _tapTile,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── WIDE (tablet/web) ───────────────────────────────────
+
+  Widget _buildWideLayout(ThemeData theme, _FeedbackState feedback) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              'Arrange words to form the phrase',
+              style: GoogleFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutralText,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: prompt card
+                Expanded(child: _PromptCard(question: widget.question)),
+                const SizedBox(width: 32),
+                // Right: answer + tiles
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _AnswerZone(
+                        phraseWordCount: phraseWordCount,
+                        selectedIndices: _selectedIndices,
+                        tiles: tiles,
+                        feedback: feedback,
+                        onRemove: _removeTile,
+                      ),
+                      const SizedBox(height: 32),
+                      _TilePool(
+                        tiles: tiles,
+                        selectedIndices: _selectedIndices,
+                        onTap: _tapTile,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PROMPT CARD
+// ═══════════════════════════════════════════════════════════
+
+class _PromptCard extends StatelessWidget {
+  const _PromptCard({required this.question});
+  final SessionQuestion question;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return VocabQuestionContainer(
       padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           VocabQuestionImage(
-            imageUrl: widget.question.imageUrl,
-            size: isWide ? 180 : 140,
+            imageUrl: question.imageUrl,
+            size: MediaQuery.sizeOf(context).width >= 600 ? 160 : 120,
           ),
           const SizedBox(height: 12),
+          // Meaning chip
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color:
-                  theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
+              color: theme.colorScheme.tertiaryContainer.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              widget.question.targetMeaning,
+              question.targetMeaning,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.tertiary,
                 fontWeight: FontWeight.bold,
@@ -117,213 +243,166 @@ class _VocabScrambledWordsQuestionState
       ),
     );
   }
+}
 
-  Widget _buildWordArea(ThemeData theme) {
-    _SlotStatus slotStatus = _SlotStatus.neutral;
-    if (_answered) {
-      final answer = _selectedIndices.map((i) => tiles[i]).join(' ');
-      final normalizedAnswer = _normalizeForCompare(answer);
-      final normalizedCorrect =
-          _normalizeForCompare(widget.question.correctAnswer);
-      slotStatus = normalizedAnswer == normalizedCorrect
-          ? _SlotStatus.correct
-          : _SlotStatus.incorrect;
-    }
+// ═══════════════════════════════════════════════════════════
+// ANSWER ZONE — underlined slots (Duolingo-style)
+// ═══════════════════════════════════════════════════════════
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Answer Slots (only phraseWordCount slots)
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 8,
-          runSpacing: 12,
-          children: List.generate(phraseWordCount, (index) {
-            final isFilled = index < _selectedIndices.length;
-            final word = isFilled ? tiles[_selectedIndices[index]] : '';
+enum _FeedbackState { none, correct, incorrect }
 
-            return GestureDetector(
-              onTap: isFilled ? () => _removeTile(index) : null,
-              child: _WordSlot(
-                word: isFilled ? _displayWord(word, index) : '',
-                isFilled: isFilled,
-                status: _answered ? slotStatus : _SlotStatus.neutral,
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 24),
-        // Word Tile Pool (all tiles including distractors)
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 10,
-          runSpacing: 10,
-          children: List.generate(tiles.length, (i) {
-            final isUsed = _selectedIndices.contains(i);
-            return _WordTile(
-              word: tiles[i],
-              isUsed: isUsed,
-              onTap: () => _tapTile(i),
-            );
-          }),
-        ),
-      ],
-    );
-  }
+class _AnswerZone extends StatelessWidget {
+  const _AnswerZone({
+    required this.phraseWordCount,
+    required this.selectedIndices,
+    required this.tiles,
+    required this.feedback,
+    required this.onRemove,
+  });
 
-  static String _normalizeForCompare(String s) {
-    return s
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s]', unicode: true), '')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-  }
+  final int phraseWordCount;
+  final List<int> selectedIndices;
+  final List<String> tiles;
+  final _FeedbackState feedback;
+  final void Function(int) onRemove;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    if (isWide) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'Arrange words to form the phrase',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(child: _buildQuestionCard(theme, true)),
-                  const SizedBox(width: 24),
-                  Expanded(child: _buildWordArea(theme)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 6,
+      runSpacing: 10,
+      children: List.generate(phraseWordCount, (index) {
+        final isFilled = index < selectedIndices.length;
+        final word = isFilled ? tiles[selectedIndices[index]] : null;
+
+        return GestureDetector(
+          onTap: isFilled ? () => onRemove(index) : null,
+          child: _AnswerSlot(
+            word: word,
+            feedback: feedback,
+            theme: theme,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _AnswerSlot extends StatelessWidget {
+  const _AnswerSlot({
+    required this.word,
+    required this.feedback,
+    required this.theme,
+  });
+
+  final String? word;
+  final _FeedbackState feedback;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final isFilled = word != null;
+
+    // Feedback colors
+    Color lineColor;
+    Color textColor;
+    Color bgColor;
+
+    switch (feedback) {
+      case _FeedbackState.correct:
+        lineColor = AppColors.primary;
+        textColor = AppColors.primaryDark;
+        bgColor = AppColors.primaryBackground.withValues(alpha: 0.5);
+      case _FeedbackState.incorrect:
+        lineColor = AppColors.danger;
+        textColor = AppColors.dangerDark;
+        bgColor = AppColors.dangerBackground.withValues(alpha: 0.5);
+      case _FeedbackState.none:
+        lineColor = isFilled
+            ? AppColors.secondary
+            : AppColors.gray300;
+        textColor = theme.colorScheme.onSurface;
+        bgColor = isFilled
+            ? AppColors.secondaryBackground.withValues(alpha: 0.3)
+            : Colors.transparent;
+    }
+
+    if (isFilled) {
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: lineColor, width: 2),
         ),
+        child: Text(
+          word!,
+          style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: textColor,
+          ),
+        ).animate().scale(
+              duration: 150.ms,
+              begin: const Offset(0.85, 0.85),
+              end: const Offset(1, 1),
+              curve: Curves.easeOutBack,
+            ),
       );
     }
 
-    // Mobile
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text(
-              'Arrange words to form the phrase',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildQuestionCard(theme, false),
-          const SizedBox(height: 32),
-          _buildWordArea(theme),
-          const SizedBox(height: 24),
-        ],
+    // Empty slot — just an underline
+    return Container(
+      width: 56,
+      height: 38,
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: lineColor, width: 2.5),
+        ),
       ),
     );
   }
 }
 
-enum _SlotStatus { neutral, correct, incorrect }
+// ═══════════════════════════════════════════════════════════
+// TILE POOL — tappable word chips
+// ═══════════════════════════════════════════════════════════
 
-class _WordSlot extends StatelessWidget {
-  const _WordSlot({
-    required this.word,
-    required this.isFilled,
-    required this.status,
+class _TilePool extends StatelessWidget {
+  const _TilePool({
+    required this.tiles,
+    required this.selectedIndices,
+    required this.onTap,
   });
 
-  final String word;
-  final bool isFilled;
-  final _SlotStatus status;
+  final List<String> tiles;
+  final List<int> selectedIndices;
+  final void Function(int) onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    Color borderColor = theme.colorScheme.outline.withValues(alpha: 0.3);
-    Color bgColor =
-        theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
-    Color textColor = theme.colorScheme.onSurface;
-
-    if (status == _SlotStatus.correct) {
-      borderColor = Colors.green;
-      bgColor = Colors.green.withValues(alpha: 0.2);
-      textColor = Colors.green.shade800;
-    } else if (status == _SlotStatus.incorrect) {
-      borderColor = Colors.red;
-      bgColor = Colors.red.withValues(alpha: 0.2);
-      textColor = Colors.red.shade800;
-    } else if (isFilled) {
-      borderColor = theme.colorScheme.primary;
-      bgColor = theme.colorScheme.surface;
-      textColor = theme.colorScheme.onSurface;
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      constraints: const BoxConstraints(minWidth: 56),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: borderColor,
-          width: isFilled || status != _SlotStatus.neutral ? 2 : 1,
-        ),
-        boxShadow: isFilled
-            ? [
-                BoxShadow(
-                  color: theme.colorScheme.shadow.withValues(alpha: 0.05),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
-                ),
-              ]
-            : [],
-      ),
-      child: isFilled
-          ? Text(
-              word,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: textColor,
-              ),
-            ).animate().scale(duration: 200.ms, curve: Curves.easeOutBack)
-          : Container(
-              width: 24,
-              height: 2,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-            ),
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 10,
+      children: List.generate(tiles.length, (i) {
+        final isUsed = selectedIndices.contains(i);
+        return _WordChip(
+          word: tiles[i],
+          isUsed: isUsed,
+          onTap: () => onTap(i),
+        );
+      }),
     );
   }
 }
 
-class _WordTile extends StatelessWidget {
-  const _WordTile({
+class _WordChip extends StatelessWidget {
+  const _WordChip({
     required this.word,
     required this.isUsed,
     required this.onTap,
@@ -335,47 +414,49 @@ class _WordTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: isUsed ? 0.0 : 1.0,
-      child: IgnorePointer(
-        ignoring: isUsed,
-        child: Material(
-          color: theme.colorScheme.surface,
-          elevation: 2,
+    // Used chip → ghost placeholder (keeps layout stable)
+    if (isUsed) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.gray100,
           borderRadius: BorderRadius.circular(12),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 56),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outline.withValues(alpha: 0.1),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-                    offset: const Offset(0, 4),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Text(
-                word,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+          border: Border.all(color: AppColors.gray200, width: 1.5),
+        ),
+        child: Text(
+          word,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: Colors.transparent,
+          ),
+        ),
+      );
+    }
+
+    // Available chip — 3D raised button (Duolingo signature)
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.gray200, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.gray200,
+              offset: Offset(0, 3),
+              blurRadius: 0,
             ),
+          ],
+        ),
+        child: Text(
+          word,
+          style: GoogleFonts.nunito(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.gray700,
           ),
         ),
       ),

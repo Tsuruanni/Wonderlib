@@ -17,6 +17,7 @@ import '../../providers/system_settings_provider.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -150,7 +151,7 @@ class LibraryScreen extends ConsumerWidget {
                ),
              ),
              IconButton(
-               icon: Icon(Icons.close_rounded, color: AppColors.neutralText),
+               icon: AppIcons.close(),
                onPressed: () {
                   ref.read(isSearchActiveProvider.notifier).state = false;
                   ref.read(librarySearchQueryProvider.notifier).state = '';
@@ -626,7 +627,7 @@ class _BookShelfItem extends ConsumerWidget {
                       fit: BoxFit.cover,
                       errorWidget: Container(
                         color: AppColors.neutral.withOpacity(0.2),
-                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText)),
+                        child: Center(child: AppIcons.book(size: 40)),
                       ),
                     ),
                   ),
@@ -645,7 +646,7 @@ class _BookShelfItem extends ConsumerWidget {
                              shape: BoxShape.circle,
                              border: Border.all(color: Colors.white, width: 2),
                            ),
-                           child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                           child: AppIcons.check(size: 16),
                         ),
                      ),
                   if (!isCompleted && isQuizReady)
@@ -814,7 +815,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-           Icon(Icons.menu_book_rounded, size: 60, color: AppColors.neutral),
+           AppIcons.book(size: 60),
            const SizedBox(height: 16),
            Text(
              'No books found',
@@ -939,7 +940,7 @@ class _ContinueReadingCard extends ConsumerWidget {
                       fit: BoxFit.cover,
                       errorWidget: Container(
                         color: AppColors.neutral.withOpacity(0.2),
-                        child: Center(child: Icon(Icons.menu_book_rounded, size: 40, color: AppColors.neutralText)),
+                        child: Center(child: AppIcons.book(size: 40)),
                       ),
                     ),
                   ),
@@ -953,7 +954,7 @@ class _ContinueReadingCard extends ConsumerWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2),
                         ),
-                        child: const Icon(Icons.check_rounded, color: Colors.white, size: 16),
+                        child: AppIcons.check(size: 16),
                       ),
                     ),
                   if (!isCompleted && isQuizReady)
@@ -1048,7 +1049,7 @@ class _QuizBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/icons/quiz.png', width: 12, height: 12, filterQuality: FilterQuality.high),
+          AppIcons.quiz(size: 12),
           const SizedBox(width: 4),
           Text(
             'Take the Quiz!',

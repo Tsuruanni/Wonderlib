@@ -73,7 +73,14 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   Future<void> _loadWordList() async {
     setState(() => _isLoading = true);
 
-    final wordlist = await ref.read(wordlistDetailProvider(widget.listId!).future);
+    // Fetch directly from Supabase to avoid stale provider cache
+    final supabase = ref.read(supabaseClientProvider);
+    final wordlist = await supabase
+        .from(DbTables.wordLists)
+        .select('*, word_list_items(id, order_index, vocabulary_words(*))')
+        .eq('id', widget.listId!)
+        .maybeSingle();
+
     if (wordlist != null && mounted) {
       _nameController.text = wordlist['name'] ?? '';
       _descriptionController.text = wordlist['description'] ?? '';
@@ -135,11 +142,11 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
         await supabase.from(DbTables.wordLists).update(data).eq('id', listId);
       }
 
-      // Update word items
-      // Delete existing items and re-insert
-      await supabase.from(DbTables.wordListItems).delete().eq('word_list_id', listId);
-
+      // Update word items — only sync if we have items loaded
+      // Guard: never delete all items when _wordItems is empty (prevents data loss from stale state)
       if (_wordItems.isNotEmpty) {
+        await supabase.from(DbTables.wordListItems).delete().eq('word_list_id', listId);
+
         final items = _wordItems.asMap().entries.map((entry) => {
               'id': const Uuid().v4(),
               'word_list_id': listId,
@@ -276,48 +283,68 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
 
     setState(() {
       _isGeneratingContent = true;
-      _contentProgress = '0/${incompleteWords.length}';
+      _contentProgress = 'AI üretiyor...';
     });
 
     int successCount = 0;
     int failCount = 0;
+    final failedWords = <String>[];
     final supabase = ref.read(supabaseClientProvider);
 
-    // Process 3 at a time to avoid rate limits
-    for (int i = 0; i < incompleteWords.length; i += 3) {
-      final batch = incompleteWords.skip(i).take(3).toList();
+    try {
+      // Single batch call with all incomplete words
+      final wordNames = incompleteWords
+          .map((w) => w['word'] as String? ?? '')
+          .where((w) => w.isNotEmpty)
+          .toList();
 
-      final futures = batch.map((word) async {
-        final wordName = word['word'] as String? ?? '';
-        try {
-          final response = await supabase.functions.invoke(
-            'generate-word-data',
-            body: {'word': wordName},
+      final response = await supabase.functions.invoke(
+        'generate-word-data',
+        body: {'words': wordNames},
+      );
+
+      if (response.status != 200) {
+        final errMsg = response.data is Map
+            ? (response.data as Map)['error'] ?? 'status ${response.status}'
+            : 'status ${response.status}';
+        debugPrint('generate-word-data batch FAIL: $errMsg');
+        failCount = incompleteWords.length;
+        failedWords.add('Toplu üretim hatası: $errMsg');
+      } else {
+        final data = response.data as Map<String, dynamic>?;
+        final results = (data?['results'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+        // Match results back to words by the 'word' field
+        for (final word in incompleteWords) {
+          final wordName = (word['word'] as String? ?? '').trim().toLowerCase();
+          final result = results.firstWhere(
+            (r) => (r['word'] as String? ?? '').trim().toLowerCase() == wordName,
+            orElse: () => <String, dynamic>{},
           );
 
-          if (response.status != 200) return false;
+          if (result.isEmpty) {
+            failedWords.add('$wordName (AI sonucu bulunamadı)');
+            failCount++;
+            continue;
+          }
 
-          final data = response.data as Map<String, dynamic>?;
-          if (data == null) return false;
-
-          // Only update fields that are currently empty
           final updates = <String, dynamic>{};
-          if (_isEmpty(word['meaning_tr']) && data['meaning_tr'] != null) {
-            updates['meaning_tr'] = data['meaning_tr'];
+          if (_isEmpty(word['meaning_tr']) && result['meaning_tr'] != null) {
+            updates['meaning_tr'] = result['meaning_tr'];
           }
-          if (_isEmpty(word['meaning_en']) && data['meaning_en'] != null) {
-            updates['meaning_en'] = data['meaning_en'];
+          if (_isEmpty(word['meaning_en']) && result['meaning_en'] != null) {
+            updates['meaning_en'] = result['meaning_en'];
           }
-          if (_isEmpty(word['phonetic']) && data['phonetic'] != null) {
-            updates['phonetic'] = data['phonetic'];
+          if (_isEmpty(word['phonetic']) && result['phonetic'] != null) {
+            updates['phonetic'] = result['phonetic'];
           }
           if (_isEmptyList(word['example_sentences']) &&
-              data['example_sentences'] != null) {
-            updates['example_sentences'] = data['example_sentences'];
+              result['example_sentences'] != null) {
+            updates['example_sentences'] = result['example_sentences'];
           }
           if (_isEmpty(word['part_of_speech']) &&
-              data['part_of_speech'] != null) {
-            updates['part_of_speech'] = data['part_of_speech'];
+              result['part_of_speech'] != null) {
+            updates['part_of_speech'] = result['part_of_speech'];
           }
 
           if (updates.isNotEmpty) {
@@ -326,22 +353,20 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                 .update(updates)
                 .eq('id', word['id']);
           }
-          return true;
-        } catch (_) {
-          return false;
+          successCount++;
+
+          if (mounted) {
+            setState(() {
+              _contentProgress =
+                  '$successCount/${incompleteWords.length}';
+            });
+          }
         }
-      });
-
-      final results = await Future.wait(futures);
-      successCount += results.where((r) => r).length;
-      failCount += results.where((r) => !r).length;
-
-      if (mounted) {
-        setState(() {
-          _contentProgress =
-              '${successCount + failCount}/${incompleteWords.length}';
-        });
       }
+    } catch (e) {
+      debugPrint('generate-word-data batch EXCEPTION: $e');
+      failedWords.add('$e');
+      failCount = incompleteWords.length - successCount;
     }
 
     if (mounted) {
@@ -353,9 +378,10 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
         SnackBar(
           content: Text(
             '$successCount kelime güncellendi'
-            '${failCount > 0 ? ', $failCount başarısız' : ''}',
+            '${failCount > 0 ? ', $failCount başarısız: ${failedWords.join(", ")}' : ''}',
           ),
           backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
+          duration: failCount > 0 ? const Duration(seconds: 10) : const Duration(seconds: 4),
         ),
       );
       ref.invalidate(wordlistDetailProvider(widget.listId!));
@@ -373,6 +399,68 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     if (value == null) return true;
     if (value is List) return value.isEmpty;
     return true;
+  }
+
+  Future<void> _clearAllContent() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('İçerikleri Temizle'),
+        content: Text(
+          '${_wordItems.length} kelimenin tüm içerikleri (anlam, phonetic, örnek cümleler) '
+          'temizlenecek. Ses ve görsel korunur.\n\n'
+          'Devam etmek istiyor musunuz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Temizle'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final wordIds = _wordItems
+          .map((w) => w['id'] as String)
+          .toList();
+
+      await supabase
+          .from(DbTables.vocabularyWords)
+          .update({
+            'meaning_tr': null,
+            'meaning_en': null,
+            'phonetic': null,
+            'part_of_speech': null,
+            'example_sentences': null,
+          })
+          .inFilter('id', wordIds);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${wordIds.length} kelimenin içeriği temizlendi'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        ref.invalidate(wordlistDetailProvider(widget.listId!));
+        _loadWordList();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _showImageGenerationDialog() async {
@@ -754,6 +842,17 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ? 'İçerik ($_contentProgress)'
                   : 'İçerikleri Üret'),
             ),
+          const SizedBox(width: 4),
+          if (!isNewList && _wordItems.isNotEmpty)
+            OutlinedButton.icon(
+              onPressed: _clearAllContent,
+              icon: const Icon(Icons.cleaning_services, size: 18),
+              label: const Text('İçerikleri Temizle'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.orange,
+                side: const BorderSide(color: Colors.orange),
+              ),
+            ),
           const SizedBox(width: 8),
           if (!isNewList && _wordItems.isNotEmpty)
             OutlinedButton.icon(
@@ -938,8 +1037,10 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                                     : null,
                                 onSaveField: (field, value) =>
                                     _saveWordField(index, field, value),
-                                onTap: () =>
-                                    context.go('/vocabulary/${word['id']}'),
+                                onTap: () => context.push('/vocabulary/${word['id']}').then((_) {
+                                  ref.invalidate(wordlistDetailProvider(widget.listId!));
+                                  _loadWordList();
+                                }),
                               );
                             }),
                           ),
@@ -950,7 +1051,10 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                 if (_wordItems.isNotEmpty)
                   _WordContentTable(
                     wordItems: _wordItems,
-                    onWordTap: (wordId) => context.go('/vocabulary/$wordId'),
+                    onWordTap: (wordId) => context.push('/vocabulary/$wordId').then((_) {
+                      ref.invalidate(wordlistDetailProvider(widget.listId!));
+                      _loadWordList();
+                    }),
                   ),
               ],
             ),

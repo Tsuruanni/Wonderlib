@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
+import '../../utils/app_icons.dart';
 
 /// Data needed to display the word list progress bottom sheet.
 class NodeProgressData {
@@ -85,11 +86,13 @@ class _ProgressSheetContent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(3, (i) {
               final filled = i < data.starCount;
-              return Icon(
-                filled ? Icons.star_rounded : Icons.star_outline_rounded,
-                size: 32,
-                color: filled ? data.unitColor : AppColors.neutral,
-              );
+              return filled
+                  ? AppIcons.star(size: 32)
+                  : Icon(
+                      Icons.star_outline_rounded,
+                      size: 32,
+                      color: AppColors.neutral,
+                    );
             }),
           ),
           const SizedBox(height: 16),
@@ -104,19 +107,19 @@ class _ProgressSheetContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _StatColumn(
-                  icon: Icons.repeat_rounded,
+                  icon: Icon(Icons.repeat_rounded, color: AppColors.neutralText, size: 20),
                   value: '${data.totalSessions}',
                   label: 'Sessions',
                 ),
                 _StatColumn(
-                  icon: Icons.star_rounded,
+                  icon: AppIcons.star(size: 20),
                   value: data.bestAccuracy != null
                       ? '${data.bestAccuracy!.toInt()}%'
                       : '--',
                   label: 'Best',
                 ),
                 _StatColumn(
-                  icon: Icons.bolt_rounded,
+                  icon: Icon(Icons.bolt_rounded, color: AppColors.neutralText, size: 20),
                   value: data.bestScore != null ? '${data.bestScore}' : '--',
                   label: 'Top Coins',
                 ),
@@ -164,7 +167,7 @@ class _StatColumn extends StatelessWidget {
     required this.label,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String value;
   final String label;
 
@@ -172,7 +175,7 @@ class _StatColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.neutralText, size: 20),
+        icon,
         const SizedBox(height: 4),
         Text(
           value,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/reader_provider.dart';
+import '../../utils/app_icons.dart';
 
 /// Bottom sheet for reader customization
 /// Includes font size, line height, theme, and vocabulary toggle
@@ -43,7 +44,7 @@ class ReaderSettingsSheet extends ConsumerWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
+                  icon: AppIcons.close(),
                 ),
               ],
             ),

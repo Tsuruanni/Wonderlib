@@ -23,6 +23,7 @@ import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
 import '../common/streak_sheet.dart';
+import '../../utils/app_icons.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
 /// Contains stats bar, league card, and daily quests — like Duolingo's web layout.
@@ -697,20 +698,20 @@ class _QuestRow extends StatelessWidget {
 
   final DailyQuestProgress progress;
 
-  IconData _questIcon(String questType) {
+  Widget _questIcon(String questType, Color color) {
     switch (questType) {
       case 'earn_xp':
-        return Icons.bolt_rounded;
+        return Icon(Icons.bolt_rounded, size: 22, color: color);
       case 'spend_time':
-        return Icons.timer_rounded;
+        return Icon(Icons.timer_rounded, size: 22, color: color);
       case 'earn_combo_xp':
-        return Icons.bolt_rounded;
+        return Icon(Icons.bolt_rounded, size: 22, color: color);
       case 'complete_chapters':
-        return Icons.menu_book_rounded;
+        return AppIcons.book(size: 22);
       case 'review_words':
-        return Icons.translate_rounded;
+        return Icon(Icons.translate_rounded, size: 22, color: color);
       default:
-        return Icons.star_rounded;
+        return AppIcons.star(size: 22);
     }
   }
 
@@ -747,7 +748,7 @@ class _QuestRow extends StatelessWidget {
             color: color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
-          child: Icon(_questIcon(quest.questType), color: color, size: 22),
+          child: _questIcon(quest.questType, color),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -822,7 +823,7 @@ class _DailyReviewCard extends ConsumerWidget {
                 color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.check_rounded, color: Colors.white, size: 24),
+              child: AppIcons.check(),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -874,7 +875,7 @@ class _DailyReviewCard extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Image.asset('assets/icons/xp_green_outline.png', width: 24, height: 24, filterQuality: FilterQuality.high),
+                child: AppIcons.xp(),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1404,8 +1405,7 @@ class _MonthlyQuestSidebarCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(Icons.access_time_rounded,
-                  size: 13, color: Colors.white.withValues(alpha: 0.8)),
+              AppIcons.schedule(size: 13),
               const SizedBox(width: 3),
               Text(
                 '$daysLeft DAYS',

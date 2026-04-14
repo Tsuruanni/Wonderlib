@@ -22,7 +22,7 @@ final wordlistsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async
     query = query.eq('unit_id', unitFilter);
   }
 
-  final response = await query.eq('is_system', true).order('name');
+  final response = await query.eq('is_system', true).order('created_at', ascending: false);
   return List<Map<String, dynamic>>.from(response);
 });
 

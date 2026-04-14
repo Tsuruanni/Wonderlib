@@ -6,11 +6,8 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface GenerateWordDataRequest {
-  word: string;
-}
-
 interface GeneratedWordData {
+  word: string;
   phonetic: string;
   part_of_speech: string;
   meaning_tr: string;
@@ -24,19 +21,24 @@ serve(async (req) => {
   }
 
   try {
-    const body: GenerateWordDataRequest = await req.json();
+    const body = await req.json();
 
-    if (!body.word?.trim()) {
+    // Support both single word and batch: { word: "apple" } or { words: ["apple", "run"] }
+    const words: string[] = body.words
+      ? (body.words as string[]).map((w: string) => w.trim().toLowerCase()).filter((w: string) => w.length > 0)
+      : body.word?.trim()
+        ? [body.word.trim().toLowerCase()]
+        : [];
+
+    if (words.length === 0) {
       return new Response(
-        JSON.stringify({ error: "word is required" }),
+        JSON.stringify({ error: "word or words is required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
-
-    const word = body.word.trim().toLowerCase();
 
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) {
@@ -49,9 +51,37 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `You are an English vocabulary assistant for a children's English learning app (ages 6-12, Turkish students).
+    const isBatch = words.length > 1;
 
-Given the English word or phrase "${word}", provide the following data in JSON format:
+    const prompt = isBatch
+      ? `You are an English vocabulary assistant for a children's English learning app (ages 6-12, Turkish students).
+
+Given these English words/phrases, provide data for EACH one as a JSON array:
+
+Words: ${JSON.stringify(words)}
+
+For each word, return an object with these fields:
+{
+  "word": "the original word",
+  "phonetic": "IPA phonetic transcription (e.g. /ˈæp.əl/)",
+  "part_of_speech": "one of: noun, verb, adjective, adverb, pronoun, preposition, conjunction, interjection, article, determiner, phrase",
+  "meaning_tr": "Turkish meaning (1-2 words)",
+  "meaning_en": "Ultra-short hint-style definition (3-6 words max)",
+  "example_sentences": ["3 simple example sentences"]
+}
+
+Rules:
+- Return a JSON ARRAY with one object per word, in the same order as the input
+- Use the MOST COMMON meaning of each word
+- meaning_tr: 1-3 words MAX. For verbs use infinitive with -mek/-mak (e.g. "koşmak" not "koş"). For phrases containing verbs, include the infinitive form (e.g. "bahçede oynamak" not "bahçede oyna")
+- meaning_en: Write like a hint or clue, NOT a dictionary definition. Maximum 6 words.
+- Example sentences: short, natural, age-appropriate
+- Phonetic: proper IPA notation
+- If a word contains spaces (it's a phrase), set part_of_speech to "phrase"
+- Return ONLY valid JSON array, no markdown`
+      : `You are an English vocabulary assistant for a children's English learning app (ages 6-12, Turkish students).
+
+Given the English word or phrase "${words[0]}", provide the following data in JSON format:
 
 {
   "phonetic": "IPA phonetic transcription (e.g. /ˈæp.əl/)",
@@ -63,7 +93,7 @@ Given the English word or phrase "${word}", provide the following data in JSON f
 
 Rules:
 - Use the MOST COMMON meaning of the word
-- meaning_tr: 1-2 words MAX (e.g. "dudak" not "ağzın kenarındaki etli kısım")
+- meaning_tr: 1-3 words MAX. For verbs use infinitive with -mek/-mak (e.g. "koşmak" not "koş", "bahçede oynamak" not "bahçede oyna")
 - meaning_en: Write like a hint or clue, NOT a dictionary definition. Maximum 6 words. Think "what is it?" style answers.
 - Example sentences: short, natural, age-appropriate
 - Phonetic: proper IPA notation
@@ -72,6 +102,8 @@ Rules:
 
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
+    console.log(`Generating data for ${words.length} word(s): ${words.join(", ")}`);
+
     const geminiResponse = await fetch(geminiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,7 +111,7 @@ Rules:
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           temperature: 0.3,
-          maxOutputTokens: 1024,
+          maxOutputTokens: isBatch ? 4096 : 1024,
           responseMimeType: "application/json",
         },
       }),
@@ -87,7 +119,7 @@ Rules:
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
-      console.error(`Gemini API error for "${word}": ${geminiResponse.status} - ${errorText}`);
+      console.error(`Gemini API error: ${geminiResponse.status} - ${errorText}`);
       return new Response(
         JSON.stringify({ error: `Gemini API error: ${geminiResponse.status}` }),
         {
@@ -98,12 +130,10 @@ Rules:
     }
 
     const geminiData = await geminiResponse.json();
-
-    const rawText =
-      geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     if (!rawText) {
-      console.error(`Empty Gemini response for "${word}"`);
+      console.error("Empty Gemini response");
       return new Response(
         JSON.stringify({ error: "Empty response from Gemini" }),
         {
@@ -113,25 +143,47 @@ Rules:
       );
     }
 
-    // Parse JSON (strip markdown fences if present)
     const jsonStr = rawText.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-    const parsed: GeneratedWordData = JSON.parse(jsonStr);
+    const parsed = JSON.parse(jsonStr);
 
-    // Validate required fields
-    const result: GeneratedWordData = {
-      phonetic: parsed.phonetic || "",
-      part_of_speech: parsed.part_of_speech || "noun",
-      meaning_tr: parsed.meaning_tr || "",
-      meaning_en: parsed.meaning_en || "",
-      example_sentences: Array.isArray(parsed.example_sentences)
-        ? parsed.example_sentences.filter((s) => typeof s === "string" && s.trim())
-        : [],
-    };
+    if (isBatch) {
+      // Batch: return array of results
+      const results: GeneratedWordData[] = (Array.isArray(parsed) ? parsed : [parsed]).map(
+        (item: any, index: number) => ({
+          word: item.word || words[index] || "",
+          phonetic: item.phonetic || "",
+          part_of_speech: item.part_of_speech || "noun",
+          meaning_tr: item.meaning_tr || "",
+          meaning_en: item.meaning_en || "",
+          example_sentences: Array.isArray(item.example_sentences)
+            ? item.example_sentences.filter((s: string) => typeof s === "string" && s.trim())
+            : [],
+        })
+      );
 
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+      console.log(`Generated data for ${results.length} words`);
+
+      return new Response(JSON.stringify({ results }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    } else {
+      // Single word: return flat object (backwards compatible)
+      const result = {
+        phonetic: parsed.phonetic || "",
+        part_of_speech: parsed.part_of_speech || "noun",
+        meaning_tr: parsed.meaning_tr || "",
+        meaning_en: parsed.meaning_en || "",
+        example_sentences: Array.isArray(parsed.example_sentences)
+          ? parsed.example_sentences.filter((s: string) => typeof s === "string" && s.trim())
+          : [],
+      };
+
+      return new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   } catch (error) {
     console.error(`generate-word-data error: ${error.message}`);
     return new Response(

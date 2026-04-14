@@ -6,6 +6,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
+import '../../../utils/app_icons.dart';
 import '../../common/feedback_animation.dart';
 
 /// Feedback overlay after answering: green check or red X with correct answer
@@ -198,7 +199,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Image.asset('assets/icons/warning_sign_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+                                AppIcons.warning(size: 18),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Careful! x${widget.combo} combo at risk',
@@ -242,7 +243,7 @@ class _VocabQuestionFeedbackState extends State<VocabQuestionFeedback> {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
+                                AppIcons.gem(size: 20),
                                 const SizedBox(width: 4),
                                 Text(
                                   '+${widget.xpGained}',

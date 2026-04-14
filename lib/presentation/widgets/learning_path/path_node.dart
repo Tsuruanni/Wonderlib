@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
+import '../../utils/app_icons.dart';
 
 /// Node types on the learning path.
 enum NodeType {
@@ -447,14 +448,14 @@ class _PopupCard extends StatelessWidget {
                     child: Column(
                       children: [
                         _StatRow(
-                          icon: Icons.repeat_rounded,
+                          icon: Icon(Icons.repeat_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
                           label: 'Sessions',
                           value: '$totalSessions',
                         ),
                         if (bestAccuracy != null) ...[
                           const SizedBox(height: 6),
                           _StatRow(
-                            icon: Icons.star_rounded,
+                            icon: AppIcons.star(size: 14),
                             label: 'Best Accuracy',
                             value: '${bestAccuracy!.toInt()}%',
                           ),
@@ -462,7 +463,7 @@ class _PopupCard extends StatelessWidget {
                         if (bestScore != null) ...[
                           const SizedBox(height: 6),
                           _StatRow(
-                            icon: Icons.bolt_rounded,
+                            icon: Icon(Icons.bolt_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
                             label: 'Top Coins',
                             value: '$bestScore XP',
                           ),
@@ -826,7 +827,7 @@ class _StatRow extends StatelessWidget {
     required this.value,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String label;
   final String value;
 
@@ -834,7 +835,7 @@ class _StatRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 14),
+        icon,
         const SizedBox(width: 6),
         Expanded(
           child: Text(
@@ -876,47 +877,19 @@ class _StarRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: List.generate(3, (i) {
         final filled = i < count;
-        final shadowOffset = 1.2 * scale;
         return Padding(
           padding: EdgeInsets.only(
             left: i == 0 ? 0 : 1 * scale,
             // Middle star raised slightly for crown effect
             bottom: i == 1 ? 4 * scale : 0,
           ),
-          child: Icon(
-            filled ? Icons.star_rounded : Icons.star_outline_rounded,
-            size: (filled ? 22 : 18) * scale,
-            color: filled ? const Color(0xFFFFD700) : AppColors.neutral,
-            shadows: filled
-                ? [
-                    Shadow(
-                      color: const Color(0xFFB8860B),
-                      blurRadius: 0,
-                      offset: Offset(shadowOffset, 0),
-                    ),
-                    Shadow(
-                      color: const Color(0xFFB8860B),
-                      blurRadius: 0,
-                      offset: Offset(-shadowOffset, 0),
-                    ),
-                    Shadow(
-                      color: const Color(0xFFB8860B),
-                      blurRadius: 0,
-                      offset: Offset(0, shadowOffset),
-                    ),
-                    Shadow(
-                      color: const Color(0xFFB8860B),
-                      blurRadius: 0,
-                      offset: Offset(0, -shadowOffset),
-                    ),
-                    Shadow(
-                      color: const Color(0x66FF8F00),
-                      blurRadius: 6 * scale,
-                      offset: Offset(0, 2 * scale),
-                    ),
-                  ]
-                : null,
-          ),
+          child: filled
+              ? AppIcons.star(size: 22 * scale)
+              : Icon(
+                  Icons.star_outline_rounded,
+                  size: 18 * scale,
+                  color: AppColors.neutral,
+                ),
         );
       }),
     );

@@ -24,6 +24,7 @@ import '../../providers/card_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
 import '../../providers/usecase_providers.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -402,7 +403,7 @@ class _PasswordCard extends ConsumerWidget {
           'Send a password reset link to your email',
           style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
         ),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: AppIcons.arrowRight(),
       ),
     );
   }
@@ -764,8 +765,7 @@ class _CardCollectionSection extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(Icons.chevron_right_rounded,
-                        size: 20, color: AppColors.cardEpic),
+                    AppIcons.arrowRight(size: 20),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -1045,8 +1045,7 @@ class _StatsSection extends ConsumerWidget {
           children: [
             Expanded(
               child: _StatCard(
-                icon: Icons.menu_book_rounded,
-                iconColor: AppColors.secondary,
+                icon: AppIcons.book(size: 22),
                 value: '$booksCompleted',
                 label: 'Books read',
               ),
@@ -1054,8 +1053,7 @@ class _StatsSection extends ConsumerWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _StatCard(
-                icon: Icons.bookmark_rounded,
-                iconColor: AppColors.secondary,
+                icon: Icon(Icons.bookmark_rounded, size: 22, color: AppColors.secondary),
                 value: '$chaptersCompleted',
                 label: 'Chapters read',
               ),
@@ -1067,8 +1065,7 @@ class _StatsSection extends ConsumerWidget {
           children: [
             Expanded(
               child: _StatCard(
-                icon: Icons.schedule_rounded,
-                iconColor: AppColors.streakOrange,
+                icon: AppIcons.schedule(size: 22),
                 value: _formatTime(readingTimeMin),
                 label: 'Reading time',
               ),
@@ -1078,8 +1075,7 @@ class _StatsSection extends ConsumerWidget {
               child: PressableScale(
                 onTap: () => context.push(AppRoutes.wordBank),
                 child: _StatCard(
-                  icon: Icons.translate_rounded,
-                  iconColor: AppColors.gemBlue,
+                  icon: Icon(Icons.translate_rounded, size: 22, color: AppColors.gemBlue),
                   value: '$learningWords',
                   label: 'New words',
                 ),
@@ -1112,8 +1108,7 @@ class _StatsSection extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                Icon(Icons.chevron_right_rounded,
-                    size: 18, color: AppColors.gemBlue),
+                AppIcons.arrowRight(size: 18),
               ],
             ),
           ),
@@ -1134,13 +1129,11 @@ class _StatsSection extends ConsumerWidget {
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
-    required this.iconColor,
     required this.value,
     required this.label,
   });
 
-  final IconData icon;
-  final Color iconColor;
+  final Widget icon;
   final String value;
   final String label;
 
@@ -1161,7 +1154,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 22, color: iconColor),
+              icon,
               const SizedBox(width: 8),
               Text(
                 value,
@@ -1241,8 +1234,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
               color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.check_circle_rounded,
-                color: AppColors.primary, size: 24),
+            child: AppIcons.check(),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1292,7 +1284,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
                 color: AppColors.streakOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Image.asset('assets/icons/xp_green_outline.png', width: 24, height: 24, filterQuality: FilterQuality.high),
+              child: AppIcons.xp(),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -1318,7 +1310,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.streakOrange),
+            AppIcons.arrowRight(),
           ],
         ),
       ),

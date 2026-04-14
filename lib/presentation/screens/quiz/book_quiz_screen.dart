@@ -12,6 +12,7 @@ import '../../providers/book_quiz_provider.dart';
 import '../../providers/usecase_providers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/animated_game_button.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/subtle_background.dart';
@@ -114,7 +115,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                     color: AppColors.danger.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                  child: AppIcons.warning(size: 32),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -168,11 +169,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.menu_book_rounded,
-                size: 64,
-                color: Theme.of(context).colorScheme.outline,
-              ),
+              AppIcons.book(size: 64),
               const SizedBox(height: 16),
               Text(
                 'Finish reading first!',
@@ -191,7 +188,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
               const SizedBox(height: 24),
               AnimatedGameButton(
                 onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: AppIcons.arrowBack(),
                 label: 'Go Back',
                 variant: GameButtonVariant.primary,
               ),
@@ -248,7 +245,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
               const SizedBox(height: 24),
               AnimatedGameButton(
                 onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                icon: AppIcons.arrowBack(),
                 label: 'Go Back',
                 variant: GameButtonVariant.primary,
               ),
@@ -277,7 +274,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 28),
+                  icon: AppIcons.close(size: 28),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF4B5563),
@@ -367,7 +364,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                   Expanded(
                     child: AnimatedGameButton(
                       onPressed: _goToPreviousPage,
-                      icon: const Icon(Icons.arrow_back_rounded),
+                      icon: AppIcons.arrowBack(),
                       label: 'Back',
                       variant: GameButtonVariant.neutral,
                     ),

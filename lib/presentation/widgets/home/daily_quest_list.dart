@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio/app/router.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
+import '../../utils/app_icons.dart';
 
 /// Renders daily quest rows in a styled card.
 class DailyQuestList extends StatelessWidget {
@@ -45,8 +46,7 @@ class DailyQuestList extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.08),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded,
-                        size: 20, color: AppColors.primary),
+                    AppIcons.check(size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -119,11 +119,7 @@ class _QuestRow extends StatelessWidget {
             ),
             child: Center(
               child: isCompleted
-                  ? const Icon(
-                      Icons.check_rounded,
-                      size: 24,
-                      color: AppColors.waspDark,
-                    )
+                  ? AppIcons.check()
                   : Text(
                       quest.icon,
                       style: const TextStyle(fontSize: 20),

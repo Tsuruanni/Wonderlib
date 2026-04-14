@@ -13,6 +13,7 @@ import '../../../domain/entities/vocabulary_session.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/vocabulary_mascot_overlay.dart';
@@ -275,7 +276,7 @@ class _VocabularySessionScreenState
                     child: Row(
                       children: [
                         IconButton(
-                          icon: Image.asset('assets/icons/x_outline_256.png', width: 28.0, height: 28.0, filterQuality: FilterQuality.high),
+                          icon: AppIcons.close(size: 28),
                           onPressed: () => _showExitDialog(context),
                           style: IconButton.styleFrom(
                             foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -302,7 +303,7 @@ class _VocabularySessionScreenState
                           ),
                           child: Row(
                             children: [
-                              Image.asset('assets/icons/gem_outline_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+                              AppIcons.gem(size: 18),
                               const SizedBox(width: 4),
                               Text(
                                 '${sessionState.xpEarned}',
@@ -320,9 +321,12 @@ class _VocabularySessionScreenState
                   
                   const SizedBox(height: 8),
 
-                  // Main content area
+                  // Main content area — bottom padding reserves space for the
+                  // feedback footer that overlays via Positioned(bottom: 0).
                   Expanded(
-                    child: AnimatedSwitcher(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 100),
+                      child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
                       switchInCurve: Curves.easeOutQuad,
                       switchOutCurve: Curves.easeInQuad,
@@ -340,8 +344,9 @@ class _VocabularySessionScreenState
                       },
                       child: _buildContent(sessionState, controller),
                     ),
+                    ),
                   ),
-                  
+
                 ],
               ),
             ),

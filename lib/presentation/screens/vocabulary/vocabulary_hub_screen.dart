@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/learning_path.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/top_navbar.dart';
 import 'unit_map_screen.dart';
 
@@ -181,10 +182,7 @@ class _PathCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.neutralText,
-            ),
+            AppIcons.arrowRight(),
           ],
         ),
       ),

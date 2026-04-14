@@ -8,6 +8,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### AppIcons Registry & Full Icon System Migration (2026-04-14)
+
+#### Added
+- **AppIcons centralized registry** — `lib/presentation/utils/app_icons.dart` provides compile-safe `AppIcons.xxx(size: N)` calls for all 37 custom PNG assets. Single source of truth for icon paths.
+- **New icon assets** — arrow_back, arrow_right, arrow_left, x_outline (close), check_mark, book_brown, vocabulary (A-Z), schedule, sound on/off, star.
+- **quiz.png** replaced with updated quest2 design.
+
+#### Changed
+- **90+ Image.asset calls → AppIcons** — All inline `Image.asset('assets/icons/...')` across 35 files migrated to `AppIcons.xxx()`.
+- **IconData → Widget refactor** — 11 files refactored: widget parameters changed from `IconData` to `Widget` to support PNG icons. Affects `ui_helpers.dart`, `_StatCard`, `_MiniStat`, `_StatRow`, `_StatColumn`, `_questIcon()`, assignment type/status icons.
+- **Icons replaced** — `Icons.arrow_back` (9x), `Icons.close` (11x), `Icons.chevron_right` (7x), `Icons.check_rounded/check_circle` (12x), `Icons.menu_book_rounded` (5x), `Icons.star_rounded` (2x), `Icons.schedule_rounded` (3x), `Icons.volume_up_rounded` (3x), `Icons.headphones_rounded` (1x).
+
 ### League Reset System Fixes & Daily Review Navigation Guard (2026-04-08)
 
 #### Fixed

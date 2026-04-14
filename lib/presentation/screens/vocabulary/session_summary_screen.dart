@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/vocabulary_session_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
 
@@ -20,9 +21,14 @@ class SessionSummaryScreen extends ConsumerStatefulWidget {
   const SessionSummaryScreen({
     super.key,
     required this.listId,
+    this.returnRoute,
   });
 
   final String listId;
+
+  /// When set, "Continue" navigates here instead of popping.
+  /// Used by fullscreen learning path to return to the unit page.
+  final String? returnRoute;
 
   @override
   ConsumerState<SessionSummaryScreen> createState() =>
@@ -124,9 +130,12 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
 
     ref.listen<SessionSaveState>(sessionSaveProvider, (prev, next) {
       if (next.status == SessionSaveStatus.error) {
+        final detail = next.errorMessage;
         showAppSnackBar(
           context,
-          'Failed to save session. Check your connection.',
+          detail != null && detail.isNotEmpty
+              ? 'Failed to save session: $detail'
+              : 'Failed to save session. Check your connection.',
           type: SnackBarType.error,
           actionLabel: 'Retry',
           onAction: _saveSession,
@@ -186,13 +195,15 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
             child: GameButton(
               label: 'Continue',
               onPressed: () {
-                    // Pop back through: summary → session → list detail
-                    // Landing on list detail which is nested under unit detail
-                    var count = 0;
-                    Navigator.of(context).popUntil((route) {
-                      // Pop summary and session screens (2 pops)
-                      return count++ >= 2;
-                    });
+                    if (widget.returnRoute != null) {
+                      context.go(widget.returnRoute!);
+                    } else {
+                      // Pop back through: summary → session → list detail
+                      var count = 0;
+                      Navigator.of(context).popUntil((route) {
+                        return count++ >= 2;
+                      });
+                    }
                   },
               variant: GameButtonVariant.primary,
             ),
@@ -475,7 +486,7 @@ class _WordStatusList extends StatelessWidget {
                   ),
                   if (word.isFirstTryPerfect) ...[
                     const SizedBox(width: 6),
-                    const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                    AppIcons.star(size: 20),
                   ],
                 ],
               ),

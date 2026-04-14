@@ -89,7 +89,7 @@ final wordlistsProvider =
           'word_list_items(order_index, '
           'vocabulary_words(word, audio_url, image_url, example_sentences, meaning_en, phonetic))')
       .eq('is_system', true)
-      .order('name');
+      .order('created_at', ascending: false);
   return List<Map<String, dynamic>>.from(response);
 });
 
@@ -488,7 +488,7 @@ class _VocabularyTab extends ConsumerWidget {
       children: [
         // Kelime
         InkWell(
-          onTap: () => context.go('/vocabulary/${w['id']}'),
+          onTap: () => context.push('/vocabulary/${w['id']}'),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Column(
@@ -595,7 +595,7 @@ class _VocabularyTab extends ConsumerWidget {
         ),
         // Chevron
         InkWell(
-          onTap: () => context.go('/vocabulary/${w['id']}'),
+          onTap: () => context.push('/vocabulary/${w['id']}'),
           child: const Padding(
             padding: EdgeInsets.all(10),
             child:

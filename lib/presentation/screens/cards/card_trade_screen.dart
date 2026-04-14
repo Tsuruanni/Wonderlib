@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/card_trade_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/game_button.dart';
@@ -66,7 +67,7 @@ class _CardTradeScreenState extends ConsumerState<CardTradeScreen>
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
+                    icon: AppIcons.arrowBack(),
                   ),
                   Text(
                     'Trade Duplicates',
@@ -245,7 +246,7 @@ class _TradeTab extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          Image.asset('assets/icons/warning_sign_outline_256.png', width: 16, height: 16, filterQuality: FilterQuality.high),
+                          AppIcons.warning(size: 16),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(

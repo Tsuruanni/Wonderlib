@@ -242,7 +242,9 @@ class _UnitDetailScreenState extends ConsumerState<UnitDetailScreen> {
           bestScore: wl.progress?.bestScore,
           isFirstItem: isFirstItem,
           hasAssignment: unitAssigned || assignedWordListIds.contains(wl.wordList.id),
-          onTap: () => context.push(AppRoutes.vocabularySessionPath(wl.wordList.id)),
+          onTap: () => context.push(
+            AppRoutes.vocabularyUnitSessionPath(widget.pathId, widget.unitIdx, wl.wordList.id),
+          ),
         );
 
       case PathBookItem(:final bookWithProgress):

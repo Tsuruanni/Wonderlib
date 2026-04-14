@@ -2,6 +2,7 @@ import 'dart:ui' show Offset;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../domain/entities/tile_theme.dart';
 import '../widgets/learning_path/tile_themes.dart';
@@ -1008,6 +1009,11 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
     result.fold(
       (failure) {
         if (!mounted) return;
+        Sentry.captureMessage(
+          'Session save failed: ${failure.message}',
+          level: SentryLevel.error,
+          params: [listId],
+        );
         state = SessionSaveState(
           status: SessionSaveStatus.error,
           errorMessage: failure.message,

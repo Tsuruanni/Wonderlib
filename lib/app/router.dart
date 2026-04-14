@@ -115,6 +115,10 @@ abstract class AppRoutes {
       '/vocabulary/path/$pathId';
   static String vocabularyPathUnit(String pathId, int unitIdx) =>
       '/vocabulary/path/$pathId/unit/$unitIdx';
+  static String vocabularyUnitSessionPath(String pathId, int unitIdx, String listId) =>
+      '/vocabulary/path/$pathId/unit/$unitIdx/session/$listId';
+  static String vocabularyUnitSessionSummaryPath(String pathId, int unitIdx, String listId) =>
+      '/vocabulary/path/$pathId/unit/$unitIdx/session/$listId/summary';
   static String vocabularyPathFullscreen(String pathId) =>
       '/vocabulary/path/$pathId/fullscreen';
   static String vocabularyPathFullscreenUnit(String pathId, int unitIdx) =>
@@ -411,6 +415,39 @@ GoRouter _createRouter() {
                             child: UnitDetailScreen(pathId: pathId, unitIdx: unitIdx),
                           );
                         },
+                        routes: [
+                          GoRoute(
+                            path: 'session/:listId',
+                            pageBuilder: (context, state) {
+                              final pathId = state.pathParameters['pathId']!;
+                              final unitIdx = int.parse(state.pathParameters['unitIdx']!);
+                              final listId = state.pathParameters['listId']!;
+                              return ZoomTransitionPage(
+                                key: state.pageKey,
+                                child: VocabularySessionScreen(
+                                  listId: listId,
+                                  summaryRoute: AppRoutes.vocabularyUnitSessionSummaryPath(
+                                    pathId, unitIdx, listId,
+                                  ),
+                                ),
+                              );
+                            },
+                            routes: [
+                              GoRoute(
+                                path: 'summary',
+                                builder: (context, state) {
+                                  final pathId = state.pathParameters['pathId']!;
+                                  final unitIdx = int.parse(state.pathParameters['unitIdx']!);
+                                  final listId = state.pathParameters['listId']!;
+                                  return SessionSummaryScreen(
+                                    listId: listId,
+                                    returnRoute: AppRoutes.vocabularyPathUnit(pathId, unitIdx),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -584,8 +621,13 @@ GoRouter _createRouter() {
                     parentNavigatorKey: rootNavigatorKey,
                     path: 'summary',
                     builder: (context, state) {
+                      final pathId = state.pathParameters['pathId']!;
+                      final unitIdx = int.parse(state.pathParameters['unitIdx']!);
                       final listId = state.pathParameters['listId']!;
-                      return SessionSummaryScreen(listId: listId);
+                      return SessionSummaryScreen(
+                        listId: listId,
+                        returnRoute: AppRoutes.vocabularyPathFullscreenUnit(pathId, unitIdx),
+                      );
                     },
                   ),
                 ],

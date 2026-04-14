@@ -9,6 +9,7 @@ import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/game_button.dart';
 
@@ -88,13 +89,13 @@ class WordListDetailScreen extends ConsumerWidget {
                   Row(
                     children: [
                       _StatChip(
-                        icon: Icons.menu_book_rounded,
+                        icon: AppIcons.book(size: 18),
                         label: '${words.length} words',
                       ),
                       const SizedBox(width: 8),
                       if (wordList.level != null)
                         _StatChip(
-                          icon: Icons.signal_cellular_alt_rounded,
+                          icon: Icon(Icons.signal_cellular_alt_rounded, size: 18, color: AppColors.neutralText),
                           label: wordList.level!,
                         ),
                     ],
@@ -197,7 +198,7 @@ class _ListHeader extends StatelessWidget {
          icon: Container(
            padding: const EdgeInsets.all(8),
            decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
-           child: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+           child: AppIcons.arrowBack(),
          ),
          onPressed: () => context.pop(),
       ),
@@ -302,19 +303,19 @@ class _SessionStatsCard extends StatelessWidget {
           _MiniStat(
             value: '${progress.totalSessions}',
             label: 'Sessions',
-            icon: Icons.repeat_rounded,
+            icon: Icon(Icons.repeat_rounded, size: 20, color: AppColors.primary),
           ),
           if (progress.bestAccuracy != null)
             _MiniStat(
               value: '${progress.bestAccuracy!.toStringAsFixed(0)}%',
               label: 'Best',
-              icon: Icons.star_rounded,
+              icon: AppIcons.star(size: 20),
             ),
           if (progress.bestScore != null)
             _MiniStat(
               value: '${progress.bestScore}',
               label: 'Top Coin',
-              icon: Icons.bolt_rounded,
+              icon: Icon(Icons.bolt_rounded, size: 20, color: AppColors.primary),
             ),
         ],
       ),
@@ -326,13 +327,13 @@ class _MiniStat extends StatelessWidget {
   const _MiniStat({required this.value, required this.label, required this.icon});
   final String value;
   final String label;
-  final IconData icon;
+  final Widget icon;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 20, color: AppColors.primary),
+        icon,
         const SizedBox(height: 4),
         Text(
           value,
@@ -368,11 +369,13 @@ class _StarDisplay extends StatelessWidget {
         final isFilled = i < stars;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Icon(
-            isFilled ? Icons.star_rounded : Icons.star_border_rounded,
-            color: isFilled ? Colors.amber : AppColors.neutral,
-            size: 36,
-          ),
+          child: isFilled
+            ? AppIcons.star(size: 36)
+            : Icon(
+                Icons.star_border_rounded,
+                color: AppColors.neutral,
+                size: 36,
+              ),
         );
       }),
     );
@@ -381,7 +384,7 @@ class _StarDisplay extends StatelessWidget {
 
 class _StatChip extends StatelessWidget {
   const _StatChip({required this.icon, required this.label});
-  final IconData icon;
+  final Widget icon;
   final String label;
 
   @override
@@ -396,7 +399,7 @@ class _StatChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: AppColors.neutralText),
+          icon,
           const SizedBox(width: 8),
           Text(
             label,

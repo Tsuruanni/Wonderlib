@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/avatar.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/avatar_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
@@ -151,7 +152,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
+                AppIcons.gem(size: 20),
                 const SizedBox(width: 4),
                 Text(
                   '${item.coinPrice} coins',

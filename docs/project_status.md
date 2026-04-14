@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-08 (League reset fixes, daily review navigation guard, pg_cron)
+Son güncelleme: 2026-04-14 (AppIcons registry, full icon system migration)
 
 ## Current Phase
 

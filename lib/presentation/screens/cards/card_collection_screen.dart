@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/system_settings_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
@@ -130,7 +131,7 @@ class CardCollectionScreen extends ConsumerWidget {
                         color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 20),
+                      child: AppIcons.close(size: 20),
                     ),
                   ),
                 ),
@@ -568,7 +569,7 @@ class _OpenPackBanner extends ConsumerWidget {
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.asset('assets/icons/gem_outline_256.png', width: 20, height: 20, filterQuality: FilterQuality.high),
+                              AppIcons.gem(size: 20),
                               const SizedBox(width: 6),
                               Text(
                                 '$packCost',
@@ -813,7 +814,7 @@ class _CardDetailInfo extends ConsumerWidget {
     if (ownerCount == 0) {
       return Row(
         children: [
-          Icon(Icons.star_rounded, size: 18, color: rarityColor),
+          AppIcons.star(size: 18),
           const SizedBox(width: 4),
           Flexible(
             child: Text(

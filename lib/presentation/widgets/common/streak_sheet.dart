@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
+import '../../utils/app_icons.dart';
 import '../../../domain/entities/system_settings.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
@@ -461,11 +462,7 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
             ),
             IconButton(
               onPressed: _canGoForward() ? _nextMonth : null,
-              icon: Icon(
-                Icons.chevron_right_rounded,
-                color:
-                    _canGoForward() ? AppColors.gray700 : AppColors.gray300,
-              ),
+              icon: AppIcons.arrowRight(),
             ),
           ],
         ),
@@ -581,7 +578,7 @@ class _DayCell extends StatelessWidget {
           color: AppColors.streakOrange,
           shape: BoxShape.circle,
         ),
-        child: Image.asset('assets/icons/fire_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+        child: AppIcons.fire(size: 18),
       );
     } else if (isFreeze) {
       // Freeze day: blue circle with white snowflake
@@ -593,7 +590,7 @@ class _DayCell extends StatelessWidget {
           shape: BoxShape.circle,
         ),
         child:
-            Image.asset('assets/icons/fire_blue_256.png', width: 16, height: 16, filterQuality: FilterQuality.high),
+            AppIcons.fireBlue(size: 16),
       );
     } else if (isToday) {
       // Today (not logged in): orange outline circle with day number
@@ -753,7 +750,7 @@ class _StatsSection extends StatelessWidget {
                       color: AppColors.gemBlue,
                     ),
                   )
-                : Image.asset('assets/icons/fire_blue_256.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+                : AppIcons.fireBlue(size: 18),
             label: Text(
               'Buy Freeze — $freezePrice coins',
               style: GoogleFonts.nunito(

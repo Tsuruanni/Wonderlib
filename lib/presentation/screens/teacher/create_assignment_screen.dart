@@ -1049,7 +1049,7 @@ class _UnitItemRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = LearningPathItemDisplay.getIcon(item.itemType);
+    final iconWidget = LearningPathItemDisplay.getIcon(item.itemType, size: 16);
     final String label;
     final String? subtitle;
 
@@ -1073,7 +1073,7 @@ class _UnitItemRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: context.colorScheme.outline),
+          iconWidget,
           const SizedBox(width: 8),
           Expanded(
             child: Column(

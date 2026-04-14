@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../widgets/cards/card_reveal_effects.dart';
 import '../../widgets/cards/coin_badge.dart';
@@ -70,8 +71,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_rounded,
-                            color: AppColors.white,),
+                        icon: AppIcons.arrowBack(),
                         onPressed: () => context.pop(),
                       ),
                       const Spacer(),

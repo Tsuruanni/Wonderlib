@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/services/audio_service.dart';
 import '../../providers/audio_sync_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../providers/reader_provider.dart';
 
 /// Floating audio player controls widget - Gamified "Island" Style
@@ -314,7 +315,7 @@ class _AudioErrorPill extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: onDismiss,
-              child: Icon(Icons.close_rounded, size: 18, color: textColor),
+              child: AppIcons.close(size: 18),
             ),
           ],
         ),

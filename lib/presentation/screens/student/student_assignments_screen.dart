@@ -9,6 +9,7 @@ import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/student_assignment_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/top_navbar.dart';
 
 class StudentAssignmentsScreen extends ConsumerWidget {
@@ -238,11 +239,11 @@ class _AssignmentCard extends StatelessWidget {
     };
   }
 
-  IconData get _typeIcon {
+  Widget _typeIconWidget({double size = 24}) {
     return switch (assignment.type) {
-      StudentAssignmentType.book => Icons.auto_stories_rounded,
-      StudentAssignmentType.vocabulary => Icons.abc_rounded,
-      StudentAssignmentType.unit => Icons.route_rounded,
+      StudentAssignmentType.book => AppIcons.book(size: size),
+      StudentAssignmentType.vocabulary => AppIcons.vocabulary(size: size),
+      StudentAssignmentType.unit => Icon(Icons.route_rounded, size: size),
     };
   }
 
@@ -296,11 +297,9 @@ class _AssignmentCard extends StatelessWidget {
                     : _typeColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                isCompleted ? Icons.check_rounded : _typeIcon,
-                size: 24,
-                color: isCompleted ? AppColors.primary : _typeColor,
-              ),
+              child: isCompleted
+                  ? Icon(Icons.check_rounded, size: 24, color: AppColors.primary)
+                  : _typeIconWidget(size: 24),
             ),
             const SizedBox(width: 14),
 
@@ -406,8 +405,7 @@ class _AssignmentCard extends StatelessWidget {
                 ),
               )
             else
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.neutralText, size: 22),
+              AppIcons.arrowRight(size: 22),
           ],
         ),
       ),

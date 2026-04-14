@@ -9,6 +9,7 @@ import '../../../domain/entities/leaderboard_entry.dart';
 import '../../../domain/entities/league_status.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/notification_card.dart';
@@ -836,7 +837,7 @@ class _XpBadge extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        Image.asset('assets/icons/xp_green_outline.png', width: 18, height: 18, filterQuality: FilterQuality.high),
+        AppIcons.xp(size: 18),
       ],
     );
   }

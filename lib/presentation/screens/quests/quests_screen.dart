@@ -10,6 +10,7 @@ import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_quest_list.dart';
 
@@ -269,14 +270,9 @@ class _AssignmentRow extends StatelessWidget {
                       color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.check_rounded, size: 24, color: AppColors.primary),
+                    child: AppIcons.check(),
                   )
-                : Image.asset(
-                    'assets/icons/clipboard_256.png',
-                    width: 38,
-                    height: 38,
-                    filterQuality: FilterQuality.high,
-                  ),
+                : AppIcons.clipboard(size: 38),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -389,11 +385,7 @@ class _MonthlyQuestCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.schedule_rounded,
-                    size: 16,
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
+                  AppIcons.schedule(size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '$daysLeft DAYS',
@@ -529,11 +521,7 @@ class _DailyQuestsHeader extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.schedule_rounded,
-              size: 18,
-              color: AppColors.primary,
-            ),
+            AppIcons.schedule(size: 18),
             const SizedBox(width: 4),
             Text(
               '$hoursLeft HOURS',
@@ -587,8 +575,7 @@ class _BonusRewardCard extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                size: 18, color: AppColors.primary),
+            AppIcons.check(size: 18),
             const SizedBox(width: 8),
             Text(
               'Pack claimed!',

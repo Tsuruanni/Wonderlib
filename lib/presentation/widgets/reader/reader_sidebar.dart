@@ -12,6 +12,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/content_block_provider.dart';
+import '../../utils/app_icons.dart';
 import '../common/game_button.dart';
 
 /// Reader sidebar shown on wide screens (≥1000px) during reader routes.
@@ -188,8 +189,7 @@ class _ChapterTile extends StatelessWidget {
                 ),
                 child: Center(
                   child: isCompleted && !isCurrent
-                      ? const Icon(Icons.check_rounded,
-                          color: Colors.white, size: 14)
+                      ? AppIcons.check(size: 14)
                       : Text(
                           '${index + 1}',
                           style: GoogleFonts.nunito(
@@ -443,9 +443,8 @@ class _BookQuizTile extends ConsumerWidget {
                 ),
                 child: Center(
                   child: isPassed && !isCurrent
-                      ? const Icon(Icons.check_rounded,
-                          color: Colors.white, size: 14)
-                      : Image.asset('assets/icons/quiz.png', width: 13, height: 13, filterQuality: FilterQuality.high),
+                      ? AppIcons.check(size: 14)
+                      : AppIcons.quiz(size: 13),
                 ),
               ),
               const SizedBox(width: 10),
@@ -479,7 +478,7 @@ class _ClickToListenButton extends StatelessWidget {
       onPressed: onTap,
       variant: GameButtonVariant.secondary,
       fullWidth: true,
-      icon: const Icon(Icons.headphones_rounded),
+      icon: AppIcons.soundOn(),
     );
   }
 }

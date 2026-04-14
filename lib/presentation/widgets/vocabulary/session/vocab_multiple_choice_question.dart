@@ -7,6 +7,7 @@ import 'vocab_question_image.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
+import '../../../utils/app_icons.dart';
 
 /// Multiple choice question: EN->TR or TR->EN with 2-4 options
 class VocabMultipleChoiceQuestion extends StatefulWidget {
@@ -99,8 +100,7 @@ class _VocabMultipleChoiceQuestionState extends State<VocabMultipleChoiceQuestio
               if (!isReverse)
                 IconButton(
                   onPressed: () => _speakWord(q),
-                  icon: Icon(Icons.volume_up_rounded,
-                      color: theme.colorScheme.primary),
+                  icon: AppIcons.soundOn(),
                   style: IconButton.styleFrom(
                     backgroundColor: theme.colorScheme.primaryContainer
                         .withValues(alpha: 0.3),

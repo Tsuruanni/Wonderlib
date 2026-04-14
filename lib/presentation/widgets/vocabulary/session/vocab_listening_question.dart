@@ -7,6 +7,7 @@ import 'vocab_question_container.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
+import '../../../utils/app_icons.dart';
 import '../../../widgets/common/game_button.dart';
 
 /// Listening question: audio plays, user selects or types the answer
@@ -130,11 +131,7 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
                   width: 1,
                 ),
               ),
-              child: Icon(
-                Icons.volume_up_rounded,
-                size: 48,
-                color: theme.colorScheme.primary,
-              ),
+              child: AppIcons.soundOn(size: 48),
             )
                 .animate(
                   key: ValueKey('audio_pulse_$_hasPlayedOnce'),

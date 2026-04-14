@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 
 /// Screen to browse word lists in a specific category
@@ -165,13 +166,9 @@ class _WordListCard extends StatelessWidget {
 
             // Status icon
             if (progress?.isComplete ?? false)
-               Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 28)
+               AppIcons.check(size: 28)
             else
-               Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.neutralText,
-                size: 28,
-              ),
+               AppIcons.arrowRight(size: 28),
           ],
         ),
       ),

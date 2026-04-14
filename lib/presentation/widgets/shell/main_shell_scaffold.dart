@@ -9,6 +9,7 @@ import '../../providers/book_quiz_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../screens/cards/card_collection_screen.dart';
 import '../../screens/library/library_screen.dart';
+import '../../utils/app_icons.dart';
 import '../common/avatar_widget.dart';
 import '../common/game_button.dart';
 import '../reader/reader_sidebar.dart';
@@ -312,7 +313,7 @@ class MainShellScaffold extends ConsumerWidget {
                   color: AppColors.danger.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Image.asset('assets/icons/warning_sign_outline_256.png', width: 32, height: 32, filterQuality: FilterQuality.high),
+                child: AppIcons.warning(size: 32),
               ),
               const SizedBox(height: 16),
               Text(

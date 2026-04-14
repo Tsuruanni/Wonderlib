@@ -16,6 +16,7 @@ import '../../providers/student_assignment_provider.dart'
         studentAssignmentControllerProvider,
         studentAssignmentDetailProvider,
         unitAssignmentItemsProvider;
+import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -102,11 +103,11 @@ class _DetailContent extends ConsumerWidget {
     };
   }
 
-  IconData get _typeIcon {
+  Widget _typeIconWidget({double size = 24}) {
     return switch (assignment.type) {
-      StudentAssignmentType.book => Icons.auto_stories_rounded,
-      StudentAssignmentType.vocabulary => Icons.abc_rounded,
-      StudentAssignmentType.unit => Icons.route_rounded,
+      StudentAssignmentType.book => AppIcons.book(size: size),
+      StudentAssignmentType.vocabulary => AppIcons.vocabulary(size: size),
+      StudentAssignmentType.unit => Icon(Icons.route_rounded, size: size),
     };
   }
 
@@ -137,8 +138,7 @@ class _DetailContent extends ConsumerWidget {
                 },
                 child: Row(
                   children: [
-                    const Icon(Icons.arrow_back_rounded,
-                        size: 20, color: AppColors.neutralText),
+                    AppIcons.arrowBack(size: 20),
                     const SizedBox(width: 6),
                     Text(
                       'Back to Assignments',
@@ -182,7 +182,7 @@ class _DetailContent extends ConsumerWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(_typeIcon, size: 14, color: Colors.white),
+                          _typeIconWidget(size: 14),
                           const SizedBox(width: 4),
                           Text(
                             assignment.type.displayName,
@@ -251,8 +251,7 @@ class _DetailContent extends ConsumerWidget {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_statusIcon,
-                                  size: 14, color: _statusColor),
+                              _statusIconWidget(size: 14),
                               const SizedBox(width: 4),
                               Text(
                                 assignment.status.displayName,
@@ -463,7 +462,7 @@ class _DetailContent extends ConsumerWidget {
 
               if (assignment.type == StudentAssignmentType.book)
                 _ActionCard(
-                  icon: Icons.auto_stories_rounded,
+                  icon: AppIcons.book(size: 24),
                   title: 'Read assigned book',
                   subtitle: 'Complete all chapters',
                   color: AppColors.gemBlue,
@@ -475,7 +474,7 @@ class _DetailContent extends ConsumerWidget {
 
               if (assignment.type == StudentAssignmentType.vocabulary)
                 _ActionCard(
-                  icon: Icons.abc_rounded,
+                  icon: AppIcons.vocabulary(size: 24),
                   title: 'Complete vocabulary practice',
                   subtitle: 'Learn and review words',
                   color: AppColors.secondary,
@@ -506,13 +505,13 @@ class _DetailContent extends ConsumerWidget {
     };
   }
 
-  IconData get _statusIcon {
+  Widget _statusIconWidget({double size = 24}) {
     return switch (assignment.status) {
-      StudentAssignmentStatus.pending => Icons.schedule_rounded,
-      StudentAssignmentStatus.inProgress => Icons.play_arrow_rounded,
-      StudentAssignmentStatus.completed => Icons.check_circle_rounded,
-      StudentAssignmentStatus.overdue => Icons.warning_rounded,
-      StudentAssignmentStatus.withdrawn => Icons.block_rounded,
+      StudentAssignmentStatus.pending => AppIcons.schedule(size: size),
+      StudentAssignmentStatus.inProgress => Icon(Icons.play_arrow_rounded, size: size),
+      StudentAssignmentStatus.completed => Icon(Icons.check_circle_rounded, size: size),
+      StudentAssignmentStatus.overdue => Icon(Icons.warning_rounded, size: size),
+      StudentAssignmentStatus.withdrawn => Icon(Icons.block_rounded, size: size),
     };
   }
 
@@ -555,7 +554,7 @@ class _ActionCard extends StatelessWidget {
     this.onTap,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String subtitle;
   final Color color;
@@ -587,7 +586,7 @@ class _ActionCard extends StatelessWidget {
                 color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(icon, color: color, size: 24),
+              child: icon,
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -613,8 +612,7 @@ class _ActionCard extends StatelessWidget {
               ),
             ),
             if (onTap != null)
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.neutralText, size: 22),
+              AppIcons.arrowRight(size: 22),
           ],
         ),
       ),
@@ -693,7 +691,7 @@ class _UnitItemRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final icon = LearningPathItemDisplay.getIcon(item.itemType);
+    final iconWidget = LearningPathItemDisplay.getIcon(item.itemType, size: 22);
     final color = LearningPathItemDisplay.getColor(item.itemType);
     final bool isTracked = item.isTracked;
     final bool isCompleted = item.isCompleted;
@@ -738,11 +736,7 @@ class _UnitItemRow extends ConsumerWidget {
                     .withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: isTracked ? color : AppColors.neutralText,
-                size: 22,
-              ),
+              child: Center(child: iconWidget),
             ),
             const SizedBox(width: 12),
             Expanded(
