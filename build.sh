@@ -22,6 +22,9 @@ POSTHOG_HOST=${POSTHOG_HOST:-https://app.posthog.com}
 CDN_URL=${CDN_URL:-}
 EOF
 
+echo "=== Running code generation ==="
+dart run build_runner build --delete-conflicting-outputs
+
 echo "=== Building Flutter web ==="
 flutter build web --release
 
