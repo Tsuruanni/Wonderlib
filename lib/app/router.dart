@@ -96,6 +96,7 @@ abstract class AppRoutes {
   static const teacherReportReadingProgress = '/teacher/reports/reading-progress';
   static const teacherReportAssignments = '/teacher/reports/assignments';
   static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
+  static const teacherProfile = '/teacher/profile';
 
   // Parameterized route helpers
   static String readerPath(String bookId, String chapterId) =>
@@ -654,6 +655,13 @@ GoRouter _createRouter() {
       // Book quiz moved to library branch (shell visible with reader sidebar)
 
       // Profile moved inside Vocab branch to keep shell visible
+
+      // Teacher profile — full-screen outside teacher shell (no student nav)
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: AppRoutes.teacherProfile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
 
       // Downloaded books management (accessed from profile)
       GoRoute(

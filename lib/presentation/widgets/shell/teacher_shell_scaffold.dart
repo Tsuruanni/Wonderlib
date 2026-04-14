@@ -115,7 +115,7 @@ class TeacherShellScaffold extends StatelessWidget {
                         color: AppColors.neutralDark,
                       ),
                       isSelected: false,
-                      onTap: () => context.push(AppRoutes.profile),
+                      onTap: () => context.push(AppRoutes.teacherProfile),
                     ),
                     const SizedBox(height: 16),
                   ],
