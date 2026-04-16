@@ -4,50 +4,98 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/achievement_group.dart';
 
-/// One row of the All Badges screen — Duolingo-style: colored icon tile with
-/// LEVEL label on the left, title + progress bar + X/Y count + description right.
+/// Duolingo-style achievement row: colored "button" tile on the left with the
+/// emoji and (optional) LEVEL label, title + progress + description on the right.
+/// Maxed groups get a gold gradient treatment to make completion feel rewarding.
 class AchievementGroupRow extends StatelessWidget {
   const AchievementGroupRow({super.key, required this.group});
 
   final AchievementGroup group;
 
-  /// Cycle through the gamification palette based on the group key hash so
-  /// rows visually differ even when all are partially complete.
-  Color _tileColor() {
-    const palette = [
-      AppColors.danger,
-      AppColors.primary,
-      AppColors.wasp,
-      AppColors.secondary,
-      AppColors.streakOrange,
-    ];
-    final idx = group.groupKey.hashCode.abs() % palette.length;
-    return palette[idx];
+  /// Stable category-based color (NOT hash-based). MAX state overrides to gold.
+  ({Color base, Color shadow}) _tileColors() {
+    if (group.isMaxed) {
+      return (base: AppColors.wasp, shadow: AppColors.waspDark);
+    }
+
+    // Myth categories — each gets its own thematic color.
+    if (group.groupKey.startsWith('myth_category_completed:')) {
+      final slug = group.groupKey.substring('myth_category_completed:'.length);
+      switch (slug) {
+        case 'turkish_myths':
+          return (base: AppColors.danger, shadow: AppColors.dangerDark);
+        case 'ancient_greece':
+          return (base: AppColors.secondary, shadow: AppColors.secondaryDark);
+        case 'viking_ice_lands':
+          return (base: AppColors.gemBlue, shadow: AppColors.secondaryDark);
+        case 'egyptian_deserts':
+          return (base: AppColors.wasp, shadow: AppColors.waspDark);
+        case 'far_east':
+          return (base: AppColors.primary, shadow: AppColors.primaryDark);
+        case 'medieval_magic':
+          return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+        case 'legendary_weapons':
+          return (base: AppColors.cardCommon, shadow: AppColors.cardCommonDark);
+        case 'dark_creatures':
+          return (base: AppColors.backgroundDark, shadow: Colors.black);
+        default:
+          return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      }
+    }
+
+    // Other groups — fixed color per condition_type.
+    switch (group.groupKey) {
+      case 'xp_total':
+        return (base: AppColors.primary, shadow: AppColors.primaryDark);
+      case 'streak_days':
+        return (base: AppColors.streakOrange, shadow: AppColors.dangerDark);
+      case 'books_completed':
+        return (base: AppColors.secondary, shadow: AppColors.secondaryDark);
+      case 'vocabulary_learned':
+        return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      case 'perfect_scores':
+        return (base: AppColors.wasp, shadow: AppColors.waspDark);
+      case 'level_completed':
+        return (base: AppColors.wasp, shadow: AppColors.waspDark);
+      case 'cards_collected':
+        return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      case 'league_tier_reached':
+        return (base: AppColors.wasp, shadow: AppColors.waspDark);
+      default:
+        return (base: AppColors.cardCommon, shadow: AppColors.cardCommonDark);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final tileColor = _tileColor();
-    final progress = group.progress;
+    final colors = _tileColors();
+    final showLevelLabel = group.maxLevel >= 3;
     final progressLabel = group.isMaxed
         ? 'MAX'
         : '${group.currentValue}/${group.targetValue}';
+    const fillColor = AppColors.wasp;
+    const fillShadow = Color(0xFFE0A800);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.gray200)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Icon tile with LEVEL label
+          // Button-like tile with bottom shadow for "tactile" feel
           Container(
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: tileColor,
-              borderRadius: BorderRadius.circular(16),
+              color: colors.base,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadow,
+                  offset: const Offset(0, 4),
+                  blurRadius: 0,
+                ),
+              ],
+              border: Border.all(color: colors.shadow, width: 1.5),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -55,16 +103,17 @@ class AchievementGroupRow extends StatelessWidget {
                 Text(
                   group.icon,
                   style: TextStyle(
-                    fontSize: group.maxLevel >= 3 ? 28 : 36,
+                    fontSize: showLevelLabel ? 30 : 38,
                   ),
                 ),
-                if (group.maxLevel >= 3) ...[
+                if (showLevelLabel) ...[
                   const SizedBox(height: 2),
                   Text(
                     group.isMaxed ? 'MAX' : 'LEVEL ${group.currentLevel}',
                     style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       fontSize: 10,
+                      letterSpacing: 0.5,
                       color: Colors.white,
                     ),
                   ),
@@ -73,10 +122,11 @@ class AchievementGroupRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // Text + progress column
+          // Right column: title + progress + description
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
@@ -84,40 +134,35 @@ class AchievementGroupRow extends StatelessWidget {
                       child: Text(
                         group.displayTitle,
                         style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          color: AppColors.neutralText,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 17,
+                          color: AppColors.black,
                         ),
                       ),
                     ),
                     Text(
                       progressLabel,
                       style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         fontSize: 13,
-                        color: AppColors.gray600,
+                        color: group.isMaxed ? AppColors.waspDark : AppColors.gray500,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    backgroundColor: AppColors.gray200,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      group.isMaxed ? AppColors.primary : AppColors.wasp,
-                    ),
-                  ),
+                const SizedBox(height: 8),
+                _ProgressBar(
+                  progress: group.progress,
+                  fillColor: fillColor,
+                  fillShadow: fillShadow,
                 ),
                 if (group.description.isNotEmpty) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     group.description,
                     style: GoogleFonts.nunito(
                       fontSize: 13,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.gray600,
                     ),
                     maxLines: 2,
@@ -128,6 +173,49 @@ class AchievementGroupRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Custom progress bar with rounded ends, slight shadow on the fill, and
+/// a 12px height to feel chunky/tactile like Duolingo's bars.
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({
+    required this.progress,
+    required this.fillColor,
+    required this.fillShadow,
+  });
+
+  final double progress;
+  final Color fillColor;
+  final Color fillShadow;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        height: 12,
+        decoration: BoxDecoration(
+          color: AppColors.gray200,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: FractionallySizedBox(
+            widthFactor: progress.clamp(0.0, 1.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: fillColor,
+                borderRadius: BorderRadius.circular(999),
+                border: Border(
+                  bottom: BorderSide(color: fillShadow, width: 3),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
