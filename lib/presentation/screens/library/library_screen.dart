@@ -14,6 +14,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../providers/system_settings_provider.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/pressable_scale.dart';
@@ -426,14 +427,12 @@ class _LibraryShelf extends ConsumerWidget {
         // Progress Bar Line
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.neutral.withOpacity(0.3),
-              color: color,
-              minHeight: 4,
-            ),
+          child: AppProgressBar(
+            progress: progress,
+            height: 4,
+            fillColor: color,
+            fillShadow: AppColors.primaryDark,
+            backgroundColor: AppColors.gray200,
           ),
         ),
 
@@ -667,13 +666,12 @@ class _BookShelfItem extends ConsumerWidget {
             ),
             // Reading progress bar
             if (percentage > 0 && percentage < 100)
-              ClipRRect(
-                child: LinearProgressIndicator(
-                  value: percentage / 100,
-                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-                  color: AppColors.secondary,
-                  minHeight: 3,
-                ),
+              AppProgressBar(
+                progress: percentage / 100,
+                height: 4,
+                fillColor: AppColors.secondary,
+                fillShadow: AppColors.secondaryDark,
+                backgroundColor: AppColors.gray200,
               ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -973,13 +971,12 @@ class _ContinueReadingCard extends ConsumerWidget {
               ),
             ),
             // Always show progress bar for continue reading
-            ClipRRect(
-              child: LinearProgressIndicator(
-                value: percentage / 100,
-                backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-                color: AppColors.secondary,
-                minHeight: 4,
-              ),
+            AppProgressBar(
+              progress: percentage / 100,
+              height: 4,
+              fillColor: AppColors.secondary,
+              fillShadow: AppColors.secondaryDark,
+              backgroundColor: AppColors.gray200,
             ),
             Padding(
               padding: const EdgeInsets.all(12),
