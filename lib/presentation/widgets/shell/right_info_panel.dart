@@ -592,14 +592,11 @@ class _TeacherQuestRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: AppColors.neutral,
-                    color: iconColor,
-                    minHeight: 8,
-                  ),
+                AppProgressBar(
+                  progress: progress,
+                  height: 8,
+                  fillColor: iconColor,
+                  fillShadow: iconColor.withValues(alpha: 0.6),
                 ),
               ],
             ),
