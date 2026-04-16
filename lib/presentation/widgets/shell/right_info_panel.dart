@@ -733,42 +733,45 @@ class _SidebarQuestRow extends StatelessWidget {
     };
   }
 
-  Widget _buildRewardTile(DailyQuest quest, bool isCompleted) {
+  Widget _buildRewardCluster(DailyQuest quest, bool isCompleted) {
     final colors = isCompleted
         ? (base: AppColors.wasp, shadow: AppColors.waspDark)
         : _rewardColors(quest.rewardType);
     final icon = isCompleted
-        ? AppIcons.check(size: 22)
+        ? AppIcons.check(size: 26)
         : switch (quest.rewardType) {
-            QuestRewardType.coins => AppIcons.gem(size: 22),
-            QuestRewardType.cardPack => AppIcons.card(size: 22),
+            QuestRewardType.coins => AppIcons.gem(size: 26),
+            QuestRewardType.cardPack => AppIcons.card(size: 26),
           };
-    return Container(
-      width: 52,
-      height: 52,
+    final tile = Container(
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: colors.base,
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: colors.shadow, offset: const Offset(0, 4), blurRadius: 0),
+          BoxShadow(color: colors.shadow, offset: const Offset(0, 3), blurRadius: 0),
         ],
-        border: Border.all(color: colors.shadow, width: 1.5),
+        border: Border.all(color: colors.shadow, width: 2),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          icon,
-          Text(
-            isCompleted ? 'DONE' : '${quest.rewardAmount}',
-            style: GoogleFonts.nunito(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 0.5,
-            ),
+      child: Center(child: icon),
+    );
+    if (isCompleted) return tile;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        tile,
+        const SizedBox(width: 4),
+        Text(
+          '×${quest.rewardAmount}',
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            color: colors.shadow,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -817,7 +820,7 @@ class _SidebarQuestRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        _buildRewardTile(quest, isCompleted),
+        _buildRewardCluster(quest, isCompleted),
       ],
     );
   }
