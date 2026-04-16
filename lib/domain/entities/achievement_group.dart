@@ -13,6 +13,7 @@ class AchievementGroup extends Equatable {
     required this.badges,
     required this.earnedBadgeIds,
     required this.currentValue,
+    required this.targetValue,
     required this.nextBadge,
   });
 
@@ -38,6 +39,11 @@ class AchievementGroup extends Equatable {
   /// User's current raw stat (xp, streak days, total cards, tier ordinal, etc.).
   final int currentValue;
 
+  /// Target value for the next badge. For most condition types this is `condition_value`;
+  /// for `league_tier_reached` it is the tier ordinal (silver=2..diamond=5). Computed by
+  /// the provider, NOT derived from `nextBadge.conditionValue` directly. 0 when maxed.
+  final int targetValue;
+
   /// The next badge to work toward. `null` means the user has maxed this track.
   final Badge? nextBadge;
 
@@ -49,9 +55,6 @@ class AchievementGroup extends Equatable {
 
   /// True once every tier in the track is earned.
   bool get isMaxed => nextBadge == null;
-
-  /// Target value for the next badge (condition_value or tier ordinal). 0 when maxed.
-  int get targetValue => nextBadge?.conditionValue ?? 0;
 
   /// Progress toward the next badge, clamped to [0.0, 1.0]. 1.0 when maxed.
   double get progress {
@@ -69,6 +72,7 @@ class AchievementGroup extends Equatable {
         badges,
         earnedBadgeIds,
         currentValue,
+        targetValue,
         nextBadge,
       ];
 }

@@ -85,6 +85,12 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
       allBadgesAsync.stackTrace ?? StackTrace.current,
     );
   }
+  if (userBadgesAsync.hasError) {
+    return AsyncValue.error(
+      userBadgesAsync.error!,
+      userBadgesAsync.stackTrace ?? StackTrace.current,
+    );
+  }
 
   final allBadges = allBadgesAsync.value ?? const <Badge>[];
   final earnedIds = (userBadgesAsync.value ?? const [])
@@ -183,6 +189,7 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
       badges: badges,
       earnedBadgeIds: earnedInGroup.map((b) => b.id).toList(),
       currentValue: currentValue,
+      targetValue: effectiveNext == null ? 0 : thresholdFor(effectiveNext),
       nextBadge: effectiveNext,
     ),);
   }
@@ -191,7 +198,9 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
     if (a.isMaxed && !b.isMaxed) return 1;
     if (!a.isMaxed && b.isMaxed) return -1;
     if (a.isMaxed && b.isMaxed) return a.title.compareTo(b.title);
-    return b.progress.compareTo(a.progress);
+    final progressCmp = b.progress.compareTo(a.progress);
+    if (progressCmp != 0) return progressCmp;
+    return a.groupKey.compareTo(b.groupKey);
   });
 
   return AsyncValue.data(groups);
