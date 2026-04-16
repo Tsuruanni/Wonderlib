@@ -24,18 +24,40 @@ class DailyQuestList extends StatelessWidget {
     final sorted = [...progress]
       ..sort((a, b) => a.quest.rewardAmount.compareTo(b.quest.rewardAmount));
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (allComplete) ...[
-          _AllCompleteBanner(),
-          const SizedBox(height: 12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.neutral,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
         ],
-        for (int i = 0; i < sorted.length; i++) ...[
-          if (i > 0) const SizedBox(height: 10),
-          _QuestRow(progress: sorted[i]),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (allComplete) ...[
+            _AllCompleteBanner(),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Divider(height: 1, color: AppColors.neutral),
+            ),
+          ],
+          for (int i = 0; i < sorted.length; i++) ...[
+            if (i > 0)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Divider(height: 1, color: AppColors.neutral),
+              ),
+            _QuestRow(progress: sorted[i]),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -137,50 +159,35 @@ class _QuestRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: route != null ? () => context.go(route) : null,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.neutral, width: 2),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.neutral,
-              offset: Offset(0, 4),
-              blurRadius: 0,
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    quest.title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color:
-                          isCompleted ? AppColors.neutralText : AppColors.black,
-                    ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  quest.title,
+                  style: GoogleFonts.nunito(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color:
+                        isCompleted ? AppColors.neutralText : AppColors.black,
                   ),
                 ),
-                const SizedBox(width: 12),
-                _buildRewardContent(quest, isCompleted),
-              ],
-            ),
-            const SizedBox(height: 12),
-            AppProgressBar(
-              progress: ratio,
-              height: 8,
-              fillColor: rewardColors.base,
-              fillShadow: rewardColors.shadow,
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 12),
+              _buildRewardContent(quest, isCompleted),
+            ],
+          ),
+          const SizedBox(height: 12),
+          AppProgressBar(
+            progress: ratio,
+            height: 8,
+            fillColor: rewardColors.base,
+            fillShadow: rewardColors.shadow,
+          ),
+        ],
       ),
     );
   }

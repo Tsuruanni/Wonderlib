@@ -707,10 +707,17 @@ class _DailyQuestsCard extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Divider(height: 1, color: AppColors.neutral),
+                  ),
                 ],
                 for (int i = 0; i < sorted.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 10),
+                  if (i > 0)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Divider(height: 1, color: AppColors.neutral),
+                    ),
                   _SidebarQuestRow(progress: sorted[i]),
                 ],
               ],
@@ -777,51 +784,36 @@ class _SidebarQuestRow extends StatelessWidget {
         ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: Offset(0, 3),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Text(
-                  quest.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: isCompleted ? AppColors.neutralText : AppColors.black,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Text(
+                quest.title,
+                style: GoogleFonts.nunito(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: isCompleted ? AppColors.neutralText : AppColors.black,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: 10),
-              _buildRewardContent(quest, isCompleted),
-            ],
-          ),
-          const SizedBox(height: 10),
-          AppProgressBar(
-            progress: ratio,
-            height: 6,
-            fillColor: rewardColors.base,
-            fillShadow: rewardColors.shadow,
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(width: 10),
+            _buildRewardContent(quest, isCompleted),
+          ],
+        ),
+        const SizedBox(height: 10),
+        AppProgressBar(
+          progress: ratio,
+          height: 6,
+          fillColor: rewardColors.base,
+          fillShadow: rewardColors.shadow,
+        ),
+      ],
     );
   }
 }
