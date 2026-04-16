@@ -9,6 +9,7 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
+import '../../../widgets/common/app_progress_bar.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
@@ -246,14 +247,12 @@ class _EnrichedClassCard extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: classItem.avgProgress / 100,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: ScoreColors.getProgressColor(classItem.avgProgress),
-              minHeight: 6,
-            ),
+          AppProgressBar(
+            progress: classItem.avgProgress / 100,
+            fillColor: ScoreColors.getProgressColor(classItem.avgProgress),
+            fillShadow: ScoreColors.getProgressColor(classItem.avgProgress).withValues(alpha: 0.6),
+            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+            height: 6,
           ),
 
           const SizedBox(height: 14),

@@ -8,6 +8,7 @@ import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
+import '../../../widgets/common/app_progress_bar.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
@@ -257,14 +258,12 @@ class _AssignmentReportCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: assignment.completionRate / 100,
-                            backgroundColor: context.colorScheme.surfaceContainerHighest,
-                            color: ScoreColors.getCompletionColor(assignment.completionRate),
-                            minHeight: 8,
-                          ),
+                        AppProgressBar(
+                          progress: assignment.completionRate / 100,
+                          fillColor: ScoreColors.getCompletionColor(assignment.completionRate),
+                          fillShadow: ScoreColors.getCompletionColor(assignment.completionRate).withValues(alpha: 0.6),
+                          backgroundColor: context.colorScheme.surfaceContainerHighest,
+                          height: 8,
                         ),
                       ],
                     ),

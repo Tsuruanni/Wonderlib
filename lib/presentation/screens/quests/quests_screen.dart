@@ -15,6 +15,7 @@ import '../../providers/student_assignment_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../utils/monthly_tier_info.dart';
 import '../../widgets/common/top_navbar.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/home/daily_quest_list.dart';
 
 // ---------------------------------------------------------------------------
@@ -291,14 +292,12 @@ class _AssignmentRow extends StatelessWidget {
                   ),
                   if (!isCompleted && progress > 0) ...[
                     const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral,
-                        color: iconColor,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: progress,
+                      fillColor: iconColor,
+                      fillShadow: iconColor.withValues(alpha: 0.6),
+                      backgroundColor: AppColors.neutral,
+                      height: 6,
                     ),
                   ],
                 ],

@@ -14,6 +14,7 @@ import '../../widgets/common/student_profile_dialog.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/notification_card.dart';
 import '../../widgets/common/notification_overlay_manager.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
 class LeaderboardScreen extends ConsumerStatefulWidget {
@@ -1099,14 +1100,12 @@ class _NotJoinedCard extends StatelessWidget {
                   color: AppColors.neutralText, fontWeight: FontWeight.w600,),
             ),
             const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 10,
-                backgroundColor: AppColors.neutral,
-                color: AppColors.waspDark,
-              ),
+            AppProgressBar(
+              progress: progress,
+              fillColor: AppColors.waspDark,
+              fillShadow: AppColors.waspDark.withValues(alpha: 0.6),
+              backgroundColor: AppColors.neutral,
+              height: 10,
             ),
             const SizedBox(height: 8),
             Text(

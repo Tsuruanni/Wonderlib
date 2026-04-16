@@ -13,6 +13,7 @@ import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/cards/trade_button_card.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
 /// Tracks which card categories are expanded (web only).
@@ -381,14 +382,12 @@ class _CategorySection extends ConsumerWidget {
         // Progress Bar Line
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: CardColors.getCategoryColor(category),
-              minHeight: 4,
-            ),
+          child: AppProgressBar(
+            progress: progress,
+            fillColor: CardColors.getCategoryColor(category),
+            fillShadow: CardColors.getCategoryColor(category).withValues(alpha: 0.6),
+            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+            height: 4,
           ),
         ),
 

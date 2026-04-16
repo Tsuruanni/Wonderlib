@@ -14,6 +14,7 @@ import '../../utils/app_icons.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/library/download_button.dart';
 
 class BookDetailScreen extends ConsumerWidget {
@@ -507,13 +508,10 @@ class _ProgressSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: percentage / 100,
-                minHeight: 8,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-              ),
+            AppProgressBar(
+              progress: percentage / 100,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              height: 8,
             ),
             const SizedBox(height: 8),
             Text(

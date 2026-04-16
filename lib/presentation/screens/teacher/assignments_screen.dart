@@ -8,6 +8,7 @@ import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -261,13 +262,10 @@ class _AssignmentCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: assignment.completionRate / 100,
-                        backgroundColor: context.colorScheme.surfaceContainerHighest,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: assignment.completionRate / 100,
+                      backgroundColor: context.colorScheme.surfaceContainerHighest,
+                      height: 6,
                     ),
                     const SizedBox(height: 4),
                     Text(

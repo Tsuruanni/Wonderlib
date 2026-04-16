@@ -13,6 +13,7 @@ import '../../providers/usecase_providers.dart';
 import '../../utils/login_cards_pdf.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/animated_game_button.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -687,14 +688,12 @@ class _ReportStudentCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           // Progress bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: student.avgProgress / 100,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: ScoreColors.getProgressColor(student.avgProgress),
-              minHeight: 5,
-            ),
+          AppProgressBar(
+            progress: student.avgProgress / 100,
+            fillColor: ScoreColors.getProgressColor(student.avgProgress),
+            fillShadow: ScoreColors.getProgressColor(student.avgProgress).withValues(alpha: 0.6),
+            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+            height: 5,
           ),
           const SizedBox(height: 8),
           // Stat chips
