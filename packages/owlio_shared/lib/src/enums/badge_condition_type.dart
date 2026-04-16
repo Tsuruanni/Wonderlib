@@ -4,7 +4,6 @@ enum BadgeConditionType {
   streakDays('streak_days'),
   booksCompleted('books_completed'),
   vocabularyLearned('vocabulary_learned'),
-  perfectScores('perfect_scores'),
   levelCompleted('level_completed'),
   cardsCollected('cards_collected'),
   mythCategoryCompleted('myth_category_completed'),

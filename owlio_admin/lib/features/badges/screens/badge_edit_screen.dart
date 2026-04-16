@@ -57,7 +57,6 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     (BadgeConditionType.streakDays.dbValue, 'Ardışık Aktif Gün'),
     (BadgeConditionType.booksCompleted.dbValue, 'Tamamlanan Kitaplar'),
     (BadgeConditionType.vocabularyLearned.dbValue, 'Öğrenilen Kelimeler'),
-    (BadgeConditionType.perfectScores.dbValue, 'Tam Puan Etkinlik Skorları'),
     (BadgeConditionType.levelCompleted.dbValue, 'Ulaşılan Seviye'),
     (BadgeConditionType.cardsCollected.dbValue, 'Toplanan Kart Sayısı'),
     (BadgeConditionType.mythCategoryCompleted.dbValue, 'Kategori Bazlı Kart Toplama'),

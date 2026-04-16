@@ -5,7 +5,6 @@ import '../../domain/entities/badge.dart';
 import 'badge_provider.dart';
 import 'book_provider.dart';
 import 'card_provider.dart';
-import 'perfect_scores_provider.dart';
 import 'user_provider.dart';
 import 'vocabulary_provider.dart';
 
@@ -39,7 +38,6 @@ const Map<String, _GroupMeta> _groupMetaByConditionType = {
   'streak_days': _GroupMeta('Streak', '🔥'),
   'books_completed': _GroupMeta('Books', '📚'),
   'vocabulary_learned': _GroupMeta('Vocabulary', '📝'),
-  'perfect_scores': _GroupMeta('Perfect Scores', '💯'),
   'level_completed': _GroupMeta('Level', '🎖️'),
   'cards_collected': _GroupMeta('Card Collection', '🎴'),
   'league_tier_reached': _GroupMeta('League', '🏆'),
@@ -64,8 +62,7 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
   final userAsync = ref.watch(userControllerProvider);
   final userCardsAsync = ref.watch(userCardsProvider);
   final completedBooksAsync = ref.watch(completedBookIdsProvider);
-  final vocabStatsAsync = ref.watch(vocabularyStatsProvider);
-  final perfectScoresAsync = ref.watch(perfectScoresCountProvider);
+  final vocabProgressAsync = ref.watch(userVocabularyProgressProvider);
   final categoryProgress = ref.watch(categoryProgressProvider);
   final displayStreak = ref.watch(displayStreakProvider);
 
@@ -74,8 +71,7 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
       userAsync.isLoading ||
       userCardsAsync.isLoading ||
       completedBooksAsync.isLoading ||
-      vocabStatsAsync.isLoading ||
-      perfectScoresAsync.isLoading) {
+      vocabProgressAsync.isLoading) {
     return const AsyncValue.loading();
   }
 
@@ -105,8 +101,7 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
   final tierOrdinal = _leagueTierOrdinal(user?.leagueTier.dbValue);
   final totalCards = (userCardsAsync.value ?? const []).length;
   final booksCompleted = (completedBooksAsync.value ?? const <String>{}).length;
-  final vocabMastered = (vocabStatsAsync.value ?? const <String, int>{})['mastered'] ?? 0;
-  final perfectScores = perfectScoresAsync.value ?? 0;
+  final vocabCollected = (vocabProgressAsync.value ?? const []).length;
 
   final Map<String, List<Badge>> buckets = {};
   for (final b in allBadges) {
@@ -125,9 +120,7 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
       case BadgeConditionType.booksCompleted:
         return booksCompleted;
       case BadgeConditionType.vocabularyLearned:
-        return vocabMastered;
-      case BadgeConditionType.perfectScores:
-        return perfectScores;
+        return vocabCollected;
       case BadgeConditionType.levelCompleted:
         return level;
       case BadgeConditionType.cardsCollected:

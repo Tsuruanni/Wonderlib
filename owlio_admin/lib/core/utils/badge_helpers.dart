@@ -10,7 +10,6 @@ String getConditionLabel(String type, int value, [String? param]) {
     'streak_days' => '$value gün',
     'books_completed' => '$value kitap',
     'vocabulary_learned' => '$value kelime',
-    'perfect_scores' => '$value tam puan',
     'level_completed' => '$value seviye',
     'cards_collected' => '$value kart',
     'myth_category_completed' =>
@@ -28,7 +27,6 @@ String getConditionHelper(String type) {
     'streak_days' => 'Ardışık aktif gün sayısı',
     'books_completed' => 'Tamamlanması gereken kitap sayısı',
     'vocabulary_learned' => 'Öğrenilmesi gereken kelime sayısı',
-    'perfect_scores' => 'Etkinliklerde tam puan sayısı',
     'level_completed' => 'Ulaşılması gereken seviye',
     'cards_collected' => 'Toplanması gereken farklı kart sayısı',
     'myth_category_completed' =>
