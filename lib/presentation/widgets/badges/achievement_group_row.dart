@@ -66,6 +66,25 @@ class AchievementGroupRow extends StatelessWidget {
     }
   }
 
+  /// Renders the icon as Image.asset when it starts with 'assets/', otherwise as
+  /// a Text emoji. Asset images are sized larger to feel comparable visually to
+  /// the emoji text size.
+  static Widget _buildIconContent(
+    String icon, {
+    required double emojiSize,
+    required double imageSize,
+  }) {
+    if (icon.startsWith('assets/')) {
+      return Image.asset(
+        icon,
+        width: imageSize,
+        height: imageSize,
+        fit: BoxFit.contain,
+      );
+    }
+    return Text(icon, style: TextStyle(fontSize: emojiSize));
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = _tileColors();
@@ -100,13 +119,14 @@ class AchievementGroupRow extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                _buildIconContent(
                   group.displayIcon,
-                  style: TextStyle(
-                    fontSize: (showLevelLabel && (group.isMaxed || group.currentLevel >= 1))
-                        ? 30
-                        : 38,
-                  ),
+                  emojiSize: (showLevelLabel && (group.isMaxed || group.currentLevel >= 1))
+                      ? 30
+                      : 38,
+                  imageSize: (showLevelLabel && (group.isMaxed || group.currentLevel >= 1))
+                      ? 44
+                      : 56,
                 ),
                 if (showLevelLabel && (group.isMaxed || group.currentLevel >= 1)) ...[
                   const SizedBox(height: 2),

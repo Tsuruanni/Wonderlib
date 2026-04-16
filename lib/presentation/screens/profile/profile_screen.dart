@@ -1029,10 +1029,17 @@ class _MiniAchievementRow extends StatelessWidget {
               border: Border.all(color: colors.shadow, width: 1.2),
             ),
             child: Center(
-              child: Text(
-                group.displayIcon,
-                style: const TextStyle(fontSize: 28),
-              ),
+              child: group.displayIcon.startsWith('assets/')
+                  ? Image.asset(
+                      group.displayIcon,
+                      width: 42,
+                      height: 42,
+                      fit: BoxFit.contain,
+                    )
+                  : Text(
+                      group.displayIcon,
+                      style: const TextStyle(fontSize: 28),
+                    ),
             ),
           ),
           const SizedBox(width: 12),
