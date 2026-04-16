@@ -52,16 +52,23 @@ class AchievementGroupRow extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(group.icon, style: const TextStyle(fontSize: 28)),
-                const SizedBox(height: 2),
                 Text(
-                  group.isMaxed ? 'MAX' : 'LEVEL ${group.currentLevel}',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 10,
-                    color: Colors.white,
+                  group.icon,
+                  style: TextStyle(
+                    fontSize: group.maxLevel >= 3 ? 28 : 36,
                   ),
                 ),
+                if (group.maxLevel >= 3) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    group.isMaxed ? 'MAX' : 'LEVEL ${group.currentLevel}',
+                    style: GoogleFonts.nunito(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -75,7 +82,7 @@ class AchievementGroupRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        group.title,
+                        group.displayTitle,
                         style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w800,
                           fontSize: 16,

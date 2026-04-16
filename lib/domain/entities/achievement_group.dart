@@ -63,6 +63,21 @@ class AchievementGroup extends Equatable {
     return (currentValue / targetValue).clamp(0.0, 1.0).toDouble();
   }
 
+  /// Display title — shows the user's current achievement state instead of the
+  /// generic group name. Returns the name of the highest earned badge if any,
+  /// otherwise the name of the next badge to work toward, otherwise the group title.
+  String get displayTitle {
+    // The badges list is sorted ascending by threshold, so the LAST earned
+    // is the highest tier achieved.
+    for (var i = badges.length - 1; i >= 0; i--) {
+      if (earnedBadgeIds.contains(badges[i].id)) {
+        return badges[i].name;
+      }
+    }
+    if (nextBadge != null) return nextBadge!.name;
+    return title;
+  }
+
   @override
   List<Object?> get props => [
         groupKey,
