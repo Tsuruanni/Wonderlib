@@ -180,13 +180,15 @@ class _QuestRow extends StatelessWidget {
               _buildRewardContent(quest, isCompleted),
             ],
           ),
-          const SizedBox(height: 12),
-          AppProgressBar(
-            progress: ratio,
-            height: 8,
-            fillColor: rewardColors.base,
-            fillShadow: rewardColors.shadow,
-          ),
+          if (currentValue > 0) ...[
+            const SizedBox(height: 12),
+            AppProgressBar(
+              progress: ratio,
+              height: 8,
+              fillColor: rewardColors.base,
+              fillShadow: rewardColors.shadow,
+            ),
+          ],
         ],
       ),
     );

@@ -806,13 +806,15 @@ class _SidebarQuestRow extends StatelessWidget {
             _buildRewardContent(quest, isCompleted),
           ],
         ),
-        const SizedBox(height: 10),
-        AppProgressBar(
-          progress: ratio,
-          height: 6,
-          fillColor: rewardColors.base,
-          fillShadow: rewardColors.shadow,
-        ),
+        if (progress.currentValue > 0) ...[
+          const SizedBox(height: 10),
+          AppProgressBar(
+            progress: ratio,
+            height: 6,
+            fillColor: rewardColors.base,
+            fillShadow: rewardColors.shadow,
+          ),
+        ],
       ],
     );
   }
