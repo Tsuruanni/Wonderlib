@@ -782,50 +782,44 @@ class _SidebarQuestRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: rewardColors.shadow, width: 2),
-        boxShadow: [
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
           BoxShadow(
-            color: rewardColors.shadow,
-            offset: const Offset(0, 3),
+            color: AppColors.neutral,
+            offset: Offset(0, 3),
             blurRadius: 0,
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
                   quest.title,
                   style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
                     color: isCompleted ? AppColors.neutralText : AppColors.black,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
-                AppProgressBar(
-                  progress: ratio,
-                  height: 18,
-                  fillColor: rewardColors.base,
-                  fillShadow: rewardColors.shadow,
-                  overlayText: '${progress.currentValue} / ${quest.goalValue}',
-                  overlayTextStyle: GoogleFonts.nunito(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: ratio > 0.5 ? Colors.white : AppColors.gray600,
-                  ),
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              _buildRewardContent(quest, isCompleted),
+            ],
           ),
-          const SizedBox(width: 10),
-          _buildRewardContent(quest, isCompleted),
+          const SizedBox(height: 10),
+          AppProgressBar(
+            progress: ratio,
+            height: 6,
+            fillColor: rewardColors.base,
+            fillShadow: rewardColors.shadow,
+          ),
         ],
       ),
     );
