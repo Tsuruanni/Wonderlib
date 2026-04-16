@@ -12,6 +12,7 @@ import '../../utils/app_icons.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../providers/monthly_quest_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -145,6 +146,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
     ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
+    ref.invalidate(monthlyQuestProgressProvider); // Refresh monthly quest
     // Invalidate wordbank providers so Word Bank sees updated review dates
     ref.invalidate(userVocabularyProgressProvider);
     ref.invalidate(learnedWordsWithDetailsProvider);

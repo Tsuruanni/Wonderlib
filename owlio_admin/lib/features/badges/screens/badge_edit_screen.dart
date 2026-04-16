@@ -34,6 +34,18 @@ final badgeEarnedByProvider =
   return List<Map<String, dynamic>>.from(response);
 });
 
+/// All monthly quests (active + inactive) for the badge editor's quest picker.
+/// Inactive ones still appear so admins can attach badges in advance.
+final _monthlyQuestsForBadgePickerProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final response = await supabase
+      .from(DbTables.monthlyQuests)
+      .select('id, title, icon, is_active')
+      .order('sort_order', ascending: true);
+  return List<Map<String, dynamic>>.from(response);
+});
+
 class BadgeEditScreen extends ConsumerStatefulWidget {
   const BadgeEditScreen({super.key, this.badgeId});
 
@@ -61,6 +73,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     (BadgeConditionType.cardsCollected.dbValue, 'Toplanan Kart Sayısı'),
     (BadgeConditionType.mythCategoryCompleted.dbValue, 'Kategori Bazlı Kart Toplama'),
     (BadgeConditionType.leagueTierReached.dbValue, 'Ulaşılan Lig'),
+    (BadgeConditionType.monthlyQuestCompleted.dbValue, 'Aylık Görev Tamamlama (Milestone)'),
   ];
 
   static const _categories = [
@@ -236,6 +249,113 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     }
   }
 
+  /// Renders the condition_param dropdown. For monthly_quest_completed we
+  /// fetch the quest list from Supabase; for the other param types we use
+  /// hard-coded maps from badge_helpers.
+  Widget _buildConditionParamField() {
+    if (_conditionType == BadgeConditionType.monthlyQuestCompleted.dbValue) {
+      final questsAsync = ref.watch(_monthlyQuestsForBadgePickerProvider);
+      return questsAsync.when(
+        loading: () => const LinearProgressIndicator(),
+        error: (e, _) => Text(
+          'Quest listesi yüklenemedi: $e',
+          style: const TextStyle(color: Colors.red),
+        ),
+        data: (quests) {
+          if (quests.isEmpty) {
+            return const Text(
+              'Henüz monthly quest tanımlı değil. Önce Quests ekranından oluşturun.',
+              style: TextStyle(color: Colors.orange),
+            );
+          }
+          // Ensure current param is a valid id; else null so admin picks one.
+          final validIds = quests.map((q) => q['id'] as String).toSet();
+          final currentValue =
+              (_conditionParam != null && validIds.contains(_conditionParam))
+                  ? _conditionParam
+                  : null;
+          return DropdownButtonFormField<String>(
+            value: currentValue,
+            decoration: const InputDecoration(
+              labelText: 'Monthly Quest',
+              helperText: 'Bu rozetin bağlı olduğu aylık görev',
+            ),
+            items: [
+              for (final q in quests)
+                DropdownMenuItem(
+                  value: q['id'] as String,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text((q['icon'] as String?) ?? '🏆'),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          (q['title'] as String?) ?? '(isimsiz)',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (q['is_active'] == false) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '(inactive)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _conditionParam = value);
+              }
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Quest seçilmelidir';
+              }
+              return null;
+            },
+          );
+        },
+      );
+    }
+
+    // Static param types (myth category / league tier)
+    final options =
+        _conditionType == BadgeConditionType.mythCategoryCompleted.dbValue
+            ? mythCategoryOptions
+            : leagueTierOptions;
+    return DropdownButtonFormField<String>(
+      value: _conditionParam,
+      decoration: const InputDecoration(
+        labelText: 'Parametre',
+        helperText: 'Bu koşulun hedeflediği kategori / lig',
+      ),
+      items: options.entries
+          .map((e) => DropdownMenuItem(
+                value: e.key,
+                child: Text(e.value),
+              ),)
+          .toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() => _conditionParam = value);
+        }
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Parametre zorunludur';
+        }
+        return null;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -408,6 +528,18 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                                         !leagueTierOptions.containsKey(_conditionParam)) {
                                       _conditionParam = leagueTierOptions.keys.first;
                                     }
+                                  } else if (newCt == BadgeConditionType.monthlyQuestCompleted) {
+                                    // Reset param when switching to monthly quest — quest list
+                                    // is loaded async and admin must explicitly pick one.
+                                    if (_conditionParam != null) {
+                                      final quests = ref
+                                              .read(_monthlyQuestsForBadgePickerProvider)
+                                              .valueOrNull ??
+                                          const [];
+                                      final found = quests.any(
+                                          (q) => q['id'] == _conditionParam,);
+                                      if (!found) _conditionParam = null;
+                                    }
                                   }
                                 });
                               }
@@ -416,33 +548,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                           // Conditional param dropdown (only when condition type needs it)
                           if (BadgeConditionType.fromDbValue(_conditionType).requiresParam) ...[
                             const SizedBox(height: 16),
-                            DropdownButtonFormField<String>(
-                              value: _conditionParam,
-                              decoration: const InputDecoration(
-                                labelText: 'Parametre',
-                                helperText: 'Bu koşulun hedeflediği kategori / lig',
-                              ),
-                              items: (_conditionType == BadgeConditionType.mythCategoryCompleted.dbValue
-                                      ? mythCategoryOptions
-                                      : leagueTierOptions)
-                                  .entries
-                                  .map((e) => DropdownMenuItem(
-                                        value: e.key,
-                                        child: Text(e.value),
-                                      ))
-                                  .toList(),
-                              onChanged: (value) {
-                                if (value != null) {
-                                  setState(() => _conditionParam = value);
-                                }
-                              },
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Parametre zorunludur';
-                                }
-                                return null;
-                              },
-                            ),
+                            _buildConditionParamField(),
                           ],
 
                           const SizedBox(height: 16),

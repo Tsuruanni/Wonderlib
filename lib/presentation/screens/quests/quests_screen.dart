@@ -8,9 +8,12 @@ import '../../../app/router.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
+import '../../providers/badge_provider.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/monthly_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../utils/app_icons.dart';
+import '../../utils/monthly_tier_info.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/home/daily_quest_list.dart';
 
@@ -63,8 +66,6 @@ class QuestsScreen extends ConsumerWidget {
                       // Monthly Quest + Monthly Badges — only when sidebar is hidden
                       if (!showRightPanel) ...[
                         const _MonthlyQuestCard(),
-                        const SizedBox(height: 16),
-                        const _MonthlyBadgesCard(),
                         const SizedBox(height: 32),
                       ],
                     ],
@@ -334,15 +335,29 @@ class _AssignmentRow extends StatelessWidget {
 // Monthly Quest Card (placeholder — hardcoded)
 // ---------------------------------------------------------------------------
 
-class _MonthlyQuestCard extends StatelessWidget {
+class _MonthlyQuestCard extends ConsumerWidget {
   const _MonthlyQuestCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(monthlyQuestProgressProvider);
+    final list = progressAsync.valueOrNull ?? const [];
+    if (list.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final progress = list.first;
     final now = AppClock.now();
-    final monthName = DateFormat('MMMM').format(now).toUpperCase();
-    final lastDay = DateTime(now.year, now.month + 1, 0);
-    final daysLeft = lastDay.difference(now).inDays;
+    final monthName = DateFormat('MMMM').format(now);
+    final daysLeft = progress.daysLeft;
+    final fill = progress.quest.goalValue > 0
+        ? (progress.currentValue / progress.quest.goalValue).clamp(0.0, 1.0)
+        : 0.0;
+    final tierInfo = monthlyTierInfo(
+      ref.watch(allBadgesProvider).valueOrNull ?? const [],
+      ref.watch(userBadgesProvider).valueOrNull ?? const [],
+      progress.quest.id,
+      progress.completionCount,
+    );
 
     return Container(
       width: double.infinity,
@@ -361,7 +376,6 @@ class _MonthlyQuestCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Month chip + countdown row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -373,7 +387,7 @@ class _MonthlyQuestCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  monthName,
+                  monthName.toUpperCase(),
                   style: GoogleFonts.nunito(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -400,10 +414,8 @@ class _MonthlyQuestCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-
-          // Title
           Text(
-            '${DateFormat('MMMM').format(now)} Quest',
+            '$monthName Quest',
             style: GoogleFonts.nunito(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -411,8 +423,6 @@ class _MonthlyQuestCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Inner progress card
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -424,7 +434,7 @@ class _MonthlyQuestCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Complete 20 quests',
+                  progress.quest.title,
                   style: GoogleFonts.nunito(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -432,7 +442,6 @@ class _MonthlyQuestCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Progress bar
                 SizedBox(
                   height: 20,
                   child: Stack(
@@ -444,9 +453,8 @@ class _MonthlyQuestCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      // Fill (0 progress)
                       FractionallySizedBox(
-                        widthFactor: 0,
+                        widthFactor: fill,
                         child: Container(
                           height: 20,
                           decoration: BoxDecoration(
@@ -457,7 +465,7 @@ class _MonthlyQuestCard extends StatelessWidget {
                       ),
                       Center(
                         child: Text(
-                          '0 / 20',
+                          '${progress.currentValue} / ${progress.quest.goalValue}',
                           style: GoogleFonts.nunito(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
@@ -468,6 +476,31 @@ class _MonthlyQuestCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (tierInfo != null) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(
+                        tierInfo.allEarned
+                            ? Icons.military_tech_rounded
+                            : Icons.military_tech_outlined,
+                        size: 18,
+                        color: AppColors.streakOrange,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          tierInfo.label,
+                          style: GoogleFonts.nunito(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -676,90 +709,6 @@ class _BonusRewardCard extends ConsumerWidget {
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.neutralText.withValues(alpha: 0.6),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// Monthly Badges Card (placeholder)
-// ---------------------------------------------------------------------------
-
-class _MonthlyBadgesCard extends StatelessWidget {
-  const _MonthlyBadgesCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Label
-          Text(
-            'MONTHLY BADGES',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.neutralText,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Icon
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColors.streakOrange.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.military_tech_rounded,
-              size: 32,
-              color: AppColors.streakOrange,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Title
-          Text(
-            'Earn your first badge!',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Description
-          Text(
-            'Complete monthly challenges to earn exclusive badges and rewards.',
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.neutralText,
             ),
           ),
         ],

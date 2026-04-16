@@ -14,6 +14,7 @@ import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import 'daily_quest_provider.dart';
+import 'monthly_quest_provider.dart';
 import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
@@ -196,6 +197,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
       debugPrint('📖 markComplete: invalidating dailyQuestProgressProvider');
       _ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
+      _ref.invalidate(monthlyQuestProgressProvider); // Refresh monthly quest
 
       // Award XP for new chapter completion
       if (!wasAlreadyCompleted) {

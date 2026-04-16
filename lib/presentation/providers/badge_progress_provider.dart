@@ -5,6 +5,7 @@ import '../../domain/entities/badge.dart';
 import 'badge_provider.dart';
 import 'book_provider.dart';
 import 'card_provider.dart';
+import 'monthly_quest_provider.dart';
 import 'user_provider.dart';
 import 'vocabulary_provider.dart';
 
@@ -65,6 +66,18 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
   final vocabProgressAsync = ref.watch(userVocabularyProgressProvider);
   final categoryProgress = ref.watch(categoryProgressProvider);
   final displayStreak = ref.watch(displayStreakProvider);
+  // Monthly quest progress drives both the completion counts and the
+  // quest title/icon used as meta for the achievement tracks. We don't
+  // block on this — if it fails the monthly buckets simply skip.
+  final monthlyProgress =
+      ref.watch(monthlyQuestProgressProvider).valueOrNull ?? const [];
+  final monthlyCountByQuest = <String, int>{
+    for (final p in monthlyProgress) p.quest.id: p.completionCount,
+  };
+  final monthlyMetaByQuest = <String, _GroupMeta>{
+    for (final p in monthlyProgress)
+      p.quest.id: _GroupMeta(p.quest.title, p.quest.icon),
+  };
 
   if (allBadgesAsync.isLoading ||
       userBadgesAsync.isLoading ||
@@ -105,9 +118,14 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
 
   final Map<String, List<Badge>> buckets = {};
   for (final b in allBadges) {
-    final key = b.conditionType == BadgeConditionType.mythCategoryCompleted
-        ? 'myth_category_completed:${b.conditionParam ?? "unknown"}'
-        : b.conditionType.dbValue;
+    final String key;
+    if (b.conditionType == BadgeConditionType.mythCategoryCompleted) {
+      key = 'myth_category_completed:${b.conditionParam ?? "unknown"}';
+    } else if (b.conditionType == BadgeConditionType.monthlyQuestCompleted) {
+      key = 'monthly_quest_completed:${b.conditionParam ?? "unknown"}';
+    } else {
+      key = b.conditionType.dbValue;
+    }
     (buckets[key] ??= <Badge>[]).add(b);
   }
 
@@ -134,6 +152,10 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
         return 0;
       case BadgeConditionType.leagueTierReached:
         return tierOrdinal;
+      case BadgeConditionType.monthlyQuestCompleted:
+        final questId = example.conditionParam;
+        if (questId == null) return 0;
+        return monthlyCountByQuest[questId] ?? 0;
     }
   }
 
@@ -156,6 +178,9 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
     if (key.startsWith('myth_category_completed:')) {
       final slug = key.substring('myth_category_completed:'.length);
       meta = _groupMetaByMythCategory[slug];
+    } else if (key.startsWith('monthly_quest_completed:')) {
+      final questId = key.substring('monthly_quest_completed:'.length);
+      meta = monthlyMetaByQuest[questId];
     } else {
       meta = _groupMetaByConditionType[key];
     }

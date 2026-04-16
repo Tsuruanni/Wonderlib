@@ -8,6 +8,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Monthly Quest Engine Integration (2026-04-16)
+
+#### Added
+- **Monthly Quest Engine** — Full-stack feature mirroring the daily quest architecture. New `monthly_quests` and `monthly_quest_completions` DB tables with Istanbul-TZ `period_key` (`YYYY-MM`) partitioning. `get_monthly_quest_progress` RPC returns live progress + `completion_count` across all months.
+- **Domain layer** — `MonthlyQuest` / `MonthlyQuestProgress` entities, `MonthlyQuestRepository` interface, `GetMonthlyQuestProgressUseCase` (returns `Either<Failure, List<MonthlyQuestProgress>>`).
+- **Data layer** — `MonthlyQuestProgressModel` with `fromJson`/`toEntity`, `SupabaseMonthlyQuestRepository` calling `RpcFunctions.getMonthlyQuestProgress`.
+- **`monthlyQuestCompleted` badge condition type** — New enum variant in `BadgeConditionType` with `requiresParam: true` (param = quest UUID). Tier badges (Bronze/Silver/Gold) awarded at configurable `condition_value` completion thresholds.
+- **`monthlyTierInfo()` utility** — Pure function computing next-tier label and earned state from `allBadges + userBadges + completionCount`. Consumed by both quest cards without adding provider nodes.
+- **Admin Monthly Quests tab** — `quest_list_screen.dart` refactored into tabbed layout (`DailyQuestsTab` / `MonthlyQuestsTab`) with shared `QuestCard` widget. Full CRUD for monthly quests including tier badge config.
+- **Admin badge editor** — `badge_edit_screen.dart` supports `monthlyQuestCompleted` condition with quest-selector dropdown.
+- **Shared package constants** — `DbTables.monthlyQuests`, `DbTables.monthlyQuestCompletions`, `RpcFunctions.getMonthlyQuestProgress`.
+- **3 DB migrations** — `20260416000006_monthly_quest_engine.sql`, `20260416000007_fix_monthly_quest_ambiguous_columns.sql`, `20260416000008_monthly_quest_tier_badges.sql`.
+
+#### Changed
+- **`_MonthlyQuestCard` / `_MonthlyQuestSidebarCard`** — Replaced static placeholder data with live `monthlyQuestProgressProvider`. Progress bar, count label, and days-left countdown all driven by real DB values.
+- **`achievementGroupsProvider`** — Extended to bucket `monthlyQuestCompleted` badges by `quest_id`, compute progress from `completionCount`, and resolve group title/icon from quest metadata.
+- **Removed `_MonthlyBadgesCard` / `_MonthlyBadgesSidebarCard`** — Placeholder widgets deleted; tier badge progress is now shown inline inside the quest card via `monthlyTierInfo`.
+
 ### AppIcons Registry & Full Icon System Migration (2026-04-14)
 
 #### Added

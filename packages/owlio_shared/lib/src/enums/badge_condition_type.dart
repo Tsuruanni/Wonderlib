@@ -7,7 +7,8 @@ enum BadgeConditionType {
   levelCompleted('level_completed'),
   cardsCollected('cards_collected'),
   mythCategoryCompleted('myth_category_completed'),
-  leagueTierReached('league_tier_reached');
+  leagueTierReached('league_tier_reached'),
+  monthlyQuestCompleted('monthly_quest_completed');
 
   final String dbValue;
 
@@ -26,6 +27,7 @@ enum BadgeConditionType {
   bool get requiresParam => switch (this) {
         BadgeConditionType.mythCategoryCompleted => true,
         BadgeConditionType.leagueTierReached => true,
+        BadgeConditionType.monthlyQuestCompleted => true,
         _ => false,
       };
 }

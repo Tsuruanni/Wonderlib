@@ -11,6 +11,7 @@ import '../../domain/usecases/user/update_user_usecase.dart';
 import 'auth_provider.dart';
 import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
+import 'monthly_quest_provider.dart';
 import 'system_settings_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
@@ -477,6 +478,7 @@ Future<void> _handleInlineActivityCompletionImpl(
   // Refresh daily quest progress on new completion
   if (completionResult.isNewCompletion) {
     ref.invalidate(dailyQuestProgressProvider);
+    ref.invalidate(monthlyQuestProgressProvider);
   }
 
   // Award XP for new completions

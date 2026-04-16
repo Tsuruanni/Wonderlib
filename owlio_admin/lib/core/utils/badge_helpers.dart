@@ -1,5 +1,5 @@
 // Shared badge condition helpers for admin panel.
-// Covers all 9 condition types.
+// Covers all 10 condition types.
 
 /// Short label for badge cards.
 /// For param-based types, the second argument can optionally pass the param
@@ -16,6 +16,7 @@ String getConditionLabel(String type, int value, [String? param]) {
         param != null ? '$param: $value kart' : '$value kart (kategori)',
     'league_tier_reached' =>
         param != null ? '$param lig' : 'lig yükselişi',
+    'monthly_quest_completed' => '$value× tamamlama',
     _ => '$type: $value',
   };
 }
@@ -32,6 +33,8 @@ String getConditionHelper(String type) {
     'myth_category_completed' =>
         'Seçili kategoriden toplanması gereken kart sayısı',
     'league_tier_reached' => 'Ulaşılması gereken lig (placeholder değer: 1)',
+    'monthly_quest_completed' =>
+        'Seçili quest\'in kaç ay üst üste (toplam) tamamlanması gerektiği (ör. 1/3/5)',
     _ => '',
   };
 }
