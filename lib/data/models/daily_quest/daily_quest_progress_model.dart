@@ -63,14 +63,11 @@ class DailyQuestProgressModel {
 
   static QuestRewardType _parseRewardType(String type) {
     switch (type) {
-      case 'xp':
-        return QuestRewardType.xp;
-      case 'coins':
-        return QuestRewardType.coins;
       case 'card_pack':
         return QuestRewardType.cardPack;
+      case 'coins':
       default:
-        return QuestRewardType.xp;
+        return QuestRewardType.coins;
     }
   }
 }

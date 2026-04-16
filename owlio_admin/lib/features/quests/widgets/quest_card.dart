@@ -98,7 +98,7 @@ class _QuestCardState extends State<QuestCard> {
     final quest = widget.quest;
     final stats = widget.stats;
     final isActive = quest['is_active'] as bool? ?? true;
-    final rewardType = quest['reward_type'] as String? ?? 'xp';
+    final rewardType = quest['reward_type'] as String? ?? 'coins';
     final questType = quest['quest_type'] as String? ?? '';
 
     return Card(
@@ -263,8 +263,7 @@ class _QuestCardState extends State<QuestCard> {
           value: rewardType,
           isDense: true,
           items: const [
-            DropdownMenuItem(value: 'xp', child: Text('XP')),
-            DropdownMenuItem(value: 'coins', child: Text('Coins')),
+            DropdownMenuItem(value: 'coins', child: Text('Gem')),
             DropdownMenuItem(value: 'card_pack', child: Text('Card Pack')),
           ],
           onChanged: (v) {

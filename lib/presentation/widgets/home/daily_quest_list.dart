@@ -90,49 +90,31 @@ class _QuestRow extends StatelessWidget {
 
   ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
     return switch (rewardType) {
-      QuestRewardType.xp => (base: AppColors.primary, shadow: AppColors.primaryDark),
       QuestRewardType.coins => (base: AppColors.wasp, shadow: AppColors.waspDark),
-      QuestRewardType.cardPack => (base: AppColors.gemBlue, shadow: const Color(0xFF1899D6)),
+      QuestRewardType.cardPack =>
+        (base: AppColors.gemBlue, shadow: const Color(0xFF1899D6)),
     };
   }
 
   String? _questRoute(String questType) {
     return switch (questType) {
       'read_chapters' => AppRoutes.library,
+      'daily_review' => AppRoutes.vocabularyDailyReview,
       'vocab_session' => AppRoutes.vocabularyDailyReview,
       _ => null,
     };
   }
 
-  String _displayTitle(DailyQuest quest) {
-    if (quest.questType == 'vocab_session' || quest.questType == 'review_words') {
-      return 'Do your Daily Review';
-    }
-    return quest.title;
-  }
-
   Widget _buildRewardTile(DailyQuest quest, bool isCompleted) {
-    if (isCompleted) {
-      return Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          color: AppColors.wasp,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(color: AppColors.waspDark, offset: Offset(0, 4), blurRadius: 0),
-          ],
-          border: Border.all(color: AppColors.waspDark, width: 1.5),
-        ),
-        child: Center(child: AppIcons.check(size: 28)),
-      );
-    }
-    final colors = _rewardColors(quest.rewardType);
-    final icon = switch (quest.rewardType) {
-      QuestRewardType.xp => AppIcons.xp(size: 24),
-      QuestRewardType.coins => AppIcons.gem(size: 24),
-      QuestRewardType.cardPack => AppIcons.card(size: 24),
-    };
+    final colors = isCompleted
+        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        : _rewardColors(quest.rewardType);
+    final icon = isCompleted
+        ? AppIcons.check(size: 26)
+        : switch (quest.rewardType) {
+            QuestRewardType.coins => AppIcons.gem(size: 26),
+            QuestRewardType.cardPack => AppIcons.card(size: 26),
+          };
     return Container(
       width: 64,
       height: 64,
@@ -150,11 +132,12 @@ class _QuestRow extends StatelessWidget {
           icon,
           const SizedBox(height: 2),
           Text(
-            '${quest.rewardAmount}',
+            isCompleted ? 'DONE' : '${quest.rewardAmount}',
             style: GoogleFonts.nunito(
               fontSize: 11,
               fontWeight: FontWeight.w900,
               color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -185,27 +168,24 @@ class _QuestRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _displayTitle(quest),
+                  quest.title,
                   style: GoogleFonts.nunito(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                     color: isCompleted ? AppColors.neutralText : AppColors.black,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 AppProgressBar(
                   progress: ratio,
-                  height: 12,
+                  height: 22,
                   fillColor: rewardColors.base,
                   fillShadow: rewardColors.shadow,
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  '$currentValue / $goalValue',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.gray500,
+                  overlayText: '$currentValue / $goalValue',
+                  overlayTextStyle: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    color: ratio > 0.5 ? Colors.white : AppColors.gray600,
                   ),
                 ),
               ],

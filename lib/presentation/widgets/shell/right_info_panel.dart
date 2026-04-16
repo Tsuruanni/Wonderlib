@@ -727,41 +727,22 @@ class _SidebarQuestRow extends StatelessWidget {
 
   ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
     return switch (rewardType) {
-      QuestRewardType.xp => (base: AppColors.primary, shadow: AppColors.primaryDark),
       QuestRewardType.coins => (base: AppColors.wasp, shadow: AppColors.waspDark),
-      QuestRewardType.cardPack => (base: AppColors.gemBlue, shadow: const Color(0xFF1899D6)),
+      QuestRewardType.cardPack =>
+        (base: AppColors.gemBlue, shadow: const Color(0xFF1899D6)),
     };
-  }
-
-  String _displayTitle(DailyQuest quest) {
-    if (quest.questType == 'vocab_session' || quest.questType == 'review_words') {
-      return 'Do your Daily Review';
-    }
-    return quest.title;
   }
 
   Widget _buildRewardTile(DailyQuest quest, bool isCompleted) {
-    if (isCompleted) {
-      return Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(
-          color: AppColors.wasp,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: const [
-            BoxShadow(color: AppColors.waspDark, offset: Offset(0, 4), blurRadius: 0),
-          ],
-          border: Border.all(color: AppColors.waspDark, width: 1.5),
-        ),
-        child: Center(child: AppIcons.check(size: 24)),
-      );
-    }
-    final colors = _rewardColors(quest.rewardType);
-    final icon = switch (quest.rewardType) {
-      QuestRewardType.xp => AppIcons.xp(size: 20),
-      QuestRewardType.coins => AppIcons.gem(size: 20),
-      QuestRewardType.cardPack => AppIcons.card(size: 20),
-    };
+    final colors = isCompleted
+        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        : _rewardColors(quest.rewardType);
+    final icon = isCompleted
+        ? AppIcons.check(size: 22)
+        : switch (quest.rewardType) {
+            QuestRewardType.coins => AppIcons.gem(size: 22),
+            QuestRewardType.cardPack => AppIcons.card(size: 22),
+          };
     return Container(
       width: 52,
       height: 52,
@@ -777,13 +758,13 @@ class _SidebarQuestRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           icon,
-          const SizedBox(height: 2),
           Text(
-            '${quest.rewardAmount}',
+            isCompleted ? 'DONE' : '${quest.rewardAmount}',
             style: GoogleFonts.nunito(
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: FontWeight.w900,
               color: Colors.white,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -810,7 +791,7 @@ class _SidebarQuestRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _displayTitle(quest),
+                quest.title,
                 style: GoogleFonts.nunito(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -819,20 +800,17 @@ class _SidebarQuestRow extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 6),
               AppProgressBar(
                 progress: ratio,
-                height: 10,
+                height: 18,
                 fillColor: rewardColors.base,
                 fillShadow: rewardColors.shadow,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${progress.currentValue} / ${quest.goalValue}',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gray500,
+                overlayText: '${progress.currentValue} / ${quest.goalValue}',
+                overlayTextStyle: GoogleFonts.nunito(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: ratio > 0.5 ? Colors.white : AppColors.gray600,
                 ),
               ),
             ],

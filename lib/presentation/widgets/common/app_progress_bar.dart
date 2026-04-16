@@ -14,6 +14,8 @@ class AppProgressBar extends StatelessWidget {
     this.height = 12.0,
     this.duration = Duration.zero,
     this.curve = Curves.easeOutCubic,
+    this.overlayText,
+    this.overlayTextStyle,
   });
 
   final double progress;
@@ -23,6 +25,11 @@ class AppProgressBar extends StatelessWidget {
   final double height;
   final Duration duration;
   final Curve curve;
+
+  /// Optional centered text overlay (e.g. "5 / 10"). When set, the bar renders
+  /// text on top of the fill. Use [overlayTextStyle] to customize.
+  final String? overlayText;
+  final TextStyle? overlayTextStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +48,7 @@ class AppProgressBar extends StatelessWidget {
       ),
     );
 
-    return ClipRRect(
+    final bar = ClipRRect(
       borderRadius: BorderRadius.circular(999),
       child: Container(
         height: height,
@@ -60,6 +67,25 @@ class AppProgressBar extends StatelessWidget {
                   child: fillWidget,
                 ),
         ),
+      ),
+    );
+
+    if (overlayText == null) return bar;
+
+    return SizedBox(
+      height: height,
+      child: Stack(
+        children: [
+          Positioned.fill(child: bar),
+          Positioned.fill(
+            child: Center(
+              child: Text(
+                overlayText!,
+                style: overlayTextStyle,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

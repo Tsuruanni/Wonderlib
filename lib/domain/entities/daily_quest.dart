@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum QuestRewardType { xp, coins, cardPack }
+enum QuestRewardType { coins, cardPack }
 
 class DailyQuest extends Equatable {
   const DailyQuest({
