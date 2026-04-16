@@ -21,6 +21,8 @@ class DailyQuestList extends StatelessWidget {
   Widget build(BuildContext context) {
     final allComplete =
         progress.isNotEmpty && progress.every((q) => q.isCompleted);
+    final sorted = [...progress]
+      ..sort((a, b) => a.quest.rewardAmount.compareTo(b.quest.rewardAmount));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -43,9 +45,9 @@ class DailyQuestList extends StatelessWidget {
             _AllCompleteBanner(),
             const SizedBox(height: 12),
           ],
-          for (int i = 0; i < progress.length; i++) ...[
+          for (int i = 0; i < sorted.length; i++) ...[
             if (i > 0) const SizedBox(height: 12),
-            _QuestRow(progress: progress[i]),
+            _QuestRow(progress: sorted[i]),
           ],
         ],
       ),
@@ -90,9 +92,10 @@ class _QuestRow extends StatelessWidget {
 
   ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
     return switch (rewardType) {
-      QuestRewardType.coins => (base: AppColors.wasp, shadow: AppColors.waspDark),
+      QuestRewardType.coins =>
+        (base: AppColors.gemBlue, shadow: AppColors.secondaryDark),
       QuestRewardType.cardPack =>
-        (base: AppColors.gemBlue, shadow: const Color(0xFF1899D6)),
+        (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark),
     };
   }
 
@@ -105,45 +108,56 @@ class _QuestRow extends StatelessWidget {
     };
   }
 
-  Widget _buildRewardCluster(DailyQuest quest, bool isCompleted) {
+  Widget _buildRewardButton(DailyQuest quest, bool isCompleted) {
     final colors = isCompleted
-        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
-    final icon = isCompleted
-        ? AppIcons.check(size: 32)
-        : switch (quest.rewardType) {
-            QuestRewardType.coins => AppIcons.gem(size: 32),
-            QuestRewardType.cardPack => AppIcons.card(size: 32),
-          };
-    final tile = Container(
-      width: 56,
+    if (isCompleted) {
+      return Container(
+        width: 72,
+        height: 56,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: colors.shadow, offset: const Offset(0, 4), blurRadius: 0),
+          ],
+          border: Border.all(color: colors.shadow, width: 2),
+        ),
+        child: Center(child: AppIcons.check(size: 32)),
+      );
+    }
+    final icon = switch (quest.rewardType) {
+      QuestRewardType.coins => AppIcons.gem(size: 32),
+      QuestRewardType.cardPack => AppIcons.card(size: 32),
+    };
+    return Container(
       height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: colors.shadow, offset: const Offset(0, 4), blurRadius: 0),
         ],
         border: Border.all(color: colors.shadow, width: 2),
       ),
-      child: Center(child: icon),
-    );
-    if (isCompleted) return tile;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        tile,
-        const SizedBox(width: 6),
-        Text(
-          '×${quest.rewardAmount}',
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            color: colors.shadow,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          icon,
+          const SizedBox(width: 6),
+          Text(
+            '×${quest.rewardAmount}',
+            style: GoogleFonts.nunito(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: colors.shadow,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -156,7 +170,7 @@ class _QuestRow extends StatelessWidget {
     final ratio = goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
     final route = _questRoute(quest.questType);
     final rewardColors = isCompleted
-        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
 
     return GestureDetector(
@@ -194,7 +208,7 @@ class _QuestRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          _buildRewardCluster(quest, isCompleted),
+          _buildRewardButton(quest, isCompleted),
         ],
       ),
     );
