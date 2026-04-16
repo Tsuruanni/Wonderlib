@@ -173,7 +173,7 @@ class SupabaseUserRepository implements UserRepository {
           .from(DbTables.dailyLogins)
           .select('login_date, is_freeze')
           .eq('user_id', userId)
-          .gte('login_date', from.toIso8601String().split('T').first);
+          .gte('login_date', AppClock.istanbulDate(from));
 
       final map = <DateTime, bool>{};
       for (final row in response as List) {
@@ -244,8 +244,7 @@ class SupabaseUserRepository implements UserRepository {
   Future<Either<Failure, List<DateTime>>> getLast7DaysActivity(String userId) async {
     try {
       final now = AppClock.now();
-      final sevenDaysAgo =
-          now.subtract(const Duration(days: 7)).toIso8601String().split('T').first;
+      final sevenDaysAgo = AppClock.istanbulDate(now.subtract(const Duration(days: 7)));
 
       // 1. Get dates from activity_results (quizzes)
       final activitiesResponse = await _supabase

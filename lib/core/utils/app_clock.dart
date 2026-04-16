@@ -18,4 +18,20 @@ class AppClock {
     final n = now();
     return DateTime(n.year, n.month, n.day);
   }
+
+  /// Returns a date in Istanbul (server-aligned) as 'YYYY-MM-DD'.
+  /// Mirrors server-side `app_current_date()`. Use this for ANY Supabase
+  /// DATE column (read_date, login_date, session_date, claim_date, etc.).
+  ///
+  /// Pass no argument for today, or pass any [DateTime] to get its Istanbul
+  /// date string (e.g. `AppClock.istanbulDate(AppClock.now().subtract(...))`).
+  ///
+  /// Why: DATE columns are timezone-agnostic; the server stores/compares
+  /// them as Istanbul (Europe/Istanbul, permanent UTC+3 since 2016 — no DST).
+  /// Calling `.toUtc()` then substring shifts backwards 3h and silently
+  /// writes/queries the previous day for 3h every night.
+  static String istanbulDate([DateTime? dt]) {
+    final istanbul = (dt ?? now()).toUtc().add(const Duration(hours: 3));
+    return istanbul.toIso8601String().substring(0, 10);
+  }
 }
