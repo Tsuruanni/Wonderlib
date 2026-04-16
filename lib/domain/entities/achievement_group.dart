@@ -14,7 +14,6 @@ class AchievementGroup extends Equatable {
     required this.earnedBadgeIds,
     required this.currentValue,
     required this.nextBadge,
-    required this.conditionType,
   });
 
   /// Stable identifier for the group (e.g. 'streak_days', 'myth_category_completed:turkish_myths').
@@ -41,9 +40,6 @@ class AchievementGroup extends Equatable {
 
   /// The next badge to work toward. `null` means the user has maxed this track.
   final Badge? nextBadge;
-
-  /// Condition type shared by all badges in the group. Needed for label pluralization.
-  final BadgeConditionType conditionType;
 
   /// Current level = number of earned badges in this track.
   int get currentLevel => earnedBadgeIds.length;
@@ -74,6 +70,5 @@ class AchievementGroup extends Equatable {
         earnedBadgeIds,
         currentValue,
         nextBadge,
-        conditionType,
       ];
 }
