@@ -84,23 +84,7 @@ class BadgeListScreen extends ConsumerWidget {
           }
 
           // Stable display order — Achievements first, then Card Collection.
-          const orderedKeys = <String>[
-            'xp_total',
-            'streak_days',
-            'books_completed',
-            'vocabulary_learned',
-            'level_completed',
-            'league_tier_reached',
-            'cards_collected',
-            'myth_category_completed:turkish_myths',
-            'myth_category_completed:ancient_greece',
-            'myth_category_completed:viking_ice_lands',
-            'myth_category_completed:egyptian_deserts',
-            'myth_category_completed:far_east',
-            'myth_category_completed:medieval_magic',
-            'myth_category_completed:legendary_weapons',
-            'myth_category_completed:dark_creatures',
-          ];
+          final orderedKeys = badgeGroupOrderedKeys;
 
           // Sort group keys: ordered list first, then anything else alphabetically.
           final sortedKeys = <String>[];
@@ -120,7 +104,7 @@ class BadgeListScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12, top: 8),
                     child: Text(
-                      _groupHeaderLabel(key),
+                      getBadgeGroupHeaderLabel(key),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w900,
@@ -300,41 +284,3 @@ class _Chip extends StatelessWidget {
   }
 }
 
-/// Turkish display label for a grouping key (condition_type or
-/// `myth_category_completed:<slug>`).
-String _groupHeaderLabel(String key) {
-  switch (key) {
-    case 'xp_total':
-      return 'TOPLAM XP';
-    case 'streak_days':
-      return 'STREAK';
-    case 'books_completed':
-      return 'KİTAPLAR';
-    case 'vocabulary_learned':
-      return 'KELİMELER';
-    case 'level_completed':
-      return 'SEVİYE';
-    case 'league_tier_reached':
-      return 'LİG';
-    case 'cards_collected':
-      return 'KART KOLEKSİYONU';
-    case 'myth_category_completed:turkish_myths':
-      return 'TÜRK MİTLERİ';
-    case 'myth_category_completed:ancient_greece':
-      return 'ANTİK YUNAN';
-    case 'myth_category_completed:viking_ice_lands':
-      return 'VİKİNG & BUZ DİYARLARI';
-    case 'myth_category_completed:egyptian_deserts':
-      return 'MISIR ÇÖLLERİ';
-    case 'myth_category_completed:far_east':
-      return 'UZAK DOĞU';
-    case 'myth_category_completed:medieval_magic':
-      return 'ORTAÇAĞ BÜYÜSÜ';
-    case 'myth_category_completed:legendary_weapons':
-      return 'EFSANEVİ SİLAHLAR';
-    case 'myth_category_completed:dark_creatures':
-      return 'KARANLIK YARATIKLAR';
-    default:
-      return key.toUpperCase();
-  }
-}
