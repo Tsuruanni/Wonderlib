@@ -103,10 +103,12 @@ class AchievementGroupRow extends StatelessWidget {
                 Text(
                   group.icon,
                   style: TextStyle(
-                    fontSize: showLevelLabel ? 30 : 38,
+                    fontSize: (showLevelLabel && (group.isMaxed || group.currentLevel >= 1))
+                        ? 30
+                        : 38,
                   ),
                 ),
-                if (showLevelLabel) ...[
+                if (showLevelLabel && (group.isMaxed || group.currentLevel >= 1)) ...[
                   const SizedBox(height: 2),
                   Text(
                     group.isMaxed ? 'MAX' : 'LEVEL ${group.currentLevel}',
