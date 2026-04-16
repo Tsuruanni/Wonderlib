@@ -24,6 +24,7 @@ import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
+import '../common/app_progress_bar.dart';
 import '../common/streak_sheet.dart';
 import '../../utils/app_icons.dart';
 import '../../utils/monthly_tier_info.dart';
@@ -634,122 +635,165 @@ class _DailyQuestsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(dailyQuestProgressProvider);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Daily Quests',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Daily Quests',
+          style: GoogleFonts.nunito(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            color: AppColors.black,
           ),
-          const SizedBox(height: 12),
-          questsAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+        ),
+        const SizedBox(height: 12),
+        questsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            error: (_, __) => Text(
-              'Could not load quests',
-              style: GoogleFonts.nunito(color: AppColors.neutralText),
-            ),
-            data: (quests) {
-              if (quests.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    'No quests available today',
-                    style: GoogleFonts.nunito(color: AppColors.neutralText),
-                  ),
-                );
-              }
-              return Column(
-                children: [
-                  for (int i = 0; i < quests.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    _QuestRow(progress: quests[i]),
-                  ],
-                ],
-              );
-            },
           ),
-        ],
-      ),
+          error: (_, __) => Text(
+            'Could not load quests',
+            style: GoogleFonts.nunito(color: AppColors.neutralText),
+          ),
+          data: (quests) {
+            if (quests.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'No quests available today',
+                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                ),
+              );
+            }
+            final allDone = quests.every((q) => q.isCompleted);
+            return Column(
+              children: [
+                if (allDone) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        AppIcons.check(size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'All quests complete!',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                for (int i = 0; i < quests.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  _SidebarQuestRow(progress: quests[i]),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
     );
   }
 }
 
-class _QuestRow extends StatelessWidget {
-  const _QuestRow({required this.progress});
+class _SidebarQuestRow extends StatelessWidget {
+  const _SidebarQuestRow({required this.progress});
 
   final DailyQuestProgress progress;
 
-  Widget _questIcon(String questType, Color color) {
-    switch (questType) {
-      case 'earn_xp':
-        return Icon(Icons.bolt_rounded, size: 22, color: color);
-      case 'spend_time':
-        return Icon(Icons.timer_rounded, size: 22, color: color);
-      case 'earn_combo_xp':
-        return Icon(Icons.bolt_rounded, size: 22, color: color);
-      case 'complete_chapters':
-        return AppIcons.book(size: 22);
-      case 'review_words':
-        return Icon(Icons.translate_rounded, size: 22, color: color);
-      default:
-        return AppIcons.star(size: 22);
-    }
+  ({Color base, Color shadow}) _colors(String questType) {
+    return switch (questType) {
+      'earn_xp' => (base: AppColors.primary, shadow: AppColors.primaryDark),
+      'earn_combo_xp' => (base: AppColors.cardLegendary, shadow: AppColors.cardLegendaryDark),
+      'spend_time' => (base: AppColors.secondary, shadow: AppColors.secondaryDark),
+      'complete_chapters' || 'read_chapters' => (
+          base: AppColors.secondary,
+          shadow: AppColors.secondaryDark
+        ),
+      'review_words' || 'vocab_session' => (
+          base: AppColors.cardEpic,
+          shadow: AppColors.cardEpicDark
+        ),
+      _ => (base: AppColors.gray500, shadow: AppColors.gray600),
+    };
   }
 
-  Color _questColor(String questType) {
-    switch (questType) {
-      case 'earn_xp':
-        return AppColors.cardLegendary;
-      case 'spend_time':
-        return AppColors.secondary;
-      case 'earn_combo_xp':
-        return AppColors.cardLegendary;
-      case 'complete_chapters':
-        return AppColors.primary;
-      case 'review_words':
-        return AppColors.cardEpic;
-      default:
-        return AppColors.neutralText;
-    }
+  Widget _rewardBadge(DailyQuest quest) {
+    final (text, color) = switch (quest.rewardType) {
+      QuestRewardType.xp => ('+${quest.rewardAmount} XP', AppColors.primary),
+      QuestRewardType.coins => ('+${quest.rewardAmount} 🪙', AppColors.wasp),
+      QuestRewardType.cardPack => ('+${quest.rewardAmount} 📦', AppColors.gemBlue),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.nunito(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: color,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final quest = progress.quest;
+    final isCompleted = progress.isCompleted;
     final ratio = quest.goalValue > 0
         ? (progress.currentValue / quest.goalValue).clamp(0.0, 1.0)
         : 0.0;
-    final color = _questColor(quest.questType);
+    final colors = isCompleted
+        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        : _colors(quest.questType);
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
+            color: colors.base,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadow,
+                offset: const Offset(0, 4),
+                blurRadius: 0,
+              ),
+            ],
+            border: Border.all(color: colors.shadow, width: 1.5),
           ),
-          child: _questIcon(quest.questType, color),
+          child: Center(
+            child: isCompleted
+                ? AppIcons.check(size: 24)
+                : Text(quest.icon, style: const TextStyle(fontSize: 22)),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -759,29 +803,34 @@ class _QuestRow extends StatelessWidget {
               Text(
                 quest.title,
                 style: GoogleFonts.nunito(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.black,
+                  color: isCompleted ? AppColors.neutralText : AppColors.black,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 5),
+              AppProgressBar(
+                progress: ratio,
+                height: 10,
+                fillColor: colors.base,
+                fillShadow: colors.shadow,
               ),
               const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: ratio,
-                  backgroundColor: AppColors.neutral,
-                  color: progress.isCompleted ? AppColors.primary : color,
-                  minHeight: 8,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${progress.currentValue} / ${quest.goalValue}',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${progress.currentValue} / ${quest.goalValue}',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gray500,
+                    ),
+                  ),
+                  _rewardBadge(quest),
+                ],
               ),
             ],
           ),
@@ -1451,14 +1500,12 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: fill,
-                    backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    color: Colors.white,
-                    minHeight: 6,
-                  ),
+                AppProgressBar(
+                  progress: fill,
+                  height: 8,
+                  fillColor: Colors.white,
+                  fillShadow: Colors.white.withValues(alpha: 0.5),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
                 ),
                 const SizedBox(height: 4),
                 Align(
