@@ -13,6 +13,7 @@ import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/content_block_provider.dart';
 import '../../utils/app_icons.dart';
+import '../common/app_progress_bar.dart';
 import '../common/game_button.dart';
 
 /// Reader sidebar shown on wide screens (≥1000px) during reader routes.
@@ -307,14 +308,11 @@ class _SidebarAudioPlayer extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral,
-                        color: AppColors.secondary,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: progress,
+                      height: 6,
+                      fillColor: AppColors.secondary,
+                      fillShadow: AppColors.secondaryDark,
                     ),
                     const SizedBox(height: 4),
                     Row(
