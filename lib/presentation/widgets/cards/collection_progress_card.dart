@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../common/app_progress_bar.dart';
 
 class CollectionProgressCard extends ConsumerWidget {
   const CollectionProgressCard({super.key});
@@ -14,6 +15,13 @@ class CollectionProgressCard extends ConsumerWidget {
     CardRarity.rare: AppColors.cardRare,
     CardRarity.epic: AppColors.cardEpic,
     CardRarity.legendary: AppColors.cardLegendary,
+  };
+
+  static const _rarityDarkColors = {
+    CardRarity.common: AppColors.cardCommonDark,
+    CardRarity.rare: AppColors.cardRareDark,
+    CardRarity.epic: AppColors.cardEpicDark,
+    CardRarity.legendary: AppColors.cardLegendaryDark,
   };
 
   @override
@@ -75,14 +83,9 @@ class CollectionProgressCard extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: AppColors.neutral,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
+          AppProgressBar(
+            progress: progress,
+            height: 8,
           ),
           const SizedBox(height: 16),
           for (final rarity in CardRarity.values) ...[
@@ -143,14 +146,11 @@ class CollectionProgressCard extends ConsumerWidget {
           ),
         ),
         Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: AppColors.neutral,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
+          child: AppProgressBar(
+            progress: progress,
+            height: 6,
+            fillColor: color,
+            fillShadow: _rarityDarkColors[rarity]!,
           ),
         ),
         const SizedBox(width: 8),

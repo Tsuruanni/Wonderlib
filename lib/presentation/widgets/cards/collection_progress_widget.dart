@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../utils/ui_helpers.dart';
+import '../common/app_progress_bar.dart';
 
 /// Shows collection progress: "X/96 Cards" bar + category completion pills.
 class CollectionProgressWidget extends StatelessWidget {
@@ -41,16 +42,11 @@ class CollectionProgressWidget extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 10,
-                      backgroundColor: AppColors.neutral,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        _getProgressColor(progress),
-                      ),
-                    ),
+                  AppProgressBar(
+                    progress: progress,
+                    height: 10,
+                    fillColor: _getProgressColor(progress),
+                    fillShadow: _getProgressShadow(progress),
                   ),
                 ],
               ),
@@ -119,5 +115,12 @@ class CollectionProgressWidget extends StatelessWidget {
     if (progress >= 0.75) return AppColors.cardEpic;
     if (progress >= 0.5) return AppColors.cardRare;
     return AppColors.primary;
+  }
+
+  Color _getProgressShadow(double progress) {
+    if (progress >= 1.0) return AppColors.cardLegendaryDark;
+    if (progress >= 0.75) return AppColors.cardEpicDark;
+    if (progress >= 0.5) return AppColors.cardRareDark;
+    return AppColors.primaryDark;
   }
 }
