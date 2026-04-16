@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../../../domain/entities/achievement_group.dart';
 import '../../providers/badge_progress_provider.dart';
 import '../../widgets/badges/achievement_group_row.dart';
 
@@ -67,28 +68,92 @@ class AllBadgesScreen extends ConsumerWidget {
           final totalCount =
               groups.fold<int>(0, (sum, g) => sum + g.maxLevel);
 
+          final items = <_BadgeListItem>[
+            _BadgeListItem.header(earnedCount: earnedCount, totalCount: totalCount),
+          ];
+          AchievementSuperGroup? lastSection;
+          for (final g in groups) {
+            if (g.superGroup != lastSection) {
+              items.add(_BadgeListItem.section(superGroup: g.superGroup));
+              lastSection = g.superGroup;
+            }
+            items.add(_BadgeListItem.row(group: g));
+          }
+
           return ListView.builder(
             padding: const EdgeInsets.only(bottom: 24),
-            itemCount: groups.length + 1,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: Text(
-                    '$earnedCount / $totalCount earned',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      color: AppColors.gray600,
-                    ),
-                  ),
-                );
-              }
-              return AchievementGroupRow(group: groups[index - 1]);
-            },
+            itemCount: items.length,
+            itemBuilder: (context, index) => items[index].build(context),
           );
         },
       ),
     );
+  }
+}
+
+/// Internal model used to flatten the list (header + section labels + rows)
+/// into a single ListView.builder stream.
+class _BadgeListItem {
+  const _BadgeListItem._({
+    this.earnedCount,
+    this.totalCount,
+    this.superGroup,
+    this.group,
+  });
+
+  factory _BadgeListItem.header({
+    required int earnedCount,
+    required int totalCount,
+  }) => _BadgeListItem._(earnedCount: earnedCount, totalCount: totalCount);
+
+  factory _BadgeListItem.section({required AchievementSuperGroup superGroup}) =>
+      _BadgeListItem._(superGroup: superGroup);
+
+  factory _BadgeListItem.row({required AchievementGroup group}) =>
+      _BadgeListItem._(group: group);
+
+  final int? earnedCount;
+  final int? totalCount;
+  final AchievementSuperGroup? superGroup;
+  final AchievementGroup? group;
+
+  Widget build(BuildContext context) {
+    if (group != null) {
+      return AchievementGroupRow(group: group!);
+    }
+    if (superGroup != null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Text(
+          _sectionLabel(superGroup!),
+          style: GoogleFonts.nunito(
+            fontWeight: FontWeight.w900,
+            fontSize: 13,
+            letterSpacing: 1.2,
+            color: AppColors.gray700,
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+      child: Text(
+        '$earnedCount / $totalCount earned',
+        style: GoogleFonts.nunito(
+          fontWeight: FontWeight.w800,
+          fontSize: 14,
+          color: AppColors.gray600,
+        ),
+      ),
+    );
+  }
+
+  static String _sectionLabel(AchievementSuperGroup g) {
+    switch (g) {
+      case AchievementSuperGroup.achievements:
+        return 'ACHIEVEMENTS';
+      case AchievementSuperGroup.cardCollection:
+        return 'CARD COLLECTION';
+    }
   }
 }

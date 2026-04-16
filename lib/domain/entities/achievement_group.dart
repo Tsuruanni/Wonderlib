@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'badge.dart';
 
+/// Top-level grouping shown as a section header in the All Badges screen.
+enum AchievementSuperGroup { achievements, cardCollection }
+
 /// Represents a Duolingo-style achievement "track" — a grouping of tiered badges
 /// that the user progresses through. Example: the Streak track contains 6 badges
 /// (3, 7, 14, 30, 60, 100 days); the user is at LEVEL 3 if they've earned 3 of them.
@@ -61,6 +64,24 @@ class AchievementGroup extends Equatable {
     if (isMaxed) return 1.0;
     if (targetValue <= 0) return 0.0;
     return (currentValue / targetValue).clamp(0.0, 1.0).toDouble();
+  }
+
+  /// Section the group belongs to in the All Badges screen.
+  AchievementSuperGroup get superGroup {
+    if (groupKey == 'cards_collected' ||
+        groupKey.startsWith('myth_category_completed:')) {
+      return AchievementSuperGroup.cardCollection;
+    }
+    return AchievementSuperGroup.achievements;
+  }
+
+  /// Sort tier for in-section ordering.
+  /// 0 = actively progressing (highest priority), 3 = maxed (lowest).
+  int get sortTier {
+    if (isMaxed) return 3;
+    if (currentLevel >= 1) return 0;     // earned at least one tier, more to come
+    if (currentValue > 0) return 1;      // started, no badge yet
+    return 2;                             // untouched
   }
 
   /// Display title — shows the user's current achievement state instead of the

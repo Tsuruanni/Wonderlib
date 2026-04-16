@@ -194,12 +194,27 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
     ),);
   }
 
+  // Sort within each super-group by 4-tier priority, then by progress (desc) for
+  // actively-progressing/started tiers, then alphabetical for untouched/maxed.
   groups.sort((a, b) {
-    if (a.isMaxed && !b.isMaxed) return 1;
-    if (!a.isMaxed && b.isMaxed) return -1;
-    if (a.isMaxed && b.isMaxed) return a.title.compareTo(b.title);
-    final progressCmp = b.progress.compareTo(a.progress);
-    if (progressCmp != 0) return progressCmp;
+    // Super-group is the top sort key — Achievements section before Card Collection.
+    final superCmp = a.superGroup.index.compareTo(b.superGroup.index);
+    if (superCmp != 0) return superCmp;
+
+    final tierCmp = a.sortTier.compareTo(b.sortTier);
+    if (tierCmp != 0) return tierCmp;
+
+    // Tier 0 (actively progressing) and tier 1 (started) — by progress descending.
+    if (a.sortTier <= 1) {
+      final progressCmp = b.progress.compareTo(a.progress);
+      if (progressCmp != 0) return progressCmp;
+    }
+
+    // Tier 2 (untouched) and tier 3 (maxed), and progress ties — alphabetical by displayTitle.
+    final titleCmp = a.displayTitle.compareTo(b.displayTitle);
+    if (titleCmp != 0) return titleCmp;
+
+    // Final stable tiebreaker.
     return a.groupKey.compareTo(b.groupKey);
   });
 
