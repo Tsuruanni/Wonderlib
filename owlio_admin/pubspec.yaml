@@ -60,3 +60,8 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/icons/rank-bronze-1_large.png
+    - assets/icons/rank-silver-2_large.png
+    - assets/icons/rank-gold-3_large.png
+    - assets/icons/rank-platinum-5_large.png
+    - assets/icons/rank-diamond-7_large.png
