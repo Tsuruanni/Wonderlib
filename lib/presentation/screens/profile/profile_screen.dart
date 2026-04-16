@@ -11,15 +11,14 @@ import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/level_helper.dart';
-import '../../../domain/entities/badge.dart';
+import '../../../domain/entities/achievement_group.dart';
 import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/user.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../../domain/usecases/teacher/update_teacher_profile_usecase.dart';
-import '../../../core/utils/app_clock.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/badge_provider.dart';
+import '../../providers/badge_progress_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/profile_context_provider.dart';
@@ -817,12 +816,37 @@ class _RecentBadgesSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final badgesAsync = ref.watch(userBadgesProvider);
+    final groupsAsync = ref.watch(achievementGroupsProvider);
 
-    return badgesAsync.when(
+    return groupsAsync.when(
       loading: () => const SizedBox(height: 80),
       error: (_, __) => const SizedBox.shrink(),
-      data: (allBadges) {
+      data: (allGroups) {
+        // Top 3 actively-progressing tracks. Provider already sorts so Tier 0
+        // (currentLevel >= 1, !isMaxed) comes first by progress descending.
+        // Fall back to next-best tiers if user has fewer than 3 active tracks.
+        final top = allGroups
+            .where((g) => !g.isMaxed && g.currentLevel >= 1)
+            .take(3)
+            .toList();
+        // If fewer than 3 actively-progressing, fill from started-but-no-badge tier.
+        if (top.length < 3) {
+          final extras = allGroups
+              .where((g) => !g.isMaxed && g.currentLevel == 0 && g.currentValue > 0)
+              .take(3 - top.length);
+          top.addAll(extras);
+        }
+        // Still fewer than 3? Fill with maxed groups (proudly displayed).
+        if (top.length < 3) {
+          final maxed = allGroups.where((g) => g.isMaxed).take(3 - top.length);
+          top.addAll(maxed);
+        }
+
+        final earnedCount =
+            allGroups.fold<int>(0, (sum, g) => sum + g.currentLevel);
+        final totalCount =
+            allGroups.fold<int>(0, (sum, g) => sum + g.maxLevel);
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -844,7 +868,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                       size: 22, color: AppColors.primary),
                   const SizedBox(width: 8),
                   Text(
-                    'Recent Badges',
+                    'Achievements',
                     style: GoogleFonts.nunito(
                       fontWeight: FontWeight.w800,
                       fontSize: 16,
@@ -860,7 +884,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${allBadges.length}',
+                      '$earnedCount / $totalCount',
                       style: GoogleFonts.nunito(
                         fontWeight: FontWeight.w900,
                         fontSize: 13,
@@ -872,7 +896,7 @@ class _RecentBadgesSection extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
 
-              if (allBadges.isEmpty)
+              if (top.isEmpty)
                 // Empty state
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -883,7 +907,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Complete lessons to earn badges!',
+                          'Complete lessons to earn achievements!',
                           style: GoogleFonts.nunito(
                             color: AppColors.neutralText,
                             fontWeight: FontWeight.w600,
@@ -895,28 +919,23 @@ class _RecentBadgesSection extends ConsumerWidget {
                   ),
                 )
               else ...[
-                // Last 5 badges
-                ...allBadges.take(5).map((b) => _BadgeRow(badge: b)),
-
-                // "See All" button if more than 5
-                if (allBadges.length > 5) ...[
-                  const SizedBox(height: 8),
-                  Center(
-                    child: TextButton(
-                      onPressed: () {
-                        context.go(AppRoutes.allBadges);
-                      },
-                      child: Text(
-                        'See All ${allBadges.length} Badges',
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                          color: AppColors.primary,
-                        ),
+                ...top.map((g) => _MiniAchievementRow(group: g)),
+                const SizedBox(height: 8),
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      context.go(AppRoutes.allBadges);
+                    },
+                    child: Text(
+                      'View All Achievements',
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
-                ],
+                ),
               ],
             ],
           ),
@@ -926,82 +945,161 @@ class _RecentBadgesSection extends ConsumerWidget {
   }
 }
 
-class _BadgeRow extends StatelessWidget {
-  const _BadgeRow({required this.badge});
-  final UserBadge badge;
+/// Compact version of AchievementGroupRow used in the profile summary.
+/// Smaller tile (60px), title + progress bar only — no description for compactness.
+class _MiniAchievementRow extends StatelessWidget {
+  const _MiniAchievementRow({required this.group});
+  final AchievementGroup group;
+
+  ({Color base, Color shadow}) _tileColors() {
+    if (group.isMaxed) {
+      return (base: AppColors.wasp, shadow: AppColors.waspDark);
+    }
+    if (group.groupKey.startsWith('myth_category_completed:')) {
+      final slug = group.groupKey.substring('myth_category_completed:'.length);
+      switch (slug) {
+        case 'turkish_myths':
+          return (base: AppColors.danger, shadow: AppColors.dangerDark);
+        case 'ancient_greece':
+          return (base: AppColors.secondary, shadow: AppColors.secondaryDark);
+        case 'viking_ice_lands':
+          return (base: AppColors.gemBlue, shadow: AppColors.secondaryDark);
+        case 'egyptian_deserts':
+          return (base: AppColors.wasp, shadow: AppColors.waspDark);
+        case 'far_east':
+          return (base: AppColors.primary, shadow: AppColors.primaryDark);
+        case 'medieval_magic':
+          return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+        case 'legendary_weapons':
+          return (base: AppColors.cardCommon, shadow: AppColors.cardCommonDark);
+        case 'dark_creatures':
+          return (base: AppColors.backgroundDark, shadow: Colors.black);
+        default:
+          return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      }
+    }
+    switch (group.groupKey) {
+      case 'xp_total':
+        return (base: AppColors.primary, shadow: AppColors.primaryDark);
+      case 'streak_days':
+        return (base: AppColors.streakOrange, shadow: AppColors.dangerDark);
+      case 'books_completed':
+        return (base: AppColors.secondary, shadow: AppColors.secondaryDark);
+      case 'vocabulary_learned':
+        return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      case 'level_completed':
+        return (base: AppColors.wasp, shadow: AppColors.waspDark);
+      case 'cards_collected':
+        return (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark);
+      case 'league_tier_reached':
+        return (base: AppColors.wasp, shadow: AppColors.waspDark);
+      default:
+        return (base: AppColors.cardCommon, shadow: AppColors.cardCommonDark);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final colors = _tileColors();
+    final progressLabel = group.isMaxed
+        ? 'MAX'
+        : '${group.currentValue}/${group.targetValue}';
+    const fillColor = AppColors.wasp;
+    const fillShadow = Color(0xFFE0A800);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Badge icon
+          // Compact 60x60 tile
           Container(
-            width: 40,
-            height: 40,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
+              color: colors.base,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.shadow,
+                  offset: const Offset(0, 3),
+                  blurRadius: 0,
+                ),
+              ],
+              border: Border.all(color: colors.shadow, width: 1.2),
             ),
             child: Center(
               child: Text(
-                badge.badge.icon ?? '🏆',
-                style: const TextStyle(fontSize: 22),
+                group.displayIcon,
+                style: const TextStyle(fontSize: 28),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          // Name + description
+          // Title + progress
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  badge.badge.name,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: AppColors.black,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        group.displayTitle,
+                        style: GoogleFonts.nunito(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: AppColors.black,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      progressLabel,
+                      style: GoogleFonts.nunito(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        color: group.isMaxed
+                            ? AppColors.waspDark
+                            : AppColors.gray500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppColors.gray200,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: group.progress.clamp(0.0, 1.0),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: fillColor,
+                            borderRadius: BorderRadius.all(Radius.circular(999)),
+                            border: Border(
+                              bottom: BorderSide(color: fillShadow, width: 2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                if (badge.badge.description != null)
-                  Text(
-                    badge.badge.description!,
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      color: AppColors.neutralText,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          // Earned date
-          Text(
-            _formatDate(badge.earnedAt),
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
             ),
           ),
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = AppClock.now();
-    final diff = now.difference(date);
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    if (diff.inDays < 30) return '${(diff.inDays / 7).floor()}w ago';
-    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
