@@ -99,6 +99,18 @@ class AchievementGroup extends Equatable {
     return title;
   }
 
+  /// Display icon — mirrors `displayTitle` logic. Returns the icon of the highest
+  /// earned badge if any, otherwise the next badge's icon, otherwise the group fallback.
+  String get displayIcon {
+    for (var i = badges.length - 1; i >= 0; i--) {
+      if (earnedBadgeIds.contains(badges[i].id)) {
+        return badges[i].icon ?? icon;
+      }
+    }
+    if (nextBadge != null) return nextBadge!.icon ?? icon;
+    return icon;
+  }
+
   @override
   List<Object?> get props => [
         groupKey,

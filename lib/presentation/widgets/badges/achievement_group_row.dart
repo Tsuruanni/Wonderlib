@@ -101,7 +101,7 @@ class AchievementGroupRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  group.icon,
+                  group.displayIcon,
                   style: TextStyle(
                     fontSize: (showLevelLabel && (group.isMaxed || group.currentLevel >= 1))
                         ? 30
