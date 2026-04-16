@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
 import '../presentation/screens/auth/login_screen.dart';
+import '../presentation/screens/badges/all_badges_screen.dart';
 import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
 import '../presentation/screens/library/book_detail_screen.dart';
@@ -63,6 +64,7 @@ abstract class AppRoutes {
   static const vocabulary = '/vocabulary';
   static const vocabularyDailyReview = '/vocabulary/daily-review';
 
+  static const allBadges = '/badges';
   static const profile = '/profile';
   static const profileDownloads = '/profile/downloads';
   static const avatarSetup = '/avatar-setup';
@@ -466,6 +468,10 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.wordBank,
                 builder: (context, state) => const VocabularyScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.allBadges,
+                builder: (context, state) => const AllBadgesScreen(),
               ),
             ],
           ),
