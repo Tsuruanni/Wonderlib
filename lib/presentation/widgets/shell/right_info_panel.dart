@@ -632,7 +632,14 @@ class _DailyQuestsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(dailyQuestProgressProvider);
 
-    return Column(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -708,6 +715,7 @@ class _DailyQuestsCard extends ConsumerWidget {
           },
         ),
       ],
+      ),
     );
   }
 }

@@ -22,18 +22,33 @@ class DailyQuestList extends StatelessWidget {
     final allComplete =
         progress.isNotEmpty && progress.every((q) => q.isCompleted);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (allComplete) ...[
-          _AllCompleteBanner(),
-          const SizedBox(height: 12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.neutral,
+            offset: Offset(0, 4),
+            blurRadius: 0,
+          ),
         ],
-        for (int i = 0; i < progress.length; i++) ...[
-          if (i > 0) const SizedBox(height: 12),
-          _QuestRow(progress: progress[i]),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (allComplete) ...[
+            _AllCompleteBanner(),
+            const SizedBox(height: 12),
+          ],
+          for (int i = 0; i < progress.length; i++) ...[
+            if (i > 0) const SizedBox(height: 12),
+            _QuestRow(progress: progress[i]),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
