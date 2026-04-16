@@ -24,33 +24,18 @@ class DailyQuestList extends StatelessWidget {
     final sorted = [...progress]
       ..sort((a, b) => a.quest.rewardAmount.compareTo(b.quest.rewardAmount));
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral, width: 2),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.neutral,
-            offset: Offset(0, 4),
-            blurRadius: 0,
-          ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (allComplete) ...[
+          _AllCompleteBanner(),
+          const SizedBox(height: 12),
         ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (allComplete) ...[
-            _AllCompleteBanner(),
-            const SizedBox(height: 12),
-          ],
-          for (int i = 0; i < sorted.length; i++) ...[
-            if (i > 0) const SizedBox(height: 12),
-            _QuestRow(progress: sorted[i]),
-          ],
+        for (int i = 0; i < sorted.length; i++) ...[
+          if (i > 0) const SizedBox(height: 10),
+          _QuestRow(progress: sorted[i]),
         ],
-      ),
+      ],
     );
   }
 }
@@ -93,7 +78,7 @@ class _QuestRow extends StatelessWidget {
   ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
     return switch (rewardType) {
       QuestRewardType.coins =>
-        (base: AppColors.gemBlue, shadow: AppColors.secondaryDark),
+        (base: AppColors.streakOrange, shadow: const Color(0xFFC76A00)),
       QuestRewardType.cardPack =>
         (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark),
     };
@@ -176,40 +161,56 @@ class _QuestRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: route != null ? () => context.go(route) : null,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  quest.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: isCompleted ? AppColors.neutralText : AppColors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                AppProgressBar(
-                  progress: ratio,
-                  height: 22,
-                  fillColor: rewardColors.base,
-                  fillShadow: rewardColors.shadow,
-                  overlayText: '$currentValue / $goalValue',
-                  overlayTextStyle: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: ratio > 0.5 ? Colors.white : AppColors.gray600,
-                  ),
-                ),
-              ],
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.neutral, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.neutral,
+              offset: Offset(0, 4),
+              blurRadius: 0,
             ),
-          ),
-          const SizedBox(width: 14),
-          _buildRewardButton(quest, isCompleted),
-        ],
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    quest.title,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color:
+                          isCompleted ? AppColors.neutralText : AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AppProgressBar(
+                    progress: ratio,
+                    height: 22,
+                    fillColor: rewardColors.base,
+                    fillShadow: rewardColors.shadow,
+                    overlayText: '$currentValue / $goalValue',
+                    overlayTextStyle: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: ratio > 0.5 ? Colors.white : AppColors.gray600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 14),
+            _buildRewardButton(quest, isCompleted),
+          ],
+        ),
       ),
     );
   }
