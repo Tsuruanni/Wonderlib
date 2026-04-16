@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/theme.dart';
 import '../../../domain/entities/achievement_group.dart';
+import '../common/app_progress_bar.dart';
 
 /// Duolingo-style achievement row: colored "button" tile on the left with the
 /// emoji and (optional) LEVEL label, title + progress + description on the right.
@@ -173,7 +174,7 @@ class AchievementGroupRow extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                _ProgressBar(
+                AppProgressBar(
                   progress: group.progress,
                   fillColor: fillColor,
                   fillShadow: fillShadow,
@@ -195,49 +196,6 @@ class AchievementGroupRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// Custom progress bar with rounded ends, slight shadow on the fill, and
-/// a 12px height to feel chunky/tactile like Duolingo's bars.
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({
-    required this.progress,
-    required this.fillColor,
-    required this.fillShadow,
-  });
-
-  final double progress;
-  final Color fillColor;
-  final Color fillShadow;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        height: 12,
-        decoration: BoxDecoration(
-          color: AppColors.gray200,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: FractionallySizedBox(
-            widthFactor: progress.clamp(0.0, 1.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: fillColor,
-                borderRadius: BorderRadius.circular(999),
-                border: Border(
-                  bottom: BorderSide(color: fillShadow, width: 3),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
