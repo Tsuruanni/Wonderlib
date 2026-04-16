@@ -904,7 +904,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                   Center(
                     child: TextButton(
                       onPressed: () {
-                        context.go(AppRoutes.quests);
+                        context.go(AppRoutes.allBadges);
                       },
                       child: Text(
                         'See All ${allBadges.length} Badges',
