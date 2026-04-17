@@ -18,6 +18,8 @@ import '../../models/teacher/recent_activity_model.dart';
 import '../../models/teacher/student_book_progress_model.dart';
 import '../../models/teacher/student_vocab_stats_model.dart';
 import '../../models/teacher/student_word_list_progress_model.dart';
+import '../../models/teacher/school_summary_model.dart';
+import '../../models/teacher/global_averages_model.dart';
 import '../../models/teacher/student_summary_model.dart';
 import '../../models/teacher/teacher_class_model.dart';
 import '../../models/teacher/teacher_stats_model.dart';
@@ -256,6 +258,47 @@ class SupabaseTeacherRepository implements TeacherRepository {
           .toList();
 
       return Right(students);
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, SchoolSummary>> getSchoolSummary(String schoolId) async {
+    try {
+      final response = await _supabase.rpc(
+        RpcFunctions.getSchoolSummary,
+        params: {'p_school_id': schoolId},
+      );
+      final list = response as List;
+      if (list.isEmpty) {
+        return const Left(ServerFailure('Empty school summary response'));
+      }
+      final model = SchoolSummaryModel.fromJson(
+        Map<String, dynamic>.from(list.first as Map),
+      );
+      return Right(model.toEntity());
+    } on PostgrestException catch (e) {
+      return Left(ServerFailure(e.message, code: e.code));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, GlobalAverages>> getGlobalAverages() async {
+    try {
+      final response = await _supabase.rpc(RpcFunctions.getGlobalStudentAverages);
+      final list = response as List;
+      if (list.isEmpty) {
+        return const Left(ServerFailure('Empty global averages response'));
+      }
+      final model = GlobalAveragesModel.fromJson(
+        Map<String, dynamic>.from(list.first as Map),
+      );
+      return Right(model.toEntity());
     } on PostgrestException catch (e) {
       return Left(ServerFailure(e.message, code: e.code));
     } catch (e) {

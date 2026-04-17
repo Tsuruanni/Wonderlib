@@ -43,6 +43,12 @@ abstract class TeacherRepository {
   /// Get all students in a school sorted by XP (teacher leaderboard report)
   Future<Either<Failure, List<StudentSummary>>> getSchoolStudentsForTeacher(String schoolId);
 
+  /// Get aggregate stats for the teacher's own school (used for "My School" card)
+  Future<Either<Failure, SchoolSummary>> getSchoolSummary(String schoolId);
+
+  /// Get platform-wide student averages as benchmark data
+  Future<Either<Failure, GlobalAverages>> getGlobalAverages();
+
   // =============================================
   // ASSIGNMENT METHODS
   // =============================================
