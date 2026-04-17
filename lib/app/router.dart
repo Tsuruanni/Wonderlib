@@ -47,6 +47,7 @@ import '../presentation/screens/teacher/reports/class_overview_report_screen.dar
 import '../presentation/screens/teacher/reports/reading_progress_report_screen.dart';
 import '../presentation/screens/teacher/reports/assignment_report_screen.dart';
 import '../presentation/screens/teacher/reports/leaderboard_report_screen.dart';
+import '../presentation/screens/teacher/reports/my_school_report_screen.dart';
 import '../presentation/widgets/shell/main_shell_scaffold.dart';
 import '../presentation/screens/quiz/book_quiz_screen.dart';
 import '../presentation/widgets/shell/teacher_shell_scaffold.dart';
@@ -98,6 +99,7 @@ abstract class AppRoutes {
   static const teacherReportReadingProgress = '/teacher/reports/reading-progress';
   static const teacherReportAssignments = '/teacher/reports/assignments';
   static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
+  static const teacherReportMySchool = '/teacher/reports/my-school';
   static const teacherProfile = '/teacher/profile';
   static const teacherLibrary = '/teacher/library';
   static const teacherBookDetail = '/teacher/library/book';
@@ -792,6 +794,10 @@ GoRouter _createRouter() {
                   GoRoute(
                     path: 'leaderboard',
                     builder: (context, state) => const LeaderboardReportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'my-school',
+                    builder: (context, state) => const MySchoolReportScreen(),
                   ),
                 ],
               ),

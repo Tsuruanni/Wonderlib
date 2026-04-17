@@ -17,6 +17,7 @@ class TeacherClassModel {
     this.completedBooks = 0,
     this.activeLast30d = 0,
     this.totalVocabWords = 0,
+    this.maxLevel = 0,
     this.createdAt,
   });
 
@@ -35,6 +36,7 @@ class TeacherClassModel {
       completedBooks: (json['completed_books'] as num?)?.toInt() ?? 0,
       activeLast30d: (json['active_last_30d'] as num?)?.toInt() ?? 0,
       totalVocabWords: (json['total_vocab_words'] as num?)?.toInt() ?? 0,
+      maxLevel: (json['max_level'] as num?)?.toInt() ?? 0,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -54,6 +56,7 @@ class TeacherClassModel {
   final int completedBooks;
   final int activeLast30d;
   final int totalVocabWords;
+  final int maxLevel;
   final DateTime? createdAt;
 
   TeacherClass toEntity() {
@@ -71,6 +74,7 @@ class TeacherClassModel {
       completedBooks: completedBooks,
       activeLast30d: activeLast30d,
       totalVocabWords: totalVocabWords,
+      maxLevel: maxLevel,
       createdAt: createdAt,
     );
   }

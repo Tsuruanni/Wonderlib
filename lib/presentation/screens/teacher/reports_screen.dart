@@ -70,6 +70,13 @@ class ReportsScreen extends ConsumerWidget {
                 color: Colors.purple,
                 onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
               ),
+              _ReportTypeCard(
+                title: 'My School',
+                description: 'School-wide stats compared to the platform',
+                icon: Icons.school_rounded,
+                color: Colors.teal,
+                onTap: () => context.push(AppRoutes.teacherReportMySchool),
+              ),
             ],
           ),
         ],

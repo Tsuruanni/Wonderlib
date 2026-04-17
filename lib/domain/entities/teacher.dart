@@ -36,6 +36,7 @@ class TeacherClass extends Equatable {
     this.completedBooks = 0,
     this.activeLast30d = 0,
     this.totalVocabWords = 0,
+    this.maxLevel = 0,
     this.createdAt,
   });
   final String id;
@@ -51,13 +52,14 @@ class TeacherClass extends Equatable {
   final int completedBooks;
   final int activeLast30d;
   final int totalVocabWords;
+  final int maxLevel;
   final DateTime? createdAt;
 
   int get inactiveLast30d => studentCount - activeLast30d;
   double get booksPerStudent => studentCount > 0 ? completedBooks / studentCount : 0;
 
   @override
-  List<Object?> get props => [id, name, grade, academicYear, description, studentCount, avgProgress, avgXp, avgStreak, totalReadingTime, completedBooks, activeLast30d, totalVocabWords, createdAt];
+  List<Object?> get props => [id, name, grade, academicYear, description, studentCount, avgProgress, avgXp, avgStreak, totalReadingTime, completedBooks, activeLast30d, totalVocabWords, maxLevel, createdAt];
 }
 
 /// Student summary for class view
