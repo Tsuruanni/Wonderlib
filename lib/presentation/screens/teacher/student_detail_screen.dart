@@ -17,6 +17,7 @@ import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -100,7 +101,7 @@ class StudentDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // 3. Reading Progress (horizontal)
-                  _SectionTitle(title: 'Reading Progress', icon: Icons.menu_book, color: Colors.blue),
+                  _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
                   const SizedBox(height: 12),
                   progressAsync.when(
                     loading: () => const SizedBox(
@@ -114,7 +115,7 @@ class StudentDetailScreen extends ConsumerWidget {
                           .toList();
                       if (filtered.isEmpty) {
                         return _EmptySection(
-                          icon: Icons.menu_book_outlined,
+                          assetPath: AppIcons.library,
                           message: 'No reading activity yet',
                         );
                       }
@@ -133,13 +134,13 @@ class StudentDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // 4. Quiz Results
-                  _SectionTitle(title: 'Quiz Results', icon: Icons.quiz, color: Colors.green),
+                  _SectionTitle(title: 'Quiz Results', assetPath: AppIcons.quiz, color: Colors.green),
                   const SizedBox(height: 12),
                   _QuizResultsSection(studentId: studentId),
                   const SizedBox(height: 24),
 
                   // 5. Vocabulary Progress
-                  _SectionTitle(title: 'Vocabulary Progress', icon: Icons.abc, color: Colors.purple),
+                  _SectionTitle(title: 'Vocabulary Progress', assetPath: AppIcons.vocabulary, color: Colors.purple),
                   const SizedBox(height: 12),
                   vocabStatsAsync.when(
                     loading: () => const SizedBox(
@@ -162,7 +163,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         children: [
                           _SectionTitle(
                             title: 'Word Lists (${lists.length})',
-                            icon: Icons.list_alt,
+                            assetPath: AppIcons.clipboard,
                             color: Colors.orange,
                           ),
                           const SizedBox(height: 12),
@@ -196,7 +197,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         children: [
                           _SectionTitle(
                             title: 'Badges (${typedBadges.length})',
-                            icon: Icons.military_tech,
+                            assetPath: AppIcons.trophy,
                             color: Colors.amber,
                           ),
                           const SizedBox(height: 12),
@@ -233,7 +234,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         children: [
                           _SectionTitle(
                             title: 'Card Collection (${sorted.length})',
-                            icon: Icons.collections_bookmark,
+                            assetPath: AppIcons.card,
                             color: AppColors.cardEpic,
                           ),
                           const SizedBox(height: 12),
@@ -314,12 +315,12 @@ class _StudentHeader extends StatelessWidget {
                   runSpacing: 4,
                   children: [
                     _StatChip(
-                      icon: Icons.local_fire_department,
+                      assetPath: AppIcons.fire,
                       value: '${user.currentStreak}',
                       color: Colors.orange,
                     ),
                     _StatChip(
-                      icon: Icons.emoji_events,
+                      assetPath: AppIcons.trophy,
                       value: '${user.longestStreak} best',
                       color: Colors.purple,
                     ),
@@ -336,12 +337,14 @@ class _StudentHeader extends StatelessWidget {
 
 class _StatChip extends StatelessWidget {
   const _StatChip({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.value,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String value;
   final Color color;
 
@@ -357,7 +360,10 @@ class _StatChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          if (assetPath != null)
+            AssetIcon(assetPath!, size: 14)
+          else if (icon != null)
+            Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             value,
@@ -412,7 +418,7 @@ class _LevelXpCard extends StatelessWidget {
               const Spacer(),
               Row(
                 children: [
-                  const Icon(Icons.bolt_rounded, size: 18, color: AppColors.wasp),
+                  const AssetIcon(AppIcons.xp, size: 18),
                   const SizedBox(width: 4),
                   Text(
                     '${user.xp} XP',
@@ -456,19 +462,24 @@ class _LevelXpCard extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle({
     required this.title,
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.color,
   });
 
   final String title;
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: color),
+        if (assetPath != null)
+          AssetIcon(assetPath!, size: 24)
+        else
+          Icon(icon, size: 20, color: color),
         const SizedBox(width: 8),
         Text(
           title,
@@ -518,7 +529,7 @@ class _HorizontalBookCard extends StatelessWidget {
                         : null,
                   ),
                   child: progress.bookCoverUrl == null
-                      ? const Icon(Icons.book, size: 20)
+                      ? const AssetIcon(AppIcons.book, size: 24)
                       : null,
                 ),
                 const SizedBox(width: 10),
@@ -570,7 +581,7 @@ class _HorizontalBookCard extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.access_time, size: 12, color: AppColors.neutralText),
+                    const AssetIcon(AppIcons.schedule, size: 12),
                     const SizedBox(width: 2),
                     Text(
                       TimeFormatter.formatReadingTime(progress.totalReadingTime),
@@ -604,9 +615,9 @@ class _VocabStatsCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _VocabStat(value: '${stats.totalWords}', label: 'Words', icon: Icons.abc, color: Colors.blue),
-          _VocabStat(value: '${stats.masteredCount}', label: 'Mastered', icon: Icons.check_circle, color: Colors.green),
-          _VocabStat(value: '${stats.learningCount}', label: 'Learning', icon: Icons.school, color: Colors.orange),
+          _VocabStat(value: '${stats.totalWords}', label: 'Words', assetPath: AppIcons.vocabulary, color: Colors.blue),
+          _VocabStat(value: '${stats.masteredCount}', label: 'Mastered', assetPath: AppIcons.checkMark, color: Colors.green),
+          _VocabStat(value: '${stats.learningCount}', label: 'Learning', assetPath: AppIcons.book, color: Colors.orange),
           _VocabStat(value: '${stats.totalSessions}', label: 'Sessions', icon: Icons.replay, color: Colors.purple),
         ],
       ),
@@ -618,13 +629,15 @@ class _VocabStat extends StatelessWidget {
   const _VocabStat({
     required this.value,
     required this.label,
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.color,
   });
 
   final String value;
   final String label;
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final Color color;
 
   @override
@@ -637,7 +650,9 @@ class _VocabStat extends StatelessWidget {
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: assetPath != null
+              ? AssetIcon(assetPath!, size: 24)
+              : Icon(icon, color: color, size: 20),
         ),
         const SizedBox(height: 4),
         Text(
@@ -802,7 +817,7 @@ class _QuizResultsSection extends ConsumerWidget {
       data: (results) {
         if (results.isEmpty) {
           return _EmptySection(
-            icon: Icons.quiz_outlined,
+            assetPath: AppIcons.quiz,
             message: 'No quiz attempts yet',
           );
         }
@@ -884,8 +899,9 @@ class _QuizResultsSection extends ConsumerWidget {
 // ─────────────────────────────────────────────
 
 class _EmptySection extends StatelessWidget {
-  const _EmptySection({required this.icon, required this.message});
-  final IconData icon;
+  const _EmptySection({this.icon, this.assetPath, required this.message});
+  final IconData? icon;
+  final String? assetPath;
   final String message;
 
   @override
@@ -895,7 +911,10 @@ class _EmptySection extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 24, color: AppColors.neutralDark),
+          if (assetPath != null)
+            AssetIcon(assetPath!, size: 28)
+          else
+            Icon(icon, size: 24, color: AppColors.neutralDark),
           const SizedBox(width: 8),
           Text(
             message,

@@ -9,6 +9,7 @@ import '../../../domain/entities/student_unit_progress_item.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
 import '../../widgets/common/responsive_layout.dart';
@@ -226,7 +227,7 @@ class _AssignmentAppBar extends ConsumerWidget {
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: Colors.red),
+                  AssetIcon(AppIcons.xOutline, size: 20),
                   SizedBox(width: 8),
                   Text('Delete', style: TextStyle(color: Colors.red)),
                 ],
@@ -387,7 +388,7 @@ class _StatsBar extends StatelessWidget {
           StatItem(
             value: '${assignment.completedStudents}',
             label: 'Completed',
-            icon: Icons.check_circle,
+            assetPath: AppIcons.checkMark,
             color: Colors.green,
           ),
           StatItem(

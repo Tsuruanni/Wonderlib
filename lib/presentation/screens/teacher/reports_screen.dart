@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/teacher_provider.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/playful_card.dart';
 import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/stat_item.dart';
@@ -45,35 +46,35 @@ class ReportsScreen extends ConsumerWidget {
               _ReportTypeCard(
                 title: 'Class Overview',
                 description: 'View performance summary for each class',
-                icon: Icons.groups,
+                assetPath: AppIcons.library,
                 color: Colors.blue,
                 onTap: () => context.push(AppRoutes.teacherReportClassOverview),
               ),
               _ReportTypeCard(
                 title: 'Reading Progress',
                 description: 'Track book completion across all students',
-                icon: Icons.menu_book,
+                assetPath: AppIcons.book,
                 color: Colors.green,
                 onTap: () => context.push(AppRoutes.teacherReportReadingProgress),
               ),
               _ReportTypeCard(
                 title: 'Assignment Performance',
                 description: 'Analyze assignment completion rates',
-                icon: Icons.assignment_turned_in,
+                assetPath: AppIcons.clipboard,
                 color: Colors.orange,
                 onTap: () => context.push(AppRoutes.teacherReportAssignments),
               ),
               _ReportTypeCard(
                 title: 'Student Leaderboard',
                 description: 'Top performers by XP and achievements',
-                icon: Icons.leaderboard,
+                assetPath: AppIcons.trophy,
                 color: Colors.purple,
                 onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
               ),
               _ReportTypeCard(
                 title: 'My School',
                 description: 'School-wide stats compared to the platform',
-                icon: Icons.school_rounded,
+                assetPath: AppIcons.xp,
                 color: Colors.teal,
                 onTap: () => context.push(AppRoutes.teacherReportMySchool),
               ),
@@ -133,8 +134,7 @@ class _QuickStatsCard extends ConsumerWidget {
                 StatItem(
                   value: '${stats.activeAssignments}',
                   label: 'Active Tasks',
-                  icon: Icons.assignment,
-                  color: Colors.orange,
+                  assetPath: AppIcons.clipboard,
                 ),
                 StatItem(
                   value: '${stats.avgProgress.toStringAsFixed(0)}%',
@@ -155,14 +155,14 @@ class _ReportTypeCard extends StatelessWidget {
   const _ReportTypeCard({
     required this.title,
     required this.description,
-    required this.icon,
+    required this.assetPath,
     required this.color,
     required this.onTap,
   });
 
   final String title;
   final String description;
-  final IconData icon;
+  final String assetPath;
   final Color color;
   final VoidCallback onTap;
 
@@ -179,7 +179,7 @@ class _ReportTypeCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: AssetIcon(assetPath, size: 32),
           ),
           const SizedBox(width: 16),
           Expanded(

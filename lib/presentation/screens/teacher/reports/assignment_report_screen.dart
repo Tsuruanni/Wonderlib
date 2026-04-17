@@ -9,6 +9,7 @@ import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/app_progress_bar.dart';
+import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
@@ -42,11 +43,7 @@ class AssignmentReportScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.assignment_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
+                    const AssetIcon(AppIcons.clipboard, size: 80),
                     const SizedBox(height: 16),
                     Text(
                       'No assignments yet',

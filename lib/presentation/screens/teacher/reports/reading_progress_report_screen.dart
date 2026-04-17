@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/entities/teacher.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
@@ -36,11 +37,7 @@ class ReadingProgressReportScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.menu_book_outlined,
-                      size: 64,
-                      color: context.colorScheme.outline,
-                    ),
+                    const AssetIcon(AppIcons.library, size: 80),
                     const SizedBox(height: 16),
                     Text(
                       'No books in library',
@@ -67,12 +64,12 @@ class ReadingProgressReportScreen extends ConsumerWidget {
                         _SummaryItem(
                           value: '${books.length}',
                           label: 'Total Books',
-                          icon: Icons.menu_book,
+                          assetPath: AppIcons.library,
                         ),
                         _SummaryItem(
                           value: '$activeBooks',
                           label: 'Being Read',
-                          icon: Icons.auto_stories,
+                          assetPath: AppIcons.book,
                         ),
                       ],
                     ),
@@ -109,18 +106,23 @@ class _SummaryItem extends StatelessWidget {
   const _SummaryItem({
     required this.value,
     required this.label,
-    required this.icon,
+    this.icon,
+    this.assetPath,
   });
 
   final String value;
   final String label;
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: context.colorScheme.onPrimaryContainer, size: 28),
+        if (assetPath != null)
+          AssetIcon(assetPath!, size: 30)
+        else
+          Icon(icon, color: context.colorScheme.onPrimaryContainer, size: 28),
         const SizedBox(height: 4),
         Text(
           value,
@@ -167,7 +169,7 @@ class _BookStatsCard extends StatelessWidget {
                     : null,
               ),
               child: book.coverUrl == null
-                  ? Icon(Icons.book, color: context.colorScheme.outline)
+                  ? const AssetIcon(AppIcons.book, size: 32)
                   : null,
             ),
             const SizedBox(width: 12),
@@ -212,7 +214,7 @@ class _BookStatsCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                      const AssetIcon(AppIcons.checkMark, size: 14),
                       const SizedBox(width: 4),
                       Text(
                         '${book.completedReaders} completed',

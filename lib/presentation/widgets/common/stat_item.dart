@@ -9,6 +9,7 @@ class StatItem extends StatelessWidget {
     required this.value,
     required this.label,
     this.icon,
+    this.assetPath,
     this.color,
     this.valueStyle,
     this.labelStyle,
@@ -17,6 +18,7 @@ class StatItem extends StatelessWidget {
   final String value;
   final String label;
   final IconData? icon;
+  final String? assetPath;
   final Color? color;
   final TextStyle? valueStyle;
   final TextStyle? labelStyle;
@@ -25,7 +27,10 @@ class StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (icon != null) ...[
+        if (assetPath != null) ...[
+          Image.asset(assetPath!, width: 28, height: 28, fit: BoxFit.contain),
+          const SizedBox(height: 4),
+        ] else if (icon != null) ...[
           Icon(
             icon,
             color: color ?? context.colorScheme.onPrimaryContainer,

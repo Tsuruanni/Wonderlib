@@ -6,6 +6,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/playful_card.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/class_learning_path_unit.dart';
@@ -291,17 +292,17 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 ButtonSegment(
                   value: AssignmentType.unit,
                   label: Text('Unit'),
-                  icon: Icon(Icons.route),
+                  icon: AssetIcon(AppIcons.unitNodes, size: 20),
                 ),
                 ButtonSegment(
                   value: AssignmentType.book,
                   label: Text('Book'),
-                  icon: Icon(Icons.menu_book),
+                  icon: AssetIcon(AppIcons.book, size: 20),
                 ),
                 ButtonSegment(
                   value: AssignmentType.vocabulary,
                   label: Text('Vocabulary'),
-                  icon: Icon(Icons.abc),
+                  icon: AssetIcon(AppIcons.vocabulary, size: 20),
                 ),
               ],
               selected: {_selectedType},
@@ -389,12 +390,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 padding: EdgeInsets.zero,
                 onTap: () => _showBookSelectionSheet(context, ref),
                 child: ListTile(
-                  leading: Icon(
-                    Icons.menu_book,
-                    color: _selectedBookId != null
-                        ? context.colorScheme.primary
-                        : context.colorScheme.outline,
-                  ),
+                  leading: const AssetIcon(AppIcons.book, size: 28),
                   title: Text(
                     _selectedBookId != null
                         ? _selectedBookTitle ?? 'Book selected'
@@ -454,12 +450,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                 padding: EdgeInsets.zero,
                 onTap: () => _showWordListSelectionSheet(context, ref),
                 child: ListTile(
-                  leading: Icon(
-                    Icons.abc,
-                    color: _selectedWordListId != null
-                        ? context.colorScheme.primary
-                        : context.colorScheme.outline,
-                  ),
+                  leading: const AssetIcon(AppIcons.vocabulary, size: 28),
                   title: Text(
                     _selectedWordListId != null
                         ? _selectedWordListName ?? 'Word list selected'
@@ -503,12 +494,7 @@ class _CreateAssignmentScreenState extends ConsumerState<CreateAssignmentScreen>
                   padding: EdgeInsets.zero,
                   onTap: () => _showUnitSelectionSheet(context, ref),
                   child: ListTile(
-                    leading: Icon(
-                      Icons.route,
-                      color: _selectedScopeLpUnitId != null
-                          ? context.colorScheme.primary
-                          : context.colorScheme.outline,
-                    ),
+                    leading: const AssetIcon(AppIcons.unitNodes, size: 28),
                     title: Text(
                       _selectedScopeLpUnitId != null
                           ? _selectedUnitName ?? 'Unit selected'
@@ -737,7 +723,7 @@ class _BookSelectionSheet extends ConsumerWidget {
                                 width: 40,
                                 height: 56,
                                 color: context.colorScheme.surfaceContainerHighest,
-                                child: const Icon(Icons.menu_book, size: 20),
+                                child: const AssetIcon(AppIcons.book, size: 24),
                               ),
                             ),
                           )
@@ -842,12 +828,7 @@ class _WordListSelectionSheet extends ConsumerWidget {
                       backgroundColor: isSelected
                           ? context.colorScheme.primary
                           : context.colorScheme.surfaceContainerHighest,
-                      child: Icon(
-                        Icons.abc,
-                        color: isSelected
-                            ? context.colorScheme.onPrimary
-                            : context.colorScheme.onSurfaceVariant,
-                      ),
+                      child: const AssetIcon(AppIcons.vocabulary, size: 24),
                     ),
                     title: Text(wordList.name),
                     subtitle: Text(

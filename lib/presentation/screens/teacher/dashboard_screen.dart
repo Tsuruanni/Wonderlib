@@ -10,6 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/animated_game_button.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/responsive_layout.dart';
 
 class TeacherDashboardScreen extends ConsumerWidget {
@@ -257,7 +258,7 @@ class _StatsGrid extends ConsumerWidget {
             color: Colors.green,
           ),
           _StatCard(
-            icon: Icons.assignment,
+            assetPath: AppIcons.clipboard,
             label: 'Active Assignments',
             value: '${stats.activeAssignments}',
             color: Colors.orange,
@@ -276,13 +277,15 @@ class _StatsGrid extends ConsumerWidget {
 
 class _StatCard extends StatelessWidget {
   const _StatCard({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.label,
     required this.value,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String label;
   final String value;
   final Color color;
@@ -312,7 +315,9 @@ class _StatCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: assetPath != null
+                ? AssetIcon(assetPath!, size: 24)
+                : Icon(icon, color: color, size: 20),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +381,7 @@ class _QuickActionsRow extends StatelessWidget {
         ),
         AnimatedGameButton(
           label: 'Leaderboard',
-          icon: const Icon(Icons.leaderboard),
+          icon: const AssetIcon(AppIcons.trophy, size: 20),
           variant: GameButtonVariant.wasp,
           fullWidth: true,
           onPressed: () => context.push(AppRoutes.teacherReportLeaderboard),
@@ -552,7 +557,7 @@ class _RecentActivityList extends ConsumerWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, size: 14, color: Colors.amber),
+                            const AssetIcon(AppIcons.xp, size: 14),
                             const SizedBox(width: 2),
                             Text(
                               '+${activity.xpAmount}',

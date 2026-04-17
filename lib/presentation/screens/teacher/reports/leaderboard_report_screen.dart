@@ -11,6 +11,7 @@ import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/league_tier_badge.dart';
 import '../../../widgets/common/playful_card.dart';
+import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/responsive_layout.dart';
 import '../../../widgets/common/student_composite_avatar.dart';
 
@@ -136,13 +137,13 @@ class _LeaderboardCard extends StatelessWidget {
                   Row(
                     children: [
                       _MiniStat(
-                        icon: Icons.local_fire_department,
+                        assetPath: AppIcons.fire,
                         value: '${student.currentStreak}',
                         color: Colors.orange,
                       ),
                       const SizedBox(width: 12),
                       _MiniStat(
-                        icon: Icons.book,
+                        assetPath: AppIcons.book,
                         value: '${student.booksRead}',
                         color: Colors.blue,
                       ),
@@ -164,7 +165,7 @@ class _LeaderboardCard extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 18),
+                        const AssetIcon(AppIcons.xp, size: 18),
                         const SizedBox(width: 4),
                         Text(
                           '${student.xp}',
@@ -227,12 +228,14 @@ class _LeaderboardCard extends StatelessWidget {
 
 class _MiniStat extends StatelessWidget {
   const _MiniStat({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.value,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String value;
   final Color color;
 
@@ -241,7 +244,10 @@ class _MiniStat extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: color),
+        if (assetPath != null)
+          AssetIcon(assetPath!, size: 14)
+        else if (icon != null)
+          Icon(icon, size: 14, color: color),
         const SizedBox(width: 2),
         Text(
           value,

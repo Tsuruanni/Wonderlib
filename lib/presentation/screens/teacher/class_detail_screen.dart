@@ -14,6 +14,7 @@ import '../../utils/login_cards_pdf.dart';
 import '../../utils/student_ranking_metric.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/animated_game_button.dart';
+import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -708,13 +709,13 @@ class _ReportStudentCard extends StatelessWidget {
             children: [
               if (student.booksRead > 0)
                 _MiniChip(
-                  icon: Icons.menu_book,
+                  assetPath: AppIcons.book,
                   value: '${student.booksRead} books read',
                   color: Colors.blue,
                 ),
               if (student.wordbankSize > 0)
                 _MiniChip(
-                  icon: Icons.abc,
+                  assetPath: AppIcons.vocabulary,
                   value: '${student.wordbankSize} words in wordbank',
                   color: Colors.teal,
                 ),
@@ -728,12 +729,14 @@ class _ReportStudentCard extends StatelessWidget {
 
 class _MiniChip extends StatelessWidget {
   const _MiniChip({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.value,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String value;
   final Color color;
 
@@ -748,7 +751,10 @@ class _MiniChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
+          if (assetPath != null)
+            AssetIcon(assetPath!, size: 12)
+          else if (icon != null)
+            Icon(icon, size: 12, color: color),
           const SizedBox(width: 3),
           Text(
             value,
@@ -827,22 +833,19 @@ class _ClassStatsBar extends StatelessWidget {
               color: Colors.blue,
             ),
             _StatItem(
-              icon: Icons.check_circle_outline,
+              assetPath: AppIcons.checkMark,
               value: '$activeLast30d/$total',
               label: 'Active (30d)',
-              color: Colors.green,
             ),
             _StatItem(
-              icon: Icons.menu_book,
+              assetPath: AppIcons.book,
               value: '$totalBooks',
               label: 'Books Read',
-              color: Colors.purple,
             ),
             _StatItem(
-              icon: Icons.abc,
+              assetPath: AppIcons.vocabulary,
               value: '$totalWordbank',
               label: 'Words Practiced',
-              color: Colors.teal,
             ),
           ],
         ),
@@ -895,13 +898,15 @@ class _SortDropdown extends StatelessWidget {
 
 class _StatItem extends StatelessWidget {
   const _StatItem({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.value,
     required this.label,
     this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String value;
   final String label;
   final Color? color;
@@ -910,7 +915,10 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: color ?? context.colorScheme.primary, size: 22),
+        if (assetPath != null)
+          AssetIcon(assetPath!, size: 28)
+        else
+          Icon(icon, color: color ?? context.colorScheme.primary, size: 22),
         const SizedBox(height: 4),
         Text(
           value,

@@ -11,6 +11,7 @@ import '../../../providers/teacher_provider.dart';
 import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
+import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/responsive_layout.dart';
 import '../class_detail_screen.dart';
 
@@ -80,25 +81,25 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                         _SummaryStat(
                           value: '$totalActive/$totalStudents',
                           label: 'Active (30d)',
-                          assetPath: 'assets/icons/fire_256.png',
+                          assetPath: AppIcons.fire,
                         ),
                       if (topLevel > 0)
                         _SummaryStat(
                           value: 'Lv $topLevel',
                           label: 'Top Level',
-                          assetPath: 'assets/icons/trophy_256.png',
+                          assetPath: AppIcons.trophy,
                         ),
                       if (totalBooks > 0)
                         _SummaryStat(
                           value: '$totalBooks',
                           label: 'Books Read',
-                          assetPath: 'assets/icons/library.png',
+                          assetPath: AppIcons.library,
                         ),
                       if (totalReadingTime > 0)
                         _SummaryStat(
                           value: TimeFormatter.formatReadingTime(totalReadingTime),
                           label: 'Reading Time',
-                          assetPath: 'assets/icons/schedule.png',
+                          assetPath: AppIcons.schedule,
                         ),
                     ],
                   ),
