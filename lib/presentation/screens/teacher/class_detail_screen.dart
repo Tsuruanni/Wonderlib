@@ -644,14 +644,22 @@ class _ReportStudentCard extends StatelessWidget {
                       style: context.textTheme.titleSmall
                           ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                    if (student.studentNumber != null)
-                      Text(
-                        '#${student.studentNumber}',
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: AppColors.neutralText,
-                          fontSize: 11,
-                        ),
-                      ),
+                    Wrap(
+                      spacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        if (student.studentNumber != null)
+                          Text(
+                            '#${student.studentNumber}',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: AppColors.neutralText,
+                              fontSize: 11,
+                            ),
+                          ),
+                        if (student.isInactive)
+                          _InactiveBadge(days: student.daysSinceActive),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -876,3 +884,42 @@ class _StatItem extends StatelessWidget {
 
 
 
+
+class _InactiveBadge extends StatelessWidget {
+  const _InactiveBadge({required this.days});
+
+  final int? days;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = days == null
+        ? 'Never active'
+        : days! >= 30
+            ? 'Inactive ${days! ~/ 30}mo'
+            : 'Inactive ${days!}d';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.red.shade300, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.warning_amber_rounded,
+              size: 11, color: Colors.red.shade700),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.red.shade700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

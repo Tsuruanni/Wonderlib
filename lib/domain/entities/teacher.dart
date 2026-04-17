@@ -79,6 +79,7 @@ class StudentSummary extends Equatable {
     required this.avgProgress,
     required this.leagueTier,
     this.wordbankSize = 0,
+    this.lastActivityDate,
     this.passwordPlain,
   });
   final String id;
@@ -96,12 +97,26 @@ class StudentSummary extends Equatable {
   final double avgProgress;
   final LeagueTier leagueTier;
   final int wordbankSize;
+  final DateTime? lastActivityDate;
   final String? passwordPlain;
 
   String get fullName => '$firstName $lastName';
 
+  /// Days since the student was last active, or null if never active.
+  int? get daysSinceActive {
+    if (lastActivityDate == null) return null;
+    final today = DateTime.now();
+    return today.difference(lastActivityDate!).inDays;
+  }
+
+  /// True when student has been inactive for 7+ days (or never).
+  bool get isInactive {
+    final d = daysSinceActive;
+    return d == null || d >= 7;
+  }
+
   @override
-  List<Object?> get props => [id, firstName, lastName, studentNumber, username, email, avatarUrl, avatarEquippedCache, xp, level, currentStreak, booksRead, avgProgress, leagueTier, wordbankSize, passwordPlain];
+  List<Object?> get props => [id, firstName, lastName, studentNumber, username, email, avatarUrl, avatarEquippedCache, xp, level, currentStreak, booksRead, avgProgress, leagueTier, wordbankSize, lastActivityDate, passwordPlain];
 }
 
 /// Student's progress on a specific book

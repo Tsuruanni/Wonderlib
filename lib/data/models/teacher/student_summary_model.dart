@@ -20,11 +20,13 @@ class StudentSummaryModel {
     required this.avgProgress,
     required this.leagueTier,
     this.wordbankSize = 0,
+    this.lastActivityDate,
     this.passwordPlain,
   });
 
   factory StudentSummaryModel.fromJson(Map<String, dynamic> json) {
     final cache = json['avatar_equipped_cache'];
+    final lastAct = json['last_activity_date'] as String?;
     return StudentSummaryModel(
       id: json['id'] as String,
       firstName: json['first_name'] as String? ?? '',
@@ -42,6 +44,7 @@ class StudentSummaryModel {
       avgProgress: (json['avg_progress'] as num?)?.toDouble() ?? 0,
       leagueTier: _parseLeagueTier(json['league_tier'] as String?),
       wordbankSize: (json['wordbank_size'] as num?)?.toInt() ?? 0,
+      lastActivityDate: lastAct != null ? DateTime.tryParse(lastAct) : null,
       passwordPlain: json['password_plain'] as String?,
     );
   }
@@ -66,6 +69,7 @@ class StudentSummaryModel {
   final double avgProgress;
   final LeagueTier leagueTier;
   final int wordbankSize;
+  final DateTime? lastActivityDate;
   final String? passwordPlain;
 
   StudentSummary toEntity() {
@@ -85,6 +89,7 @@ class StudentSummaryModel {
       avgProgress: avgProgress,
       leagueTier: leagueTier,
       wordbankSize: wordbankSize,
+      lastActivityDate: lastActivityDate,
       passwordPlain: passwordPlain,
     );
   }
