@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../app/theme.dart';
 
 /// Duolingo-style card with 2px border, flat shadow, and rounded corners.
 /// Drop-in replacement for Card in teacher screens.
-class PlayfulCard extends StatelessWidget {
+///
+/// When [onTap] is set, the card animates like a physical button: sinks
+/// 4px down and its shadow collapses to feel "pressed." Plays a light
+/// haptic tick on press to match the AnimatedGameButton feel.
+class PlayfulCard extends StatefulWidget {
   const PlayfulCard({
     super.key,
     required this.child,
@@ -26,27 +31,54 @@ class PlayfulCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   @override
+  State<PlayfulCard> createState() => _PlayfulCardState();
+}
+
+class _PlayfulCardState extends State<PlayfulCard> {
+  bool _pressed = false;
+
+  void _setPressed(bool v) {
+    if (widget.onTap == null) return;
+    if (_pressed == v) return;
+    setState(() => _pressed = v);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: margin,
+    final pressed = _pressed;
+    final card = AnimatedContainer(
+      duration: const Duration(milliseconds: 90),
+      curve: Curves.easeOut,
+      margin: widget.margin,
+      transform: Matrix4.translationValues(0, pressed ? 4 : 0, 0),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: borderColor, width: 2),
+        color: widget.color,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        border: Border.all(color: widget.borderColor, width: 2),
         boxShadow: [
           BoxShadow(
-            color: shadowColor,
-            offset: const Offset(0, 4),
+            color: widget.shadowColor,
+            offset: pressed ? Offset.zero : const Offset(0, 4),
           ),
         ],
       ),
-      child: onTap != null
-          ? InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(borderRadius - 2),
-              child: Padding(padding: padding, child: child),
-            )
-          : Padding(padding: padding, child: child),
+      child: Padding(padding: widget.padding, child: widget.child),
+    );
+
+    if (widget.onTap == null) return card;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) {
+        HapticFeedback.lightImpact();
+        _setPressed(true);
+      },
+      onTapUp: (_) {
+        _setPressed(false);
+        widget.onTap?.call();
+      },
+      onTapCancel: () => _setPressed(false),
+      child: card,
     );
   }
 }
