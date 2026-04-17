@@ -141,6 +141,13 @@ class SupabaseCardRepository implements CardRepository {
         return TopCollectorEntry(
           userId: e['user_id'] as String,
           firstName: e['first_name'] as String,
+          lastName: (e['last_name'] as String?) ?? '',
+          avatarUrl: e['avatar_url'] as String?,
+          avatarEquippedCache:
+              (e['avatar_equipped_cache'] as Map?)?.cast<String, dynamic>(),
+          totalXp: (e['total_xp'] as num?)?.toInt() ?? 0,
+          level: (e['level'] as num?)?.toInt() ?? 1,
+          leagueTier: (e['league_tier'] as String?) ?? 'bronze',
           uniqueCards: (e['unique_cards'] as num).toInt(),
           rank: (e['rank'] as num).toInt(),
         );

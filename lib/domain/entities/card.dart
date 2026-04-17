@@ -160,17 +160,40 @@ class TopCollectorEntry extends Equatable {
   const TopCollectorEntry({
     required this.userId,
     required this.firstName,
+    required this.lastName,
+    this.avatarUrl,
+    this.avatarEquippedCache,
+    required this.totalXp,
+    required this.level,
+    required this.leagueTier,
     required this.uniqueCards,
     required this.rank,
   });
 
   final String userId;
   final String firstName;
+  final String lastName;
+  final String? avatarUrl;
+  final Map<String, dynamic>? avatarEquippedCache;
+  final int totalXp;
+  final int level;
+  final String leagueTier;
   final int uniqueCards;
   final int rank;
 
   @override
-  List<Object?> get props => [userId, firstName, uniqueCards, rank];
+  List<Object?> get props => [
+        userId,
+        firstName,
+        lastName,
+        avatarUrl,
+        avatarEquippedCache,
+        totalXp,
+        level,
+        leagueTier,
+        uniqueCards,
+        rank,
+      ];
 }
 
 /// Result of get_class_top_collectors RPC
