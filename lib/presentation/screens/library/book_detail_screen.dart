@@ -307,6 +307,11 @@ class BookDetailScreen extends ConsumerWidget {
                 },
               ),
 
+              // Book quiz entry (after chapters) — hidden if book has no quiz
+              SliverToBoxAdapter(
+                child: _BookDetailQuizTile(bookId: bookId),
+              ),
+
               // Bottom padding for FAB
               const SliverToBoxAdapter(
                 child: SizedBox(height: 80),
@@ -691,6 +696,85 @@ class _ChapterTile extends StatelessWidget {
               ? Icon(Icons.play_circle_fill, color: colorScheme.primary)
               : const Icon(Icons.chevron_right),
       onTap: isLocked ? null : onTap,
+    );
+  }
+}
+
+/// Quiz tile rendered at the end of the chapter list on Book Detail.
+/// Hidden when the book has no quiz. Locked for students until every
+/// chapter is read. Teachers (preview) can always tap through.
+class _BookDetailQuizTile extends ConsumerWidget {
+  const _BookDetailQuizTile({required this.bookId});
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasQuiz = ref.watch(bookHasQuizProvider(bookId)).valueOrNull ?? false;
+    if (!hasQuiz) return const SizedBox.shrink();
+
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
+    final progress = ref.watch(readingProgressProvider(bookId)).valueOrNull;
+    final allChaptersRead = progress?.completionPercentage == 100;
+    final bestResult = ref.watch(bestQuizResultProvider(bookId)).valueOrNull;
+    final isPassed = bestResult?.isPassing ?? false;
+    final isLocked = !isPreview && !allChaptersRead;
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: isLocked
+            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+            : isPassed
+                ? colorScheme.primaryContainer
+                : colorScheme.secondaryContainer,
+        child: isPassed
+            ? Icon(Icons.check, color: colorScheme.primary, size: 20)
+            : Icon(
+                Icons.quiz_outlined,
+                color: isLocked
+                    ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                    : colorScheme.onSecondaryContainer,
+                size: 20,
+              ),
+      ),
+      title: Text(
+        'Book Quiz',
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isLocked
+                  ? colorScheme.onSurface.withValues(alpha: 0.5)
+                  : null,
+            ),
+      ),
+      subtitle: Text(
+        isPassed
+            ? 'Passed'
+            : isLocked
+                ? 'Finish all chapters to unlock'
+                : 'Take the quiz',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isLocked
+                  ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                  : colorScheme.onSurfaceVariant,
+            ),
+      ),
+      trailing: isLocked
+          ? Icon(
+              Icons.lock_outline,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            )
+          : const Icon(Icons.chevron_right),
+      onTap: isLocked
+          ? null
+          : () {
+              context.go(
+                isPreview
+                    ? AppRoutes.teacherBookQuizPath(bookId)
+                    : AppRoutes.bookQuizPath(bookId),
+              );
+            },
     );
   }
 }
