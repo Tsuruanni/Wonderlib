@@ -109,7 +109,9 @@ class _TopCollectorRow extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => showStudentProfileDialog(context, leaderboardEntry),
+      onTap: isCurrentUser
+          ? null
+          : () => showStudentProfileDialog(context, leaderboardEntry),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
