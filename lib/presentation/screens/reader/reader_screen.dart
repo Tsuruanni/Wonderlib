@@ -16,6 +16,7 @@ import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/word_definition_provider.dart';
 import '../../widgets/reader/reader_audio_controls.dart';
@@ -111,20 +112,24 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _updateCurrentChapter() async {
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     final userId = ref.read(currentUserIdProvider);
     if (userId == null) return;
 
     final useCase = ref.read(updateCurrentChapterUseCaseProvider);
-    await useCase(UpdateCurrentChapterParams(
-      userId: userId,
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-    ));
+    await useCase(
+      UpdateCurrentChapterParams(
+        userId: userId,
+        bookId: widget.bookId,
+        chapterId: widget.chapterId,
+      ),
+    );
   }
 
   Future<void> _saveReadingTime() async {
-    // Capture all values synchronously before any async work
-    // This prevents "ref after dispose" errors
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     final int readingTime;
     final String? userId;
     final SaveReadingProgressUseCase saveReadingProgressUseCase;
@@ -138,16 +143,17 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
       saveReadingProgressUseCase = ref.read(saveReadingProgressUseCaseProvider);
     } catch (_) {
-      // Widget might be disposed, ignore
       return;
     }
 
-    await saveReadingProgressUseCase(SaveReadingProgressParams(
-      userId: userId,
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-      additionalReadingTime: readingTime,
-    ));
+    await saveReadingProgressUseCase(
+      SaveReadingProgressParams(
+        userId: userId,
+        bookId: widget.bookId,
+        chapterId: widget.chapterId,
+        additionalReadingTime: readingTime,
+      ),
+    );
   }
 
   void _startReadingTimer() {
@@ -196,6 +202,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   /// Marks the current chapter complete. Called after async gaps so the
   /// autoDispose provider is read fresh each time (avoiding stale refs).
   Future<void> _markCurrentChapterComplete() async {
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     try {
       final completionNotifier = ref.read(chapterCompletionProvider.notifier);
       await completionNotifier.markComplete(
