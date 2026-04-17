@@ -71,12 +71,14 @@ class StudentSummary extends Equatable {
     this.username,
     this.email,
     this.avatarUrl,
+    this.avatarEquippedCache,
     required this.xp,
     required this.level,
     required this.currentStreak,
     required this.booksRead,
     required this.avgProgress,
     required this.leagueTier,
+    this.wordbankSize = 0,
     this.passwordPlain,
   });
   final String id;
@@ -86,18 +88,20 @@ class StudentSummary extends Equatable {
   final String? username;
   final String? email;
   final String? avatarUrl;
+  final Map<String, dynamic>? avatarEquippedCache;
   final int xp;
   final int level;
   final int currentStreak;
   final int booksRead;
   final double avgProgress;
   final LeagueTier leagueTier;
+  final int wordbankSize;
   final String? passwordPlain;
 
   String get fullName => '$firstName $lastName';
 
   @override
-  List<Object?> get props => [id, firstName, lastName, studentNumber, username, email, avatarUrl, xp, level, currentStreak, booksRead, avgProgress, leagueTier, passwordPlain];
+  List<Object?> get props => [id, firstName, lastName, studentNumber, username, email, avatarUrl, avatarEquippedCache, xp, level, currentStreak, booksRead, avgProgress, leagueTier, wordbankSize, passwordPlain];
 }
 
 /// Student's progress on a specific book

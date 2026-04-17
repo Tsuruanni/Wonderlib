@@ -335,17 +335,12 @@ class _EnrichedClassCard extends StatelessWidget {
                   label: TimeFormatter.formatReadingTime(classItem.totalReadingTime),
                   color: Colors.purple,
                 ),
-              if (classItem.totalVocabWords > 0)
+              if (classItem.studentCount > 0)
                 _MetricChip(
-                  icon: Icons.abc,
-                  label: '${classItem.totalVocabWords} words in wordbank',
-                  color: Colors.teal,
+                  icon: classItem.inactiveLast30d > 0 ? Icons.warning_amber : Icons.check_circle,
+                  label: '${classItem.activeLast30d}/${classItem.studentCount} active (30d)',
+                  color: classItem.inactiveLast30d > 0 ? Colors.red : Colors.green,
                 ),
-              _MetricChip(
-                icon: classItem.inactiveLast30d > 0 ? Icons.warning_amber : Icons.check_circle,
-                label: '${classItem.activeLast30d}/${classItem.studentCount} active (30d)',
-                color: classItem.inactiveLast30d > 0 ? Colors.red : Colors.green,
-              ),
             ],
           ),
         ],

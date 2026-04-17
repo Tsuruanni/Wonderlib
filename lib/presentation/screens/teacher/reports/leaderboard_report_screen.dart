@@ -12,6 +12,7 @@ import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/league_tier_badge.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
+import '../../../widgets/common/student_composite_avatar.dart';
 
 class LeaderboardReportScreen extends ConsumerWidget {
   const LeaderboardReportScreen({super.key});
@@ -116,25 +117,8 @@ class _LeaderboardCard extends StatelessWidget {
             ),
             const SizedBox(width: 12),
 
-            // Avatar
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: context.colorScheme.primaryContainer,
-              backgroundImage: student.avatarUrl != null
-                  ? NetworkImage(student.avatarUrl!)
-                  : null,
-              child: student.avatarUrl == null
-                  ? Text(
-                      student.firstName.isNotEmpty
-                          ? student.firstName[0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        color: context.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
-            ),
+            // Avatar (composite cache → AvatarWidget, else fallback)
+            StudentCompositeAvatar(student: student, size: 40),
             const SizedBox(width: 12),
 
             // Name and stats

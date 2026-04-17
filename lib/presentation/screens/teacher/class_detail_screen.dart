@@ -17,6 +17,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
 import '../../widgets/common/responsive_layout.dart';
+import '../../widgets/common/student_composite_avatar.dart';
 
 enum ClassDetailMode { management, report }
 
@@ -632,25 +633,7 @@ class _ReportStudentCard extends StatelessWidget {
           // Top row: avatar + name + level
           Row(
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                backgroundImage: student.avatarUrl != null
-                    ? NetworkImage(student.avatarUrl!)
-                    : null,
-                child: student.avatarUrl == null
-                    ? Text(
-                        student.firstName.isNotEmpty
-                            ? student.firstName[0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                        ),
-                      )
-                    : null,
-              ),
+              StudentCompositeAvatar(student: student, size: 40),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -707,6 +690,12 @@ class _ReportStudentCard extends StatelessWidget {
                   icon: Icons.menu_book,
                   value: '${student.booksRead} books',
                   color: Colors.blue,
+                ),
+              if (student.wordbankSize > 0)
+                _MiniChip(
+                  icon: Icons.abc,
+                  value: '${student.wordbankSize} words in wordbank',
+                  color: Colors.teal,
                 ),
             ],
           ),
@@ -884,4 +873,6 @@ class _StatItem extends StatelessWidget {
     );
   }
 }
+
+
 
