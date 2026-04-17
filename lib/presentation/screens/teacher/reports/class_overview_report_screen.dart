@@ -67,45 +67,44 @@ class ClassOverviewReportScreen extends ConsumerWidget {
               (maxLv, c) => c.maxLevel > maxLv ? c.maxLevel : maxLv,
             );
 
-            final miniStats = <_MiniStat>[
-              if (totalStudents > 0)
-                _MiniStat(icon: Icons.bolt_rounded, value: '$totalActive/$totalStudents', label: 'Active'),
-              if (totalBooks > 0)
-                _MiniStat(icon: Icons.auto_stories_rounded, value: '$totalBooks', label: 'Books'),
-              if (totalReadingTime > 0)
-                _MiniStat(icon: Icons.schedule_rounded, value: TimeFormatter.formatReadingTime(totalReadingTime), label: 'Reading'),
-            ];
-
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Hero banner: Top Level featured, 3 supporting stats underneath
+                // Summary stats — same shape as Class Students stats bar.
                 PlayfulCard(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                   margin: EdgeInsets.zero,
-                  child: Column(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      if (topLevel > 0) _TopLevelHero(level: topLevel),
-                      if (topLevel > 0 && miniStats.isNotEmpty)
-                        const _DashedDivider(),
-                      if (miniStats.isNotEmpty)
-                        IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              for (var i = 0; i < miniStats.length; i++) ...[
-                                Expanded(child: miniStats[i]),
-                                if (i < miniStats.length - 1)
-                                  const _VerticalDot(),
-                              ],
-                            ],
-                          ),
+                      if (totalStudents > 0)
+                        _SummaryStat(
+                          value: '$totalActive/$totalStudents',
+                          label: 'Active (30d)',
+                          assetPath: 'assets/icons/fire_256.png',
+                        ),
+                      if (topLevel > 0)
+                        _SummaryStat(
+                          value: 'Lv $topLevel',
+                          label: 'Top Level',
+                          assetPath: 'assets/icons/trophy_256.png',
+                        ),
+                      if (totalBooks > 0)
+                        _SummaryStat(
+                          value: '$totalBooks',
+                          label: 'Books Read',
+                          assetPath: 'assets/icons/library.png',
+                        ),
+                      if (totalReadingTime > 0)
+                        _SummaryStat(
+                          value: TimeFormatter.formatReadingTime(totalReadingTime),
+                          label: 'Reading Time',
+                          assetPath: 'assets/icons/schedule.png',
                         ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
 
                 Text(
                   'Class Performance',
@@ -141,150 +140,33 @@ class ClassOverviewReportScreen extends ConsumerWidget {
   }
 }
 
-class _TopLevelHero extends StatelessWidget {
-  const _TopLevelHero({required this.level});
-
-  final int level;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppColors.primaryBackground,
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 2.5),
-          ),
-          child: const Icon(
-            Icons.workspace_premium_rounded,
-            color: AppColors.primary,
-            size: 34,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'TOP STUDENT',
-                style: GoogleFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.neutralText,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Level ',
-                    style: GoogleFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                  Text(
-                    '$level',
-                    style: GoogleFonts.nunito(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.primaryDark,
-                      height: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DashedDivider extends StatelessWidget {
-  const _DashedDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          const dashWidth = 5.0;
-          const dashSpace = 4.0;
-          final count = (constraints.maxWidth / (dashWidth + dashSpace)).floor();
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(
-              count,
-              (_) => Container(
-                width: dashWidth,
-                height: 1.5,
-                color: AppColors.neutral,
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _VerticalDot extends StatelessWidget {
-  const _VerticalDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 4,
-      height: 4,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      alignment: Alignment.center,
-      child: Container(
-        width: 4,
-        height: 4,
-        decoration: const BoxDecoration(
-          color: AppColors.neutral,
-          shape: BoxShape.circle,
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({
-    required this.icon,
+class _SummaryStat extends StatelessWidget {
+  const _SummaryStat({
     required this.value,
     required this.label,
+    required this.assetPath,
   });
 
-  final IconData icon;
   final String value;
   final String label;
+  final String assetPath;
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: AppColors.primary, size: 20),
-        const SizedBox(height: 4),
+        Image.asset(
+          assetPath,
+          width: 32,
+          height: 32,
+          fit: BoxFit.contain,
+        ),
+        const SizedBox(height: 6),
         Text(
           value,
           style: GoogleFonts.nunito(
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: AppColors.black,
           ),
@@ -292,10 +174,9 @@ class _MiniStat extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.nunito(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
             color: AppColors.neutralText,
-            letterSpacing: 0.5,
           ),
         ),
       ],
