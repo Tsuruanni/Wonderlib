@@ -825,17 +825,14 @@ class _SidebarQuestRow extends StatelessWidget {
                             style: GoogleFonts.nunito(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.neutralText,
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: AppColors.neutralText,
-                              decorationThickness: 2,
+                              color: AppColors.black,
                             ),
                           ),
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
                             child: Padding(
                               padding: const EdgeInsets.only(left: 6),
-                              child: AppIcons.checkYellow(size: 32),
+                              child: AppIcons.check(size: 32),
                             ),
                           ),
                         ],

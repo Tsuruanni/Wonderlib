@@ -181,17 +181,14 @@ class _QuestRow extends StatelessWidget {
                               style: GoogleFonts.nunito(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.neutralText,
-                                decoration: TextDecoration.lineThrough,
-                                decorationColor: AppColors.neutralText,
-                                decorationThickness: 2,
+                                color: AppColors.black,
                               ),
                             ),
                             WidgetSpan(
                               alignment: PlaceholderAlignment.middle,
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 8),
-                                child: AppIcons.checkYellow(size: 36),
+                                child: AppIcons.check(size: 36),
                               ),
                             ),
                           ],
