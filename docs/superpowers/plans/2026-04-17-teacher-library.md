@@ -22,7 +22,7 @@ Before you start, read these (5 min each):
 - Skim `lib/presentation/widgets/reader/reader_activity_block.dart` — this is the single choke point for inline activities
 - Skim `lib/presentation/screens/reader/reader_screen.dart` lines 60-220 — all three progress writes live here
 
-The current user's role is exposed via `currentUserProvider` in `lib/presentation/providers/user_provider.dart`. The `UserRole` enum comes from `owlio_shared`. There is an existing `isTeacherProvider` in `user_provider.dart` (or adjacent) that you will reuse.
+`isTeacherProvider` is defined at `lib/presentation/providers/auth_provider.dart:48` as `Provider<bool>` (returns true for teacher/head/admin roles). The `UserRole` enum comes from `owlio_shared`. Every subsequent task watches `isTeacherPreviewModeProvider` (created in Task 1) rather than `isTeacherProvider` directly.
 
 Assume Supabase access and test users are already configured per `CLAUDE.md`. Login as `teacher@demo.com` / `Test1234` to verify teacher flows, `active@demo.com` for student regression.
 
@@ -60,7 +60,7 @@ Foundation for every subsequent task. The provider returns `true` iff the curren
 
 - [ ] **Step 1: Verify the current-user / role source**
 
-Run: `grep -n "isTeacherProvider\|currentUserProvider" lib/presentation/providers/user_provider.dart | head -20`
+Run: `grep -n "isTeacherProvider" lib/presentation/providers/auth_provider.dart | head -20`
 
 Expected: find an existing provider like `isTeacherProvider` and/or `currentUserProvider` that exposes either a `User` (with a `role` field) or a boolean `isTeacher`. Note which one(s) exist — you will use them verbatim, not re-invent.
 
@@ -74,7 +74,7 @@ Create `test/unit/presentation/providers/teacher_preview_provider_test.dart`:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:owlio/presentation/providers/teacher_preview_provider.dart';
-import 'package:owlio/presentation/providers/user_provider.dart';
+import 'package:owlio/presentation/providers/auth_provider.dart';
 
 void main() {
   test('returns true when isTeacherProvider is true', () {
@@ -110,7 +110,7 @@ Create `lib/presentation/providers/teacher_preview_provider.dart`:
 
 ```dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'user_provider.dart';
+import 'auth_provider.dart';
 
 /// True when the current user is a teacher, meaning the reader/quiz/activities
 /// should run in "preview mode": correct answers revealed, no progress saved,
