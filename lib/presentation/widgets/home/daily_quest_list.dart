@@ -22,7 +22,10 @@ class DailyQuestList extends StatelessWidget {
     final allComplete =
         progress.isNotEmpty && progress.every((q) => q.isCompleted);
     final sorted = [...progress]
-      ..sort((a, b) => a.quest.rewardAmount.compareTo(b.quest.rewardAmount));
+      ..sort((a, b) {
+        if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
+        return a.quest.rewardAmount.compareTo(b.quest.rewardAmount);
+      });
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -152,6 +155,9 @@ class _QuestRow extends StatelessWidget {
     final goalValue = quest.goalValue;
     final ratio = goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
     final route = _questRoute(quest.questType);
+    final barColors = isCompleted
+        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        : _rewardColors(quest.rewardType);
     final rewardColors = isCompleted
         ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
@@ -184,13 +190,13 @@ class _QuestRow extends StatelessWidget {
               _buildRewardContent(quest, isCompleted),
             ],
           ),
-          if (!isCompleted && currentValue > 0) ...[
+          if (isCompleted || currentValue > 0) ...[
             const SizedBox(height: 12),
             AppProgressBar(
               progress: ratio,
               height: 8,
-              fillColor: rewardColors.base,
-              fillShadow: rewardColors.shadow,
+              fillColor: barColors.base,
+              fillShadow: barColors.shadow,
             ),
           ],
         ],

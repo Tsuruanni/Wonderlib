@@ -696,8 +696,12 @@ class _DailyQuestsCard extends ConsumerWidget {
             }
             final allDone = quests.every((q) => q.isCompleted);
             final sorted = [...quests]
-              ..sort((a, b) =>
-                  a.quest.rewardAmount.compareTo(b.quest.rewardAmount));
+              ..sort((a, b) {
+                if (a.isCompleted != b.isCompleted) {
+                  return a.isCompleted ? 1 : -1;
+                }
+                return a.quest.rewardAmount.compareTo(b.quest.rewardAmount);
+              });
             return Column(
               children: [
                 if (allDone) ...[
@@ -798,6 +802,9 @@ class _SidebarQuestRow extends StatelessWidget {
     final ratio = quest.goalValue > 0
         ? (progress.currentValue / quest.goalValue).clamp(0.0, 1.0)
         : 0.0;
+    final barColors = isCompleted
+        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
+        : _rewardColors(quest.rewardType);
     final rewardColors = isCompleted
         ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
@@ -828,13 +835,13 @@ class _SidebarQuestRow extends StatelessWidget {
             _buildRewardContent(quest, isCompleted),
           ],
         ),
-        if (!isCompleted && progress.currentValue > 0) ...[
+        if (isCompleted || progress.currentValue > 0) ...[
           const SizedBox(height: 10),
           AppProgressBar(
             progress: ratio,
             height: 6,
-            fillColor: rewardColors.base,
-            fillShadow: rewardColors.shadow,
+            fillColor: barColors.base,
+            fillShadow: barColors.shadow,
           ),
         ],
       ],
