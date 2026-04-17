@@ -13,7 +13,6 @@ import '../../providers/usecase_providers.dart';
 import '../../utils/login_cards_pdf.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/animated_game_button.dart';
-import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -692,37 +691,6 @@ class _ReportStudentCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          // Reading progress label + bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Avg book progress',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: AppColors.neutralText,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                '${student.avgProgress.toStringAsFixed(0)}%',
-                style: context.textTheme.bodySmall?.copyWith(
-                  color: ScoreColors.getProgressColor(student.avgProgress),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          AppProgressBar(
-            progress: student.avgProgress / 100,
-            fillColor: ScoreColors.getProgressColor(student.avgProgress),
-            fillShadow: ScoreColors.getProgressColor(student.avgProgress).withValues(alpha: 0.6),
-            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-            height: 5,
-          ),
-          const SizedBox(height: 8),
           // Stat chips
           Wrap(
             spacing: 6,
