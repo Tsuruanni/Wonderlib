@@ -249,3 +249,63 @@ class RecentActivity extends Equatable {
   @override
   List<Object?> get props => [studentId, studentFirstName, studentLastName, avatarUrl, activityType, description, xpAmount, createdAt];
 }
+
+/// Aggregate stats for the teacher's own school.
+class SchoolSummary extends Equatable {
+  const SchoolSummary({
+    required this.totalStudents,
+    required this.activeLast30d,
+    required this.totalXp,
+    required this.avgXp,
+    required this.avgStreak,
+    required this.avgProgress,
+    required this.totalReadingTime,
+    required this.totalBooksRead,
+    required this.totalVocabWords,
+  });
+
+  final int totalStudents;
+  final int activeLast30d;
+  final int totalXp;
+  final double avgXp;
+  final double avgStreak;
+  final double avgProgress;
+  final int totalReadingTime;
+  final int totalBooksRead;
+  final int totalVocabWords;
+
+  @override
+  List<Object?> get props => [
+        totalStudents,
+        activeLast30d,
+        totalXp,
+        avgXp,
+        avgStreak,
+        avgProgress,
+        totalReadingTime,
+        totalBooksRead,
+        totalVocabWords,
+      ];
+}
+
+/// Platform-wide averages across all students in all schools.
+/// Used as a benchmark next to SchoolSummary values.
+class GlobalAverages extends Equatable {
+  const GlobalAverages({
+    required this.avgXp,
+    required this.avgStreak,
+    required this.avgProgress,
+    required this.avgReadingTime,
+    required this.avgBooksRead,
+  });
+
+  final double avgXp;
+  final double avgStreak;
+  final double avgProgress;
+  final double avgReadingTime;
+  final double avgBooksRead;
+
+  @override
+  List<Object?> get props =>
+      [avgXp, avgStreak, avgProgress, avgReadingTime, avgBooksRead];
+}
