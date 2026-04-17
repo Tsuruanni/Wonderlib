@@ -490,15 +490,13 @@ class _TeacherBookDetailActions extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 20, top: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 54,
+        child: Row(
           children: [
-            SizedBox(
-              width: 280,
-              height: 54,
+            Expanded(
               child: GameButton(
                 label: 'Start Reading',
                 icon: const Icon(Icons.book_rounded),
@@ -506,15 +504,15 @@ class _TeacherBookDetailActions extends ConsumerWidget {
                 onPressed: () {
                   chaptersAsync.whenData((chapters) {
                     if (chapters.isEmpty) return;
-                    context.go(AppRoutes.teacherReaderPath(bookId, chapters.first.id));
+                    context.go(
+                      AppRoutes.teacherReaderPath(bookId, chapters.first.id),
+                    );
                   });
                 },
               ),
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: 280,
-              height: 54,
+            const SizedBox(width: 8),
+            Expanded(
               child: GameButton(
                 label: 'Assign Book',
                 icon: const Icon(Icons.assignment_add),

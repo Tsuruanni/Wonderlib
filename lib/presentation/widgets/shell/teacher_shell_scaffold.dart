@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../reader/reader_sidebar.dart';
 
 /// Teacher shell scaffold that provides persistent navigation.
 /// Mobile: bottom navigation bar.
@@ -49,7 +50,12 @@ class TeacherShellScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isWide = screenWidth >= 600;
+    final location = GoRouterState.of(context).uri.path;
+    final isReaderRoute = location.startsWith('/teacher/reader') ||
+        location.startsWith('/teacher/quiz');
+    final showReaderSidebar = isReaderRoute && screenWidth >= 1000;
 
     if (isWide) {
       return Scaffold(
@@ -128,6 +134,7 @@ class TeacherShellScaffold extends StatelessWidget {
                 ),
               ),
             ),
+            if (showReaderSidebar) const ReaderSidebar(),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
