@@ -834,8 +834,12 @@ class _SidebarQuestRow extends StatelessWidget {
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
                             child: Padding(
-                              padding: const EdgeInsets.only(left: 5),
-                              child: AppIcons.check(size: 16),
+                              padding: const EdgeInsets.only(left: 6),
+                              child: Icon(
+                                Icons.check_circle_rounded,
+                                size: 32,
+                                color: AppColors.wasp,
+                              ),
                             ),
                           ),
                         ],

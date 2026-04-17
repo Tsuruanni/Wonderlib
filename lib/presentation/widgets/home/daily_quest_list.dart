@@ -190,8 +190,12 @@ class _QuestRow extends StatelessWidget {
                             WidgetSpan(
                               alignment: PlaceholderAlignment.middle,
                               child: Padding(
-                                padding: const EdgeInsets.only(left: 6),
-                                child: AppIcons.check(size: 18),
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 36,
+                                  color: AppColors.wasp,
+                                ),
                               ),
                             ),
                           ],
