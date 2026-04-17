@@ -9,6 +9,7 @@ import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/error_state_widget.dart';
+import '../../../widgets/common/league_tier_badge.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
 
@@ -167,37 +168,44 @@ class _LeaderboardCard extends StatelessWidget {
               ),
             ),
 
-            // XP and Level
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            // League badge + XP/Level
+            Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+                LeagueTierBadge(tier: student.leagueTier, size: 32),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Icon(Icons.star, color: Colors.amber, size: 18),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${student.xp}',
-                      style: context.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber.shade700,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${student.xp}',
+                          style: context.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.amber.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Lv ${student.level}',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: context.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Lv ${student.level}',
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: context.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ],
             ),
