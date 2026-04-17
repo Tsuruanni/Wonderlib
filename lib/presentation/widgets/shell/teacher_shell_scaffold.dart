@@ -56,8 +56,11 @@ class TeacherShellScaffold extends StatelessWidget {
     final location = GoRouterState.of(context).uri.path;
     final isReaderRoute = location.startsWith('/teacher/reader') ||
         location.startsWith('/teacher/quiz');
+    final isBookContext = isReaderRoute ||
+        location.startsWith('/teacher/library/book');
     final showReaderSidebar = isReaderRoute && screenWidth >= 1000;
-    final showGrammarProfile = isReaderRoute && screenWidth >= 1400;
+    // Grammar Profile shows for any book context (detail, reader, quiz)
+    final showGrammarProfile = isBookContext && screenWidth >= 1400;
 
     if (isWide) {
       return Scaffold(
