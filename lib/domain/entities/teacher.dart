@@ -109,10 +109,10 @@ class StudentSummary extends Equatable {
     return today.difference(lastActivityDate!).inDays;
   }
 
-  /// True when student has been inactive for 7+ days (or never).
+  /// True when student has been inactive for 30+ days (or never).
   bool get isInactive {
     final d = daysSinceActive;
-    return d == null || d >= 7;
+    return d == null || d >= 30;
   }
 
   @override
