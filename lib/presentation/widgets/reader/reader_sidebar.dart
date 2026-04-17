@@ -101,6 +101,7 @@ class _ChaptersList extends ConsumerWidget {
                 final currentIdx =
                     chapters.indexWhere((c) => c.id == currentChapterId);
                 final isQuizActive = ref.watch(quizActiveProvider);
+                final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
                 return Column(
                   children: [
@@ -111,11 +112,14 @@ class _ChaptersList extends ConsumerWidget {
                         index: i,
                         isCurrent: chapters[i].id == currentChapterId,
                         isCompleted: completedIds.contains(chapters[i].id),
-                        isLocked: isQuizActive ||
-                            (!completedIds.contains(chapters[i].id) &&
-                                i > currentIdx),
+                        isLocked: !isPreview &&
+                            (isQuizActive ||
+                                (!completedIds.contains(chapters[i].id) &&
+                                    i > currentIdx)),
                         onTap: () => context.go(
-                          AppRoutes.readerPath(bookId, chapters[i].id),
+                          isPreview
+                              ? AppRoutes.teacherReaderPath(bookId, chapters[i].id)
+                              : AppRoutes.readerPath(bookId, chapters[i].id),
                         ),
                       ),
                     ],
@@ -406,12 +410,17 @@ class _BookQuizTile extends ConsumerWidget {
     final bestResult = ref.watch(bestQuizResultProvider(bookId)).valueOrNull;
     final isPassed = bestResult?.isPassing ?? false;
     final location = GoRouterState.of(context).uri.path;
-    final isCurrent = location.startsWith('/quiz');
+    final isCurrent =
+        location.startsWith('/quiz') || location.startsWith('/teacher/quiz');
     final isLocked = !isPreview && !allChaptersRead;
 
     // Same style as _ChapterTile
     return GestureDetector(
-      onTap: isLocked ? null : () => context.go(AppRoutes.bookQuizPath(bookId)),
+      onTap: isLocked
+          ? null
+          : () => context.go(isPreview
+              ? AppRoutes.teacherBookQuizPath(bookId)
+              : AppRoutes.bookQuizPath(bookId)),
       child: Opacity(
         opacity: isLocked ? 0.4 : 1.0,
         child: Container(

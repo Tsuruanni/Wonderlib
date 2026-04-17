@@ -260,7 +260,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (mounted) {
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      context.go(AppRoutes.bookQuizPath(widget.bookId));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(isPreview
+          ? AppRoutes.teacherBookQuizPath(widget.bookId)
+          : AppRoutes.bookQuizPath(widget.bookId));
     }
   }
 
@@ -271,7 +274,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     ref.invalidate(readingProgressProvider(widget.bookId));
     ref.invalidate(continueReadingProvider);
     if (mounted) {
-      context.go(AppRoutes.library);
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(isPreview ? AppRoutes.teacherLibrary : AppRoutes.library);
     }
   }
 

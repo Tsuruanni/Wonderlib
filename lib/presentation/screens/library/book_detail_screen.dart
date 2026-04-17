@@ -479,7 +479,7 @@ class _TeacherBookDetailActions extends ConsumerWidget {
                 onPressed: () {
                   chaptersAsync.whenData((chapters) {
                     if (chapters.isEmpty) return;
-                    context.go(AppRoutes.readerPath(bookId, chapters.first.id));
+                    context.go(AppRoutes.teacherReaderPath(bookId, chapters.first.id));
                   });
                 },
               ),

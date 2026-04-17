@@ -100,6 +100,13 @@ abstract class AppRoutes {
   static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
   static const teacherProfile = '/teacher/profile';
   static const teacherLibrary = '/teacher/library';
+  static const teacherBookDetail = '/teacher/library/book';
+  static String teacherBookDetailPath(String bookId) => '/teacher/library/book/$bookId';
+  static const teacherReader = '/teacher/reader/:bookId/:chapterId';
+  static String teacherReaderPath(String bookId, String chapterId) =>
+      '/teacher/reader/$bookId/$chapterId';
+  static const teacherBookQuiz = '/teacher/quiz/:bookId';
+  static String teacherBookQuizPath(String bookId) => '/teacher/quiz/$bookId';
 
   // Parameterized route helpers
   static String readerPath(String bookId, String chapterId) =>
@@ -796,6 +803,30 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.teacherLibrary,
                 builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'book/:bookId',
+                    builder: (context, state) {
+                      final bookId = state.pathParameters['bookId']!;
+                      return BookDetailScreen(bookId: bookId);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.teacherReader,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ReaderScreen(bookId: bookId, chapterId: chapterId);
+                },
+              ),
+              GoRoute(
+                path: AppRoutes.teacherBookQuiz,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  return BookQuizScreen(bookId: bookId);
+                },
               ),
             ],
           ),

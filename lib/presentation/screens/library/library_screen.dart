@@ -14,6 +14,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../providers/system_settings_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -574,10 +575,13 @@ class _BookShelfItem extends ConsumerWidget {
     final progress = ref.watch(readingProgressProvider(book.id)).valueOrNull;
     final percentage = progress?.completionPercentage ?? 0;
 
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
     return PressableScale(
       onTap: () {
         if (canAccess) {
-          context.go(AppRoutes.bookDetailPath(book.id));
+          context.go(isPreview
+              ? AppRoutes.teacherBookDetailPath(book.id)
+              : AppRoutes.bookDetailPath(book.id));
         } else {
            showDialog(
              context: context,
@@ -906,9 +910,12 @@ class _ContinueReadingCard extends ConsumerWidget {
     final progress =
         ref.watch(readingProgressProvider(book.id)).valueOrNull;
     final percentage = progress?.completionPercentage ?? 0;
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
     return PressableScale(
-      onTap: () => context.go(AppRoutes.bookDetailPath(book.id)),
+      onTap: () => context.go(isPreview
+          ? AppRoutes.teacherBookDetailPath(book.id)
+          : AppRoutes.bookDetailPath(book.id)),
       child: Container(
         width: 140,
         margin: const EdgeInsets.only(bottom: 10),
