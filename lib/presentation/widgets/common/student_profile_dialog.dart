@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
@@ -12,6 +11,7 @@ import '../../../domain/entities/leaderboard_entry.dart';
 import '../../providers/student_profile_popup_provider.dart';
 import 'app_progress_bar.dart';
 import 'avatar_widget.dart';
+import 'league_tier_badge.dart';
 
 /// Shows a student profile popup centered on screen.
 void showStudentProfileDialog(BuildContext context, LeaderboardEntry entry) {
@@ -117,7 +117,7 @@ class StudentProfileDialog extends ConsumerWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatItem(
-                    assetPath: _tierAsset(entry.leagueTier),
+                    assetPath: LeagueTierBadge.tierAsset(entry.leagueTier),
                     value: 'Lv. ${entry.level}',
                     label: entry.leagueTier.label,
                     color: AppColors.secondary,
@@ -240,7 +240,7 @@ class StudentProfileDialog extends ConsumerWidget {
     }
 
     // Fallback: old rendering with tier border
-    final tierColor = _getTierColor(entry.leagueTier);
+    final tierColor = LeagueTierBadge.tierColor(entry.leagueTier);
     return Container(
       width: 72,
       height: 72,
@@ -277,7 +277,7 @@ class StudentProfileDialog extends ConsumerWidget {
   }
 
   Widget _buildTierBadge() {
-    final tierColor = _getTierColor(entry.leagueTier);
+    final tierColor = LeagueTierBadge.tierColor(entry.leagueTier);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
       decoration: BoxDecoration(
@@ -289,7 +289,7 @@ class StudentProfileDialog extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
-            _tierAsset(entry.leagueTier),
+            LeagueTierBadge.tierAsset(entry.leagueTier),
             width: 20,
             height: 20,
             filterQuality: FilterQuality.high,
@@ -315,8 +315,8 @@ class StudentProfileDialog extends ConsumerWidget {
       children: [
         AppProgressBar(
           progress: progress,
-          fillColor: _getTierColor(entry.leagueTier),
-          fillShadow: _getTierColor(entry.leagueTier).withValues(alpha: 0.6),
+          fillColor: LeagueTierBadge.tierColor(entry.leagueTier),
+          fillShadow: LeagueTierBadge.tierColor(entry.leagueTier).withValues(alpha: 0.6),
           backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
           height: 8,
         ),
@@ -448,25 +448,6 @@ class StudentProfileDialog extends ConsumerWidget {
     );
   }
 
-  static Color _getTierColor(LeagueTier tier) {
-    return switch (tier) {
-      LeagueTier.diamond => const Color(0xFF00BFFF),
-      LeagueTier.platinum => const Color(0xFFE5E4E2),
-      LeagueTier.gold => const Color(0xFFFFD700),
-      LeagueTier.silver => const Color(0xFFC0C0C0),
-      LeagueTier.bronze => const Color(0xFFCD7F32),
-    };
-  }
-
-  static String _tierAsset(LeagueTier tier) {
-    return switch (tier) {
-      LeagueTier.bronze => 'assets/icons/rank-bronze-1_large.png',
-      LeagueTier.silver => 'assets/icons/rank-silver-2_large.png',
-      LeagueTier.gold => 'assets/icons/rank-gold-3_large.png',
-      LeagueTier.platinum => 'assets/icons/rank-platinum-5_large.png',
-      LeagueTier.diamond => 'assets/icons/rank-diamond-7_large.png',
-    };
-  }
 }
 
 class _StatItem extends StatelessWidget {
