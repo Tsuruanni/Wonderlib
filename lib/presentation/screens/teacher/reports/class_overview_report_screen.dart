@@ -87,6 +87,12 @@ class _ClassOverviewReportScreenState
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                // My School summary with global benchmark
+                const ResponsiveConstraint(
+                  maxWidth: 900,
+                  child: _SchoolSummaryCard(),
+                ),
+
                 // Summary stats
                 ResponsiveConstraint(
                   maxWidth: 900,
@@ -420,6 +426,161 @@ class _MetricChip extends StatelessWidget {
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SchoolSummaryCard extends ConsumerWidget {
+  const _SchoolSummaryCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(schoolSummaryProvider);
+    final globalAsync = ref.watch(globalAveragesProvider);
+
+    return summaryAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (summary) {
+        if (summary == null) return const SizedBox.shrink();
+        final global = globalAsync.valueOrNull;
+        return PlayfulCard(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.school_rounded, color: AppColors.secondary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'My School',
+                    style: GoogleFonts.nunito(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _SummaryRow(
+                label: 'Avg XP',
+                mine: summary.avgXp.toStringAsFixed(0),
+                benchmark: global?.avgXp.toStringAsFixed(0),
+                mineVal: summary.avgXp,
+                benchmarkVal: global?.avgXp,
+              ),
+              _SummaryRow(
+                label: 'Avg Streak',
+                mine: summary.avgStreak.toStringAsFixed(1),
+                benchmark: global?.avgStreak.toStringAsFixed(1),
+                mineVal: summary.avgStreak,
+                benchmarkVal: global?.avgStreak,
+              ),
+              _SummaryRow(
+                label: 'Avg Progress',
+                mine: '${summary.avgProgress.toStringAsFixed(0)}%',
+                benchmark: global != null
+                    ? '${global.avgProgress.toStringAsFixed(0)}%'
+                    : null,
+                mineVal: summary.avgProgress,
+                benchmarkVal: global?.avgProgress,
+              ),
+              _SummaryRow(
+                label: 'Books Read / Student',
+                mine: summary.totalStudents > 0
+                    ? (summary.totalBooksRead / summary.totalStudents)
+                        .toStringAsFixed(1)
+                    : '0.0',
+                benchmark: global?.avgBooksRead.toStringAsFixed(1),
+                mineVal: summary.totalStudents > 0
+                    ? summary.totalBooksRead / summary.totalStudents
+                    : 0.0,
+                benchmarkVal: global?.avgBooksRead,
+              ),
+              _SummaryRow(
+                label: 'Active (30d)',
+                mine: '${summary.activeLast30d}/${summary.totalStudents}',
+                benchmark: null,
+                mineVal: null,
+                benchmarkVal: null,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.label,
+    required this.mine,
+    required this.benchmark,
+    required this.mineVal,
+    required this.benchmarkVal,
+  });
+
+  final String label;
+  final String mine;
+  final String? benchmark;
+  final double? mineVal;
+  final double? benchmarkVal;
+
+  Color _compareColor() {
+    if (mineVal == null || benchmarkVal == null) return AppColors.neutralText;
+    if (mineVal! > benchmarkVal!) return Colors.green.shade600;
+    return AppColors.neutralText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              label,
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              mine,
+              textAlign: TextAlign.right,
+              style: GoogleFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: _compareColor(),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              benchmark == null ? '' : 'global: $benchmark',
+              textAlign: TextAlign.right,
+              style: GoogleFonts.nunito(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutralText,
+              ),
             ),
           ),
         ],
