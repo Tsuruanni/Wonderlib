@@ -794,8 +794,8 @@ class _SidebarQuestRow extends StatelessWidget {
               child: Text(
                 quest.title,
                 style: GoogleFonts.nunito(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
                   color: isCompleted ? AppColors.neutralText : AppColors.black,
                 ),
                 maxLines: 2,
