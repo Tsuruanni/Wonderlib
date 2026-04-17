@@ -367,7 +367,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Widget _buildLoadingScaffold(ReaderSettings settings) {
     return Scaffold(
       backgroundColor: settings.theme.background,
-      body: const Center(child: CircularProgressIndicator()),
+      body: const Column(
+        children: [
+          TeacherPreviewBanner(),
+          Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      ),
     );
   }
 
@@ -378,24 +383,31 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: settings.theme.text,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Something went wrong loading this chapter.',
-              style: TextStyle(color: settings.theme.text),
-              textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          const TeacherPreviewBanner(),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Something went wrong loading this chapter.',
+                    style: TextStyle(color: settings.theme.text),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Go Back'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -407,7 +419,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: settings.theme.text,
       ),
-      body: const Center(child: Text('Chapter not found')),
+      body: const Column(
+        children: [
+          TeacherPreviewBanner(),
+          Expanded(child: Center(child: Text('Chapter not found'))),
+        ],
+      ),
     );
   }
 }
