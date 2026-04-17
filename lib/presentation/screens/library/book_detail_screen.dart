@@ -10,10 +10,12 @@ import '../../providers/book_access_provider.dart';
 import '../../providers/book_download_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/game_button.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/library/download_button.dart';
 
 class BookDetailScreen extends ConsumerWidget {
@@ -35,6 +37,7 @@ class BookDetailScreen extends ConsumerWidget {
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
     final userId = ref.watch(currentUserIdProvider);
+    final isTeacher = ref.watch(isTeacherPreviewModeProvider);
 
     // Show locked screen if book is not accessible
     if (!canAccess) {
@@ -196,6 +199,17 @@ class BookDetailScreen extends ConsumerWidget {
                         ],
                       ),
 
+                      // Teacher actions (top of screen — Start Reading + Assign)
+                      if (isTeacher) ...[
+                        const SizedBox(height: 20),
+                        _TeacherBookDetailActions(
+                          bookId: bookId,
+                          bookTitle: book.title,
+                          chapterCount: book.chapterCount,
+                          chaptersAsync: chaptersAsync,
+                        ),
+                      ],
+
                       // Progress indicator (if started)
                       if (hasProgress) ...[
                         const SizedBox(height: 24),
@@ -271,7 +285,19 @@ class BookDetailScreen extends ConsumerWidget {
                           isCurrent: isCurrentChapter,
                           isLocked: item.isLocked,
                           onTap: () {
-                            context.go(AppRoutes.readerPath(bookId, item.chapter.id));
+                            final isPreview =
+                                ref.read(isTeacherPreviewModeProvider);
+                            context.go(
+                              isPreview
+                                  ? AppRoutes.teacherReaderPath(
+                                      bookId,
+                                      item.chapter.id,
+                                    )
+                                  : AppRoutes.readerPath(
+                                      bookId,
+                                      item.chapter.id,
+                                    ),
+                            );
                           },
                         );
                       },
@@ -281,22 +307,29 @@ class BookDetailScreen extends ConsumerWidget {
                 },
               ),
 
+              // Book quiz entry (after chapters) — hidden if book has no quiz
+              SliverToBoxAdapter(
+                child: _BookDetailQuizTile(bookId: bookId),
+              ),
+
               // Bottom padding for FAB
               const SliverToBoxAdapter(
                 child: SizedBox(height: 80),
               ),
             ],
           ),
-          bottomNavigationBar: _BookDetailFAB(
-            bookId: bookId,
-            bookTitle: book.title,
-            chapterCount: book.chapterCount,
-            hasProgress: hasProgress,
-            isCompleted: progress?.isCompleted ?? false,
-            chaptersAsync: chaptersAsync,
-            progress: progress,
-            userId: userId,
-          ),
+          bottomNavigationBar: isTeacher
+              ? null
+              : _BookDetailFAB(
+                  bookId: bookId,
+                  bookTitle: book.title,
+                  chapterCount: book.chapterCount,
+                  hasProgress: hasProgress,
+                  isCompleted: progress?.isCompleted ?? false,
+                  chaptersAsync: chaptersAsync,
+                  progress: progress,
+                  userId: userId,
+                ),
         );
       },
     );
@@ -359,36 +392,14 @@ class _BookDetailFAB extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isTeacher = ref.watch(isTeacherProvider);
+    final isTeacher = ref.watch(isTeacherPreviewModeProvider);
 
     if (isTeacher) {
-      // Teacher sees "Assign Book" button
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 20, top: 8),
-          child: Center(
-            heightFactor: 1.0,
-            child: SizedBox(
-              width: 280,
-              height: 54,
-              child: GameButton(
-                label: 'Assign Book',
-                icon: const Icon(Icons.assignment_add),
-                variant: GameButtonVariant.secondary,
-                onPressed: () {
-                  context.push(
-                    AppRoutes.teacherCreateAssignment,
-                    extra: {
-                      'bookId': bookId,
-                      'bookTitle': bookTitle,
-                      'chapterCount': chapterCount,
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+      return _TeacherBookDetailActions(
+        bookId: bookId,
+        bookTitle: bookTitle,
+        chapterCount: chapterCount,
+        chaptersAsync: chaptersAsync,
       );
     }
 
@@ -469,6 +480,67 @@ class _BookDetailFAB extends ConsumerWidget {
   }
 }
 
+class _TeacherBookDetailActions extends ConsumerWidget {
+  const _TeacherBookDetailActions({
+    required this.bookId,
+    required this.bookTitle,
+    required this.chapterCount,
+    required this.chaptersAsync,
+  });
+
+  final String bookId;
+  final String bookTitle;
+  final int chapterCount;
+  final AsyncValue<List<Chapter>> chaptersAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SizedBox(
+        height: 54,
+        child: Row(
+          children: [
+            Expanded(
+              child: GameButton(
+                label: 'Start Reading',
+                icon: const Icon(Icons.book_rounded),
+                variant: GameButtonVariant.primary,
+                onPressed: () {
+                  chaptersAsync.whenData((chapters) {
+                    if (chapters.isEmpty) return;
+                    context.go(
+                      AppRoutes.teacherReaderPath(bookId, chapters.first.id),
+                    );
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: GameButton(
+                label: 'Assign Book',
+                icon: const Icon(Icons.assignment_add),
+                variant: GameButtonVariant.secondary,
+                onPressed: () {
+                  context.push(
+                    AppRoutes.teacherCreateAssignment,
+                    extra: {
+                      'bookId': bookId,
+                      'bookTitle': bookTitle,
+                      'chapterCount': chapterCount,
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ProgressSection extends StatelessWidget {
   const _ProgressSection({required this.progress});
 
@@ -507,13 +579,10 @@ class _ProgressSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: percentage / 100,
-                minHeight: 8,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-              ),
+            AppProgressBar(
+              progress: percentage / 100,
+              backgroundColor: colorScheme.surfaceContainerHighest,
+              height: 8,
             ),
             const SizedBox(height: 8),
             Text(
@@ -627,6 +696,85 @@ class _ChapterTile extends StatelessWidget {
               ? Icon(Icons.play_circle_fill, color: colorScheme.primary)
               : const Icon(Icons.chevron_right),
       onTap: isLocked ? null : onTap,
+    );
+  }
+}
+
+/// Quiz tile rendered at the end of the chapter list on Book Detail.
+/// Hidden when the book has no quiz. Locked for students until every
+/// chapter is read. Teachers (preview) can always tap through.
+class _BookDetailQuizTile extends ConsumerWidget {
+  const _BookDetailQuizTile({required this.bookId});
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasQuiz = ref.watch(bookHasQuizProvider(bookId)).valueOrNull ?? false;
+    if (!hasQuiz) return const SizedBox.shrink();
+
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
+    final progress = ref.watch(readingProgressProvider(bookId)).valueOrNull;
+    final allChaptersRead = progress?.completionPercentage == 100;
+    final bestResult = ref.watch(bestQuizResultProvider(bookId)).valueOrNull;
+    final isPassed = bestResult?.isPassing ?? false;
+    final isLocked = !isPreview && !allChaptersRead;
+
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: isLocked
+            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+            : isPassed
+                ? colorScheme.primaryContainer
+                : colorScheme.secondaryContainer,
+        child: isPassed
+            ? Icon(Icons.check, color: colorScheme.primary, size: 20)
+            : Icon(
+                Icons.quiz_outlined,
+                color: isLocked
+                    ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                    : colorScheme.onSecondaryContainer,
+                size: 20,
+              ),
+      ),
+      title: Text(
+        'Book Quiz',
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isLocked
+                  ? colorScheme.onSurface.withValues(alpha: 0.5)
+                  : null,
+            ),
+      ),
+      subtitle: Text(
+        isPassed
+            ? 'Passed'
+            : isLocked
+                ? 'Finish all chapters to unlock'
+                : 'Take the quiz',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isLocked
+                  ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                  : colorScheme.onSurfaceVariant,
+            ),
+      ),
+      trailing: isLocked
+          ? Icon(
+              Icons.lock_outline,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            )
+          : const Icon(Icons.chevron_right),
+      onTap: isLocked
+          ? null
+          : () {
+              context.go(
+                isPreview
+                    ? AppRoutes.teacherBookQuizPath(bookId)
+                    : AppRoutes.bookQuizPath(bookId),
+              );
+            },
     );
   }
 }

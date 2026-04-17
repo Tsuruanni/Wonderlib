@@ -71,22 +71,67 @@ class BadgeListScreen extends ConsumerWidget {
             );
           }
 
-          return GridView.builder(
+          // Group by condition_type. For myth_category_completed, sub-group by
+          // condition_param (each category is its own visual group).
+          final groups = <String, List<Map<String, dynamic>>>{};
+          for (final b in badges) {
+            final type = b['condition_type'] as String? ?? '';
+            final param = b['condition_param'] as String?;
+            final key = type == 'myth_category_completed' && param != null
+                ? 'myth_category_completed:$param'
+                : type;
+            (groups[key] ??= []).add(b);
+          }
+
+          // Stable display order — Achievements first, then Card Collection.
+          final orderedKeys = badgeGroupOrderedKeys;
+
+          // Sort group keys: ordered list first, then anything else alphabetically.
+          final sortedKeys = <String>[];
+          for (final k in orderedKeys) {
+            if (groups.containsKey(k)) sortedKeys.add(k);
+          }
+          for (final k in groups.keys) {
+            if (!sortedKeys.contains(k)) sortedKeys.add(k);
+          }
+
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final key in sortedKeys) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12, top: 8),
+                    child: Text(
+                      getBadgeGroupHeaderLabel(key),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      for (final badge in groups[key]!)
+                        SizedBox(
+                          width: 240,
+                          height: 150,
+                          child: _BadgeCard(
+                            badge: badge,
+                            onTap: () => context.go('/badges/${badge['id']}'),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ],
             ),
-            itemCount: badges.length,
-            itemBuilder: (context, index) {
-              final badge = badges[index];
-              return _BadgeCard(
-                badge: badge,
-                onTap: () => context.go('/badges/${badge['id']}'),
-              );
-            },
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -146,10 +191,17 @@ class _BadgeCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Text(
-                    icon,
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  child: icon.startsWith('assets/')
+                      ? Image.asset(
+                          icon,
+                          width: 36,
+                          height: 36,
+                          fit: BoxFit.contain,
+                        )
+                      : Text(
+                          icon,
+                          style: const TextStyle(fontSize: 24),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -231,3 +283,4 @@ class _Chip extends StatelessWidget {
     );
   }
 }
+

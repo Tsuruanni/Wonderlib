@@ -134,6 +134,7 @@ import '../../domain/usecases/settings/get_system_settings_usecase.dart';
 import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
 import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
+import '../../domain/usecases/monthly_quest/get_monthly_quest_progress_usecase.dart';
 import '../../domain/usecases/tile_theme/get_tile_themes_usecase.dart';
 import '../../domain/usecases/treasure/get_wheel_slices_usecase.dart';
 import '../../domain/usecases/treasure/spin_treasure_wheel_usecase.dart';
@@ -734,6 +735,13 @@ final claimDailyBonusUseCaseProvider = Provider((ref) {
 
 final hasDailyBonusClaimedUseCaseProvider = Provider((ref) {
   return HasDailyBonusClaimedUseCase(ref.watch(dailyQuestRepositoryProvider));
+});
+
+final getMonthlyQuestProgressUseCaseProvider =
+    Provider<GetMonthlyQuestProgressUseCase>((ref) {
+  return GetMonthlyQuestProgressUseCase(
+    ref.watch(monthlyQuestRepositoryProvider),
+  );
 });
 
 // ============================================

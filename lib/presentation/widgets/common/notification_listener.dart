@@ -9,6 +9,7 @@ import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/monthly_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/user_provider.dart';
@@ -74,6 +75,8 @@ class _AppNotificationListenerState
         // activity completions trigger a refetch and fire the quest
         // completion event — even if QuestsScreen hasn't been visited yet.
         ref.watch(dailyQuestProgressProvider);
+        // Keep monthly quest provider alive for the same reason.
+        ref.watch(monthlyQuestProgressProvider);
         ref.listen<AsyncValue<User?>>(userControllerProvider, (previous, next) {
           // Reset flag on logout so next login can show notification
           if (next is AsyncData<User?> && next.value == null) {

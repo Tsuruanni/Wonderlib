@@ -54,7 +54,7 @@ class SupabaseDailyQuestRepository implements DailyQuestRepository {
   @override
   Future<Either<Failure, bool>> hasDailyBonusClaimed(String userId) async {
     try {
-      final today = AppClock.now().toUtc().toIso8601String().substring(0, 10);
+      final today = AppClock.istanbulDate();
       final response = await _supabase
           .from(DbTables.dailyQuestBonusClaims)
           .select('id')

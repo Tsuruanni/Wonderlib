@@ -3,6 +3,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/errors/failures.dart';
+import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/daily_review_session.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/vocabulary_repository.dart';
@@ -473,7 +474,7 @@ class SupabaseVocabularyRepository implements VocabularyRepository {
     String userId,
   ) async {
     try {
-      final today = DateTime.now().toUtc().toIso8601String().split('T').first;
+      final today = AppClock.istanbulDate();
 
       final response = await _supabase
           .from(DbTables.dailyReviewSessions)

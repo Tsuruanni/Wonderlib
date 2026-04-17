@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-14 (Multi-word phrase support, batch content gen, AppIcons registry, league matchmaking redesign)
+Son güncelleme: 2026-04-16 (Monthly Quest Engine — full-stack integration, tier badges, admin CRUD)
 
 ## Current Phase
 
@@ -159,6 +159,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Unit Gate Toggle (inter-unit locking independent from sequential item lock)
 - [x] Unit Map Navigation (3-layer vocab hub: path selection → unit map → unit detail, path-level tile themes, admin save race condition fix)
 - [x] Home Page Removal & Quests Page (home eliminated, sections redistributed to Library/Vocab/Quests, dedicated Quests tab with badges + monthly placeholders)
+- [x] Monthly Quest Engine (full-stack: DB tables + RPC, domain/data/provider layers, real-time UI, tier badge condition type, admin CRUD)
 - [x] Student Assignment Screens Redesign (app design language, shell integration, colored header cards, 3D GameButtons)
 - [x] Vocabulary Session Web Layouts (side-by-side layouts, 3D option buttons, GameButton check/continue, image overflow fixes)
 - [x] Daily Review Quest Fix (RPC NOW() alignment, INNER JOIN vocabulary_words for accurate due word count)
@@ -253,6 +254,7 @@ See: CLAUDE.md for architecture guidelines
 
 | Task | Date | Notes |
 |------|------|-------|
+| Monthly Quest Engine | 2026-04-16 | Full-stack integration: `monthly_quests` + `monthly_quest_completions` tables, `get_monthly_quest_progress` RPC, `MonthlyQuestCompleted` badge condition type, `monthlyTierInfo()` helper, live quest cards (mobile + sidebar). Admin tabbed quest manager + badge editor support. 3 DB migrations. |
 | League Reset System Fixes | 2026-04-08 | Catch-up loop for missed weeks, pg_cron replaces cron-job.org, idempotent inactive decay (INSERT ... RETURNING CTE), edge function fail-closed auth, UTC days-left. 3 migrations + edge function deploy. |
 | Daily Review Navigation Guard | 2026-04-08 | Deferred SM-2 writes (`flushPendingProgress()`), `PopScope` exit confirmation, `dailyReviewActiveProvider` shell nav block, generalized `_showSessionExitConfirmation`. |
 | Streak Sheet Redesign | 2026-04-05 | Duolingo-inspired full-screen bottom sheet. Gradient banner, toggleable weekly/monthly calendar, distinct day icons, compact stat cards, displayStreakProvider for consistent streak count, monthly provider cache invalidation. |

@@ -116,22 +116,63 @@ class _BadgesTab extends ConsumerWidget {
           );
         }
 
-        return GridView.builder(
+        // Group by condition_type. For myth_category_completed, sub-group by condition_param.
+        final groups = <String, List<Map<String, dynamic>>>{};
+        for (final b in badges) {
+          final type = b['condition_type'] as String? ?? '';
+          final param = b['condition_param'] as String?;
+          final key = type == 'myth_category_completed' && param != null
+              ? 'myth_category_completed:$param'
+              : type;
+          (groups[key] ??= []).add(b);
+        }
+
+        // Stable display order from shared helper.
+        final sortedKeys = <String>[];
+        for (final k in badgeGroupOrderedKeys) {
+          if (groups.containsKey(k)) sortedKeys.add(k);
+        }
+        for (final k in groups.keys) {
+          if (!sortedKeys.contains(k)) sortedKeys.add(k);
+        }
+
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 5,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final key in sortedKeys) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8, top: 4),
+                  child: Text(
+                    getBadgeGroupHeaderLabel(key),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    for (final badge in groups[key]!)
+                      SizedBox(
+                        width: 200,
+                        height: 100,
+                        child: _CompactBadgeCard(
+                          badge: badge,
+                          onTap: () => context.go('/badges/${badge['id']}'),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+            ],
           ),
-          itemCount: badges.length,
-          itemBuilder: (context, index) {
-            final badge = badges[index];
-            return _CompactBadgeCard(
-              badge: badge,
-              onTap: () => context.go('/badges/${badge['id']}'),
-            );
-          },
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -165,7 +206,20 @@ class _CompactBadgeCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(icon, style: const TextStyle(fontSize: 22)),
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: Center(
+                      child: icon.startsWith('assets/')
+                          ? Image.asset(
+                              icon,
+                              width: 26,
+                              height: 26,
+                              fit: BoxFit.contain,
+                            )
+                          : Text(icon, style: const TextStyle(fontSize: 22)),
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(

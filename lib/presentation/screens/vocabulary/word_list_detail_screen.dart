@@ -11,6 +11,7 @@ import '../../providers/system_settings_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/game_button.dart';
 
 /// Detail screen for a word list — simplified session-based design
@@ -251,14 +252,12 @@ class _ListHeader extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: (progress!.bestAccuracy ?? 0) / 100.0,
-                        minHeight: 12,
-                        backgroundColor: Colors.white.withValues(alpha: 0.3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
+                    AppProgressBar(
+                      progress: (progress!.bestAccuracy ?? 0) / 100.0,
+                      height: 12,
+                      fillColor: Colors.white,
+                      fillShadow: Colors.white.withValues(alpha: 0.5),
+                      backgroundColor: Colors.white.withValues(alpha: 0.3),
                     ),
                     const SizedBox(height: 8),
                     Text(

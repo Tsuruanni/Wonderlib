@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../reader/grammar_profile_widget.dart';
+import '../reader/reader_sidebar.dart';
 
 /// Teacher shell scaffold that provides persistent navigation.
 /// Mobile: bottom navigation bar.
@@ -39,11 +41,26 @@ class TeacherShellScaffold extends StatelessWidget {
       label: 'Reports',
       color: Color(0xFF9B59B6),
     ),
+    _NavItem(
+      icon: Icons.menu_book_outlined,
+      selectedIcon: Icons.menu_book,
+      label: 'Library',
+      color: AppColors.primaryDark,
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.sizeOf(context).width >= 600;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isWide = screenWidth >= 600;
+    final location = GoRouterState.of(context).uri.path;
+    final isReaderRoute = location.startsWith('/teacher/reader') ||
+        location.startsWith('/teacher/quiz');
+    final isBookContext = isReaderRoute ||
+        location.startsWith('/teacher/library/book');
+    final showReaderSidebar = isReaderRoute && screenWidth >= 1000;
+    // Grammar Profile shows for any book context (detail, reader, quiz)
+    final showGrammarProfile = isBookContext && screenWidth >= 1400;
 
     if (isWide) {
       return Scaffold(
@@ -122,6 +139,7 @@ class TeacherShellScaffold extends StatelessWidget {
                 ),
               ),
             ),
+            if (showReaderSidebar) const ReaderSidebar(),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 200),
@@ -131,6 +149,7 @@ class TeacherShellScaffold extends StatelessWidget {
                 ),
               ),
             ),
+            if (showGrammarProfile) const GrammarProfileWidget(),
           ],
         ),
       );

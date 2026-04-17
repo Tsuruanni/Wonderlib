@@ -411,8 +411,7 @@ class NotificationCard extends StatefulWidget {
 
   static (String, Color) _questRewardTextAndColor(DailyQuest quest) {
     return switch (quest.rewardType) {
-      QuestRewardType.xp => ('+${quest.rewardAmount} XP', AppColors.primary),
-      QuestRewardType.coins => ('+${quest.rewardAmount} coins', AppColors.wasp),
+      QuestRewardType.coins => ('+${quest.rewardAmount} gems', AppColors.wasp),
       QuestRewardType.cardPack =>
         ('+${quest.rewardAmount} pack', AppColors.gemBlue),
     };

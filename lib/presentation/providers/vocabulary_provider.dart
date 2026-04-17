@@ -20,6 +20,7 @@ import '../../domain/usecases/wordlist/complete_session_usecase.dart';
 import 'book_provider.dart';
 import 'daily_quest_provider.dart';
 import 'daily_review_provider.dart';
+import 'monthly_quest_provider.dart';
 import '../../domain/entities/vocabulary.dart';
 import '../../domain/entities/vocabulary_unit.dart';
 import '../../domain/entities/word_list.dart';
@@ -1031,6 +1032,7 @@ class SessionSaveNotifier extends StateNotifier<SessionSaveState> {
         _ref.read(userControllerProvider.notifier).refreshProfileOnly();
         _ref.invalidate(leaderboardDisplayProvider);
         _ref.invalidate(dailyQuestProgressProvider);
+        _ref.invalidate(monthlyQuestProgressProvider);
 
         // Complete matching assignments (best-effort)
         _completeAssignments(userId: userId, listId: listId, accuracy: accuracy);

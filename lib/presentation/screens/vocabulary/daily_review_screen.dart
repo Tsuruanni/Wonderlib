@@ -12,11 +12,12 @@ import '../../utils/app_icons.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/daily_review_provider.dart';
+import '../../providers/monthly_quest_provider.dart';
 import '../../providers/leaderboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../widgets/common/game_button.dart';
-import '../../widgets/common/pro_progress_bar.dart';
+import '../../widgets/common/app_progress_bar.dart';
 
 /// Daily Review Screen - Anki-style spaced repetition flashcards
 class DailyReviewScreen extends ConsumerStatefulWidget {
@@ -145,6 +146,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
     ref.invalidate(todayReviewSessionProvider);
     ref.invalidate(learningPathProvider);
     ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
+    ref.invalidate(monthlyQuestProgressProvider); // Refresh monthly quest
     // Invalidate wordbank providers so Word Bank sees updated review dates
     ref.invalidate(userVocabularyProgressProvider);
     ref.invalidate(learnedWordsWithDetailsProvider);
@@ -467,7 +469,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                    ),
                    const SizedBox(width: 16),
                    Expanded(
-                     child: ProProgressBar(progress: progress, height: 20, color: AppColors.streakOrange),
+                     child: AppProgressBar(
+                       progress: progress,
+                       height: 20,
+                       fillColor: AppColors.streakOrange,
+                       fillShadow: const Color(0xFFC76A00),
+                       duration: const Duration(milliseconds: 500),
+                     ),
                    ),
                 ],
               ),

@@ -10,9 +10,11 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
+import '../../providers/badge_provider.dart';
 import '../../providers/daily_review_provider.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/daily_quest_provider.dart';
+import '../../providers/monthly_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/system_settings_provider.dart';
@@ -22,8 +24,10 @@ import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
+import '../common/app_progress_bar.dart';
 import '../common/streak_sheet.dart';
 import '../../utils/app_icons.dart';
+import '../../utils/monthly_tier_info.dart';
 
 /// Right info panel shown on wide screens (≥1000px).
 /// Contains stats bar, league card, and daily quests — like Duolingo's web layout.
@@ -74,8 +78,6 @@ class RightInfoPanel extends ConsumerWidget {
                     const SizedBox(height: 16),
                   ] else if (isQuests) ...[
                     const _MonthlyQuestSidebarCard(),
-                    const SizedBox(height: 16),
-                    const _MonthlyBadgesSidebarCard(),
                   ] else ...[
                     if (isLeaderboard) const _LastWeekCard(),
                     const _LeagueCard(),
@@ -590,14 +592,11 @@ class _TeacherQuestRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: AppColors.neutral,
-                    color: iconColor,
-                    minHeight: 8,
-                  ),
+                AppProgressBar(
+                  progress: progress,
+                  height: 8,
+                  fillColor: iconColor,
+                  fillShadow: iconColor.withValues(alpha: 0.6),
                 ),
               ],
             ),
@@ -632,6 +631,9 @@ class _DailyQuestsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(dailyQuestProgressProvider);
+    final now = AppClock.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    final hoursLeft = midnight.difference(now).inHours;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -641,150 +643,226 @@ class _DailyQuestsCard extends ConsumerWidget {
         border: Border.all(color: AppColors.neutral, width: 2),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Daily Quests',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
-          ),
-          const SizedBox(height: 12),
-          questsAsync.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Daily Quests',
+              style: GoogleFonts.nunito(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
               ),
             ),
-            error: (_, __) => Text(
-              'Could not load quests',
-              style: GoogleFonts.nunito(color: AppColors.neutralText),
+            const Spacer(),
+            AppIcons.schedule(size: 16),
+            const SizedBox(width: 4),
+            Text(
+              '$hoursLeft HOURS',
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+              ),
             ),
-            data: (quests) {
-              if (quests.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Text(
-                    'No quests available today',
-                    style: GoogleFonts.nunito(color: AppColors.neutralText),
-                  ),
-                );
-              }
-              return Column(
-                children: [
-                  for (int i = 0; i < quests.length; i++) ...[
-                    if (i > 0) const SizedBox(height: 12),
-                    _QuestRow(progress: quests[i]),
-                  ],
-                ],
-              );
-            },
+          ],
+        ),
+        const SizedBox(height: 12),
+        questsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           ),
-        ],
+          error: (_, __) => Text(
+            'Could not load quests',
+            style: GoogleFonts.nunito(color: AppColors.neutralText),
+          ),
+          data: (quests) {
+            if (quests.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  'No quests available today',
+                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                ),
+              );
+            }
+            final allDone = quests.every((q) => q.isCompleted);
+            final sorted = [...quests]
+              ..sort((a, b) {
+                if (a.isCompleted != b.isCompleted) {
+                  return a.isCompleted ? 1 : -1;
+                }
+                return a.quest.rewardAmount.compareTo(b.quest.rewardAmount);
+              });
+            return Column(
+              children: [
+                if (allDone) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      children: [
+                        AppIcons.check(size: 16),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'All quests complete!',
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: Divider(height: 1, color: AppColors.neutral),
+                  ),
+                ],
+                for (int i = 0; i < sorted.length; i++) ...[
+                  if (i > 0)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Divider(height: 1, color: AppColors.neutral),
+                    ),
+                  _SidebarQuestRow(progress: sorted[i]),
+                ],
+              ],
+            );
+          },
+        ),
+      ],
       ),
     );
   }
 }
 
-class _QuestRow extends StatelessWidget {
-  const _QuestRow({required this.progress});
+class _SidebarQuestRow extends StatelessWidget {
+  const _SidebarQuestRow({required this.progress});
 
   final DailyQuestProgress progress;
 
-  Widget _questIcon(String questType, Color color) {
-    switch (questType) {
-      case 'earn_xp':
-        return Icon(Icons.bolt_rounded, size: 22, color: color);
-      case 'spend_time':
-        return Icon(Icons.timer_rounded, size: 22, color: color);
-      case 'earn_combo_xp':
-        return Icon(Icons.bolt_rounded, size: 22, color: color);
-      case 'complete_chapters':
-        return AppIcons.book(size: 22);
-      case 'review_words':
-        return Icon(Icons.translate_rounded, size: 22, color: color);
-      default:
-        return AppIcons.star(size: 22);
-    }
+  ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
+    return switch (rewardType) {
+      QuestRewardType.coins =>
+        (base: AppColors.streakOrange, shadow: const Color(0xFFC76A00)),
+      QuestRewardType.cardPack =>
+        (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark),
+    };
   }
 
-  Color _questColor(String questType) {
-    switch (questType) {
-      case 'earn_xp':
-        return AppColors.cardLegendary;
-      case 'spend_time':
-        return AppColors.secondary;
-      case 'earn_combo_xp':
-        return AppColors.cardLegendary;
-      case 'complete_chapters':
-        return AppColors.primary;
-      case 'review_words':
-        return AppColors.cardEpic;
-      default:
-        return AppColors.neutralText;
+  Widget _buildRewardContent(DailyQuest quest, bool isCompleted) {
+    final colors = isCompleted
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
+        : _rewardColors(quest.rewardType);
+    if (isCompleted) {
+      return AppIcons.check(size: 28);
     }
+    final icon = switch (quest.rewardType) {
+      QuestRewardType.coins => AppIcons.gem(size: 28),
+      QuestRewardType.cardPack => AppIcons.card(size: 28),
+    };
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        icon,
+        const SizedBox(width: 3),
+        Text(
+          '×${quest.rewardAmount}',
+          style: GoogleFonts.nunito(
+            fontSize: 17,
+            fontWeight: FontWeight.w900,
+            color: colors.shadow,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final quest = progress.quest;
+    final isCompleted = progress.isCompleted;
     final ratio = quest.goalValue > 0
         ? (progress.currentValue / quest.goalValue).clamp(0.0, 1.0)
         : 0.0;
-    final color = _questColor(quest.questType);
+    final barColors = isCompleted
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
+        : _rewardColors(quest.rewardType);
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-          ),
-          child: _questIcon(quest.questType, color),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                quest.title,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.black,
-                ),
-              ),
-              const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: ratio,
-                  backgroundColor: AppColors.neutral,
-                  color: progress.isCompleted ? AppColors.primary : color,
-                  minHeight: 8,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${progress.currentValue} / ${quest.goalValue}',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
-              ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: isCompleted
+                  ? Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: quest.title,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.black,
+                            ),
+                          ),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 6),
+                              child: AppIcons.check(size: 32),
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : Text(
+                      quest.title,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+            ),
+            if (!isCompleted) ...[
+              const SizedBox(width: 10),
+              _buildRewardContent(quest, false),
             ],
-          ),
+          ],
         ),
+        if (isCompleted || progress.currentValue > 0) ...[
+          const SizedBox(height: 10),
+          AppProgressBar(
+            progress: ratio,
+            height: 6,
+            fillColor: barColors.base,
+            fillShadow: barColors.shadow,
+          ),
+        ],
       ],
     );
   }
@@ -1352,25 +1430,39 @@ class _MiniNotebookPainter extends CustomPainter {
 
 // ─── Monthly Quest Sidebar Card (Quests route) ───
 
-class _MonthlyQuestSidebarCard extends StatelessWidget {
+class _MonthlyQuestSidebarCard extends ConsumerWidget {
   const _MonthlyQuestSidebarCard();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(monthlyQuestProgressProvider);
+    final list = progressAsync.valueOrNull ?? const [];
+    if (list.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final progress = list.first;
     final now = DateTime.now();
     final monthName = DateFormat('MMMM').format(now);
-    final lastDay = DateTime(now.year, now.month + 1, 0);
-    final daysLeft = lastDay.difference(now).inDays;
+    final daysLeft = progress.daysLeft;
+    final fill = progress.quest.goalValue > 0
+        ? (progress.currentValue / progress.quest.goalValue).clamp(0.0, 1.0)
+        : 0.0;
+    final tierInfo = monthlyTierInfo(
+      ref.watch(allBadgesProvider).valueOrNull ?? const [],
+      ref.watch(userBadgesProvider).valueOrNull ?? const [],
+      progress.quest.id,
+      progress.completionCount,
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.streakOrange,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: const Color(0xFFC76A00),
-            offset: const Offset(0, 3),
+            color: Color(0xFFC76A00),
+            offset: Offset(0, 3),
             blurRadius: 0,
           ),
         ],
@@ -1428,7 +1520,7 @@ class _MonthlyQuestSidebarCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Complete 20 quests',
+                  progress.quest.title,
                   style: GoogleFonts.nunito(
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
@@ -1436,20 +1528,18 @@ class _MonthlyQuestSidebarCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: 0,
-                    backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    color: Colors.white,
-                    minHeight: 6,
-                  ),
+                AppProgressBar(
+                  progress: fill,
+                  height: 8,
+                  fillColor: Colors.white,
+                  fillShadow: Colors.white.withValues(alpha: 0.5),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
                 ),
                 const SizedBox(height: 4),
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    '0 / 20',
+                    '${progress.currentValue} / ${progress.quest.goalValue}',
                     style: GoogleFonts.nunito(
                       fontWeight: FontWeight.w700,
                       fontSize: 11,
@@ -1457,71 +1547,32 @@ class _MonthlyQuestSidebarCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (tierInfo != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        tierInfo.allEarned
+                            ? Icons.military_tech_rounded
+                            : Icons.military_tech_outlined,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          tierInfo.label,
+                          style: GoogleFonts.nunito(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Monthly Badges Sidebar Card (Quests route) ───
-
-class _MonthlyBadgesSidebarCard extends StatelessWidget {
-  const _MonthlyBadgesSidebarCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'MONTHLY BADGES',
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w800,
-              fontSize: 11,
-              color: AppColors.neutralText,
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Earn your first badge!',
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w800,
-              fontSize: 15,
-              color: AppColors.black,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            "Complete each month's challenge to earn exclusive badges",
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              color: AppColors.neutralText,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.streakOrange.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.military_tech_rounded,
-                size: 36,
-                color: AppColors.streakOrange,
-              ),
             ),
           ),
         ],

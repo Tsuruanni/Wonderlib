@@ -12,6 +12,7 @@ class BadgeModel {
     this.category,
     required this.conditionType,
     required this.conditionValue,
+    this.conditionParam,
     this.xpReward = 0,
     this.isActive = true,
     required this.createdAt,
@@ -27,6 +28,7 @@ class BadgeModel {
       category: json['category'] as String?,
       conditionType: json['condition_type'] as String? ?? 'xp_total',
       conditionValue: json['condition_value'] as int? ?? 0,
+      conditionParam: json['condition_param'] as String?,
       xpReward: json['xp_reward'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -43,6 +45,7 @@ class BadgeModel {
       category: entity.category,
       conditionType: conditionTypeToString(entity.conditionType),
       conditionValue: entity.conditionValue,
+      conditionParam: entity.conditionParam,
       xpReward: entity.xpReward,
       isActive: entity.isActive,
       createdAt: entity.createdAt,
@@ -56,6 +59,7 @@ class BadgeModel {
   final String? category;
   final String conditionType;
   final int conditionValue;
+  final String? conditionParam;
   final int xpReward;
   final bool isActive;
   final DateTime createdAt;
@@ -70,6 +74,7 @@ class BadgeModel {
       'category': category,
       'condition_type': conditionType,
       'condition_value': conditionValue,
+      'condition_param': conditionParam,
       'xp_reward': xpReward,
       'is_active': isActive,
       'created_at': createdAt.toUtc().toIso8601String(),
@@ -86,6 +91,7 @@ class BadgeModel {
       category: category,
       conditionType: parseConditionType(conditionType),
       conditionValue: conditionValue,
+      conditionParam: conditionParam,
       xpReward: xpReward,
       isActive: isActive,
       createdAt: createdAt,

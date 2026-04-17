@@ -34,6 +34,18 @@ final badgeEarnedByProvider =
   return List<Map<String, dynamic>>.from(response);
 });
 
+/// All monthly quests (active + inactive) for the badge editor's quest picker.
+/// Inactive ones still appear so admins can attach badges in advance.
+final _monthlyQuestsForBadgePickerProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final response = await supabase
+      .from(DbTables.monthlyQuests)
+      .select('id, title, icon, is_active')
+      .order('sort_order', ascending: true);
+  return List<Map<String, dynamic>>.from(response);
+});
+
 class BadgeEditScreen extends ConsumerStatefulWidget {
   const BadgeEditScreen({super.key, this.badgeId});
 
@@ -57,8 +69,11 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     (BadgeConditionType.streakDays.dbValue, 'Ardışık Aktif Gün'),
     (BadgeConditionType.booksCompleted.dbValue, 'Tamamlanan Kitaplar'),
     (BadgeConditionType.vocabularyLearned.dbValue, 'Öğrenilen Kelimeler'),
-    (BadgeConditionType.perfectScores.dbValue, 'Tam Puan Etkinlik Skorları'),
     (BadgeConditionType.levelCompleted.dbValue, 'Ulaşılan Seviye'),
+    (BadgeConditionType.cardsCollected.dbValue, 'Toplanan Kart Sayısı'),
+    (BadgeConditionType.mythCategoryCompleted.dbValue, 'Kategori Bazlı Kart Toplama'),
+    (BadgeConditionType.leagueTierReached.dbValue, 'Ulaşılan Lig'),
+    (BadgeConditionType.monthlyQuestCompleted.dbValue, 'Aylık Görev Tamamlama (Milestone)'),
   ];
 
   static const _categories = [
@@ -67,6 +82,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
   ];
 
   String _conditionType = BadgeConditionType.xpTotal.dbValue;
+  String? _conditionParam;
   String _category = 'achievement';
   bool _isLoading = false;
   bool _isSaving = false;
@@ -98,6 +114,7 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
       _xpRewardController.text = (badge['xp_reward'] ?? 50).toString();
       setState(() {
         _conditionType = badge['condition_type'] ?? 'xp_total';
+        _conditionParam = badge['condition_param'] as String?;
         _category = badge['category'] ?? 'achievement';
         _isLoading = false;
       });
@@ -141,7 +158,10 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
         'icon': _iconController.text.trim(),
         'category': _category,
         'condition_type': _conditionType,
-        'condition_value': int.tryParse(_conditionValueController.text) ?? 100,
+        'condition_value': _conditionType == 'league_tier_reached'
+            ? 1  // placeholder — RPC evaluates league_tier_reached on condition_param only
+            : int.tryParse(_conditionValueController.text) ?? 100,
+        'condition_param': _conditionParam,
         'xp_reward': int.tryParse(_xpRewardController.text) ?? 50,
       };
 
@@ -227,6 +247,113 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
         );
       }
     }
+  }
+
+  /// Renders the condition_param dropdown. For monthly_quest_completed we
+  /// fetch the quest list from Supabase; for the other param types we use
+  /// hard-coded maps from badge_helpers.
+  Widget _buildConditionParamField() {
+    if (_conditionType == BadgeConditionType.monthlyQuestCompleted.dbValue) {
+      final questsAsync = ref.watch(_monthlyQuestsForBadgePickerProvider);
+      return questsAsync.when(
+        loading: () => const LinearProgressIndicator(),
+        error: (e, _) => Text(
+          'Quest listesi yüklenemedi: $e',
+          style: const TextStyle(color: Colors.red),
+        ),
+        data: (quests) {
+          if (quests.isEmpty) {
+            return const Text(
+              'Henüz monthly quest tanımlı değil. Önce Quests ekranından oluşturun.',
+              style: TextStyle(color: Colors.orange),
+            );
+          }
+          // Ensure current param is a valid id; else null so admin picks one.
+          final validIds = quests.map((q) => q['id'] as String).toSet();
+          final currentValue =
+              (_conditionParam != null && validIds.contains(_conditionParam))
+                  ? _conditionParam
+                  : null;
+          return DropdownButtonFormField<String>(
+            value: currentValue,
+            decoration: const InputDecoration(
+              labelText: 'Monthly Quest',
+              helperText: 'Bu rozetin bağlı olduğu aylık görev',
+            ),
+            items: [
+              for (final q in quests)
+                DropdownMenuItem(
+                  value: q['id'] as String,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text((q['icon'] as String?) ?? '🏆'),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          (q['title'] as String?) ?? '(isimsiz)',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (q['is_active'] == false) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '(inactive)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _conditionParam = value);
+              }
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Quest seçilmelidir';
+              }
+              return null;
+            },
+          );
+        },
+      );
+    }
+
+    // Static param types (myth category / league tier)
+    final options =
+        _conditionType == BadgeConditionType.mythCategoryCompleted.dbValue
+            ? mythCategoryOptions
+            : leagueTierOptions;
+    return DropdownButtonFormField<String>(
+      value: _conditionParam,
+      decoration: const InputDecoration(
+        labelText: 'Parametre',
+        helperText: 'Bu koşulun hedeflediği kategori / lig',
+      ),
+      items: options.entries
+          .map((e) => DropdownMenuItem(
+                value: e.key,
+                child: Text(e.value),
+              ),)
+          .toList(),
+      onChanged: (value) {
+        if (value != null) {
+          setState(() => _conditionParam = value);
+        }
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Parametre zorunludur';
+        }
+        return null;
+      },
+    );
   }
 
   @override
@@ -386,31 +513,66 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
                             }).toList(),
                             onChanged: (value) {
                               if (value != null) {
-                                setState(() => _conditionType = value);
+                                setState(() {
+                                  _conditionType = value;
+                                  final newCt = BadgeConditionType.fromDbValue(value);
+                                  if (!newCt.requiresParam) {
+                                    _conditionParam = null;
+                                  } else if (newCt == BadgeConditionType.mythCategoryCompleted) {
+                                    if (_conditionParam == null ||
+                                        !mythCategoryOptions.containsKey(_conditionParam)) {
+                                      _conditionParam = mythCategoryOptions.keys.first;
+                                    }
+                                  } else if (newCt == BadgeConditionType.leagueTierReached) {
+                                    if (_conditionParam == null ||
+                                        !leagueTierOptions.containsKey(_conditionParam)) {
+                                      _conditionParam = leagueTierOptions.keys.first;
+                                    }
+                                  } else if (newCt == BadgeConditionType.monthlyQuestCompleted) {
+                                    // Reset param when switching to monthly quest — quest list
+                                    // is loaded async and admin must explicitly pick one.
+                                    if (_conditionParam != null) {
+                                      final quests = ref
+                                              .read(_monthlyQuestsForBadgePickerProvider)
+                                              .valueOrNull ??
+                                          const [];
+                                      final found = quests.any(
+                                          (q) => q['id'] == _conditionParam,);
+                                      if (!found) _conditionParam = null;
+                                    }
+                                  }
+                                });
                               }
                             },
                           ),
+                          // Conditional param dropdown (only when condition type needs it)
+                          if (BadgeConditionType.fromDbValue(_conditionType).requiresParam) ...[
+                            const SizedBox(height: 16),
+                            _buildConditionParamField(),
+                          ],
+
                           const SizedBox(height: 16),
 
-                          // Condition value
-                          TextFormField(
-                            controller: _conditionValueController,
-                            decoration: InputDecoration(
-                              labelText: 'Koşul Değeri',
-                              hintText: 'ör. 100',
-                              helperText: getConditionHelper(_conditionType),
+                          // Condition value (hidden for league_tier_reached — RPC ignores it)
+                          if (_conditionType != 'league_tier_reached')
+                            TextFormField(
+                              controller: _conditionValueController,
+                              decoration: InputDecoration(
+                                labelText: 'Koşul Değeri',
+                                hintText: 'ör. 100',
+                                helperText: getConditionHelper(_conditionType),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Koşul değeri zorunludur';
+                                }
+                                if (int.tryParse(value) == null) {
+                                  return 'Sayı olmalıdır';
+                                }
+                                return null;
+                              },
                             ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Koşul değeri zorunludur';
-                              }
-                              if (int.tryParse(value) == null) {
-                                return 'Sayı olmalıdır';
-                              }
-                              return null;
-                            },
-                          ),
                           const SizedBox(height: 24),
 
                           Text(

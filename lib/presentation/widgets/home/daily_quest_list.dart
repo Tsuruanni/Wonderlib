@@ -5,8 +5,10 @@ import 'package:owlio/app/router.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
 import '../../utils/app_icons.dart';
+import '../common/app_progress_bar.dart';
 
-/// Renders daily quest rows in a styled card.
+/// Renders daily quest rows in badges island style — no outer card,
+/// each quest is an individual row with a colored tile on the left.
 class DailyQuestList extends StatelessWidget {
   const DailyQuestList({
     super.key,
@@ -19,11 +21,17 @@ class DailyQuestList extends StatelessWidget {
   Widget build(BuildContext context) {
     final allComplete =
         progress.isNotEmpty && progress.every((q) => q.isCompleted);
+    final sorted = [...progress]
+      ..sort((a, b) {
+        if (a.isCompleted != b.isCompleted) return a.isCompleted ? 1 : -1;
+        return a.quest.rewardAmount.compareTo(b.quest.rewardAmount);
+      });
 
-    return DecoratedBox(
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.neutral, width: 2),
         boxShadow: const [
           BoxShadow(
@@ -33,60 +41,111 @@ class DailyQuestList extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (allComplete)
-              Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                color: AppColors.primary.withValues(alpha: 0.08),
-                child: Row(
-                  children: [
-                    AppIcons.check(size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "You've completed all quests for today!",
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            for (var i = 0; i < progress.length; i++) ...[
-              if (i > 0 || allComplete)
-                Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: AppColors.neutral.withValues(alpha: 0.6),
-                ),
-              _QuestRow(progress: progress[i]),
-            ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (allComplete) ...[
+            _AllCompleteBanner(),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 10),
+              child: Divider(height: 1, color: AppColors.neutral),
+            ),
           ],
-        ),
+          for (int i = 0; i < sorted.length; i++) ...[
+            if (i > 0)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10),
+                child: Divider(height: 1, color: AppColors.neutral),
+              ),
+            _QuestRow(progress: sorted[i]),
+          ],
+        ],
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Thick divider separating sections
-// ---------------------------------------------------------------------------
-// Single daily quest row
-// ---------------------------------------------------------------------------
+class _AllCompleteBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          AppIcons.check(size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              "You've completed all quests for today!",
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _QuestRow extends StatelessWidget {
   const _QuestRow({required this.progress});
 
   final DailyQuestProgress progress;
+
+  ({Color base, Color shadow}) _rewardColors(QuestRewardType rewardType) {
+    return switch (rewardType) {
+      QuestRewardType.coins =>
+        (base: AppColors.streakOrange, shadow: const Color(0xFFC76A00)),
+      QuestRewardType.cardPack =>
+        (base: AppColors.cardEpic, shadow: AppColors.cardEpicDark),
+    };
+  }
+
+  String? _questRoute(String questType) {
+    return switch (questType) {
+      'read_chapters' => AppRoutes.library,
+      'daily_review' => AppRoutes.vocabularyDailyReview,
+      'vocab_session' => AppRoutes.vocabularyDailyReview,
+      _ => null,
+    };
+  }
+
+  Widget _buildRewardContent(DailyQuest quest, bool isCompleted) {
+    final colors = isCompleted
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
+        : _rewardColors(quest.rewardType);
+    if (isCompleted) {
+      return AppIcons.check(size: 34);
+    }
+    final icon = switch (quest.rewardType) {
+      QuestRewardType.coins => AppIcons.gem(size: 34),
+      QuestRewardType.cardPack => AppIcons.card(size: 34),
+    };
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        icon,
+        const SizedBox(width: 4),
+        Text(
+          '×${quest.rewardAmount}',
+          style: GoogleFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: colors.shadow,
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,171 +153,70 @@ class _QuestRow extends StatelessWidget {
     final isCompleted = progress.isCompleted;
     final currentValue = progress.currentValue;
     final goalValue = quest.goalValue;
-    final progressFraction =
-        goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
-
-    final rewardText = _rewardText(quest);
+    final ratio = goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
     final route = _questRoute(quest.questType);
+    final barColors = isCompleted
+        ? (base: AppColors.primary, shadow: AppColors.primaryDark)
+        : _rewardColors(quest.rewardType);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: route != null ? () => context.go(route!) : null,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
+      onTap: route != null ? () => context.go(route) : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon circle
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: isCompleted
-                  ? AppColors.wasp.withValues(alpha: 0.15)
-                  : AppColors.primary.withValues(alpha: 0.10),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: isCompleted
-                  ? AppIcons.check()
-                  : Text(
-                      quest.icon,
-                      style: const TextStyle(fontSize: 20),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Title + progress bar
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  quest.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: isCompleted ? AppColors.neutralText : AppColors.black,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                _ProgressBar(
-                  progress: progressFraction,
-                  progressText: '$currentValue / $goalValue',
-                  isCompleted: isCompleted,
-                ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: isCompleted
+                    ? Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: quest.title,
+                              style: GoogleFonts.nunito(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.black,
+                              ),
+                            ),
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: AppIcons.check(size: 36),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Text(
+                        quest.title,
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.black,
+                        ),
+                      ),
+              ),
+              if (!isCompleted) ...[
+                const SizedBox(width: 12),
+                _buildRewardContent(quest, false),
               ],
-            ),
+            ],
           ),
-          const SizedBox(width: 10),
-
-          // Reward badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _rewardColor(quest).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
+          if (isCompleted || currentValue > 0) ...[
+            const SizedBox(height: 12),
+            AppProgressBar(
+              progress: ratio,
+              height: 8,
+              fillColor: barColors.base,
+              fillShadow: barColors.shadow,
             ),
-            child: Text(
-              rewardText,
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: _rewardColor(quest),
-              ),
-            ),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-
-  String? _questRoute(String questType) {
-    return switch (questType) {
-      'read_chapters' => AppRoutes.library,
-      'vocab_session' => AppRoutes.vocabularyDailyReview,
-      _ => null,
-    };
-  }
-
-  String _rewardText(DailyQuest quest) {
-    return switch (quest.rewardType) {
-      QuestRewardType.xp => '+${quest.rewardAmount} XP',
-      QuestRewardType.coins => '+${quest.rewardAmount} 🪙',
-      QuestRewardType.cardPack => '+${quest.rewardAmount} 📦',
-    };
-  }
-
-  Color _rewardColor(DailyQuest quest) {
-    return switch (quest.rewardType) {
-      QuestRewardType.xp => AppColors.primary,
-      QuestRewardType.coins => AppColors.wasp,
-      QuestRewardType.cardPack => AppColors.gemBlue,
-    };
-  }
-}
-
-
-// ---------------------------------------------------------------------------
-// Progress bar with centered text overlay
-// ---------------------------------------------------------------------------
-
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({
-    required this.progress,
-    required this.progressText,
-    required this.isCompleted,
-    this.fillColor,
-  });
-
-  final double progress;
-  final String progressText;
-  final bool isCompleted;
-  final Color? fillColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final fill = fillColor ?? AppColors.wasp;
-    final track = AppColors.neutral.withValues(alpha: 0.5);
-
-    return SizedBox(
-      height: 20,
-      child: Stack(
-        children: [
-          // Track
-          Container(
-            height: 20,
-            decoration: BoxDecoration(
-              color: track,
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-          // Fill
-          FractionallySizedBox(
-            widthFactor: progress.clamp(0.0, 1.0),
-            child: Container(
-              height: 20,
-              decoration: BoxDecoration(
-                color: fill,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          ),
-          // Text overlay
-          Center(
-            child: Text(
-              progressText,
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: progress > 0.5 ? AppColors.white : AppColors.black,
-              ),
-            ),
-          ),
+          ],
         ],
       ),
     );
   }
 }
-

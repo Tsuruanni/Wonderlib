@@ -6,6 +6,7 @@ import '../../domain/usecases/daily_quest/claim_daily_bonus_usecase.dart';
 import '../../domain/usecases/daily_quest/get_daily_quest_progress_usecase.dart';
 import '../../domain/usecases/daily_quest/has_daily_bonus_claimed_usecase.dart';
 import 'auth_provider.dart';
+import 'monthly_quest_provider.dart';
 import 'usecase_providers.dart';
 import 'user_provider.dart';
 
@@ -50,6 +51,8 @@ final dailyQuestProgressProvider = FutureProvider<List<DailyQuestProgress>>((ref
             completedQuests: newlyCompleted,
             allQuestsComplete: allComplete,
           );
+          // Refresh monthly quest so 'complete_daily_quests' counter stays in sync.
+          ref.invalidate(monthlyQuestProgressProvider);
         });
       }
       return progress;

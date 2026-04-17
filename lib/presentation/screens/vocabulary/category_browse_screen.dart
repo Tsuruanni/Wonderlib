@@ -9,6 +9,7 @@ import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_progress_bar.dart';
 
 /// Screen to browse word lists in a specific category
 class CategoryBrowseScreen extends ConsumerWidget {
@@ -148,16 +149,12 @@ class _WordListCard extends StatelessWidget {
                   ),
                   if (progress != null) ...[
                     const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: (progress!.bestAccuracy ?? 0) / 100.0,
-                        minHeight: 8,
-                        backgroundColor: AppColors.neutral,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          VocabularyColors.getCategoryColor(wordList.category),
-                        ),
-                      ),
+                    AppProgressBar(
+                      progress: (progress!.bestAccuracy ?? 0) / 100.0,
+                      fillColor: VocabularyColors.getCategoryColor(wordList.category),
+                      fillShadow: VocabularyColors.getCategoryColor(wordList.category).withValues(alpha: 0.6),
+                      backgroundColor: AppColors.neutral,
+                      height: 8,
                     ),
                   ],
                 ],

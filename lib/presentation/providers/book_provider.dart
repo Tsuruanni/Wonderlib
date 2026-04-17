@@ -14,6 +14,7 @@ import '../../domain/usecases/book/search_books_usecase.dart';
 import '../../domain/usecases/reading/check_read_today_usecase.dart';
 import '../../domain/usecases/reading/get_reading_progress_usecase.dart';
 import 'daily_quest_provider.dart';
+import 'monthly_quest_provider.dart';
 import '../../domain/usecases/reading/handle_book_completion_usecase.dart';
 import '../../domain/usecases/reading/mark_chapter_complete_usecase.dart';
 import '../../domain/usecases/student_assignment/get_active_assignments_usecase.dart';
@@ -22,6 +23,7 @@ import '../../domain/usecases/student_assignment/complete_assignment_usecase.dar
 import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../domain/entities/system_settings.dart';
 import 'system_settings_provider.dart';
+import 'teacher_preview_provider.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
@@ -43,10 +45,12 @@ final chaptersWithLockStatusProvider =
   final chapters = ref.watch(chaptersProvider(bookId)).valueOrNull ?? [];
   final progress = ref.watch(readingProgressProvider(bookId)).valueOrNull;
   final completedIds = progress?.completedChapterIds ?? [];
+  final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
   return chapters.indexed.map((e) {
     final (index, chapter) = e;
-    final isLocked = index > 0 &&
+    final isLocked = !isPreview &&
+        index > 0 &&
         chapters.take(index).any((c) => !completedIds.contains(c.id));
     return ChapterWithLockStatus(
       chapter: chapter,
@@ -196,6 +200,7 @@ class ChapterCompletionNotifier extends StateNotifier<AsyncValue<void>> {
       _ref.invalidate(continueReadingProvider); // Refresh continue reading list
       debugPrint('📖 markComplete: invalidating dailyQuestProgressProvider');
       _ref.invalidate(dailyQuestProgressProvider); // Refresh daily quest
+      _ref.invalidate(monthlyQuestProgressProvider); // Refresh monthly quest
 
       // Award XP for new chapter completion
       if (!wasAlreadyCompleted) {

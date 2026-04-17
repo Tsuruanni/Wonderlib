@@ -18,6 +18,7 @@ import '../../providers/student_assignment_provider.dart'
         unitAssignmentItemsProvider;
 import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
 class StudentAssignmentDetailScreen extends ConsumerWidget {
@@ -277,14 +278,14 @@ class _DetailContent extends ConsumerWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral,
-                        color: isCompleted ? AppColors.primary : _typeColor,
-                        minHeight: 10,
-                      ),
+                    AppProgressBar(
+                      progress: progress,
+                      fillColor: isCompleted ? AppColors.primary : _typeColor,
+                      fillShadow: isCompleted
+                          ? AppColors.primaryDark
+                          : _typeColor.withValues(alpha: 0.6),
+                      backgroundColor: AppColors.neutral,
+                      height: 10,
                     ),
                     // Score row
                     if (isCompleted && assignment.score != null) ...[

@@ -10,6 +10,7 @@ import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../utils/app_icons.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
 class StudentAssignmentsScreen extends ConsumerWidget {
@@ -370,14 +371,12 @@ class _AssignmentCard extends StatelessWidget {
                   // Progress bar
                   if (!isCompleted && progress > 0) ...[
                     const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral,
-                        color: _typeColor,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: progress,
+                      fillColor: _typeColor,
+                      fillShadow: _typeColor.withValues(alpha: 0.6),
+                      backgroundColor: AppColors.neutral,
+                      height: 6,
                     ),
                   ],
                 ],

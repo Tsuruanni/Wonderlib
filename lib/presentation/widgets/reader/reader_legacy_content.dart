@@ -5,6 +5,7 @@ import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../providers/activity_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../inline_activities/inline_activities.dart';
 import 'reader_paragraph.dart';
 
@@ -38,6 +39,7 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
     final paragraphs = widget.chapter.paragraphs;
     final activitiesAsync = ref.watch(inlineActivitiesProvider(widget.chapter.id));
     final completedActivities = ref.watch(inlineActivityStateProvider);
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
     // Get inline activities from async state
     final inlineActivities = activitiesAsync.when(
@@ -59,13 +61,16 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
     // Build interleaved list of paragraphs and activities
     final items = _buildInterleavedItems(paragraphs, inlineActivities);
 
-    // Find the first uncompleted activity to determine where to stop
+    // Find the first uncompleted activity to determine where to stop.
+    // Teacher preview mode reveals everything regardless of completion.
     final visibleItems = <_ContentItem>[];
     for (final item in items) {
       visibleItems.add(item);
 
       // If this is an uncompleted activity, stop here (show it but nothing after)
-      if (item is _ActivityItem && !completedActivities.containsKey(item.activity.id)) {
+      if (!isPreview &&
+          item is _ActivityItem &&
+          !completedActivities.containsKey(item.activity.id)) {
         break;
       }
     }
@@ -86,8 +91,11 @@ class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
               );
             } else if (item is _ActivityItem) {
               final activity = item.activity;
-              final isCompleted = completedActivities.containsKey(activity.id);
-              final wasCorrect = completedActivities[activity.id];
+              final isCompleted = isPreview ||
+                  completedActivities.containsKey(activity.id);
+              final wasCorrect = isPreview
+                  ? true
+                  : completedActivities[activity.id];
 
               return _buildActivity(context, activity, isCompleted, wasCorrect);
             }

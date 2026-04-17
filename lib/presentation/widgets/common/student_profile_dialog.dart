@@ -10,6 +10,7 @@ import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/badge.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
 import '../../providers/student_profile_popup_provider.dart';
+import 'app_progress_bar.dart';
 import 'avatar_widget.dart';
 
 /// Shows a student profile popup centered on screen.
@@ -312,14 +313,12 @@ class StudentProfileDialog extends ConsumerWidget {
 
     return Column(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-            color: _getTierColor(entry.leagueTier),
-            minHeight: 8,
-          ),
+        AppProgressBar(
+          progress: progress,
+          fillColor: _getTierColor(entry.leagueTier),
+          fillShadow: _getTierColor(entry.leagueTier).withValues(alpha: 0.6),
+          backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+          height: 8,
         ),
         const SizedBox(height: 4),
         Text(
@@ -375,14 +374,12 @@ class StudentProfileDialog extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: AppColors.cardEpic,
-              minHeight: 6,
-            ),
+          AppProgressBar(
+            progress: progress,
+            fillColor: AppColors.cardEpic,
+            fillShadow: AppColors.cardEpicDark,
+            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+            height: 6,
           ),
           const SizedBox(height: 6),
           Align(

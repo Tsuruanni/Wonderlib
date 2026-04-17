@@ -242,6 +242,15 @@ class UserController extends StateNotifier<AsyncValue<User?>> {
   }
 
   Future<void> _updateStreakIfNeeded(User user) async {
+    // Teachers/head/admin don't have streaks — they're teaching, not learning.
+    // Skip entirely to avoid writing streak records + firing streak dialog.
+    if (user.role == UserRole.teacher ||
+        user.role == UserRole.head ||
+        user.role == UserRole.admin) {
+      debugPrint('🔥 _updateStreakIfNeeded: SKIP (non-student role)');
+      return;
+    }
+
     // Skip if already updated today (avoids redundant RPC on same-day re-opens)
     final today = AppClock.today();
     final lastActivity = user.lastActivityDate;

@@ -16,11 +16,13 @@ import '../../../domain/entities/book.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../providers/word_definition_provider.dart';
 import '../../widgets/reader/reader_audio_controls.dart';
 import '../../widgets/reader/reader_body.dart';
 import '../../widgets/reader/reader_popups.dart';
+import '../../widgets/reader/teacher_preview_banner.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   const ReaderScreen({
@@ -110,20 +112,24 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   Future<void> _updateCurrentChapter() async {
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     final userId = ref.read(currentUserIdProvider);
     if (userId == null) return;
 
     final useCase = ref.read(updateCurrentChapterUseCaseProvider);
-    await useCase(UpdateCurrentChapterParams(
-      userId: userId,
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-    ));
+    await useCase(
+      UpdateCurrentChapterParams(
+        userId: userId,
+        bookId: widget.bookId,
+        chapterId: widget.chapterId,
+      ),
+    );
   }
 
   Future<void> _saveReadingTime() async {
-    // Capture all values synchronously before any async work
-    // This prevents "ref after dispose" errors
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     final int readingTime;
     final String? userId;
     final SaveReadingProgressUseCase saveReadingProgressUseCase;
@@ -137,16 +143,18 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
       saveReadingProgressUseCase = ref.read(saveReadingProgressUseCaseProvider);
     } catch (_) {
-      // Widget might be disposed, ignore
+      // Widget disposed between sync reads — ref throws. Bail safely.
       return;
     }
 
-    await saveReadingProgressUseCase(SaveReadingProgressParams(
-      userId: userId,
-      bookId: widget.bookId,
-      chapterId: widget.chapterId,
-      additionalReadingTime: readingTime,
-    ));
+    await saveReadingProgressUseCase(
+      SaveReadingProgressParams(
+        userId: userId,
+        bookId: widget.bookId,
+        chapterId: widget.chapterId,
+        additionalReadingTime: readingTime,
+      ),
+    );
   }
 
   void _startReadingTimer() {
@@ -195,6 +203,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   /// Marks the current chapter complete. Called after async gaps so the
   /// autoDispose provider is read fresh each time (avoiding stale refs).
   Future<void> _markCurrentChapterComplete() async {
+    if (ref.read(isTeacherPreviewModeProvider)) return;
+
     try {
       final completionNotifier = ref.read(chapterCompletionProvider.notifier);
       await completionNotifier.markComplete(
@@ -218,7 +228,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     await _markCurrentChapterComplete();
 
     if (mounted) {
-      context.go(AppRoutes.readerPath(widget.bookId, nextChapter.id));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(
+        isPreview
+            ? AppRoutes.teacherReaderPath(widget.bookId, nextChapter.id)
+            : AppRoutes.readerPath(widget.bookId, nextChapter.id),
+      );
     }
   }
 
@@ -235,7 +250,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       // Invalidate providers to refresh book detail data
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      context.go(AppRoutes.bookDetailPath(widget.bookId));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(
+        isPreview
+            ? AppRoutes.teacherBookDetailPath(widget.bookId)
+            : AppRoutes.bookDetailPath(widget.bookId),
+      );
     }
   }
 
@@ -250,7 +270,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     if (mounted) {
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      context.go(AppRoutes.bookQuizPath(widget.bookId));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(
+        isPreview
+            ? AppRoutes.teacherBookQuizPath(widget.bookId)
+            : AppRoutes.bookQuizPath(widget.bookId),
+      );
     }
   }
 
@@ -261,7 +286,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     ref.invalidate(readingProgressProvider(widget.bookId));
     ref.invalidate(continueReadingProvider);
     if (mounted) {
-      context.go(AppRoutes.library);
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(isPreview ? AppRoutes.teacherLibrary : AppRoutes.library);
     }
   }
 
@@ -308,34 +334,41 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
         return Scaffold(
           backgroundColor: settings.theme.background,
-          body: Stack(
+          body: Column(
             children: [
-              // Main scrollable content
-              _ReaderBodyWithQuiz(
-                book: book,
-                chapter: chapter,
-                chapters: chapters,
-                settings: settings,
-                onVocabularyTap: _onVocabularyTap,
-                onWordTap: _onWordTap,
-                onClose: _handleClose,
-                onNextChapter: _handleNextChapter,
-                onBackToBook: _handleBackToBook,
-                onTakeQuiz: _handleTakeQuiz,
-              ),
+              const TeacherPreviewBanner(),
+              Expanded(
+                child: Stack(
+                  children: [
+                    // Main scrollable content
+                    _ReaderBodyWithQuiz(
+                      book: book,
+                      chapter: chapter,
+                      chapters: chapters,
+                      settings: settings,
+                      onVocabularyTap: _onVocabularyTap,
+                      onWordTap: _onWordTap,
+                      onClose: _handleClose,
+                      onNextChapter: _handleNextChapter,
+                      onBackToBook: _handleBackToBook,
+                      onTakeQuiz: _handleTakeQuiz,
+                    ),
 
-              // Popup overlays
-              const ReaderPopups(),
+                    // Popup overlays
+                    const ReaderPopups(),
 
-              // Floating audio player controls — only on narrow screens
-              // (wide screens use the reader sidebar's audio player)
-              if (MediaQuery.sizeOf(context).width < 1000)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: MediaQuery.of(context).padding.top + 44,
-                  child: ReaderAudioControls(settings: settings),
+                    // Floating audio player controls — only on narrow screens
+                    // (wide screens use the reader sidebar's audio player)
+                    if (MediaQuery.sizeOf(context).width < 1000)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        top: MediaQuery.of(context).padding.top + 44,
+                        child: ReaderAudioControls(settings: settings),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         );
@@ -346,7 +379,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Widget _buildLoadingScaffold(ReaderSettings settings) {
     return Scaffold(
       backgroundColor: settings.theme.background,
-      body: const Center(child: CircularProgressIndicator()),
+      body: const Column(
+        children: [
+          TeacherPreviewBanner(),
+          Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      ),
     );
   }
 
@@ -357,24 +395,31 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: settings.theme.text,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              'Something went wrong loading this chapter.',
-              style: TextStyle(color: settings.theme.text),
-              textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          const TeacherPreviewBanner(),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Something went wrong loading this chapter.',
+                    style: TextStyle(color: settings.theme.text),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Go Back'),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Go Back'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -386,7 +431,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
         backgroundColor: Colors.transparent,
         foregroundColor: settings.theme.text,
       ),
-      body: const Center(child: Text('Chapter not found')),
+      body: const Column(
+        children: [
+          TeacherPreviewBanner(),
+          Expanded(child: Center(child: Text('Chapter not found'))),
+        ],
+      ),
     );
   }
 }

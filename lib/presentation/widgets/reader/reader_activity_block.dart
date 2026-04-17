@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/activity.dart';
 import '../../../domain/entities/content/content_block.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../inline_activities/inline_activities.dart';
 
 /// Widget for rendering an activity content block.
@@ -28,9 +29,10 @@ class ReaderActivityBlock extends ConsumerWidget {
       return _buildErrorState('Activity not found');
     }
 
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
     final completedActivities = ref.watch(inlineActivityStateProvider);
-    final isCompleted = completedActivities.containsKey(activity!.id);
-    final wasCorrect = completedActivities[activity!.id];
+    final isCompleted = isPreview || completedActivities.containsKey(activity!.id);
+    final wasCorrect = isPreview ? true : completedActivities[activity!.id];
 
     return Center(
       child: ConstrainedBox(

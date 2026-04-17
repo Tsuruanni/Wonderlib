@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/app_config.dart';
 import '../presentation/screens/auth/login_screen.dart';
+import '../presentation/screens/badges/all_badges_screen.dart';
 import '../presentation/screens/quests/quests_screen.dart';
 import '../presentation/screens/library/library_screen.dart';
 import '../presentation/screens/library/book_detail_screen.dart';
@@ -63,6 +64,7 @@ abstract class AppRoutes {
   static const vocabulary = '/vocabulary';
   static const vocabularyDailyReview = '/vocabulary/daily-review';
 
+  static const allBadges = '/badges';
   static const profile = '/profile';
   static const profileDownloads = '/profile/downloads';
   static const avatarSetup = '/avatar-setup';
@@ -97,6 +99,14 @@ abstract class AppRoutes {
   static const teacherReportAssignments = '/teacher/reports/assignments';
   static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
   static const teacherProfile = '/teacher/profile';
+  static const teacherLibrary = '/teacher/library';
+  static const teacherBookDetail = '/teacher/library/book';
+  static String teacherBookDetailPath(String bookId) => '/teacher/library/book/$bookId';
+  static const teacherReader = '/teacher/reader/:bookId/:chapterId';
+  static String teacherReaderPath(String bookId, String chapterId) =>
+      '/teacher/reader/$bookId/$chapterId';
+  static const teacherBookQuiz = '/teacher/quiz/:bookId';
+  static String teacherBookQuizPath(String bookId) => '/teacher/quiz/$bookId';
 
   // Parameterized route helpers
   static String readerPath(String bookId, String chapterId) =>
@@ -252,6 +262,7 @@ final _teacherDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'teacherDashb
 final _teacherClassesKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses');
 final _teacherAssignmentsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
 final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports');
+final _teacherLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'teacherLibrary');
 
 GoRouter _createRouter() {
   return GoRouter(
@@ -466,6 +477,10 @@ GoRouter _createRouter() {
               GoRoute(
                 path: AppRoutes.wordBank,
                 builder: (context, state) => const VocabularyScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.allBadges,
+                builder: (context, state) => const AllBadgesScreen(),
               ),
             ],
           ),
@@ -779,6 +794,39 @@ GoRouter _createRouter() {
                     builder: (context, state) => const LeaderboardReportScreen(),
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _teacherLibraryKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherLibrary,
+                builder: (context, state) => const LibraryScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'book/:bookId',
+                    builder: (context, state) {
+                      final bookId = state.pathParameters['bookId']!;
+                      return BookDetailScreen(bookId: bookId);
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.teacherReader,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  final chapterId = state.pathParameters['chapterId']!;
+                  return ReaderScreen(bookId: bookId, chapterId: chapterId);
+                },
+              ),
+              GoRoute(
+                path: AppRoutes.teacherBookQuiz,
+                builder: (context, state) {
+                  final bookId = state.pathParameters['bookId']!;
+                  return BookQuizScreen(bookId: bookId);
+                },
               ),
             ],
           ),

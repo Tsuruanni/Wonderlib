@@ -20,6 +20,7 @@ import '../../providers/teacher_provider.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/playful_card.dart';
 
 class StudentDetailScreen extends ConsumerWidget {
@@ -426,14 +427,12 @@ class _LevelXpCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              color: AppColors.wasp,
-              minHeight: 8,
-            ),
+          AppProgressBar(
+            progress: progress,
+            fillColor: AppColors.wasp,
+            fillShadow: AppColors.waspDark,
+            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+            height: 8,
           ),
           const SizedBox(height: 4),
           Text(
@@ -550,14 +549,12 @@ class _HorizontalBookCard extends StatelessWidget {
             ),
             const Spacer(),
             // Progress bar
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress.completionPercentage / 100,
-                backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-                color: ScoreColors.getProgressColor(progress.completionPercentage),
-                minHeight: 6,
-              ),
+            AppProgressBar(
+              progress: progress.completionPercentage / 100,
+              fillColor: ScoreColors.getProgressColor(progress.completionPercentage),
+              fillShadow: ScoreColors.getProgressColor(progress.completionPercentage).withValues(alpha: 0.6),
+              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+              height: 6,
             ),
             const SizedBox(height: 4),
             Row(

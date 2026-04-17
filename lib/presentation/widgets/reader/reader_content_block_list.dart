@@ -8,6 +8,7 @@ import '../../providers/activity_provider.dart';
 import '../../providers/audio_sync_provider.dart';
 import '../../providers/content_block_provider.dart';
 import '../../providers/reader_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import 'reader_activity_block.dart';
 import 'reader_image_block.dart';
 import 'reader_text_block.dart';
@@ -150,8 +151,15 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
           activityMap[activity.id] = activity;
         }
 
-        // Build visible blocks (stop at first uncompleted activity)
-        final visibleBlocks = _getVisibleBlocks(blocks, activityMap, completedActivities);
+        // Build visible blocks (stop at first uncompleted activity — unless
+        // teacher preview, which reveals everything regardless of completion).
+        final isPreview = ref.watch(isTeacherPreviewModeProvider);
+        final visibleBlocks = _getVisibleBlocks(
+          blocks,
+          activityMap,
+          completedActivities,
+          isPreview: isPreview,
+        );
 
         // Store visible blocks for use in listeners
         _currentVisibleBlocks = visibleBlocks;
@@ -230,15 +238,16 @@ class _ReaderContentBlockListState extends ConsumerState<ReaderContentBlockList>
   List<ContentBlock> _getVisibleBlocks(
     List<ContentBlock> blocks,
     Map<String, InlineActivity> activityMap,
-    Map<String, bool> completedActivities,
-  ) {
+    Map<String, bool> completedActivities, {
+    required bool isPreview,
+  }) {
     final visibleBlocks = <ContentBlock>[];
 
     for (final block in blocks) {
       visibleBlocks.add(block);
 
       if (block.isActivityBlock && block.activityId != null) {
-        if (!completedActivities.containsKey(block.activityId)) {
+        if (!isPreview && !completedActivities.containsKey(block.activityId)) {
           break;
         }
       }

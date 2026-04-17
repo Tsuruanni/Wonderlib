@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../domain/entities/book.dart';
 import '../../../domain/entities/chapter.dart';
 import '../../utils/app_icons.dart';
+import '../common/app_progress_bar.dart';
 
 /// Collapsible header for the reader screen
 /// Shows book info in expanded state, chapter card in collapsed state
@@ -322,14 +323,12 @@ class _CollapsedContent extends StatelessWidget {
                   const SizedBox(height: 6),
 
                   // Progress bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: scrollProgress,
-                      minHeight: 3,
-                      backgroundColor: textColor.withValues(alpha: 0.1),
-                      valueColor: const AlwaysStoppedAnimation(Color(0xFF6366F1)),
-                    ),
+                  AppProgressBar(
+                    progress: scrollProgress,
+                    height: 4,
+                    fillColor: const Color(0xFF6366F1),
+                    fillShadow: const Color(0xFF4F46E5),
+                    backgroundColor: textColor.withValues(alpha: 0.15),
                   ),
                 ],
               ),

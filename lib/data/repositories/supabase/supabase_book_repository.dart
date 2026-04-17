@@ -497,7 +497,7 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, bool>> hasReadToday(String userId) async {
     try {
-      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final today = AppClock.istanbulDate();
       final response = await _supabase
           .from(DbTables.dailyChapterReads)
           .select('id')
@@ -536,7 +536,7 @@ class SupabaseBookRepository implements BookRepository {
   @override
   Future<Either<Failure, int>> getWordsReadTodayCount(String userId) async {
     try {
-      final today = DateTime.now().toUtc().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final today = AppClock.istanbulDate();
 
       // Get chapters read today with their word counts via join
       final response = await _supabase
@@ -562,7 +562,7 @@ class SupabaseBookRepository implements BookRepository {
   /// Logs chapter read for daily tracking.
   Future<void> _logDailyChapterRead(String userId, String chapterId) async {
     try {
-      final today = AppClock.now().toUtc().toIso8601String().substring(0, 10);
+      final today = AppClock.istanbulDate();
       debugPrint('📖 _logDailyChapterRead: userId=$userId, chapterId=$chapterId, date=$today');
       await _supabase.from(DbTables.dailyChapterReads).upsert(
         {

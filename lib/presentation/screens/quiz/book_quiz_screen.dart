@@ -9,6 +9,7 @@ import '../../../domain/entities/book_quiz.dart';
 import '../../../domain/usecases/book_quiz/grade_book_quiz_usecase.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../providers/usecase_providers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/theme.dart';
@@ -38,6 +39,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   int _currentPage = 0;
   bool _isSubmitting = false;
   bool _showResults = false;
+  bool _prefilledForPreview = false;
 
   /// Stores user answers keyed by question ID.
   /// Value type varies by question type (`String`, `List<int>`, `Map<int,int>`).
@@ -59,6 +61,28 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
 
   void _setQuizActive(bool active) {
     ref.read(quizActiveProvider.notifier).state = active;
+  }
+
+  bool _isTeacherPreview(WidgetRef ref) =>
+      ref.watch(isTeacherPreviewModeProvider);
+
+  /// Fills [_answers] with correct answers so the teacher sees every question
+  /// with the right option(s) already selected.
+  void _prefillAnswersFromQuiz(BookQuiz quiz) {
+    for (final question in quiz.questions) {
+      final content = question.content;
+      if (content is MultipleChoiceContent) {
+        _answers[question.id] = content.correctAnswer;
+      } else if (content is FillBlankContent) {
+        _answers[question.id] = content.correctAnswer;
+      } else if (content is EventSequencingContent) {
+        _answers[question.id] = List<int>.from(content.correctOrder);
+      } else if (content is QuizMatchingContent) {
+        _answers[question.id] = Map<int, int>.from(content.correctPairs);
+      } else if (content is WhoSaysWhatContent) {
+        _answers[question.id] = Map<int, int>.from(content.correctPairs);
+      }
+    }
   }
 
   @override
@@ -83,8 +107,10 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error loading progress: $e')),
             data: (progress) {
-              // Guard: all chapters must be read
-              if (progress == null || progress.completionPercentage < 100) {
+              final isPreview = ref.watch(isTeacherPreviewModeProvider);
+              // Guard: all chapters must be read (bypass for teachers in preview)
+              if (!isPreview &&
+                  (progress == null || progress.completionPercentage < 100)) {
                 return _buildGuardScreen(context);
               }
               // Load quiz
@@ -148,7 +174,11 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                   onPressed: () {
                     _setQuizActive(false);
                     Navigator.of(ctx).pop();
-                    context.go(AppRoutes.library);
+                    final isPreview =
+                        ref.read(isTeacherPreviewModeProvider);
+                    context.go(isPreview
+                        ? AppRoutes.teacherLibrary
+                        : AppRoutes.library);
                   },
                   variant: GameButtonVariant.danger,
                   fullWidth: true,
@@ -208,6 +238,15 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
       data: (quiz) {
         if (quiz == null || quiz.questions.isEmpty) {
           return _buildNoQuizScreen(context);
+        }
+        if (ref.watch(isTeacherPreviewModeProvider) && !_prefilledForPreview) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              _prefillAnswersFromQuiz(quiz);
+              _prefilledForPreview = true;
+            });
+          });
         }
         return _buildQuizScaffold(context, quiz);
       },
@@ -374,26 +413,37 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                 Expanded(
                   flex: 2,
                   child: isLastPage
-                      ? AnimatedGameButton(
-                          onPressed: allAnswered && !_isSubmitting
-                              ? () => _submitQuiz(quiz)
-                              : null,
-                          icon: _isSubmitting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.check_circle_rounded),
-                          label:
-                              _isSubmitting ? 'Submitting...' : 'Submit Quiz',
-                          variant: allAnswered
-                              ? GameButtonVariant.success
-                              : GameButtonVariant.neutral,
-                        )
+                      ? _isTeacherPreview(ref)
+                          ? AnimatedGameButton(
+                              onPressed: () {
+                                _setQuizActive(false);
+                                context.go(AppRoutes.teacherLibrary);
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                              label: 'Exit Preview',
+                              variant: GameButtonVariant.secondary,
+                            )
+                          : AnimatedGameButton(
+                              onPressed: allAnswered && !_isSubmitting
+                                  ? () => _submitQuiz(quiz)
+                                  : null,
+                              icon: _isSubmitting
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.check_circle_rounded),
+                              label: _isSubmitting
+                                  ? 'Submitting...'
+                                  : 'Submit Quiz',
+                              variant: allAnswered
+                                  ? GameButtonVariant.success
+                                  : GameButtonVariant.neutral,
+                            )
                       : AnimatedGameButton(
                           onPressed: _goToNextPage,
                           icon: const Icon(Icons.arrow_forward_rounded),
@@ -521,10 +571,21 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   }
 
   void _finishQuiz(BuildContext context) {
-    context.go(AppRoutes.library);
+    final isPreview = ref.read(isTeacherPreviewModeProvider);
+    context.go(isPreview ? AppRoutes.teacherLibrary : AppRoutes.library);
   }
 
   void _handleClose(BuildContext context) {
+    final isPreview = ref.read(isTeacherPreviewModeProvider);
+
+    // Teachers: skip the "progress will be lost" dialog (misleading in preview)
+    // and exit straight back to the teacher library.
+    if (isPreview) {
+      _setQuizActive(false);
+      context.go(AppRoutes.teacherLibrary);
+      return;
+    }
+
     if (_answers.isEmpty) {
       _setQuizActive(false);
       context.go(AppRoutes.library);

@@ -8,6 +8,7 @@ import '../../../app/theme.dart';
 import '../../../domain/entities/learning_path.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../utils/app_icons.dart';
+import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 import 'unit_map_screen.dart';
 
@@ -168,14 +169,9 @@ class _PathCard extends StatelessWidget {
                   ),
                   if (totalUnits > 0) ...[
                     const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: completedUnits / totalUnits,
-                        backgroundColor: AppColors.neutral,
-                        color: AppColors.primary,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: completedUnits / totalUnits,
+                      height: 6,
                     ),
                   ],
                 ],

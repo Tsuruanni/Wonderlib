@@ -12,7 +12,9 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/content_block_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../utils/app_icons.dart';
+import '../common/app_progress_bar.dart';
 import '../common/game_button.dart';
 
 /// Reader sidebar shown on wide screens (≥1000px) during reader routes.
@@ -22,7 +24,12 @@ class ReaderSidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final location = GoRouterState.of(context).uri.path;
+    var location = GoRouterState.of(context).uri.path;
+    // Strip /teacher prefix so teacher paths parse identically to student paths
+    // (/teacher/reader/bookId/chapterId → /reader/bookId/chapterId).
+    if (location.startsWith('/teacher/')) {
+      location = location.substring('/teacher'.length);
+    }
     final segments = location.split('/');
     final bookId = segments.length > 2 ? segments[2] : '';
     final currentChapterId = segments.length > 3 ? segments[3] : '';
@@ -99,6 +106,7 @@ class _ChaptersList extends ConsumerWidget {
                 final currentIdx =
                     chapters.indexWhere((c) => c.id == currentChapterId);
                 final isQuizActive = ref.watch(quizActiveProvider);
+                final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
                 return Column(
                   children: [
@@ -109,11 +117,14 @@ class _ChaptersList extends ConsumerWidget {
                         index: i,
                         isCurrent: chapters[i].id == currentChapterId,
                         isCompleted: completedIds.contains(chapters[i].id),
-                        isLocked: isQuizActive ||
-                            (!completedIds.contains(chapters[i].id) &&
-                                i > currentIdx),
+                        isLocked: !isPreview &&
+                            (isQuizActive ||
+                                (!completedIds.contains(chapters[i].id) &&
+                                    i > currentIdx)),
                         onTap: () => context.go(
-                          AppRoutes.readerPath(bookId, chapters[i].id),
+                          isPreview
+                              ? AppRoutes.teacherReaderPath(bookId, chapters[i].id)
+                              : AppRoutes.readerPath(bookId, chapters[i].id),
                         ),
                       ),
                     ],
@@ -130,9 +141,46 @@ class _ChaptersList extends ConsumerWidget {
             // Audio player below chapters
             const SizedBox(height: 16),
             _SidebarAudioPlayer(currentChapterId: currentChapterId),
+            // Teacher-only "Assign this Book" shortcut under the audio player
+            if (ref.watch(isTeacherPreviewModeProvider)) ...[
+              const SizedBox(height: 8),
+              _AssignBookSidebarButton(bookId: bookId),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Teacher-only shortcut in the reader sidebar: routes to the existing
+/// Create Assignment flow with this book pre-selected.
+class _AssignBookSidebarButton extends ConsumerWidget {
+  const _AssignBookSidebarButton({required this.bookId});
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookAsync = ref.watch(bookByIdProvider(bookId));
+    final book = bookAsync.valueOrNull;
+    if (book == null) return const SizedBox.shrink();
+
+    return GameButton(
+      label: 'Assign this Book',
+      icon: const Icon(Icons.assignment_add),
+      variant: GameButtonVariant.secondary,
+      fullWidth: true,
+      onPressed: () {
+        context.push(
+          AppRoutes.teacherCreateAssignment,
+          extra: {
+            'bookId': bookId,
+            'bookTitle': book.title,
+            'chapterCount': book.chapterCount,
+          },
+        );
+      },
     );
   }
 }
@@ -307,14 +355,11 @@ class _SidebarAudioPlayer extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: AppColors.neutral,
-                        color: AppColors.secondary,
-                        minHeight: 6,
-                      ),
+                    AppProgressBar(
+                      progress: progress,
+                      height: 6,
+                      fillColor: AppColors.secondary,
+                      fillShadow: AppColors.secondaryDark,
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -400,18 +445,24 @@ class _BookQuizTile extends ConsumerWidget {
     final hasQuiz = ref.watch(bookHasQuizProvider(bookId)).valueOrNull ?? false;
     if (!hasQuiz) return const SizedBox.shrink();
 
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final allChaptersRead =
         progressAsync.valueOrNull?.completionPercentage == 100;
     final bestResult = ref.watch(bestQuizResultProvider(bookId)).valueOrNull;
     final isPassed = bestResult?.isPassing ?? false;
     final location = GoRouterState.of(context).uri.path;
-    final isCurrent = location.startsWith('/quiz');
-    final isLocked = !allChaptersRead;
+    final isCurrent =
+        location.startsWith('/quiz') || location.startsWith('/teacher/quiz');
+    final isLocked = !isPreview && !allChaptersRead;
 
     // Same style as _ChapterTile
     return GestureDetector(
-      onTap: isLocked ? null : () => context.go(AppRoutes.bookQuizPath(bookId)),
+      onTap: isLocked
+          ? null
+          : () => context.go(isPreview
+              ? AppRoutes.teacherBookQuizPath(bookId)
+              : AppRoutes.bookQuizPath(bookId)),
       child: Opacity(
         opacity: isLocked ? 0.4 : 1.0,
         child: Container(
