@@ -99,6 +99,7 @@ abstract class AppRoutes {
   static const teacherReportAssignments = '/teacher/reports/assignments';
   static const teacherReportLeaderboard = '/teacher/reports/leaderboard';
   static const teacherProfile = '/teacher/profile';
+  static const teacherLibrary = '/teacher/library';
 
   // Parameterized route helpers
   static String readerPath(String bookId, String chapterId) =>
@@ -254,6 +255,7 @@ final _teacherDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'teacherDashb
 final _teacherClassesKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses');
 final _teacherAssignmentsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
 final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports');
+final _teacherLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'teacherLibrary');
 
 GoRouter _createRouter() {
   return GoRouter(
@@ -785,6 +787,15 @@ GoRouter _createRouter() {
                     builder: (context, state) => const LeaderboardReportScreen(),
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            navigatorKey: _teacherLibraryKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherLibrary,
+                builder: (context, state) => const LibraryScreen(),
               ),
             ],
           ),
