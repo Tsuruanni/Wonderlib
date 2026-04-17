@@ -23,6 +23,7 @@ import '../../domain/usecases/student_assignment/complete_assignment_usecase.dar
 import '../../domain/usecases/student_assignment/calculate_unit_progress_usecase.dart';
 import '../../domain/entities/system_settings.dart';
 import 'system_settings_provider.dart';
+import 'teacher_preview_provider.dart';
 import 'auth_provider.dart';
 import 'student_assignment_provider.dart';
 import 'usecase_providers.dart';
@@ -44,10 +45,12 @@ final chaptersWithLockStatusProvider =
   final chapters = ref.watch(chaptersProvider(bookId)).valueOrNull ?? [];
   final progress = ref.watch(readingProgressProvider(bookId)).valueOrNull;
   final completedIds = progress?.completedChapterIds ?? [];
+  final isPreview = ref.watch(isTeacherPreviewModeProvider);
 
   return chapters.indexed.map((e) {
     final (index, chapter) = e;
-    final isLocked = index > 0 &&
+    final isLocked = !isPreview &&
+        index > 0 &&
         chapters.take(index).any((c) => !completedIds.contains(c.id));
     return ChapterWithLockStatus(
       chapter: chapter,
