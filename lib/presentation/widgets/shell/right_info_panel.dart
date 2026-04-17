@@ -631,6 +631,9 @@ class _DailyQuestsCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final questsAsync = ref.watch(dailyQuestProgressProvider);
+    final now = AppClock.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    final hoursLeft = midnight.difference(now).inHours;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -642,13 +645,28 @@ class _DailyQuestsCard extends ConsumerWidget {
       child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Daily Quests',
-          style: GoogleFonts.nunito(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+        Row(
+          children: [
+            Text(
+              'Daily Quests',
+              style: GoogleFonts.nunito(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+              ),
+            ),
+            const Spacer(),
+            AppIcons.schedule(size: 16),
+            const SizedBox(width: 4),
+            Text(
+              '$hoursLeft HOURS',
+              style: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primary,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         questsAsync.when(
@@ -794,8 +812,8 @@ class _SidebarQuestRow extends StatelessWidget {
               child: Text(
                 quest.title,
                 style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
                   color: isCompleted ? AppColors.neutralText : AppColors.black,
                 ),
                 maxLines: 2,

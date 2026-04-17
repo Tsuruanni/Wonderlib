@@ -169,8 +169,8 @@ class _QuestRow extends StatelessWidget {
                 child: Text(
                   quest.title,
                   style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color:
                         isCompleted ? AppColors.neutralText : AppColors.black,
                   ),
