@@ -363,33 +363,11 @@ class _BookDetailFAB extends ConsumerWidget {
     final isTeacher = ref.watch(isTeacherProvider);
 
     if (isTeacher) {
-      // Teacher sees "Assign Book" button
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 20, top: 8),
-          child: Center(
-            heightFactor: 1.0,
-            child: SizedBox(
-              width: 280,
-              height: 54,
-              child: GameButton(
-                label: 'Assign Book',
-                icon: const Icon(Icons.assignment_add),
-                variant: GameButtonVariant.secondary,
-                onPressed: () {
-                  context.push(
-                    AppRoutes.teacherCreateAssignment,
-                    extra: {
-                      'bookId': bookId,
-                      'bookTitle': bookTitle,
-                      'chapterCount': chapterCount,
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+      return _TeacherBookDetailActions(
+        bookId: bookId,
+        bookTitle: bookTitle,
+        chapterCount: chapterCount,
+        chaptersAsync: chaptersAsync,
       );
     }
 
@@ -464,6 +442,69 @@ class _BookDetailFAB extends ConsumerWidget {
               },
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TeacherBookDetailActions extends ConsumerWidget {
+  const _TeacherBookDetailActions({
+    required this.bookId,
+    required this.bookTitle,
+    required this.chapterCount,
+    required this.chaptersAsync,
+  });
+
+  final String bookId;
+  final String bookTitle;
+  final int chapterCount;
+  final AsyncValue<List<Chapter>> chaptersAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20, top: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 280,
+              height: 54,
+              child: GameButton(
+                label: 'Start Reading',
+                icon: const Icon(Icons.book_rounded),
+                variant: GameButtonVariant.primary,
+                onPressed: () {
+                  chaptersAsync.whenData((chapters) {
+                    if (chapters.isEmpty) return;
+                    context.go(AppRoutes.readerPath(bookId, chapters.first.id));
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: 280,
+              height: 54,
+              child: GameButton(
+                label: 'Assign Book',
+                icon: const Icon(Icons.assignment_add),
+                variant: GameButtonVariant.secondary,
+                onPressed: () {
+                  context.push(
+                    AppRoutes.teacherCreateAssignment,
+                    extra: {
+                      'bookId': bookId,
+                      'bookTitle': bookTitle,
+                      'chapterCount': chapterCount,
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
