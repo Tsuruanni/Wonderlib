@@ -364,20 +364,23 @@ class _EnrichedClassCard extends StatelessWidget {
     );
     if (podiumColor == null) return card;
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         card,
         Positioned(
-          top: 14,
-          right: 14,
+          top: -6,
+          left: -6,
           child: Container(
-            width: 28,
-            height: 28,
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: podiumColor,
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: Colors.black.withValues(alpha: 0.2),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
