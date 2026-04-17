@@ -11,6 +11,7 @@ import '../../providers/profile_context_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../providers/usecase_providers.dart';
 import '../../utils/login_cards_pdf.dart';
+import '../../utils/student_ranking_metric.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/animated_game_button.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -38,6 +39,7 @@ class ClassDetailScreen extends ConsumerStatefulWidget {
 class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
   bool _isSelectMode = false;
   final Set<String> _selectedStudentIds = {};
+  StudentRankingMetric _rankBy = StudentRankingMetric.xp;
 
   void _toggleSelectMode() {
     setState(() {
@@ -85,16 +87,11 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
               );
             }
 
-            // Report mode: rank by XP desc. Management mode: alphabetical.
+            // Management mode: alphabetical. Report mode: teacher-selected metric.
             final sortedStudents = [...students]
-              ..sort((a, b) {
-                if (!isManagement) {
-                  final xpCmp = b.xp.compareTo(a.xp);
-                  if (xpCmp != 0) return xpCmp;
-                }
-                final firstCmp = a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
-                return firstCmp != 0 ? firstCmp : a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
-              });
+              ..sort(isManagement
+                  ? StudentRankingMetric.name.comparator
+                  : _rankBy.comparator);
 
             return Stack(
               children: [
@@ -103,12 +100,36 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                     // Stats bar only in report mode
                     if (!isManagement) _ClassStatsBar(students: students),
 
+                    // Sort dropdown — report mode only
+                    if (!isManagement)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            DropdownButton<StudentRankingMetric>(
+                              value: _rankBy,
+                              underline: const SizedBox.shrink(),
+                              items: StudentRankingMetric.values.map((m) {
+                                return DropdownMenuItem(
+                                  value: m,
+                                  child: Text('Sort: ${m.label}'),
+                                );
+                              }).toList(),
+                              onChanged: (m) {
+                                if (m != null) setState(() => _rankBy = m);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+
                     // Student list
                     Expanded(
                       child: SingleChildScrollView(
                         padding: EdgeInsets.fromLTRB(
                           16,
-                          16,
+                          8,
                           16,
                           isManagement ? (_isSelectMode ? 80 : 140) : 16,
                         ),
