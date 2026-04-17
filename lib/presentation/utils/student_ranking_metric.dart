@@ -2,33 +2,33 @@ import '../../domain/entities/teacher.dart';
 
 /// Metrics a teacher can sort students by in the Class Students (report) screen.
 enum StudentRankingMetric {
-  xp,
+  name,
+  level,
   booksRead,
   wordbankSize,
   lastActivity,
-  name,
 }
 
 extension StudentRankingMetricX on StudentRankingMetric {
   String get label {
     switch (this) {
-      case StudentRankingMetric.xp:
-        return 'XP';
+      case StudentRankingMetric.name:
+        return 'Name';
+      case StudentRankingMetric.level:
+        return 'Level';
       case StudentRankingMetric.booksRead:
         return 'Books Read';
       case StudentRankingMetric.wordbankSize:
         return 'Wordbank Size';
       case StudentRankingMetric.lastActivity:
         return 'Last Activity';
-      case StudentRankingMetric.name:
-        return 'Name';
     }
   }
 
   /// Comparator — best/first students come first.
   int Function(StudentSummary, StudentSummary) get comparator {
     switch (this) {
-      case StudentRankingMetric.xp:
+      case StudentRankingMetric.level:
         return (a, b) => b.xp.compareTo(a.xp);
       case StudentRankingMetric.booksRead:
         return (a, b) => b.booksRead.compareTo(a.booksRead);

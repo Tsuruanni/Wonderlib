@@ -39,7 +39,7 @@ class ClassDetailScreen extends ConsumerStatefulWidget {
 class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
   bool _isSelectMode = false;
   final Set<String> _selectedStudentIds = {};
-  StudentRankingMetric _rankBy = StudentRankingMetric.xp;
+  StudentRankingMetric _rankBy = StudentRankingMetric.name;
 
   void _toggleSelectMode() {
     setState(() {
@@ -103,22 +103,12 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                     // Sort dropdown — report mode only
                     if (!isManagement)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            DropdownButton<StudentRankingMetric>(
+                            _SortDropdown(
                               value: _rankBy,
-                              underline: const SizedBox.shrink(),
-                              items: StudentRankingMetric.values.map((m) {
-                                return DropdownMenuItem(
-                                  value: m,
-                                  child: Text('Sort: ${m.label}'),
-                                );
-                              }).toList(),
-                              onChanged: (m) {
-                                if (m != null) setState(() => _rankBy = m);
-                              },
+                              onChanged: (m) => setState(() => _rankBy = m),
                             ),
                           ],
                         ),
@@ -815,16 +805,14 @@ class _ClassStatsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avgXp = students.isEmpty
-        ? 0.0
-        : students.fold<int>(0, (sum, s) => sum + s.xp) / students.length;
-    final avgProgress = students.isEmpty
-        ? 0.0
-        : students.fold<double>(0, (sum, s) => sum + s.avgProgress) / students.length;
-    final avgStreak = students.isEmpty
-        ? 0.0
-        : students.fold<int>(0, (sum, s) => sum + s.currentStreak) / students.length;
+    final total = students.length;
+    final activeLast30d = students.where((s) {
+      final d = s.daysSinceActive;
+      return d != null && d < 30;
+    }).length;
     final totalBooks = students.fold<int>(0, (sum, s) => sum + s.booksRead);
+    final totalWordbank =
+        students.fold<int>(0, (sum, s) => sum + s.wordbankSize);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -834,35 +822,71 @@ class _ClassStatsBar extends StatelessWidget {
           children: [
             _StatItem(
               icon: Icons.people,
-              value: '${students.length}',
+              value: '$total',
               label: 'Students',
               color: Colors.blue,
             ),
             _StatItem(
-              icon: Icons.star,
-              value: '${avgXp.toStringAsFixed(0)}',
-              label: 'Avg XP',
-              color: Colors.amber,
-            ),
-            _StatItem(
-              icon: Icons.local_fire_department,
-              value: '${avgStreak.toStringAsFixed(1)}',
-              label: 'Avg Streak',
-              color: Colors.orange,
-            ),
-            _StatItem(
-              icon: Icons.trending_up,
-              value: '${avgProgress.toStringAsFixed(0)}%',
-              label: 'Progress',
+              icon: Icons.check_circle_outline,
+              value: '$activeLast30d/$total',
+              label: 'Active (30d)',
               color: Colors.green,
             ),
             _StatItem(
               icon: Icons.menu_book,
               value: '$totalBooks',
-              label: 'Books',
+              label: 'Books Read',
               color: Colors.purple,
             ),
+            _StatItem(
+              icon: Icons.abc,
+              value: '$totalWordbank',
+              label: 'Words Practiced',
+              color: Colors.teal,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SortDropdown extends StatelessWidget {
+  const _SortDropdown({required this.value, required this.onChanged});
+
+  final StudentRankingMetric value;
+  final ValueChanged<StudentRankingMetric> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.neutral, width: 2),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<StudentRankingMetric>(
+          value: value,
+          isDense: true,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: AppColors.neutralText),
+          items: StudentRankingMetric.values.map((m) {
+            return DropdownMenuItem(
+              value: m,
+              child: Text(
+                'Sort by ${m.label}',
+                style: context.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (m) {
+            if (m != null) onChanged(m);
+          },
         ),
       ),
     );
