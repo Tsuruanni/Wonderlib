@@ -636,16 +636,21 @@ class _ReportStudentCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                child: Text(
-                  student.firstName.isNotEmpty
-                      ? student.firstName[0].toUpperCase()
-                      : '?',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
+                backgroundImage: student.avatarUrl != null
+                    ? NetworkImage(student.avatarUrl!)
+                    : null,
+                child: student.avatarUrl == null
+                    ? Text(
+                        student.firstName.isNotEmpty
+                            ? student.firstName[0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -687,7 +692,29 @@ class _ReportStudentCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          // Progress bar
+          // Reading progress label + bar
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Reading progress',
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: AppColors.neutralText,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                '${student.avgProgress.toStringAsFixed(0)}%',
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: ScoreColors.getProgressColor(student.avgProgress),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           AppProgressBar(
             progress: student.avgProgress / 100,
             fillColor: ScoreColors.getProgressColor(student.avgProgress),
@@ -707,19 +734,9 @@ class _ReportStudentCard extends StatelessWidget {
                 color: Colors.amber,
               ),
               _MiniChip(
-                icon: Icons.local_fire_department,
-                value: '${student.currentStreak} streak',
-                color: Colors.orange,
-              ),
-              _MiniChip(
                 icon: Icons.menu_book,
                 value: '${student.booksRead} books',
                 color: Colors.blue,
-              ),
-              _MiniChip(
-                icon: Icons.trending_up,
-                value: '${student.avgProgress.toStringAsFixed(0)}%',
-                color: ScoreColors.getProgressColor(student.avgProgress),
               ),
             ],
           ),
