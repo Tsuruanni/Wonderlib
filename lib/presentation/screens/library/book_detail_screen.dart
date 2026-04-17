@@ -10,6 +10,7 @@ import '../../providers/book_access_provider.dart';
 import '../../providers/book_download_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../widgets/book/level_badge.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -360,7 +361,7 @@ class _BookDetailFAB extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isTeacher = ref.watch(isTeacherProvider);
+    final isTeacher = ref.watch(isTeacherPreviewModeProvider);
 
     if (isTeacher) {
       return _TeacherBookDetailActions(
