@@ -803,9 +803,6 @@ class _SidebarQuestRow extends StatelessWidget {
         ? (progress.currentValue / quest.goalValue).clamp(0.0, 1.0)
         : 0.0;
     final barColors = isCompleted
-        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
-        : _rewardColors(quest.rewardType);
-    final rewardColors = isCompleted
         ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
 

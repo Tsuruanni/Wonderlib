@@ -156,9 +156,6 @@ class _QuestRow extends StatelessWidget {
     final ratio = goalValue > 0 ? (currentValue / goalValue).clamp(0.0, 1.0) : 0.0;
     final route = _questRoute(quest.questType);
     final barColors = isCompleted
-        ? (base: AppColors.wasp, shadow: AppColors.waspDark)
-        : _rewardColors(quest.rewardType);
-    final rewardColors = isCompleted
         ? (base: AppColors.primary, shadow: AppColors.primaryDark)
         : _rewardColors(quest.rewardType);
 
