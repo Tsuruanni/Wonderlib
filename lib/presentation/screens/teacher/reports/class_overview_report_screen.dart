@@ -67,29 +67,45 @@ class ClassOverviewReportScreen extends ConsumerWidget {
               (maxLv, c) => c.maxLevel > maxLv ? c.maxLevel : maxLv,
             );
 
+            final statItems = <_SummaryStat>[
+              if (totalStudents > 0)
+                _SummaryStat(value: '$totalActive/$totalStudents', label: 'Active (30d)', icon: Icons.people),
+              if (topLevel > 0)
+                _SummaryStat(value: 'Lv $topLevel', label: 'Top Level', icon: Icons.emoji_events_rounded),
+              if (totalBooks > 0)
+                _SummaryStat(value: '$totalBooks', label: 'Books Read', icon: Icons.menu_book),
+              if (totalReadingTime > 0)
+                _SummaryStat(value: TimeFormatter.formatReadingTime(totalReadingTime), label: 'Reading Time', icon: Icons.access_time),
+            ];
+
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Summary stats — full-width hero banner, visually separated
-                // from the Class Performance section by a tinted background.
+                // Summary stats — green hero banner with white dividers.
                 PlayfulCard(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 22),
                   margin: EdgeInsets.zero,
-                  color: const Color(0xFFEEF5FC),
-                  borderColor: AppColors.secondary.withValues(alpha: 0.3),
-                  shadowColor: AppColors.secondary.withValues(alpha: 0.25),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      if (totalStudents > 0)
-                        _SummaryStat(value: '$totalActive/$totalStudents', label: 'Active (30d)', icon: Icons.people, color: Colors.green),
-                      if (topLevel > 0)
-                        _SummaryStat(value: 'Lv $topLevel', label: 'Top Level', icon: Icons.emoji_events_rounded, color: Colors.amber),
-                      if (totalBooks > 0)
-                        _SummaryStat(value: '$totalBooks', label: 'Books Read', icon: Icons.menu_book, color: Colors.purple),
-                      if (totalReadingTime > 0)
-                        _SummaryStat(value: TimeFormatter.formatReadingTime(totalReadingTime), label: 'Reading Time', icon: Icons.access_time, color: Colors.blue),
-                    ],
+                  color: AppColors.primaryBackground,
+                  borderColor: AppColors.primary.withValues(alpha: 0.35),
+                  shadowColor: AppColors.primary.withValues(alpha: 0.25),
+                  child: IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (var i = 0; i < statItems.length; i++) ...[
+                          Expanded(child: statItems[i]),
+                          if (i < statItems.length - 1)
+                            Container(
+                              width: 2,
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
 
@@ -134,27 +150,27 @@ class _SummaryStat extends StatelessWidget {
     required this.value,
     required this.label,
     required this.icon,
-    required this.color,
   });
 
   final String value;
   final String label;
   final IconData icon;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
+          width: 44,
+          height: 44,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: color, size: 22),
+          child: Icon(icon, color: AppColors.primaryDark, size: 22),
         ),
         const SizedBox(height: 8),
         Text(
@@ -162,7 +178,7 @@ class _SummaryStat extends StatelessWidget {
           style: GoogleFonts.nunito(
             fontSize: 20,
             fontWeight: FontWeight.w800,
-            color: AppColors.black,
+            color: AppColors.primaryDark,
           ),
         ),
         Text(
@@ -170,7 +186,7 @@ class _SummaryStat extends StatelessWidget {
           style: GoogleFonts.nunito(
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            color: AppColors.neutralText,
+            color: AppColors.primaryDark.withValues(alpha: 0.75),
           ),
         ),
       ],
