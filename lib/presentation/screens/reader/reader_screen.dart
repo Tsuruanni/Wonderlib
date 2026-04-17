@@ -21,6 +21,7 @@ import '../../providers/word_definition_provider.dart';
 import '../../widgets/reader/reader_audio_controls.dart';
 import '../../widgets/reader/reader_body.dart';
 import '../../widgets/reader/reader_popups.dart';
+import '../../widgets/reader/teacher_preview_banner.dart';
 
 class ReaderScreen extends ConsumerStatefulWidget {
   const ReaderScreen({
@@ -308,34 +309,41 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
         return Scaffold(
           backgroundColor: settings.theme.background,
-          body: Stack(
+          body: Column(
             children: [
-              // Main scrollable content
-              _ReaderBodyWithQuiz(
-                book: book,
-                chapter: chapter,
-                chapters: chapters,
-                settings: settings,
-                onVocabularyTap: _onVocabularyTap,
-                onWordTap: _onWordTap,
-                onClose: _handleClose,
-                onNextChapter: _handleNextChapter,
-                onBackToBook: _handleBackToBook,
-                onTakeQuiz: _handleTakeQuiz,
-              ),
+              const TeacherPreviewBanner(),
+              Expanded(
+                child: Stack(
+                  children: [
+                    // Main scrollable content
+                    _ReaderBodyWithQuiz(
+                      book: book,
+                      chapter: chapter,
+                      chapters: chapters,
+                      settings: settings,
+                      onVocabularyTap: _onVocabularyTap,
+                      onWordTap: _onWordTap,
+                      onClose: _handleClose,
+                      onNextChapter: _handleNextChapter,
+                      onBackToBook: _handleBackToBook,
+                      onTakeQuiz: _handleTakeQuiz,
+                    ),
 
-              // Popup overlays
-              const ReaderPopups(),
+                    // Popup overlays
+                    const ReaderPopups(),
 
-              // Floating audio player controls — only on narrow screens
-              // (wide screens use the reader sidebar's audio player)
-              if (MediaQuery.sizeOf(context).width < 1000)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: MediaQuery.of(context).padding.top + 44,
-                  child: ReaderAudioControls(settings: settings),
+                    // Floating audio player controls — only on narrow screens
+                    // (wide screens use the reader sidebar's audio player)
+                    if (MediaQuery.sizeOf(context).width < 1000)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        top: MediaQuery.of(context).padding.top + 44,
+                        child: ReaderAudioControls(settings: settings),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         );
