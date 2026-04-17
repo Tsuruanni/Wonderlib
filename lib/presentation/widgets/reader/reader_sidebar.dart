@@ -12,6 +12,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/reader_provider.dart';
 import '../../providers/content_block_provider.dart';
+import '../../providers/teacher_preview_provider.dart';
 import '../../utils/app_icons.dart';
 import '../common/app_progress_bar.dart';
 import '../common/game_button.dart';
@@ -398,6 +399,7 @@ class _BookQuizTile extends ConsumerWidget {
     final hasQuiz = ref.watch(bookHasQuizProvider(bookId)).valueOrNull ?? false;
     if (!hasQuiz) return const SizedBox.shrink();
 
+    final isPreview = ref.watch(isTeacherPreviewModeProvider);
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final allChaptersRead =
         progressAsync.valueOrNull?.completionPercentage == 100;
@@ -405,7 +407,7 @@ class _BookQuizTile extends ConsumerWidget {
     final isPassed = bestResult?.isPassing ?? false;
     final location = GoRouterState.of(context).uri.path;
     final isCurrent = location.startsWith('/quiz');
-    final isLocked = !allChaptersRead;
+    final isLocked = !isPreview && !allChaptersRead;
 
     // Same style as _ChapterTile
     return GestureDetector(
