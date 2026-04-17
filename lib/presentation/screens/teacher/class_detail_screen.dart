@@ -690,17 +690,11 @@ class _ReportStudentCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          // Stat chips (0 values hidden)
+          // Stat chips (0 values hidden; XP omitted because level encodes it)
           Wrap(
             spacing: 6,
             runSpacing: 4,
             children: [
-              if (student.xp > 0)
-                _MiniChip(
-                  icon: Icons.star,
-                  value: '${student.xp} XP',
-                  color: Colors.amber,
-                ),
               if (student.booksRead > 0)
                 _MiniChip(
                   icon: Icons.menu_book,
