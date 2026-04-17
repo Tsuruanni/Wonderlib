@@ -141,9 +141,46 @@ class _ChaptersList extends ConsumerWidget {
             // Audio player below chapters
             const SizedBox(height: 16),
             _SidebarAudioPlayer(currentChapterId: currentChapterId),
+            // Teacher-only "Assign this Book" shortcut under the audio player
+            if (ref.watch(isTeacherPreviewModeProvider)) ...[
+              const SizedBox(height: 8),
+              _AssignBookSidebarButton(bookId: bookId),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Teacher-only shortcut in the reader sidebar: routes to the existing
+/// Create Assignment flow with this book pre-selected.
+class _AssignBookSidebarButton extends ConsumerWidget {
+  const _AssignBookSidebarButton({required this.bookId});
+
+  final String bookId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookAsync = ref.watch(bookByIdProvider(bookId));
+    final book = bookAsync.valueOrNull;
+    if (book == null) return const SizedBox.shrink();
+
+    return GameButton(
+      label: 'Assign this Book',
+      icon: const Icon(Icons.assignment_add),
+      variant: GameButtonVariant.secondary,
+      fullWidth: true,
+      onPressed: () {
+        context.push(
+          AppRoutes.teacherCreateAssignment,
+          extra: {
+            'bookId': bookId,
+            'bookTitle': book.title,
+            'chapterCount': book.chapterCount,
+          },
+        );
+      },
     );
   }
 }

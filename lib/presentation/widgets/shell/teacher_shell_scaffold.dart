@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/theme.dart';
+import '../reader/grammar_profile_widget.dart';
 import '../reader/reader_sidebar.dart';
 
 /// Teacher shell scaffold that provides persistent navigation.
@@ -56,6 +57,7 @@ class TeacherShellScaffold extends StatelessWidget {
     final isReaderRoute = location.startsWith('/teacher/reader') ||
         location.startsWith('/teacher/quiz');
     final showReaderSidebar = isReaderRoute && screenWidth >= 1000;
+    final showGrammarProfile = isReaderRoute && screenWidth >= 1400;
 
     if (isWide) {
       return Scaffold(
@@ -144,6 +146,7 @@ class TeacherShellScaffold extends StatelessWidget {
                 ),
               ),
             ),
+            if (showGrammarProfile) const GrammarProfileWidget(),
           ],
         ),
       );
