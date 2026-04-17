@@ -39,6 +39,12 @@ class TeacherShellScaffold extends StatelessWidget {
       label: 'Reports',
       color: Color(0xFF9B59B6),
     ),
+    _NavItem(
+      icon: Icons.menu_book_outlined,
+      selectedIcon: Icons.menu_book,
+      label: 'Library',
+      color: AppColors.primaryDark,
+    ),
   ];
 
   @override
