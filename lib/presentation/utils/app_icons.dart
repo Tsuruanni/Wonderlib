@@ -40,6 +40,8 @@ class AppIcons {
 
   // ── Status ──
   static Widget check({double size = 24}) => _img('check_mark_256.png', size);
+  static Widget checkYellow({double size = 24}) =>
+      _img('check_mark_256_yellow.png', size);
   static Widget warning({double size = 24}) => _img('warning_sign_outline_256.png', size);
   static Widget schedule({double size = 24}) => _img('schedule.png', size);
 
