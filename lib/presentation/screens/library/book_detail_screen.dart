@@ -37,6 +37,7 @@ class BookDetailScreen extends ConsumerWidget {
     final progressAsync = ref.watch(readingProgressProvider(bookId));
     final colorScheme = Theme.of(context).colorScheme;
     final userId = ref.watch(currentUserIdProvider);
+    final isTeacher = ref.watch(isTeacherPreviewModeProvider);
 
     // Show locked screen if book is not accessible
     if (!canAccess) {
@@ -198,6 +199,17 @@ class BookDetailScreen extends ConsumerWidget {
                         ],
                       ),
 
+                      // Teacher actions (top of screen — Start Reading + Assign)
+                      if (isTeacher) ...[
+                        const SizedBox(height: 20),
+                        _TeacherBookDetailActions(
+                          bookId: bookId,
+                          bookTitle: book.title,
+                          chapterCount: book.chapterCount,
+                          chaptersAsync: chaptersAsync,
+                        ),
+                      ],
+
                       // Progress indicator (if started)
                       if (hasProgress) ...[
                         const SizedBox(height: 24),
@@ -301,16 +313,18 @@ class BookDetailScreen extends ConsumerWidget {
               ),
             ],
           ),
-          bottomNavigationBar: _BookDetailFAB(
-            bookId: bookId,
-            bookTitle: book.title,
-            chapterCount: book.chapterCount,
-            hasProgress: hasProgress,
-            isCompleted: progress?.isCompleted ?? false,
-            chaptersAsync: chaptersAsync,
-            progress: progress,
-            userId: userId,
-          ),
+          bottomNavigationBar: isTeacher
+              ? null
+              : _BookDetailFAB(
+                  bookId: bookId,
+                  bookTitle: book.title,
+                  chapterCount: book.chapterCount,
+                  hasProgress: hasProgress,
+                  isCompleted: progress?.isCompleted ?? false,
+                  chaptersAsync: chaptersAsync,
+                  progress: progress,
+                  userId: userId,
+                ),
         );
       },
     );
