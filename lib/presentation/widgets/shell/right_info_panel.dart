@@ -816,23 +816,48 @@ class _SidebarQuestRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Text(
-                quest.title,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isCompleted ? AppColors.neutralText : AppColors.black,
-                  decoration:
-                      isCompleted ? TextDecoration.lineThrough : null,
-                  decorationColor: AppColors.neutralText,
-                  decorationThickness: 2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+              child: isCompleted
+                  ? Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: quest.title,
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.neutralText,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: AppColors.neutralText,
+                              decorationThickness: 2,
+                            ),
+                          ),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 5),
+                              child: AppIcons.check(size: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  : Text(
+                      quest.title,
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
             ),
-            const SizedBox(width: 10),
-            _buildRewardContent(quest, isCompleted),
+            if (!isCompleted) ...[
+              const SizedBox(width: 10),
+              _buildRewardContent(quest, false),
+            ],
           ],
         ),
         if (isCompleted || progress.currentValue > 0) ...[

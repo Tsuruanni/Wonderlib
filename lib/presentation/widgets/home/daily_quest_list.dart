@@ -172,22 +172,44 @@ class _QuestRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                child: Text(
-                  quest.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color:
-                        isCompleted ? AppColors.neutralText : AppColors.black,
-                    decoration:
-                        isCompleted ? TextDecoration.lineThrough : null,
-                    decorationColor: AppColors.neutralText,
-                    decorationThickness: 2,
-                  ),
-                ),
+                child: isCompleted
+                    ? Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: quest.title,
+                              style: GoogleFonts.nunito(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.neutralText,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: AppColors.neutralText,
+                                decorationThickness: 2,
+                              ),
+                            ),
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 6),
+                                child: AppIcons.check(size: 18),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Text(
+                        quest.title,
+                        style: GoogleFonts.nunito(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.black,
+                        ),
+                      ),
               ),
-              const SizedBox(width: 12),
-              _buildRewardContent(quest, isCompleted),
+              if (!isCompleted) ...[
+                const SizedBox(width: 12),
+                _buildRewardContent(quest, false),
+              ],
             ],
           ),
           if (isCompleted || currentValue > 0) ...[
