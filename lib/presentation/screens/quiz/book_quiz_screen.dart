@@ -174,7 +174,11 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                   onPressed: () {
                     _setQuizActive(false);
                     Navigator.of(ctx).pop();
-                    context.go(AppRoutes.library);
+                    final isPreview =
+                        ref.read(isTeacherPreviewModeProvider);
+                    context.go(isPreview
+                        ? AppRoutes.teacherLibrary
+                        : AppRoutes.library);
                   },
                   variant: GameButtonVariant.danger,
                   fullWidth: true,
@@ -567,10 +571,21 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
   }
 
   void _finishQuiz(BuildContext context) {
-    context.go(AppRoutes.library);
+    final isPreview = ref.read(isTeacherPreviewModeProvider);
+    context.go(isPreview ? AppRoutes.teacherLibrary : AppRoutes.library);
   }
 
   void _handleClose(BuildContext context) {
+    final isPreview = ref.read(isTeacherPreviewModeProvider);
+
+    // Teachers: skip the "progress will be lost" dialog (misleading in preview)
+    // and exit straight back to the teacher library.
+    if (isPreview) {
+      _setQuizActive(false);
+      context.go(AppRoutes.teacherLibrary);
+      return;
+    }
+
     if (_answers.isEmpty) {
       _setQuizActive(false);
       context.go(AppRoutes.library);
