@@ -136,43 +136,15 @@ class _TopCollectorRow extends StatelessWidget {
               ),
         const SizedBox(width: 10),
         Expanded(
-          child: Row(
-            children: [
-              Flexible(
-                child: Text(
-                  isCurrentUser ? 'You' : entry.firstName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight:
-                        isCurrentUser ? FontWeight.w800 : FontWeight.w600,
-                    color:
-                        isCurrentUser ? AppColors.secondary : AppColors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (isCurrentUser) ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    'YOU',
-                    style: GoogleFonts.nunito(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.secondary,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ],
-            ],
+          child: Text(
+            isCurrentUser ? 'You' : entry.firstName,
+            style: GoogleFonts.nunito(
+              fontSize: 14,
+              fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w600,
+              color: isCurrentUser ? AppColors.secondary : AppColors.black,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         Text(
