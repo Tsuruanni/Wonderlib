@@ -322,36 +322,41 @@ class _EnrichedClassCard extends StatelessWidget {
 
           const SizedBox(height: 14),
 
-          // Stat chips row
+          // Stat chips row (0-value chips are hidden to reduce noise)
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: [
-              _MetricChip(
-                icon: Icons.star,
-                label: '${classItem.avgXp.toStringAsFixed(0)} avg XP',
-                color: Colors.amber,
-              ),
-              _MetricChip(
-                icon: Icons.local_fire_department,
-                label: '${classItem.avgStreak.toStringAsFixed(1)} avg streak',
-                color: Colors.orange,
-              ),
-              _MetricChip(
-                icon: Icons.menu_book,
-                label: '${classItem.booksPerStudent.toStringAsFixed(1)} books/student',
-                color: Colors.blue,
-              ),
-              _MetricChip(
-                icon: Icons.access_time,
-                label: TimeFormatter.formatReadingTime(classItem.totalReadingTime),
-                color: Colors.purple,
-              ),
-              _MetricChip(
-                icon: Icons.abc,
-                label: '${classItem.totalVocabWords} words mastered',
-                color: Colors.teal,
-              ),
+              if (classItem.avgXp >= 1)
+                _MetricChip(
+                  icon: Icons.star,
+                  label: '${classItem.avgXp.toStringAsFixed(0)} avg XP',
+                  color: Colors.amber,
+                ),
+              if (classItem.avgStreak >= 0.05)
+                _MetricChip(
+                  icon: Icons.local_fire_department,
+                  label: '${classItem.avgStreak.toStringAsFixed(1)} avg streak',
+                  color: Colors.orange,
+                ),
+              if (classItem.booksPerStudent >= 0.05)
+                _MetricChip(
+                  icon: Icons.menu_book,
+                  label: '${classItem.booksPerStudent.toStringAsFixed(1)} books/student',
+                  color: Colors.blue,
+                ),
+              if (classItem.totalReadingTime > 0)
+                _MetricChip(
+                  icon: Icons.access_time,
+                  label: TimeFormatter.formatReadingTime(classItem.totalReadingTime),
+                  color: Colors.purple,
+                ),
+              if (classItem.totalVocabWords > 0)
+                _MetricChip(
+                  icon: Icons.abc,
+                  label: '${classItem.totalVocabWords} words in wordbank',
+                  color: Colors.teal,
+                ),
               _MetricChip(
                 icon: classItem.inactiveLast30d > 0 ? Icons.warning_amber : Icons.check_circle,
                 label: '${classItem.activeLast30d}/${classItem.studentCount} active (30d)',

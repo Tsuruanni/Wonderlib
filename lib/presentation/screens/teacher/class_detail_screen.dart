@@ -697,7 +697,7 @@ class _ReportStudentCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Reading progress',
+                'Avg book progress',
                 style: context.textTheme.bodySmall?.copyWith(
                   color: AppColors.neutralText,
                   fontSize: 11,
