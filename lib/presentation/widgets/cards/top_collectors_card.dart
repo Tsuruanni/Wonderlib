@@ -107,71 +107,113 @@ class _TopCollectorRow extends StatelessWidget {
         ? EquippedAvatarModel.fromJson(entry.avatarEquippedCache).toEntity()
         : null;
 
+    final rowContent = Row(
+      children: [
+        SizedBox(
+          width: 20,
+          child: Text(
+            '#${entry.rank}',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: isCurrentUser
+                  ? AppColors.secondary
+                  : AppColors.neutralText,
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        (equippedAvatar != null && equippedAvatar.isNotEmpty)
+            ? AvatarWidget(
+                avatar: equippedAvatar,
+                size: 36,
+                fallbackInitials: leaderboardEntry.initials,
+                showBorder: false,
+              )
+            : _InitialsFallback(
+                initials: leaderboardEntry.initials,
+                size: 36,
+              ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  isCurrentUser ? 'You' : entry.firstName,
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight:
+                        isCurrentUser ? FontWeight.w800 : FontWeight.w600,
+                    color:
+                        isCurrentUser ? AppColors.secondary : AppColors.black,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isCurrentUser) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    'YOU',
+                    style: GoogleFonts.nunito(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.secondary,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        Text(
+          '${entry.uniqueCards}',
+          style: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: isCurrentUser ? AppColors.secondary : AppColors.black,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          'cards',
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.neutralText,
+          ),
+        ),
+      ],
+    );
+
+    final padded = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: rowContent,
+    );
+
+    if (isCurrentUser) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.secondary.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: padded,
+      );
+    }
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: isCurrentUser
-          ? null
-          : () => showStudentProfileDialog(context, leaderboardEntry),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 20,
-              child: Text(
-                '#${entry.rank}',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.neutralText,
-                ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            (equippedAvatar != null && equippedAvatar.isNotEmpty)
-                ? AvatarWidget(
-                    avatar: equippedAvatar,
-                    size: 36,
-                    fallbackInitials: leaderboardEntry.initials,
-                    showBorder: false,
-                  )
-                : _InitialsFallback(
-                    initials: leaderboardEntry.initials,
-                    size: 36,
-                  ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                entry.firstName,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w600,
-                  color: isCurrentUser ? AppColors.secondary : AppColors.black,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              '${entry.uniqueCards}',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              'cards',
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutralText,
-              ),
-            ),
-          ],
-        ),
-      ),
+      onTap: () => showStudentProfileDialog(context, leaderboardEntry),
+      child: padded,
     );
   }
 }
