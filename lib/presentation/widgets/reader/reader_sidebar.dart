@@ -24,7 +24,12 @@ class ReaderSidebar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final location = GoRouterState.of(context).uri.path;
+    var location = GoRouterState.of(context).uri.path;
+    // Strip /teacher prefix so teacher paths parse identically to student paths
+    // (/teacher/reader/bookId/chapterId → /reader/bookId/chapterId).
+    if (location.startsWith('/teacher/')) {
+      location = location.substring('/teacher'.length);
+    }
     final segments = location.split('/');
     final bookId = segments.length > 2 ? segments[2] : '';
     final currentChapterId = segments.length > 3 ? segments[3] : '';
