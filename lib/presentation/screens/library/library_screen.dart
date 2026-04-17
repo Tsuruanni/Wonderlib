@@ -834,6 +834,11 @@ class _ContinueReadingSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Teachers are in preview mode — they have no reading progress to
+    // continue, so hide the section entirely (was showing stale/empty data).
+    if (ref.watch(isTeacherPreviewModeProvider)) {
+      return const SizedBox.shrink();
+    }
     final continueReadingAsync = ref.watch(continueReadingProvider);
 
     return continueReadingAsync.when(

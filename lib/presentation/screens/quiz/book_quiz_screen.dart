@@ -417,7 +417,7 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                           ? AnimatedGameButton(
                               onPressed: () {
                                 _setQuizActive(false);
-                                context.pop();
+                                context.go(AppRoutes.teacherLibrary);
                               },
                               icon: const Icon(Icons.close_rounded),
                               label: 'Exit Preview',
