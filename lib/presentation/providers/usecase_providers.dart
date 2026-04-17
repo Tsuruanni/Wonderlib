@@ -78,6 +78,8 @@ import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dar
 import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.dart';
+import '../../domain/usecases/teacher/get_school_summary_usecase.dart';
+import '../../domain/usecases/teacher/get_global_averages_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/teacher/send_password_reset_email_usecase.dart';
 import '../../domain/usecases/user/add_xp_usecase.dart';
@@ -551,6 +553,14 @@ final getRecentSchoolActivityUseCaseProvider = Provider((ref) {
 
 final getSchoolStudentsForTeacherUseCaseProvider = Provider((ref) {
   return GetSchoolStudentsForTeacherUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getSchoolSummaryUseCaseProvider = Provider((ref) {
+  return GetSchoolSummaryUseCase(ref.watch(teacherRepositoryProvider));
+});
+
+final getGlobalAveragesUseCaseProvider = Provider((ref) {
+  return GetGlobalAveragesUseCase(ref.watch(teacherRepositoryProvider));
 });
 
 final sendPasswordResetEmailUseCaseProvider = Provider((ref) {

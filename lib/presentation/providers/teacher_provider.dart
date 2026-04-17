@@ -22,7 +22,9 @@ import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dar
 import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.dart';
+import '../../domain/usecases/teacher/get_school_summary_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
+import '../../domain/usecases/usecase.dart';
 import 'auth_provider.dart';
 import 'usecase_providers.dart';
 
@@ -334,5 +336,32 @@ final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref
   return result.fold(
     (failure) => throw Exception(failure.message),
     (students) => students,
+  );
+});
+
+/// Aggregates for the teacher's own school (watches authed user for schoolId).
+final schoolSummaryProvider =
+    FutureProvider.autoDispose<SchoolSummary?>((ref) async {
+  final user = await ref.watch(authStateChangesProvider.future);
+  if (user == null || user.schoolId.isEmpty) return null;
+
+  final useCase = ref.watch(getSchoolSummaryUseCaseProvider);
+  final result = await useCase(
+    GetSchoolSummaryParams(schoolId: user.schoolId),
+  );
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (summary) => summary,
+  );
+});
+
+/// Platform-wide student averages (same for every teacher).
+final globalAveragesProvider =
+    FutureProvider.autoDispose<GlobalAverages>((ref) async {
+  final useCase = ref.watch(getGlobalAveragesUseCaseProvider);
+  final result = await useCase(const NoParams());
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (averages) => averages,
   );
 });
