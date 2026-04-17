@@ -85,9 +85,13 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
               );
             }
 
-            // Sort alphabetically by first name, then last name
+            // Report mode: rank by XP desc. Management mode: alphabetical.
             final sortedStudents = [...students]
               ..sort((a, b) {
+                if (!isManagement) {
+                  final xpCmp = b.xp.compareTo(a.xp);
+                  if (xpCmp != 0) return xpCmp;
+                }
                 final firstCmp = a.firstName.toLowerCase().compareTo(b.firstName.toLowerCase());
                 return firstCmp != 0 ? firstCmp : a.lastName.toLowerCase().compareTo(b.lastName.toLowerCase());
               });
@@ -622,9 +626,13 @@ class _ReportStudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final inactive = student.isInactive;
     return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
+      color: inactive ? const Color(0xFFFFF5F5) : AppColors.white,
+      borderColor: inactive ? Colors.red.shade300 : AppColors.neutral,
+      shadowColor: inactive ? Colors.red.shade100 : AppColors.neutral,
       onTap: () =>
           context.push(AppRoutes.teacherStudentDetailPath(classId, student.id)),
       child: Column(

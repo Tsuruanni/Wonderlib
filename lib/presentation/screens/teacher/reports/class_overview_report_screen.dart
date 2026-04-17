@@ -8,27 +8,17 @@ import '../../../../app/theme.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
-import '../../../utils/class_ranking_metric.dart';
 import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/responsive_layout.dart';
 import '../class_detail_screen.dart';
 
-class ClassOverviewReportScreen extends ConsumerStatefulWidget {
+class ClassOverviewReportScreen extends ConsumerWidget {
   const ClassOverviewReportScreen({super.key});
 
   @override
-  ConsumerState<ClassOverviewReportScreen> createState() =>
-      _ClassOverviewReportScreenState();
-}
-
-class _ClassOverviewReportScreenState
-    extends ConsumerState<ClassOverviewReportScreen> {
-  ClassRankingMetric _selectedMetric = ClassRankingMetric.avgXp;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(currentTeacherClassesProvider);
 
     return Scaffold(
@@ -76,12 +66,6 @@ class _ClassOverviewReportScreenState
                 ? classes.fold<double>(0, (sum, c) => sum + c.avgXp * c.studentCount) / totalStudents
                 : 0.0;
 
-            final sortedClasses = [...classes]
-              ..sort((a, b) {
-                final aVal = _selectedMetric.selector(a);
-                final bVal = _selectedMetric.selector(b);
-                return bVal.compareTo(aVal); // descending — best first
-              });
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -114,58 +98,28 @@ class _ClassOverviewReportScreenState
 
                 const SizedBox(height: 24),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Class Performance',
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    DropdownButton<ClassRankingMetric>(
-                      value: _selectedMetric,
-                      underline: const SizedBox.shrink(),
-                      items: ClassRankingMetric.values.map((m) {
-                        return DropdownMenuItem(
-                          value: m,
-                          child: Text(
-                            'Sort: ${m.label}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (m) {
-                        if (m != null) {
-                          setState(() => _selectedMetric = m);
-                        }
-                      },
-                    ),
-                  ],
+                Text(
+                  'Class Performance',
+                  style: GoogleFonts.nunito(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
                 ),
                 const SizedBox(height: 12),
 
                 // Enriched class cards
                 ResponsiveWrap(
                   minItemWidth: 340,
-                  children: sortedClasses.indexed
+                  children: classes
                       .map(
-                        (entry) {
-                          final (index, classItem) = entry;
-                          return _EnrichedClassCard(
-                            classItem: classItem,
-                            rank: sortedClasses.length >= 3 ? index + 1 : null,
-                            onTap: () => context.push(
-                              AppRoutes.teacherClassDetailPath(classItem.id),
-                              extra: ClassDetailMode.report,
-                            ),
-                          );
-                        },
+                        (classItem) => _EnrichedClassCard(
+                          classItem: classItem,
+                          onTap: () => context.push(
+                            AppRoutes.teacherClassDetailPath(classItem.id),
+                            extra: ClassDetailMode.report,
+                          ),
+                        ),
                       )
                       .toList(),
                 ),
@@ -229,26 +183,14 @@ class _EnrichedClassCard extends StatelessWidget {
   const _EnrichedClassCard({
     required this.classItem,
     required this.onTap,
-    this.rank,
   });
 
   final TeacherClass classItem;
   final VoidCallback onTap;
-  final int? rank;
-
-  Color? _podiumColor() {
-    return switch (rank) {
-      1 => const Color(0xFFFFD700), // gold
-      2 => const Color(0xFFC0C0C0), // silver
-      3 => const Color(0xFFCD7F32), // bronze
-      _ => null,
-    };
-  }
 
   @override
   Widget build(BuildContext context) {
-    final podiumColor = _podiumColor();
-    final card = PlayfulCard(
+    return PlayfulCard(
       margin: const EdgeInsets.only(bottom: 12),
       onTap: onTap,
       child: Column(
@@ -344,39 +286,6 @@ class _EnrichedClassCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-    if (podiumColor == null) return card;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        card,
-        Positioned(
-          top: -6,
-          left: -6,
-          child: Container(
-            width: 32,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: podiumColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.emoji_events_rounded,
-              size: 18,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
