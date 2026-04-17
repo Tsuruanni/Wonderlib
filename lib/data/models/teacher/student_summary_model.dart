@@ -1,3 +1,4 @@
+import 'package:owlio_shared/owlio_shared.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 
 /// Model for StudentSummary - handles JSON serialization
@@ -16,6 +17,7 @@ class StudentSummaryModel {
     required this.currentStreak,
     required this.booksRead,
     required this.avgProgress,
+    required this.leagueTier,
     this.passwordPlain,
   });
 
@@ -33,8 +35,14 @@ class StudentSummaryModel {
       currentStreak: (json['streak'] as num?)?.toInt() ?? 0,
       booksRead: (json['books_read'] as num?)?.toInt() ?? 0,
       avgProgress: (json['avg_progress'] as num?)?.toDouble() ?? 0,
+      leagueTier: _parseLeagueTier(json['league_tier'] as String?),
       passwordPlain: json['password_plain'] as String?,
     );
+  }
+
+  static LeagueTier _parseLeagueTier(String? value) {
+    if (value == null || value.isEmpty) return LeagueTier.bronze;
+    return LeagueTier.fromDbValue(value);
   }
 
   final String id;
@@ -49,6 +57,7 @@ class StudentSummaryModel {
   final int currentStreak;
   final int booksRead;
   final double avgProgress;
+  final LeagueTier leagueTier;
   final String? passwordPlain;
 
   StudentSummary toEntity() {
@@ -65,6 +74,7 @@ class StudentSummaryModel {
       currentStreak: currentStreak,
       booksRead: booksRead,
       avgProgress: avgProgress,
+      leagueTier: leagueTier,
       passwordPlain: passwordPlain,
     );
   }

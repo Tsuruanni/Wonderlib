@@ -1,4 +1,5 @@
 import 'package:owlio/domain/repositories/teacher_repository.dart';
+import 'package:owlio_shared/owlio_shared.dart';
 
 /// Test fixtures for Teacher-related tests
 class TeacherStatsFixtures {
@@ -85,6 +86,7 @@ class StudentSummaryFixtures {
         currentStreak: 7,
         booksRead: 3,
         avgProgress: 75.0,
+        leagueTier: LeagueTier.bronze,
       );
 
   static StudentSummary minimalStudent() => const StudentSummary(
@@ -96,6 +98,7 @@ class StudentSummaryFixtures {
         currentStreak: 0,
         booksRead: 0,
         avgProgress: 0.0,
+        leagueTier: LeagueTier.bronze,
       );
 
   static StudentSummary highPerformanceStudent() => const StudentSummary(
@@ -110,6 +113,7 @@ class StudentSummaryFixtures {
         currentStreak: 30,
         booksRead: 12,
         avgProgress: 95.0,
+        leagueTier: LeagueTier.gold,
       );
 
   static List<StudentSummary> studentList() => [
