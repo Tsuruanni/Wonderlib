@@ -815,6 +815,10 @@ class _SidebarQuestRow extends StatelessWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isCompleted ? AppColors.neutralText : AppColors.black,
+                  decoration:
+                      isCompleted ? TextDecoration.lineThrough : null,
+                  decorationColor: AppColors.neutralText,
+                  decorationThickness: 2,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -824,7 +828,7 @@ class _SidebarQuestRow extends StatelessWidget {
             _buildRewardContent(quest, isCompleted),
           ],
         ),
-        if (progress.currentValue > 0) ...[
+        if (!isCompleted && progress.currentValue > 0) ...[
           const SizedBox(height: 10),
           AppProgressBar(
             progress: ratio,

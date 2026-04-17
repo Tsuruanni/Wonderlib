@@ -173,6 +173,10 @@ class _QuestRow extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color:
                         isCompleted ? AppColors.neutralText : AppColors.black,
+                    decoration:
+                        isCompleted ? TextDecoration.lineThrough : null,
+                    decorationColor: AppColors.neutralText,
+                    decorationThickness: 2,
                   ),
                 ),
               ),
@@ -180,7 +184,7 @@ class _QuestRow extends StatelessWidget {
               _buildRewardContent(quest, isCompleted),
             ],
           ),
-          if (currentValue > 0) ...[
+          if (!isCompleted && currentValue > 0) ...[
             const SizedBox(height: 12),
             AppProgressBar(
               progress: ratio,
