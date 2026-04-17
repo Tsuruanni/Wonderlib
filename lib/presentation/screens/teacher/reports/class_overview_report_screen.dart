@@ -92,17 +92,21 @@ class _ClassOverviewReportScreenState
                   child: _SchoolSummaryCard(),
                 ),
 
-                // Summary stats
+                // Summary stats (0-value stats hidden to reduce noise)
                 ResponsiveConstraint(
                   maxWidth: 900,
                   child: PlayfulCard(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _SummaryStat(value: '$totalActive/$totalStudents', label: 'Active (30d)', icon: Icons.people, color: Colors.green),
-                        _SummaryStat(value: '${avgXp.toStringAsFixed(0)}', label: 'Avg XP', icon: Icons.star, color: Colors.amber),
-                        _SummaryStat(value: TimeFormatter.formatReadingTime(totalReadingTime), label: 'Total Reading', icon: Icons.access_time, color: Colors.blue),
-                        _SummaryStat(value: '${highestStreak.toStringAsFixed(1)}', label: 'Highest Streak', icon: Icons.local_fire_department, color: Colors.orange),
+                        if (totalStudents > 0)
+                          _SummaryStat(value: '$totalActive/$totalStudents', label: 'Active (30d)', icon: Icons.people, color: Colors.green),
+                        if (avgXp >= 1)
+                          _SummaryStat(value: avgXp.toStringAsFixed(0), label: 'Avg XP', icon: Icons.star, color: Colors.amber),
+                        if (totalReadingTime > 0)
+                          _SummaryStat(value: TimeFormatter.formatReadingTime(totalReadingTime), label: 'Total Reading', icon: Icons.access_time, color: Colors.blue),
+                        if (highestStreak >= 0.05)
+                          _SummaryStat(value: highestStreak.toStringAsFixed(1), label: 'Highest Streak', icon: Icons.local_fire_department, color: Colors.orange),
                       ],
                     ),
                   ),
@@ -459,39 +463,39 @@ class _SchoolSummaryCard extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              _SummaryRow(
-                label: 'Avg XP',
-                mine: summary.avgXp.toStringAsFixed(0),
-                benchmark: global?.avgXp.toStringAsFixed(0),
-                mineVal: summary.avgXp,
-                benchmarkVal: global?.avgXp,
-              ),
-              _SummaryRow(
-                label: 'Avg Streak',
-                mine: summary.avgStreak.toStringAsFixed(1),
-                benchmark: global?.avgStreak.toStringAsFixed(1),
-                mineVal: summary.avgStreak,
-                benchmarkVal: global?.avgStreak,
-              ),
-              _SummaryRow(
-                label: 'Books Read / Student',
-                mine: summary.totalStudents > 0
-                    ? (summary.totalBooksRead / summary.totalStudents)
-                        .toStringAsFixed(1)
-                    : '0.0',
-                benchmark: global?.avgBooksRead.toStringAsFixed(1),
-                mineVal: summary.totalStudents > 0
-                    ? summary.totalBooksRead / summary.totalStudents
-                    : 0.0,
-                benchmarkVal: global?.avgBooksRead,
-              ),
-              _SummaryRow(
-                label: 'Active (30d)',
-                mine: '${summary.activeLast30d}/${summary.totalStudents}',
-                benchmark: null,
-                mineVal: null,
-                benchmarkVal: null,
-              ),
+              if (summary.avgXp >= 1)
+                _SummaryRow(
+                  label: 'Avg XP',
+                  mine: summary.avgXp.toStringAsFixed(0),
+                  benchmark: global?.avgXp.toStringAsFixed(0),
+                  mineVal: summary.avgXp,
+                  benchmarkVal: global?.avgXp,
+                ),
+              if (summary.avgStreak >= 0.05)
+                _SummaryRow(
+                  label: 'Avg Streak',
+                  mine: summary.avgStreak.toStringAsFixed(1),
+                  benchmark: global?.avgStreak.toStringAsFixed(1),
+                  mineVal: summary.avgStreak,
+                  benchmarkVal: global?.avgStreak,
+                ),
+              if (summary.totalStudents > 0 && summary.totalBooksRead > 0)
+                _SummaryRow(
+                  label: 'Books Read / Student',
+                  mine: (summary.totalBooksRead / summary.totalStudents)
+                      .toStringAsFixed(1),
+                  benchmark: global?.avgBooksRead.toStringAsFixed(1),
+                  mineVal: summary.totalBooksRead / summary.totalStudents,
+                  benchmarkVal: global?.avgBooksRead,
+                ),
+              if (summary.totalStudents > 0)
+                _SummaryRow(
+                  label: 'Active (30d)',
+                  mine: '${summary.activeLast30d}/${summary.totalStudents}',
+                  benchmark: null,
+                  mineVal: null,
+                  benchmarkVal: null,
+                ),
             ],
           ),
         );
