@@ -182,9 +182,23 @@ abstract class TimeFormatter {
   static String formatReadingTime(int seconds) {
     if (seconds < 60) return '${seconds}s';
     final minutes = seconds ~/ 60;
-    final remainingSeconds = seconds % 60;
-    if (remainingSeconds == 0) return '${minutes}m';
-    return '${minutes}m ${remainingSeconds}s';
+    if (minutes < 60) {
+      final remSec = seconds % 60;
+      return remSec == 0 ? '${minutes}m' : '${minutes}m ${remSec}s';
+    }
+    if (seconds < 86400) {
+      final hours = seconds ~/ 3600;
+      final remMin = (seconds % 3600) ~/ 60;
+      return remMin == 0 ? '${hours}h' : '${hours}h ${remMin}m';
+    }
+    final days = seconds ~/ 86400;
+    if (days < 7) {
+      final remHours = (seconds % 86400) ~/ 3600;
+      return remHours == 0 ? '${days}d' : '${days}d ${remHours}h';
+    }
+    final weeks = days ~/ 7;
+    final remDays = days % 7;
+    return remDays == 0 ? '${weeks}w' : '${weeks}w ${remDays}d';
   }
 
   static String formatDuration(Duration duration) {

@@ -696,7 +696,7 @@ class _ReportStudentCard extends StatelessWidget {
               if (student.booksRead > 0)
                 _MiniChip(
                   icon: Icons.menu_book,
-                  value: '${student.booksRead} books',
+                  value: '${student.booksRead} books read',
                   color: Colors.blue,
                 ),
               if (student.wordbankSize > 0)

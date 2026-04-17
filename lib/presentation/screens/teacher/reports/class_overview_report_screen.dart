@@ -317,12 +317,6 @@ class _EnrichedClassCard extends StatelessWidget {
                   label: '${classItem.avgXp.toStringAsFixed(0)} avg XP',
                   color: Colors.amber,
                 ),
-              if (classItem.avgStreak >= 0.05)
-                _MetricChip(
-                  icon: Icons.local_fire_department,
-                  label: '${classItem.avgStreak.toStringAsFixed(1)} avg streak',
-                  color: Colors.orange,
-                ),
               if (classItem.booksPerStudent >= 0.05)
                 _MetricChip(
                   icon: Icons.menu_book,
@@ -336,11 +330,16 @@ class _EnrichedClassCard extends StatelessWidget {
                   color: Colors.purple,
                 ),
               if (classItem.studentCount > 0)
-                _MetricChip(
-                  icon: classItem.inactiveLast30d > 0 ? Icons.warning_amber : Icons.check_circle,
-                  label: '${classItem.activeLast30d}/${classItem.studentCount} active (30d)',
-                  color: classItem.inactiveLast30d > 0 ? Colors.red : Colors.green,
-                ),
+                () {
+                  // Red only when majority (>50%) of the class is inactive.
+                  final inactiveRatio = classItem.inactiveLast30d / classItem.studentCount;
+                  final isMostlyInactive = inactiveRatio > 0.5;
+                  return _MetricChip(
+                    icon: isMostlyInactive ? Icons.warning_amber : Icons.check_circle,
+                    label: '${classItem.activeLast30d}/${classItem.studentCount} active (30d)',
+                    color: isMostlyInactive ? Colors.red : Colors.green,
+                  );
+                }(),
             ],
           ),
         ],
