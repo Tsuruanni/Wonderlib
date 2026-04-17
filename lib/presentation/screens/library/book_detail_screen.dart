@@ -273,7 +273,19 @@ class BookDetailScreen extends ConsumerWidget {
                           isCurrent: isCurrentChapter,
                           isLocked: item.isLocked,
                           onTap: () {
-                            context.go(AppRoutes.readerPath(bookId, item.chapter.id));
+                            final isPreview =
+                                ref.read(isTeacherPreviewModeProvider);
+                            context.go(
+                              isPreview
+                                  ? AppRoutes.teacherReaderPath(
+                                      bookId,
+                                      item.chapter.id,
+                                    )
+                                  : AppRoutes.readerPath(
+                                      bookId,
+                                      item.chapter.id,
+                                    ),
+                            );
                           },
                         );
                       },

@@ -228,7 +228,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     await _markCurrentChapterComplete();
 
     if (mounted) {
-      context.go(AppRoutes.readerPath(widget.bookId, nextChapter.id));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(
+        isPreview
+            ? AppRoutes.teacherReaderPath(widget.bookId, nextChapter.id)
+            : AppRoutes.readerPath(widget.bookId, nextChapter.id),
+      );
     }
   }
 
@@ -245,7 +250,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       // Invalidate providers to refresh book detail data
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
-      context.go(AppRoutes.bookDetailPath(widget.bookId));
+      final isPreview = ref.read(isTeacherPreviewModeProvider);
+      context.go(
+        isPreview
+            ? AppRoutes.teacherBookDetailPath(widget.bookId)
+            : AppRoutes.bookDetailPath(widget.bookId),
+      );
     }
   }
 
@@ -261,9 +271,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
       ref.invalidate(readingProgressProvider(widget.bookId));
       ref.invalidate(continueReadingProvider);
       final isPreview = ref.read(isTeacherPreviewModeProvider);
-      context.go(isPreview
-          ? AppRoutes.teacherBookQuizPath(widget.bookId)
-          : AppRoutes.bookQuizPath(widget.bookId));
+      context.go(
+        isPreview
+            ? AppRoutes.teacherBookQuizPath(widget.bookId)
+            : AppRoutes.bookQuizPath(widget.bookId),
+      );
     }
   }
 
