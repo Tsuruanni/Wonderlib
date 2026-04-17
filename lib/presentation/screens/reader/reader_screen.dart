@@ -143,6 +143,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
       saveReadingProgressUseCase = ref.read(saveReadingProgressUseCaseProvider);
     } catch (_) {
+      // Widget disposed between sync reads — ref throws. Bail safely.
       return;
     }
 
