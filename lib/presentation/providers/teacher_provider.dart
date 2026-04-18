@@ -8,6 +8,8 @@ import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/usecases/user/get_total_leaderboard_usecase.dart';
+import '../../domain/usecases/user/get_user_total_position_usecase.dart';
 import 'badge_progress_provider.dart';
 import 'badge_provider.dart';
 import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
@@ -206,6 +208,38 @@ final teacherStudentCardsProvider =
   final useCase = ref.watch(getUserCardsUseCaseProvider);
   final result = await useCase(GetUserCardsParams(userId: studentId));
   return result.fold((failure) => [], (cards) => cards);
+});
+
+/// Student's rank within their own class (by total XP).
+final teacherStudentClassRankProvider =
+    FutureProvider.family<int?, String>((ref, studentId) async {
+  final student = await ref.watch(studentDetailProvider(studentId).future);
+  if (student == null || student.classId == null) return null;
+  final useCase = ref.watch(getUserTotalPositionUseCaseProvider);
+  final result = await useCase(
+    GetUserTotalPositionParams(
+      userId: studentId,
+      scope: TotalLeaderboardScope.classScope,
+      classId: student.classId,
+    ),
+  );
+  return result.fold((_) => null, (entry) => entry.rank);
+});
+
+/// Student's rank within their own school (by total XP).
+final teacherStudentSchoolRankProvider =
+    FutureProvider.family<int?, String>((ref, studentId) async {
+  final student = await ref.watch(studentDetailProvider(studentId).future);
+  if (student == null) return null;
+  final useCase = ref.watch(getUserTotalPositionUseCaseProvider);
+  final result = await useCase(
+    GetUserTotalPositionParams(
+      userId: studentId,
+      scope: TotalLeaderboardScope.schoolScope,
+      schoolId: student.schoolId,
+    ),
+  );
+  return result.fold((_) => null, (entry) => entry.rank);
 });
 
 /// Monthly login/freeze dates for a specific student (teacher view).

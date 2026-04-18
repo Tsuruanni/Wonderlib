@@ -105,6 +105,8 @@ class StudentDetailScreen extends ConsumerWidget {
                                 child: _StudentStreakCalendar(
                                   studentId: studentId,
                                   createdAt: student.createdAt,
+                                  currentStreak: student.currentStreak,
+                                  longestStreak: student.longestStreak,
                                 ),
                               ),
                             ],
@@ -116,6 +118,8 @@ class StudentDetailScreen extends ConsumerWidget {
                         _StudentStreakCalendar(
                           studentId: studentId,
                           createdAt: student.createdAt,
+                          currentStreak: student.currentStreak,
+                          longestStreak: student.longestStreak,
                         ),
                       ],
                       const SizedBox(height: 24),
@@ -297,12 +301,14 @@ class StudentDetailScreen extends ConsumerWidget {
 // HEADER
 // ─────────────────────────────────────────────
 
-class _StudentHeader extends StatelessWidget {
+class _StudentHeader extends ConsumerWidget {
   const _StudentHeader({required this.user});
   final domain.User user;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final classRank = ref.watch(teacherStudentClassRankProvider(user.id)).valueOrNull;
+    final schoolRank = ref.watch(teacherStudentSchoolRankProvider(user.id)).valueOrNull;
     return PlayfulCard(
       child: IntrinsicHeight(
         child: Row(
@@ -351,20 +357,18 @@ class _StudentHeader extends StatelessWidget {
                     runSpacing: 4,
                     children: [
                       _LeagueChip(tier: user.leagueTier),
-                      _StatChip(
-                        assetPath: AppIcons.fire,
-                        value: user.currentStreak == 1
-                            ? 'Streak: 1 day'
-                            : 'Streak: ${user.currentStreak} days',
-                        color: Colors.orange,
-                      ),
-                      _StatChip(
-                        assetPath: AppIcons.trophy,
-                        value: user.longestStreak == 1
-                            ? 'Longest streak: 1 day'
-                            : 'Longest streak: ${user.longestStreak} days',
-                        color: Colors.purple,
-                      ),
+                      if (classRank != null)
+                        _StatChip(
+                          icon: Icons.class_,
+                          value: 'Class rank: #$classRank',
+                          color: Colors.blue.shade700,
+                        ),
+                      if (schoolRank != null)
+                        _StatChip(
+                          icon: Icons.school_rounded,
+                          value: 'School rank: #$schoolRank',
+                          color: Colors.green.shade700,
+                        ),
                     ],
                   ),
                 ],
@@ -387,10 +391,14 @@ class _StudentStreakCalendar extends ConsumerStatefulWidget {
   const _StudentStreakCalendar({
     required this.studentId,
     required this.createdAt,
+    required this.currentStreak,
+    required this.longestStreak,
   });
 
   final String studentId;
   final DateTime? createdAt;
+  final int currentStreak;
+  final int longestStreak;
 
   @override
   ConsumerState<_StudentStreakCalendar> createState() =>
@@ -505,13 +513,35 @@ class _StudentStreakCalendarState
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
+                  style: GoogleFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+              ),
+              if (widget.longestStreak > 0)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const AssetIcon(AppIcons.trophy, size: 13),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Longest: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.waspDark,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
           ),
           const SizedBox(height: 10),
           // Weekday header
