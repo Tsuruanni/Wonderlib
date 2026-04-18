@@ -82,157 +82,186 @@ class StudentDetailScreen extends ConsumerWidget {
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Header (avatar + name + level/XP/streak chips)
-                  _StudentHeader(user: student),
-                  const SizedBox(height: 24),
+              child: LayoutBuilder(
+                builder: (context, outer) {
+                  final wide = outer.maxWidth >= 1100;
+                  // Build the two groups once; layout differs by width.
+                  final leftGroup = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildReadingSection(
+                          context, progressAsync, quizResultsAsync),
+                      const SizedBox(height: 24),
+                      _buildVocabSection(
+                          context, vocabStatsAsync, wordListProgressAsync),
+                    ],
+                  );
+                  final rightGroup = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _StudentAchievementsSection(studentId: studentId),
+                      const SizedBox(height: 24),
+                      _StudentCardCollection(studentId: studentId),
+                    ],
+                  );
 
-                  // 3. Reading Progress (horizontal)
-                  progressAsync.when(
-                    loading: () => _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
-                    error: (_, __) => _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
-                    data: (list) {
-                      final started = list.where((p) => p.completionPercentage > 0).length;
-                      final finished = list.where((p) => p.isCompleted).length;
-                      final reading = started - finished;
-                      String? subtitle;
-                      if (started > 0) {
-                        final parts = <String>[];
-                        if (reading > 0) parts.add('$reading still reading');
-                        if (finished > 0) parts.add('$finished finished');
-                        subtitle = parts.join(' · ');
-                      }
-                      return _SectionTitle(
-                        title: 'Reading Progress',
-                        assetPath: AppIcons.book,
-                        color: Colors.blue,
-                        trailing: subtitle,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  progressAsync.when(
-                    loading: () => const SizedBox(
-                      height: 180,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const Text('Error loading progress'),
-                    data: (progressList) {
-                      // In-progress books first, completed after.
-                      final filtered = progressList
-                          .where((p) => p.completionPercentage > 0)
-                          .toList()
-                        ..sort((a, b) {
-                          final aDone = a.isCompleted ? 1 : 0;
-                          final bDone = b.isCompleted ? 1 : 0;
-                          if (aDone != bDone) return aDone - bDone;
-                          // Within each group, most recent first.
-                          final aTs = a.lastReadAt;
-                          final bTs = b.lastReadAt;
-                          if (aTs == null && bTs == null) return 0;
-                          if (aTs == null) return 1;
-                          if (bTs == null) return -1;
-                          return bTs.compareTo(aTs);
-                        });
-                      if (filtered.isEmpty) {
-                        return _EmptySection(
-                          assetPath: AppIcons.library,
-                          message: 'No reading activity yet',
-                        );
-                      }
-                      // Join quiz results by bookId so each card can show
-                      // its own quiz score inline.
-                      final quizByBookId = <String, StudentQuizProgress>{};
-                      final quizResults = quizResultsAsync.valueOrNull;
-                      if (quizResults != null) {
-                        for (final q in quizResults) {
-                          quizByBookId[q.bookId] = q;
-                        }
-                      }
-                      return SizedBox(
-                        height: 315,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          itemCount: filtered.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 16),
-                          itemBuilder: (context, index) {
-                            final p = filtered[index];
-                            return _HorizontalBookCard(
-                              progress: p,
-                              quiz: quizByBookId[p.bookId],
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 4. Vocabulary Progress (stats + word lists in one panel)
-                  _SectionTitle(title: 'Vocabulary Progress', assetPath: AppIcons.vocabulary, color: Colors.purple),
-                  const SizedBox(height: 12),
-                  vocabStatsAsync.when(
-                    loading: () => const SizedBox(
-                      height: 80,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const Text('Error loading stats'),
-                    data: (stats) => _VocabStatsCard(
-                      stats: stats,
-                      wordListsAsync: wordListProgressAsync,
-                      onViewWordbank: () {
-                        showAppSnackBar(
-                          context,
-                          'Wordbank view coming soon',
-                          type: SnackBarType.info,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // 7+8. Achievements + Card Collection — side by side on
-                  // wide screens, stacked on narrow.
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 900;
-                      if (wide) {
-                        return Row(
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _StudentHeader(user: student),
+                      const SizedBox(height: 24),
+                      if (wide)
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _StudentAchievementsSection(
-                                  studentId: studentId),
-                            ),
+                            Expanded(child: leftGroup),
                             const SizedBox(width: 24),
-                            Expanded(
-                              child: _StudentCardCollection(
-                                  studentId: studentId),
-                            ),
+                            Expanded(child: rightGroup),
                           ],
-                        );
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _StudentAchievementsSection(studentId: studentId),
-                          const SizedBox(height: 24),
-                          _StudentCardCollection(studentId: studentId),
-                        ],
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 32),
-                ],
+                        )
+                      else ...[
+                        leftGroup,
+                        const SizedBox(height: 24),
+                        rightGroup,
+                      ],
+                      const SizedBox(height: 32),
+                    ],
+                  );
+                },
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget _buildReadingSection(
+    BuildContext context,
+    AsyncValue<List<StudentBookProgress>> progressAsync,
+    AsyncValue<List<StudentQuizProgress>> quizResultsAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        progressAsync.when(
+          loading: () => _SectionTitle(
+              title: 'Reading Progress',
+              assetPath: AppIcons.book,
+              color: Colors.blue),
+          error: (_, __) => _SectionTitle(
+              title: 'Reading Progress',
+              assetPath: AppIcons.book,
+              color: Colors.blue),
+          data: (list) {
+            final started =
+                list.where((p) => p.completionPercentage > 0).length;
+            final finished = list.where((p) => p.isCompleted).length;
+            final reading = started - finished;
+            String? subtitle;
+            if (started > 0) {
+              final parts = <String>[];
+              if (reading > 0) parts.add('$reading still reading');
+              if (finished > 0) parts.add('$finished finished');
+              subtitle = parts.join(' · ');
+            }
+            return _SectionTitle(
+              title: 'Reading Progress',
+              assetPath: AppIcons.book,
+              color: Colors.blue,
+              trailing: subtitle,
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        progressAsync.when(
+          loading: () => const SizedBox(
+            height: 180,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const Text('Error loading progress'),
+          data: (progressList) {
+            final filtered = progressList
+                .where((p) => p.completionPercentage > 0)
+                .toList()
+              ..sort((a, b) {
+                final aDone = a.isCompleted ? 1 : 0;
+                final bDone = b.isCompleted ? 1 : 0;
+                if (aDone != bDone) return aDone - bDone;
+                final aTs = a.lastReadAt;
+                final bTs = b.lastReadAt;
+                if (aTs == null && bTs == null) return 0;
+                if (aTs == null) return 1;
+                if (bTs == null) return -1;
+                return bTs.compareTo(aTs);
+              });
+            if (filtered.isEmpty) {
+              return _EmptySection(
+                assetPath: AppIcons.library,
+                message: 'No reading activity yet',
+              );
+            }
+            final quizByBookId = <String, StudentQuizProgress>{};
+            final quizResults = quizResultsAsync.valueOrNull;
+            if (quizResults != null) {
+              for (final q in quizResults) {
+                quizByBookId[q.bookId] = q;
+              }
+            }
+            return SizedBox(
+              height: 315,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                itemCount: filtered.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 16),
+                itemBuilder: (context, index) {
+                  final p = filtered[index];
+                  return _HorizontalBookCard(
+                    progress: p,
+                    quiz: quizByBookId[p.bookId],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVocabSection(
+    BuildContext context,
+    AsyncValue<StudentVocabStats> vocabStatsAsync,
+    AsyncValue<List<StudentWordListProgress>> wordListProgressAsync,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle(
+            title: 'Vocabulary Progress',
+            assetPath: AppIcons.vocabulary,
+            color: Colors.purple),
+        const SizedBox(height: 12),
+        vocabStatsAsync.when(
+          loading: () => const SizedBox(
+            height: 80,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (_, __) => const Text('Error loading stats'),
+          data: (stats) => _VocabStatsCard(
+            stats: stats,
+            wordListsAsync: wordListProgressAsync,
+            onViewWordbank: () {
+              showAppSnackBar(
+                context,
+                'Wordbank view coming soon',
+                type: SnackBarType.info,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -250,7 +279,7 @@ class _StudentHeader extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: PlayfulCard(
           child: Row(
             children: [
@@ -260,7 +289,7 @@ class _StudentHeader extends StatelessWidget {
                     ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
                         .toEntity()
                     : const EquippedAvatar(),
-                size: 64,
+                size: 72,
                 fallbackInitials: user.initials,
               ),
               const SizedBox(width: 14),
@@ -331,12 +360,12 @@ class _LevelBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 64,
-      height: 64,
+      width: 72,
+      height: 72,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.wasp.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.wasp, width: 2.5),
       ),
       child: Column(
@@ -345,18 +374,18 @@ class _LevelBadge extends StatelessWidget {
           Text(
             'LVL',
             style: GoogleFonts.nunito(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w900,
               color: AppColors.waspDark,
               letterSpacing: 1.0,
               height: 1.0,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             '$level',
             style: GoogleFonts.nunito(
-              fontSize: 26,
+              fontSize: 30,
               fontWeight: FontWeight.w900,
               color: AppColors.waspDark,
               height: 1.0,
