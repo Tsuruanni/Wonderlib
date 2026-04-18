@@ -85,44 +85,70 @@ class StudentDetailScreen extends ConsumerWidget {
               child: LayoutBuilder(
                 builder: (context, outer) {
                   final wide = outer.maxWidth >= 1100;
-                  // Build the two groups once; layout differs by width.
-                  final leftGroup = Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildReadingSection(
-                          context, progressAsync, quizResultsAsync),
-                      const SizedBox(height: 24),
-                      _buildVocabSection(
-                          context, vocabStatsAsync, wordListProgressAsync),
-                    ],
-                  );
-                  final rightGroup = Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _StudentAchievementsSection(studentId: studentId),
-                      const SizedBox(height: 24),
-                      _StudentCardCollection(studentId: studentId),
-                    ],
-                  );
-
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _StudentHeader(user: student),
+                      // Top row: header + streak calendar
+                      if (wide)
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: _StudentHeader(user: student),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                flex: 2,
+                                child: _StudentStreakCalendar(
+                                  studentId: studentId,
+                                  createdAt: student.createdAt,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else ...[
+                        _StudentHeader(user: student),
+                        const SizedBox(height: 16),
+                        _StudentStreakCalendar(
+                          studentId: studentId,
+                          createdAt: student.createdAt,
+                        ),
+                      ],
                       const SizedBox(height: 24),
+
+                      // Reading Progress (full width)
+                      _buildReadingSection(
+                          context, progressAsync, quizResultsAsync),
+                      const SizedBox(height: 24),
+
+                      // Vocabulary (full width)
+                      _buildVocabSection(
+                          context, vocabStatsAsync, wordListProgressAsync),
+                      const SizedBox(height: 24),
+
+                      // Achievements + Card Collection — side by side
                       if (wide)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(child: leftGroup),
-                            const SizedBox(width: 24),
-                            Expanded(child: rightGroup),
+                            Expanded(
+                              child:
+                                  _StudentAchievementsSection(studentId: studentId),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child:
+                                  _StudentCardCollection(studentId: studentId),
+                            ),
                           ],
                         )
                       else ...[
-                        leftGroup,
+                        _StudentAchievementsSection(studentId: studentId),
                         const SizedBox(height: 24),
-                        rightGroup,
+                        _StudentCardCollection(studentId: studentId),
                       ],
                       const SizedBox(height: 32),
                     ],
@@ -276,79 +302,310 @@ class _StudentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: PlayfulCard(
-          child: Row(
-            children: [
-              // Avatar
-              AvatarWidget(
-                avatar: user.avatarEquippedCache != null
-                    ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
-                        .toEntity()
-                    : const EquippedAvatar(),
-                size: 72,
-                fallbackInitials: user.initials,
-              ),
-              const SizedBox(width: 14),
-              // Large level badge next to avatar
-              _LevelBadge(level: user.level),
-              const SizedBox(width: 14),
-              // Info
-              Flexible(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.fullName,
-                      style: GoogleFonts.nunito(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.black,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+    return PlayfulCard(
+      child: Row(
+        children: [
+          // Large avatar
+          AvatarWidget(
+            avatar: user.avatarEquippedCache != null
+                ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
+                    .toEntity()
+                : const EquippedAvatar(),
+            size: 104,
+            fallbackInitials: user.initials,
+          ),
+          const SizedBox(width: 16),
+          // Info
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.fullName,
+                  style: GoogleFonts.nunito(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.black,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (user.studentNumber != null)
+                  Text(
+                    'Student #${user.studentNumber}',
+                    style: GoogleFonts.nunito(
+                      fontSize: 13,
+                      color: AppColors.neutralText,
                     ),
-                    if (user.studentNumber != null)
-                      Text(
-                        'Student #${user.studentNumber}',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          color: AppColors.neutralText,
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        _StatChip(
-                          assetPath: AppIcons.fire,
-                          value: user.currentStreak == 1
-                              ? 'Streak: 1 day'
-                              : 'Streak: ${user.currentStreak} days',
-                          color: Colors.orange,
-                        ),
-                        _StatChip(
-                          assetPath: AppIcons.trophy,
-                          value: user.longestStreak == 1
-                              ? 'Longest streak: 1 day'
-                              : 'Longest streak: ${user.longestStreak} days',
-                          color: Colors.purple,
-                        ),
-                      ],
+                  ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    _StatChip(
+                      assetPath: AppIcons.fire,
+                      value: user.currentStreak == 1
+                          ? 'Streak: 1 day'
+                          : 'Streak: ${user.currentStreak} days',
+                      color: Colors.orange,
+                    ),
+                    _StatChip(
+                      assetPath: AppIcons.trophy,
+                      value: user.longestStreak == 1
+                          ? 'Longest streak: 1 day'
+                          : 'Longest streak: ${user.longestStreak} days',
+                      color: Colors.purple,
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Level badge — right side
+          _LevelBadge(level: user.level),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact monthly activity calendar for a student, shown to the right
+/// of the header on wide screens. Pulls monthly login dates via the
+/// teacher-scoped provider. Navigate previous/next month with arrows.
+class _StudentStreakCalendar extends ConsumerStatefulWidget {
+  const _StudentStreakCalendar({
+    required this.studentId,
+    required this.createdAt,
+  });
+
+  final String studentId;
+  final DateTime? createdAt;
+
+  @override
+  ConsumerState<_StudentStreakCalendar> createState() =>
+      _StudentStreakCalendarState();
+}
+
+class _StudentStreakCalendarState
+    extends ConsumerState<_StudentStreakCalendar> {
+  late int _displayYear;
+  late int _displayMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _displayYear = now.year;
+    _displayMonth = now.month;
+  }
+
+  bool _canGoBack() {
+    final created = widget.createdAt ?? DateTime(2024, 1, 1);
+    return _displayYear > created.year ||
+        (_displayYear == created.year && _displayMonth > created.month);
+  }
+
+  bool _canGoForward() {
+    final now = DateTime.now();
+    return _displayYear < now.year ||
+        (_displayYear == now.year && _displayMonth < now.month);
+  }
+
+  void _prev() {
+    if (!_canGoBack()) return;
+    setState(() {
+      _displayMonth--;
+      if (_displayMonth < 1) {
+        _displayMonth = 12;
+        _displayYear--;
+      }
+    });
+  }
+
+  void _next() {
+    if (!_canGoForward()) return;
+    setState(() {
+      _displayMonth++;
+      if (_displayMonth > 12) {
+        _displayMonth = 1;
+        _displayYear++;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final datesAsync = ref.watch(teacherStudentMonthlyLoginsProvider((
+      studentId: widget.studentId,
+      year: _displayYear,
+      month: _displayMonth,
+    )));
+    final dates = datesAsync.valueOrNull ?? const <DateTime, bool>{};
+
+    final firstOfMonth = DateTime(_displayYear, _displayMonth, 1);
+    final daysInMonth =
+        DateTime(_displayYear, _displayMonth + 1, 0).day;
+    // Monday=1..Sunday=7 → leading blanks before day 1
+    final leadingBlanks = (firstOfMonth.weekday - 1);
+    final totalCells = leadingBlanks + daysInMonth;
+    final rows = (totalCells / 7).ceil();
+    final today = DateTime.now();
+    final monthLabel = _monthLabel(_displayMonth);
+    final activeCount = dates.length;
+
+    return PlayfulCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: month nav + active count
+          Row(
+            children: [
+              const AssetIcon(AppIcons.fire, size: 22),
+              const SizedBox(width: 6),
+              Text(
+                'Activity',
+                style: GoogleFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.black,
+                ),
+              ),
+              const Spacer(),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                onPressed: _canGoBack() ? _prev : null,
+                icon: const Icon(Icons.chevron_left, size: 20),
+              ),
+              Text(
+                '$monthLabel $_displayYear',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.neutralText,
+                ),
+              ),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                onPressed: _canGoForward() ? _next : null,
+                icon: const Icon(Icons.chevron_right, size: 20),
               ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(
+            '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutralText,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Weekday header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              for (final d in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+                SizedBox(
+                  width: 24,
+                  child: Text(
+                    d,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.neutralText,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // Day grid
+          for (int row = 0; row < rows; row++)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  for (int col = 0; col < 7; col++)
+                    _buildDayCell(row, col, leadingBlanks, daysInMonth,
+                        dates, today),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDayCell(
+    int row,
+    int col,
+    int leadingBlanks,
+    int daysInMonth,
+    Map<DateTime, bool> dates,
+    DateTime today,
+  ) {
+    final index = row * 7 + col;
+    final dayNum = index - leadingBlanks + 1;
+    if (dayNum < 1 || dayNum > daysInMonth) {
+      return const SizedBox(width: 28, height: 28);
+    }
+    final date = DateTime(_displayYear, _displayMonth, dayNum);
+    final key = DateTime(date.year, date.month, date.day);
+    final isActive = dates.containsKey(key);
+    final isFreeze = dates[key] == true;
+    final isToday = key.year == today.year &&
+        key.month == today.month &&
+        key.day == today.day;
+
+    Color bg;
+    Color fg;
+    if (isFreeze) {
+      bg = AppColors.secondary.withValues(alpha: 0.25);
+      fg = AppColors.secondaryDark;
+    } else if (isActive) {
+      bg = AppColors.wasp.withValues(alpha: 0.25);
+      fg = AppColors.waspDark;
+    } else {
+      bg = Colors.transparent;
+      fg = AppColors.neutralText;
+    }
+
+    return Container(
+      width: 28,
+      height: 28,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: bg,
+        shape: BoxShape.circle,
+        border: isToday
+            ? Border.all(color: AppColors.primary, width: 1.5)
+            : null,
+      ),
+      child: Text(
+        '$dayNum',
+        style: GoogleFonts.nunito(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: fg,
         ),
       ),
     );
+  }
+
+  String _monthLabel(int m) {
+    const labels = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return labels[m - 1];
   }
 }
 

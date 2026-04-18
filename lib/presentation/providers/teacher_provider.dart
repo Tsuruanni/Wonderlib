@@ -7,6 +7,7 @@ import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import '../../domain/usecases/user/get_login_dates_usecase.dart';
 import 'badge_progress_provider.dart';
 import 'badge_provider.dart';
 import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
@@ -205,6 +206,26 @@ final teacherStudentCardsProvider =
   final useCase = ref.watch(getUserCardsUseCaseProvider);
   final result = await useCase(GetUserCardsParams(userId: studentId));
   return result.fold((failure) => [], (cards) => cards);
+});
+
+/// Monthly login/freeze dates for a specific student (teacher view).
+/// Mirrors monthlyLoginDatesProvider but parametric on studentId.
+final teacherStudentMonthlyLoginsProvider = FutureProvider.family<
+    Map<DateTime, bool>,
+    ({String studentId, int year, int month})>((ref, params) async {
+  final from = DateTime(params.year, params.month, 1);
+  final nextMonth = DateTime(params.year, params.month + 1, 1);
+  final useCase = ref.watch(getLoginDatesUseCaseProvider);
+  final result = await useCase(
+    GetLoginDatesParams(userId: params.studentId, from: from),
+  );
+  return result.fold(
+    (_) => <DateTime, bool>{},
+    (dates) {
+      dates.removeWhere((date, _) => !date.isBefore(nextMonth));
+      return dates;
+    },
+  );
 });
 
 /// Achievement tracks (Duolingo-style) for a specific student — reuses the
