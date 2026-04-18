@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -101,11 +101,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                             const SizedBox(width: 4),
                             Text(
                               '$packs',
-                              style: GoogleFonts.nunito(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: packs > 0 ? AppColors.cardEpic : AppColors.white.withValues(alpha: 0.5),
-                              ),
+                              style: AppTextStyles.bodyMedium(color: packs > 0 ? AppColors.cardEpic : AppColors.white.withValues(alpha: 0.5)).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                             ),
                           ],
                         ),
@@ -162,11 +158,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                         Flexible(
                           child: Text(
                             'Pack added to inventory!',
-                            style: GoogleFonts.nunito(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white,
-                            ),
+                            style: AppTextStyles.titleMedium(color: AppColors.white).copyWith(fontSize: 16),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -300,21 +292,12 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
             // Title
             Text(
               'MYTHIC PACK',
-              style: GoogleFonts.nunito(
-                fontSize: isWide ? 28 : 24,
-                fontWeight: FontWeight.w900,
-                color: AppColors.white,
-                letterSpacing: 6,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.white).copyWith(fontSize: isWide ? 28 : 24, fontWeight: FontWeight.w900, letterSpacing: 6),
             ),
             const SizedBox(height: 6),
             Text(
               '3 Mythology Cards Inside',
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.white.withValues(alpha: 0.4),
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.white.withValues(alpha: 0.4)).copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 24),
 
@@ -357,11 +340,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
               const SizedBox(height: 12),
               Text(
                 error,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.danger,
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.danger).copyWith(fontWeight: FontWeight.w600),
               ),
             ],
 
@@ -370,10 +349,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
               Text(
                 'Complete quests or read books\nto earn packs!',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  color: AppColors.white.withValues(alpha: 0.4),
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.white.withValues(alpha: 0.4)),
               ),
             ],
           ],
@@ -591,10 +567,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                     children: [
                       Text(
                         'Packs remaining: ',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          color: AppColors.white.withValues(alpha: 0.6),
-                        ),
+                        style: AppTextStyles.titleMedium(color: AppColors.white.withValues(alpha: 0.6)).copyWith(fontSize: 16),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -604,11 +577,7 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                         ),
                         child: Text(
                           '$packsRemaining',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.cardEpic,
-                          ),
+                          style: AppTextStyles.titleMedium(color: AppColors.cardEpic).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ],

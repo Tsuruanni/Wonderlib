@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'vocab_question_container.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/services/word_audio_player.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
@@ -238,11 +238,7 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 promptText,
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -356,11 +352,7 @@ class _VocabListeningQuestionState extends State<VocabListeningQuestion> {
                 alignment: Alignment.center,
                 child: Text(
                   option,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: textColor).copyWith(fontWeight: FontWeight.w800),
                   textAlign: TextAlign.center,
                 ),
               ),

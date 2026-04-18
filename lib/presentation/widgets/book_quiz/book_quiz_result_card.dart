@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../common/animated_game_button.dart';
 
@@ -167,12 +168,7 @@ class BookQuizResultCard extends StatelessWidget {
             builder: (context, value, _) {
               return Text(
                 '${value.round()}%',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  color: statusColor,
-                  fontFamily: 'Nunito',
-                ),
+                style: AppTextStyles.display(color: statusColor),
               );
             },
           ),
@@ -186,25 +182,16 @@ class BookQuizResultCard extends StatelessWidget {
     return Text(
       isPassing ? 'Awesome!' : 'Don\'t give up!',
       textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w900,
-        color: statusColor,
-        fontFamily: 'Nunito',
-        height: 1.0,
-      ),
+      style: AppTextStyles.display(color: statusColor, size: 28)
+          .copyWith(height: 1.0),
     );
   }
 
   Widget _buildScoreDetails(BuildContext context, ColorScheme colorScheme) {
     return Text(
       'You scored ${result.score.round()} out of ${result.maxScore.round()}',
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w700,
-        color: const Color(0xFF6B7280),
-        fontFamily: 'Nunito',
-      ),
+      style: AppTextStyles.titleMedium(color: AppColors.gray500)
+          .copyWith(fontSize: 16),
     );
   }
 
@@ -217,13 +204,8 @@ class BookQuizResultCard extends StatelessWidget {
         ),
         child: Text(
         'ATTEMPT #${result.attemptNumber}',
-        style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: AppColors.gray400,
-            fontFamily: 'Nunito',
-            letterSpacing: 1.0,
-        ),
+        style: AppTextStyles.caption(color: AppColors.gray400)
+            .copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.0),
       ),
     );
   }
@@ -250,12 +232,8 @@ class BookQuizResultCard extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             'Hit ${passingScore.round()}% to pass',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFFE11D48),
-              fontFamily: 'Nunito',
-            ),
+            style: AppTextStyles.titleMedium(color: const Color(0xFFE11D48))
+                .copyWith(fontSize: 14),
           ),
         ],
       ),

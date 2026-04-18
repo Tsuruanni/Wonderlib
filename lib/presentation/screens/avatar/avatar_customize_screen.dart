@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/avatar.dart';
 import '../../utils/app_icons.dart';
@@ -68,15 +68,15 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Change Gender', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+        title: Text('Change Gender', style: AppTextStyles.titleMedium()),
         content: Text(
           'Switch to ${otherBase.displayName} for 500 coins?\nYour current items will be saved.\n\nBalance: $coins coins',
-          style: GoogleFonts.nunito(),
+          style: AppTextStyles.bodyLarge(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('Cancel', style: GoogleFonts.nunito()),
+            child: Text('Cancel', style: AppTextStyles.bodyLarge()),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -85,7 +85,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: coins >= 500 ? () => Navigator.of(ctx).pop(true) : null,
-            child: Text('Change (500)', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+            child: Text('Change (500)', style: AppTextStyles.titleMedium()),
           ),
         ],
       ),
@@ -142,7 +142,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Buy ${item.displayName}?',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.bold),
+          style: AppTextStyles.titleMedium(),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -156,21 +156,21 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                 const SizedBox(width: 4),
                 Text(
                   '${item.coinPrice} coins',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: AppTextStyles.titleMedium().copyWith(fontSize: 16),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
               'You have $userCoins coins',
-              style: GoogleFonts.nunito(color: AppColors.neutralText, fontSize: 13),
+              style: AppTextStyles.bodySmall(color: AppColors.neutralText),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('Cancel', style: GoogleFonts.nunito()),
+            child: Text('Cancel', style: AppTextStyles.bodyLarge()),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -182,7 +182,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
               Navigator.of(ctx).pop();
               _buy(item);
             },
-            child: Text('Buy', style: GoogleFonts.nunito(fontWeight: FontWeight.bold)),
+            child: Text('Buy', style: AppTextStyles.titleMedium()),
           ),
         ],
       ),
@@ -221,11 +221,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
       appBar: AppBar(
         title: Text(
           'CUSTOMIZE AVATAR',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-            letterSpacing: 1.0,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(letterSpacing: 1.0),
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -263,11 +259,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                             const SizedBox(width: 4),
                             Text(
                               'Change Gender',
-                              style: GoogleFonts.nunito(
-                                fontSize: 11,
-                                color: AppColors.neutralText,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                             ),
                           ],
                         ),
@@ -350,11 +342,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
             ),
             child: Text(
               _formatCategoryName(cat),
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? AppColors.primary : AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: isSelected ? AppColors.primary : AppColors.neutralText).copyWith(fontSize: 11),
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -519,11 +507,7 @@ class _ItemCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               label,
-              style: GoogleFonts.nunito(
-                fontSize: 9,
-                fontWeight: isEquipped ? FontWeight.bold : FontWeight.w600,
-                color: isEquipped ? AppColors.primary : AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: isEquipped ? AppColors.primary : AppColors.neutralText).copyWith(fontSize: 9),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

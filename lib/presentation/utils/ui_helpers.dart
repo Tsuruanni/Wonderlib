@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../app/text_styles.dart';
 import '../../app/theme.dart';
 import '../../domain/entities/card.dart';
 import '../../domain/entities/student_assignment.dart';
@@ -259,7 +259,7 @@ void showAppSnackBar(
     SnackBar(
       content: Text(
         message,
-        style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: fgColor),
+        style: AppTextStyles.titleMedium(color: fgColor),
       ),
       backgroundColor: bgColor,
       behavior: SnackBarBehavior.floating,

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
@@ -53,10 +53,7 @@ class StudentAssignmentDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         'Could not load assignment',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.neutralText,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.titleMedium(color: AppColors.neutralText),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
@@ -72,10 +69,7 @@ class StudentAssignmentDetailScreen extends ConsumerWidget {
                     return Center(
                       child: Text(
                         'Assignment not found',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.neutralText,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: AppTextStyles.titleMedium(color: AppColors.neutralText),
                       ),
                     );
                   }
@@ -143,11 +137,7 @@ class _DetailContent extends ConsumerWidget {
                     const SizedBox(width: 6),
                     Text(
                       'Back to Assignments',
-                      style: GoogleFonts.nunito(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.neutralText,
-                      ),
+                      style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                     ),
                   ],
                 ),
@@ -187,11 +177,7 @@ class _DetailContent extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Text(
                             assignment.type.displayName,
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
+                            style: AppTextStyles.caption(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
@@ -200,21 +186,13 @@ class _DetailContent extends ConsumerWidget {
                     // Title
                     Text(
                       assignment.title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                      ),
+                      style: AppTextStyles.headlineMedium(color: Colors.white).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
                     ),
                     if (assignment.teacherName != null) ...[
                       const SizedBox(height: 4),
                       Text(
                         'From ${assignment.teacherName}',
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
+                        style: AppTextStyles.bodySmall(color: Colors.white.withValues(alpha: 0.8)).copyWith(fontWeight: FontWeight.w600),
                       ),
                     ],
                   ],
@@ -256,11 +234,7 @@ class _DetailContent extends ConsumerWidget {
                               const SizedBox(width: 4),
                               Text(
                                 assignment.status.displayName,
-                                style: GoogleFonts.nunito(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: _statusColor,
-                                ),
+                                style: AppTextStyles.caption(color: _statusColor).copyWith(fontWeight: FontWeight.w800),
                               ),
                             ],
                           ),
@@ -269,11 +243,7 @@ class _DetailContent extends ConsumerWidget {
                         // Progress percentage
                         Text(
                           '${assignment.progress.toStringAsFixed(0)}%',
-                          style: GoogleFonts.nunito(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.black,
-                          ),
+                          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w900),
                         ),
                       ],
                     ),
@@ -294,11 +264,7 @@ class _DetailContent extends ConsumerWidget {
                         children: [
                           Text(
                             'Score',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.neutralText,
-                            ),
+                            style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                           ),
                           const Spacer(),
                           Container(
@@ -311,11 +277,7 @@ class _DetailContent extends ConsumerWidget {
                             ),
                             child: Text(
                               '${assignment.score!.toStringAsFixed(0)}%',
-                              style: GoogleFonts.nunito(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                                color: _scoreColor(assignment.score!),
-                              ),
+                              style: AppTextStyles.titleMedium(color: _scoreColor(assignment.score!)).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                             ),
                           ),
                         ],
@@ -357,22 +319,14 @@ class _DetailContent extends ConsumerWidget {
                         children: [
                           Text(
                             'Due Date',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.neutralText,
-                            ),
+                            style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
                           ),
                           Text(
                             DateFormat('EEEE, MMMM d, y')
                                 .format(assignment.dueDate),
-                            style: GoogleFonts.nunito(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: isOverdue
+                            style: AppTextStyles.bodyMedium(color: isOverdue
                                   ? AppColors.danger
-                                  : AppColors.black,
-                            ),
+                                  : AppColors.black).copyWith(fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
@@ -393,13 +347,9 @@ class _DetailContent extends ConsumerWidget {
                               : daysLeft == 0
                                   ? 'Due today'
                                   : '$daysLeft days left',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: isOverdue
+                          style: AppTextStyles.caption(color: isOverdue
                                 ? AppColors.danger
-                                : AppColors.primary,
-                          ),
+                                : AppColors.primary).copyWith(fontWeight: FontWeight.w800),
                         ),
                       ),
                   ],
@@ -429,20 +379,12 @@ class _DetailContent extends ConsumerWidget {
                     children: [
                       Text(
                         'Instructions',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.black,
-                        ),
+                        style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         assignment.description!,
-                        style: GoogleFonts.nunito(
-                          fontSize: 14,
-                          color: AppColors.neutralText,
-                          height: 1.5,
-                        ),
+                        style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, height: 1.5),
                       ),
                     ],
                   ),
@@ -453,11 +395,7 @@ class _DetailContent extends ConsumerWidget {
               const SizedBox(height: 20),
               Text(
                 'What to Do',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
 
@@ -596,18 +534,11 @@ class _ActionCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText),
                   ),
                 ],
               ),
@@ -644,7 +575,7 @@ class _UnitItemsList extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, __) => Text(
         'Error loading unit items',
-        style: GoogleFonts.nunito(color: AppColors.neutralText),
+        style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
       ),
       data: (items) {
         return Container(
@@ -746,20 +677,13 @@ class _UnitItemRow extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isTracked
+                    style: AppTextStyles.button(color: isTracked
                           ? AppColors.black
-                          : AppColors.neutralText,
-                    ),
+                          : AppColors.neutralText).copyWith(fontSize: 14),
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.neutralText),
                   ),
                 ],
               ),
@@ -775,11 +699,7 @@ class _UnitItemRow extends ConsumerWidget {
             else
               Text(
                 'not graded',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
               ),
           ],
         ),

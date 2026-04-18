@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../utils/ui_helpers.dart';
 import '../../../domain/entities/vocabulary_unit.dart';
@@ -94,21 +95,12 @@ class PathUnitBanner extends StatelessWidget {
             children: [
               Text(
                 'UNIT $unitIndex',
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  letterSpacing: 1.0,
-                ),
+                style: AppTextStyles.bodySmall(color: Colors.white.withValues(alpha: 0.9)).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.0),
               ),
               const SizedBox(width: 8),
               Text(
                 unit.name,
-                style: GoogleFonts.nunito(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.bodyMedium(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
               ),
               if (isLocked) ...[
                 const SizedBox(width: 8),
@@ -391,12 +383,7 @@ class _StartBubbleState extends State<StartBubble>
             ),
             child: Text(
               'START',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary,
-                letterSpacing: 1.0,
-              ),
+              style: AppTextStyles.button(color: AppColors.primary).copyWith(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0),
             ),
           ),
           // Triangle pointer

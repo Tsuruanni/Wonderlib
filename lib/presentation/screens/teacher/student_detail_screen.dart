@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../domain/entities/system_settings.dart';
@@ -356,23 +356,14 @@ class _StudentHeader extends ConsumerWidget {
               children: [
                 Text(
                   user.fullName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.black,
-                    height: 1.1,
-                  ),
+                  style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900, height: 1.1),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (className != null)
                   Text(
                     'Class $className',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                   ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -448,12 +439,7 @@ class _LeagueIconBadge extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           tier.label,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w900,
-            color: color,
-            letterSpacing: 0.5,
-          ),
+          style: AppTextStyles.caption(color: color).copyWith(fontSize: 11, fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -567,12 +553,7 @@ class _StudentStreakCalendarState
               children: [
                 Text(
                   'Student Activity',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 0.3,
-                  ),
+                  style: AppTextStyles.button(color: Colors.white).copyWith(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 0.3),
                 ),
                 const Spacer(),
                 IconButton(
@@ -585,11 +566,7 @@ class _StudentStreakCalendarState
                 ),
                 Text(
                   '$monthLabel $_displayYear',
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w900),
                 ),
                 IconButton(
                   padding: EdgeInsets.zero,
@@ -612,11 +589,7 @@ class _StudentStreakCalendarState
                     Expanded(
                       child: Text(
                         '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.neutralText,
-                        ),
+                        style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                       ),
                     ),
                     if (widget.longestStreak > 0)
@@ -627,11 +600,7 @@ class _StudentStreakCalendarState
                           const SizedBox(width: 4),
                           Text(
                             'Longest streak: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.streakOrange,
-                            ),
+                            style: AppTextStyles.caption(color: AppColors.streakOrange).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
@@ -648,11 +617,7 @@ class _StudentStreakCalendarState
                         child: Text(
                           d,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 10, fontWeight: FontWeight.w800),
                         ),
                       ),
                   ],
@@ -759,11 +724,7 @@ class _StudentStreakCalendarState
         ),
         child: Text(
           '$dayNum',
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: AppColors.streakOrange,
-          ),
+          style: AppTextStyles.caption(color: AppColors.streakOrange).copyWith(fontWeight: FontWeight.w800),
         ),
       );
     }
@@ -774,11 +735,7 @@ class _StudentStreakCalendarState
       child: Center(
         child: Text(
           '$dayNum',
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: AppColors.gray400,
-          ),
+          style: AppTextStyles.caption(color: AppColors.gray400).copyWith(fontWeight: FontWeight.w700),
         ),
       ),
     );
@@ -836,21 +793,11 @@ class _RankChip extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: color.withValues(alpha: 0.75),
-                  letterSpacing: 0.5,
-                ),
+                style: AppTextStyles.caption(color: color.withValues(alpha: 0.75)).copyWith(fontSize: 10, fontWeight: FontWeight.w800),
               ),
               Text(
                 value,
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: color,
-                  height: 1.1,
-                ),
+                style: AppTextStyles.titleMedium(color: color).copyWith(fontSize: 16, fontWeight: FontWeight.w900, height: 1.1),
               ),
             ],
           ),
@@ -881,23 +828,12 @@ class _LevelBadge extends StatelessWidget {
         children: [
           Text(
             'LVL',
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: AppColors.waspDark,
-              letterSpacing: 1.0,
-              height: 1.0,
-            ),
+            style: AppTextStyles.caption(color: AppColors.waspDark).copyWith(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.0, height: 1.0),
           ),
           const SizedBox(height: 2),
           Text(
             '$level',
-            style: GoogleFonts.nunito(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.waspDark,
-              height: 1.0,
-            ),
+            style: AppTextStyles.headlineLarge(color: AppColors.waspDark).copyWith(fontWeight: FontWeight.w900, height: 1.0),
           ),
         ],
       ),
@@ -937,11 +873,7 @@ class _StatChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             value,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: AppTextStyles.caption(color: color).copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -1046,10 +978,7 @@ class _ShowAllButton extends StatelessWidget {
         label: Text(expanded ? 'Show less' : 'Show all ($hiddenCount more)'),
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primaryDark,
-          textStyle: GoogleFonts.nunito(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-          ),
+          textStyle: AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -1092,12 +1021,7 @@ class _BadgeGroupHeader extends StatelessWidget {
         children: [
           Text(
             _label().toUpperCase(),
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: AppColors.neutralText,
-              letterSpacing: 1.0,
-            ),
+            style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.0),
           ),
           const SizedBox(width: 6),
           Container(
@@ -1108,11 +1032,7 @@ class _BadgeGroupHeader extends StatelessWidget {
             ),
             child: Text(
               '$count',
-              style: GoogleFonts.nunito(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: AppColors.waspDark,
-              ),
+              style: AppTextStyles.caption(color: AppColors.waspDark).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
             ),
           ),
         ],
@@ -1154,12 +1074,7 @@ class _CefrBadge extends StatelessWidget {
       ),
       child: Text(
         level.toUpperCase(),
-        style: GoogleFonts.nunito(
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          letterSpacing: 0.5,
-        ),
+        style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
       ),
     );
   }
@@ -1181,11 +1096,7 @@ class _QuizScoreLine extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           'Quiz score: $pct%',
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
+          style: AppTextStyles.caption(color: color).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
         ),
       ],
     );
@@ -1222,21 +1133,13 @@ class _SectionTitle extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           title,
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
         ),
         if (trailing != null) ...[
           const Spacer(),
           Text(
             trailing!,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ],
@@ -1336,12 +1239,7 @@ class _HorizontalBookCard extends StatelessWidget {
           // Title
           Text(
             progress.bookTitle,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-              height: 1.2,
-            ),
+            style: AppTextStyles.caption(color: AppColors.black).copyWith(fontWeight: FontWeight.w800, height: 1.2),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1361,11 +1259,7 @@ class _HorizontalBookCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '${progress.completionPercentage.toStringAsFixed(0)}%',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  color: pctColor,
-                ),
+                style: AppTextStyles.caption(color: pctColor).copyWith(fontSize: 11, fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -1413,21 +1307,12 @@ class _VocabStatsCard extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: RichText(
         text: TextSpan(
-          style: GoogleFonts.nunito(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: AppColors.black,
-            height: 1.1,
-          ),
+          style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22, fontWeight: FontWeight.w900, height: 1.1),
           children: [
             TextSpan(text: '${stats.totalWords} '),
             TextSpan(
               text: 'words in wordbank',
-              style: GoogleFonts.nunito(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.headlineMedium(color: AppColors.neutralText).copyWith(fontSize: 22),
             ),
           ],
         ),
@@ -1464,10 +1349,7 @@ class _VocabStatsCard extends StatelessWidget {
       label: const Text('View'),
       style: TextButton.styleFrom(
         foregroundColor: AppColors.primaryDark,
-        textStyle: GoogleFonts.nunito(
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-        ),
+        textStyle: AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w800),
       ),
     );
 
@@ -1528,12 +1410,7 @@ class _VocabStatsCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Word Lists (${lists.length})',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.neutralText,
-                  letterSpacing: 0.5,
-                ),
+                style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             const SizedBox(height: 8),
@@ -1573,21 +1450,11 @@ class _VocabInline extends StatelessWidget {
       children: [
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: color,
-            height: 1.1,
-          ),
+          style: AppTextStyles.titleMedium(color: color).copyWith(fontSize: 18, fontWeight: FontWeight.w900, height: 1.1),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutralText,
-            letterSpacing: 0.3,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.3),
         ),
       ],
     );
@@ -1630,10 +1497,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     progress.wordListName,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w700),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1661,11 +1525,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
                     ),
                     child: Text(
                       w.word,
-                      style: GoogleFonts.nunito(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: color,
-                      ),
+                      style: AppTextStyles.caption(color: color).copyWith(fontSize: 10),
                     ),
                   ),).toList(),
                 );
@@ -1691,11 +1551,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${progress.bestAccuracy!.toStringAsFixed(0)}%',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: _getAccuracyColor(progress.bestAccuracy!),
-                    ),
+                    style: AppTextStyles.caption(color: _getAccuracyColor(progress.bestAccuracy!)).copyWith(fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -1737,10 +1593,7 @@ class _EmptySection extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             message,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14),
           ),
         ],
       ),
@@ -1784,10 +1637,7 @@ class _BadgeCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     badge.badge.name,
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: AppTextStyles.caption().copyWith(fontWeight: FontWeight.w700),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1797,10 +1647,7 @@ class _BadgeCard extends StatelessWidget {
             const Spacer(),
             Text(
               badge.badge.description ?? '',
-              style: GoogleFonts.nunito(
-                fontSize: 10,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 10),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

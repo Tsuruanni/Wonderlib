@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../utils/app_icons.dart';
 
@@ -74,11 +74,7 @@ class _ProgressSheetContent extends StatelessWidget {
           // Title
           Text(
             data.name,
-            style: GoogleFonts.nunito(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22),
           ),
           const SizedBox(height: 12),
           // Stars
@@ -146,11 +142,7 @@ class _ProgressSheetContent extends StatelessWidget {
               ),
               child: Text(
                 'PRACTICE',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1,
-                ),
+                style: AppTextStyles.titleMedium().copyWith(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
               ),
             ),
           ),
@@ -179,18 +171,11 @@ class _StatColumn extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
         ),
       ],
     );

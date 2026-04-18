@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 enum GameButtonVariant {
@@ -173,13 +174,7 @@ class _GameButtonState extends State<GameButton> {
                     children: [
                       Text(
                         widget.label.toUpperCase(),
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Nunito',
-                          letterSpacing: 0.8,
-                        ),
+                        style: AppTextStyles.button(color: textColor),
                       ),
                       if (widget.icon != null) ...[
                         const SizedBox(width: 8),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../data/datasources/mock_books_data.dart';
 import '../../../domain/entities/book.dart';
@@ -140,10 +141,10 @@ class LibraryScreen extends ConsumerWidget {
              Expanded(
                child: TextField(
                  autofocus: true,
-                 style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18),
+                 style: AppTextStyles.titleMedium().copyWith(fontSize: 18),
                  decoration: InputDecoration(
                    hintText: 'Search books...',
-                   hintStyle: GoogleFonts.nunito(color: AppColors.neutralText),
+                   hintStyle: AppTextStyles.bodyLarge(color: AppColors.neutralText),
                    border: InputBorder.none,
                    enabledBorder: InputBorder.none,
                    focusedBorder: InputBorder.none,
@@ -250,11 +251,7 @@ class LibraryScreen extends ConsumerWidget {
         ),
         child: Text(
           label,
-          style: GoogleFonts.nunito(
-            color: isSelected ? Colors.white : AppColors.neutralText,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.button(color: isSelected ? Colors.white : AppColors.neutralText).copyWith(fontSize: 14),
         ),
       ),
     );
@@ -399,11 +396,7 @@ class _LibraryShelf extends ConsumerWidget {
               Expanded(
                 child: Text(
                   "Level $level",
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ),
               Container(
@@ -414,11 +407,7 @@ class _LibraryShelf extends ConsumerWidget {
                 ),
                 child: Text(
                   '$completedCount / ${realBooks.length}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -542,11 +531,7 @@ class _LoadMoreButton extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 '+$remaining more',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
+                style: AppTextStyles.button(color: color).copyWith(fontSize: 14),
               ),
             ],
           ),
@@ -590,7 +575,7 @@ class _BookShelfItem extends ConsumerWidget {
                title: Text("Locked", style: GoogleFonts.fredoka(fontSize: 24, color: AppColors.danger)),
                content: Text(
                  "Complete your assignment to read this book.",
-                 style: GoogleFonts.nunito(fontSize: 16),
+                 style: AppTextStyles.titleMedium().copyWith(fontSize: 16),
                ),
                actions: [
                  TextButton(
@@ -686,12 +671,7 @@ class _BookShelfItem extends ConsumerWidget {
                     book.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.button(color: AppColors.black).copyWith(fontSize: 14, height: 1.2),
                   ),
                   const SizedBox(height: 6),
                   Container(
@@ -704,12 +684,7 @@ class _BookShelfItem extends ConsumerWidget {
                       book.genre?.toUpperCase() ?? 'GENERAL',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunito(
-                        fontSize: 9,
-                        color: AppColors.neutralText,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 9, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -771,12 +746,7 @@ class _MockBookCard extends StatelessWidget {
                   book.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.button(color: AppColors.black).copyWith(fontSize: 14, height: 1.2),
                 ),
                 const SizedBox(height: 6),
                 Container(
@@ -789,12 +759,7 @@ class _MockBookCard extends StatelessWidget {
                     book.genre?.toUpperCase() ?? 'GENERAL',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 9,
-                      color: AppColors.neutralText,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 9, fontWeight: FontWeight.w800),
                   ),
                 ),
               ],
@@ -821,7 +786,7 @@ class _EmptyState extends StatelessWidget {
            const SizedBox(height: 16),
            Text(
              'No books found',
-             style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.neutralText),
+             style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 18),
            ),
         ],
       ),
@@ -859,11 +824,7 @@ class _ContinueReadingSection extends ConsumerWidget {
                 children: [
                   Text(
                     'Continue Reading',
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(width: 8),
                   Container(
@@ -874,11 +835,7 @@ class _ContinueReadingSection extends ConsumerWidget {
                     ),
                     child: Text(
                       '${books.length}',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                        color: AppColors.secondary,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
                 ],
@@ -999,12 +956,7 @@ class _ContinueReadingCard extends ConsumerWidget {
                     book.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.button(color: AppColors.black).copyWith(fontSize: 14, height: 1.2),
                   ),
                   const SizedBox(height: 6),
                   Container(
@@ -1017,12 +969,7 @@ class _ContinueReadingCard extends ConsumerWidget {
                       book.genre?.toUpperCase() ?? 'GENERAL',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.nunito(
-                        fontSize: 9,
-                        color: AppColors.neutralText,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 9, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -1062,11 +1009,7 @@ class _QuizBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             'Take the Quiz!',
-            style: GoogleFonts.nunito(
-              color: Colors.white,
-              fontWeight: FontWeight.w800,
-              fontSize: 10,
-            ),
+            style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 10, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -1095,12 +1038,7 @@ class _DemoBadge extends StatelessWidget {
         ),
         child: Text(
           'DEMO',
-          style: GoogleFonts.nunito(
-            color: AppColors.wasp,
-            fontWeight: FontWeight.w900,
-            fontSize: 10,
-            letterSpacing: 1,
-          ),
+          style: AppTextStyles.caption(color: AppColors.wasp).copyWith(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1),
         ),
       ),
     );
@@ -1183,10 +1121,7 @@ class _LockedLibraryBanner extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Complete your assignment to unlock the full library!',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.danger,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.danger),
                 ),
               ),
             ],

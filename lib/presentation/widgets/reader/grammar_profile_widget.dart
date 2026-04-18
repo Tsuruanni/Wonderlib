@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 
 /// Placeholder for the upcoming Grammar Profile feature shown as a right-side
@@ -27,21 +27,14 @@ class GrammarProfileWidget extends StatelessWidget {
             children: [
               Text(
                 'Grammar Profile',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
               Expanded(
                 child: Center(
                   child: Text(
                     'Coming soon',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText),
                   ),
                 ),
               ),

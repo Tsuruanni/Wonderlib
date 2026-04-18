@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
@@ -131,14 +131,9 @@ class _InlineTrueFalseActivityState extends State<InlineTrueFalseActivity>
               Text(
                 content.statement,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: widget.settings.fontSize,
-                  fontWeight: FontWeight.w700,
-                  color: widget.settings.theme == ReaderTheme.dark
+                style: AppTextStyles.titleMedium(color: widget.settings.theme == ReaderTheme.dark
                       ? Colors.black
-                      : AppColors.black,
-                  height: 1.4,
-                ),
+                      : AppColors.black).copyWith(fontSize: widget.settings.fontSize, height: 1.4),
               ),
 
               const SizedBox(height: 16),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -235,28 +235,18 @@ class CardCollectionScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               card.name,
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleLarge(color: AppColors.black),
             ),
             const SizedBox(height: 4),
             Text(
               '${card.category.label} collection',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14),
             ),
             const SizedBox(height: 8),
             Text(
               'Open booster packs to unlock this card!',
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -275,11 +265,7 @@ class CardCollectionScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   'OPEN PACKS',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -353,11 +339,7 @@ class _CategorySection extends ConsumerWidget {
               Expanded(
                 child: Text(
                   category.label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ),
               Container(
@@ -368,11 +350,7 @@ class _CategorySection extends ConsumerWidget {
                 ),
                 child: Text(
                   '$ownedCount / ${cards.length}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -509,23 +487,14 @@ class _OpenPackBanner extends ConsumerWidget {
                       children: [
                         Text(
                           hasPacks ? 'PACKS AVAILABLE' : 'GET NEW CARDS',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white.withValues(alpha: 0.8),
-                            letterSpacing: 1,
-                          ),
+                          style: AppTextStyles.button(color: Colors.white.withValues(alpha: 0.8)).copyWith(fontSize: 14, fontWeight: FontWeight.w800, letterSpacing: 1),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           hasPacks
                               ? 'Open Booster Pack ($packs)'
                               : 'Buy Booster Pack',
-                          style: GoogleFonts.nunito(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          style: AppTextStyles.titleLarge(color: Colors.white).copyWith(fontWeight: FontWeight.w900),
                         ),
                       ],
                     ),
@@ -557,11 +526,7 @@ class _OpenPackBanner extends ConsumerWidget {
                               const SizedBox(width: 6),
                               Text(
                                 '$packs',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.cardEpic,
-                                ),
+                                style: AppTextStyles.titleMedium(color: AppColors.cardEpic).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                               ),
                             ],
                           )
@@ -572,11 +537,7 @@ class _OpenPackBanner extends ConsumerWidget {
                               const SizedBox(width: 6),
                               Text(
                                 '$packCost',
-                                style: GoogleFonts.nunito(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.black,
-                                ),
+                                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                               ),
                             ],
                           ),
@@ -632,11 +593,7 @@ class _LoadMoreButton extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 '+$remaining more',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
+                style: AppTextStyles.button(color: color).copyWith(fontSize: 14),
               ),
             ],
           ),
@@ -669,11 +626,7 @@ class _CardDetailInfo extends ConsumerWidget {
           // Card name
           Text(
             card.name,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           // Rarity row
@@ -689,11 +642,7 @@ class _CardDetailInfo extends ConsumerWidget {
                   ),
                   child: Text(
                     card.rarity.label,
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: rarityColor,
-                    ),
+                    style: AppTextStyles.bodyMedium(color: rarityColor).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -725,11 +674,7 @@ class _CardDetailInfo extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(
                     '${card.power}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                   ),
                 ],
               ),
@@ -743,11 +688,7 @@ class _CardDetailInfo extends ConsumerWidget {
                   const SizedBox(width: 4),
                   Text(
                     card.category.label,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -759,12 +700,7 @@ class _CardDetailInfo extends ConsumerWidget {
             const SizedBox(height: 12),
             Text(
               card.description!,
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                color: AppColors.neutralText,
-                height: 1.4,
-                fontStyle: FontStyle.italic,
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(height: 1.4, fontStyle: FontStyle.italic),
             ),
           ],
 
@@ -779,11 +715,7 @@ class _CardDetailInfo extends ConsumerWidget {
               ),
               child: Text(
                 '⚡ ${card.specialSkill}',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.caption(color: AppColors.black).copyWith(fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -818,11 +750,7 @@ class _CardDetailInfo extends ConsumerWidget {
           Flexible(
             child: Text(
               'No one else in your class has this!',
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: rarityColor,
-              ),
+              style: AppTextStyles.bodySmall(color: rarityColor).copyWith(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -837,20 +765,13 @@ class _CardDetailInfo extends ConsumerWidget {
       children: [
         Text(
           '$ownerCount of $totalStudents classmates also own this',
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
         Text(
           names,
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText),
         ),
       ],
     );

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'vocab_question_container.dart';
 import 'vocab_question_image.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import '../../../widgets/common/game_button.dart';
@@ -182,11 +182,7 @@ class _VocabSentenceGapQuestionState extends State<VocabSentenceGapQuestion> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'Fill in the blank',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/treasure_wheel.dart';
 import '../../utils/app_icons.dart';
@@ -129,10 +130,7 @@ class _TreasureWheelScreenState extends ConsumerState<TreasureWheelScreen> {
         // Title
         Text(
           'SPIN TO WIN',
-          style: TextStyle(
-            color: AppColors.wasp,
-            fontSize: 32,
-            fontWeight: FontWeight.w900,
+          style: AppTextStyles.hero(color: AppColors.wasp).copyWith(
             letterSpacing: 4,
             shadows: [
               Shadow(blurRadius: 20, color: AppColors.wasp.withValues(alpha: 0.5)),
@@ -232,10 +230,7 @@ class _RewardView extends StatelessWidget {
           // "YOU WON" text
           Text(
             'YOU WON!',
-            style: TextStyle(
-              color: AppColors.wasp,
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
+            style: AppTextStyles.display(color: AppColors.wasp).copyWith(
               letterSpacing: 4,
               shadows: [
                 Shadow(blurRadius: 20, color: AppColors.wasp.withValues(alpha: 0.6)),
@@ -253,11 +248,7 @@ class _RewardView extends StatelessWidget {
             isCoin
                 ? '${result.rewardAmount} Coins'
                 : '${result.rewardAmount} Card ${result.rewardAmount == 1 ? 'Pack' : 'Packs'}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-            ),
+            style: AppTextStyles.headlineLarge(color: Colors.white),
           )
               .animate()
               .fadeIn(duration: 400.ms, delay: 400.ms)
@@ -273,10 +264,9 @@ class _RewardView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'Added to your pack inventory!',
-              style: TextStyle(
+              style: AppTextStyles.bodyMedium(
                 color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 14,
-              ),
+              ).copyWith(fontSize: 14),
             ).animate().fadeIn(delay: 600.ms),
           ],
 
@@ -317,7 +307,9 @@ class _LoadingView extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           'Preparing your treasure...',
-          style: TextStyle(color: AppColors.wasp.withValues(alpha: 0.7), fontSize: 16),
+          style: AppTextStyles.bodyLarge(
+            color: AppColors.wasp.withValues(alpha: 0.7),
+          ).copyWith(fontSize: 16),
         ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(duration: 800.ms),
       ],
     );
@@ -341,7 +333,8 @@ class _ErrorView extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           message,
-          style: const TextStyle(color: Colors.white70, fontSize: 16),
+          style: AppTextStyles.bodyLarge(color: Colors.white70)
+              .copyWith(fontSize: 16),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 /// Colors assigned to matched pairs in matching-style quiz widgets.
@@ -331,13 +332,7 @@ class _MatchItem3DState extends State<_MatchItem3D> {
                 child: Center(
                   child: Text(
                     widget.text,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: textColor,
-                      fontFamily: 'Nunito',
-                      height: 1.2,
-                    ),
+                    style: AppTextStyles.bodySmall(color: textColor).copyWith(fontWeight: FontWeight.w700, height: 1.2),
                     textAlign: TextAlign.center,
                   ),
                 ),

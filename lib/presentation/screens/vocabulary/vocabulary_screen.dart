@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../utils/app_icons.dart';
@@ -63,11 +63,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
                   const SizedBox(width: 14),
                   Text(
                     'MY WORD BANK',
-                    style: GoogleFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleLarge(color: AppColors.black),
                   ),
                 ],
               ),
@@ -114,10 +110,7 @@ class _VocabularyScreenState extends ConsumerState<VocabularyScreen> {
                               const SizedBox(height: 12),
                               Text(
                                 'Failed to load vocabulary',
-                                style: GoogleFonts.nunito(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.neutralText,
-                                ),
+                                style: AppTextStyles.titleMedium(color: AppColors.neutralText),
                               ),
                               const SizedBox(height: 8),
                               TextButton(
@@ -201,19 +194,11 @@ class _StatBadge extends StatelessWidget {
       children: [
         Text(
           value.toString(),
-          style: GoogleFonts.nunito(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: color,
-          ),
+          style: AppTextStyles.headlineMedium(color: color).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText),
         ),
       ],
     );
@@ -259,11 +244,7 @@ class _TabChip extends StatelessWidget {
         ),
         child: Text(
           '$label ($count)',
-          style: GoogleFonts.nunito(
-            color: isSelected ? Colors.white : AppColors.neutralText,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.button(color: isSelected ? Colors.white : AppColors.neutralText).copyWith(fontSize: 14),
         ),
       ),
     );
@@ -288,11 +269,7 @@ class _WordList extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               emptyMessage,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
             ),
           ],
         ),
@@ -347,18 +324,11 @@ class _WordCard extends StatelessWidget {
                 children: [
                   Text(
                     item.word.word,
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   Text(
                     item.word.meaningTR,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText),
                   ),
                 ],
               ),
@@ -375,13 +345,9 @@ class _WordCard extends StatelessWidget {
                 ),
                 child: Text(
                   _formatNextReview(item.progress!.nextReviewAt!),
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: item.progress!.isDueForReview
+                  style: AppTextStyles.caption(color: item.progress!.isDueForReview
                         ? AppColors.streakOrange
-                        : AppColors.neutralText,
-                  ),
+                        : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                 ),
               ),
           ],
@@ -454,19 +420,12 @@ class _WordDetailSheet extends StatelessWidget {
           // Word
           Text(
             word.word,
-            style: GoogleFonts.nunito(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
           ),
           if (word.phonetic != null)
             Text(
               word.phonetic!,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
             ),
           const SizedBox(height: 16),
           // Meaning
@@ -488,11 +447,7 @@ class _WordDetailSheet extends StatelessWidget {
               ),
               child: Text(
                 word.exampleSentence!,
-                style: GoogleFonts.nunito(
-                  fontSize: 15,
-                  fontStyle: FontStyle.italic,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontStyle: FontStyle.italic),
               ),
             ),
           ],
@@ -512,11 +467,7 @@ class _WordDetailSheet extends StatelessWidget {
                     ),
                     child: Text(
                       word.level!,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.primary).copyWith(fontWeight: FontWeight.w700),
                     ),
                   ),
                 ...word.categories.map((cat) => Container(
@@ -527,11 +478,7 @@ class _WordDetailSheet extends StatelessWidget {
                       ),
                       child: Text(
                         cat,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.secondary,
-                        ),
+                        style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w700),
                       ),
                     )),
               ],
@@ -563,22 +510,14 @@ class _DetailChip extends StatelessWidget {
             ),
             child: Text(
               label,
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ),
         ],

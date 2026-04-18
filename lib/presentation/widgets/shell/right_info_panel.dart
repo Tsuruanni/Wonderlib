@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/daily_quest.dart';
 import '../../../core/utils/app_clock.dart';
@@ -156,11 +157,7 @@ class _StatChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           value.toString(),
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
         ),
       ],
     );
@@ -224,11 +221,7 @@ class _LastWeekCard extends ConsumerWidget {
           children: [
             Text(
               'Last Week',
-              style: GoogleFonts.nunito(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
             Row(
@@ -248,22 +241,14 @@ class _LastWeekCard extends ConsumerWidget {
                       // Result text with icon
                       Text(
                         resultText,
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: resultColor,
-                        ),
+                        style: AppTextStyles.bodySmall(color: resultColor).copyWith(fontWeight: FontWeight.w800),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                       // Rank
                       Text(
                         'Finished #$rank',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.neutralText,
-                        ),
+                        style: AppTextStyles.caption(color: AppColors.neutralText),
                       ),
                     ],
                   ),
@@ -341,19 +326,11 @@ class _LeagueCard extends ConsumerWidget {
               children: [
                 Text(
                   '${tier.label} League',
-                  style: GoogleFonts.nunito(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
                 ),
                 Text(
                   'VIEW STATS',
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.secondary,
-                  ),
+                  style: AppTextStyles.bodySmall(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
@@ -376,37 +353,22 @@ class _LeagueCard extends ConsumerWidget {
                       if (status != null && status.joined && status.rank != null)
                         Text(
                           "You're ranked #${status.rank}",
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.black,
-                          ),
+                          style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                         )
                       else if (status != null && !status.joined)
                         Text(
                           'Earn ${20 - status.currentWeeklyXp} more XP to join',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                         )
                       else
                         Text(
                           "This week's league is active",
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14),
                         ),
                       // Days left
                       Text(
                         '$daysLeft days left',
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF4CAF50),
-                        ),
+                        style: AppTextStyles.caption(color: const Color(0xFF4CAF50)).copyWith(fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -460,20 +422,12 @@ class _RankRow extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
         ),
         const Spacer(),
         Text(
           '#$rank',
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ],
     );
@@ -507,11 +461,7 @@ class _TeacherQuestsCard extends ConsumerWidget {
         children: [
           Text(
             'Quests from Your Teacher',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           for (int i = 0; i < assignments.length; i++) ...[
@@ -585,11 +535,7 @@ class _TeacherQuestRow extends StatelessWidget {
                   assignment.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.button(color: AppColors.black).copyWith(fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 AppProgressBar(
@@ -610,11 +556,7 @@ class _TeacherQuestRow extends StatelessWidget {
             ),
             child: Text(
               dueText,
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: dueColor,
-              ),
+              style: AppTextStyles.caption(color: dueColor).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -649,22 +591,14 @@ class _DailyQuestsCard extends ConsumerWidget {
           children: [
             Text(
               'Daily Quests',
-              style: GoogleFonts.nunito(
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
             ),
             const Spacer(),
             AppIcons.schedule(size: 16),
             const SizedBox(width: 4),
             Text(
               '$hoursLeft HOURS',
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary,
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.primary).copyWith(fontWeight: FontWeight.w800),
             ),
           ],
         ),
@@ -682,7 +616,7 @@ class _DailyQuestsCard extends ConsumerWidget {
           ),
           error: (_, __) => Text(
             'Could not load quests',
-            style: GoogleFonts.nunito(color: AppColors.neutralText),
+            style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
           ),
           data: (quests) {
             if (quests.isEmpty) {
@@ -690,7 +624,7 @@ class _DailyQuestsCard extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   'No quests available today',
-                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                  style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
                 ),
               );
             }
@@ -719,11 +653,7 @@ class _DailyQuestsCard extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             'All quests complete!',
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primary,
-                            ),
+                            style: AppTextStyles.caption(color: AppColors.primary).copyWith(fontWeight: FontWeight.w700),
                           ),
                         ),
                       ],
@@ -785,11 +715,7 @@ class _SidebarQuestRow extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           '×${quest.rewardAmount}',
-          style: GoogleFonts.nunito(
-            fontSize: 17,
-            fontWeight: FontWeight.w900,
-            color: colors.shadow,
-          ),
+          style: AppTextStyles.titleMedium(color: colors.shadow).copyWith(fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -819,11 +745,7 @@ class _SidebarQuestRow extends StatelessWidget {
                         children: [
                           TextSpan(
                             text: quest.title,
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.black,
-                            ),
+                            style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
                           ),
                           WidgetSpan(
                             alignment: PlaceholderAlignment.middle,
@@ -839,11 +761,7 @@ class _SidebarQuestRow extends StatelessWidget {
                     )
                   : Text(
                       quest.title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.black,
-                      ),
+                      style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -910,19 +828,11 @@ class _DailyReviewCard extends ConsumerWidget {
                 children: [
                   Text(
                     'Review Complete!',
-                    style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                    ),
+                    style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                   ),
                   Text(
                     '+${todaySession.xpEarned} XP earned',
-                    style: GoogleFonts.nunito(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
+                    style: AppTextStyles.bodySmall(color: Colors.white.withValues(alpha: 0.9)).copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -962,19 +872,11 @@ class _DailyReviewCard extends ConsumerWidget {
                   children: [
                     Text(
                       'Daily Review',
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
-                      ),
+                      style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                     ),
                     Text(
                       '${dueWords.length} words ready!',
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                      style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -1079,11 +981,7 @@ class _OpenPackCard extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         hasPacks ? '$packs Packs Available' : 'Booster Packs',
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
+                        style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                       ),
                     ),
                   ],
@@ -1108,10 +1006,7 @@ class _OpenPackCard extends ConsumerWidget {
                       ),
                       child: Text(
                         'Open Packs',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: AppTextStyles.bodyMedium().copyWith(fontWeight: FontWeight.w900),
                       ),
                     ),
                   )
@@ -1135,10 +1030,7 @@ class _OpenPackCard extends ConsumerWidget {
                         children: [
                           Text(
                             'Buy Pack',
-                            style: GoogleFonts.nunito(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w900,
-                            ),
+                            style: AppTextStyles.bodyMedium().copyWith(fontWeight: FontWeight.w900),
                           ),
                           const SizedBox(width: 8),
                           Image.asset(
@@ -1150,11 +1042,7 @@ class _OpenPackCard extends ConsumerWidget {
                           const SizedBox(width: 2),
                           Text(
                             '$packCost',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.cardEpic,
-                            ),
+                            style: AppTextStyles.bodyMedium(color: AppColors.cardEpic).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
                           ),
                         ],
                       ),
@@ -1177,7 +1065,7 @@ class _ReaderSettingsCard extends ConsumerWidget {
   TextStyle _fontPreviewStyle(ReaderFont font) {
     switch (font) {
       case ReaderFont.nunito:
-        return GoogleFonts.nunito(fontSize: 14, fontWeight: FontWeight.w600);
+        return AppTextStyles.bodyMedium().copyWith(fontSize: 14, fontWeight: FontWeight.w600);
       case ReaderFont.openSans:
         return GoogleFonts.openSans(fontSize: 14, fontWeight: FontWeight.w600);
       case ReaderFont.merriweather:
@@ -1206,11 +1094,7 @@ class _ReaderSettingsCard extends ConsumerWidget {
         children: [
           Text(
             'Reader Settings',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 14),
 
@@ -1263,11 +1147,7 @@ class _ReaderSettingsCard extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
                     '${settings.fontSize.toInt()}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                 ),
                 _SettingsButton(
@@ -1293,11 +1173,7 @@ class _ReaderSettingsCard extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Text(
                     settings.lineHeight.toStringAsFixed(1),
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                 ),
                 _SettingsButton(
@@ -1364,11 +1240,7 @@ class _SettingsRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
         ),
         const Spacer(),
         child,
@@ -1478,21 +1350,13 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
             ),
             child: Text(
               monthName.toUpperCase(),
-              style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w900,
-                fontSize: 11,
-                color: Colors.white,
-              ),
+              style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 11, fontWeight: FontWeight.w900),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '$monthName Quest',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
           Row(
@@ -1501,11 +1365,7 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
               const SizedBox(width: 3),
               Text(
                 '$daysLeft DAYS',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.8),
-                ),
+                style: AppTextStyles.caption(color: Colors.white.withValues(alpha: 0.8)).copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -1521,11 +1381,7 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
               children: [
                 Text(
                   progress.quest.title,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 AppProgressBar(
@@ -1540,11 +1396,7 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
                   alignment: Alignment.centerRight,
                   child: Text(
                     '${progress.currentValue} / ${progress.quest.goalValue}',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
+                    style: AppTextStyles.caption(color: Colors.white.withValues(alpha: 0.8)).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                   ),
                 ),
                 if (tierInfo != null) ...[
@@ -1562,11 +1414,7 @@ class _MonthlyQuestSidebarCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           tierInfo.label,
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                          style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ],

@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../utils/ui_helpers.dart';
@@ -123,11 +123,7 @@ class MythCardWidget extends StatelessWidget {
                   ),
                   child: Text(
                     '\u00d7$quantity',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.white,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.white).copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -154,11 +150,7 @@ class MythCardWidget extends StatelessWidget {
                   ),
                   child: Text(
                     'NEW!',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.white,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.white).copyWith(fontSize: 11, fontWeight: FontWeight.w900),
                   ),
                 ),
               ),
@@ -213,18 +205,13 @@ class MythCardWidget extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                shadows: [
+              style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w900, shadows: [
                   Shadow(
                     color: Colors.black,
                     offset: const Offset(0, 1),
                     blurRadius: 2,
                   ),
-                ],
-              ),
+                ]),
             ),
             const Spacer(),
           ],

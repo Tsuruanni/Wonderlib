@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../domain/entities/chapter.dart';
@@ -75,11 +75,7 @@ class _ChaptersList extends ConsumerWidget {
             // Chapters header
             Text(
               'Chapters',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             // Chapter list
@@ -96,7 +92,7 @@ class _ChaptersList extends ConsumerWidget {
               ),
               error: (_, __) => Text(
                 'Could not load chapters',
-                style: GoogleFonts.nunito(color: AppColors.neutralText),
+                style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
               ),
               data: (chapters) {
                 final completedIds = ref.watch(
@@ -240,13 +236,9 @@ class _ChapterTile extends StatelessWidget {
                       ? AppIcons.check(size: 14)
                       : Text(
                           '${index + 1}',
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            color: isCurrent || isCompleted
+                          style: AppTextStyles.caption(color: isCurrent || isCompleted
                                 ? Colors.white
-                                : AppColors.neutralText,
-                          ),
+                                : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
                         ),
                 ),
               ),
@@ -254,11 +246,7 @@ class _ChapterTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   chapter.title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                    color: isCurrent ? AppColors.secondary : AppColors.black,
-                  ),
+                  style: AppTextStyles.bodySmall(color: isCurrent ? AppColors.secondary : AppColors.black).copyWith(fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -367,19 +355,11 @@ class _SidebarAudioPlayer extends ConsumerWidget {
                       children: [
                         Text(
                           audioState.positionFormatted,
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                         ),
                         Text(
                           audioState.durationFormatted,
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                         ),
                       ],
                     ),
@@ -406,11 +386,7 @@ class _SidebarAudioPlayer extends ConsumerWidget {
                   ),
                   child: Text(
                     '${audioState.playbackSpeed}x',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -502,11 +478,7 @@ class _BookQuizTile extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Book Quiz',
-                  style: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-                    color: isCurrent ? AppColors.secondary : AppColors.black,
-                  ),
+                  style: AppTextStyles.bodySmall(color: isCurrent ? AppColors.secondary : AppColors.black).copyWith(fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600),
                 ),
               ),
             ],

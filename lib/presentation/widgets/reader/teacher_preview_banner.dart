@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../providers/teacher_preview_provider.dart';
 
@@ -32,11 +32,7 @@ class TeacherPreviewBanner extends ConsumerWidget {
           Flexible(
             child: Text(
               'Teacher Preview — answers shown, no progress saved',
-              style: GoogleFonts.nunito(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: AppColors.waspDark,
-              ),
+              style: AppTextStyles.caption(color: AppColors.waspDark).copyWith(fontWeight: FontWeight.w700),
               overflow: TextOverflow.ellipsis,
             ),
           ),

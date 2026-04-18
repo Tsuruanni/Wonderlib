@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import 'book_quiz_matching.dart' show kQuizPairColors;
 
@@ -326,13 +327,7 @@ class _CharacterCard3DState extends State<_CharacterCard3D> {
                      Expanded(
                       child: Text(
                         widget.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                          color: textColor,
-                          fontFamily: 'Nunito',
-                          height: 1.2,
-                        ),
+                        style: AppTextStyles.bodySmall(color: textColor).copyWith(fontWeight: FontWeight.w700, height: 1.2),
                       ),
                     ),
                   ],
@@ -449,14 +444,7 @@ class _QuoteCard3DState extends State<_QuoteCard3D> {
                      Expanded(
                       child: Text(
                         '"${widget.quote}"',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          color: textColor,
-                          fontFamily: 'Nunito',
-                          height: 1.3,
-                        ),
+                        style: AppTextStyles.caption(color: textColor).copyWith(fontStyle: FontStyle.italic, height: 1.3),
                         maxLines: 4,
                         overflow: TextOverflow.ellipsis,
                       ),

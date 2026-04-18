@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/system_settings.dart';
 import '../../../domain/entities/word_list.dart';
@@ -49,7 +49,7 @@ class WordListDetailScreen extends ConsumerWidget {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(iconTheme: IconThemeData(color: AppColors.black)),
-        body: Center(child: Text('Word list not found', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold))),
+        body: Center(child: Text('Word list not found', style: AppTextStyles.titleMedium().copyWith(fontSize: 18))),
       );
     }
 
@@ -71,11 +71,7 @@ class WordListDetailScreen extends ConsumerWidget {
                   // Description
                   Text(
                     wordList.description,
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      color: AppColors.neutralText,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
 
@@ -208,12 +204,7 @@ class _ListHeader extends StatelessWidget {
         centerTitle: false,
         title: Text(
           wordList.name,
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: Colors.white,
-            shadows: [Shadow(blurRadius: 2, color: Colors.black26, offset: Offset(0, 1))],
-          ),
+          style: AppTextStyles.titleLarge(color: Colors.white).copyWith(fontWeight: FontWeight.w900, shadows: [Shadow(blurRadius: 2, color: Colors.black26, offset: Offset(0, 1))]),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -262,11 +253,7 @@ class _ListHeader extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Best: ${progress!.bestAccuracy!.toStringAsFixed(0)}% accuracy',
-                      style: GoogleFonts.nunito(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      style: AppTextStyles.button(color: Colors.white).copyWith(fontSize: 14),
                     ),
                   ],
                 ),
@@ -336,19 +323,11 @@ class _MiniStat extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -402,7 +381,7 @@ class _StatChip extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             label,
-            style: GoogleFonts.nunito(fontWeight: FontWeight.bold, color: AppColors.neutralText),
+            style: AppTextStyles.titleMedium(color: AppColors.neutralText),
           ),
         ],
       ),
@@ -434,11 +413,11 @@ class _DailyLimitBanner extends StatelessWidget {
               children: [
                 Text(
                   'Daily Limit Reached',
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w800, fontSize: 15, color: AppColors.black),
+                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
                 ),
                 Text(
                   "You've learned $wordsToday/$dailyWordListLimit words today. Come back tomorrow!",
-                  style: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.neutralText),
+                  style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),

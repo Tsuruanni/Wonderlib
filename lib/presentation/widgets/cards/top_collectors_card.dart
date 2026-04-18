@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/card.dart';
@@ -40,11 +40,7 @@ class TopCollectorsCard extends ConsumerWidget {
             children: [
               Text(
                 'Top Collectors',
-                style: GoogleFonts.nunito(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
               for (int i = 0; i < result.top3.length; i++) ...[
@@ -113,13 +109,9 @@ class _TopCollectorRow extends StatelessWidget {
           width: 20,
           child: Text(
             '#${entry.rank}',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: isCurrentUser
+            style: AppTextStyles.caption(color: isCurrentUser
                   ? AppColors.secondary
-                  : AppColors.neutralText,
-            ),
+                  : AppColors.neutralText).copyWith(fontWeight: FontWeight.w800),
           ),
         ),
         const SizedBox(width: 6),
@@ -138,31 +130,19 @@ class _TopCollectorRow extends StatelessWidget {
         Expanded(
           child: Text(
             isCurrentUser ? 'You' : entry.firstName,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w600,
-              color: isCurrentUser ? AppColors.secondary : AppColors.black,
-            ),
+            style: AppTextStyles.bodyMedium(color: isCurrentUser ? AppColors.secondary : AppColors.black).copyWith(fontSize: 14, fontWeight: isCurrentUser ? FontWeight.w800 : FontWeight.w600),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
         Text(
           '${entry.uniqueCards}',
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: isCurrentUser ? AppColors.secondary : AppColors.black,
-          ),
+          style: AppTextStyles.bodyMedium(color: isCurrentUser ? AppColors.secondary : AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
         ),
         const SizedBox(width: 4),
         Text(
           'cards',
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
         ),
       ],
     );
@@ -208,11 +188,7 @@ class _InitialsFallback extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         initials,
-        style: GoogleFonts.nunito(
-          fontSize: size * 0.4,
-          fontWeight: FontWeight.w800,
-          color: AppColors.neutralText,
-        ),
+        style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: size * 0.4, fontWeight: FontWeight.w800),
       ),
     );
   }

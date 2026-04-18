@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_definition.dart';
 import '../../utils/app_icons.dart';
@@ -131,10 +131,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         const SizedBox(height: 12),
         Text(
           'Could not load definition',
-          style: GoogleFonts.nunito(
-            color: AppColors.neutralText,
-            fontSize: 14,
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14),
         ),
       ],
     );
@@ -146,11 +143,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         Expanded(
           child: Text(
             word,
-            style: GoogleFonts.nunito(
-              color: AppColors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-            ),
+            style: AppTextStyles.titleLarge(color: AppColors.black),
           ),
         ),
         // Speaker icon
@@ -188,11 +181,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         else
           Text(
             'No definition available',
-            style: GoogleFonts.nunito(
-              color: AppColors.neutralText,
-              fontSize: 14,
-              fontStyle: FontStyle.italic,
-            ),
+            style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontStyle: FontStyle.italic),
           ),
 
         const SizedBox(height: 14),
@@ -249,22 +238,14 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
               ),
               child: Text(
                 _formatPartOfSpeech(meaning.partOfSpeech!),
-                style: GoogleFonts.nunito(
-                  color: AppColors.secondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w700),
               ),
             ),
           ),
         // Turkish meaning
         Text(
           meaning.meaningTR,
-          style: GoogleFonts.nunito(
-            color: AppColors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         // Example sentence
         if (meaning.exampleSentence != null &&
@@ -273,11 +254,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               '"${meaning.exampleSentence}"',
-              style: GoogleFonts.nunito(
-                color: AppColors.neutralText,
-                fontSize: 13,
-                fontStyle: FontStyle.italic,
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontStyle: FontStyle.italic),
             ),
           ),
       ],
@@ -297,11 +274,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
               Expanded(
                 child: Text(
                   meaning.sourceBookTitle!,
-                  style: GoogleFonts.nunito(
-                    color: AppColors.wasp,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.wasp).copyWith(fontWeight: FontWeight.w700),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -316,19 +289,12 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
             if (meaning.partOfSpeech != null)
               Text(
                 '${meaning.partOfSpeech} • ',
-                style: GoogleFonts.nunito(
-                  color: AppColors.neutralText,
-                  fontSize: 13,
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.neutralText),
               ),
             Expanded(
               child: Text(
                 meaning.meaningTR,
-                style: GoogleFonts.nunito(
-                  color: AppColors.black,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -340,11 +306,7 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
             padding: const EdgeInsets.only(top: 4),
             child: Text(
               '"${meaning.exampleSentence}"',
-              style: GoogleFonts.nunito(
-                color: AppColors.neutralText,
-                fontSize: 12,
-                fontStyle: FontStyle.italic,
-              ),
+              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontStyle: FontStyle.italic),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

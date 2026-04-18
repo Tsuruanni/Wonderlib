@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio/app/router.dart';
+import '../../../app/text_styles.dart';
 import 'package:owlio/app/theme.dart';
 import 'package:owlio/domain/entities/daily_quest.dart';
 import '../../utils/app_icons.dart';
@@ -82,11 +82,7 @@ class _AllCompleteBanner extends StatelessWidget {
           Expanded(
             child: Text(
               "You've completed all quests for today!",
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.primary).copyWith(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -137,11 +133,7 @@ class _QuestRow extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           '×${quest.rewardAmount}',
-          style: GoogleFonts.nunito(
-            fontSize: 22,
-            fontWeight: FontWeight.w900,
-            color: colors.shadow,
-          ),
+          style: AppTextStyles.headlineMedium(color: colors.shadow).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
         ),
       ],
     );
@@ -175,11 +167,7 @@ class _QuestRow extends StatelessWidget {
                           children: [
                             TextSpan(
                               text: quest.title,
-                              style: GoogleFonts.nunito(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.black,
-                              ),
+                              style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
                             ),
                             WidgetSpan(
                               alignment: PlaceholderAlignment.middle,
@@ -193,11 +181,7 @@ class _QuestRow extends StatelessWidget {
                       )
                     : Text(
                         quest.title,
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.black,
-                        ),
+                        style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
                       ),
               ),
               if (!isCompleted) ...[

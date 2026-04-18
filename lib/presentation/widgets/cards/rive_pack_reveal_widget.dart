@@ -5,9 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:rive/rive.dart' hide Image, LinearGradient;
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../utils/ui_helpers.dart';
@@ -226,7 +226,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
       return Center(
         child: Text(
           'Failed to load animation',
-          style: GoogleFonts.nunito(color: AppColors.white),
+          style: AppTextStyles.bodyLarge(color: AppColors.white),
         ),
       );
     }
@@ -355,11 +355,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
         ),
         child: Text(
           'CONTINUE',
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1,
-          ),
+          style: AppTextStyles.titleMedium().copyWith(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 1),
         ),
       ),
     );
@@ -422,12 +418,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                     ),
                     child: Text(
                       card.rarity.label.toUpperCase(),
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: rarityColor,
-                        letterSpacing: 1,
-                      ),
+                      style: AppTextStyles.caption(color: rarityColor).copyWith(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -451,21 +442,13 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                     ),
                     child: Text(
                       'NEW!',
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.white,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.white).copyWith(fontSize: 11, fontWeight: FontWeight.w900),
                     ),
                   )
                 else
                   Text(
                     '\u00d7${packCard.currentQuantity}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.white.withValues(alpha: 0.5),
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.white.withValues(alpha: 0.5)).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                   ),
               ],
             ),
@@ -480,12 +463,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                 Text(
                   card.name,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.white,
-                    height: 1.1,
-                  ),
+                  style: AppTextStyles.headlineMedium(color: AppColors.white).copyWith(fontWeight: FontWeight.w900, height: 1.1),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -502,11 +480,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                           const SizedBox(width: 6),
                           Text(
                             card.category.label,
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white.withValues(alpha: 0.7),
-                            ),
+                            style: AppTextStyles.caption(color: AppColors.white.withValues(alpha: 0.7)).copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
@@ -531,11 +505,7 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                           const SizedBox(width: 4),
                           Text(
                             '${card.power}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.white,
-                            ),
+                            style: AppTextStyles.bodySmall(color: AppColors.white).copyWith(fontWeight: FontWeight.w900),
                           ),
                         ],
                       ),
@@ -563,23 +533,13 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                       children: [
                         Text(
                           'SPECIAL SKILL',
-                          style: GoogleFonts.nunito(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: rarityColor.withValues(alpha: 0.7),
-                            letterSpacing: 1.5,
-                          ),
+                          style: AppTextStyles.caption(color: rarityColor.withValues(alpha: 0.7)).copyWith(fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.5),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           card.specialSkill!,
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                Color.lerp(rarityColor, Colors.white, 0.6),
-                          ),
+                          style: AppTextStyles.button(color: Color.lerp(rarityColor, Colors.white, 0.6)).copyWith(fontSize: 14),
                         ),
                       ],
                     ),
@@ -592,23 +552,13 @@ class _RivePackRevealWidgetState extends State<RivePackRevealWidget> {
                     textAlign: TextAlign.center,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.white.withValues(alpha: 0.6),
-                      fontStyle: FontStyle.italic,
-                      height: 1.4,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.white.withValues(alpha: 0.6)).copyWith(fontStyle: FontStyle.italic, height: 1.4),
                   ),
                 ],
                 const SizedBox(height: 12),
                 Text(
                   '#${card.cardNo}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white.withValues(alpha: 0.3),
-                    letterSpacing: 1,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.white.withValues(alpha: 0.3)).copyWith(fontSize: 11, letterSpacing: 1),
                 ),
               ],
             ),

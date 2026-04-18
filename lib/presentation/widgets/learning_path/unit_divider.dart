@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import 'tile_themes.dart';
 
@@ -36,12 +36,7 @@ class UnitDivider extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   '${unitIcon ?? ''} UNIT ${unitIndex + 1}  $unitName'.trim(),
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: isLocked ? AppColors.neutralText : AppColors.black,
-                    letterSpacing: 0.5,
-                  ),
+                  style: AppTextStyles.button(color: isLocked ? AppColors.neutralText : AppColors.black).copyWith(fontSize: 14, letterSpacing: 0.5),
                 ),
               ),
               const Expanded(child: Divider(color: AppColors.neutral, thickness: 2)),

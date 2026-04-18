@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../common/asset_icon.dart';
 import '../common/playful_card.dart';
@@ -81,19 +81,11 @@ class _TeacherStat extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
         ),
       ],
     );

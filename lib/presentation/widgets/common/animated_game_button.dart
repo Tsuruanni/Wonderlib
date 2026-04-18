@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 export 'game_button.dart' show GameButtonVariant;
@@ -207,13 +208,7 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
                             child: Text(
                               widget.label!.toUpperCase(),
                               style: widget.textStyle ??
-                                  TextStyle(
-                                    color: textColor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.8,
-                                    fontFamily: 'Nunito',
-                                  ),
+                                  AppTextStyles.button(color: textColor).copyWith(fontSize: 16),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),

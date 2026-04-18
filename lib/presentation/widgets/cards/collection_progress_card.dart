@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -46,39 +46,23 @@ class CollectionProgressCard extends ConsumerWidget {
         children: [
           Text(
             'Collection',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Text(
                 '$owned',
-                style: GoogleFonts.nunito(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
               ),
               Text(
                 ' / $total',
-                style: GoogleFonts.nunito(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.neutralDark,
-                ),
+                style: AppTextStyles.headlineLarge(color: AppColors.neutralDark).copyWith(fontWeight: FontWeight.w900),
               ),
               const Spacer(),
               Text(
                 '${(progress * 100).toInt()}%',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.primary).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
               ),
             ],
           ),
@@ -110,11 +94,7 @@ class CollectionProgressCard extends ConsumerWidget {
       child: Text(
         '$total packs opened',
         textAlign: TextAlign.center,
-        style: GoogleFonts.nunito(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.neutralText,
-        ),
+        style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -138,11 +118,7 @@ class CollectionProgressCard extends ConsumerWidget {
           width: 72,
           child: Text(
             rarity.label,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
           ),
         ),
         Expanded(
@@ -158,11 +134,7 @@ class CollectionProgressCard extends ConsumerWidget {
           width: 36,
           child: Text(
             '${data.owned}/${data.total}',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
             textAlign: TextAlign.right,
           ),
         ),

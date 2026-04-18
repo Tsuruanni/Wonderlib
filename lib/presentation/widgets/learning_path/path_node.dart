@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../utils/app_icons.dart';
 
@@ -343,15 +343,11 @@ class _PathNodeState extends State<PathNode>
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.nunito(
-                    fontSize: 13 * s,
-                    fontWeight: FontWeight.w700,
-                    color: isLocked
+                  style: AppTextStyles.titleMedium(color: isLocked
                         ? AppColors.neutralText
                         : isCompleted
                             ? AppColors.primary
-                            : AppColors.black,
-                  ),
+                            : AppColors.black).copyWith(fontSize: 13 * s),
                 ),
               ),
           ],
@@ -428,11 +424,7 @@ class _PopupCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -549,12 +541,7 @@ class _Pressable3DButtonState extends State<_Pressable3DButton> {
         child: Text(
           widget.text,
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            color: widget.textColor,
-            letterSpacing: 0.5,
-          ),
+          style: AppTextStyles.button(color: widget.textColor).copyWith(fontWeight: FontWeight.w900, letterSpacing: 0.5),
         ),
       ),
     );
@@ -623,12 +610,7 @@ class _NodeCircle extends StatelessWidget {
               padding: EdgeInsets.only(bottom: size * 0.08),
               child: Text(
                 '$unitNumber',
-                style: GoogleFonts.nunito(
-                  fontSize: size * 0.38,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  height: 1,
-                ),
+                style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: size * 0.38, fontWeight: FontWeight.w900, height: 1),
               ),
             ),
           ],
@@ -785,12 +767,7 @@ class _NodeCircle extends StatelessWidget {
     if (unitNumber != null) {
       return Text(
         '$unitNumber',
-        style: GoogleFonts.nunito(
-          fontSize: size * 0.38,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          height: 1,
-        ),
+        style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: size * 0.38, fontWeight: FontWeight.w900, height: 1),
       );
     }
 
@@ -840,20 +817,12 @@ class _StatRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
+            style: AppTextStyles.caption(color: Colors.white.withValues(alpha: 0.8)),
           ),
         ),
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
+          style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
         ),
       ],
     );

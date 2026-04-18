@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:owlio/app/text_styles.dart';
 
 abstract class AppColors {
   // Primary Action (Green)
@@ -81,42 +82,20 @@ abstract class AppTheme {
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.background,
       
-      // Typography
+      // Typography — all styles sourced from AppTextStyles (single source of truth)
       textTheme: GoogleFonts.nunitoTextTheme().apply(
         bodyColor: AppColors.black,
         displayColor: AppColors.black,
       ).copyWith(
-        headlineLarge: GoogleFonts.nunito(
-          fontSize: 32,
-          fontWeight: FontWeight.w800, // Extra Bold
-          color: AppColors.black,
-        ),
-        headlineMedium: GoogleFonts.nunito(
-          fontSize: 24,
-          fontWeight: FontWeight.w800,
-          color: AppColors.black,
-        ),
-        titleLarge: GoogleFonts.nunito(
-          fontSize: 20,
-          fontWeight: FontWeight.w700, // Bold
-          color: AppColors.black,
-        ),
-        bodyLarge: GoogleFonts.nunito(
-          fontSize: 17,
-          fontWeight: FontWeight.w500, // Medium
-          color: AppColors.black,
-        ),
-        bodyMedium: GoogleFonts.nunito(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: AppColors.neutralText,
-        ),
-        labelLarge: GoogleFonts.nunito(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.8, // Slightly spaced for button text
-          color: AppColors.black, 
-        ),
+        headlineLarge: AppTextStyles.hero(),
+        headlineMedium: AppTextStyles.headlineMedium(),
+        titleLarge: AppTextStyles.titleLarge(),
+        titleMedium: AppTextStyles.titleMedium(),
+        bodyLarge: AppTextStyles.bodyLarge(),
+        bodyMedium: AppTextStyles.bodyMedium(),
+        bodySmall: AppTextStyles.bodySmall(),
+        labelLarge: AppTextStyles.button(),
+        labelSmall: AppTextStyles.caption(),
       ),
 
       // Color Scheme
@@ -146,12 +125,8 @@ abstract class AppTheme {
         foregroundColor: AppColors.neutralText,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: GoogleFonts.nunito(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.neutralText,
-          letterSpacing: 0.5,
-        ),
+        titleTextStyle: AppTextStyles.titleMedium(color: AppColors.neutralText)
+            .copyWith(fontSize: 18, letterSpacing: 0.5),
       ),
 
       // Input Decoration (Rounded, Thick Borders)
@@ -175,10 +150,7 @@ abstract class AppTheme {
           borderRadius: borderRadius,
           borderSide: const BorderSide(color: AppColors.danger, width: 2),
         ),
-        hintStyle: GoogleFonts.nunito(
-          color: AppColors.neutralText,
-          fontWeight: FontWeight.w500,
-        ),
+        hintStyle: AppTextStyles.bodyMedium(),
       ),
 
       // Standard Buttons (Will use custom widgets mostly, but safe fallback)
@@ -191,11 +163,7 @@ abstract class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: borderRadius,
           ),
-          textStyle: GoogleFonts.nunito(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            letterSpacing: 0.5,
-          ),
+          textStyle: AppTextStyles.button().copyWith(fontSize: 16, letterSpacing: 0.5),
         ),
       ),
     );

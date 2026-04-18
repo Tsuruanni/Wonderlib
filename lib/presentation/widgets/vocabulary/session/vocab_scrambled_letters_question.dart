@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/services/letter_tap_sound_service.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
@@ -169,11 +169,7 @@ class _VocabScrambledLettersQuestionState extends State<VocabScrambledLettersQue
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 'Arrange letters to form the word',
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),

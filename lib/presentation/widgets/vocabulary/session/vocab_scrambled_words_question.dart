@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/services/letter_tap_sound_service.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
@@ -102,11 +102,7 @@ class _VocabScrambledWordsQuestionState
           // Instruction
           Text(
             'Arrange words to form the phrase',
-            style: GoogleFonts.nunito(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.button(color: AppColors.neutralText),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
@@ -153,11 +149,7 @@ class _VocabScrambledWordsQuestionState
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               'Arrange words to form the phrase',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
               textAlign: TextAlign.center,
             ),
           ),
@@ -341,11 +333,7 @@ class _AnswerSlot extends StatelessWidget {
         ),
         child: Text(
           word!,
-          style: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: textColor,
-          ),
+          style: AppTextStyles.titleMedium(color: textColor).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
         ).animate().scale(
               duration: 150.ms,
               begin: const Offset(0.85, 0.85),
@@ -425,11 +413,7 @@ class _WordChip extends StatelessWidget {
         ),
         child: Text(
           word,
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: Colors.transparent,
-          ),
+          style: AppTextStyles.button(color: Colors.transparent),
         ),
       );
     }
@@ -453,11 +437,7 @@ class _WordChip extends StatelessWidget {
         ),
         child: Text(
           word,
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.gray700,
-          ),
+          style: AppTextStyles.button(color: AppColors.gray700),
         ),
       ),
     );

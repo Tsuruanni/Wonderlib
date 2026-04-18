@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 
 /// Animated START bubble shown above the active node.
@@ -67,12 +67,7 @@ class _StartBubbleState extends State<StartBubble>
             ),
             child: Text(
               widget.text,
-              style: GoogleFonts.nunito(
-                fontSize: 14 * s,
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary,
-                letterSpacing: 1 * s,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.primary).copyWith(fontSize: 14 * s, fontWeight: FontWeight.w900, letterSpacing: 1 * s),
             ),
           ),
           // Triangle pointer

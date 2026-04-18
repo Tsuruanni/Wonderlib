@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/tile_theme.dart';
 import '../../providers/tile_theme_provider.dart';
@@ -74,7 +74,7 @@ class _FullscreenMapScreenState extends ConsumerState<FullscreenMapScreen> {
           error: (e, _) => Center(
             child: Text(
               'Could not load learning path',
-              style: GoogleFonts.nunito(color: AppColors.neutralText),
+              style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
             ),
           ),
           data: (allUnits) {
@@ -88,7 +88,7 @@ class _FullscreenMapScreenState extends ConsumerState<FullscreenMapScreen> {
               return Center(
                 child: Text(
                   'Learning path not found',
-                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                  style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
                 ),
               );
             }
@@ -315,20 +315,11 @@ class _UnitCard extends StatelessWidget {
                 children: [
                   Text(
                     'Unit ${index + 1}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: color,
-                    ),
+                    style: AppTextStyles.caption(color: color).copyWith(fontWeight: FontWeight.w700),
                   ),
                   Text(
                     unit.unit.name,
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color:
-                          isLocked ? AppColors.neutralText : AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: isLocked ? AppColors.neutralText : AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                 ],
               ),

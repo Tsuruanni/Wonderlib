@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../reader/grammar_profile_widget.dart';
 import '../reader/reader_sidebar.dart';
@@ -97,15 +98,10 @@ class TeacherShellScaffold extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'O',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            fontFamily: 'Nunito',
-                          ),
+                          style: AppTextStyles.headlineMedium(color: Colors.white).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
                         ),
                       ),
                     ),

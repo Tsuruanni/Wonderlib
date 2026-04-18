@@ -2,9 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../../domain/entities/system_settings.dart';
@@ -164,11 +164,7 @@ class _PathNodeState extends ConsumerState<PathNode>
               // Title
               Text(
                 wlp.wordList.name,
-                style: GoogleFonts.nunito(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
@@ -248,11 +244,7 @@ class _PathNodeState extends ConsumerState<PathNode>
                       const SizedBox(width: 10),
                       Text(
                         'Perfect! You\'ve mastered this set',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.green.shade800,
-                        ),
+                        style: AppTextStyles.button(color: Colors.green.shade800),
                       ),
                     ],
                   ),
@@ -286,11 +278,7 @@ class _PathNodeState extends ConsumerState<PathNode>
                             ),
                             child: Text(
                               w.word,
-                              style: GoogleFonts.nunito(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: widget.unitColor,
-                              ),
+                              style: AppTextStyles.bodySmall(color: widget.unitColor).copyWith(fontWeight: FontWeight.w700),
                             ),
                           )).toList(),
                         );
@@ -321,11 +309,7 @@ class _PathNodeState extends ConsumerState<PathNode>
                           progress.bestScore != null && progress.bestScore! > 0
                               ? 'Beat ${progress.bestScore} coins to earn more!'
                               : 'Play again to earn coins!',
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
+                          style: AppTextStyles.button(color: AppColors.primary).copyWith(fontSize: 14),
                         ),
                       ),
                     ],
@@ -346,10 +330,7 @@ class _PathNodeState extends ConsumerState<PathNode>
                     icon: const Icon(Icons.replay_rounded),
                     label: Text(
                       'Practice Again',
-                      style: GoogleFonts.nunito(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: AppTextStyles.titleMedium().copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: widget.unitColor,
@@ -621,19 +602,11 @@ class _SheetStat extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.nunito(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
         ),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );

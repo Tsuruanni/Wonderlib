@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 /// Multiple choice question widget with 4 radio-button style options.
@@ -164,12 +165,7 @@ class _OptionCard3DState extends State<_OptionCard3D> {
                       alignment: Alignment.center,
                       child: Text(
                         _letterPrefix,
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: widget.isSelected ? Colors.white : AppColors.gray400,
-                          fontFamily: 'Nunito',
-                        ),
+                        style: AppTextStyles.button(color: widget.isSelected ? Colors.white : AppColors.gray400).copyWith(fontSize: 14),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -177,12 +173,7 @@ class _OptionCard3DState extends State<_OptionCard3D> {
                     Expanded(
                       child: Text(
                         widget.label,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: textColor,
-                          fontFamily: 'Nunito',
-                        ),
+                        style: AppTextStyles.titleMedium(color: textColor).copyWith(fontSize: 16, fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.w600),
                       ),
                     ),
                   ],

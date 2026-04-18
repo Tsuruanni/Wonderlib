@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/achievement_group.dart';
 import '../../providers/badge_progress_provider.dart';
@@ -23,11 +23,7 @@ class AllBadgesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Achievements',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w800,
-            fontSize: 20,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.titleLarge(color: AppColors.neutralText),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -50,7 +46,7 @@ class AllBadgesScreen extends ConsumerWidget {
             child: Text(
               'Could not load achievements.\n$e',
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(color: AppColors.gray600),
+              style: AppTextStyles.bodyLarge(color: AppColors.gray600),
             ),
           ),
         ),
@@ -59,7 +55,7 @@ class AllBadgesScreen extends ConsumerWidget {
             return Center(
               child: Text(
                 'No achievements yet.',
-                style: GoogleFonts.nunito(fontSize: 16, color: AppColors.gray600),
+                style: AppTextStyles.titleMedium(color: AppColors.gray600).copyWith(fontSize: 16),
               ),
             );
           }
@@ -126,12 +122,7 @@ class _BadgeListItem {
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
         child: Text(
           _sectionLabel(superGroup!),
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w900,
-            fontSize: 13,
-            letterSpacing: 1.2,
-            color: AppColors.gray700,
-          ),
+          style: AppTextStyles.bodySmall(color: AppColors.gray700).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.2),
         ),
       );
     }
@@ -139,11 +130,7 @@ class _BadgeListItem {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Text(
         '$earnedCount / $totalCount earned',
-        style: GoogleFonts.nunito(
-          fontWeight: FontWeight.w800,
-          fontSize: 14,
-          color: AppColors.gray600,
-        ),
+        style: AppTextStyles.bodyMedium(color: AppColors.gray600).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
       ),
     );
   }

@@ -7,6 +7,7 @@ import '../common/activity_card.dart';
 import '../common/animated_game_button.dart';
 import '../common/feedback_animation.dart';
 import 'inline_activity_sound_mixin.dart';
+import '../../../app/text_styles.dart';
 
 /// Find words activity widget (multi-select) - gamified version
 class InlineFindWordsActivity extends StatefulWidget {
@@ -146,15 +147,9 @@ class _InlineFindWordsActivityState extends State<InlineFindWordsActivity>
               Text(
                 content.instruction,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: widget.settings.fontSize,
-                  fontWeight: FontWeight.bold,
-                  color: widget.settings.theme == ReaderTheme.dark
+                style: AppTextStyles.titleMedium(color: widget.settings.theme == ReaderTheme.dark
                       ? Colors.black // Card background is white/light in this design
-                      : Colors.black87,
-                  height: 1.4,
-                  fontFamily: 'Nunito',
-                ),
+                      : Colors.black87).copyWith(fontSize: widget.settings.fontSize, height: 1.4),
               ),
 
               const SizedBox(height: 12),

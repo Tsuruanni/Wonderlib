@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import 'myth_card_widget.dart';
@@ -191,12 +191,7 @@ class _CardFlipWidgetState extends State<CardFlipWidget>
                 const SizedBox(height: 8),
                 Text(
                   'TAP TO REVEAL',
-                  style: GoogleFonts.nunito(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.white.withValues(alpha: 0.7),
-                    letterSpacing: 1.5,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.white.withValues(alpha: 0.7)).copyWith(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5),
                 ),
               ],
             ),

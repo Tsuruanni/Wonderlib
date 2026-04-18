@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
-import '../../../app/theme.dart';
+import '../../../app/text_styles.dart';
 import '../../providers/card_provider.dart';
 import '../../providers/card_trade_provider.dart';
 
@@ -92,11 +91,7 @@ class TradeButtonCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           '$totalDuplicates Duplicates Available',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                          ),
+                          style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
                         ),
                       ),
                     ],
@@ -117,10 +112,7 @@ class TradeButtonCard extends ConsumerWidget {
                       ),
                       child: Text(
                         'Trade Duplicates',
-                        style: GoogleFonts.nunito(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: AppTextStyles.bodyMedium().copyWith(fontWeight: FontWeight.w900),
                       ),
                     ),
                   ),

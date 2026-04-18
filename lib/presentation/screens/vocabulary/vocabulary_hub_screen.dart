@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/learning_path.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -34,7 +34,7 @@ class VocabularyHubScreen extends ConsumerWidget {
                 error: (e, _) => Center(
                   child: Text(
                     'Could not load learning paths',
-                    style: GoogleFonts.nunito(color: AppColors.neutralText),
+                    style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
                   ),
                 ),
                 data: (paths) {
@@ -76,11 +76,7 @@ class _PathSelectionList extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 16, left: 4),
             child: Text(
               'Learning Paths',
-              style: GoogleFonts.nunito(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22),
             ),
           ),
           for (final path in paths)
@@ -152,20 +148,12 @@ class _PathCard extends StatelessWidget {
                 children: [
                   Text(
                     path.name,
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$completedUnits / $totalUnits units completed',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
                   ),
                   if (totalUnits > 0) ...[
                     const SizedBox(height: 8),
@@ -204,19 +192,12 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'No learning path yet',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             Text(
               'Your teacher will assign one soon!',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.neutralText.withValues(alpha: 0.7),
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.neutralText.withValues(alpha: 0.7)).copyWith(fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],

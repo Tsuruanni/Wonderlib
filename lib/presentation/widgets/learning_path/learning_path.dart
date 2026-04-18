@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/tile_theme.dart';
 import '../../providers/student_assignment_provider.dart';
@@ -33,7 +33,7 @@ class LearningPathView extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         child: Text(
           'Could not load learning path',
-          style: GoogleFonts.nunito(color: AppColors.neutralText),
+          style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
           textAlign: TextAlign.center,
         ),
       ),
@@ -260,20 +260,13 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No learning path yet',
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
             'Your teacher will assign one soon!',
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              color: AppColors.neutralText.withValues(alpha: 0.7),
-            ),
+            style: AppTextStyles.bodyMedium(color: AppColors.neutralText.withValues(alpha: 0.7)).copyWith(fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],

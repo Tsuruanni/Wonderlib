@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/level_helper.dart';
@@ -74,11 +74,7 @@ class StudentProfileDialog extends ConsumerWidget {
             // Name
             Text(
               entry.fullName,
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
             ),
 
             // Class name
@@ -86,11 +82,7 @@ class StudentProfileDialog extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                 entry.className!,
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: AppColors.neutralText,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ],
             const SizedBox(height: 8),
@@ -149,10 +141,7 @@ class StudentProfileDialog extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   'Could not load details',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.bodyLarge(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
               data: (extra) => Column(
@@ -210,11 +199,7 @@ class StudentProfileDialog extends ConsumerWidget {
                 ),
                 child: Text(
                   'Close',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
               ),
             ),
@@ -266,11 +251,7 @@ class StudentProfileDialog extends ConsumerWidget {
       child: Center(
         child: Text(
           entry.initials,
-          style: GoogleFonts.nunito(
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            color: AppColors.secondary,
-          ),
+          style: AppTextStyles.headlineLarge(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w900),
         ),
       ),
     );
@@ -297,11 +278,7 @@ class StudentProfileDialog extends ConsumerWidget {
           const SizedBox(width: 6),
           Text(
             entry.leagueTier.label,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: tierColor,
-            ),
+            style: AppTextStyles.bodySmall(color: tierColor).copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -323,11 +300,7 @@ class StudentProfileDialog extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           'Level ${entry.level} — ${(progress * 100).toInt()}% to next level',
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
         ),
       ],
     );
@@ -356,20 +329,12 @@ class StudentProfileDialog extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 'Card Collection',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
               ),
               const Spacer(),
               Text(
                 '$uniqueCards / $totalCards',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  color: AppColors.cardEpic,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.cardEpic).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -386,11 +351,7 @@ class StudentProfileDialog extends ConsumerWidget {
             alignment: Alignment.centerRight,
             child: Text(
               '$packsOpened packs opened',
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -420,20 +381,12 @@ class StudentProfileDialog extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 'Achievements',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 14,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
               ),
               const Spacer(),
               Text(
                 '${badges.length}',
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 14,
-                  color: AppColors.primary,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.primary).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -487,19 +440,11 @@ class _StatItem extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
                 ),
                 Text(
                   label,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                 ),
               ],
             ),
@@ -533,11 +478,7 @@ class _BadgeChip extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               badge.badge.name,
-              style: GoogleFonts.nunito(
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.caption(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../providers/avatar_provider.dart';
 import '../../providers/book_quiz_provider.dart';
@@ -318,20 +319,13 @@ class MainShellScaffold extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 title,
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleLarge(color: AppColors.black),
               ),
               const SizedBox(height: 8),
               Text(
                 'Your progress will be lost.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.nunito(
-                  fontSize: 15,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.neutralText),
               ),
               const SizedBox(height: 24),
               GameButton(
@@ -432,11 +426,7 @@ class _SidebarItemState extends State<_SidebarItem> {
                   child: Text(
                     item.label,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? item.color : AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: isSelected ? item.color : AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -554,11 +544,7 @@ class _ProfileSidebarItemState extends ConsumerState<_ProfileSidebarItem> {
                   child: Text(
                     'Profile',
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
               ],

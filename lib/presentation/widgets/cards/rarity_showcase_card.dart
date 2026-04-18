@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -37,11 +37,7 @@ class RarityShowcaseCard extends ConsumerWidget {
         children: [
           Text(
             'Rarest Cards',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           _buildRow(firstRow),
@@ -94,22 +90,14 @@ class RarityShowcaseCard extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           card.name,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.caption(color: AppColors.black).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
         ),
         Text(
           '⚡ ${card.power}',
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: rarityColor,
-          ),
+          style: AppTextStyles.caption(color: rarityColor).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
         ),
       ],
     );

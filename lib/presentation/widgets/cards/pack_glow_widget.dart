@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../utils/ui_helpers.dart';
@@ -74,22 +74,12 @@ class PackGlowWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   'CARD PACK',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.white.withValues(alpha: 0.7),
-                    letterSpacing: 3,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.white.withValues(alpha: 0.7)).copyWith(fontSize: 16, fontWeight: FontWeight.w800, letterSpacing: 3),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '3 CARDS',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white.withValues(alpha: 0.4),
-                    letterSpacing: 1,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.white.withValues(alpha: 0.4)).copyWith(letterSpacing: 1),
                 ),
               ],
             ),
@@ -113,11 +103,7 @@ class PackGlowWidget extends StatelessWidget {
         // "Opening..." text
         Text(
           'Opening...',
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: glowColor,
-          ),
+          style: AppTextStyles.titleMedium(color: glowColor).copyWith(fontSize: 18),
         ).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(
               duration: 800.ms,
             ),

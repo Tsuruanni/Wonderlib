@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -32,11 +32,7 @@ class RarestCardOwnerCard extends ConsumerWidget {
             children: [
               Text(
                 'Only You Have',
-                style: GoogleFonts.nunito(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
               for (int i = 0; i < cards.length; i++) ...[
@@ -81,21 +77,13 @@ class RarestCardOwnerCard extends ConsumerWidget {
             children: [
               Text(
                 card.name,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w700),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
                 'Only owner in class',
-                style: GoogleFonts.nunito(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: rarityColor,
-                ),
+                style: AppTextStyles.caption(color: rarityColor).copyWith(fontSize: 11),
               ),
             ],
           ),

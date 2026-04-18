@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
@@ -61,11 +61,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
                           padding: const EdgeInsets.only(bottom: 20),
                           child: Text(
                             'My Assignments',
-                            style: GoogleFonts.nunito(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.black,
-                            ),
+                            style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
                           ),
                         ),
 
@@ -134,19 +130,12 @@ class StudentAssignmentsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               'No assignments yet',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
             Text(
               'Your teacher will assign tasks here!',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.neutralText.withValues(alpha: 0.7),
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.neutralText.withValues(alpha: 0.7)).copyWith(fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -164,10 +153,7 @@ class StudentAssignmentsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Could not load assignments',
-            style: GoogleFonts.nunito(
-              color: AppColors.neutralText,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.neutralText),
           ),
           const SizedBox(height: 8),
           TextButton(
@@ -199,11 +185,7 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(width: 8),
         Container(
@@ -214,11 +196,7 @@ class _SectionHeader extends StatelessWidget {
           ),
           child: Text(
             '$count',
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w900,
-              fontSize: 12,
-              color: color,
-            ),
+            style: AppTextStyles.caption(color: color).copyWith(fontWeight: FontWeight.w900),
           ),
         ),
       ],
@@ -313,13 +291,9 @@ class _AssignmentCard extends StatelessWidget {
                     assignment.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: isCompleted
+                    style: AppTextStyles.bodyMedium(color: isCompleted
                           ? AppColors.neutralText
-                          : AppColors.black,
-                    ),
+                          : AppColors.black).copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -338,15 +312,11 @@ class _AssignmentCard extends StatelessWidget {
                         ),
                         child: Text(
                           dueText,
-                          style: GoogleFonts.nunito(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: isOverdue
+                          style: AppTextStyles.caption(color: isOverdue
                                 ? AppColors.danger
                                 : isCompleted
                                     ? AppColors.primary
-                                    : AppColors.neutralText,
-                          ),
+                                    : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
                       if (assignment.teacherName != null) ...[
@@ -358,11 +328,7 @@ class _AssignmentCard extends StatelessWidget {
                           child: Text(
                             assignment.teacherName!,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.neutralText,
-                            ),
+                            style: AppTextStyles.caption(color: AppColors.neutralText),
                           ),
                         ),
                       ],
@@ -396,11 +362,7 @@ class _AssignmentCard extends StatelessWidget {
                 ),
                 child: Text(
                   '${assignment.score!.toStringAsFixed(0)}%',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: _scoreColor(assignment.score!),
-                  ),
+                  style: AppTextStyles.bodyMedium(color: _scoreColor(assignment.score!)).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
                 ),
               )
             else

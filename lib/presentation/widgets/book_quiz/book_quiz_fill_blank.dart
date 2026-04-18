@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 /// Fill-in-the-blank question widget.
@@ -113,13 +114,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                 child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                    style: const TextStyle(
-                        height: 1.6,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.gray600,
-                        fontFamily: 'Nunito',
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.gray600).copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.6),
                     children: _buildTextSpans(parts),
                     ),
                 ),
@@ -172,12 +167,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                 child: Text(
                     hasAnswer ? _controller.text : '',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 18,
-                        color: hasAnswer ? AppColors.primary : Colors.transparent,
-                        fontFamily: 'Nunito',
-                    ),
+                    style: AppTextStyles.titleMedium(color: hasAnswer ? AppColors.primary : Colors.transparent).copyWith(fontSize: 18),
                 ),
                 ),
             ),
@@ -232,12 +222,7 @@ class _BookQuizFillBlankState extends State<BookQuizFillBlank> {
                             focusNode: _focusNode,
                             textCapitalization: TextCapitalization.sentences,
                             autocorrect: false,
-                            style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'Nunito',
-                                color: Color(0xFF374151),
-                            ),
+                            style: AppTextStyles.titleMedium(color: Color(0xFF374151)).copyWith(fontSize: 18),
                             decoration: InputDecoration(
                                 hintText: 'Type your answer here...',
                                 hintStyle: const TextStyle(

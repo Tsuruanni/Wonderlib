@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../domain/entities/book_quiz.dart';
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 
 /// Draggable/reorderable list of events for sequencing questions.
@@ -218,12 +219,7 @@ class _EventCard3D extends StatelessWidget {
                     child: Center(
                       child: Text(
                         '$position',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontFamily: 'Nunito',
-                        ),
+                        style: AppTextStyles.titleMedium(color: Colors.white).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
@@ -232,13 +228,7 @@ class _EventCard3D extends StatelessWidget {
                   Expanded(
                     child: Text(
                       text,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        color: AppColors.gray600,
-                        fontFamily: 'Nunito',
-                        height: 1.3,
-                      ),
+                      style: AppTextStyles.button(color: AppColors.gray600).copyWith(height: 1.3),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

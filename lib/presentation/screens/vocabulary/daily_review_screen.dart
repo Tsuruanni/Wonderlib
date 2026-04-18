@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/sm2_algorithm.dart';
 import '../../utils/app_icons.dart';
@@ -184,20 +183,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 const SizedBox(height: 16),
                 Text(
                   'Leave Review?',
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleLarge(),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Your progress will be lost.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.bodyMedium(),
                 ),
                 const SizedBox(height: 24),
                 GameButton(
@@ -259,7 +251,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                   ? 'Perfect Session!'
                   : 'Review Complete!',
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
+          style: AppTextStyles.titleLarge().copyWith(fontWeight: FontWeight.w900),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -281,10 +273,9 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     const SizedBox(width: 8),
                     Text(
                       '+$xpEarned Coins',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 24,
+                      style: AppTextStyles.display(
                         color: AppColors.streakOrange,
+                        size: 24,
                       ),
                     ),
                   ],
@@ -297,11 +288,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
             Text(
               'Known: $knownPercent%',
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleLarge(color: AppColors.neutralText),
             ),
             const SizedBox(height: 24),
 
@@ -357,16 +344,12 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                 const SizedBox(height: 16),
                 Text(
                   'Could not load words',
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleLarge(),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Check your connection and try again.',
-                  style: GoogleFonts.nunito(color: AppColors.neutralText),
+                  style: AppTextStyles.bodyMedium(),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),
@@ -400,12 +383,13 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
               const SizedBox(height: 24),
               Text(
                 'All caught up!',
-                style: GoogleFonts.nunito(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.black),
+                style: AppTextStyles.display(size: 24),
               ),
               const SizedBox(height: 8),
               Text(
                 'No words due for review right now.',
-                style: GoogleFonts.nunito(fontSize: 18, color: AppColors.neutralText, fontWeight: FontWeight.bold),
+                style: AppTextStyles.titleMedium(color: AppColors.neutralText)
+                    .copyWith(fontSize: 18),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -565,10 +549,8 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                       duration: const Duration(milliseconds: 200),
                       child: Text(
                         'Tap card to reveal answer',
-                        style: GoogleFonts.nunito(
-                          color: AppColors.neutralText,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTextStyles.bodyMedium()
+                            .copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     // Question + buttons (after flip)
@@ -582,11 +564,8 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                           children: [
                             Text(
                               'Is this word easy or hard for you?',
-                              style: GoogleFonts.nunito(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.neutralText,
-                              ),
+                              style: AppTextStyles.bodyMedium()
+                                  .copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 12),
                             Row(
@@ -656,7 +635,7 @@ class _CardFront extends StatelessWidget {
             Positioned(
               top: 0,
               left: 0,
-              child: Text('?', style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w900, color: _qColor)),
+              child: Text('?', style: AppTextStyles.display(color: _qColor, size: 28)),
             ),
             // Bottom-right "?" (rotated)
             Positioned(
@@ -664,7 +643,7 @@ class _CardFront extends StatelessWidget {
               right: 0,
               child: Transform.rotate(
                 angle: math.pi,
-                child: Text('?', style: GoogleFonts.nunito(fontSize: 28, fontWeight: FontWeight.w900, color: _qColor)),
+                child: Text('?', style: AppTextStyles.display(color: _qColor, size: 28)),
               ),
             ),
             // Inner decorative frame + word
@@ -677,7 +656,7 @@ class _CardFront extends StatelessWidget {
                 ),
                 child: Text(
                   word.word,
-                  style: GoogleFonts.nunito(fontSize: 36, fontWeight: FontWeight.w900, color: Colors.white),
+                  style: AppTextStyles.display(color: Colors.white),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -718,11 +697,7 @@ class _CardBack extends StatelessWidget {
                 color: AppColors.secondary,
                 child: Text(
                   word.meaningTR,
-                  style: GoogleFonts.nunito(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+                  style: AppTextStyles.display(color: Colors.white, size: 22),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -770,11 +745,8 @@ class _CardBack extends StatelessWidget {
             right: 18,
             child: Text(
               word.word,
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.bodySmall()
+                  .copyWith(fontWeight: FontWeight.w800),
             ),
           ),
         ],
@@ -809,18 +781,16 @@ class _InfoSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.nunito(
-                  color: color,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
-                ),
+                style: AppTextStyles.titleMedium(color: color)
+                    .copyWith(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
             content,
-            style: GoogleFonts.nunito(fontSize: 18, color: AppColors.black, fontWeight: FontWeight.bold),
+            style: AppTextStyles.bodyLarge()
+                .copyWith(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -849,15 +819,12 @@ class _StatRow extends StatelessWidget {
         children: [
           Text(emoji, style: const TextStyle(fontSize: 24)),
           const SizedBox(width: 16),
-          Text(label, style: GoogleFonts.nunito(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.black)),
+          Text(label, style: AppTextStyles.bodyLarge().copyWith(fontSize: 18, fontWeight: FontWeight.bold)),
           const Spacer(),
           Text(
             '$count',
-            style: GoogleFonts.nunito(
-              color: color,
-              fontWeight: FontWeight.w900,
-              fontSize: 20,
-            ),
+            style: AppTextStyles.titleLarge(color: color)
+                .copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),

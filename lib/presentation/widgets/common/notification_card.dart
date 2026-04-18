@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/badge_earned.dart';
 import '../../../domain/entities/daily_quest.dart';
@@ -293,11 +293,8 @@ class NotificationCard extends StatefulWidget {
                     Expanded(
                       child: Text(
                         badge.badgeName,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.black,
-                        ),
+                        style: AppTextStyles.bodyLarge()
+                            .copyWith(fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                     ),
                     _XpChip(xp: badge.xpReward),
@@ -359,11 +356,8 @@ class NotificationCard extends StatefulWidget {
                 Expanded(
                   child: Text(
                     p.quest.title,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.black)
+                        .copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
                 Container(
@@ -375,11 +369,8 @@ class NotificationCard extends StatefulWidget {
                   ),
                   child: Text(
                     text,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: color,
-                    ),
+                    style: AppTextStyles.bodySmall(color: color)
+                        .copyWith(fontWeight: FontWeight.w800),
                   ),
                 ),
               ],
@@ -563,11 +554,7 @@ class _NotificationCardState extends State<NotificationCard>
                     // Title
                     Text(
                       widget.title,
-                      style: GoogleFonts.nunito(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.black,
-                      ),
+                      style: AppTextStyles.display(size: 24),
                       textAlign: TextAlign.center,
                     ),
 
@@ -576,11 +563,9 @@ class _NotificationCardState extends State<NotificationCard>
                       const SizedBox(height: 8),
                       Text(
                         widget.subtitle!,
-                        style: GoogleFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        style: AppTextStyles.bodyLarge(
                           color: widget.subtitleColor ?? AppColors.gray500,
-                        ),
+                        ).copyWith(fontSize: 16, fontWeight: FontWeight.w600),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -691,11 +676,8 @@ class _TransitionPill extends StatelessWidget {
         children: [
           Text(
             from,
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.gray500,
-            ),
+            style: AppTextStyles.bodyLarge(color: AppColors.gray500)
+                .copyWith(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -707,11 +689,8 @@ class _TransitionPill extends StatelessWidget {
           ),
           Text(
             to,
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
+            style: AppTextStyles.titleMedium(color: color)
+                .copyWith(fontSize: 18, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -740,11 +719,8 @@ class _XpChip extends StatelessWidget {
       ),
       child: Text(
         '+$xp XP',
-        style: GoogleFonts.nunito(
-          color: Colors.purple,
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-        ),
+        style: AppTextStyles.bodyMedium(color: Colors.purple)
+            .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
       ),
     );
   }

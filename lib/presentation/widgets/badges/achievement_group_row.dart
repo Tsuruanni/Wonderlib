@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/achievement_group.dart';
 import '../common/app_progress_bar.dart';
@@ -133,12 +133,7 @@ class AchievementGroupRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     group.isMaxed ? 'MAX' : 'LEVEL ${group.currentLevel}',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 10,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                    ),
+                    style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
                   ),
                 ],
               ],
@@ -156,20 +151,12 @@ class AchievementGroupRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         group.displayTitle,
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 17,
-                          color: AppColors.black,
-                        ),
+                        style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
                       ),
                     ),
                     Text(
                       progressLabel,
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 13,
-                        color: group.isMaxed ? AppColors.waspDark : AppColors.gray500,
-                      ),
+                      style: AppTextStyles.bodySmall(color: group.isMaxed ? AppColors.waspDark : AppColors.gray500).copyWith(fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -183,11 +170,7 @@ class AchievementGroupRow extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     group.description,
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.gray600,
-                    ),
+                    style: AppTextStyles.bodySmall(color: AppColors.gray600).copyWith(fontWeight: FontWeight.w600),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

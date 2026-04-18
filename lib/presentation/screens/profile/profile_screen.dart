@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:owlio_shared/owlio_shared.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
@@ -46,11 +46,7 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'PROFILE',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.bold,
-            color: AppColors.neutralText,
-            letterSpacing: 1.0,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(letterSpacing: 1.0),
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -147,20 +143,12 @@ class _TeacherHeader extends StatelessWidget {
           children: [
             Text(
               user.firstName,
-              style: GoogleFonts.nunito(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontSize: 26),
             ),
             const SizedBox(width: 8),
             Text(
               user.lastName,
-              style: GoogleFonts.nunito(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontSize: 26),
             ),
           ],
         ),
@@ -179,11 +167,7 @@ class _TeacherHeader extends StatelessWidget {
               ),
               child: Text(
                 _getRoleDisplayName(user.role),
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: _getRoleColor(user.role),
-                ),
+                style: AppTextStyles.caption(color: _getRoleColor(user.role)).copyWith(fontWeight: FontWeight.w700),
               ),
             ),
             if (schoolName != null) ...[
@@ -192,10 +176,7 @@ class _TeacherHeader extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 schoolName!,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.neutralText),
               ),
             ],
           ],
@@ -204,10 +185,7 @@ class _TeacherHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             user.email!,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText),
           ),
         ],
       ],
@@ -254,11 +232,7 @@ class _PersonalInfoCard extends ConsumerWidget {
         children: [
           Text(
             'Personal Information',
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           // First + Last name side by side
@@ -396,11 +370,11 @@ class _PasswordCard extends ConsumerWidget {
         leading: const Icon(Icons.lock_outline),
         title: Text(
           'Change Password',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w700),
+          style: AppTextStyles.titleMedium(),
         ),
         subtitle: Text(
           'Send a password reset link to your email',
-          style: GoogleFonts.nunito(fontSize: 12, color: AppColors.neutralText),
+          style: AppTextStyles.caption(color: AppColors.neutralText),
         ),
         trailing: AppIcons.arrowRight(),
       ),
@@ -438,20 +412,12 @@ class _EditableField extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     value,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.button(color: AppColors.black),
                   ),
                 ],
               ),
@@ -559,20 +525,12 @@ class _ProfileHeader extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 user.fullName,
-                style: GoogleFonts.nunito(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
               ),
               if (user.username != null && user.username!.isNotEmpty)
                 Text(
                   '@${user.username}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
               const SizedBox(height: 8),
               if (profileContext != null) ...[
@@ -605,19 +563,11 @@ class _ProfileHeader extends ConsumerWidget {
                               children: [
                                 Text(
                                   user.leagueTier.label,
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 14,
-                                    color: AppColors.black,
-                                  ),
+                                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
                                 ),
                                 Text(
                                   'League',
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 11,
-                                    color: AppColors.neutralText,
-                                  ),
+                                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -650,19 +600,11 @@ class _ProfileHeader extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Level ${user.level}',
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 14,
-                                    color: AppColors.black,
-                                  ),
+                                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
                                 ),
                                 Text(
                                   '${user.xp} XP',
-                                  style: GoogleFonts.nunito(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 11,
-                                    color: AppColors.neutralText,
-                                  ),
+                                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                                 ),
                               ],
                             ),
@@ -693,11 +635,7 @@ class _ProfileHeader extends ConsumerWidget {
         Flexible(
           child: Text(
             parts.join(' • '),
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              color: AppColors.neutralText,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -748,20 +686,12 @@ class _CardCollectionSection extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Card Collection',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 16,
-                        color: AppColors.black,
-                      ),
+                      style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     const Spacer(),
                     Text(
                       '${stats.totalUniqueCards} / $totalCards',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        color: AppColors.cardEpic,
-                      ),
+                      style: AppTextStyles.bodyMedium(color: AppColors.cardEpic).copyWith(fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(width: 4),
                     AppIcons.arrowRight(size: 20),
@@ -869,11 +799,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Achievements',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   const Spacer(),
                   Container(
@@ -885,11 +811,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                     ),
                     child: Text(
                       '$earnedCount / $totalCount',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                        color: AppColors.primary,
-                      ),
+                      style: AppTextStyles.bodySmall(color: AppColors.primary).copyWith(fontWeight: FontWeight.w900),
                     ),
                   ),
                 ],
@@ -908,11 +830,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           'Complete lessons to earn achievements!',
-                          style: GoogleFonts.nunito(
-                            color: AppColors.neutralText,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
+                          style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ],
@@ -928,11 +846,7 @@ class _RecentBadgesSection extends ConsumerWidget {
                     },
                     child: Text(
                       'View All Achievements',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 14,
-                        color: AppColors.primary,
-                      ),
+                      style: AppTextStyles.bodyMedium(color: AppColors.primary).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -1054,24 +968,16 @@ class _MiniAchievementRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         group.displayTitle,
-                        style: GoogleFonts.nunito(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
-                          color: AppColors.black,
-                        ),
+                        style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
                       progressLabel,
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                        color: group.isMaxed
+                      style: AppTextStyles.caption(color: group.isMaxed
                             ? AppColors.waspDark
-                            : AppColors.gray500,
-                      ),
+                            : AppColors.gray500).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -1138,11 +1044,7 @@ class _StatsSection extends ConsumerWidget {
       children: [
         Text(
           'Statistics',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: AppColors.black,
-          ),
+          style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 14),
         // 2x2 grid
@@ -1206,11 +1108,7 @@ class _StatsSection extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   'My Word Bank',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.gemBlue,
-                  ),
+                  style: AppTextStyles.button(color: AppColors.gemBlue).copyWith(fontSize: 14),
                 ),
                 const SizedBox(width: 4),
                 AppIcons.arrowRight(size: 18),
@@ -1263,22 +1161,14 @@ class _StatCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 value,
-                style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w900),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.nunito(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -1303,11 +1193,7 @@ class _DailyReviewProfileCard extends ConsumerWidget {
             const SizedBox(width: 8),
             Text(
               'Daily Vocabulary Review',
-              style: GoogleFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
             ),
           ],
         ),
@@ -1348,19 +1234,11 @@ class _DailyReviewProfileCard extends ConsumerWidget {
               children: [
                 Text(
                   'Review Complete!',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                    color: AppColors.primary,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.primary).copyWith(fontWeight: FontWeight.w800),
                 ),
                 Text(
                   '+${session.xpEarned} XP earned today',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -1398,19 +1276,11 @@ class _DailyReviewProfileCard extends ConsumerWidget {
                 children: [
                   Text(
                     '$wordCount words ready!',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
-                      color: AppColors.streakOrange,
-                    ),
+                    style: AppTextStyles.bodyMedium(color: AppColors.streakOrange).copyWith(fontWeight: FontWeight.w800),
                   ),
                   Text(
                     'Tap to start your daily review',
-                    style: GoogleFonts.nunito(
-                      color: AppColors.neutralText,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                    style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -1451,20 +1321,12 @@ class _DailyReviewProfileCard extends ConsumerWidget {
               children: [
                 Text(
                   'Words Building Up',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '$currentCount/$minDailyReviewCount — keep learning to unlock review!',
-                  style: GoogleFonts.nunito(
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 ClipRRect(

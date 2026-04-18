@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../utils/app_icons.dart';
 
 class XPBadge extends StatelessWidget {
@@ -40,10 +40,9 @@ class XPBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             '+$xp',
-            style: GoogleFonts.nunito(
+            style: AppTextStyles.bodyLarge(color: Colors.white).copyWith(
               fontSize: 16,
               fontWeight: FontWeight.w900,
-              color: Colors.white, // Dark Brown text on Gold
               shadows: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.1),

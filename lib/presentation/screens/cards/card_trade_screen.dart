@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -71,10 +71,7 @@ class _CardTradeScreenState extends ConsumerState<CardTradeScreen>
                   ),
                   Text(
                     'Trade Duplicates',
-                    style: GoogleFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: AppTextStyles.titleLarge(),
                   ),
                 ],
               ),
@@ -107,9 +104,9 @@ class _CardTradeScreenState extends ConsumerState<CardTradeScreen>
                 labelPadding: EdgeInsets.zero,
                 padding: const EdgeInsets.all(4),
                 labelStyle:
-                    GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800),
+                    AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w800),
                 unselectedLabelStyle:
-                    GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600),
+                    AppTextStyles.bodySmall().copyWith(fontWeight: FontWeight.w600),
                 labelColor: AppColors.black,
                 unselectedLabelColor: AppColors.neutralText,
                 tabs: [
@@ -203,11 +200,7 @@ class _TradeTab extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             'Select ${req.count} ${sourceRarity.label.toLowerCase()} cards for 1 ${req.target}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.black,
-                            ),
+                            style: AppTextStyles.button(color: AppColors.black).copyWith(fontSize: 14),
                           ),
                         ),
                         Container(
@@ -221,11 +214,7 @@ class _TradeTab extends ConsumerWidget {
                           ),
                           child: Text(
                             '$selected / ${req.count}',
-                            style: GoogleFonts.nunito(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                            ),
+                            style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
                           ),
                         ),
                       ],
@@ -251,11 +240,7 @@ class _TradeTab extends ConsumerWidget {
                           Expanded(
                             child: Text(
                               'You own all ${req.target} cards — you\'ll get a duplicate',
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.waspDark,
-                              ),
+                              style: AppTextStyles.caption(color: AppColors.waspDark).copyWith(fontWeight: FontWeight.w700),
                             ),
                           ),
                         ],
@@ -276,11 +261,7 @@ class _TradeTab extends ConsumerWidget {
                       ),
                       child: Text(
                         tradeState.error!,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.danger,
-                        ),
+                        style: AppTextStyles.caption(color: AppColors.danger).copyWith(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -300,11 +281,7 @@ class _TradeTab extends ConsumerWidget {
                         const SizedBox(height: 12),
                         Text(
                           'No ${sourceRarity.label.toLowerCase()} cards yet',
-                          style: GoogleFonts.nunito(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -434,11 +411,7 @@ class _TradeCardItem extends ConsumerWidget {
                     ),
                     child: Text(
                       '-$selectedCount',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppTextStyles.caption(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -457,11 +430,7 @@ class _TradeCardItem extends ConsumerWidget {
                     ),
                     child: Text(
                       'x${uc.quantity}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
+                      style: AppTextStyles.caption(color: Colors.white).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -512,11 +481,7 @@ class _TradeRevealView extends ConsumerWidget {
             children: [
               Text(
                 result.isNew ? 'NEW CARD!' : 'CARD RECEIVED',
-                style: GoogleFonts.nunito(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: result.isNew ? rarityColor : AppColors.black,
-                ),
+                style: AppTextStyles.headlineMedium(color: result.isNew ? rarityColor : AppColors.black).copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -530,11 +495,7 @@ class _TradeRevealView extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 result.receivedCard.name,
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 4),
               Container(
@@ -548,11 +509,7 @@ class _TradeRevealView extends ConsumerWidget {
                 ),
                 child: Text(
                   result.receivedCard.rarity.label,
-                  style: GoogleFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: rarityColor,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: rarityColor).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
                 ),
               ),
               const SizedBox(height: 32),

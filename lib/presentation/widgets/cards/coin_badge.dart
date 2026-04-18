@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 
 /// A compact coin balance badge: gold coin icon + amount.
@@ -40,10 +40,9 @@ class CoinBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             _formatCoins(coins),
-            style: GoogleFonts.nunito(
+            style: AppTextStyles.bodyMedium(color: AppColors.waspDark).copyWith(
               fontSize: fontSize,
               fontWeight: FontWeight.w800,
-              color: AppColors.waspDark,
             ),
           ),
         ],

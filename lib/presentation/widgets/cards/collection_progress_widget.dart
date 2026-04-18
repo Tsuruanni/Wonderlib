@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../utils/ui_helpers.dart';
@@ -35,11 +35,7 @@ class CollectionProgressWidget extends StatelessWidget {
                 children: [
                   Text(
                     '$ownedCount / $totalCount Cards',
-                    style: GoogleFonts.nunito(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 6),
                   AppProgressBar(
@@ -54,11 +50,7 @@ class CollectionProgressWidget extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '${(progress * 100).toInt()}%',
-              style: GoogleFonts.nunito(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: _getProgressColor(progress),
-              ),
+              style: AppTextStyles.titleMedium(color: _getProgressColor(progress)).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
             ),
           ],
         ),
@@ -95,11 +87,7 @@ class CollectionProgressWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     '$owned/$perCategory',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: isComplete ? catColor : AppColors.neutralText,
-                    ),
+                    style: AppTextStyles.caption(color: isComplete ? catColor : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),

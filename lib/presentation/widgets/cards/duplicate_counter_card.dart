@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
@@ -35,31 +35,19 @@ class DuplicateCounterCard extends ConsumerWidget {
         children: [
           Text(
             'Duplicates',
-            style: GoogleFonts.nunito(
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               Text(
                 '$totalExtra',
-                style: GoogleFonts.nunito(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.headlineLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(width: 8),
               Text(
                 'extra cards',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -98,11 +86,7 @@ class DuplicateCounterCard extends ConsumerWidget {
         Expanded(
           child: Text(
             uc.card.name,
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w700),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -115,11 +99,7 @@ class DuplicateCounterCard extends ConsumerWidget {
           ),
           child: Text(
             'x${uc.quantity}',
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: rarityColor,
-            ),
+            style: AppTextStyles.bodySmall(color: rarityColor).copyWith(fontWeight: FontWeight.w800),
           ),
         ),
       ],

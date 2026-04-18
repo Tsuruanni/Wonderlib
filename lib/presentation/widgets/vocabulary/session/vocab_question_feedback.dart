@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import '../../../utils/app_icons.dart';
@@ -378,12 +378,7 @@ class _GotItButtonState extends State<_GotItButton> {
                 alignment: Alignment.center,
                 child: Text(
                   'GOT IT',
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.white,
-                    letterSpacing: 1.0,
-                  ),
+                  style: AppTextStyles.button(color: AppColors.white).copyWith(fontWeight: FontWeight.w900, letterSpacing: 1.0),
                 ),
               ),
             ),

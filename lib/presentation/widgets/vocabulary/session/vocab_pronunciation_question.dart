@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../domain/entities/vocabulary_session.dart';
 import '../../../widgets/common/game_button.dart';
@@ -258,13 +258,9 @@ class _VocabPronunciationQuestionState
         if (_statusMessage != null) ...[
           Text(
             _statusMessage!,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: _statusMessage!.startsWith('Hearing')
+            style: AppTextStyles.bodyMedium(color: _statusMessage!.startsWith('Hearing')
                   ? AppColors.primary
-                  : AppColors.danger,
-            ),
+                  : AppColors.danger).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
@@ -307,20 +303,13 @@ class _VocabPronunciationQuestionState
               : _attemptsUsed == 0
                   ? 'Tap to speak'
                   : 'Tap to try again',
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodySmall(color: AppColors.neutralText),
         ),
         if (_attemptsUsed > 0 && !_answered) ...[
           const SizedBox(height: 4),
           Text(
             '$_attemptsLeft attempt${_attemptsLeft == 1 ? '' : 's'} left',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.danger.withValues(alpha: 0.7),
-            ),
+            style: AppTextStyles.caption(color: AppColors.danger.withValues(alpha: 0.7)),
           ),
         ],
         const SizedBox(height: 24),
@@ -328,11 +317,7 @@ class _VocabPronunciationQuestionState
           onPressed: _answered ? null : _switchToFallback,
           child: Text(
             "Can't use microphone?",
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              color: AppColors.neutralText,
-              decoration: TextDecoration.underline,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(decoration: TextDecoration.underline),
           ),
         ),
       ],
@@ -406,11 +391,7 @@ class _VocabPronunciationQuestionState
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
                 promptText,
-                style: GoogleFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
             ),

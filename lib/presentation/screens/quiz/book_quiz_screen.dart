@@ -11,7 +11,7 @@ import '../../providers/book_provider.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_preview_provider.dart';
 import '../../providers/usecase_providers.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../utils/app_icons.dart';
 import '../../widgets/common/animated_game_button.dart';
@@ -146,20 +146,13 @@ class _BookQuizScreenState extends ConsumerState<BookQuizScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'Leave Quiz?',
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleLarge(color: AppColors.black),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Your progress will be lost.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.neutralText),
                 ),
                 const SizedBox(height: 24),
                 GameButton(

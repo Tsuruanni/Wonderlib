@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 
 /// "NEW!" badge animation that appears above newly obtained cards.
@@ -25,11 +25,7 @@ class NewCardBadge extends StatelessWidget {
       ),
       child: Text(
         'NEW!',
-        style: GoogleFonts.nunito(
-          fontSize: 14,
-          fontWeight: FontWeight.w800,
-          color: AppColors.white,
-        ),
+        style: AppTextStyles.bodyMedium(color: AppColors.white).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
       ),
     )
         .animate()
@@ -65,11 +61,7 @@ class DuplicateCountBadge extends StatelessWidget {
       ),
       child: Text(
         '\u00d7$quantity',
-        style: GoogleFonts.nunito(
-          fontSize: 16,
-          fontWeight: FontWeight.w800,
-          color: AppColors.white,
-        ),
+        style: AppTextStyles.titleMedium(color: AppColors.white).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
       ),
     ).animate().fadeIn(duration: 300.ms).scale(
           begin: const Offset(0.8, 0.8),
@@ -134,18 +126,12 @@ class LegendaryRevealOverlay extends StatelessWidget {
               // LEGENDARY label
               Text(
                 'LEGENDARY',
-                style: GoogleFonts.nunito(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.cardLegendary,
-                  letterSpacing: 4,
-                  shadows: [
+                style: AppTextStyles.headlineLarge(color: AppColors.cardLegendary).copyWith(letterSpacing: 4, shadows: [
                     Shadow(
                       color: AppColors.cardLegendary.withValues(alpha: 0.5),
                       blurRadius: 20,
                     ),
-                  ],
-                ),
+                  ]),
               )
                   .animate()
                   .fadeIn(delay: 300.ms, duration: 500.ms)
@@ -156,11 +142,7 @@ class LegendaryRevealOverlay extends StatelessWidget {
               // Card name
               Text(
                 cardName,
-                style: GoogleFonts.nunito(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+                style: AppTextStyles.titleLarge(color: AppColors.white).copyWith(fontWeight: FontWeight.w700),
               ).animate().fadeIn(delay: 600.ms, duration: 400.ms),
 
               const SizedBox(height: 24),
@@ -168,10 +150,7 @@ class LegendaryRevealOverlay extends StatelessWidget {
               // Tap to continue
               Text(
                 'Tap to continue',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  color: AppColors.white.withValues(alpha: 0.5),
-                ),
+                style: AppTextStyles.bodyMedium(color: AppColors.white.withValues(alpha: 0.5)).copyWith(fontSize: 14),
               )
                   .animate()
                   .fadeIn(delay: 1000.ms, duration: 400.ms)

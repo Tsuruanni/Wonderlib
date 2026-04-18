@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../providers/book_download_provider.dart';
@@ -19,11 +19,7 @@ class DownloadedBooksScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
           'Downloaded Books',
-          style: GoogleFonts.nunito(
-            fontWeight: FontWeight.bold,
-            color: AppColors.neutralText,
-            letterSpacing: 1.0,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(letterSpacing: 1.0),
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -35,7 +31,7 @@ class DownloadedBooksScreen extends ConsumerWidget {
         error: (error, _) => Center(
           child: Text(
             'Failed to load downloads',
-            style: GoogleFonts.nunito(color: AppColors.neutralText),
+            style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
           ),
         ),
         data: (books) {
@@ -140,19 +136,11 @@ class _StorageBanner extends StatelessWidget {
               children: [
                 Text(
                   '$count book${count == 1 ? '' : 's'} downloaded',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
                 Text(
                   'Total storage used: $totalFormatted',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -214,11 +202,7 @@ class _DownloadedBookTile extends ConsumerWidget {
               children: [
                 Text(
                   book.title,
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -239,11 +223,7 @@ class _DownloadedBookTile extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Cached: $cachedDate',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    color: AppColors.neutralText,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                 ),
                 const SizedBox(height: 8),
                 // Remove button
@@ -255,10 +235,7 @@ class _DownloadedBookTile extends ConsumerWidget {
                     icon: const Icon(Icons.delete_outline_rounded, size: 16),
                     label: Text(
                       'Remove Download',
-                      style: GoogleFonts.nunito(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
+                      style: AppTextStyles.caption().copyWith(fontWeight: FontWeight.w700),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.danger,
@@ -328,11 +305,7 @@ class _MetaChip extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 12,
-            color: AppColors.neutralText,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyles.caption(color: AppColors.neutralText),
         ),
       ],
     );
@@ -357,7 +330,7 @@ class _RemoveAllButton extends ConsumerWidget {
         icon: const Icon(Icons.delete_sweep_rounded),
         label: Text(
           'Remove All Downloads',
-          style: GoogleFonts.nunito(fontWeight: FontWeight.w800),
+          style: AppTextStyles.titleMedium().copyWith(fontWeight: FontWeight.w800),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.danger,
@@ -409,21 +382,13 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'No Downloaded Books',
-              style: GoogleFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.titleLarge(color: AppColors.black),
             ),
             const SizedBox(height: 8),
             Text(
               'Download books from the library to read them offline.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                color: AppColors.neutralText,
-                fontWeight: FontWeight.w600,
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w600),
             ),
           ],
         ),

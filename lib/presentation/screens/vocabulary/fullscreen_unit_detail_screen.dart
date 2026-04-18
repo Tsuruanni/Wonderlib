@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/tile_theme.dart';
 import '../../providers/student_assignment_provider.dart';
@@ -73,7 +73,7 @@ class _FullscreenUnitDetailScreenState
           error: (e, _) => Center(
             child: Text(
               'Could not load unit',
-              style: GoogleFonts.nunito(color: AppColors.neutralText),
+              style: AppTextStyles.bodyLarge(color: AppColors.neutralText),
             ),
           ),
           data: (allUnits) {

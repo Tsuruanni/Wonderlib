@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../domain/entities/activity.dart';
 import '../../providers/reader_provider.dart';
@@ -155,11 +155,7 @@ class _InlineWordTranslationActivityState extends State<InlineWordTranslationAct
                 ),
                 child: Text(
                   content.word,
-                  style: GoogleFonts.nunito(
-                    fontSize: widget.settings.fontSize + 2,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF374151), // Neutral 700
-                  ),
+                  style: AppTextStyles.titleMedium(color: const Color(0xFF374151)).copyWith(fontSize: widget.settings.fontSize + 2, fontWeight: FontWeight.w800),
                 ),
               ),
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../providers/teacher_provider.dart';
 import '../../../widgets/common/playful_card.dart';
@@ -52,11 +52,7 @@ class MySchoolReportScreen extends ConsumerWidget {
                             const SizedBox(width: 8),
                             Text(
                               'School vs Platform',
-                              style: GoogleFonts.nunito(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.black,
-                              ),
+                              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                             ),
                           ],
                         ),
@@ -143,11 +139,7 @@ class _SummaryRow extends StatelessWidget {
             flex: 3,
             child: Text(
               label,
-              style: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           Expanded(
@@ -155,11 +147,7 @@ class _SummaryRow extends StatelessWidget {
             child: Text(
               mine,
               textAlign: TextAlign.right,
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: _compareColor(),
-              ),
+              style: AppTextStyles.bodyMedium(color: _compareColor()).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
             ),
           ),
           Expanded(
@@ -167,11 +155,7 @@ class _SummaryRow extends StatelessWidget {
             child: Text(
               benchmark == null ? '' : 'global: $benchmark',
               textAlign: TextAlign.right,
-              style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
             ),
           ),
         ],

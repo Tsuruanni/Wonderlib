@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../app/router.dart';
+import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
@@ -84,11 +84,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
 
                 Text(
                   'Class Performance',
-                  style: GoogleFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
 
@@ -150,11 +146,7 @@ class _EnrichedClassCard extends StatelessWidget {
                 child: Center(
                   child: Text(
                     classItem.grade.toString(),
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.secondary,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.secondary).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -165,17 +157,11 @@ class _EnrichedClassCard extends StatelessWidget {
                   children: [
                     Text(
                       classItem.name,
-                      style: GoogleFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: AppTextStyles.titleMedium().copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     Text(
                       '${classItem.studentCount} students',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        color: AppColors.neutralText,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.neutralText),
                     ),
                   ],
                 ),
@@ -259,11 +245,7 @@ class _MetricChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
+            style: AppTextStyles.caption(color: color).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
           ),
         ],
       ),

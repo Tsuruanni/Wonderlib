@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../data/models/avatar/equipped_avatar_model.dart';
 import '../../../domain/entities/leaderboard_entry.dart';
@@ -138,19 +138,12 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
           const SizedBox(height: 16),
           Text(
             'No students yet',
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
           Text(
             'Start reading to earn XP and climb the ranks!',
-            style: GoogleFonts.nunito(
-              color: AppColors.neutralText,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.bodyLarge(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -183,11 +176,7 @@ class _LeaderboardHeader extends StatelessWidget {
           Flexible(
             child: Text(
               'Leaderboard',
-              style: GoogleFonts.nunito(
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-                color: AppColors.black,
-              ),
+              style: AppTextStyles.headlineMedium(color: AppColors.black).copyWith(fontSize: 22, fontWeight: FontWeight.w900),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -249,11 +238,7 @@ class _ToggleButton extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: GoogleFonts.nunito(
-            fontSize: 13,
-            fontWeight: FontWeight.w800,
-            color: isActive ? Colors.white : AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodySmall(color: isActive ? Colors.white : AppColors.neutralText).copyWith(fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -300,33 +285,21 @@ class _TierBadgeHeader extends StatelessWidget {
           // Tier name
           Text(
             '${currentTier.label} League',
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleLarge(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
 
           // Promotion info
           Text(
             'Top $zoneSize advance to the next league',
-            style: GoogleFonts.nunito(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.neutralText,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 2),
 
           // Countdown
           Text(
             '$daysLeft days',
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF4CAF50),
-            ),
+            style: AppTextStyles.bodyMedium(color: const Color(0xFF4CAF50)).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -512,12 +485,7 @@ class _LeaderboardList extends StatelessWidget {
                           isCurrentUser
                               ? '${entry.fullName} (You)'
                               : entry.fullName,
-                          style: GoogleFonts.nunito(
-                            fontSize: 14,
-                            fontWeight:
-                                isCurrentUser ? FontWeight.w900 : FontWeight.w700,
-                            color: AppColors.black,
-                          ),
+                          style: AppTextStyles.bodyMedium(color: AppColors.black).copyWith(fontSize: 14, fontWeight: isCurrentUser ? FontWeight.w900 : FontWeight.w700),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -532,11 +500,7 @@ class _LeaderboardList extends StatelessWidget {
                   if (showClassName && entry.className != null)
                     Text(
                       entry.className!,
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        color: AppColors.neutralText,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontSize: 11),
                     ),
                 ],
               ),
@@ -586,11 +550,7 @@ class _RankBadge extends StatelessWidget {
         child: Center(
           child: Text(
             '$rank',
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
+            style: AppTextStyles.bodyMedium(color: Colors.white).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
           ),
         ),
       );
@@ -601,11 +561,7 @@ class _RankBadge extends StatelessWidget {
       child: Center(
         child: Text(
           '$rank',
-          style: GoogleFonts.nunito(
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -653,12 +609,7 @@ class _ZoneSeparator extends StatelessWidget {
                 Flexible(
                   child: Text(
                     text,
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: color,
-                      letterSpacing: 1,
-                    ),
+                    style: AppTextStyles.caption(color: color).copyWith(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -703,11 +654,7 @@ class _RankChangeIndicator extends StatelessWidget {
           ),
           Text(
             '${rankChange!.abs()}',
-            style: GoogleFonts.nunito(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: isUp ? const Color(0xFF4CAF50) : const Color(0xFFE53935),
-            ),
+            style: AppTextStyles.caption(color: isUp ? const Color(0xFF4CAF50) : const Color(0xFFE53935)).copyWith(fontSize: 9, fontWeight: FontWeight.w900),
           ),
         ],
       ),
@@ -774,11 +721,7 @@ class _Avatar extends StatelessWidget {
       child: Center(
         child: Text(
           initials,
-          style: GoogleFonts.nunito(
-            fontSize: size * 0.35,
-            fontWeight: FontWeight.w900,
-            color: AppColors.secondary,
-          ),
+          style: AppTextStyles.titleMedium(color: AppColors.secondary).copyWith(fontSize: size * 0.35, fontWeight: FontWeight.w900),
         ),
       ),
     );
@@ -831,11 +774,7 @@ class _XpBadge extends StatelessWidget {
       children: [
         Text(
           '$xp',
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.neutralText,
-          ),
+          style: AppTextStyles.bodyMedium(color: AppColors.neutralText).copyWith(fontSize: 14, fontWeight: FontWeight.w800),
         ),
         const SizedBox(width: 4),
         AppIcons.xp(size: 18),
@@ -970,11 +909,7 @@ class _PodiumEntry extends StatelessWidget {
               // Rank number — separate block, vertically centered
               Text(
                 '${entry.rank}',
-                style: GoogleFonts.nunito(
-                  fontSize: isFirst ? 28 : 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,
-                ),
+                style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: isFirst ? 28 : 22, fontWeight: FontWeight.w900),
               ),
               const SizedBox(width: 6),
               // Content block: avatar + name + xp
@@ -1011,11 +946,7 @@ class _PodiumEntry extends StatelessWidget {
                     // Name
                     Text(
                       isCurrentUser ? '${entry.fullName} (You)' : entry.fullName,
-                      style: GoogleFonts.nunito(
-                        fontSize: isFirst ? 14 : 12,
-                        fontWeight: FontWeight.w900,
-                        color: isCurrentUser ? AppColors.secondary : AppColors.black,
-                      ),
+                      style: AppTextStyles.titleMedium(color: isCurrentUser ? AppColors.secondary : AppColors.black).copyWith(fontSize: isFirst ? 14 : 12, fontWeight: FontWeight.w900),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
@@ -1027,11 +958,7 @@ class _PodiumEntry extends StatelessWidget {
                       children: [
                         Text(
                           '$xp',
-                          style: GoogleFonts.nunito(
-                            fontSize: isFirst ? 13 : 11,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.titleMedium(color: AppColors.neutralText).copyWith(fontSize: isFirst ? 13 : 11, fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(width: 3),
                         Image.asset(
@@ -1088,16 +1015,12 @@ class _NotJoinedCard extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Join this week\'s league!',
-              style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.black,),
+              style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             Text(
               'Earn 20 XP to start competing.',
-              style: GoogleFonts.nunito(
-                  color: AppColors.neutralText, fontWeight: FontWeight.w600,),
+              style: AppTextStyles.bodyLarge(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
             AppProgressBar(
@@ -1110,8 +1033,7 @@ class _NotJoinedCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '$xp / 20 XP',
-              style: GoogleFonts.nunito(
-                  fontWeight: FontWeight.w800, color: AppColors.waspDark,),
+              style: AppTextStyles.titleMedium(color: AppColors.waspDark).copyWith(fontWeight: FontWeight.w800),
             ),
           ],
         ),

@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:rive/rive.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
 import '../../../core/utils/extensions/string_extensions.dart';
@@ -106,22 +106,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 24),
                     Text(
                       'Owlio',
-                      style: GoogleFonts.nunito(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary,
-                        letterSpacing: 1.2,
-                      ),
+                      style: AppTextStyles.hero(color: AppColors.primary)
+                          .copyWith(letterSpacing: 1.2),
                       textAlign: TextAlign.center,
                     ).animate().fadeIn(delay: 300.ms).moveY(begin: 10, end: 0),
-                    
+
                     Text(
                       'Fly Through Stories, Glide Through Words.',
-                      style: GoogleFonts.nunito(
-                        fontSize: 18,
-                        color: AppColors.neutralText,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.bodyLarge(color: AppColors.neutralText)
+                          .copyWith(fontSize: 18, fontWeight: FontWeight.w600),
                       textAlign: TextAlign.center,
                     ).animate().fadeIn(delay: 400.ms).moveY(begin: 10, end: 0),
                     
@@ -202,11 +195,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Center(
                         child: Text(
                           'DEVELOPER SHORTCUTS',
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption()
+                              .copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -245,11 +235,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Center(
                         child: Text(
                           'CLASS 5-A',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption()
+                              .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -271,11 +258,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Center(
                         child: Text(
                           'CLASS 5-B',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption()
+                              .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -297,11 +281,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Center(
                         child: Text(
                           'CLASS 6-A',
-                          style: GoogleFonts.nunito(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.neutralText,
-                          ),
+                          style: AppTextStyles.caption()
+                              .copyWith(fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 6),

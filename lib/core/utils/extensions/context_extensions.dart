@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../presentation/widgets/common/game_button.dart';
@@ -108,20 +108,13 @@ extension BuildContextExtensions on BuildContext {
                 const SizedBox(height: 16),
                 Text(
                   title,
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
+                  style: AppTextStyles.titleLarge(),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    color: AppColors.neutralText,
-                  ),
+                  style: AppTextStyles.bodyMedium(),
                 ),
                 const SizedBox(height: 24),
                 GameButton(

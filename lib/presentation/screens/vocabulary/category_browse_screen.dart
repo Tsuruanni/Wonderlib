@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../app/router.dart';
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/word_list.dart';
 import '../../providers/vocabulary_provider.dart';
@@ -25,7 +25,7 @@ class CategoryBrowseScreen extends ConsumerWidget {
       return Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0, iconTheme: IconThemeData(color: AppColors.black)),
-        body: Center(child: Text('Category not found', style: GoogleFonts.nunito(fontSize: 18, fontWeight: FontWeight.bold))),
+        body: Center(child: Text('Category not found', style: AppTextStyles.titleMedium().copyWith(fontSize: 18))),
       );
     }
 
@@ -38,7 +38,7 @@ class CategoryBrowseScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(
            category.displayName,
-           style: GoogleFonts.nunito(fontWeight: FontWeight.w900, color: AppColors.black),
+           style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontWeight: FontWeight.w900),
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
@@ -132,20 +132,12 @@ class _WordListCard extends StatelessWidget {
                 children: [
                   Text(
                     wordList.name,
-                    style: GoogleFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.black,
-                    ),
+                    style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${wordList.wordCount} words${wordList.level != null ? ' • ${wordList.level}' : ''}',
-                    style: GoogleFonts.nunito(
-                      color: AppColors.neutralText,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
+                    style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                   ),
                   if (progress != null) ...[
                     const SizedBox(height: 8),
@@ -202,20 +194,13 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 32),
             Text(
               'No lists in ${category.displayName}',
-              style: GoogleFonts.nunito(
-                 fontSize: 20,
-                 fontWeight: FontWeight.w900,
-                 color: AppColors.neutralText,
-              ),
+              style: AppTextStyles.titleLarge(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w900),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               'Check back later for new word lists!',
-              style: GoogleFonts.nunito(
-                color: AppColors.neutralText,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.titleMedium(color: AppColors.neutralText),
               textAlign: TextAlign.center,
             ),
           ],

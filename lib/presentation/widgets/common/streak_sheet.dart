@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../core/utils/app_clock.dart';
 import '../../utils/app_icons.dart';
@@ -158,21 +158,16 @@ class _StreakBanner extends StatelessWidget {
               children: [
                 Text(
                   '$currentStreak day streak',
-                  style: GoogleFonts.nunito(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
+                  style: AppTextStyles.display(
                     color: AppColors.streakOrange,
-                    height: 1.1,
-                  ),
+                    size: 28,
+                  ).copyWith(height: 1.1),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   _contextualMessage(),
-                  style: GoogleFonts.nunito(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.gray600,
-                  ),
+                  style: AppTextStyles.bodyMedium(color: AppColors.gray600)
+                      .copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -454,11 +449,8 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
             ),
             Text(
               '${_kMonthNames[_displayMonth - 1].toUpperCase()} $_displayYear',
-              style: GoogleFonts.nunito(
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                color: AppColors.gray700,
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.gray700)
+                  .copyWith(fontWeight: FontWeight.w800),
             ),
             IconButton(
               onPressed: _canGoForward() ? _nextMonth : null,
@@ -477,11 +469,8 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
                   child: Center(
                     child: Text(
                       l,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.gray400,
-                      ),
+                      style: AppTextStyles.caption(color: AppColors.gray400)
+                          .copyWith(fontWeight: FontWeight.w700, letterSpacing: 0),
                     ),
                   ),
                 ),
@@ -518,11 +507,8 @@ class _StreakCalendarState extends ConsumerState<_StreakCalendar> {
       }),
       child: Text(
         _isMonthly ? 'Show weekly \u25B2' : 'Show monthly \u25BC',
-        style: GoogleFonts.nunito(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.gray500,
-        ),
+        style: AppTextStyles.bodySmall(color: AppColors.gray500)
+            .copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -604,11 +590,8 @@ class _DayCell extends StatelessWidget {
         child: Center(
           child: Text(
             '$day',
-            style: GoogleFonts.nunito(
-              fontSize: compact ? 12 : 14,
-              fontWeight: FontWeight.w800,
-              color: AppColors.streakOrange,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.streakOrange)
+                .copyWith(fontSize: compact ? 12 : 14, fontWeight: FontWeight.w800),
           ),
         ),
       );
@@ -620,11 +603,8 @@ class _DayCell extends StatelessWidget {
         child: Center(
           child: Text(
             '$day',
-            style: GoogleFonts.nunito(
-              fontSize: compact ? 12 : 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.gray300,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.gray300)
+                .copyWith(fontSize: compact ? 12 : 14, fontWeight: FontWeight.w600),
           ),
         ),
       );
@@ -636,11 +616,8 @@ class _DayCell extends StatelessWidget {
         child: Center(
           child: Text(
             '$day',
-            style: GoogleFonts.nunito(
-              fontSize: compact ? 12 : 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.gray400,
-            ),
+            style: AppTextStyles.bodySmall(color: AppColors.gray400)
+                .copyWith(fontSize: compact ? 12 : 14, fontWeight: FontWeight.w700),
           ),
         ),
       );
@@ -653,11 +630,9 @@ class _DayCell extends StatelessWidget {
         children: [
           Text(
             label!,
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+            style: AppTextStyles.caption(
               color: isToday ? AppColors.streakOrange : AppColors.gray400,
-            ),
+            ).copyWith(fontWeight: FontWeight.w700, letterSpacing: 0),
           ),
           const SizedBox(height: 4),
           dayContent,
@@ -753,21 +728,16 @@ class _StatsSection extends StatelessWidget {
                 : AppIcons.fireBlue(size: 18),
             label: Text(
               'Buy Freeze — $freezePrice coins',
-              style: GoogleFonts.nunito(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.bodyMedium()
+                  .copyWith(fontWeight: FontWeight.w700),
             ),
           )
         else
           Center(
             child: Text(
               'Max freezes reached',
-              style: GoogleFonts.nunito(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: AppColors.gray500,
-              ),
+              style: AppTextStyles.bodyMedium(color: AppColors.gray500)
+                  .copyWith(fontSize: 14, fontWeight: FontWeight.w700),
             ),
           ),
       ],
@@ -814,22 +784,16 @@ class _StatCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: GoogleFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.gray500,
-                ),
+                style: AppTextStyles.bodySmall(color: AppColors.gray500)
+                    .copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
             value,
-            style: GoogleFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: AppColors.black,
-            ),
+            style: AppTextStyles.titleLarge()
+                .copyWith(fontWeight: FontWeight.w900),
           ),
         ],
       ),
