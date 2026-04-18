@@ -24,7 +24,7 @@ abstract class AppIcons {
   AppIcons._();
 
   // Reading / books
-  static const book = 'assets/icons/book_active.png';
+  static const book = 'assets/icons/book_brown_256.png';
   static const bookCompleted = 'assets/icons/book_completed.png';
   static const library = 'assets/icons/library.png';
 
