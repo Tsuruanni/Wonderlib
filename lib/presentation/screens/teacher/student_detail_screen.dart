@@ -394,52 +394,105 @@ class _LevelChip extends StatelessWidget {
 // INLINE QUIZ PILL (inside a reading progress book card)
 // ─────────────────────────────────────────────
 
-class _StudentAchievementsSection extends ConsumerWidget {
+class _StudentAchievementsSection extends ConsumerStatefulWidget {
   const _StudentAchievementsSection({required this.studentId});
   final String studentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final groupsAsync = ref.watch(studentAchievementGroupsProvider(studentId));
+  ConsumerState<_StudentAchievementsSection> createState() =>
+      _StudentAchievementsSectionState();
+}
+
+class _StudentAchievementsSectionState
+    extends ConsumerState<_StudentAchievementsSection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final groupsAsync =
+        ref.watch(studentAchievementGroupsProvider(widget.studentId));
     return groupsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
       data: (allGroups) {
         if (allGroups.isEmpty) return const SizedBox.shrink();
-        // Same selection logic as the student's /profile page:
-        // 1) up to 3 actively-progressing tracks (earned at least 1 tier)
-        // 2) fill with started-but-no-badge tracks
-        // 3) fill with maxed tracks
-        final top = allGroups
-            .where((g) => !g.isMaxed && g.currentLevel >= 1)
-            .take(3)
-            .toList();
-        if (top.length < 3) {
-          top.addAll(allGroups
-              .where((g) => !g.isMaxed && g.currentLevel == 0 && g.currentValue > 0)
-              .take(3 - top.length));
+        // Same preview rule as the student profile (up to 3 tracks).
+        final preview = <AchievementGroup>[
+          ...allGroups.where((g) => !g.isMaxed && g.currentLevel >= 1).take(3),
+        ];
+        if (preview.length < 3) {
+          preview.addAll(allGroups
+              .where((g) =>
+                  !g.isMaxed && g.currentLevel == 0 && g.currentValue > 0)
+              .take(3 - preview.length));
         }
-        if (top.length < 3) {
-          top.addAll(allGroups.where((g) => g.isMaxed).take(3 - top.length));
+        if (preview.length < 3) {
+          preview.addAll(
+              allGroups.where((g) => g.isMaxed).take(3 - preview.length));
         }
 
-        final earnedCount = allGroups.fold<int>(0, (s, g) => s + g.currentLevel);
+        final earnedCount =
+            allGroups.fold<int>(0, (s, g) => s + g.currentLevel);
         final totalCount = allGroups.fold<int>(0, (s, g) => s + g.maxLevel);
+        final shown = _expanded ? allGroups : preview;
+        final hiddenCount = allGroups.length - preview.length;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionTitle(
-              title: 'Achievements',
-              assetPath: AppIcons.trophy,
-              color: Colors.amber,
-              trailing: '$earnedCount / $totalCount earned',
-            ),
-            const SizedBox(height: 12),
-            for (final g in top) AchievementGroupRow(group: g),
-          ],
+        return PlayfulCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTitle(
+                title: 'Achievements',
+                assetPath: AppIcons.trophy,
+                color: Colors.amber,
+                trailing: '$earnedCount / $totalCount earned',
+              ),
+              const SizedBox(height: 8),
+              for (final g in shown) AchievementGroupRow(group: g),
+              if (hiddenCount > 0)
+                _ShowAllButton(
+                  expanded: _expanded,
+                  hiddenCount: hiddenCount,
+                  onToggle: () => setState(() => _expanded = !_expanded),
+                ),
+            ],
+          ),
         );
       },
+    );
+  }
+}
+
+class _ShowAllButton extends StatelessWidget {
+  const _ShowAllButton({
+    required this.expanded,
+    required this.hiddenCount,
+    required this.onToggle,
+  });
+
+  final bool expanded;
+  final int hiddenCount;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: TextButton.icon(
+        onPressed: onToggle,
+        icon: Icon(
+          expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+          size: 18,
+        ),
+        label: Text(expanded ? 'Show less' : 'Show all ($hiddenCount more)'),
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primaryDark,
+          textStyle: GoogleFonts.nunito(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1205,14 +1258,23 @@ class _BadgeCard extends StatelessWidget {
 
 /// Student card collection — mirrors the /cards screen layout:
 /// one section per myth category with a 4-column grid of owned + locked cards.
-class _StudentCardCollection extends ConsumerWidget {
+class _StudentCardCollection extends ConsumerStatefulWidget {
   const _StudentCardCollection({required this.studentId});
   final String studentId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_StudentCardCollection> createState() =>
+      _StudentCardCollectionState();
+}
+
+class _StudentCardCollectionState
+    extends ConsumerState<_StudentCardCollection> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     final catalogAsync = ref.watch(cardCatalogProvider);
-    final userCardsDyn = ref.watch(teacherStudentCardsProvider(studentId));
+    final userCardsDyn = ref.watch(teacherStudentCardsProvider(widget.studentId));
     return catalogAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
@@ -1221,120 +1283,66 @@ class _StudentCardCollection extends ConsumerWidget {
             .cast<UserCard>();
         if (userCards.isEmpty) return const SizedBox.shrink();
 
+        // Sort by rarity desc (legendary → common), break ties by name.
+        final sorted = [...userCards]
+          ..sort((a, b) {
+            final rarityCmp =
+                b.card.rarity.index.compareTo(a.card.rarity.index);
+            if (rarityCmp != 0) return rarityCmp;
+            return a.card.name.compareTo(b.card.name);
+          });
         final totalOwned = userCards.length;
         final totalCards = catalog.length;
+        const previewCount = 6;
+        final shown = _expanded ? sorted : sorted.take(previewCount).toList();
+        final hiddenCount = sorted.length - previewCount;
 
-        // Group OWNED cards by category; skip categories with nothing owned.
-        final byCategory = <CardCategory, List<UserCard>>{};
-        for (final uc in userCards) {
-          byCategory.putIfAbsent(uc.card.category, () => []).add(uc);
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionTitle(
-              title: 'Card Collection',
-              assetPath: AppIcons.card,
-              color: AppColors.cardEpic,
-              trailing: '$totalOwned / $totalCards',
-            ),
-            const SizedBox(height: 8),
-            for (final category in CardCategory.values)
-              if (byCategory[category]?.isNotEmpty ?? false)
-                _StudentCategoryGrid(
-                  category: category,
-                  userCards: byCategory[category]!,
+        return PlayfulCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTitle(
+                title: 'Card Collection',
+                assetPath: AppIcons.card,
+                color: AppColors.cardEpic,
+                trailing: '$totalOwned / $totalCards',
+              ),
+              const SizedBox(height: 12),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final columns = constraints.maxWidth >= 500 ? 4 : 3;
+                  const gap = 10.0;
+                  final cardWidth =
+                      (constraints.maxWidth - gap * (columns - 1)) / columns;
+                  final cardHeight = cardWidth * 1.5;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final uc in shown)
+                        SizedBox(
+                          width: cardWidth,
+                          height: cardHeight,
+                          child: MythCardWidget(
+                            card: uc.card,
+                            quantity: uc.quantity,
+                            onTap: () {},
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              if (hiddenCount > 0)
+                _ShowAllButton(
+                  expanded: _expanded,
+                  hiddenCount: hiddenCount,
+                  onToggle: () => setState(() => _expanded = !_expanded),
                 ),
-          ],
+            ],
+          ),
         );
       },
-    );
-  }
-}
-
-class _StudentCategoryGrid extends StatelessWidget {
-  const _StudentCategoryGrid({
-    required this.category,
-    required this.userCards,
-  });
-
-  final CardCategory category;
-  final List<UserCard> userCards;
-
-  @override
-  Widget build(BuildContext context) {
-    final categoryColor = CardColors.getCategoryColor(category);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Category header
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              children: [
-                Text(category.icon, style: const TextStyle(fontSize: 18)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    category.label,
-                    style: GoogleFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: categoryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '${userCards.length} owned',
-                    style: GoogleFonts.nunito(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: categoryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Card grid — only owned cards
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = constraints.maxWidth >= 500 ? 4 : 3;
-              const gap = 10.0;
-              final cardWidth =
-                  (constraints.maxWidth - gap * (columns - 1)) / columns;
-              final cardHeight = cardWidth * 1.5;
-              return Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                children: [
-                  for (final uc in userCards)
-                    SizedBox(
-                      width: cardWidth,
-                      height: cardHeight,
-                      child: MythCardWidget(
-                        card: uc.card,
-                        quantity: uc.quantity,
-                        onTap: () {},
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 }
