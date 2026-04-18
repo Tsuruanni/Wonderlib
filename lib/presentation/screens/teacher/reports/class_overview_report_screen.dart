@@ -63,6 +63,7 @@ class ClassOverviewReportScreen extends ConsumerWidget {
             final totalActive = classes.fold<int>(0, (sum, c) => sum + c.activeLast30d);
             final totalReadingTime = classes.fold<int>(0, (sum, c) => sum + c.totalReadingTime);
             final totalBooks = classes.fold<int>(0, (sum, c) => sum + c.completedBooks);
+            final totalWordbank = classes.fold<int>(0, (sum, c) => sum + c.totalVocabWords);
             final topLevel = classes.fold<int>(
               0,
               (maxLv, c) => c.maxLevel > maxLv ? c.maxLevel : maxLv,
@@ -100,6 +101,12 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                           value: TimeFormatter.formatReadingTime(totalReadingTime),
                           label: 'Reading Time',
                           assetPath: AppIcons.schedule,
+                        ),
+                      if (totalWordbank > 0)
+                        _SummaryStat(
+                          value: '$totalWordbank',
+                          label: 'Wordbank',
+                          assetPath: AppIcons.vocabulary,
                         ),
                     ],
                   ),
@@ -259,23 +266,23 @@ class _EnrichedClassCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 6,
             children: [
-              if (classItem.avgXp >= 1)
+              if (classItem.maxLevel > 0)
                 _MetricChip(
-                  icon: Icons.star,
-                  label: '${classItem.avgXp.toStringAsFixed(0)} avg XP',
+                  assetPath: AppIcons.trophy,
+                  label: 'Top Lv ${classItem.maxLevel}',
                   color: Colors.amber,
                 ),
-              if (classItem.booksPerStudent >= 0.05)
+              if (classItem.completedBooks > 0)
                 _MetricChip(
-                  icon: Icons.menu_book,
-                  label: '${classItem.booksPerStudent.toStringAsFixed(1)} books/student',
+                  assetPath: AppIcons.book,
+                  label: '${classItem.completedBooks} books read',
                   color: Colors.blue,
                 ),
-              if (classItem.totalReadingTime > 0)
+              if (classItem.totalVocabWords > 0)
                 _MetricChip(
-                  icon: Icons.access_time,
-                  label: TimeFormatter.formatReadingTime(classItem.totalReadingTime),
-                  color: Colors.purple,
+                  assetPath: AppIcons.vocabulary,
+                  label: '${classItem.totalVocabWords} words in wordbank',
+                  color: Colors.teal,
                 ),
               if (classItem.studentCount > 0)
                 () {
@@ -298,12 +305,14 @@ class _EnrichedClassCard extends StatelessWidget {
 
 class _MetricChip extends StatelessWidget {
   const _MetricChip({
-    required this.icon,
+    this.icon,
+    this.assetPath,
     required this.label,
     required this.color,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetPath;
   final String label;
   final Color color;
 
@@ -319,7 +328,10 @@ class _MetricChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          if (assetPath != null)
+            AssetIcon(assetPath!, size: 14)
+          else if (icon != null)
+            Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           Text(
             label,
