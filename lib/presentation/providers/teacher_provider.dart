@@ -60,25 +60,21 @@ final currentTeacherProfileProvider = FutureProvider<User?>((ref) async {
   return user;
 });
 
-/// Provider for teacher's classes (by school ID)
-final teacherClassesProvider = FutureProvider.family<List<TeacherClass>, String>((ref, schoolId) async {
-  if (schoolId.isEmpty) return [];
+/// Provider for current teacher's classes. Talks to the use case directly
+/// (no family delegation) so `ref.invalidate(currentTeacherClassesProvider)`
+/// actually re-fetches — family delegation used to hide the upstream cache
+/// and breaks invalidation after create/delete.
+final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
+  final user = await ref.watch(authStateChangesProvider.future);
+  if (user == null || user.schoolId.isEmpty) return [];
 
   final useCase = ref.watch(getClassesUseCaseProvider);
-  final result = await useCase(GetClassesParams(schoolId: schoolId));
+  final result = await useCase(GetClassesParams(schoolId: user.schoolId));
 
   return result.fold(
     (failure) => throw Exception(failure.message),
     (classes) => classes,
   );
-});
-
-/// Provider for current teacher's classes (convenience wrapper)
-final currentTeacherClassesProvider = FutureProvider<List<TeacherClass>>((ref) async {
-  final user = await ref.watch(authStateChangesProvider.future);
-  if (user == null || user.schoolId.isEmpty) return [];
-
-  return ref.watch(teacherClassesProvider(user.schoolId).future);
 });
 
 /// Provider for students in a specific class
