@@ -34,6 +34,154 @@ class _GroupMeta {
   final String icon;
 }
 
+/// Public helper so teacher-side views (viewing a specific student) can reuse
+/// the same grouping/progress logic as the current-user provider.
+class AchievementGroupInput {
+  const AchievementGroupInput({
+    required this.allBadges,
+    required this.earnedIds,
+    required this.xp,
+    required this.streak,
+    required this.level,
+    required this.tierOrdinal,
+    required this.totalCards,
+    required this.booksCompleted,
+    required this.vocabCollected,
+    required this.mythCategoryProgressBySlug,
+    required this.monthlyCountByQuest,
+    required this.monthlyMetaByQuest,
+  });
+
+  final List<Badge> allBadges;
+  final Set<String> earnedIds;
+  final int xp;
+  final int streak;
+  final int level;
+  final int tierOrdinal;
+  final int totalCards;
+  final int booksCompleted;
+  final int vocabCollected;
+  /// Slug ("turkish_myths", etc.) → count of cards owned in that category.
+  final Map<String, int> mythCategoryProgressBySlug;
+  final Map<String, int> monthlyCountByQuest;
+  final Map<String, ({String title, String icon})> monthlyMetaByQuest;
+}
+
+int buildLeagueTierOrdinal(String? tier) => _leagueTierOrdinal(tier);
+
+List<AchievementGroup> buildAchievementGroups(AchievementGroupInput input) {
+  final Map<String, List<Badge>> buckets = {};
+  for (final b in input.allBadges) {
+    final String key;
+    if (b.conditionType == BadgeConditionType.mythCategoryCompleted) {
+      key = 'myth_category_completed:${b.conditionParam ?? "unknown"}';
+    } else if (b.conditionType == BadgeConditionType.monthlyQuestCompleted) {
+      key = 'monthly_quest_completed:${b.conditionParam ?? "unknown"}';
+    } else {
+      key = b.conditionType.dbValue;
+    }
+    (buckets[key] ??= <Badge>[]).add(b);
+  }
+
+  int currentValueFor(Badge example) {
+    switch (example.conditionType) {
+      case BadgeConditionType.xpTotal:
+        return input.xp;
+      case BadgeConditionType.streakDays:
+        return input.streak;
+      case BadgeConditionType.booksCompleted:
+        return input.booksCompleted;
+      case BadgeConditionType.vocabularyLearned:
+        return input.vocabCollected;
+      case BadgeConditionType.levelCompleted:
+        return input.level;
+      case BadgeConditionType.cardsCollected:
+        return input.totalCards;
+      case BadgeConditionType.mythCategoryCompleted:
+        final slug = example.conditionParam;
+        if (slug == null) return 0;
+        return input.mythCategoryProgressBySlug[slug] ?? 0;
+      case BadgeConditionType.leagueTierReached:
+        return input.tierOrdinal;
+      case BadgeConditionType.monthlyQuestCompleted:
+        final questId = example.conditionParam;
+        if (questId == null) return 0;
+        return input.monthlyCountByQuest[questId] ?? 0;
+    }
+  }
+
+  int thresholdFor(Badge b) {
+    if (b.conditionType == BadgeConditionType.leagueTierReached) {
+      return _leagueTierOrdinal(b.conditionParam);
+    }
+    return b.conditionValue;
+  }
+
+  final groups = <AchievementGroup>[];
+  for (final entry in buckets.entries) {
+    final key = entry.key;
+    final badges = List<Badge>.from(entry.value)
+      ..sort((a, b) => thresholdFor(a).compareTo(thresholdFor(b)));
+    if (badges.isEmpty) continue;
+    final example = badges.first;
+
+    _GroupMeta? meta;
+    if (key.startsWith('myth_category_completed:')) {
+      final slug = key.substring('myth_category_completed:'.length);
+      meta = _groupMetaByMythCategory[slug];
+    } else if (key.startsWith('monthly_quest_completed:')) {
+      final questId = key.substring('monthly_quest_completed:'.length);
+      final m = input.monthlyMetaByQuest[questId];
+      if (m != null) meta = _GroupMeta(m.title, m.icon);
+    } else {
+      meta = _groupMetaByConditionType[key];
+    }
+    meta ??= _GroupMeta(key, '🏅');
+
+    final currentValue = currentValueFor(example);
+    final earnedInGroup =
+        badges.where((b) => input.earnedIds.contains(b.id)).toList();
+    final nextBadge = badges.firstWhere(
+      (b) => !input.earnedIds.contains(b.id),
+      orElse: () => badges.last,
+    );
+    final isMaxed = earnedInGroup.length == badges.length;
+    final effectiveNext = isMaxed ? null : nextBadge;
+
+    final description = effectiveNext?.description
+            ?? (earnedInGroup.isNotEmpty ? earnedInGroup.last.description : null)
+            ?? '';
+
+    groups.add(AchievementGroup(
+      groupKey: key,
+      title: meta.title,
+      description: description,
+      icon: meta.icon,
+      badges: badges,
+      earnedBadgeIds: earnedInGroup.map((b) => b.id).toList(),
+      currentValue: currentValue,
+      targetValue: effectiveNext == null ? 0 : thresholdFor(effectiveNext),
+      nextBadge: effectiveNext,
+    ),);
+  }
+
+  groups.sort((a, b) {
+    final superCmp = a.superGroup.index.compareTo(b.superGroup.index);
+    if (superCmp != 0) return superCmp;
+    final tierCmp = a.sortTier.compareTo(b.sortTier);
+    if (tierCmp != 0) return tierCmp;
+    if (a.sortTier <= 1) {
+      final progressCmp = b.progress.compareTo(a.progress);
+      if (progressCmp != 0) return progressCmp;
+    }
+    final titleCmp = a.displayTitle.compareTo(b.displayTitle);
+    if (titleCmp != 0) return titleCmp;
+    return a.groupKey.compareTo(b.groupKey);
+  });
+
+  return groups;
+}
+
 const Map<String, _GroupMeta> _groupMetaByConditionType = {
   'xp_total': _GroupMeta('Total XP', '⚡'),
   'streak_days': _GroupMeta('Streak', '🔥'),
@@ -116,125 +264,27 @@ final achievementGroupsProvider = Provider<AsyncValue<List<AchievementGroup>>>((
   final booksCompleted = (completedBooksAsync.value ?? const <String>{}).length;
   final vocabCollected = (vocabProgressAsync.value ?? const []).length;
 
-  final Map<String, List<Badge>> buckets = {};
-  for (final b in allBadges) {
-    final String key;
-    if (b.conditionType == BadgeConditionType.mythCategoryCompleted) {
-      key = 'myth_category_completed:${b.conditionParam ?? "unknown"}';
-    } else if (b.conditionType == BadgeConditionType.monthlyQuestCompleted) {
-      key = 'monthly_quest_completed:${b.conditionParam ?? "unknown"}';
-    } else {
-      key = b.conditionType.dbValue;
-    }
-    (buckets[key] ??= <Badge>[]).add(b);
-  }
+  final mythSlugProgress = <String, int>{
+    for (final e in categoryProgress.entries) e.key.dbValue: e.value,
+  };
 
-  int currentValueFor(Badge example) {
-    switch (example.conditionType) {
-      case BadgeConditionType.xpTotal:
-        return xp;
-      case BadgeConditionType.streakDays:
-        return streak;
-      case BadgeConditionType.booksCompleted:
-        return booksCompleted;
-      case BadgeConditionType.vocabularyLearned:
-        return vocabCollected;
-      case BadgeConditionType.levelCompleted:
-        return level;
-      case BadgeConditionType.cardsCollected:
-        return totalCards;
-      case BadgeConditionType.mythCategoryCompleted:
-        final slug = example.conditionParam;
-        if (slug == null) return 0;
-        for (final entry in categoryProgress.entries) {
-          if (entry.key.dbValue == slug) return entry.value;
-        }
-        return 0;
-      case BadgeConditionType.leagueTierReached:
-        return tierOrdinal;
-      case BadgeConditionType.monthlyQuestCompleted:
-        final questId = example.conditionParam;
-        if (questId == null) return 0;
-        return monthlyCountByQuest[questId] ?? 0;
-    }
-  }
-
-  int thresholdFor(Badge b) {
-    if (b.conditionType == BadgeConditionType.leagueTierReached) {
-      return _leagueTierOrdinal(b.conditionParam);
-    }
-    return b.conditionValue;
-  }
-
-  final groups = <AchievementGroup>[];
-  for (final entry in buckets.entries) {
-    final key = entry.key;
-    final badges = List<Badge>.from(entry.value)
-      ..sort((a, b) => thresholdFor(a).compareTo(thresholdFor(b)));
-    if (badges.isEmpty) continue;
-    final example = badges.first;
-
-    _GroupMeta? meta;
-    if (key.startsWith('myth_category_completed:')) {
-      final slug = key.substring('myth_category_completed:'.length);
-      meta = _groupMetaByMythCategory[slug];
-    } else if (key.startsWith('monthly_quest_completed:')) {
-      final questId = key.substring('monthly_quest_completed:'.length);
-      meta = monthlyMetaByQuest[questId];
-    } else {
-      meta = _groupMetaByConditionType[key];
-    }
-    meta ??= _GroupMeta(key, '🏅');
-
-    final currentValue = currentValueFor(example);
-    final earnedInGroup = badges.where((b) => earnedIds.contains(b.id)).toList();
-    final nextBadge = badges.firstWhere(
-      (b) => !earnedIds.contains(b.id),
-      orElse: () => badges.last,
-    );
-    final isMaxed = earnedInGroup.length == badges.length;
-    final effectiveNext = isMaxed ? null : nextBadge;
-
-    final description = effectiveNext?.description
-            ?? (earnedInGroup.isNotEmpty ? earnedInGroup.last.description : null)
-            ?? '';
-
-    groups.add(AchievementGroup(
-      groupKey: key,
-      title: meta.title,
-      description: description,
-      icon: meta.icon,
-      badges: badges,
-      earnedBadgeIds: earnedInGroup.map((b) => b.id).toList(),
-      currentValue: currentValue,
-      targetValue: effectiveNext == null ? 0 : thresholdFor(effectiveNext),
-      nextBadge: effectiveNext,
-    ),);
-  }
-
-  // Sort within each super-group by 4-tier priority, then by progress (desc) for
-  // actively-progressing/started tiers, then alphabetical for untouched/maxed.
-  groups.sort((a, b) {
-    // Super-group is the top sort key — Achievements section before Card Collection.
-    final superCmp = a.superGroup.index.compareTo(b.superGroup.index);
-    if (superCmp != 0) return superCmp;
-
-    final tierCmp = a.sortTier.compareTo(b.sortTier);
-    if (tierCmp != 0) return tierCmp;
-
-    // Tier 0 (actively progressing) and tier 1 (started) — by progress descending.
-    if (a.sortTier <= 1) {
-      final progressCmp = b.progress.compareTo(a.progress);
-      if (progressCmp != 0) return progressCmp;
-    }
-
-    // Tier 2 (untouched) and tier 3 (maxed), and progress ties — alphabetical by displayTitle.
-    final titleCmp = a.displayTitle.compareTo(b.displayTitle);
-    if (titleCmp != 0) return titleCmp;
-
-    // Final stable tiebreaker.
-    return a.groupKey.compareTo(b.groupKey);
-  });
-
+  final groups = buildAchievementGroups(AchievementGroupInput(
+    allBadges: allBadges,
+    earnedIds: earnedIds,
+    xp: xp,
+    streak: streak,
+    level: level,
+    tierOrdinal: tierOrdinal,
+    totalCards: totalCards,
+    booksCompleted: booksCompleted,
+    vocabCollected: vocabCollected,
+    mythCategoryProgressBySlug: mythSlugProgress,
+    monthlyCountByQuest: monthlyCountByQuest,
+    monthlyMetaByQuest: {
+      for (final e in monthlyMetaByQuest.entries)
+        e.key: (title: e.value.title, icon: e.value.icon),
+    },
+  ));
   return AsyncValue.data(groups);
 });
+

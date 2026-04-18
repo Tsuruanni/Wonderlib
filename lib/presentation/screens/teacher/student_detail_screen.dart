@@ -22,6 +22,11 @@ import '../../../domain/entities/book_quiz.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../widgets/common/asset_icon.dart';
+import '../../../domain/entities/achievement_group.dart';
+import '../../providers/card_provider.dart';
+import '../../widgets/badges/achievement_group_row.dart';
+import '../../widgets/cards/locked_card_widget.dart';
+import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -190,110 +195,11 @@ class StudentDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 7. Badges (grouped by condition type)
-                  badgesAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (badges) {
-                      final typedBadges = badges.cast<UserBadge>();
-                      if (typedBadges.isEmpty) return const SizedBox.shrink();
-                      // Group by conditionType; within a group sort by tier.
-                      final groups =
-                          <BadgeConditionType, List<UserBadge>>{};
-                      for (final ub in typedBadges) {
-                        groups
-                            .putIfAbsent(ub.badge.conditionType, () => [])
-                            .add(ub);
-                      }
-                      for (final list in groups.values) {
-                        list.sort((a, b) => a.badge.conditionValue
-                            .compareTo(b.badge.conditionValue));
-                      }
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionTitle(
-                            title: 'Badges',
-                            assetPath: AppIcons.trophy,
-                            color: Colors.amber,
-                            trailing: '${typedBadges.length} earned',
-                          ),
-                          const SizedBox(height: 12),
-                          for (final entry in groups.entries) ...[
-                            _BadgeGroupHeader(
-                              conditionType: entry.key,
-                              count: entry.value.length,
-                            ),
-                            const SizedBox(height: 6),
-                            SizedBox(
-                              height: 90,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: entry.value.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 12),
-                                itemBuilder: (context, index) =>
-                                    _BadgeCard(badge: entry.value[index]),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                          const SizedBox(height: 12),
-                        ],
-                      );
-                    },
-                  ),
+                  // 7. Achievements (Duolingo-style tracks with progress bars)
+                  _StudentAchievementsSection(studentId: studentId),
 
-                  // 8. Card Collection (grouped by rarity, best first)
-                  cardsAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (cards) {
-                      final typedCards = cards.cast<UserCard>();
-                      if (typedCards.isEmpty) return const SizedBox.shrink();
-                      final byRarity = <CardRarity, List<UserCard>>{};
-                      for (final c in typedCards) {
-                        byRarity
-                            .putIfAbsent(c.card.rarity, () => [])
-                            .add(c);
-                      }
-                      // Order: legendary, epic, rare, common.
-                      final orderedRarities = [
-                        CardRarity.legendary,
-                        CardRarity.epic,
-                        CardRarity.rare,
-                        CardRarity.common,
-                      ].where(byRarity.containsKey).toList();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionTitle(
-                            title: 'Card Collection',
-                            assetPath: AppIcons.card,
-                            color: AppColors.cardEpic,
-                            trailing: '${typedCards.length} cards',
-                          ),
-                          const SizedBox(height: 12),
-                          for (final r in orderedRarities) ...[
-                            _RarityHeader(rarity: r, count: byRarity[r]!.length),
-                            const SizedBox(height: 6),
-                            SizedBox(
-                              height: 150,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: byRarity[r]!.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: 10),
-                                itemBuilder: (context, index) =>
-                                    _CollectionCard(userCard: byRarity[r]![index]),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        ],
-                      );
-                    },
-                  ),
+                  // 8. Card Collection — same myth-category layout as /cards
+                  _StudentCardCollection(studentId: studentId),
 
                   const SizedBox(height: 32),
                 ],
@@ -462,6 +368,39 @@ class _LevelChip extends StatelessWidget {
 // ─────────────────────────────────────────────
 // INLINE QUIZ PILL (inside a reading progress book card)
 // ─────────────────────────────────────────────
+
+class _StudentAchievementsSection extends ConsumerWidget {
+  const _StudentAchievementsSection({required this.studentId});
+  final String studentId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final groupsAsync = ref.watch(studentAchievementGroupsProvider(studentId));
+    return groupsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (groups) {
+        if (groups.isEmpty) return const SizedBox.shrink();
+        final earnedCount = groups.fold<int>(0, (s, g) => s + g.currentLevel);
+        final totalCount = groups.fold<int>(0, (s, g) => s + g.maxLevel);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(
+              title: 'Achievements',
+              assetPath: AppIcons.trophy,
+              color: Colors.amber,
+              trailing: '$earnedCount / $totalCount earned',
+            ),
+            const SizedBox(height: 12),
+            for (final g in groups) AchievementGroupRow(group: g),
+            const SizedBox(height: 12),
+          ],
+        );
+      },
+    );
+  }
+}
 
 class _BadgeGroupHeader extends StatelessWidget {
   const _BadgeGroupHeader({required this.conditionType, required this.count});
@@ -1222,139 +1161,155 @@ class _BadgeCard extends StatelessWidget {
 // COLLECTION CARD
 // ─────────────────────────────────────────────
 
-class _CollectionCard extends StatelessWidget {
-  const _CollectionCard({required this.userCard});
-  final UserCard userCard;
+/// Student card collection — mirrors the /cards screen layout:
+/// one section per myth category with a 4-column grid of owned + locked cards.
+class _StudentCardCollection extends ConsumerWidget {
+  const _StudentCardCollection({required this.studentId});
+  final String studentId;
 
   @override
-  Widget build(BuildContext context) {
-    final rarityColor = _rarityColor(userCard.card.rarity);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final catalogAsync = ref.watch(cardCatalogProvider);
+    final userCardsDyn = ref.watch(teacherStudentCardsProvider(studentId));
+    return catalogAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (catalog) {
+        final userCards = (userCardsDyn.valueOrNull ?? const [])
+            .cast<UserCard>();
+        if (userCards.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      width: 90,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: rarityColor, width: 2.5),
-        boxShadow: [
-          BoxShadow(
-            color: rarityColor.withValues(alpha: 0.35),
-            blurRadius: 4,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Portrait image (fills top ~70%)
-          AspectRatio(
-            aspectRatio: 3 / 4,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    rarityColor.withValues(alpha: 0.22),
-                    rarityColor.withValues(alpha: 0.08),
-                  ],
+        final ownedIds = {for (final uc in userCards) uc.cardId};
+        final totalOwned = userCards.length;
+        final totalCards = catalog.length;
+
+        // Group catalog by category
+        final byCategory = <CardCategory, List<MythCard>>{};
+        for (final c in catalog) {
+          byCategory.putIfAbsent(c.category, () => []).add(c);
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _SectionTitle(
+              title: 'Card Collection',
+              assetPath: AppIcons.card,
+              color: AppColors.cardEpic,
+              trailing: '$totalOwned / $totalCards',
+            ),
+            const SizedBox(height: 8),
+            for (final category in CardCategory.values)
+              if (byCategory[category]?.isNotEmpty ?? false)
+                _StudentCategoryGrid(
+                  category: category,
+                  cards: byCategory[category]!,
+                  ownedIds: ownedIds,
+                  userCards: userCards,
                 ),
-                image: userCard.card.imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(userCard.card.imageUrl!),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: userCard.card.imageUrl == null
-                  ? Center(
-                      child: AssetIcon(AppIcons.card, size: 36),
-                    )
-                  : null,
-            ),
-          ),
-          // Name banner
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            child: Text(
-              userCard.card.name,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.nunito(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: AppColors.black,
-                height: 1.15,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 }
 
-Color _rarityColor(CardRarity rarity) {
-  switch (rarity) {
-    case CardRarity.common:
-      return AppColors.cardCommon;
-    case CardRarity.rare:
-      return AppColors.cardRare;
-    case CardRarity.epic:
-      return AppColors.cardEpic;
-    case CardRarity.legendary:
-      return AppColors.cardLegendary;
-  }
-}
+class _StudentCategoryGrid extends StatelessWidget {
+  const _StudentCategoryGrid({
+    required this.category,
+    required this.cards,
+    required this.ownedIds,
+    required this.userCards,
+  });
 
-class _RarityHeader extends StatelessWidget {
-  const _RarityHeader({required this.rarity, required this.count});
-  final CardRarity rarity;
-  final int count;
+  final CardCategory category;
+  final List<MythCard> cards;
+  final Set<String> ownedIds;
+  final List<UserCard> userCards;
 
   @override
   Widget build(BuildContext context) {
-    final color = _rarityColor(rarity);
+    final ownedCount = cards.where((c) => ownedIds.contains(c.id)).length;
+    final categoryColor = CardColors.getCategoryColor(category);
+
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            rarity.name.toUpperCase(),
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              color: color,
-              letterSpacing: 1.0,
+          // Category header
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Text(category.icon, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    category.label,
+                    style: GoogleFonts.nunito(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$ownedCount / ${cards.length}',
+                    style: GoogleFonts.nunito(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: categoryColor,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '$count',
-              style: GoogleFonts.nunito(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                color: color,
-              ),
-            ),
+          // 4-column card grid
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = constraints.maxWidth >= 500 ? 4 : 3;
+              const gap = 10.0;
+              final cardWidth =
+                  (constraints.maxWidth - gap * (columns - 1)) / columns;
+              final cardHeight = cardWidth * 1.5; // portrait trading card
+              return Wrap(
+                spacing: gap,
+                runSpacing: gap,
+                children: [
+                  for (final card in cards)
+                    SizedBox(
+                      width: cardWidth,
+                      height: cardHeight,
+                      child: _buildCardItem(card),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCardItem(MythCard card) {
+    final isOwned = ownedIds.contains(card.id);
+    if (isOwned) {
+      final uc = userCards.firstWhere((u) => u.cardId == card.id);
+      return MythCardWidget(
+        card: card,
+        quantity: uc.quantity,
+        onTap: () {},
+      );
+    }
+    return LockedCardWidget(card: card, onTap: () {});
   }
 }

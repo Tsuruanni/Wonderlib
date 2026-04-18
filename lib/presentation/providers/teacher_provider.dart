@@ -1,9 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/achievement_group.dart';
+import '../../domain/entities/badge.dart';
+import '../../domain/entities/card.dart';
 import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
+import 'badge_progress_provider.dart';
+import 'badge_provider.dart';
 import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
 import '../../domain/usecases/assignment/get_assignment_detail_usecase.dart';
 import '../../domain/usecases/badge/get_user_badges_usecase.dart';
@@ -200,6 +205,43 @@ final teacherStudentCardsProvider =
   final useCase = ref.watch(getUserCardsUseCaseProvider);
   final result = await useCase(GetUserCardsParams(userId: studentId));
   return result.fold((failure) => [], (cards) => cards);
+});
+
+/// Achievement tracks (Duolingo-style) for a specific student — reuses the
+/// same compute function the current-user provider uses.
+final studentAchievementGroupsProvider =
+    FutureProvider.family<List<AchievementGroup>, String>((ref, studentId) async {
+  final allBadges = await ref.watch(allBadgesProvider.future);
+  final userBadgesDyn = await ref.watch(teacherStudentBadgesProvider(studentId).future);
+  final userBadges = userBadgesDyn.cast<UserBadge>();
+  final student = await ref.watch(studentDetailProvider(studentId).future);
+  final progressList = await ref.watch(studentProgressProvider(studentId).future);
+  final vocabStats = await ref.watch(studentVocabStatsProvider(studentId).future);
+  final cardsDyn = await ref.watch(teacherStudentCardsProvider(studentId).future);
+  final cards = cardsDyn.cast<UserCard>();
+
+  final booksCompleted =
+      progressList.where((p) => p.isCompleted).length;
+  final mythSlugProgress = <String, int>{};
+  for (final c in cards) {
+    final slug = c.card.category.dbValue;
+    mythSlugProgress[slug] = (mythSlugProgress[slug] ?? 0) + 1;
+  }
+
+  return buildAchievementGroups(AchievementGroupInput(
+    allBadges: allBadges,
+    earnedIds: userBadges.map((ub) => ub.badgeId).toSet(),
+    xp: student?.xp ?? 0,
+    streak: student?.currentStreak ?? 0,
+    level: student?.level ?? 0,
+    tierOrdinal: buildLeagueTierOrdinal(student?.leagueTier.dbValue),
+    totalCards: cards.length,
+    booksCompleted: booksCompleted,
+    vocabCollected: vocabStats.totalWords,
+    mythCategoryProgressBySlug: mythSlugProgress,
+    monthlyCountByQuest: const {},
+    monthlyMetaByQuest: const {},
+  ));
 });
 
 /// Words for a specific word list (public RLS)
