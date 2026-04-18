@@ -348,7 +348,7 @@ class _StudentHeader extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // Info: name, class name, level+league row
+          // Info: name, class, rank chips
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -375,42 +375,41 @@ class _StudentHeader extends ConsumerWidget {
                     ),
                   ),
                 const SizedBox(height: 12),
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
                   children: [
-                    _LevelBadge(level: user.level),
-                    const SizedBox(width: 12),
-                    _LeagueIconBadge(tier: user.leagueTier),
+                    if (classRank != null)
+                      _RankChip(
+                        assetPath: AppIcons.clipboard,
+                        label: 'Class rank',
+                        value: classTotal != null
+                            ? '$classRank/$classTotal'
+                            : '#$classRank',
+                        color: Colors.blue.shade700,
+                      ),
+                    if (schoolRank != null)
+                      _RankChip(
+                        assetPath: AppIcons.library,
+                        label: 'School rank',
+                        value: schoolTotal != null
+                            ? '$schoolRank/$schoolTotal'
+                            : '#$schoolRank',
+                        color: Colors.green.shade700,
+                      ),
                   ],
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          // Rank chips on the right, stacked
+          // Level badge + league icon stack on the right
           Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (classRank != null)
-                _RankChip(
-                  assetPath: AppIcons.clipboard,
-                  label: 'Class rank',
-                  value: classTotal != null
-                      ? '$classRank/$classTotal'
-                      : '#$classRank',
-                  color: Colors.blue.shade700,
-                ),
-              if (classRank != null && schoolRank != null)
-                const SizedBox(height: 8),
-              if (schoolRank != null)
-                _RankChip(
-                  assetPath: AppIcons.library,
-                  label: 'School rank',
-                  value: schoolTotal != null
-                      ? '$schoolRank/$schoolTotal'
-                      : '#$schoolRank',
-                  color: Colors.green.shade700,
-                ),
+              _LevelBadge(level: user.level),
+              const SizedBox(height: 8),
+              _LeagueIconBadge(tier: user.leagueTier),
             ],
           ),
         ],
