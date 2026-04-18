@@ -83,7 +83,28 @@ class StudentDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // 3. Reading Progress (horizontal)
-                  _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
+                  progressAsync.when(
+                    loading: () => _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
+                    error: (_, __) => _SectionTitle(title: 'Reading Progress', assetPath: AppIcons.book, color: Colors.blue),
+                    data: (list) {
+                      final started = list.where((p) => p.completionPercentage > 0).length;
+                      final finished = list.where((p) => p.isCompleted).length;
+                      final reading = started - finished;
+                      String? subtitle;
+                      if (started > 0) {
+                        final parts = <String>[];
+                        if (reading > 0) parts.add('$reading still reading');
+                        if (finished > 0) parts.add('$finished finished');
+                        subtitle = parts.join(' · ');
+                      }
+                      return _SectionTitle(
+                        title: 'Reading Progress',
+                        assetPath: AppIcons.book,
+                        color: Colors.blue,
+                        trailing: subtitle,
+                      );
+                    },
+                  ),
                   const SizedBox(height: 12),
                   progressAsync.when(
                     loading: () => const SizedBox(
@@ -484,12 +505,14 @@ class _SectionTitle extends StatelessWidget {
     this.icon,
     this.assetPath,
     required this.color,
+    this.trailing,
   });
 
   final String title;
   final IconData? icon;
   final String? assetPath;
   final Color color;
+  final String? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -508,6 +531,17 @@ class _SectionTitle extends StatelessWidget {
             color: AppColors.black,
           ),
         ),
+        if (trailing != null) ...[
+          const Spacer(),
+          Text(
+            trailing!,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutralText,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -664,79 +698,124 @@ class _VocabStatsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final lists = wordListsAsync.valueOrNull ?? const [];
 
+    final iconBox = Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.teal.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const AssetIcon(AppIcons.vocabulary, size: 28),
+    );
+
+    final heroText = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: RichText(
+        text: TextSpan(
+          style: GoogleFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+            color: AppColors.black,
+            height: 1.1,
+          ),
+          children: [
+            TextSpan(text: '${stats.totalWords} '),
+            TextSpan(
+              text: 'words in wordbank',
+              style: GoogleFonts.nunito(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AppColors.neutralText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // Breakdown — mastery status counts add up to totalWords.
+    final breakdown = <Widget>[
+      _VocabInline(
+        value: '${stats.newCount}',
+        label: 'New',
+        color: Colors.blueGrey.shade600,
+      ),
+      _VocabInline(
+        value: '${stats.learningCount}',
+        label: 'Learning',
+        color: Colors.orange.shade700,
+      ),
+      _VocabInline(
+        value: '${stats.reviewingCount}',
+        label: 'Reviewing',
+        color: Colors.blue.shade700,
+      ),
+      _VocabInline(
+        value: '${stats.masteredCount}',
+        label: 'Mastered',
+        color: Colors.green.shade700,
+      ),
+    ];
+
+    final viewButton = TextButton.icon(
+      onPressed: onViewWordbank,
+      icon: const Icon(Icons.chevron_right),
+      label: const Text('View'),
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.primaryDark,
+        textStyle: GoogleFonts.nunito(
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+
     return PlayfulCard(
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.teal.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const AssetIcon(AppIcons.vocabulary, size: 28),
-              ),
-              const SizedBox(width: 12),
-              // Hero figure — big number + "words in wordbank" inline
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: RichText(
-                  text: TextSpan(
-                    style: GoogleFonts.nunito(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.black,
-                      height: 1.1,
-                    ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Wide: one row. Narrow: hero row + breakdown row below.
+              final wide = constraints.maxWidth >= 640;
+              if (wide) {
+                return Row(
+                  children: [
+                    iconBox,
+                    const SizedBox(width: 12),
+                    heroText,
+                    const SizedBox(width: 14),
+                    Container(width: 1, height: 36, color: AppColors.neutral),
+                    const SizedBox(width: 14),
+                    for (var i = 0; i < breakdown.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      breakdown[i],
+                    ],
+                    const Spacer(),
+                    viewButton,
+                  ],
+                );
+              }
+              // Narrow: hero on top, breakdown wraps below.
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      TextSpan(text: '${stats.totalWords} '),
-                      TextSpan(
-                        text: 'words in wordbank',
-                        style: GoogleFonts.nunito(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.neutralText,
-                        ),
-                      ),
+                      iconBox,
+                      const SizedBox(width: 12),
+                      Expanded(child: heroText),
+                      viewButton,
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Container(width: 1, height: 36, color: AppColors.neutral),
-              const SizedBox(width: 14),
-              _VocabInline(
-                value: '${stats.masteredCount}',
-                label: 'Mastered',
-                color: Colors.green.shade700,
-              ),
-              const SizedBox(width: 12),
-              _VocabInline(
-                value: '${stats.learningCount}',
-                label: 'Learning',
-                color: Colors.orange.shade700,
-              ),
-              const SizedBox(width: 12),
-              _VocabInline(
-                value: '${stats.totalSessions}',
-                label: 'Sessions',
-                color: Colors.purple.shade700,
-              ),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: onViewWordbank,
-                icon: const Icon(Icons.chevron_right),
-                label: const Text('View'),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primaryDark,
-                  textStyle: GoogleFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 18,
+                    runSpacing: 8,
+                    children: breakdown,
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           // Word Lists subsection (same panel, not a separate section)
           if (lists.isNotEmpty) ...[
