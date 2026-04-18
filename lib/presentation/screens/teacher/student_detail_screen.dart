@@ -377,19 +377,21 @@ class _StudentHeader extends ConsumerWidget {
                   runSpacing: 4,
                   children: [
                     if (classRank != null)
-                      _StatChip(
-                        icon: Icons.class_,
+                      _RankChip(
+                        assetPath: AppIcons.clipboard,
+                        label: 'Class rank',
                         value: classTotal != null
-                            ? 'Class rank: $classRank/$classTotal'
-                            : 'Class rank: $classRank',
+                            ? '$classRank/$classTotal'
+                            : '#$classRank',
                         color: Colors.blue.shade700,
                       ),
                     if (schoolRank != null)
-                      _StatChip(
-                        icon: Icons.school_rounded,
+                      _RankChip(
+                        assetPath: AppIcons.library,
+                        label: 'School rank',
                         value: schoolTotal != null
-                            ? 'School rank: $schoolRank/$schoolTotal'
-                            : 'School rank: $schoolRank',
+                            ? '$schoolRank/$schoolTotal'
+                            : '#$schoolRank',
                         color: Colors.green.shade700,
                       ),
                   ],
@@ -543,108 +545,142 @@ class _StudentStreakCalendarState
     final activeCount = dates.length;
 
     return PlayfulCard(
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: month nav + active count
-          Row(
-            children: [
-              Text(
-                'Student Activity',
-                style: GoogleFonts.nunito(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.black,
-                ),
-              ),
-              const Spacer(),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                onPressed: _canGoBack() ? _prev : null,
-                icon: const Icon(Icons.chevron_left, size: 20),
-              ),
-              Text(
-                '$monthLabel $_displayYear',
-                style: GoogleFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.neutralText,
-                ),
-              ),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                onPressed: _canGoForward() ? _next : null,
-                icon: const Icon(Icons.chevron_right, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
-                  style: GoogleFonts.nunito(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutralText,
-                  ),
-                ),
-              ),
-              if (widget.longestStreak > 0)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const AssetIcon(AppIcons.fire, size: 13),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Longest streak: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.streakOrange,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Weekday header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              for (final d in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
-                SizedBox(
-                  width: 30,
-                  child: Text(
-                    d,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          // Day grid
-          for (int row = 0; row < rows; row++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (int col = 0; col < 7; col++)
-                    _buildDayCell(row, col, leadingBlanks, daysInMonth,
-                        dates, today),
-                ],
+          // Red top banner — wall-calendar vibe
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 10, 6, 10),
+            decoration: BoxDecoration(
+              color: AppColors.danger,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
               ),
             ),
+            child: Row(
+              children: [
+                Text(
+                  'Student Activity',
+                  style: GoogleFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  onPressed: _canGoBack() ? _prev : null,
+                  icon: const Icon(Icons.chevron_left,
+                      size: 20, color: Colors.white),
+                  disabledColor: Colors.white.withValues(alpha: 0.35),
+                ),
+                Text(
+                  '$monthLabel $_displayYear',
+                  style: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                  onPressed: _canGoForward() ? _next : null,
+                  icon: const Icon(Icons.chevron_right,
+                      size: 20, color: Colors.white),
+                  disabledColor: Colors.white.withValues(alpha: 0.35),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '$activeCount active ${activeCount == 1 ? 'day' : 'days'} this month',
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.neutralText,
+                        ),
+                      ),
+                    ),
+                    if (widget.longestStreak > 0)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AssetIcon(AppIcons.fire, size: 13),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Longest streak: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
+                            style: GoogleFonts.nunito(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.streakOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                // Weekday header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    for (final d in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
+                      SizedBox(
+                        width: 30,
+                        child: Text(
+                          d,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.nunito(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.neutralText,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // Divider under weekday header
+                Container(
+                  height: 1.5,
+                  color: AppColors.danger.withValues(alpha: 0.35),
+                ),
+                // Day grid with thin dividers between weeks
+                for (int row = 0; row < rows; row++) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        for (int col = 0; col < 7; col++)
+                          _buildDayCell(row, col, leadingBlanks, daysInMonth,
+                              dates, today),
+                      ],
+                    ),
+                  ),
+                  if (row < rows - 1)
+                    Container(
+                      height: 1,
+                      color: AppColors.neutral.withValues(alpha: 0.6),
+                    ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -754,6 +790,72 @@ class _StudentStreakCalendarState
 }
 
 /// Small pill showing the student's league tier.
+/// Larger rank chip: icon tile on the left, label + big value on the right.
+/// Used for "Class rank 3/25" / "School rank 24/30" in the student header.
+class _RankChip extends StatelessWidget {
+  const _RankChip({
+    required this.assetPath,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String assetPath;
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: AssetIcon(assetPath, size: 22),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.nunito(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: color.withValues(alpha: 0.75),
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                value,
+                style: GoogleFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: color,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// Prominent level badge used next to the avatar on the student header.
 class _LevelBadge extends StatelessWidget {
   const _LevelBadge({required this.level});
