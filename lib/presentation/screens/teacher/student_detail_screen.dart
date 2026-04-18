@@ -26,6 +26,7 @@ import '../../../domain/entities/achievement_group.dart';
 import '../../providers/card_provider.dart';
 import '../../widgets/badges/achievement_group_row.dart';
 import '../../widgets/cards/myth_card_widget.dart';
+import '../../widgets/common/league_tier_badge.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../utils/ui_helpers.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -303,70 +304,77 @@ class _StudentHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlayfulCard(
-      child: Row(
-        children: [
-          // Large avatar
-          AvatarWidget(
-            avatar: user.avatarEquippedCache != null
-                ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
-                    .toEntity()
-                : const EquippedAvatar(),
-            size: 104,
-            fallbackInitials: user.initials,
-          ),
-          const SizedBox(width: 16),
-          // Info
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.fullName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (user.studentNumber != null)
-                  Text(
-                    'Student #${user.studentNumber}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    _StatChip(
-                      assetPath: AppIcons.fire,
-                      value: user.currentStreak == 1
-                          ? 'Streak: 1 day'
-                          : 'Streak: ${user.currentStreak} days',
-                      color: Colors.orange,
-                    ),
-                    _StatChip(
-                      assetPath: AppIcons.trophy,
-                      value: user.longestStreak == 1
-                          ? 'Longest streak: 1 day'
-                          : 'Longest streak: ${user.longestStreak} days',
-                      color: Colors.purple,
-                    ),
-                  ],
-                ),
-              ],
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Avatar fills the full card height
+            AspectRatio(
+              aspectRatio: 1,
+              child: AvatarWidget(
+                avatar: user.avatarEquippedCache != null
+                    ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
+                        .toEntity()
+                    : const EquippedAvatar(),
+                size: 140,
+                fallbackInitials: user.initials,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Level badge — right side
-          _LevelBadge(level: user.level),
-        ],
+            const SizedBox(width: 16),
+            // Info
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.fullName,
+                    style: GoogleFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (user.studentNumber != null)
+                    Text(
+                      'Student #${user.studentNumber}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 13,
+                        color: AppColors.neutralText,
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      _LeagueChip(tier: user.leagueTier),
+                      _StatChip(
+                        assetPath: AppIcons.fire,
+                        value: user.currentStreak == 1
+                            ? 'Streak: 1 day'
+                            : 'Streak: ${user.currentStreak} days',
+                        color: Colors.orange,
+                      ),
+                      _StatChip(
+                        assetPath: AppIcons.trophy,
+                        value: user.longestStreak == 1
+                            ? 'Longest streak: 1 day'
+                            : 'Longest streak: ${user.longestStreak} days',
+                        color: Colors.purple,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Level badge — right side
+            Center(child: _LevelBadge(level: user.level)),
+          ],
+        ),
       ),
     );
   }
@@ -512,7 +520,7 @@ class _StudentStreakCalendarState
             children: [
               for (final d in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
                 SizedBox(
-                  width: 24,
+                  width: 30,
                   child: Text(
                     d,
                     textAlign: TextAlign.center,
@@ -552,10 +560,11 @@ class _StudentStreakCalendarState
     Map<DateTime, bool> dates,
     DateTime today,
   ) {
+    const size = 30.0;
     final index = row * 7 + col;
     final dayNum = index - leadingBlanks + 1;
     if (dayNum < 1 || dayNum > daysInMonth) {
-      return const SizedBox(width: 28, height: 28);
+      return const SizedBox(width: size, height: size);
     }
     final date = DateTime(_displayYear, _displayMonth, dayNum);
     final key = DateTime(date.year, date.month, date.day);
@@ -565,36 +574,73 @@ class _StudentStreakCalendarState
         key.month == today.month &&
         key.day == today.day;
 
-    Color bg;
-    Color fg;
-    if (isFreeze) {
-      bg = AppColors.secondary.withValues(alpha: 0.25);
-      fg = AppColors.secondaryDark;
-    } else if (isActive) {
-      bg = AppColors.wasp.withValues(alpha: 0.25);
-      fg = AppColors.waspDark;
-    } else {
-      bg = Colors.transparent;
-      fg = AppColors.neutralText;
+    // Login day (not freeze): solid orange circle + fire icon.
+    if (isActive && !isFreeze) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.streakOrange,
+            shape: BoxShape.circle,
+          ),
+          padding: const EdgeInsets.all(4),
+          child: const AssetIcon(AppIcons.fire, size: 20),
+        ),
+      );
     }
-
-    return Container(
-      width: 28,
-      height: 28,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: bg,
-        shape: BoxShape.circle,
-        border: isToday
-            ? Border.all(color: AppColors.primary, width: 1.5)
-            : null,
-      ),
-      child: Text(
-        '$dayNum',
-        style: GoogleFonts.nunito(
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          color: fg,
+    // Freeze day: solid blue circle + fire-blue icon.
+    if (isFreeze) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.gemBlue,
+            shape: BoxShape.circle,
+          ),
+          padding: const EdgeInsets.all(5),
+          child: Image.asset(
+            'assets/icons/fire_blue_256.png',
+            width: 18,
+            height: 18,
+            fit: BoxFit.contain,
+          ),
+        ),
+      );
+    }
+    // Today but not active: orange outline + day number.
+    if (isToday) {
+      return Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.streakOrange, width: 2),
+        ),
+        child: Text(
+          '$dayNum',
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: AppColors.streakOrange,
+          ),
+        ),
+      );
+    }
+    // Missed day.
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Center(
+        child: Text(
+          '$dayNum',
+          style: GoogleFonts.nunito(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.gray400,
+          ),
         ),
       ),
     );
@@ -606,6 +652,41 @@ class _StudentStreakCalendarState
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     return labels[m - 1];
+  }
+}
+
+/// Small pill showing the student's league tier.
+class _LeagueChip extends StatelessWidget {
+  const _LeagueChip({required this.tier});
+  final LeagueTier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = LeagueTierBadge.tierColor(tier);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Image.asset(LeagueTierBadge.tierAsset(tier),
+              width: 16, height: 16, fit: BoxFit.contain),
+          const SizedBox(width: 4),
+          Text(
+            '${tier.label} league',
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1601,7 +1682,7 @@ class _StudentCardCollectionState
           });
         final totalOwned = userCards.length;
         final totalCards = catalog.length;
-        const previewCount = 6;
+        const previewCount = 4;
         final shown = _expanded ? sorted : sorted.take(previewCount).toList();
         final hiddenCount = sorted.length - previewCount;
 
@@ -1618,7 +1699,8 @@ class _StudentCardCollectionState
               const SizedBox(height: 12),
               LayoutBuilder(
                 builder: (context, constraints) {
-                  final columns = constraints.maxWidth >= 500 ? 4 : 3;
+                  // Always 4 columns so the preview shows one tight row.
+                  const columns = 4;
                   const gap = 10.0;
                   final cardWidth =
                       (constraints.maxWidth - gap * (columns - 1)) / columns;
