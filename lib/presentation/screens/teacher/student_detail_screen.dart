@@ -312,14 +312,16 @@ class _StudentHeader extends ConsumerWidget {
     final schoolRank =
         ref.watch(teacherStudentSchoolRankProvider(user.id)).valueOrNull;
 
-    // Class total: walk the teacher's classes list and match studentId.
+    // Class total + class name: walk the teacher's classes list.
     final classesAsync = ref.watch(currentTeacherClassesProvider);
     int? classTotal;
+    String? className;
     if (user.classId != null) {
       final list = classesAsync.valueOrNull ?? const [];
       for (final c in list) {
         if (c.id == user.classId) {
           classTotal = c.studentCount;
+          className = c.name;
           break;
         }
       }
@@ -346,7 +348,7 @@ class _StudentHeader extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // Info
+          // Info: name, class name, level+league row
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -363,50 +365,52 @@ class _StudentHeader extends ConsumerWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (user.studentNumber != null)
+                if (className != null)
                   Text(
-                    'Student #${user.studentNumber}',
+                    'Class $className',
                     style: GoogleFonts.nunito(
-                      fontSize: 13,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.neutralText,
                     ),
                   ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
+                Row(
                   children: [
-                    if (classRank != null)
-                      _RankChip(
-                        assetPath: AppIcons.clipboard,
-                        label: 'Class rank',
-                        value: classTotal != null
-                            ? '$classRank/$classTotal'
-                            : '#$classRank',
-                        color: Colors.blue.shade700,
-                      ),
-                    if (schoolRank != null)
-                      _RankChip(
-                        assetPath: AppIcons.library,
-                        label: 'School rank',
-                        value: schoolTotal != null
-                            ? '$schoolRank/$schoolTotal'
-                            : '#$schoolRank',
-                        color: Colors.green.shade700,
-                      ),
+                    _LevelBadge(level: user.level),
+                    const SizedBox(width: 12),
+                    _LeagueIconBadge(tier: user.leagueTier),
                   ],
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
-          // Level badge + league icon stack on the right
+          // Rank chips on the right, stacked
           Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _LevelBadge(level: user.level),
-              const SizedBox(height: 8),
-              _LeagueIconBadge(tier: user.leagueTier),
+              if (classRank != null)
+                _RankChip(
+                  assetPath: AppIcons.clipboard,
+                  label: 'Class rank',
+                  value: classTotal != null
+                      ? '$classRank/$classTotal'
+                      : '#$classRank',
+                  color: Colors.blue.shade700,
+                ),
+              if (classRank != null && schoolRank != null)
+                const SizedBox(height: 8),
+              if (schoolRank != null)
+                _RankChip(
+                  assetPath: AppIcons.library,
+                  label: 'School rank',
+                  value: schoolTotal != null
+                      ? '$schoolRank/$schoolTotal'
+                      : '#$schoolRank',
+                  color: Colors.green.shade700,
+                ),
             ],
           ),
         ],
