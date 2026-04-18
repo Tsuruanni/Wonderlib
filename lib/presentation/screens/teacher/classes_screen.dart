@@ -255,6 +255,7 @@ class ClassesScreen extends ConsumerWidget {
       },
       (classId) {
         ref.invalidate(currentTeacherClassesProvider);
+        ref.invalidate(teacherStatsProvider);
         showAppSnackBar(context, 'Class "$name" created', type: SnackBarType.success);
       },
     );
@@ -378,6 +379,9 @@ class ClassesScreen extends ConsumerWidget {
       },
       (_) {
         ref.invalidate(currentTeacherClassesProvider);
+        ref.invalidate(teacherStatsProvider);
+        // Drop the deleted class's student cache (harmless but tidy).
+        ref.invalidate(classStudentsProvider);
         showAppSnackBar(context, 'Class deleted', type: SnackBarType.success);
       },
     );

@@ -421,7 +421,8 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
                           },
                           (_) {
                             showAppSnackBar(context, '${student.fullName} moved to ${targetClass.name}', type: SnackBarType.success);
-                            ref.invalidate(classStudentsProvider(widget.classId));
+                            // Both source and target class lists must refresh.
+                            ref.invalidate(classStudentsProvider);
                             ref.invalidate(currentTeacherClassesProvider);
                           },
                         );
@@ -538,7 +539,8 @@ class _ClassDetailScreenState extends ConsumerState<ClassDetailScreen> {
           _isSelectMode = false;
           _selectedStudentIds.clear();
         });
-        ref.invalidate(classStudentsProvider(widget.classId));
+        // Both source and target class lists must refresh.
+        ref.invalidate(classStudentsProvider);
         ref.invalidate(currentTeacherClassesProvider);
       },
     );
