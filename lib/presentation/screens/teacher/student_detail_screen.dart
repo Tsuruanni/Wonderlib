@@ -92,9 +92,22 @@ class StudentDetailScreen extends ConsumerWidget {
                     ),
                     error: (_, __) => const Text('Error loading progress'),
                     data: (progressList) {
+                      // In-progress books first, completed after.
                       final filtered = progressList
                           .where((p) => p.completionPercentage > 0)
-                          .toList();
+                          .toList()
+                        ..sort((a, b) {
+                          final aDone = a.isCompleted ? 1 : 0;
+                          final bDone = b.isCompleted ? 1 : 0;
+                          if (aDone != bDone) return aDone - bDone;
+                          // Within each group, most recent first.
+                          final aTs = a.lastReadAt;
+                          final bTs = b.lastReadAt;
+                          if (aTs == null && bTs == null) return 0;
+                          if (aTs == null) return 1;
+                          if (bTs == null) return -1;
+                          return bTs.compareTo(aTs);
+                        });
                       if (filtered.isEmpty) {
                         return _EmptySection(
                           assetPath: AppIcons.library,
@@ -390,6 +403,50 @@ class _LevelChip extends StatelessWidget {
 // INLINE QUIZ PILL (inside a reading progress book card)
 // ─────────────────────────────────────────────
 
+class _CefrBadge extends StatelessWidget {
+  const _CefrBadge({required this.level});
+  final String level;
+
+  Color _bgColor() {
+    final l = level.toUpperCase();
+    if (l.startsWith('A1')) return const Color(0xFF58CC02);
+    if (l.startsWith('A2')) return const Color(0xFF1CB0F6);
+    if (l.startsWith('B1')) return const Color(0xFFFFC800);
+    if (l.startsWith('B2')) return const Color(0xFFFF9600);
+    if (l.startsWith('C1')) return const Color(0xFFCE82FF);
+    if (l.startsWith('C2')) return const Color(0xFFFF4B4B);
+    return AppColors.neutralDark;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: _bgColor(),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Text(
+        level.toUpperCase(),
+        style: GoogleFonts.nunito(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
 class _QuizScoreLine extends StatelessWidget {
   const _QuizScoreLine({required this.quiz});
   final StudentQuizProgress quiz;
@@ -532,6 +589,13 @@ class _HorizontalBookCard extends StatelessWidget {
                   ),
                 ),
               ),
+              // CEFR level badge (top-right corner of cover)
+              if (progress.bookLevel != null && progress.bookLevel!.isNotEmpty)
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: _CefrBadge(level: progress.bookLevel!),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -603,7 +667,7 @@ class _VocabStatsCard extends StatelessWidget {
     return PlayfulCard(
       child: Column(
         children: [
-          // Hero row: big wordbank number + View button
+          // Single row: hero + breakdown + View
           Row(
             children: [
               Container(
@@ -612,33 +676,35 @@ class _VocabStatsCard extends StatelessWidget {
                   color: Colors.teal.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const AssetIcon(AppIcons.vocabulary, size: 28),
+                child: const AssetIcon(AppIcons.vocabulary, size: 24),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${stats.totalWords}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.black,
-                        height: 1.1,
-                      ),
-                    ),
-                    Text(
-                      'Words in Wordbank',
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.neutralText,
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(width: 12),
+              _VocabInline(
+                value: '${stats.totalWords}',
+                label: 'Wordbank',
+                color: AppColors.black,
               ),
+              const SizedBox(width: 10),
+              Container(width: 1, height: 32, color: AppColors.neutral),
+              const SizedBox(width: 10),
+              _VocabInline(
+                value: '${stats.masteredCount}',
+                label: 'Mastered',
+                color: Colors.green.shade700,
+              ),
+              const SizedBox(width: 10),
+              _VocabInline(
+                value: '${stats.learningCount}',
+                label: 'Learning',
+                color: Colors.orange.shade700,
+              ),
+              const SizedBox(width: 10),
+              _VocabInline(
+                value: '${stats.totalSessions}',
+                label: 'Sessions',
+                color: Colors.purple.shade700,
+              ),
+              const Spacer(),
               TextButton.icon(
                 onPressed: onViewWordbank,
                 icon: const Icon(Icons.chevron_right),
@@ -650,31 +716,6 @@ class _VocabStatsCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: AppColors.neutral),
-          ),
-          // Breakdown: mastered / learning / sessions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _VocabMini(
-                value: '${stats.masteredCount}',
-                label: 'Mastered',
-                color: Colors.green.shade700,
-              ),
-              _VocabMini(
-                value: '${stats.learningCount}',
-                label: 'Learning',
-                color: Colors.orange.shade700,
-              ),
-              _VocabMini(
-                value: '${stats.totalSessions}',
-                label: 'Sessions',
-                color: Colors.purple.shade700,
               ),
             ],
           ),
@@ -714,8 +755,8 @@ class _VocabStatsCard extends StatelessWidget {
   }
 }
 
-class _VocabMini extends StatelessWidget {
-  const _VocabMini({
+class _VocabInline extends StatelessWidget {
+  const _VocabInline({
     required this.value,
     required this.label,
     required this.color,
@@ -729,13 +770,15 @@ class _VocabMini extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           value,
           style: GoogleFonts.nunito(
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.w900,
             color: color,
+            height: 1.1,
           ),
         ),
         Text(
@@ -744,7 +787,7 @@ class _VocabMini extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w700,
             color: AppColors.neutralText,
-            letterSpacing: 0.5,
+            letterSpacing: 0.3,
           ),
         ),
       ],

@@ -128,23 +128,27 @@ class StudentBookProgress extends Equatable {
     required this.bookId,
     required this.bookTitle,
     this.bookCoverUrl,
+    this.bookLevel,
     required this.completionPercentage,
     required this.totalReadingTime,
     required this.completedChapters,
     required this.totalChapters,
+    this.isCompleted = false,
     this.lastReadAt,
   });
   final String bookId;
   final String bookTitle;
   final String? bookCoverUrl;
+  final String? bookLevel;
   final double completionPercentage;
   final int totalReadingTime;
   final int completedChapters;
   final int totalChapters;
+  final bool isCompleted;
   final DateTime? lastReadAt;
 
   @override
-  List<Object?> get props => [bookId, bookTitle, bookCoverUrl, completionPercentage, totalReadingTime, completedChapters, totalChapters, lastReadAt];
+  List<Object?> get props => [bookId, bookTitle, bookCoverUrl, bookLevel, completionPercentage, totalReadingTime, completedChapters, totalChapters, isCompleted, lastReadAt];
 }
 
 /// Summary of a student's vocabulary learning stats
