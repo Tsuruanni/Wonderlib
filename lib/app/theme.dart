@@ -71,9 +71,23 @@ abstract class AppColors {
   static const pathBorder = Color(0xFFC1A17A); // Earthy Sand Border
 }
 
+/// Semantic border radius hierarchy (Duolingo-style).
+///
+/// Different components use different radii to create visual hierarchy:
+/// pills are most rounded, tags tightest, buttons somewhere in between.
+abstract class AppRadius {
+  static const double tag = 8;      // Small inline tags
+  static const double button = 12;  // Buttons (slightly tighter than cards)
+  static const double input = 16;   // Form inputs (match cards)
+  static const double card = 16;    // Cards / panels / sheets
+  static const double pill = 20;    // Full pill-shaped chips / large pills
+  static const double sheet = 24;   // Bottom sheets, large rounded tops
+}
+
 abstract class AppTheme {
-  // Shared border radius for the "bubbly" look
-  static final borderRadius = BorderRadius.circular(16);
+  // Input/card radius (kept for backwards compat with existing usages).
+  // Prefer AppRadius.xxx for new code.
+  static final borderRadius = BorderRadius.circular(AppRadius.card);
 
   static ThemeData get lightTheme {
     return ThemeData(
