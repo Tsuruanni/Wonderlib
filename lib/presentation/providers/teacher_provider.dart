@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import '../../domain/entities/achievement_group.dart';
 import '../../domain/entities/badge.dart';
@@ -7,7 +8,6 @@ import '../../domain/entities/class_learning_path_unit.dart';
 import '../../domain/entities/student_unit_progress_item.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/teacher_repository.dart';
-import '../../domain/usecases/user/get_login_dates_usecase.dart';
 import 'badge_progress_provider.dart';
 import 'badge_provider.dart';
 import '../../domain/usecases/assignment/delete_assignment_usecase.dart';
@@ -209,23 +209,31 @@ final teacherStudentCardsProvider =
 });
 
 /// Monthly login/freeze dates for a specific student (teacher view).
-/// Mirrors monthlyLoginDatesProvider but parametric on studentId.
+/// Uses a SECURITY DEFINER RPC (teacher-only, same-school check) because
+/// daily_logins RLS blocks direct cross-user reads.
 final teacherStudentMonthlyLoginsProvider = FutureProvider.family<
     Map<DateTime, bool>,
     ({String studentId, int year, int month})>((ref, params) async {
-  final from = DateTime(params.year, params.month, 1);
-  final nextMonth = DateTime(params.year, params.month + 1, 1);
-  final useCase = ref.watch(getLoginDatesUseCaseProvider);
-  final result = await useCase(
-    GetLoginDatesParams(userId: params.studentId, from: from),
-  );
-  return result.fold(
-    (_) => <DateTime, bool>{},
-    (dates) {
-      dates.removeWhere((date, _) => !date.isBefore(nextMonth));
-      return dates;
-    },
-  );
+  final supabase = Supabase.instance.client;
+  try {
+    final response = await supabase.rpc(
+      'get_student_monthly_logins',
+      params: {
+        'p_student_id': params.studentId,
+        'p_year': params.year,
+        'p_month': params.month,
+      },
+    );
+    final map = <DateTime, bool>{};
+    for (final row in (response as List)) {
+      final date = DateTime.parse(row['login_date'] as String);
+      map[DateTime(date.year, date.month, date.day)] =
+          row['is_freeze'] as bool? ?? false;
+    }
+    return map;
+  } catch (_) {
+    return <DateTime, bool>{};
+  }
 });
 
 /// Achievement tracks (Duolingo-style) for a specific student — reuses the
