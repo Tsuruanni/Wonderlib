@@ -821,63 +821,36 @@ class _ClassStatsBar extends StatelessWidget {
     final totalWordbank =
         students.fold<int>(0, (sum, s) => sum + s.wordbankSize);
 
-    final activeMessage = total == 0
-        ? 'No students yet'
-        : activeLast30d == total
-            ? 'All $total students are active this month! 🎉'
-            : activeLast30d == 0
-                ? 'No students have been active this month'
-                : '$activeLast30d of $total students are active this month!';
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: PlayfulCard(
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // Active message banner
-            Row(
-              children: [
-                const AssetIcon(AppIcons.fire, size: 28),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    activeMessage,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, color: AppColors.neutral),
-            ),
-            // 3 supporting stats
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                if (topLevel > 0)
-                  _StatItem(
-                    assetPath: AppIcons.trophy,
-                    value: 'Lv $topLevel',
-                    label: 'Top Level',
-                  ),
-                if (totalBooks > 0)
-                  _StatItem(
-                    assetPath: AppIcons.book,
-                    value: '$totalBooks',
-                    label: 'Books Read',
-                  ),
-                if (totalWordbank > 0)
-                  _StatItem(
-                    assetPath: AppIcons.vocabulary,
-                    value: '$totalWordbank',
-                    label: 'Words in Wordbank',
-                  ),
-              ],
-            ),
+            if (total > 0)
+              _StatItem(
+                assetPath: AppIcons.fire,
+                value: '$activeLast30d/$total',
+                label: 'Active (30d)',
+              ),
+            if (topLevel > 0)
+              _StatItem(
+                assetPath: AppIcons.trophy,
+                value: 'Lv $topLevel',
+                label: 'Top Level',
+              ),
+            if (totalBooks > 0)
+              _StatItem(
+                assetPath: AppIcons.book,
+                value: '$totalBooks',
+                label: 'Books Read',
+              ),
+            if (totalWordbank > 0)
+              _StatItem(
+                assetPath: AppIcons.vocabulary,
+                value: '$totalWordbank',
+                label: 'Words in Wordbank',
+              ),
           ],
         ),
       ),

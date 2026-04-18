@@ -8,7 +8,6 @@ import '../../../../app/theme.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/repositories/teacher_repository.dart';
 import '../../../providers/teacher_provider.dart';
-import '../../../utils/ui_helpers.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/asset_icon.dart';
@@ -61,7 +60,6 @@ class ClassOverviewReportScreen extends ConsumerWidget {
             // Calculate totals
             final totalStudents = classes.fold<int>(0, (sum, c) => sum + c.studentCount);
             final totalActive = classes.fold<int>(0, (sum, c) => sum + c.activeLast30d);
-            final totalReadingTime = classes.fold<int>(0, (sum, c) => sum + c.totalReadingTime);
             final totalBooks = classes.fold<int>(0, (sum, c) => sum + c.completedBooks);
             final totalWordbank = classes.fold<int>(0, (sum, c) => sum + c.totalVocabWords);
             final topLevel = classes.fold<int>(
@@ -94,18 +92,12 @@ class ClassOverviewReportScreen extends ConsumerWidget {
                         _SummaryStat(
                           value: '$totalBooks',
                           label: 'Books Read',
-                          assetPath: AppIcons.library,
-                        ),
-                      if (totalReadingTime > 0)
-                        _SummaryStat(
-                          value: TimeFormatter.formatReadingTime(totalReadingTime),
-                          label: 'Reading Time',
-                          assetPath: AppIcons.schedule,
+                          assetPath: AppIcons.book,
                         ),
                       if (totalWordbank > 0)
                         _SummaryStat(
                           value: '$totalWordbank',
-                          label: 'Wordbank',
+                          label: 'Words in Wordbank',
                           assetPath: AppIcons.vocabulary,
                         ),
                     ],
