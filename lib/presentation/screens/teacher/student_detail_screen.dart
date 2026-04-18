@@ -91,26 +91,24 @@ class StudentDetailScreen extends ConsumerWidget {
                     children: [
                       // Top row: header + streak calendar
                       if (wide)
-                        IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: _StudentHeader(user: student),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: _StudentHeader(user: student),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 2,
+                              child: _StudentStreakCalendar(
+                                studentId: studentId,
+                                createdAt: student.createdAt,
+                                currentStreak: student.currentStreak,
+                                longestStreak: student.longestStreak,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 2,
-                                child: _StudentStreakCalendar(
-                                  studentId: studentId,
-                                  createdAt: student.createdAt,
-                                  currentStreak: student.currentStreak,
-                                  longestStreak: student.longestStreak,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         )
                       else ...[
                         _StudentHeader(user: student),
@@ -307,77 +305,136 @@ class _StudentHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final classRank = ref.watch(teacherStudentClassRankProvider(user.id)).valueOrNull;
-    final schoolRank = ref.watch(teacherStudentSchoolRankProvider(user.id)).valueOrNull;
+    final classRank =
+        ref.watch(teacherStudentClassRankProvider(user.id)).valueOrNull;
+    final schoolRank =
+        ref.watch(teacherStudentSchoolRankProvider(user.id)).valueOrNull;
+
+    // Class total: walk the teacher's classes list and match studentId.
+    final classesAsync = ref.watch(currentTeacherClassesProvider);
+    int? classTotal;
+    if (user.classId != null) {
+      final list = classesAsync.valueOrNull ?? const [];
+      for (final c in list) {
+        if (c.id == user.classId) {
+          classTotal = c.studentCount;
+          break;
+        }
+      }
+    }
+    // School total via the My School summary.
+    final schoolTotal =
+        ref.watch(schoolSummaryProvider).valueOrNull?.totalStudents;
+
     return PlayfulCard(
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Avatar fills the full card height
-            AspectRatio(
-              aspectRatio: 1,
-              child: AvatarWidget(
-                avatar: user.avatarEquippedCache != null
-                    ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
-                        .toEntity()
-                    : const EquippedAvatar(),
-                size: 140,
-                fallbackInitials: user.initials,
-              ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Large square avatar
+          SizedBox(
+            width: 140,
+            height: 140,
+            child: AvatarWidget(
+              avatar: user.avatarEquippedCache != null
+                  ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
+                      .toEntity()
+                  : const EquippedAvatar(),
+              size: 140,
+              fallbackInitials: user.initials,
             ),
-            const SizedBox(width: 16),
-            // Info
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          ),
+          const SizedBox(width: 16),
+          // Info
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.fullName,
+                  style: GoogleFonts.nunito(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.black,
+                    height: 1.1,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (user.studentNumber != null)
                   Text(
-                    user.fullName,
+                    'Student #${user.studentNumber}',
                     style: GoogleFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.black,
+                      fontSize: 13,
+                      color: AppColors.neutralText,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (user.studentNumber != null)
-                    Text(
-                      'Student #${user.studentNumber}',
-                      style: GoogleFonts.nunito(
-                        fontSize: 13,
-                        color: AppColors.neutralText,
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    if (classRank != null)
+                      _StatChip(
+                        icon: Icons.class_,
+                        value: classTotal != null
+                            ? 'Class rank: $classRank/$classTotal'
+                            : 'Class rank: $classRank',
+                        color: Colors.blue.shade700,
                       ),
-                    ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    children: [
-                      _LeagueChip(tier: user.leagueTier),
-                      if (classRank != null)
-                        _StatChip(
-                          icon: Icons.class_,
-                          value: 'Class rank: #$classRank',
-                          color: Colors.blue.shade700,
-                        ),
-                      if (schoolRank != null)
-                        _StatChip(
-                          icon: Icons.school_rounded,
-                          value: 'School rank: #$schoolRank',
-                          color: Colors.green.shade700,
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+                    if (schoolRank != null)
+                      _StatChip(
+                        icon: Icons.school_rounded,
+                        value: schoolTotal != null
+                            ? 'School rank: $schoolRank/$schoolTotal'
+                            : 'School rank: $schoolRank',
+                        color: Colors.green.shade700,
+                      ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            // Level badge — right side
-            Center(child: _LevelBadge(level: user.level)),
-          ],
+          ),
+          const SizedBox(width: 12),
+          // Level badge + league icon stack on the right
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LevelBadge(level: user.level),
+              const SizedBox(height: 8),
+              _LeagueIconBadge(tier: user.leagueTier),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Compact square league tile shown under the level badge — same footprint
+/// as _LevelBadge so the pair forms a tidy column on the right edge.
+class _LeagueIconBadge extends StatelessWidget {
+  const _LeagueIconBadge({required this.tier});
+  final LeagueTier tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = LeagueTierBadge.tierColor(tier);
+    return Tooltip(
+      message: '${tier.label} league',
+      child: Container(
+        width: 72,
+        height: 72,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          shape: BoxShape.circle,
+          border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Image.asset(
+          LeagueTierBadge.tierAsset(tier),
+          fit: BoxFit.contain,
         ),
       ),
     );
@@ -482,7 +539,7 @@ class _StudentStreakCalendarState
               const AssetIcon(AppIcons.fire, size: 22),
               const SizedBox(width: 6),
               Text(
-                'Activity',
+                'Student Activity',
                 style: GoogleFonts.nunito(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -529,14 +586,14 @@ class _StudentStreakCalendarState
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const AssetIcon(AppIcons.trophy, size: 13),
+                    const AssetIcon(AppIcons.fire, size: 13),
                     const SizedBox(width: 4),
                     Text(
-                      'Longest: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
+                      'Longest streak: ${widget.longestStreak} ${widget.longestStreak == 1 ? 'day' : 'days'}',
                       style: GoogleFonts.nunito(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: AppColors.waspDark,
+                        color: AppColors.streakOrange,
                       ),
                     ),
                   ],
@@ -686,40 +743,6 @@ class _StudentStreakCalendarState
 }
 
 /// Small pill showing the student's league tier.
-class _LeagueChip extends StatelessWidget {
-  const _LeagueChip({required this.tier});
-  final LeagueTier tier;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = LeagueTierBadge.tierColor(tier);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(LeagueTierBadge.tierAsset(tier),
-              width: 16, height: 16, fit: BoxFit.contain),
-          const SizedBox(width: 4),
-          Text(
-            '${tier.label} league',
-            style: GoogleFonts.nunito(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 /// Prominent level badge used next to the avatar on the student header.
 class _LevelBadge extends StatelessWidget {
   const _LevelBadge({required this.level});
@@ -733,7 +756,7 @@ class _LevelBadge extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: AppColors.wasp.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(16),
+        shape: BoxShape.circle,
         border: Border.all(color: AppColors.wasp, width: 2.5),
       ),
       child: Column(
@@ -749,11 +772,11 @@ class _LevelBadge extends StatelessWidget {
               height: 1.0,
             ),
           ),
-          const SizedBox(height: 3),
+          const SizedBox(height: 2),
           Text(
             '$level',
             style: GoogleFonts.nunito(
-              fontSize: 30,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
               color: AppColors.waspDark,
               height: 1.0,
