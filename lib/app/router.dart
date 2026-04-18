@@ -671,13 +671,6 @@ GoRouter _createRouter() {
 
       // Profile moved inside Vocab branch to keep shell visible
 
-      // Teacher profile — full-screen outside teacher shell (no student nav)
-      GoRoute(
-        parentNavigatorKey: rootNavigatorKey,
-        path: AppRoutes.teacherProfile,
-        builder: (context, state) => const ProfileScreen(),
-      ),
-
       // Downloaded books management (accessed from profile)
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
@@ -708,6 +701,12 @@ GoRouter _createRouter() {
                       final studentId = state.pathParameters['studentId']!;
                       return StudentDetailScreen(studentId: studentId);
                     },
+                  ),
+                  // Teacher profile — lives inside the shell so the sidebar
+                  // stays visible when the teacher opens their profile.
+                  GoRoute(
+                    path: 'profile',
+                    builder: (context, state) => const ProfileScreen(),
                   ),
                 ],
               ),
