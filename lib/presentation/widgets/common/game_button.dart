@@ -10,6 +10,7 @@ enum GameButtonVariant {
   wasp,
   neutral,
   outline,
+  ghost,
 }
 
 class GameButton extends StatefulWidget {
@@ -50,8 +51,56 @@ class _GameButtonState extends State<GameButton> {
     setState(() => _isPressed = false);
   }
 
+  Widget _buildGhost() {
+    final isDisabled = widget.onPressed == null;
+    final textColor = isDisabled ? AppColors.neutralText : AppColors.primary;
+    final bgColor = _isPressed
+        ? AppColors.primary.withValues(alpha: 0.08)
+        : Colors.transparent;
+
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTap: widget.onPressed,
+      onTapCancel: _onTapCancel,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        width: widget.fullWidth ? double.infinity : null,
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.label.toUpperCase(),
+              style: AppTextStyles.button(color: textColor),
+            ),
+            if (widget.icon != null) ...[
+              const SizedBox(width: 8),
+              IconTheme(
+                data: IconThemeData(color: textColor, size: 18),
+                child: widget.icon!,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Ghost variant — flat text button (no 3D, no bg, no border).
+    // Subtle tinted bg on press.
+    if (widget.variant == GameButtonVariant.ghost) {
+      return _buildGhost();
+    }
+
     // Determine colors based on variant
     Color faceColor;
     Color sideColor; // The "3D" part
@@ -97,6 +146,12 @@ class _GameButtonState extends State<GameButton> {
         case GameButtonVariant.outline:
           faceColor = AppColors.white;
           sideColor = AppColors.neutral;
+          textColor = AppColors.primary;
+          break;
+        case GameButtonVariant.ghost:
+          // Unreachable — handled via early return in build().
+          faceColor = Colors.transparent;
+          sideColor = Colors.transparent;
           textColor = AppColors.primary;
           break;
       }
@@ -145,7 +200,7 @@ class _GameButtonState extends State<GameButton> {
               child: Container(
                 decoration: BoxDecoration(
                   color: sideColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.button),
                 ),
               ),
             ),
@@ -161,7 +216,7 @@ class _GameButtonState extends State<GameButton> {
               child: Container(
                 decoration: BoxDecoration(
                   color: faceColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.button),
                   border: widget.variant == GameButtonVariant.outline 
                     ? Border.all(color: AppColors.neutral, width: 2)
                     : null,

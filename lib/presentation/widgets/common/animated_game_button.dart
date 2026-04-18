@@ -28,7 +28,7 @@ class AnimatedGameButton extends StatefulWidget {
     this.fullWidth = false,
     this.isSelected = false,
     this.height = 48.0,
-    this.borderRadius = 16.0,
+    this.borderRadius = AppRadius.button,
     this.textStyle,
   });
 
@@ -132,10 +132,18 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
           textColor = AppColors.primary;
           borderColor = AppColors.primary;
           break;
+        case GameButtonVariant.ghost:
+          faceColor = Colors.transparent;
+          sideColor = Colors.transparent;
+          textColor = AppColors.primary;
+          borderColor = Colors.transparent;
+          break;
       }
     }
 
-    final double depth = widget.variant == GameButtonVariant.outline ? 0 : 3.0;
+    final bool isFlat = widget.variant == GameButtonVariant.outline ||
+        widget.variant == GameButtonVariant.ghost;
+    final double depth = isFlat ? 0 : 3.0;
     final double currentDepth = _isPressed ? 0.0 : depth;
     final double marginTop = _isPressed ? depth : 0.0;
 
@@ -153,7 +161,7 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
           child: Stack(
             children: [
               // 3D Side (Bottom)
-              if (widget.variant != GameButtonVariant.outline)
+              if (!isFlat)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -180,11 +188,13 @@ class _AnimatedGameButtonState extends State<AnimatedGameButton>
                     color: faceColor,
                     borderRadius: BorderRadius.circular(widget.borderRadius),
                     border: Border.all(
-                      color: widget.variant == GameButtonVariant.neutral
-                          ? const Color(0xFFE5E7EB)
-                          : (widget.variant == GameButtonVariant.outline
-                              ? borderColor
-                              : faceColor),
+                      color: widget.variant == GameButtonVariant.ghost
+                          ? Colors.transparent
+                          : (widget.variant == GameButtonVariant.neutral
+                              ? const Color(0xFFE5E7EB)
+                              : (widget.variant == GameButtonVariant.outline
+                                  ? borderColor
+                                  : faceColor)),
                       width: 2,
                     ),
                   ),
