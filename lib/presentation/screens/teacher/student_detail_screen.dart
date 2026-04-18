@@ -111,11 +111,12 @@ class StudentDetailScreen extends ConsumerWidget {
                         }
                       }
                       return SizedBox(
-                        height: 180,
+                        height: 220,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(vertical: 4),
                           itemCount: filtered.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 12),
+                          separatorBuilder: (_, __) => const SizedBox(width: 16),
                           itemBuilder: (context, index) {
                             final p = filtered[index];
                             return _HorizontalBookCard(
@@ -321,12 +322,16 @@ class _StudentHeader extends StatelessWidget {
                     ),
                     _StatChip(
                       assetPath: AppIcons.fire,
-                      value: '${user.currentStreak}',
+                      value: user.currentStreak == 1
+                          ? '1 day streak'
+                          : '${user.currentStreak} day streak',
                       color: Colors.orange,
                     ),
                     _StatChip(
                       assetPath: AppIcons.trophy,
-                      value: '${user.longestStreak} best',
+                      value: user.longestStreak == 1
+                          ? 'best: 1 day'
+                          : 'best: ${user.longestStreak} days',
                       color: Colors.purple,
                     ),
                   ],
@@ -503,102 +508,147 @@ class _HorizontalBookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PlayfulCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(12),
-      child: SizedBox(
-        width: 200,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    final pctColor = ScoreColors.getProgressColor(progress.completionPercentage);
+    return Container(
+      width: 170,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.neutral, width: 2),
+        boxShadow: const [
+          BoxShadow(color: AppColors.neutral, offset: Offset(0, 4)),
+        ],
+      ),
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero book cover (centered, tall — a real book feel)
+          Center(
+            child: Stack(
+              clipBehavior: Clip.none,
               children: [
-                // Book cover
                 Container(
-                  width: 40,
-                  height: 56,
+                  width: 88,
+                  height: 118,
                   decoration: BoxDecoration(
-                    color: context.colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(4),
+                    color: const Color(0xFFEAE2D2),
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(4),
+                      bottomRight: Radius.circular(4),
+                      topLeft: Radius.circular(2),
+                      bottomLeft: Radius.circular(2),
+                    ),
+                    border: Border.all(color: AppColors.neutral, width: 1),
                     image: progress.bookCoverUrl != null
                         ? DecorationImage(
                             image: NetworkImage(progress.bookCoverUrl!),
                             fit: BoxFit.cover,
                           )
                         : null,
-                  ),
-                  child: progress.bookCoverUrl == null
-                      ? const AssetIcon(AppIcons.book, size: 24)
-                      : null,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        progress.bookTitle,
-                        style: GoogleFonts.nunito(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        '${progress.completedChapters}/${progress.totalChapters} chapters',
-                        style: GoogleFonts.nunito(
-                          fontSize: 11,
-                          color: AppColors.neutralText,
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 6,
+                        offset: const Offset(2, 3),
                       ),
                     ],
                   ),
+                  child: progress.bookCoverUrl == null
+                      ? const Center(child: AssetIcon(AppIcons.book, size: 42))
+                      : null,
                 ),
-              ],
-            ),
-            const Spacer(),
-            // Progress bar
-            AppProgressBar(
-              progress: progress.completionPercentage / 100,
-              fillColor: ScoreColors.getProgressColor(progress.completionPercentage),
-              fillShadow: ScoreColors.getProgressColor(progress.completionPercentage).withValues(alpha: 0.6),
-              backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-              height: 6,
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${progress.completionPercentage.toStringAsFixed(0)}%',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: ScoreColors.getProgressColor(progress.completionPercentage),
-                  ),
-                ),
-                Row(
-                  children: [
-                    const AssetIcon(AppIcons.schedule, size: 12),
-                    const SizedBox(width: 2),
-                    Text(
-                      TimeFormatter.formatReadingTime(progress.totalReadingTime),
-                      style: GoogleFonts.nunito(
-                        fontSize: 11,
-                        color: AppColors.neutralText,
+                // Left-edge "spine" shade
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 3,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(2),
+                        bottomLeft: Radius.circular(2),
                       ),
                     ),
-                  ],
+                  ),
                 ),
+                // Quiz pill badge overlaid at top-right
+                if (quiz != null)
+                  Positioned(
+                    top: -4,
+                    right: -6,
+                    child: _InlineQuizPill(quiz: quiz!),
+                  ),
               ],
             ),
-            if (quiz != null) ...[
-              const SizedBox(height: 6),
-              _InlineQuizPill(quiz: quiz!),
+          ),
+          const SizedBox(height: 8),
+          // Title
+          Text(
+            progress.bookTitle,
+            style: GoogleFonts.nunito(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: AppColors.black,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          // Meta row: chapters + reading time
+          Row(
+            children: [
+              Text(
+                '${progress.completedChapters}/${progress.totalChapters} ch',
+                style: GoogleFonts.nunito(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Text('·', style: TextStyle(color: AppColors.neutralText)),
+              const SizedBox(width: 6),
+              const AssetIcon(AppIcons.schedule, size: 11),
+              const SizedBox(width: 2),
+              Text(
+                TimeFormatter.formatReadingTime(progress.totalReadingTime),
+                style: GoogleFonts.nunito(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutralText,
+                ),
+              ),
             ],
-          ],
-        ),
+          ),
+          const Spacer(),
+          // Progress bar + %
+          Row(
+            children: [
+              Expanded(
+                child: AppProgressBar(
+                  progress: progress.completionPercentage / 100,
+                  fillColor: pctColor,
+                  fillShadow: pctColor.withValues(alpha: 0.6),
+                  backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
+                  height: 6,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '${progress.completionPercentage.toStringAsFixed(0)}%',
+                style: GoogleFonts.nunito(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: pctColor,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -616,55 +666,123 @@ class _VocabStatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlayfulCard(
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.teal.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const AssetIcon(AppIcons.vocabulary, size: 28),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${stats.totalWords}',
-                  style: GoogleFonts.nunito(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.black,
-                    height: 1.1,
-                  ),
+          // Hero row: big wordbank number + View button
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.teal.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                Text(
-                  'Words in Wordbank',
-                  style: GoogleFonts.nunito(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutralText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          TextButton.icon(
-            onPressed: onViewWordbank,
-            icon: const Icon(Icons.chevron_right),
-            label: const Text('View'),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.primaryDark,
-              textStyle: GoogleFonts.nunito(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
+                child: const AssetIcon(AppIcons.vocabulary, size: 28),
               ),
-            ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${stats.totalWords}',
+                      style: GoogleFonts.nunito(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.black,
+                        height: 1.1,
+                      ),
+                    ),
+                    Text(
+                      'Words in Wordbank',
+                      style: GoogleFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neutralText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton.icon(
+                onPressed: onViewWordbank,
+                icon: const Icon(Icons.chevron_right),
+                label: const Text('View'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primaryDark,
+                  textStyle: GoogleFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: AppColors.neutral),
+          ),
+          // Breakdown: mastered / learning / sessions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _VocabMini(
+                value: '${stats.masteredCount}',
+                label: 'Mastered',
+                color: Colors.green.shade700,
+              ),
+              _VocabMini(
+                value: '${stats.learningCount}',
+                label: 'Learning',
+                color: Colors.orange.shade700,
+              ),
+              _VocabMini(
+                value: '${stats.totalSessions}',
+                label: 'Sessions',
+                color: Colors.purple.shade700,
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+}
+
+class _VocabMini extends StatelessWidget {
+  const _VocabMini({
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  final String value;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w900,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.nunito(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.neutralText,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
     );
   }
 }
