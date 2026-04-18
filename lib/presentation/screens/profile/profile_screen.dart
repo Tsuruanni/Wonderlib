@@ -29,6 +29,7 @@ import '../../providers/user_provider.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/avatar_provider.dart';
 import '../../widgets/cards/myth_card_widget.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../widgets/common/game_button.dart';
 import '../../widgets/common/playful_card.dart';
@@ -802,17 +803,11 @@ class _RecentBadgesSection extends ConsumerWidget {
                     style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   const Spacer(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$earnedCount / $totalCount',
-                      style: AppTextStyles.bodySmall(color: AppColors.primary).copyWith(fontWeight: FontWeight.w900),
-                    ),
+                  AppChip(
+                    label: '$earnedCount / $totalCount',
+                    variant: AppChipVariant.success,
+                    size: AppChipSize.sm,
+                    uppercase: false,
                   ),
                 ],
               ),

@@ -6,6 +6,7 @@ import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/card.dart';
 import '../../providers/card_provider.dart';
+import '../common/app_chip.dart';
 
 class DuplicateCounterCard extends ConsumerWidget {
   const DuplicateCounterCard({super.key});
@@ -91,16 +92,12 @@ class DuplicateCounterCard extends ConsumerWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: rarityColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            'x${uc.quantity}',
-            style: AppTextStyles.bodySmall(color: rarityColor).copyWith(fontWeight: FontWeight.w800),
-          ),
+        AppChip(
+          label: 'x${uc.quantity}',
+          variant: AppChipVariant.custom,
+          size: AppChipSize.sm,
+          uppercase: false,
+          customColor: rarityColor,
         ),
       ],
     );

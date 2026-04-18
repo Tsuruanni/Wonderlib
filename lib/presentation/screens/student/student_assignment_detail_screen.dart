@@ -18,6 +18,7 @@ import '../../providers/student_assignment_provider.dart'
         unitAssignmentItemsProvider;
 import '../../utils/app_icons.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -220,24 +221,12 @@ class _DetailContent extends ConsumerWidget {
                     Row(
                       children: [
                         // Status pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _statusColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _statusIconWidget(size: 14),
-                              const SizedBox(width: 4),
-                              Text(
-                                assignment.status.displayName,
-                                style: AppTextStyles.caption(color: _statusColor).copyWith(fontWeight: FontWeight.w800),
-                              ),
-                            ],
-                          ),
+                        AppChip(
+                          label: assignment.status.displayName,
+                          variant: AppChipVariant.custom,
+                          uppercase: false,
+                          customColor: _statusColor,
+                          icon: _statusIconWidget(size: 14),
                         ),
                         const Spacer(),
                         // Progress percentage
@@ -267,18 +256,11 @@ class _DetailContent extends ConsumerWidget {
                             style: AppTextStyles.button(color: AppColors.neutralText).copyWith(fontSize: 14),
                           ),
                           const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _scoreColor(assignment.score!)
-                                  .withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${assignment.score!.toStringAsFixed(0)}%',
-                              style: AppTextStyles.titleMedium(color: _scoreColor(assignment.score!)).copyWith(fontSize: 16, fontWeight: FontWeight.w900),
-                            ),
+                          AppChip(
+                            label: '${assignment.score!.toStringAsFixed(0)}%',
+                            variant: AppChipVariant.custom,
+                            uppercase: false,
+                            customColor: _scoreColor(assignment.score!),
                           ),
                         ],
                       ),
@@ -332,25 +314,16 @@ class _DetailContent extends ConsumerWidget {
                       ),
                     ),
                     if (!isCompleted)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isOverdue
-                              ? AppColors.danger.withValues(alpha: 0.1)
-                              : AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          isOverdue
-                              ? 'Overdue'
-                              : daysLeft == 0
-                                  ? 'Due today'
-                                  : '$daysLeft days left',
-                          style: AppTextStyles.caption(color: isOverdue
-                                ? AppColors.danger
-                                : AppColors.primary).copyWith(fontWeight: FontWeight.w800),
-                        ),
+                      AppChip(
+                        label: isOverdue
+                            ? 'Overdue'
+                            : daysLeft == 0
+                                ? 'Due today'
+                                : '$daysLeft days left',
+                        variant: isOverdue
+                            ? AppChipVariant.danger
+                            : AppChipVariant.success,
+                        uppercase: false,
                       ),
                   ],
                 ),

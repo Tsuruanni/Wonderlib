@@ -5,6 +5,7 @@ import '../../../domain/entities/book_quiz.dart';
 import '../../../../app/text_styles.dart';
 import '../../../../app/theme.dart';
 import '../common/animated_game_button.dart';
+import '../common/app_chip.dart';
 
 /// Displays the quiz result after submission.
 ///
@@ -196,17 +197,9 @@ class BookQuizResultCard extends StatelessWidget {
   }
 
   Widget _buildAttemptInfo(BuildContext context, ColorScheme colorScheme) {
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-        'ATTEMPT #${result.attemptNumber}',
-        style: AppTextStyles.caption(color: AppColors.gray400)
-            .copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.0),
-      ),
+    return AppChip(
+      label: 'Attempt #${result.attemptNumber}',
+      variant: AppChipVariant.neutral,
     );
   }
 

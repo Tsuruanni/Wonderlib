@@ -8,6 +8,7 @@ import '../../utils/app_icons.dart';
 import '../../providers/vocabulary_provider.dart';
 import '../../providers/word_definition_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../common/app_chip.dart';
 import '../common/game_button.dart';
 
 /// Duolingo-style popup for word-tap feature.
@@ -230,16 +231,11 @@ class _ReaderWordTapPopupState extends ConsumerState<ReaderWordTapPopup> {
         if (meaning.partOfSpeech != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                _formatPartOfSpeech(meaning.partOfSpeech!),
-                style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w700),
-              ),
+            child: AppChip(
+              label: _formatPartOfSpeech(meaning.partOfSpeech!),
+              variant: AppChipVariant.info,
+              size: AppChipSize.sm,
+              uppercase: false,
             ),
           ),
         // Turkish meaning

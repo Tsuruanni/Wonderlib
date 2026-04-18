@@ -16,6 +16,7 @@ import '../../providers/book_quiz_provider.dart';
 import '../../providers/library_provider.dart';
 import '../../providers/system_settings_provider.dart';
 import '../../providers/teacher_preview_provider.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/cached_book_image.dart';
 import '../../widgets/common/error_state_widget.dart';
@@ -827,16 +828,11 @@ class _ContinueReadingSection extends ConsumerWidget {
                     style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${books.length}',
-                      style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w900),
-                    ),
+                  AppChip(
+                    label: '${books.length}',
+                    variant: AppChipVariant.info,
+                    size: AppChipSize.sm,
+                    uppercase: false,
                   ),
                 ],
               ),

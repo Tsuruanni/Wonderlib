@@ -14,6 +14,7 @@ import '../../providers/monthly_quest_provider.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../utils/app_icons.dart';
 import '../../utils/monthly_tier_info.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/top_navbar.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/home/daily_quest_list.dart';
@@ -106,16 +107,11 @@ class _AssignmentsSection extends ConsumerWidget {
               style: AppTextStyles.titleLarge(color: AppColors.black),
             ),
             const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '${assignments.length}',
-                style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w900),
-              ),
+            AppChip(
+              label: '${assignments.length}',
+              variant: AppChipVariant.info,
+              size: AppChipSize.sm,
+              uppercase: false,
             ),
             const Spacer(),
             GestureDetector(
@@ -481,16 +477,11 @@ class _DailyQuestsHeader extends StatelessWidget {
           style: AppTextStyles.titleLarge(color: AppColors.black),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            '$questCount',
-            style: AppTextStyles.caption(color: AppColors.primary).copyWith(fontWeight: FontWeight.w900),
-          ),
+        AppChip(
+          label: '$questCount',
+          variant: AppChipVariant.success,
+          size: AppChipSize.sm,
+          uppercase: false,
         ),
         const Spacer(),
         Row(

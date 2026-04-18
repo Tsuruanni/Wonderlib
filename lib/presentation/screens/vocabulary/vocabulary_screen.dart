@@ -7,6 +7,7 @@ import '../../../core/utils/app_clock.dart';
 import '../../utils/app_icons.dart';
 import '../../../domain/entities/vocabulary.dart';
 import '../../providers/vocabulary_provider.dart';
+import '../../widgets/common/app_chip.dart';
 
 class VocabularyScreen extends ConsumerStatefulWidget {
   const VocabularyScreen({super.key});
@@ -335,20 +336,13 @@ class _WordCard extends StatelessWidget {
             ),
             // Review status
             if (item.progress?.nextReviewAt != null)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: item.progress!.isDueForReview
-                      ? AppColors.streakOrange.withValues(alpha: 0.1)
-                      : AppColors.neutral.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _formatNextReview(item.progress!.nextReviewAt!),
-                  style: AppTextStyles.caption(color: item.progress!.isDueForReview
-                        ? AppColors.streakOrange
-                        : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
-                ),
+              AppChip(
+                label: _formatNextReview(item.progress!.nextReviewAt!),
+                variant: item.progress!.isDueForReview
+                    ? AppChipVariant.warning
+                    : AppChipVariant.neutral,
+                size: AppChipSize.sm,
+                uppercase: false,
               ),
           ],
         ),
@@ -459,28 +453,13 @@ class _WordDetailSheet extends StatelessWidget {
               runSpacing: 8,
               children: [
                 if (word.level != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      word.level!,
-                      style: AppTextStyles.caption(color: AppColors.primary).copyWith(fontWeight: FontWeight.w700),
-                    ),
+                  AppChip(
+                    label: word.level!,
+                    variant: AppChipVariant.success,
                   ),
-                ...word.categories.map((cat) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        cat,
-                        style: AppTextStyles.caption(color: AppColors.secondary).copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    )),
+                ...word.categories.map(
+                  (cat) => AppChip(label: cat, variant: AppChipVariant.info),
+                ),
               ],
             ),
           ],

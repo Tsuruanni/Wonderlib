@@ -25,6 +25,7 @@ import '../cards/collection_progress_card.dart';
 import '../cards/rarity_showcase_card.dart';
 import '../cards/top_collectors_card.dart';
 import '../cards/trade_button_card.dart';
+import '../common/app_chip.dart';
 import '../common/app_progress_bar.dart';
 import '../common/streak_sheet.dart';
 import '../../utils/app_icons.dart';
@@ -548,16 +549,12 @@ class _TeacherQuestRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: dueColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              dueText,
-              style: AppTextStyles.caption(color: dueColor).copyWith(fontSize: 11, fontWeight: FontWeight.w800),
-            ),
+          AppChip(
+            label: dueText,
+            variant: AppChipVariant.custom,
+            size: AppChipSize.sm,
+            uppercase: false,
+            customColor: dueColor,
           ),
         ],
       ),

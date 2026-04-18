@@ -9,6 +9,7 @@ import '../../../domain/entities/student_unit_progress_item.dart';
 import '../../../domain/repositories/teacher_repository.dart';
 import '../../providers/teacher_provider.dart';
 import '../../utils/ui_helpers.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/asset_icon.dart';
 import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
@@ -501,19 +502,12 @@ class _StudentProgressCard extends StatelessWidget {
           // Score (if completed)
           if (student.score != null) ...[
             const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: ScoreColors.getScoreColor(student.score!).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${student.score!.toStringAsFixed(0)}%',
-                style: context.textTheme.labelMedium?.copyWith(
-                  color: ScoreColors.getScoreColor(student.score!),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            AppChip(
+              label: '${student.score!.toStringAsFixed(0)}%',
+              variant: AppChipVariant.custom,
+              size: AppChipSize.sm,
+              uppercase: false,
+              customColor: ScoreColors.getScoreColor(student.score!),
             ),
           ],
         ],

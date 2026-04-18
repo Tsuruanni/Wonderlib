@@ -12,6 +12,7 @@ import '../../providers/system_settings_provider.dart';
 import '../../widgets/cards/card_reveal_effects.dart';
 import '../../widgets/cards/coin_badge.dart';
 import '../../widgets/cards/rive_pack_reveal_widget.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/game_button.dart';
 
 /// Full-screen immersive pack opening experience.
@@ -569,16 +570,11 @@ class _PackOpeningScreenState extends ConsumerState<PackOpeningScreen> {
                         'Packs remaining: ',
                         style: AppTextStyles.titleMedium(color: AppColors.white.withValues(alpha: 0.6)).copyWith(fontSize: 16),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.cardEpic.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '$packsRemaining',
-                          style: AppTextStyles.titleMedium(color: AppColors.cardEpic).copyWith(fontSize: 16, fontWeight: FontWeight.w800),
-                        ),
+                      AppChip(
+                        label: '$packsRemaining',
+                        variant: AppChipVariant.custom,
+                        uppercase: false,
+                        customColor: AppColors.cardEpic,
                       ),
                     ],
                   ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/extensions/context_extensions.dart';
 import '../../../../domain/entities/teacher.dart';
 import '../../../providers/teacher_provider.dart';
+import '../../../widgets/common/app_chip.dart';
 import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
@@ -188,19 +189,12 @@ class _BookStatsCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: _getLevelColor(book.level).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      book.level,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: _getLevelColor(book.level),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                  AppChip(
+                    label: book.level,
+                    variant: AppChipVariant.custom,
+                    size: AppChipSize.sm,
+                    uppercase: false,
+                    customColor: _getLevelColor(book.level),
                   ),
                   const SizedBox(height: 4),
                   Row(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../app/router.dart';
 import '../../../app/text_styles.dart';
@@ -10,6 +9,7 @@ import '../../../core/utils/app_clock.dart';
 import '../../../domain/entities/student_assignment.dart';
 import '../../providers/student_assignment_provider.dart';
 import '../../utils/app_icons.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -188,16 +188,12 @@ class _SectionHeader extends StatelessWidget {
           style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(width: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            '$count',
-            style: AppTextStyles.caption(color: color).copyWith(fontWeight: FontWeight.w900),
-          ),
+        AppChip(
+          label: '$count',
+          variant: AppChipVariant.custom,
+          size: AppChipSize.sm,
+          uppercase: false,
+          customColor: color,
         ),
       ],
     );
@@ -299,25 +295,15 @@ class _AssignmentCard extends StatelessWidget {
                   Row(
                     children: [
                       // Due text
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: isOverdue
-                              ? AppColors.danger.withValues(alpha: 0.1)
-                              : isCompleted
-                                  ? AppColors.primary.withValues(alpha: 0.1)
-                                  : AppColors.neutral.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          dueText,
-                          style: AppTextStyles.caption(color: isOverdue
-                                ? AppColors.danger
-                                : isCompleted
-                                    ? AppColors.primary
-                                    : AppColors.neutralText).copyWith(fontSize: 11, fontWeight: FontWeight.w700),
-                        ),
+                      AppChip(
+                        label: dueText,
+                        variant: isOverdue
+                            ? AppChipVariant.danger
+                            : isCompleted
+                                ? AppChipVariant.success
+                                : AppChipVariant.neutral,
+                        size: AppChipSize.sm,
+                        uppercase: false,
                       ),
                       if (assignment.teacherName != null) ...[
                         const SizedBox(width: 8),
@@ -352,18 +338,11 @@ class _AssignmentCard extends StatelessWidget {
 
             // Score or chevron
             if (isCompleted && assignment.score != null)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _scoreColor(assignment.score!)
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${assignment.score!.toStringAsFixed(0)}%',
-                  style: AppTextStyles.bodyMedium(color: _scoreColor(assignment.score!)).copyWith(fontSize: 14, fontWeight: FontWeight.w900),
-                ),
+              AppChip(
+                label: '${assignment.score!.toStringAsFixed(0)}%',
+                variant: AppChipVariant.custom,
+                uppercase: false,
+                customColor: _scoreColor(assignment.score!),
               )
             else
               AppIcons.arrowRight(size: 22),

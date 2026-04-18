@@ -5,6 +5,7 @@ import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/badge_earned.dart';
 import '../../../domain/entities/daily_quest.dart';
+import 'app_chip.dart';
 import 'game_button.dart';
 
 // ---------------------------------------------------------------------------
@@ -360,18 +361,11 @@ class NotificationCard extends StatefulWidget {
                         .copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    text,
-                    style: AppTextStyles.bodySmall(color: color)
-                        .copyWith(fontWeight: FontWeight.w800),
-                  ),
+                AppChip(
+                  label: text,
+                  variant: AppChipVariant.custom,
+                  customColor: color,
+                  uppercase: false,
                 ),
               ],
             ),
@@ -711,17 +705,11 @@ class _XpChip extends StatelessWidget {
   Widget build(BuildContext context) {
     if (xp <= 0) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.purple.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '+$xp XP',
-        style: AppTextStyles.bodyMedium(color: Colors.purple)
-            .copyWith(fontSize: 14, fontWeight: FontWeight.bold),
-      ),
+    return AppChip(
+      label: '+$xp XP',
+      variant: AppChipVariant.custom,
+      customColor: Colors.purple,
+      uppercase: false,
     );
   }
 }

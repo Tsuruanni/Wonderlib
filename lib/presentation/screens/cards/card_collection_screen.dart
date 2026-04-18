@@ -13,6 +13,7 @@ import '../../utils/ui_helpers.dart';
 import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/cards/trade_button_card.dart';
+import '../../widgets/common/app_chip.dart';
 import '../../widgets/common/app_progress_bar.dart';
 import '../../widgets/common/top_navbar.dart';
 
@@ -342,16 +343,10 @@ class _CategorySection extends ConsumerWidget {
                   style: AppTextStyles.titleMedium(color: AppColors.black).copyWith(fontSize: 18, fontWeight: FontWeight.w800),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.neutral.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$ownedCount / ${cards.length}',
-                  style: AppTextStyles.caption(color: AppColors.neutralText).copyWith(fontWeight: FontWeight.w700),
-                ),
+              AppChip(
+                label: '$ownedCount / ${cards.length}',
+                variant: AppChipVariant.neutral,
+                uppercase: false,
               ),
             ],
           ),
