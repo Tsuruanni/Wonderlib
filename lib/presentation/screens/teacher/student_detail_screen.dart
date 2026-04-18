@@ -403,12 +403,13 @@ class _StudentHeader extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Level badge + league icon stack on the right
-          Column(
+          // Level badge + league icon side by side on the right
+          Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _LevelBadge(level: user.level),
-              const SizedBox(height: 8),
+              const SizedBox(width: 12),
               _LeagueIconBadge(tier: user.leagueTier),
             ],
           ),
