@@ -84,6 +84,34 @@ abstract class AppRadius {
   static const double sheet = 24;   // Bottom sheets, large rounded tops
 }
 
+/// Semantic opacity levels for visual states.
+///
+/// Use instead of raw numbers to keep disabled/muted states consistent across
+/// the app. Duolingo spec pins disabled at 0.45.
+abstract class AppOpacity {
+  static const double disabled = 0.45;  // Non-interactive / not available
+  static const double muted = 0.6;      // De-emphasized, still readable
+  static const double subtle = 0.8;     // Lightly backgrounded
+}
+
+/// Fluent helpers for applying semantic opacity to any widget.
+///
+/// Usage:
+///   MyCard().disabled(!canInteract)
+///   MyIcon().muted(true)
+extension AppOpacityWidget on Widget {
+  /// Dims this widget to [AppOpacity.disabled] when [isDisabled] is true.
+  /// Does not block pointer events — wrap in [IgnorePointer] if needed.
+  Widget disabled([bool isDisabled = true]) => isDisabled
+      ? Opacity(opacity: AppOpacity.disabled, child: this)
+      : this;
+
+  /// Dims this widget to [AppOpacity.muted] when [isMuted] is true.
+  Widget muted([bool isMuted = true]) => isMuted
+      ? Opacity(opacity: AppOpacity.muted, child: this)
+      : this;
+}
+
 abstract class AppTheme {
   // Input/card radius (kept for backwards compat with existing usages).
   // Prefer AppRadius.xxx for new code.
