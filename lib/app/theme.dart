@@ -203,7 +203,7 @@ abstract class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: borderRadius,
+            borderRadius: BorderRadius.circular(AppRadius.button),
           ),
           textStyle: AppTextStyles.button().copyWith(fontSize: 16, letterSpacing: 0.5),
         ),

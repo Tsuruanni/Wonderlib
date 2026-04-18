@@ -128,7 +128,7 @@ class LibraryScreen extends ConsumerWidget {
           border: Border.all(color: AppColors.secondary, width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.secondary.withOpacity(0.2),
+              color: AppColors.secondary.withValues(alpha:0.2),
               offset: const Offset(0, 4),
               blurRadius: 8,
             ),
@@ -180,7 +180,7 @@ class LibraryScreen extends ConsumerWidget {
               border: Border.all(color: AppColors.neutral, width: 2),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.neutral.withOpacity(0.5),
+                  color: AppColors.neutral.withValues(alpha:0.5),
                   offset: const Offset(0, 2),
                   blurRadius: 0,
                 ),
@@ -244,7 +244,7 @@ class LibraryScreen extends ConsumerWidget {
           boxShadow: [
             if (!isSelected)
             BoxShadow(
-              color: AppColors.neutral.withOpacity(0.5),
+              color: AppColors.neutral.withValues(alpha:0.5),
               offset: const Offset(0, 2),
               blurRadius: 0,
             ),
@@ -388,7 +388,7 @@ class _LibraryShelf extends ConsumerWidget {
               Container(
                  padding: const EdgeInsets.all(8),
                  decoration: BoxDecoration(
-                   color: color.withOpacity(0.1),
+                   color: color.withValues(alpha:0.1),
                    shape: BoxShape.circle,
                  ),
                  child: Icon(Icons.auto_stories_rounded, color: color, size: 20),
@@ -403,7 +403,7 @@ class _LibraryShelf extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.neutral.withOpacity(0.5),
+                  color: AppColors.neutral.withValues(alpha:0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -596,7 +596,7 @@ class _BookShelfItem extends ConsumerWidget {
           border: Border.all(color: AppColors.neutral, width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.neutral.withOpacity(0.6),
+              color: AppColors.neutral.withValues(alpha:0.6),
               offset: const Offset(0, 4),
               blurRadius: 0,
             )
@@ -615,14 +615,14 @@ class _BookShelfItem extends ConsumerWidget {
                       imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
                       errorWidget: Container(
-                        color: AppColors.neutral.withOpacity(0.2),
+                        color: AppColors.neutral.withValues(alpha:0.2),
                         child: Center(child: AppIcons.book(size: 40)),
                       ),
                     ),
                   ),
                   if (!canAccess)
                     Container(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha:0.5),
                       child: const Center(child: Icon(Icons.lock_rounded, color: Colors.white, size: 36)),
                     ),
                   if (isCompleted)
@@ -883,7 +883,7 @@ class _ContinueReadingCard extends ConsumerWidget {
           border: Border.all(color: AppColors.neutral, width: 2),
           boxShadow: [
             BoxShadow(
-              color: AppColors.neutral.withOpacity(0.6),
+              color: AppColors.neutral.withValues(alpha:0.6),
               offset: const Offset(0, 4),
               blurRadius: 0,
             ),
@@ -902,7 +902,7 @@ class _ContinueReadingCard extends ConsumerWidget {
                       imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
                       errorWidget: Container(
-                        color: AppColors.neutral.withOpacity(0.2),
+                        color: AppColors.neutral.withValues(alpha:0.2),
                         child: Center(child: AppIcons.book(size: 40)),
                       ),
                     ),
@@ -992,7 +992,7 @@ class _QuizBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha:0.3),
             offset: const Offset(0, 2),
             blurRadius: 4,
           ),
@@ -1029,7 +1029,7 @@ class _DemoBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: AppColors.wasp.withOpacity(0.15),
+          color: AppColors.wasp.withValues(alpha:0.15),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(

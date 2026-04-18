@@ -188,7 +188,7 @@ class _GameButtonState extends State<GameButton> {
       onTapCancel: _onTapCancel,
       child: SizedBox(
         width: widget.fullWidth ? double.infinity : null,
-        height: 50.0 + borderHeight, // Base height + 3D depth
+        height: 48.0 + borderHeight, // Base height + 3D depth
         child: Stack(
           children: [
             // Bottom Layer (Shadow/3D Side)
