@@ -20,6 +20,7 @@ import '../../widgets/common/error_state_widget.dart';
 import '../../widgets/common/playful_card.dart';
 import '../../widgets/common/responsive_layout.dart';
 import '../../widgets/common/student_composite_avatar.dart';
+import '../../widgets/teacher/teacher_stats_bar.dart';
 
 enum ClassDetailMode { management, report }
 
@@ -823,36 +824,12 @@ class _ClassStatsBar extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-      child: PlayfulCard(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            if (total > 0)
-              _StatItem(
-                assetPath: AppIcons.fire,
-                value: '$activeLast30d/$total',
-                label: 'Active (30d)',
-              ),
-            if (topLevel > 0)
-              _StatItem(
-                assetPath: AppIcons.trophy,
-                value: 'Lv $topLevel',
-                label: 'Top Level',
-              ),
-            if (totalBooks > 0)
-              _StatItem(
-                assetPath: AppIcons.book,
-                value: '$totalBooks',
-                label: 'Books Read',
-              ),
-            if (totalWordbank > 0)
-              _StatItem(
-                assetPath: AppIcons.vocabulary,
-                value: '$totalWordbank',
-                label: 'Words in Wordbank',
-              ),
-          ],
-        ),
+      child: TeacherStatsBar(
+        activeCount: activeLast30d,
+        totalStudents: total,
+        topLevel: topLevel,
+        booksRead: totalBooks,
+        wordbankSize: totalWordbank,
       ),
     );
   }
@@ -899,50 +876,6 @@ class _SortDropdown extends StatelessWidget {
     );
   }
 }
-
-class _StatItem extends StatelessWidget {
-  const _StatItem({
-    this.icon,
-    this.assetPath,
-    required this.value,
-    required this.label,
-    this.color,
-  });
-
-  final IconData? icon;
-  final String? assetPath;
-  final String value;
-  final String label;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (assetPath != null)
-          AssetIcon(assetPath!, size: 28)
-        else
-          Icon(icon, color: color ?? context.colorScheme.primary, size: 22),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: context.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          label,
-          style: context.textTheme.bodySmall?.copyWith(
-            color: context.colorScheme.outline,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-
-
 
 class _InactiveBadge extends StatelessWidget {
   const _InactiveBadge({required this.days});

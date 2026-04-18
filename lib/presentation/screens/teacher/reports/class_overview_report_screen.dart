@@ -12,6 +12,7 @@ import '../../../widgets/common/error_state_widget.dart';
 import '../../../widgets/common/playful_card.dart';
 import '../../../widgets/common/asset_icon.dart';
 import '../../../widgets/common/responsive_layout.dart';
+import '../../../widgets/teacher/teacher_stats_bar.dart';
 import '../class_detail_screen.dart';
 
 class ClassOverviewReportScreen extends ConsumerWidget {
@@ -70,38 +71,13 @@ class ClassOverviewReportScreen extends ConsumerWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Summary stats — same shape as Class Students stats bar.
-                PlayfulCard(
-                  margin: EdgeInsets.zero,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      if (totalStudents > 0)
-                        _SummaryStat(
-                          value: '$totalActive/$totalStudents',
-                          label: 'Active (30d)',
-                          assetPath: AppIcons.fire,
-                        ),
-                      if (topLevel > 0)
-                        _SummaryStat(
-                          value: 'Lv $topLevel',
-                          label: 'Top Level',
-                          assetPath: AppIcons.trophy,
-                        ),
-                      if (totalBooks > 0)
-                        _SummaryStat(
-                          value: '$totalBooks',
-                          label: 'Books Read',
-                          assetPath: AppIcons.book,
-                        ),
-                      if (totalWordbank > 0)
-                        _SummaryStat(
-                          value: '$totalWordbank',
-                          label: 'Words in Wordbank',
-                          assetPath: AppIcons.vocabulary,
-                        ),
-                    ],
-                  ),
+                // Summary stats — shared widget with Class Students.
+                TeacherStatsBar(
+                  activeCount: totalActive,
+                  totalStudents: totalStudents,
+                  topLevel: topLevel,
+                  booksRead: totalBooks,
+                  wordbankSize: totalWordbank,
                 ),
 
                 const SizedBox(height: 24),
@@ -136,50 +112,6 @@ class ClassOverviewReportScreen extends ConsumerWidget {
           },
         ),
       ),
-    );
-  }
-}
-
-class _SummaryStat extends StatelessWidget {
-  const _SummaryStat({
-    required this.value,
-    required this.label,
-    required this.assetPath,
-  });
-
-  final String value;
-  final String label;
-  final String assetPath;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          assetPath,
-          width: 32,
-          height: 32,
-          fit: BoxFit.contain,
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
-        ),
-      ],
     );
   }
 }
