@@ -111,7 +111,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         }
                       }
                       return SizedBox(
-                        height: 280,
+                        height: 340,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -130,7 +130,7 @@ class StudentDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 4. Vocabulary Progress
+                  // 4. Vocabulary Progress (stats + word lists in one panel)
                   _SectionTitle(title: 'Vocabulary Progress', assetPath: AppIcons.vocabulary, color: Colors.purple),
                   const SizedBox(height: 12),
                   vocabStatsAsync.when(
@@ -141,6 +141,7 @@ class StudentDetailScreen extends ConsumerWidget {
                     error: (_, __) => const Text('Error loading stats'),
                     data: (stats) => _VocabStatsCard(
                       stats: stats,
+                      wordListsAsync: wordListProgressAsync,
                       onViewWordbank: () {
                         showAppSnackBar(
                           context,
@@ -149,39 +150,6 @@ class StudentDetailScreen extends ConsumerWidget {
                         );
                       },
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 6. Word Lists (horizontal)
-                  wordListProgressAsync.when(
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
-                    data: (lists) {
-                      if (lists.isEmpty) return const SizedBox.shrink();
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SectionTitle(
-                            title: 'Word Lists (${lists.length})',
-                            assetPath: AppIcons.clipboard,
-                            color: Colors.orange,
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            height: 150,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: lists.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) =>
-                                  _HorizontalWordListCard(
-                                      progress: lists[index]),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -619,12 +587,19 @@ class _HorizontalBookCard extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _VocabStatsCard extends StatelessWidget {
-  const _VocabStatsCard({required this.stats, required this.onViewWordbank});
+  const _VocabStatsCard({
+    required this.stats,
+    required this.wordListsAsync,
+    required this.onViewWordbank,
+  });
   final StudentVocabStats stats;
+  final AsyncValue<List<StudentWordListProgress>> wordListsAsync;
   final VoidCallback onViewWordbank;
 
   @override
   Widget build(BuildContext context) {
+    final lists = wordListsAsync.valueOrNull ?? const [];
+
     return PlayfulCard(
       child: Column(
         children: [
@@ -703,6 +678,36 @@ class _VocabStatsCard extends StatelessWidget {
               ),
             ],
           ),
+          // Word Lists subsection (same panel, not a separate section)
+          if (lists.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: Divider(height: 1, color: AppColors.neutral),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Word Lists (${lists.length})',
+                style: GoogleFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.neutralText,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 150,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: lists.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) =>
+                    _HorizontalWordListCard(progress: lists[index]),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -777,7 +782,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.list_alt, color: color, size: 18),
+                  child: const AssetIcon(AppIcons.clipboard, size: 18),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
@@ -792,7 +797,7 @@ class _HorizontalWordListCard extends ConsumerWidget {
                   ),
                 ),
                 if (progress.isComplete)
-                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  const AssetIcon(AppIcons.checkMark, size: 18),
               ],
             ),
             const SizedBox(height: 6),
