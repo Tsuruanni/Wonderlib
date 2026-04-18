@@ -666,9 +666,7 @@ class _VocabStatsCard extends StatelessWidget {
 
     return PlayfulCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hero: "49 words in wordbank" — large, single line
           Row(
             children: [
               Container(
@@ -680,34 +678,52 @@ class _VocabStatsCard extends StatelessWidget {
                 child: const AssetIcon(AppIcons.vocabulary, size: 28),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: RichText(
-                    text: TextSpan(
-                      style: GoogleFonts.nunito(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.black,
-                        height: 1.1,
-                      ),
-                      children: [
-                        TextSpan(text: '${stats.totalWords} '),
-                        TextSpan(
-                          text: 'words in wordbank',
-                          style: GoogleFonts.nunito(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.neutralText,
-                          ),
-                        ),
-                      ],
+              // Hero figure — big number + "words in wordbank" inline
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: RichText(
+                  text: TextSpan(
+                    style: GoogleFonts.nunito(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.black,
+                      height: 1.1,
                     ),
+                    children: [
+                      TextSpan(text: '${stats.totalWords} '),
+                      TextSpan(
+                        text: 'words in wordbank',
+                        style: GoogleFonts.nunito(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.neutralText,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 14),
+              Container(width: 1, height: 36, color: AppColors.neutral),
+              const SizedBox(width: 14),
+              _VocabInline(
+                value: '${stats.masteredCount}',
+                label: 'Mastered',
+                color: Colors.green.shade700,
+              ),
+              const SizedBox(width: 12),
+              _VocabInline(
+                value: '${stats.learningCount}',
+                label: 'Learning',
+                color: Colors.orange.shade700,
+              ),
+              const SizedBox(width: 12),
+              _VocabInline(
+                value: '${stats.totalSessions}',
+                label: 'Sessions',
+                color: Colors.purple.shade700,
+              ),
+              const Spacer(),
               TextButton.icon(
                 onPressed: onViewWordbank,
                 icon: const Icon(Icons.chevron_right),
@@ -719,29 +735,6 @@ class _VocabStatsCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          // Breakdown: smaller, inline below
-          Row(
-            children: [
-              _VocabInline(
-                value: '${stats.masteredCount}',
-                label: 'Mastered',
-                color: Colors.green.shade700,
-              ),
-              const SizedBox(width: 16),
-              _VocabInline(
-                value: '${stats.learningCount}',
-                label: 'Learning',
-                color: Colors.orange.shade700,
-              ),
-              const SizedBox(width: 16),
-              _VocabInline(
-                value: '${stats.totalSessions}',
-                label: 'Sessions',
-                color: Colors.purple.shade700,
               ),
             ],
           ),
