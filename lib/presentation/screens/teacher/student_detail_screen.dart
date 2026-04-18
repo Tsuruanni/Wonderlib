@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+
+import '../../../app/router.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/utils/extensions/context_extensions.dart';
@@ -187,70 +190,106 @@ class StudentDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 7. Badges
+                  // 7. Badges (grouped by condition type)
                   badgesAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                     data: (badges) {
                       final typedBadges = badges.cast<UserBadge>();
                       if (typedBadges.isEmpty) return const SizedBox.shrink();
+                      // Group by conditionType; within a group sort by tier.
+                      final groups =
+                          <BadgeConditionType, List<UserBadge>>{};
+                      for (final ub in typedBadges) {
+                        groups
+                            .putIfAbsent(ub.badge.conditionType, () => [])
+                            .add(ub);
+                      }
+                      for (final list in groups.values) {
+                        list.sort((a, b) => a.badge.conditionValue
+                            .compareTo(b.badge.conditionValue));
+                      }
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _SectionTitle(
-                            title: 'Badges (${typedBadges.length})',
+                            title: 'Badges',
                             assetPath: AppIcons.trophy,
                             color: Colors.amber,
+                            trailing: '${typedBadges.length} earned',
                           ),
                           const SizedBox(height: 12),
-                          SizedBox(
-                            height: 90,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: typedBadges.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) =>
-                                  _BadgeCard(badge: typedBadges[index]),
+                          for (final entry in groups.entries) ...[
+                            _BadgeGroupHeader(
+                              conditionType: entry.key,
+                              count: entry.value.length,
                             ),
-                          ),
-                          const SizedBox(height: 24),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 90,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: entry.value.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 12),
+                                itemBuilder: (context, index) =>
+                                    _BadgeCard(badge: entry.value[index]),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                          ],
+                          const SizedBox(height: 12),
                         ],
                       );
                     },
                   ),
 
-                  // 8. Card Collection
+                  // 8. Card Collection (grouped by rarity, best first)
                   cardsAsync.when(
                     loading: () => const SizedBox.shrink(),
                     error: (_, __) => const SizedBox.shrink(),
                     data: (cards) {
                       final typedCards = cards.cast<UserCard>();
                       if (typedCards.isEmpty) return const SizedBox.shrink();
-                      // Sort by rarity descending
-                      final sorted = [...typedCards]
-                        ..sort((a, b) =>
-                            b.card.rarity.index.compareTo(a.card.rarity.index));
+                      final byRarity = <CardRarity, List<UserCard>>{};
+                      for (final c in typedCards) {
+                        byRarity
+                            .putIfAbsent(c.card.rarity, () => [])
+                            .add(c);
+                      }
+                      // Order: legendary, epic, rare, common.
+                      final orderedRarities = [
+                        CardRarity.legendary,
+                        CardRarity.epic,
+                        CardRarity.rare,
+                        CardRarity.common,
+                      ].where(byRarity.containsKey).toList();
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _SectionTitle(
-                            title: 'Card Collection (${sorted.length})',
+                            title: 'Card Collection',
                             assetPath: AppIcons.card,
                             color: AppColors.cardEpic,
+                            trailing: '${typedCards.length} cards',
                           ),
                           const SizedBox(height: 12),
-                          SizedBox(
-                            height: 110,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: sorted.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(width: 12),
-                              itemBuilder: (context, index) =>
-                                  _CollectionCard(userCard: sorted[index]),
+                          for (final r in orderedRarities) ...[
+                            _RarityHeader(rarity: r, count: byRarity[r]!.length),
+                            const SizedBox(height: 6),
+                            SizedBox(
+                              height: 150,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: byRarity[r]!.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: 10),
+                                itemBuilder: (context, index) =>
+                                    _CollectionCard(userCard: byRarity[r]![index]),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                          ],
                         ],
                       );
                     },
@@ -424,6 +463,71 @@ class _LevelChip extends StatelessWidget {
 // INLINE QUIZ PILL (inside a reading progress book card)
 // ─────────────────────────────────────────────
 
+class _BadgeGroupHeader extends StatelessWidget {
+  const _BadgeGroupHeader({required this.conditionType, required this.count});
+  final BadgeConditionType conditionType;
+  final int count;
+
+  String _label() {
+    switch (conditionType) {
+      case BadgeConditionType.xpTotal:
+        return 'XP';
+      case BadgeConditionType.streakDays:
+        return 'Streak';
+      case BadgeConditionType.booksCompleted:
+        return 'Books Read';
+      case BadgeConditionType.vocabularyLearned:
+        return 'Vocabulary';
+      case BadgeConditionType.levelCompleted:
+        return 'Levels';
+      case BadgeConditionType.cardsCollected:
+        return 'Cards';
+      case BadgeConditionType.mythCategoryCompleted:
+        return 'Myth Categories';
+      case BadgeConditionType.leagueTierReached:
+        return 'League';
+      case BadgeConditionType.monthlyQuestCompleted:
+        return 'Monthly Quests';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Row(
+        children: [
+          Text(
+            _label().toUpperCase(),
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: AppColors.neutralText,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: AppColors.wasp.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$count',
+              style: GoogleFonts.nunito(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: AppColors.waspDark,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _CefrBadge extends StatelessWidget {
   const _CefrBadge({required this.level});
   final String level;
@@ -559,7 +663,10 @@ class _HorizontalBookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pctColor = ScoreColors.getProgressColor(progress.completionPercentage);
-    return Container(
+    return InkWell(
+      onTap: () => context.push(AppRoutes.teacherBookDetailPath(progress.bookId)),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
       width: 170,
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -676,6 +783,7 @@ class _HorizontalBookCard extends StatelessWidget {
           ],
         ],
       ),
+    ),
     );
   }
 }
@@ -942,36 +1050,35 @@ class _HorizontalWordListCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 6),
-            // Word chips
+            // Word chips — intrinsic height, keeps stars/accuracy right below
             wordsAsync.when(
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
               data: (words) {
                 final typedWords = words.cast<VocabularyWord>();
                 if (typedWords.isEmpty) return const SizedBox.shrink();
-                return Expanded(
-                  child: Wrap(
-                    spacing: 4,
-                    runSpacing: 3,
-                    children: typedWords.take(8).map((w) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(6),
+                return Wrap(
+                  spacing: 4,
+                  runSpacing: 3,
+                  children: typedWords.take(8).map((w) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      w.word,
+                      style: GoogleFonts.nunito(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: color,
                       ),
-                      child: Text(
-                        w.word,
-                        style: GoogleFonts.nunito(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: color,
-                        ),
-                      ),
-                    ),).toList(),
-                  ),
+                    ),
+                  ),).toList(),
                 );
               },
             ),
+            if (progress.bestAccuracy != null) const SizedBox(height: 6),
             if (progress.bestAccuracy != null)
               Row(
                 children: [
@@ -1121,23 +1228,39 @@ class _CollectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final rarityColor = _getRarityColor(userCard.card.rarity);
+    final rarityColor = _rarityColor(userCard.card.rarity);
 
-    return PlayfulCard(
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(10),
-      borderColor: rarityColor.withValues(alpha: 0.4),
-      child: SizedBox(
-        width: 100,
-        child: Column(
-          children: [
-            // Card image or icon
-            Container(
-              width: 48,
-              height: 48,
+    return Container(
+      width: 90,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: rarityColor, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: rarityColor.withValues(alpha: 0.35),
+            blurRadius: 4,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Portrait image (fills top ~70%)
+          AspectRatio(
+            aspectRatio: 3 / 4,
+            child: Container(
               decoration: BoxDecoration(
-                color: rarityColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    rarityColor.withValues(alpha: 0.22),
+                    rarityColor.withValues(alpha: 0.08),
+                  ],
+                ),
                 image: userCard.card.imageUrl != null
                     ? DecorationImage(
                         image: NetworkImage(userCard.card.imageUrl!),
@@ -1146,43 +1269,92 @@ class _CollectionCard extends StatelessWidget {
                     : null,
               ),
               child: userCard.card.imageUrl == null
-                  ? Icon(Icons.collections_bookmark, color: rarityColor, size: 24)
+                  ? Center(
+                      child: AssetIcon(AppIcons.card, size: 36),
+                    )
                   : null,
             ),
-            const SizedBox(height: 4),
-            Text(
+          ),
+          // Name banner
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            child: Text(
               userCard.card.name,
+              textAlign: TextAlign.center,
               style: GoogleFonts.nunito(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: AppColors.black,
+                height: 1.15,
               ),
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              userCard.card.rarity.name.toUpperCase(),
-              style: GoogleFonts.nunito(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: rarityColor,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  Color _getRarityColor(CardRarity rarity) {
-    switch (rarity) {
-      case CardRarity.common:
-        return AppColors.cardCommon;
-      case CardRarity.rare:
-        return AppColors.cardRare;
-      case CardRarity.epic:
-        return AppColors.cardEpic;
-      case CardRarity.legendary:
-        return AppColors.cardLegendary;
-    }
+Color _rarityColor(CardRarity rarity) {
+  switch (rarity) {
+    case CardRarity.common:
+      return AppColors.cardCommon;
+    case CardRarity.rare:
+      return AppColors.cardRare;
+    case CardRarity.epic:
+      return AppColors.cardEpic;
+    case CardRarity.legendary:
+      return AppColors.cardLegendary;
+  }
+}
+
+class _RarityHeader extends StatelessWidget {
+  const _RarityHeader({required this.rarity, required this.count});
+  final CardRarity rarity;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _rarityColor(rarity);
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            rarity.name.toUpperCase(),
+            style: GoogleFonts.nunito(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              '$count',
+              style: GoogleFonts.nunito(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
