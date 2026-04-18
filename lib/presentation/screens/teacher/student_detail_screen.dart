@@ -111,7 +111,7 @@ class StudentDetailScreen extends ConsumerWidget {
                         }
                       }
                       return SizedBox(
-                        height: 220,
+                        height: 280,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -422,8 +422,8 @@ class _LevelChip extends StatelessWidget {
 // INLINE QUIZ PILL (inside a reading progress book card)
 // ─────────────────────────────────────────────
 
-class _InlineQuizPill extends StatelessWidget {
-  const _InlineQuizPill({required this.quiz});
+class _QuizScoreLine extends StatelessWidget {
+  const _QuizScoreLine({required this.quiz});
   final StudentQuizProgress quiz;
 
   @override
@@ -432,28 +432,19 @@ class _InlineQuizPill extends StatelessWidget {
     final color = quiz.isPassing
         ? Colors.green.shade700
         : (quiz.bestPercentage >= 50 ? Colors.orange.shade700 : Colors.red.shade700);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AssetIcon(AppIcons.quiz, size: 12),
-          const SizedBox(width: 4),
-          Text(
-            'Quiz: $pct%',
-            style: GoogleFonts.nunito(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: color,
-            ),
+    return Row(
+      children: [
+        const AssetIcon(AppIcons.quiz, size: 14),
+        const SizedBox(width: 4),
+        Text(
+          'Quiz score: $pct%',
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: color,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -519,18 +510,16 @@ class _HorizontalBookCard extends StatelessWidget {
           BoxShadow(color: AppColors.neutral, offset: Offset(0, 4)),
         ],
       ),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hero book cover (centered, tall — a real book feel)
-          Center(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 88,
-                  height: 118,
+          // Large hero cover — fills the card width, tall portrait ratio
+          Stack(
+            children: [
+              AspectRatio(
+                aspectRatio: 3 / 4,
+                child: Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFEAE2D2),
                     borderRadius: const BorderRadius.only(
@@ -548,41 +537,34 @@ class _HorizontalBookCard extends StatelessWidget {
                         : null,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.15),
-                        blurRadius: 6,
-                        offset: const Offset(2, 3),
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 4,
+                        offset: const Offset(1, 2),
                       ),
                     ],
                   ),
                   child: progress.bookCoverUrl == null
-                      ? const Center(child: AssetIcon(AppIcons.book, size: 42))
+                      ? const Center(child: AssetIcon(AppIcons.book, size: 56))
                       : null,
                 ),
-                // Left-edge "spine" shade
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 3,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(2),
-                        bottomLeft: Radius.circular(2),
-                      ),
+              ),
+              // Left-edge "spine" shade
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(2),
+                      bottomLeft: Radius.circular(2),
                     ),
                   ),
                 ),
-                // Quiz pill badge overlaid at top-right
-                if (quiz != null)
-                  Positioned(
-                    top: -4,
-                    right: -6,
-                    child: _InlineQuizPill(quiz: quiz!),
-                  ),
-              ],
-            ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           // Title
@@ -597,34 +579,7 @@ class _HorizontalBookCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
-          // Meta row: chapters + reading time
-          Row(
-            children: [
-              Text(
-                '${progress.completedChapters}/${progress.totalChapters} ch',
-                style: GoogleFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
-              ),
-              const SizedBox(width: 6),
-              const Text('·', style: TextStyle(color: AppColors.neutralText)),
-              const SizedBox(width: 6),
-              const AssetIcon(AppIcons.schedule, size: 11),
-              const SizedBox(width: 2),
-              Text(
-                TimeFormatter.formatReadingTime(progress.totalReadingTime),
-                style: GoogleFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutralText,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
+          const SizedBox(height: 6),
           // Progress bar + %
           Row(
             children: [
@@ -648,6 +603,11 @@ class _HorizontalBookCard extends StatelessWidget {
               ),
             ],
           ),
+          // Quiz score (below, readable — no longer overlaid on cover)
+          if (quiz != null) ...[
+            const SizedBox(height: 4),
+            _QuizScoreLine(quiz: quiz!),
+          ],
         ],
       ),
     );
