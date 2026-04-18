@@ -89,26 +89,28 @@ class StudentDetailScreen extends ConsumerWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Top row: header + streak calendar
+                      // Top row: header + streak calendar — same height
                       if (wide)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: _StudentHeader(user: student),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              flex: 2,
-                              child: _StudentStreakCalendar(
-                                studentId: studentId,
-                                createdAt: student.createdAt,
-                                currentStreak: student.currentStreak,
-                                longestStreak: student.longestStreak,
+                        IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: _StudentHeader(user: student),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 16),
+                              Expanded(
+                                flex: 2,
+                                child: _StudentStreakCalendar(
+                                  studentId: studentId,
+                                  createdAt: student.createdAt,
+                                  currentStreak: student.currentStreak,
+                                  longestStreak: student.longestStreak,
+                                ),
+                              ),
+                            ],
+                          ),
                         )
                       else ...[
                         _StudentHeader(user: student),
@@ -411,8 +413,7 @@ class _StudentHeader extends ConsumerWidget {
   }
 }
 
-/// Compact square league tile shown under the level badge — same footprint
-/// as _LevelBadge so the pair forms a tidy column on the right edge.
+/// Compact circular league tile + label below, shown under the level badge.
 class _LeagueIconBadge extends StatelessWidget {
   const _LeagueIconBadge({required this.tier});
   final LeagueTier tier;
@@ -420,23 +421,35 @@ class _LeagueIconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = LeagueTierBadge.tierColor(tier);
-    return Tooltip(
-      message: '${tier.label} league',
-      child: Container(
-        width: 72,
-        height: 72,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          shape: BoxShape.circle,
-          border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 72,
+          height: 72,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+            border: Border.all(color: color.withValues(alpha: 0.5), width: 2),
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Image.asset(
+            LeagueTierBadge.tierAsset(tier),
+            fit: BoxFit.contain,
+          ),
         ),
-        padding: const EdgeInsets.all(8),
-        child: Image.asset(
-          LeagueTierBadge.tierAsset(tier),
-          fit: BoxFit.contain,
+        const SizedBox(height: 4),
+        Text(
+          tier.label,
+          style: GoogleFonts.nunito(
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+            color: color,
+            letterSpacing: 0.5,
+          ),
         ),
-      ),
+      ],
     );
   }
 }
@@ -523,8 +536,8 @@ class _StudentStreakCalendarState
         DateTime(_displayYear, _displayMonth + 1, 0).day;
     // Monday=1..Sunday=7 → leading blanks before day 1
     final leadingBlanks = (firstOfMonth.weekday - 1);
-    final totalCells = leadingBlanks + daysInMonth;
-    final rows = (totalCells / 7).ceil();
+    // Always render 6 rows so the calendar height is stable month-to-month.
+    const rows = 6;
     final today = DateTime.now();
     final monthLabel = _monthLabel(_displayMonth);
     final activeCount = dates.length;
@@ -536,8 +549,6 @@ class _StudentStreakCalendarState
           // Header: month nav + active count
           Row(
             children: [
-              const AssetIcon(AppIcons.fire, size: 22),
-              const SizedBox(width: 6),
               Text(
                 'Student Activity',
                 style: GoogleFonts.nunito(
