@@ -247,68 +247,119 @@ class _StudentHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PlayfulCard(
-      child: Row(
-        children: [
-          // Avatar
-          AvatarWidget(
-            avatar: user.avatarEquippedCache != null
-                ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!).toEntity()
-                : const EquippedAvatar(),
-            size: 64,
-            fallbackInitials: user.initials,
-          ),
-          const SizedBox(width: 16),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user.fullName,
-                  style: GoogleFonts.nunito(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.black,
-                  ),
-                ),
-                if (user.studentNumber != null)
-                  Text(
-                    'Student #${user.studentNumber}',
-                    style: GoogleFonts.nunito(
-                      fontSize: 13,
-                      color: AppColors.neutralText,
-                    ),
-                  ),
-                const SizedBox(height: 6),
-                // Stats chips
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: PlayfulCard(
+          child: Row(
+            children: [
+              // Avatar
+              AvatarWidget(
+                avatar: user.avatarEquippedCache != null
+                    ? EquippedAvatarModel.fromJson(user.avatarEquippedCache!)
+                        .toEntity()
+                    : const EquippedAvatar(),
+                size: 64,
+                fallbackInitials: user.initials,
+              ),
+              const SizedBox(width: 14),
+              // Large level badge next to avatar
+              _LevelBadge(level: user.level),
+              const SizedBox(width: 14),
+              // Info
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _LevelChip(level: user.level),
-                    _StatChip(
-                      assetPath: AppIcons.xp,
-                      value: '${user.xp} XP',
-                      color: AppColors.waspDark,
+                    Text(
+                      user.fullName,
+                      style: GoogleFonts.nunito(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    _StatChip(
-                      assetPath: AppIcons.fire,
-                      value: user.currentStreak == 1
-                          ? '1 day streak'
-                          : '${user.currentStreak} day streak',
-                      color: Colors.orange,
-                    ),
-                    _StatChip(
-                      assetPath: AppIcons.trophy,
-                      value: user.longestStreak == 1
-                          ? 'best: 1 day'
-                          : 'best: ${user.longestStreak} days',
-                      color: Colors.purple,
+                    if (user.studentNumber != null)
+                      Text(
+                        'Student #${user.studentNumber}',
+                        style: GoogleFonts.nunito(
+                          fontSize: 12,
+                          color: AppColors.neutralText,
+                        ),
+                      ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        _StatChip(
+                          assetPath: AppIcons.fire,
+                          value: user.currentStreak == 1
+                              ? 'Streak: 1 day'
+                              : 'Streak: ${user.currentStreak} days',
+                          color: Colors.orange,
+                        ),
+                        _StatChip(
+                          assetPath: AppIcons.trophy,
+                          value: user.longestStreak == 1
+                              ? 'Longest streak: 1 day'
+                              : 'Longest streak: ${user.longestStreak} days',
+                          color: Colors.purple,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Prominent level badge used next to the avatar on the student header.
+class _LevelBadge extends StatelessWidget {
+  const _LevelBadge({required this.level});
+  final int level;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 64,
+      height: 64,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: AppColors.wasp.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.wasp, width: 2.5),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'LVL',
+            style: GoogleFonts.nunito(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: AppColors.waspDark,
+              letterSpacing: 1.0,
+              height: 1.0,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '$level',
+            style: GoogleFonts.nunito(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: AppColors.waspDark,
+              height: 1.0,
             ),
           ),
         ],
@@ -356,35 +407,6 @@ class _StatChip extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────
-// LEVEL CHIP (embedded in StudentHeader alongside streak chips)
-// ─────────────────────────────────────────────
-
-class _LevelChip extends StatelessWidget {
-  const _LevelChip({required this.level});
-  final int level;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.wasp.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.wasp, width: 1.5),
-      ),
-      child: Text(
-        'Lv $level',
-        style: GoogleFonts.nunito(
-          fontWeight: FontWeight.w900,
-          fontSize: 12,
-          color: AppColors.waspDark,
-        ),
       ),
     );
   }
