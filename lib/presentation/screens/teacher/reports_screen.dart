@@ -65,13 +65,6 @@ class ReportsScreen extends ConsumerWidget {
                 onTap: () => context.push(AppRoutes.teacherReportAssignments),
               ),
               _ReportTypeCard(
-                title: 'Student Leaderboard',
-                description: 'Top performers by XP and achievements',
-                assetPath: AppIcons.trophy,
-                color: Colors.purple,
-                onTap: () => context.push(AppRoutes.teacherReportLeaderboard),
-              ),
-              _ReportTypeCard(
                 title: 'My School',
                 description: 'School-wide stats compared to the platform',
                 assetPath: AppIcons.xp,

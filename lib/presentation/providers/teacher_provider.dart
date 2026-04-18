@@ -21,7 +21,6 @@ import '../../domain/usecases/teacher/get_student_vocab_stats_usecase.dart';
 import '../../domain/usecases/teacher/get_student_word_list_progress_usecase.dart';
 import '../../domain/usecases/teacher/get_recent_school_activity_usecase.dart';
 import '../../domain/usecases/teacher/get_school_book_reading_stats_usecase.dart';
-import '../../domain/usecases/teacher/get_school_students_for_teacher_usecase.dart';
 import '../../domain/usecases/teacher/get_school_summary_usecase.dart';
 import '../../domain/usecases/teacher/get_teacher_stats_usecase.dart';
 import '../../domain/usecases/usecase.dart';
@@ -318,25 +317,6 @@ class AssignmentDeleteController extends StateNotifier<AsyncValue<void>> {
 final assignmentDeleteControllerProvider =
     StateNotifierProvider.autoDispose<AssignmentDeleteController, AsyncValue<void>>((ref) {
   return AssignmentDeleteController(ref);
-});
-
-// =============================================
-// LEADERBOARD PROVIDERS
-// =============================================
-
-/// Provider that fetches all students in the teacher's school for leaderboard.
-/// Uses a single RPC call instead of per-class N+1 queries.
-final allStudentsLeaderboardProvider = FutureProvider<List<StudentSummary>>((ref) async {
-  final user = await ref.watch(authStateChangesProvider.future);
-  if (user == null || user.schoolId.isEmpty) return [];
-
-  final useCase = ref.watch(getSchoolStudentsForTeacherUseCaseProvider);
-  final result = await useCase(GetSchoolStudentsForTeacherParams(schoolId: user.schoolId));
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (students) => students,
-  );
 });
 
 /// Aggregates for the teacher's own school (watches authed user for schoolId).

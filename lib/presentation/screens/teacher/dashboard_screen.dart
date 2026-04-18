@@ -379,13 +379,6 @@ class _QuickActionsRow extends StatelessWidget {
           fullWidth: true,
           onPressed: () => context.go(AppRoutes.teacherClasses),
         ),
-        AnimatedGameButton(
-          label: 'Leaderboard',
-          icon: const AssetIcon(AppIcons.trophy, size: 20),
-          variant: GameButtonVariant.wasp,
-          fullWidth: true,
-          onPressed: () => context.push(AppRoutes.teacherReportLeaderboard),
-        ),
       ],
     );
   }
