@@ -25,7 +25,6 @@ import '../../widgets/common/asset_icon.dart';
 import '../../../domain/entities/achievement_group.dart';
 import '../../providers/card_provider.dart';
 import '../../widgets/badges/achievement_group_row.dart';
-import '../../widgets/cards/locked_card_widget.dart';
 import '../../widgets/cards/myth_card_widget.dart';
 import '../../widgets/common/avatar_widget.dart';
 import '../../utils/ui_helpers.dart';
@@ -195,11 +194,37 @@ class StudentDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // 7. Achievements (Duolingo-style tracks with progress bars)
-                  _StudentAchievementsSection(studentId: studentId),
-
-                  // 8. Card Collection — same myth-category layout as /cards
-                  _StudentCardCollection(studentId: studentId),
+                  // 7+8. Achievements + Card Collection — side by side on
+                  // wide screens, stacked on narrow.
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final wide = constraints.maxWidth >= 900;
+                      if (wide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _StudentAchievementsSection(
+                                  studentId: studentId),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: _StudentCardCollection(
+                                  studentId: studentId),
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _StudentAchievementsSection(studentId: studentId),
+                          const SizedBox(height: 24),
+                          _StudentCardCollection(studentId: studentId),
+                        ],
+                      );
+                    },
+                  ),
 
                   const SizedBox(height: 32),
                 ],
@@ -379,10 +404,28 @@ class _StudentAchievementsSection extends ConsumerWidget {
     return groupsAsync.when(
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
-      data: (groups) {
-        if (groups.isEmpty) return const SizedBox.shrink();
-        final earnedCount = groups.fold<int>(0, (s, g) => s + g.currentLevel);
-        final totalCount = groups.fold<int>(0, (s, g) => s + g.maxLevel);
+      data: (allGroups) {
+        if (allGroups.isEmpty) return const SizedBox.shrink();
+        // Same selection logic as the student's /profile page:
+        // 1) up to 3 actively-progressing tracks (earned at least 1 tier)
+        // 2) fill with started-but-no-badge tracks
+        // 3) fill with maxed tracks
+        final top = allGroups
+            .where((g) => !g.isMaxed && g.currentLevel >= 1)
+            .take(3)
+            .toList();
+        if (top.length < 3) {
+          top.addAll(allGroups
+              .where((g) => !g.isMaxed && g.currentLevel == 0 && g.currentValue > 0)
+              .take(3 - top.length));
+        }
+        if (top.length < 3) {
+          top.addAll(allGroups.where((g) => g.isMaxed).take(3 - top.length));
+        }
+
+        final earnedCount = allGroups.fold<int>(0, (s, g) => s + g.currentLevel);
+        final totalCount = allGroups.fold<int>(0, (s, g) => s + g.maxLevel);
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -393,8 +436,7 @@ class _StudentAchievementsSection extends ConsumerWidget {
               trailing: '$earnedCount / $totalCount earned',
             ),
             const SizedBox(height: 12),
-            for (final g in groups) AchievementGroupRow(group: g),
-            const SizedBox(height: 12),
+            for (final g in top) AchievementGroupRow(group: g),
           ],
         );
       },
@@ -1179,14 +1221,13 @@ class _StudentCardCollection extends ConsumerWidget {
             .cast<UserCard>();
         if (userCards.isEmpty) return const SizedBox.shrink();
 
-        final ownedIds = {for (final uc in userCards) uc.cardId};
         final totalOwned = userCards.length;
         final totalCards = catalog.length;
 
-        // Group catalog by category
-        final byCategory = <CardCategory, List<MythCard>>{};
-        for (final c in catalog) {
-          byCategory.putIfAbsent(c.category, () => []).add(c);
+        // Group OWNED cards by category; skip categories with nothing owned.
+        final byCategory = <CardCategory, List<UserCard>>{};
+        for (final uc in userCards) {
+          byCategory.putIfAbsent(uc.card.category, () => []).add(uc);
         }
 
         return Column(
@@ -1203,9 +1244,7 @@ class _StudentCardCollection extends ConsumerWidget {
               if (byCategory[category]?.isNotEmpty ?? false)
                 _StudentCategoryGrid(
                   category: category,
-                  cards: byCategory[category]!,
-                  ownedIds: ownedIds,
-                  userCards: userCards,
+                  userCards: byCategory[category]!,
                 ),
           ],
         );
@@ -1217,19 +1256,14 @@ class _StudentCardCollection extends ConsumerWidget {
 class _StudentCategoryGrid extends StatelessWidget {
   const _StudentCategoryGrid({
     required this.category,
-    required this.cards,
-    required this.ownedIds,
     required this.userCards,
   });
 
   final CardCategory category;
-  final List<MythCard> cards;
-  final Set<String> ownedIds;
   final List<UserCard> userCards;
 
   @override
   Widget build(BuildContext context) {
-    final ownedCount = cards.where((c) => ownedIds.contains(c.id)).length;
     final categoryColor = CardColors.getCategoryColor(category);
 
     return Padding(
@@ -1262,7 +1296,7 @@ class _StudentCategoryGrid extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
-                    '$ownedCount / ${cards.length}',
+                    '${userCards.length} owned',
                     style: GoogleFonts.nunito(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -1273,23 +1307,27 @@ class _StudentCategoryGrid extends StatelessWidget {
               ],
             ),
           ),
-          // 4-column card grid
+          // Card grid — only owned cards
           LayoutBuilder(
             builder: (context, constraints) {
               final columns = constraints.maxWidth >= 500 ? 4 : 3;
               const gap = 10.0;
               final cardWidth =
                   (constraints.maxWidth - gap * (columns - 1)) / columns;
-              final cardHeight = cardWidth * 1.5; // portrait trading card
+              final cardHeight = cardWidth * 1.5;
               return Wrap(
                 spacing: gap,
                 runSpacing: gap,
                 children: [
-                  for (final card in cards)
+                  for (final uc in userCards)
                     SizedBox(
                       width: cardWidth,
                       height: cardHeight,
-                      child: _buildCardItem(card),
+                      child: MythCardWidget(
+                        card: uc.card,
+                        quantity: uc.quantity,
+                        onTap: () {},
+                      ),
                     ),
                 ],
               );
@@ -1298,18 +1336,5 @@ class _StudentCategoryGrid extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _buildCardItem(MythCard card) {
-    final isOwned = ownedIds.contains(card.id);
-    if (isOwned) {
-      final uc = userCards.firstWhere((u) => u.cardId == card.id);
-      return MythCardWidget(
-        card: card,
-        quantity: uc.quantity,
-        onTap: () {},
-      );
-    }
-    return LockedCardWidget(card: card, onTap: () {});
   }
 }
