@@ -15,6 +15,7 @@ import '../../../domain/entities/card.dart';
 import '../../../domain/entities/user.dart' as domain;
 import '../../../domain/entities/vocabulary.dart';
 import '../../../domain/repositories/teacher_repository.dart';
+import '../../../domain/entities/book_quiz.dart';
 import '../../providers/book_quiz_provider.dart';
 import '../../providers/teacher_provider.dart';
 import '../../widgets/common/asset_icon.dart';
@@ -37,6 +38,7 @@ class StudentDetailScreen extends ConsumerWidget {
     final studentAsync = ref.watch(studentDetailProvider(studentId));
     final progressAsync = ref.watch(studentProgressProvider(studentId));
     final vocabStatsAsync = ref.watch(studentVocabStatsProvider(studentId));
+    final quizResultsAsync = ref.watch(studentQuizResultsProvider(studentId));
     final wordListProgressAsync =
         ref.watch(studentWordListProgressProvider(studentId));
     final badgesAsync = ref.watch(teacherStudentBadgesProvider(studentId));
@@ -76,28 +78,8 @@ class StudentDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. Header + Level side by side on wide, stacked on narrow
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      if (constraints.maxWidth >= 500) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: _StudentHeader(user: student)),
-                            const SizedBox(width: 16),
-                            Expanded(child: _LevelXpCard(user: student)),
-                          ],
-                        );
-                      }
-                      return Column(
-                        children: [
-                          _StudentHeader(user: student),
-                          const SizedBox(height: 16),
-                          _LevelXpCard(user: student),
-                        ],
-                      );
-                    },
-                  ),
+                  // 1. Header (avatar + name + level/XP/streak chips)
+                  _StudentHeader(user: student),
                   const SizedBox(height: 24),
 
                   // 3. Reading Progress (horizontal)
@@ -105,7 +87,7 @@ class StudentDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   progressAsync.when(
                     loading: () => const SizedBox(
-                      height: 160,
+                      height: 180,
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (_, __) => const Text('Error loading progress'),
@@ -119,27 +101,35 @@ class StudentDetailScreen extends ConsumerWidget {
                           message: 'No reading activity yet',
                         );
                       }
+                      // Join quiz results by bookId so each card can show
+                      // its own quiz score inline.
+                      final quizByBookId = <String, StudentQuizProgress>{};
+                      final quizResults = quizResultsAsync.valueOrNull;
+                      if (quizResults != null) {
+                        for (final q in quizResults) {
+                          quizByBookId[q.bookId] = q;
+                        }
+                      }
                       return SizedBox(
-                        height: 160,
+                        height: 180,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: filtered.length,
                           separatorBuilder: (_, __) => const SizedBox(width: 12),
-                          itemBuilder: (context, index) =>
-                              _HorizontalBookCard(progress: filtered[index]),
+                          itemBuilder: (context, index) {
+                            final p = filtered[index];
+                            return _HorizontalBookCard(
+                              progress: p,
+                              quiz: quizByBookId[p.bookId],
+                            );
+                          },
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 24),
 
-                  // 4. Quiz Results
-                  _SectionTitle(title: 'Quiz Results', assetPath: AppIcons.quiz, color: Colors.green),
-                  const SizedBox(height: 12),
-                  _QuizResultsSection(studentId: studentId),
-                  const SizedBox(height: 24),
-
-                  // 5. Vocabulary Progress
+                  // 4. Vocabulary Progress
                   _SectionTitle(title: 'Vocabulary Progress', assetPath: AppIcons.vocabulary, color: Colors.purple),
                   const SizedBox(height: 12),
                   vocabStatsAsync.when(
@@ -148,7 +138,16 @@ class StudentDetailScreen extends ConsumerWidget {
                       child: Center(child: CircularProgressIndicator()),
                     ),
                     error: (_, __) => const Text('Error loading stats'),
-                    data: (stats) => _VocabStatsCard(stats: stats),
+                    data: (stats) => _VocabStatsCard(
+                      stats: stats,
+                      onViewWordbank: () {
+                        showAppSnackBar(
+                          context,
+                          'Wordbank view coming soon',
+                          type: SnackBarType.info,
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 16),
 
@@ -314,6 +313,12 @@ class _StudentHeader extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 4,
                   children: [
+                    _LevelChip(level: user.level),
+                    _StatChip(
+                      assetPath: AppIcons.xp,
+                      value: '${user.xp} XP',
+                      color: AppColors.waspDark,
+                    ),
                     _StatChip(
                       assetPath: AppIcons.fire,
                       value: '${user.currentStreak}',
@@ -380,73 +385,66 @@ class _StatChip extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// LEVEL & XP (copied style from student profile)
+// LEVEL CHIP (embedded in StudentHeader alongside streak chips)
 // ─────────────────────────────────────────────
 
-class _LevelXpCard extends StatelessWidget {
-  const _LevelXpCard({required this.user});
-  final domain.User user;
+class _LevelChip extends StatelessWidget {
+  const _LevelChip({required this.level});
+  final int level;
 
   @override
   Widget build(BuildContext context) {
-    final progress = LevelHelper.progress(user.xp, user.level);
-    final xpIn = LevelHelper.xpInCurrentLevel(user.xp, user.level);
-    final xpNeeded = LevelHelper.xpToNextLevel(user.level);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.wasp.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.wasp, width: 1.5),
+      ),
+      child: Text(
+        'Lv $level',
+        style: GoogleFonts.nunito(
+          fontWeight: FontWeight.w900,
+          fontSize: 12,
+          color: AppColors.waspDark,
+        ),
+      ),
+    );
+  }
+}
 
-    return PlayfulCard(
-      borderColor: AppColors.wasp.withValues(alpha: 0.3),
-      child: Column(
+// ─────────────────────────────────────────────
+// INLINE QUIZ PILL (inside a reading progress book card)
+// ─────────────────────────────────────────────
+
+class _InlineQuizPill extends StatelessWidget {
+  const _InlineQuizPill({required this.quiz});
+  final StudentQuizProgress quiz;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = quiz.bestPercentage.round();
+    final color = quiz.isPassing
+        ? Colors.green.shade700
+        : (quiz.bestPercentage >= 50 ? Colors.orange.shade700 : Colors.red.shade700);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppColors.wasp.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.wasp, width: 2),
-                ),
-                child: Text(
-                  'LVL ${user.level}',
-                  style: GoogleFonts.nunito(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: AppColors.waspDark,
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  const AssetIcon(AppIcons.xp, size: 18),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${user.xp} XP',
-                    style: GoogleFonts.nunito(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15,
-                      color: AppColors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          AppProgressBar(
-            progress: progress,
-            fillColor: AppColors.wasp,
-            fillShadow: AppColors.waspDark,
-            backgroundColor: AppColors.neutral.withValues(alpha: 0.3),
-            height: 8,
-          ),
-          const SizedBox(height: 4),
+          const AssetIcon(AppIcons.quiz, size: 12),
+          const SizedBox(width: 4),
           Text(
-            '$xpIn / $xpNeeded XP to next level',
+            'Quiz: $pct%',
             style: GoogleFonts.nunito(
               fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutralText,
+              fontWeight: FontWeight.w800,
+              color: color,
             ),
           ),
         ],
@@ -499,8 +497,9 @@ class _SectionTitle extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _HorizontalBookCard extends StatelessWidget {
-  const _HorizontalBookCard({required this.progress});
+  const _HorizontalBookCard({required this.progress, this.quiz});
   final StudentBookProgress progress;
+  final StudentQuizProgress? quiz;
 
   @override
   Widget build(BuildContext context) {
@@ -594,6 +593,10 @@ class _HorizontalBookCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (quiz != null) ...[
+              const SizedBox(height: 6),
+              _InlineQuizPill(quiz: quiz!),
+            ],
           ],
         ),
       ),
@@ -606,72 +609,62 @@ class _HorizontalBookCard extends StatelessWidget {
 // ─────────────────────────────────────────────
 
 class _VocabStatsCard extends StatelessWidget {
-  const _VocabStatsCard({required this.stats});
+  const _VocabStatsCard({required this.stats, required this.onViewWordbank});
   final StudentVocabStats stats;
+  final VoidCallback onViewWordbank;
 
   @override
   Widget build(BuildContext context) {
     return PlayfulCard(
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _VocabStat(value: '${stats.totalWords}', label: 'Words', assetPath: AppIcons.vocabulary, color: Colors.blue),
-          _VocabStat(value: '${stats.masteredCount}', label: 'Mastered', assetPath: AppIcons.checkMark, color: Colors.green),
-          _VocabStat(value: '${stats.learningCount}', label: 'Learning', assetPath: AppIcons.book, color: Colors.orange),
-          _VocabStat(value: '${stats.totalSessions}', label: 'Sessions', icon: Icons.replay, color: Colors.purple),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.teal.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const AssetIcon(AppIcons.vocabulary, size: 28),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${stats.totalWords}',
+                  style: GoogleFonts.nunito(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.black,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  'Words in Wordbank',
+                  style: GoogleFonts.nunito(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutralText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onViewWordbank,
+            icon: const Icon(Icons.chevron_right),
+            label: const Text('View'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.primaryDark,
+              textStyle: GoogleFonts.nunito(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         ],
       ),
-    );
-  }
-}
-
-class _VocabStat extends StatelessWidget {
-  const _VocabStat({
-    required this.value,
-    required this.label,
-    this.icon,
-    this.assetPath,
-    required this.color,
-  });
-
-  final String value;
-  final String label;
-  final IconData? icon;
-  final String? assetPath;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: assetPath != null
-              ? AssetIcon(assetPath!, size: 24)
-              : Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: GoogleFonts.nunito(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.black,
-          ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.nunito(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.neutralText,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -793,104 +786,6 @@ class _HorizontalWordListCard extends ConsumerWidget {
     if (accuracy >= 70) return Colors.blue;
     if (accuracy >= 50) return Colors.orange;
     return Colors.red;
-  }
-}
-
-// ─────────────────────────────────────────────
-// QUIZ RESULTS (horizontal)
-// ─────────────────────────────────────────────
-
-class _QuizResultsSection extends ConsumerWidget {
-  const _QuizResultsSection({required this.studentId});
-  final String studentId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final quizResultsAsync = ref.watch(studentQuizResultsProvider(studentId));
-
-    return quizResultsAsync.when(
-      loading: () => const SizedBox(
-        height: 80,
-        child: Center(child: CircularProgressIndicator()),
-      ),
-      error: (_, __) => const Text('Error loading quiz results'),
-      data: (results) {
-        if (results.isEmpty) {
-          return _EmptySection(
-            assetPath: AppIcons.quiz,
-            message: 'No quiz attempts yet',
-          );
-        }
-
-        return SizedBox(
-          height: 90,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: results.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final result = results[index];
-              final scoreColor = result.isPassing
-                  ? Colors.green
-                  : (result.bestPercentage >= 50 ? Colors.orange : Colors.red);
-
-              return PlayfulCard(
-                margin: EdgeInsets.zero,
-                padding: const EdgeInsets.all(12),
-                child: SizedBox(
-                  width: 180,
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: scoreColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          result.isPassing
-                              ? Icons.check_circle_rounded
-                              : Icons.cancel_rounded,
-                          color: scoreColor,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              result.bookTitle,
-                              style: GoogleFonts.nunito(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            Text(
-                              '${result.bestPercentage.round()}% • ${result.totalAttempts} tries',
-                              style: GoogleFonts.nunito(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: scoreColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
   }
 }
 
