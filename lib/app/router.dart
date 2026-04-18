@@ -263,6 +263,7 @@ final _teacherClassesKey = GlobalKey<NavigatorState>(debugLabel: 'teacherClasses
 final _teacherAssignmentsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherAssignments');
 final _teacherReportsKey = GlobalKey<NavigatorState>(debugLabel: 'teacherReports');
 final _teacherLibraryKey = GlobalKey<NavigatorState>(debugLabel: 'teacherLibrary');
+final _teacherProfileKey = GlobalKey<NavigatorState>(debugLabel: 'teacherProfile');
 
 GoRouter _createRouter() {
   return GoRouter(
@@ -702,12 +703,6 @@ GoRouter _createRouter() {
                       return StudentDetailScreen(studentId: studentId);
                     },
                   ),
-                  // Teacher profile — lives inside the shell so the sidebar
-                  // stays visible when the teacher opens their profile.
-                  GoRoute(
-                    path: 'profile',
-                    builder: (context, state) => const ProfileScreen(),
-                  ),
                 ],
               ),
             ],
@@ -826,6 +821,16 @@ GoRouter _createRouter() {
                   final bookId = state.pathParameters['bookId']!;
                   return BookQuizScreen(bookId: bookId);
                 },
+              ),
+            ],
+          ),
+          // Profile branch — keeps the sidebar visible when viewing profile.
+          StatefulShellBranch(
+            navigatorKey: _teacherProfileKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.teacherProfile,
+                builder: (context, state) => const ProfileScreen(),
               ),
             ],
           ),
