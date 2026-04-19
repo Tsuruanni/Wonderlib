@@ -41,8 +41,6 @@ import '../features/classes/screens/class_edit_screen.dart';
 import '../features/tiles/screens/tile_theme_list_screen.dart';
 import '../features/tiles/screens/tile_theme_edit_screen.dart';
 import '../features/treasure_wheel/screens/treasure_wheel_config_screen.dart';
-import '../features/units/screens/unit_list_screen.dart';
-import '../features/units/screens/unit_edit_screen.dart';
 import 'supabase_client.dart';
 import 'widgets/admin_shell.dart';
 
@@ -51,7 +49,7 @@ import 'widgets/admin_shell.dart';
 /// Structure:
 /// - `/login` stands alone (no shell).
 /// - All other routes are wrapped in a [StatefulShellRoute.indexedStack] with
-///   16 branches. Branch order matches [kAdminNavEntries] in
+///   17 branches. Branch order matches [kAdminNavEntries] in
 ///   `widgets/admin_nav_config.dart` — edit one without the other and the
 ///   sidebar will point to the wrong branch.
 final routerProvider = Provider<GoRouter>((ref) {
@@ -138,11 +136,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               ],
             ),
           ]),
-          // 2 — Vocabulary (Kelime Havuzu) — also owns /wordlists/*
+          // 2 — Kelimeler (Vocabulary tab 0)
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/vocabulary',
-              builder: (_, __) => const VocabularyListScreen(),
+              builder: (_, __) => const VocabularyListScreen(initialTab: 0),
               routes: [
                 GoRoute(path: 'import', builder: (_, __) => const VocabularyImportScreen()),
                 GoRoute(path: 'new', builder: (_, __) => const VocabularyEditScreen()),
@@ -152,25 +150,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
               ],
             ),
-            GoRoute(
-              path: '/wordlists/new',
-              builder: (_, __) => const WordlistEditScreen(),
-            ),
-            GoRoute(
-              path: '/wordlists/:listId',
-              builder: (_, state) => WordlistEditScreen(listId: state.pathParameters['listId']),
-            ),
           ]),
-          // 3 — Units (Üniteler)
+          // 3 — Kelime Listeleri (Vocabulary tab 1)
           StatefulShellBranch(routes: [
             GoRoute(
-              path: '/units',
-              builder: (_, __) => const UnitListScreen(),
+              path: '/wordlists',
+              builder: (_, __) => const VocabularyListScreen(initialTab: 1),
               routes: [
-                GoRoute(path: 'new', builder: (_, __) => const UnitEditScreen()),
+                GoRoute(path: 'new', builder: (_, __) => const WordlistEditScreen()),
                 GoRoute(
-                  path: ':unitId',
-                  builder: (_, state) => UnitEditScreen(unitId: state.pathParameters['unitId']),
+                  path: ':listId',
+                  builder: (_, state) => WordlistEditScreen(listId: state.pathParameters['listId']),
                 ),
               ],
             ),
@@ -267,7 +257,21 @@ final routerProvider = Provider<GoRouter>((ref) {
               ],
             ),
           ]),
-          // 9 — Collectibles (Koleksiyon)
+          // 9 — Tiles (Tile Temaları) — moved to ÖĞRENME
+          StatefulShellBranch(routes: [
+            GoRoute(
+              path: '/tiles',
+              builder: (_, __) => const TileThemeListScreen(),
+              routes: [
+                GoRoute(path: 'new', builder: (_, __) => const TileThemeEditScreen()),
+                GoRoute(
+                  path: ':themeId',
+                  builder: (_, state) => TileThemeEditScreen(themeId: state.pathParameters['themeId']),
+                ),
+              ],
+            ),
+          ]),
+          // 10 — Rozetler (Badges) — owns /collectibles default + /badges
           StatefulShellBranch(routes: [
             GoRoute(path: '/collectibles', builder: (_, __) => const CollectiblesScreen()),
             GoRoute(
@@ -281,6 +285,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 ),
               ],
             ),
+          ]),
+          // 11 — Mitoloji Kartları (Cards)
+          StatefulShellBranch(routes: [
             GoRoute(
               path: '/cards',
               builder: (_, __) => const CollectiblesScreen(initialTab: 1),
@@ -293,15 +300,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               ],
             ),
           ]),
-          // 10 — Quests (Günlük Görevler)
+          // 12 — Quests (Günlük Görevler)
           StatefulShellBranch(routes: [
             GoRoute(path: '/quests', builder: (_, __) => const QuestListScreen()),
           ]),
-          // 11 — Treasure Wheel (Hazine Çarkı)
+          // 13 — Treasure Wheel (Hazine Çarkı)
           StatefulShellBranch(routes: [
             GoRoute(path: '/treasure-wheel', builder: (_, __) => const TreasureWheelConfigScreen()),
           ]),
-          // 12 — Avatars (Avatar Yönetimi)
+          // 14 — Avatars (Avatar Yönetimi)
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/avatars',
@@ -326,25 +333,11 @@ final routerProvider = Provider<GoRouter>((ref) {
               ],
             ),
           ]),
-          // 13 — Tiles (Tile Temaları)
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/tiles',
-              builder: (_, __) => const TileThemeListScreen(),
-              routes: [
-                GoRoute(path: 'new', builder: (_, __) => const TileThemeEditScreen()),
-                GoRoute(
-                  path: ':themeId',
-                  builder: (_, state) => TileThemeEditScreen(themeId: state.pathParameters['themeId']),
-                ),
-              ],
-            ),
-          ]),
-          // 14 — Notifications (Bildirimler)
+          // 15 — Notifications (Bildirimler)
           StatefulShellBranch(routes: [
             GoRoute(path: '/notifications', builder: (_, __) => const NotificationGalleryScreen()),
           ]),
-          // 15 — Settings (Ayarlar)
+          // 16 — Settings (Ayarlar)
           StatefulShellBranch(routes: [
             GoRoute(
               path: '/settings',

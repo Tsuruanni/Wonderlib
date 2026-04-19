@@ -41,13 +41,13 @@ const List<AdminNavEntry> kAdminNavEntries = [
   AdminNavEntry(
     rootPath: '/vocabulary',
     icon: Icons.abc,
-    label: 'Kelime Havuzu',
+    label: 'Kelimeler',
     group: 'İÇERİK',
   ),
   AdminNavEntry(
-    rootPath: '/units',
-    icon: Icons.grid_view_rounded,
-    label: 'Üniteler',
+    rootPath: '/wordlists',
+    icon: Icons.format_list_bulleted,
+    label: 'Kelime Listeleri',
     group: 'İÇERİK',
   ),
   // KULLANICILAR
@@ -82,11 +82,23 @@ const List<AdminNavEntry> kAdminNavEntries = [
     label: 'Öğrenme Yolları',
     group: 'ÖĞRENME',
   ),
+  AdminNavEntry(
+    rootPath: '/tiles',
+    icon: Icons.map,
+    label: 'Tile Temaları',
+    group: 'ÖĞRENME',
+  ),
   // OYUNLAŞTIRMA
   AdminNavEntry(
-    rootPath: '/collectibles',
+    rootPath: '/badges',
     icon: Icons.emoji_events,
-    label: 'Koleksiyon',
+    label: 'Rozetler',
+    group: 'OYUNLAŞTIRMA',
+  ),
+  AdminNavEntry(
+    rootPath: '/cards',
+    icon: Icons.style,
+    label: 'Mitoloji Kartları',
     group: 'OYUNLAŞTIRMA',
   ),
   AdminNavEntry(
@@ -105,12 +117,6 @@ const List<AdminNavEntry> kAdminNavEntries = [
     rootPath: '/avatars',
     icon: Icons.face,
     label: 'Avatar Yönetimi',
-    group: 'OYUNLAŞTIRMA',
-  ),
-  AdminNavEntry(
-    rootPath: '/tiles',
-    icon: Icons.map,
-    label: 'Tile Temaları',
     group: 'OYUNLAŞTIRMA',
   ),
   // SİSTEM

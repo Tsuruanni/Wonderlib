@@ -98,7 +98,10 @@ final wordlistsProvider =
 // ============================================
 
 class VocabularyListScreen extends ConsumerStatefulWidget {
-  const VocabularyListScreen({super.key});
+  const VocabularyListScreen({super.key, this.initialTab = 0});
+
+  /// 0 = Kelimeler, 1 = Kelime Listeleri
+  final int initialTab;
 
   @override
   ConsumerState<VocabularyListScreen> createState() =>
@@ -113,7 +116,7 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) setState(() {});
     });
