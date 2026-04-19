@@ -108,57 +108,35 @@ class VocabularyListScreen extends ConsumerStatefulWidget {
       _VocabularyListScreenState();
 }
 
-class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
+class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen> {
   final _searchController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
-    });
-  }
-
-  @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isWords = widget.initialTab == 0;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelime Havuzu'),
+        title: Text(isWords ? 'Kelimeler' : 'Kelime Listeleri'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
         ),
-        actions: _buildActions(context),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Kelimeler'),
-            Tab(text: 'Kelime Listeleri'),
-          ],
-        ),
+        actions: _buildActions(context, isWords),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _VocabularyTab(searchController: _searchController),
-          const _WordlistTab(),
-        ],
-      ),
+      body: isWords
+          ? _VocabularyTab(searchController: _searchController)
+          : const _WordlistTab(),
     );
   }
 
-  List<Widget> _buildActions(BuildContext context) {
-    if (_tabController.index == 0) {
+  List<Widget> _buildActions(BuildContext context, bool isWords) {
+    if (isWords) {
       return [
         OutlinedButton.icon(
           onPressed: () => context.go('/vocabulary/import'),
@@ -173,16 +151,15 @@ class _VocabularyListScreenState extends ConsumerState<VocabularyListScreen>
         ),
         const SizedBox(width: 16),
       ];
-    } else {
-      return [
-        FilledButton.icon(
-          onPressed: () => context.go('/wordlists/new'),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Yeni Kelime Listesi'),
-        ),
-        const SizedBox(width: 16),
-      ];
     }
+    return [
+      FilledButton.icon(
+        onPressed: () => context.go('/wordlists/new'),
+        icon: const Icon(Icons.add, size: 18),
+        label: const Text('Yeni Kelime Listesi'),
+      ),
+      const SizedBox(width: 16),
+    ];
   }
 }
 

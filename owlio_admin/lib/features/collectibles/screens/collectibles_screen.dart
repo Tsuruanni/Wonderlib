@@ -7,85 +7,36 @@ import '../../../core/utils/badge_helpers.dart';
 import '../../badges/screens/badge_list_screen.dart';
 import '../../cards/providers/card_providers.dart';
 
-/// Combined screen for Badges + Myth Cards with tabs.
-class CollectiblesScreen extends ConsumerStatefulWidget {
+/// Renders either the badges list or the myth cards list based on [initialTab].
+/// The parameter name is legacy — there are no more internal tabs; it simply
+/// selects which content to show. Routed via `/badges` (0) and `/cards` (1).
+class CollectiblesScreen extends ConsumerWidget {
   const CollectiblesScreen({super.key, this.initialTab = 0});
 
   /// 0 = Rozetler, 1 = Mitoloji Kartları
   final int initialTab;
 
   @override
-  ConsumerState<CollectiblesScreen> createState() => _CollectiblesScreenState();
-}
-
-class _CollectiblesScreenState extends ConsumerState<CollectiblesScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController =
-        TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isBadges = initialTab == 0;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Koleksiyon'),
+        title: Text(isBadges ? 'Rozetler' : 'Mitoloji Kartları'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/'),
         ),
-        actions: _buildActions(context),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: 'Rozetler'),
-            Tab(text: 'Mitoloji Kartları'),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _BadgesTab(),
-          _MythCardsTab(),
+        actions: [
+          FilledButton.icon(
+            onPressed: () => context.go(isBadges ? '/badges/new' : '/cards/new'),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(isBadges ? 'Yeni Rozet' : 'Yeni Kart'),
+          ),
+          const SizedBox(width: 16),
         ],
       ),
+      body: isBadges ? _BadgesTab() : _MythCardsTab(),
     );
-  }
-
-  List<Widget> _buildActions(BuildContext context) {
-    if (_tabController.index == 0) {
-      return [
-        FilledButton.icon(
-          onPressed: () => context.go('/badges/new'),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Yeni Rozet'),
-        ),
-        const SizedBox(width: 16),
-      ];
-    } else {
-      return [
-        FilledButton.icon(
-          onPressed: () => context.go('/cards/new'),
-          icon: const Icon(Icons.add, size: 18),
-          label: const Text('Yeni Kart'),
-        ),
-        const SizedBox(width: 16),
-      ];
-    }
   }
 }
 
