@@ -8,6 +8,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Design System Centralization (2026-04-18 → 2026-04-19)
+
+#### Added
+- **`AppTextStyles` helper** — `lib/app/text_styles.dart` exposes 11 semantic typography methods (`display`, `hero`, `headlineLarge/Medium`, `titleLarge/Medium`, `bodyLarge/Medium/Small`, `button`, `caption`). Single source of truth for all Nunito text styling. Font family swap is now a one-line change. Theme's `textTheme`, `appBarTheme`, `inputDecorationTheme`, and `elevatedButtonTheme` all sourced from the helper.
+- **`AppChip` widget** — `lib/presentation/widgets/common/app_chip.dart` with 7 variants (`success`/`info`/`danger`/`warning`/`premium`/`neutral`/`custom`) × 3 sizes (`sm`/`md`/`lg`) + optional leading icon slot. Replaces inline Duolingo-style tinted-pill pattern (Container + BoxDecoration + Text) across the app.
+- **`GameButtonVariant.ghost`** — flat text-only button with no bg/border/3D shadow, 0.08 alpha press tint. Supported in both `GameButton` and `AnimatedGameButton` via early-render branch. Intended for low-emphasis CTAs (e.g., "VIEW ALL" footer links).
+- **`AppRadius` hierarchy** — `tag` (8) / `button` (12) / `input` (16) / `card` (16) / `pill` (20) / `sheet` (24). Enables Duolingo-style visual hierarchy where buttons are slightly tighter than cards.
+- **`AppOpacity` constants + extensions** — `disabled` (0.45) / `muted` (0.6) / `subtle` (0.8), plus fluent `Widget.disabled()` and `.muted()` extensions that conditionally wrap in `Opacity`.
+- **`owlio-ui-style` skill** — new `.claude/skills/owlio-ui-style/SKILL.md` captures the full design system reference (AppTextStyles, AppColors, AppChip, GameButton, AppRadius, AppOpacity) + Duolingo spec alignment notes + common mistakes. CLAUDE.md updated with a prominent pointer to invoke the skill before any UI work.
+
+#### Changed
+- **~561 hard-coded `GoogleFonts.nunito(...)` and `fontFamily: 'Nunito'` usages migrated to `AppTextStyles`** across 80 files (login, daily review, quiz result, treasure wheel, streak sheet, notification cards, profile, leaderboard, assignments, cards, learning path, reader, vocabulary session widgets, shell, and more). Net -1941 lines of duplicate style boilerplate.
+- **~20 inline tinted-pill chip patterns migrated to `AppChip`** across 15 files (book quiz attempt, vocabulary level/category tags, notification quest rewards + XP chip, student assignment status/score/due pills, library/profile/card counts, reader word popup, reading progress report, teacher assignment detail).
+- **Button visual hierarchy** — `GameButton` border radius 16 → 12 (matches Duolingo spec). Base height 50 → 48 (total 52 with shadow, was 54). `ElevatedButtonTheme` fallback also uses `AppRadius.button` now.
+- **`withOpacity(X)` → `.withValues(alpha: X)`** — 12 calls in `library_screen.dart` migrated to the non-deprecated API (Flutter 3.27+ deprecation).
+
+#### Infrastructure
+- **Skill + project memory** — design backlog tracked at `memory/project_duolingo_design_backlog.md` (done vs. open gaps). Open items: gray scale consolidation, AppChip border parameter, custom tooltip widget.
+
 ### Gem Currency Rename + Popup Polish + Legacy Cleanup (2026-04-19)
 
 #### Added

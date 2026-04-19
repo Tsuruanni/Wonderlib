@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-19 (Gem currency rename, popup polish, star entrance animation, 2,114 LOC legacy cleanup)
+Son güncelleme: 2026-04-19 (Design system centralization — AppTextStyles, AppChip, ghost button, AppRadius, AppOpacity, owlio-ui-style skill)
 
 ## Current Phase
 
@@ -184,6 +184,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] AppIcons Registry & Full Icon System Migration (centralized PNG registry, 37 assets, 90+ Image.asset calls migrated, IconData→Widget refactor)
 - [x] Multi-Word Phrase Support (scrambledWords question type, phrase routing, punctuation-tolerant answers, batch content gen, admin phrase tools, audio timestamp fix)
 - [x] Gem Currency Rename + Popup Polish + Legacy Cleanup (coins→gems in 19 UI strings; path node popup white stats; PRACTICE AGAIN label + hide-on-100%; staggered star entrance animation with breathing hold; ~2,114 LOC dead code removed across 6 files; reader_legacy_content → reader_v1_content rename)
+- [x] Design System Centralization (AppTextStyles helper — 80 files / ~561 hard-coded styles migrated; AppChip widget — 15 files / ~20 inline pills migrated; GameButtonVariant.ghost flat variant; AppRadius hierarchy button 12 / card 16 / pill 20; AppOpacity constants + Widget extensions; withOpacity → withValues; button height 50→48; owlio-ui-style skill + CLAUDE.md pointer)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16
