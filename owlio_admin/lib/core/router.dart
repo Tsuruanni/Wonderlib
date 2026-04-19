@@ -41,6 +41,8 @@ import '../features/classes/screens/class_edit_screen.dart';
 import '../features/tiles/screens/tile_theme_list_screen.dart';
 import '../features/tiles/screens/tile_theme_edit_screen.dart';
 import '../features/treasure_wheel/screens/treasure_wheel_config_screen.dart';
+import '../features/units/screens/unit_list_screen.dart';
+import '../features/units/screens/unit_edit_screen.dart';
 import 'supabase_client.dart';
 import 'widgets/admin_shell.dart';
 
@@ -253,6 +255,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                   builder: (_, state) => AssignmentDetailScreen(
                     assignmentId: state.pathParameters['assignmentId']!,
                   ),
+                ),
+              ],
+            ),
+            GoRoute(
+              path: '/units',
+              builder: (_, __) => const UnitListScreen(),
+              routes: [
+                GoRoute(path: 'new', builder: (_, __) => const UnitEditScreen()),
+                GoRoute(
+                  path: ':unitId',
+                  builder: (_, state) => UnitEditScreen(unitId: state.pathParameters['unitId']),
                 ),
               ],
             ),
