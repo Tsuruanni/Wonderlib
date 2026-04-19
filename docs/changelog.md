@@ -8,6 +8,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/)
 
 ## [Unreleased]
 
+### Gem Currency Rename + Popup Polish + Legacy Cleanup (2026-04-19)
+
+#### Added
+- **Star row entrance animation** — 3 stars above earned word-list nodes now play a looping staggered animation: scale 0.3 → 1.25 (peak) → 1.0 (settle) + fade in per star (300ms stagger), synchronized breathing pulse during 2s hold (sin-wave ±3.5%), then staggered exit ripple right-to-left (80ms stagger), 300ms pause, repeat. Outlined placeholder stars always visible behind earned slots so the 3-slot silhouette never collapses. Applies to 1-, 2-, and 3-star nodes with per-count cycle duration (3100/3400/3860ms). `_StarRow` refactored to `StatefulWidget` with `SingleTickerProviderStateMixin`.
+- **Gem icon in daily quest notification chip** — `NotificationCard._questRewardTextAndColor` chip now includes a 14×14 gem asset for `QuestRewardType.coins` rewards (conditional `AppChip.icon` slot).
+
+#### Changed
+- **Currency label: "coins" → "gems" across user-facing UI** — 19 text edits across 13 files (main app + admin panel). Includes session summary ("Gems Earned"), daily review ("+X Gems"), treasure wheel, streak freeze purchase, avatar shop prices, path node stats ("Top Gems"). Backend identifiers (`User.coins`, `AvatarItem.coinPrice`, `QuestRewardType.coins` enum value, `CoinBadge` widget class, DB columns, `'insufficient_coins'` RPC error) intentionally kept — rename is text-only.
+- **Path node popup ("Family"-style tooltip) — stats container white** — `_PopupCard` outer card retains unit color (e.g., green for "Family" unit) and white title text; only the inner stats container flipped to `AppColors.white` with black value + gray label + gray Sessions icon. Triangle pointer and CTA button text color preserved as unit color accent.
+- **Popup button rename + conditional hide** — `_popupButtonText` for completed word-list nodes: `'PRACTICE'` → `'PRACTICE AGAIN'` (matches existing `READ AGAIN` / `PLAY AGAIN`). Button + preceding spacer hidden entirely when `bestAccuracy >= 100` — mastered nodes don't show a redundant practice CTA.
+- **Star bolt icons → gem asset** — `Icons.bolt_rounded` (lightning) next to "Top Gem(s)" labels replaced with `gem_outline_256.png` (size-matched 14/20px) in 4 locations: `path_node.dart` `_StatRow`, `node_progress_sheet.dart` `_StatColumn`, `word_list_detail_screen.dart` `_MiniStat`, legacy `_SheetStat` (before removal). `_SheetStat` widget API refactored `IconData` → `Widget` to support both `Icon` and `Image.asset`.
+- **Buy Freeze button icon** — `streak_sheet.dart` swapped `AppIcons.fireBlue` (18×18) → gem asset (18×18) to emphasize gem price over the freeze action.
+- **`reader_legacy_content.dart` → `reader_v1_content.dart`** — File + class + state class rename via `git mv` (history preserved). The widget handles the v1 plain-text chapter content format (active fallback when `chapter.useContentBlocks` is false, not deprecated). Doc comment expanded to clarify intent — distinguishes from truly dead `_legacy` files removed below.
+
+#### Removed
+- **~2,114 LOC of dead code** — 6 legacy files removed (all orphan, zero `lib/` references):
+  - `path_node_legacy.dart` (620 LOC), `path_row_legacy.dart` (81), `learning_path_legacy.dart` (296), `path_painters_legacy.dart` (265) — zigzag path widget cluster, superseded by tile-based `map_tile.dart` + `path_node.dart` rewrite.
+  - `path_special_nodes_legacy.dart` (664) — became fully orphan after cluster deletion; no active code imports it (the earlier assumption that `path_node.dart` imported 2 symbols turned out to be stale audit data).
+  - `node_progress_sheet.dart` (188) — orphan `showNodeProgressSheet` function with zero external callers; active progress UI lives inline in `path_node.dart::_PopupCard`.
+
 ### Monthly Quest Engine Integration (2026-04-16)
 
 #### Added

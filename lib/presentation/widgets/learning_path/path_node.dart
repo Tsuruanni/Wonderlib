@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../app/text_styles.dart';
@@ -148,7 +150,7 @@ class _PathNodeState extends State<PathNode>
         NodeType.book => 'READ AGAIN',
         NodeType.treasure => 'CLAIMED',
         NodeType.game => 'PLAY AGAIN',
-        _ => 'PRACTICE',
+        _ => 'PRACTICE AGAIN',
       };
     }
     return switch (widget.type) {
@@ -434,13 +436,13 @@ class _PopupCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
                       children: [
                         _StatRow(
-                          icon: Icon(Icons.repeat_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
+                          icon: const Icon(Icons.repeat_rounded, color: AppColors.neutralText, size: 14),
                           label: 'Sessions',
                           value: '$totalSessions',
                         ),
@@ -455,8 +457,12 @@ class _PopupCard extends StatelessWidget {
                         if (bestScore != null) ...[
                           const SizedBox(height: 6),
                           _StatRow(
-                            icon: Icon(Icons.bolt_rounded, color: Colors.white.withValues(alpha: 0.8), size: 14),
-                            label: 'Top Coins',
+                            icon: Image.asset(
+                              'assets/icons/gem_outline_256.png',
+                              width: 14,
+                              height: 14,
+                            ),
+                            label: 'Top Gems',
                             value: '$bestScore XP',
                           ),
                         ],
@@ -464,13 +470,15 @@ class _PopupCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: 10),
-                // Action button — pressable
-                _Pressable3DButton(
-                  text: buttonText,
-                  textColor: color,
-                  onTap: onStart,
-                ),
+                // Action button — hidden when word list is mastered (100% accuracy)
+                if (bestAccuracy == null || bestAccuracy! < 100) ...[
+                  const SizedBox(height: 10),
+                  _Pressable3DButton(
+                    text: buttonText,
+                    textColor: color,
+                    onTap: onStart,
+                  ),
+                ],
               ],
             ),
           ),
@@ -817,12 +825,12 @@ class _StatRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: AppTextStyles.caption(color: Colors.white.withValues(alpha: 0.8)),
+            style: AppTextStyles.caption(color: AppColors.neutralText),
           ),
         ),
         Text(
           value,
-          style: AppTextStyles.bodySmall(color: Colors.white).copyWith(fontWeight: FontWeight.w800),
+          style: AppTextStyles.bodySmall(color: AppColors.black).copyWith(fontWeight: FontWeight.w800),
         ),
       ],
     );
@@ -834,33 +842,171 @@ class _StatRow extends StatelessWidget {
 // ════════════════════════════════════════════════════════════
 
 /// Stylized star row above a word list node — gold with dark border.
-class _StarRow extends StatelessWidget {
+/// Earned stars animate in a looping staggered entrance: scale-bounce + fade in,
+/// hold fully lit, fade out together, pause, repeat. Unearned stars stay outlined.
+class _StarRow extends StatefulWidget {
   const _StarRow({required this.count, this.scale = 1.0});
 
   final int count;
   final double scale;
 
   @override
+  State<_StarRow> createState() => _StarRowState();
+}
+
+class _StarRowState extends State<_StarRow>
+    with SingleTickerProviderStateMixin {
+  // Per-star entrance: scale 0.3 → 1.0 (elastic bounce) + linear fade in.
+  // Stagger between stars: 300ms. All earned stars hold lit for 1400ms,
+  // then fade out together over 400ms, then 700ms pause, then repeat.
+  static const _entryMs = 400;
+  static const _staggerMs = 300;
+  static const _holdMs = 2000;
+  static const _fadeOutMs = 400;
+  static const _fadeStaggerMs = 80; // exit ripple — star 0 fades first
+  static const _pauseMs = 300;
+  static const _breathAmp = 0.035; // ±3.5% scale breathing during hold
+  static const _breathPeriodMs = 1100; // one full breath = ~1.1s
+
+  late final AnimationController _controller;
+
+  bool get _hasEarnedStars => widget.count >= 1;
+
+  int _cycleFor(int count) {
+    if (count < 1) return _entryMs; // idle — controller won't repeat
+    final lastEntryEnd = _staggerMs * (count - 1) + _entryMs;
+    final lastFadeEnd =
+        lastEntryEnd + _holdMs + (count - 1) * _fadeStaggerMs + _fadeOutMs;
+    return lastFadeEnd + _pauseMs;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: _cycleFor(widget.count)),
+    );
+    if (_hasEarnedStars) _controller.repeat();
+  }
+
+  @override
+  void didUpdateWidget(_StarRow old) {
+    super.didUpdateWidget(old);
+    if (widget.count != old.count) {
+      _controller.stop();
+      _controller
+        ..duration = Duration(milliseconds: _cycleFor(widget.count))
+        ..value = 0;
+      if (_hasEarnedStars) _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Opacity + scale for earned star at [index].
+  /// Precondition: [index] < widget.count.
+  ({double opacity, double scale}) _transformFor(int index) {
+    final cycleMs = _cycleFor(widget.count);
+    final ms = _controller.value * cycleMs;
+    final entryStart = (_staggerMs * index).toDouble();
+    final entryEnd = entryStart + _entryMs;
+    final allLitStart = _staggerMs * (widget.count - 1) + _entryMs;
+    final holdEnd = allLitStart + _holdMs;
+    // Exit ripples leftward — rightmost (highest index) fades first
+    final fadeStart =
+        holdEnd + (widget.count - 1 - index) * _fadeStaggerMs;
+    final fadeEnd = fadeStart + _fadeOutMs;
+
+    // Entry: not yet
+    if (ms < entryStart) return (opacity: 0, scale: 0.3);
+    // Entry: two-phase dramatic pop — scale 0.3 → 1.25 (peak) → 1.0 (settle)
+    // Opacity reaches full by 50% of entry so star is fully visible at peak size.
+    if (ms < entryEnd) {
+      final phase = (ms - entryStart) / _entryMs;
+      const peakScale = 1.25;
+      const peakAt = 0.6;
+      double scale;
+      if (phase < peakAt) {
+        // Grow past final size
+        final t = phase / peakAt;
+        scale = 0.3 + (peakScale - 0.3) * Curves.easeOutQuad.transform(t);
+      } else {
+        // Settle back down to 1.0
+        final t = (phase - peakAt) / (1 - peakAt);
+        scale = peakScale - (peakScale - 1.0) * Curves.easeOutQuad.transform(t);
+      }
+      final opacity = (phase / 0.5).clamp(0.0, 1.0);
+      return (opacity: opacity, scale: scale);
+    }
+    // Waiting for later stars to finish entry — sit at scale 1
+    if (ms < allLitStart) return (opacity: 1, scale: 1);
+    // All lit — synchronized breathing pulse
+    if (ms < holdEnd) {
+      final t = (ms - allLitStart) / _breathPeriodMs;
+      final breath = 1.0 + _breathAmp * math.sin(t * 2 * math.pi);
+      return (opacity: 1, scale: breath);
+    }
+    // Waiting to start this star's fade (staggered exit)
+    if (ms < fadeStart) return (opacity: 1, scale: 1);
+    // Fade out
+    if (ms < fadeEnd) {
+      final phase = (ms - fadeStart) / _fadeOutMs;
+      return (opacity: 1 - Curves.easeIn.transform(phase), scale: 1);
+    }
+    return (opacity: 0, scale: 0.3); // gone, waiting for cycle end (pause)
+  }
+
+  Padding _starSlot(int i, Widget child) => Padding(
+        padding: EdgeInsets.only(
+          left: i == 0 ? 0 : 1 * widget.scale,
+          // Middle star raised slightly for crown effect
+          bottom: i == 1 ? 4 * widget.scale : 0,
+        ),
+        child: child,
+      );
+
+  Widget _outlineStar() => Icon(
+        Icons.star_outline_rounded,
+        size: 18 * widget.scale,
+        color: AppColors.neutral,
+      );
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(3, (i) {
-        final filled = i < count;
-        return Padding(
-          padding: EdgeInsets.only(
-            left: i == 0 ? 0 : 1 * scale,
-            // Middle star raised slightly for crown effect
-            bottom: i == 1 ? 4 * scale : 0,
-          ),
-          child: filled
-              ? AppIcons.star(size: 22 * scale)
-              : Icon(
-                  Icons.star_outline_rounded,
-                  size: 18 * scale,
-                  color: AppColors.neutral,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(3, (i) {
+          final earned = i < widget.count;
+          if (!earned) {
+            return _starSlot(i, _outlineStar());
+          }
+          // Earned slot: outlined placeholder behind + animated gold on top.
+          final t = _transformFor(i);
+          return _starSlot(
+            i,
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                _outlineStar(),
+                Opacity(
+                  opacity: t.opacity,
+                  child: Transform.scale(
+                    scale: t.scale,
+                    child: AppIcons.star(size: 22 * widget.scale),
+                  ),
                 ),
-        );
-      }),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 }

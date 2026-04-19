@@ -9,10 +9,14 @@ import '../../providers/teacher_preview_provider.dart';
 import '../inline_activities/inline_activities.dart';
 import 'reader_paragraph.dart';
 
-/// Integrated reader content with inline activities between paragraphs
-/// Content is progressively revealed - activities must be completed to unlock next section
-class ReaderLegacyContent extends ConsumerStatefulWidget {
-  const ReaderLegacyContent({
+/// Renders chapters stored in the v1 plain-text format (`chapter.content` string +
+/// paragraph splits). Used as an active fallback when `chapter.useContentBlocks`
+/// is false — NOT deprecated. The v2 path goes through [ReaderContentBlockList].
+///
+/// Inline activities appear between paragraphs; content is progressively revealed
+/// as activities are completed.
+class ReaderV1Content extends ConsumerStatefulWidget {
+  const ReaderV1Content({
     super.key,
     required this.chapter,
     required this.settings,
@@ -28,10 +32,10 @@ class ReaderLegacyContent extends ConsumerStatefulWidget {
   final ScrollController? scrollController;
 
   @override
-  ConsumerState<ReaderLegacyContent> createState() => _ReaderLegacyContentState();
+  ConsumerState<ReaderV1Content> createState() => _ReaderV1ContentState();
 }
 
-class _ReaderLegacyContentState extends ConsumerState<ReaderLegacyContent> {
+class _ReaderV1ContentState extends ConsumerState<ReaderV1Content> {
   int _previousCompletedCount = 0;
 
   @override

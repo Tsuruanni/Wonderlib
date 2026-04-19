@@ -10,7 +10,7 @@ import '../../providers/reader_provider.dart';
 import 'reader_chapter_completion.dart';
 import 'reader_collapsible_header.dart';
 import 'reader_content_block_list.dart';
-import 'reader_legacy_content.dart';
+import 'reader_v1_content.dart';
 import 'reader_settings_sheet.dart';
 
 /// Main scrollable body of the reader screen.
@@ -131,8 +131,8 @@ class ReaderBody extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                  // Chapter content - uses ReaderContentBlockList if available,
-                  // falls back to ReaderLegacyContent for legacy content
+                  // Chapter content - uses ReaderContentBlockList (v2) if available,
+                  // falls back to ReaderV1Content for plain-text chapters
                   _ChapterContent(
                     chapter: chapter,
                     settings: settings,
@@ -200,8 +200,8 @@ class _ChapterContent extends ConsumerWidget {
         onWordTap: onWordTap,
       );
     } else if (chapter.content != null) {
-      // Legacy plain text content
-      return ReaderLegacyContent(
+      // V1 plain text content format
+      return ReaderV1Content(
         key: ValueKey(chapter.id),
         chapter: chapter,
         settings: settings,

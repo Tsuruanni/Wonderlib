@@ -1,6 +1,6 @@
 # Project Status
 
-Son güncelleme: 2026-04-16 (Monthly Quest Engine — full-stack integration, tier badges, admin CRUD)
+Son güncelleme: 2026-04-19 (Gem currency rename, popup polish, star entrance animation, 2,114 LOC legacy cleanup)
 
 ## Current Phase
 
@@ -183,6 +183,7 @@ See: CLAUDE.md for architecture guidelines
 - [x] Daily Review Navigation Guard (deferred SM-2 writes, PopScope exit confirmation, shell nav block)
 - [x] AppIcons Registry & Full Icon System Migration (centralized PNG registry, 37 assets, 90+ Image.asset calls migrated, IconData→Widget refactor)
 - [x] Multi-Word Phrase Support (scrambledWords question type, phrase routing, punctuation-tolerant answers, batch content gen, admin phrase tools, audio timestamp fix)
+- [x] Gem Currency Rename + Popup Polish + Legacy Cleanup (coins→gems in 19 UI strings; path node popup white stats; PRACTICE AGAIN label + hide-on-100%; staggered star entrance animation with breathing hold; ~2,114 LOC dead code removed across 6 files; reader_legacy_content → reader_v1_content rename)
 - [ ] Offline mod (SyncService) - deferred
 - [ ] Mobil app yayını
 - [x] Remote Supabase deployment (`supabase db push`) ✅ 2026-03-16

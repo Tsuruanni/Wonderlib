@@ -300,8 +300,12 @@ class _SessionStatsCard extends StatelessWidget {
           if (progress.bestScore != null)
             _MiniStat(
               value: '${progress.bestScore}',
-              label: 'Top Coin',
-              icon: Icon(Icons.bolt_rounded, size: 20, color: AppColors.primary),
+              label: 'Top Gem',
+              icon: Image.asset(
+                'assets/icons/gem_outline_256.png',
+                width: 20,
+                height: 20,
+              ),
             ),
         ],
       ),

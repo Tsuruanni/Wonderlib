@@ -246,7 +246,7 @@ class _RewardView extends StatelessWidget {
           // Reward amount text — show explicitly what was won
           Text(
             isCoin
-                ? '${result.rewardAmount} Coins'
+                ? '${result.rewardAmount} Gems'
                 : '${result.rewardAmount} Card ${result.rewardAmount == 1 ? 'Pack' : 'Packs'}',
             style: AppTextStyles.headlineLarge(color: Colors.white),
           )

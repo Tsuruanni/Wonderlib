@@ -366,6 +366,13 @@ class NotificationCard extends StatefulWidget {
                   variant: AppChipVariant.custom,
                   customColor: color,
                   uppercase: false,
+                  icon: p.quest.rewardType == QuestRewardType.coins
+                      ? Image.asset(
+                          'assets/icons/gem_outline_256.png',
+                          width: 14,
+                          height: 14,
+                        )
+                      : null,
                 ),
               ],
             ),

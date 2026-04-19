@@ -58,7 +58,7 @@ class _TreasureWheelConfigScreenState extends ConsumerState<TreasureWheelConfigS
                   leading: CircleAvatar(backgroundColor: color),
                   title: Text(slice['label'] as String? ?? ''),
                   subtitle: Text(
-                    '${slice['reward_type'] == 'coin' ? 'Coin' : 'Kart Paketi'}'
+                    '${slice['reward_type'] == 'coin' ? 'Gem' : 'Kart Paketi'}'
                     ' × ${slice['reward_amount']}'
                     '  |  Ağırlık: ${slice['weight']}'
                     '  |  ${(slice['is_active'] as bool? ?? true) ? 'Aktif' : 'Pasif'}',
@@ -151,14 +151,14 @@ class _TreasureWheelConfigScreenState extends ConsumerState<TreasureWheelConfigS
               children: [
                 TextField(
                   controller: labelCtrl,
-                  decoration: const InputDecoration(labelText: 'Etiket (ör: 50 Coins)'),
+                  decoration: const InputDecoration(labelText: 'Etiket (ör: 50 Gems)'),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: rewardType,
                   decoration: const InputDecoration(labelText: 'Ödül Tipi'),
                   items: const [
-                    DropdownMenuItem(value: 'coin', child: Text('Coin')),
+                    DropdownMenuItem(value: 'coin', child: Text('Gem')),
                     DropdownMenuItem(value: 'card_pack', child: Text('Kart Paketi')),
                   ],
                   onChanged: (v) => setDialogState(() => rewardType = v!),

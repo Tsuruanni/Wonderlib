@@ -259,7 +259,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
           children: [
             _StatCard(
               assetPath: 'assets/icons/gem_outline_256.png',
-              label: 'Coins Earned',
+              label: 'Gems Earned',
               value:
                   '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
               subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,

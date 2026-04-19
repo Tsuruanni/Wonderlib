@@ -725,9 +725,13 @@ class _StatsSection extends StatelessWidget {
                       color: AppColors.gemBlue,
                     ),
                   )
-                : AppIcons.fireBlue(size: 18),
+                : Image.asset(
+                    'assets/icons/gem_outline_256.png',
+                    width: 18,
+                    height: 18,
+                  ),
             label: Text(
-              'Buy Freeze — $freezePrice coins',
+              'Buy Freeze — $freezePrice gems',
               style: AppTextStyles.bodyMedium()
                   .copyWith(fontWeight: FontWeight.w700),
             ),

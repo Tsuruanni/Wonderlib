@@ -70,7 +70,7 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Change Gender', style: AppTextStyles.titleMedium()),
         content: Text(
-          'Switch to ${otherBase.displayName} for 500 coins?\nYour current items will be saved.\n\nBalance: $coins coins',
+          'Switch to ${otherBase.displayName} for 500 gems?\nYour current items will be saved.\n\nBalance: $coins gems',
           style: AppTextStyles.bodyLarge(),
         ),
         actions: [
@@ -155,14 +155,14 @@ class _AvatarCustomizeScreenState extends ConsumerState<AvatarCustomizeScreen> {
                 AppIcons.gem(size: 20),
                 const SizedBox(width: 4),
                 Text(
-                  '${item.coinPrice} coins',
+                  '${item.coinPrice} gems',
                   style: AppTextStyles.titleMedium().copyWith(fontSize: 16),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              'You have $userCoins coins',
+              'You have $userCoins gems',
               style: AppTextStyles.bodySmall(color: AppColors.neutralText),
             ),
           ],
@@ -428,7 +428,7 @@ class _ItemGrid extends StatelessWidget {
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Not enough coins! Need ${item.coinPrice} coins.'),
+                  content: Text('Not enough gems! Need ${item.coinPrice} gems.'),
                   backgroundColor: AppColors.danger,
                   behavior: SnackBarBehavior.floating,
                   duration: const Duration(seconds: 2),

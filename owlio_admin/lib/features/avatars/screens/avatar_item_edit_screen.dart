@@ -320,7 +320,7 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
                   TextFormField(
                     controller: _coinPriceCtrl,
                     decoration:
-                        const InputDecoration(labelText: 'Coin Fiyatı'),
+                        const InputDecoration(labelText: 'Gem Fiyatı'),
                     keyboardType: TextInputType.number,
                     validator: (v) {
                       final val = int.tryParse(v ?? '');

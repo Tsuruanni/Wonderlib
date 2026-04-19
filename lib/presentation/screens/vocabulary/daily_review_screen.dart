@@ -272,7 +272,7 @@ class _DailyReviewScreenState extends ConsumerState<DailyReviewScreen>
                     AppIcons.gem(size: 32),
                     const SizedBox(width: 8),
                     Text(
-                      '+$xpEarned Coins',
+                      '+$xpEarned Gems',
                       style: AppTextStyles.display(
                         color: AppColors.streakOrange,
                         size: 24,

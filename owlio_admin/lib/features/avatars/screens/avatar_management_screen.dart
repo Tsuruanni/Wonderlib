@@ -349,7 +349,7 @@ class _ItemsTabState extends ConsumerState<_ItemsTab> {
                       ),
                     ),
                     subtitle: Text(
-                      '${category?['display_name'] ?? '?'} | $rarity | ${item['coin_price']} coin${!isActive ? ' | İNAKTİF' : ''}',
+                      '${category?['display_name'] ?? '?'} | $rarity | ${item['coin_price']} gem${!isActive ? ' | İNAKTİF' : ''}',
                     ),
                     trailing: const Icon(Icons.edit),
                     onTap: () =>
