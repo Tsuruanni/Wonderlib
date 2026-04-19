@@ -34,7 +34,7 @@ class AdminSidebar extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          _Header(),
+          const _Header(),
           Expanded(child: _NavList(currentIndex: currentIndex, onBranchSelected: onBranchSelected)),
           _Footer(
             email: userAsync.valueOrNull?.email,
@@ -49,6 +49,8 @@ class AdminSidebar extends ConsumerWidget {
 }
 
 class _Header extends StatelessWidget {
+  const _Header();
+
   @override
   Widget build(BuildContext context) {
     return Container(
