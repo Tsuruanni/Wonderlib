@@ -92,7 +92,7 @@ const List<AdminNavEntry> kAdminNavEntries = [
   AdminNavEntry(
     rootPath: '/quests',
     icon: Icons.bolt,
-    label: 'Daily Quests',
+    label: 'Günlük Görevler',
     group: 'OYUNLAŞTIRMA',
   ),
   AdminNavEntry(
@@ -117,7 +117,7 @@ const List<AdminNavEntry> kAdminNavEntries = [
   AdminNavEntry(
     rootPath: '/notifications',
     icon: Icons.notifications_active,
-    label: 'Notifications',
+    label: 'Bildirimler',
     group: 'SİSTEM',
   ),
   AdminNavEntry(
