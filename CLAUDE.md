@@ -10,6 +10,12 @@ When compressing context, preserve in priority order:
 
 ---
 
+## UI Work — Consult the Skill First
+
+Before modifying anything under `lib/presentation/`, invoke the **`owlio-ui-style`** skill (at `.claude/skills/owlio-ui-style/SKILL.md`). It covers the Duolingo-inspired design system: `AppTextStyles`, `AppColors`, `AppChip`, `GameButton` (with `.ghost` variant), `AppRadius`, `AppOpacity` — plus common mistakes and the Duolingo spec alignment. Skipping this skill leads to hardcoded fonts/colors/radii that regress the centralization work.
+
+---
+
 ## Architecture Rules (CRITICAL)
 
 ### NEVER Do This
