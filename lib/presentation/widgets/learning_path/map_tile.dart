@@ -74,6 +74,11 @@ class MapTile extends StatelessWidget {
                 ? Image.network(
                     theme.imageUrl!,
                     fit: BoxFit.cover,
+                    // Tile source images can be very tall (e.g. 3072×11000).
+                    // Decoding at full resolution blows RAM and exceeds
+                    // GL_MAX_TEXTURE_SIZE on many Android GPUs → blank render.
+                    // cacheWidth scales decode to a safe, sharp-enough size.
+                    cacheWidth: 1600,
                     frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
                       if (wasSynchronouslyLoaded) {
                         return _TileContent(

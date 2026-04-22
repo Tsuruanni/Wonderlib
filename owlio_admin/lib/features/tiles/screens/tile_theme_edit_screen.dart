@@ -116,6 +116,32 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
 
     setState(() => _isLoading = true);
     try {
+      // Validate dimensions BEFORE upload. Many Android GPUs cap texture
+      // size at 4096; going over produces a blank tile on mobile even
+      // when the file is small on disk.
+      final codec = await ui.instantiateImageCodec(file.bytes!);
+      final frame = await codec.getNextFrame();
+      final imgW = frame.image.width;
+      final imgH = frame.image.height;
+      const maxDim = 2048;
+      if (imgW > maxDim || imgH > maxDim) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Görsel çok büyük: $imgW×$imgH px. '
+                'Lütfen en uzun kenarı $maxDim px altında olacak şekilde yeniden boyutlandırıp yükleyin '
+                '(mobilde GPU texture limiti aşılırsa görsel hiç görünmez).',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 8),
+            ),
+          );
+        }
+        setState(() => _isLoading = false);
+        return;
+      }
+
       final supabase = ref.read(supabaseClientProvider);
 
       final ext = file.extension ?? 'png';
@@ -134,12 +160,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
 
       final url = supabase.storage.from('avatars').getPublicUrl(path);
 
-      // Auto-calculate tile height from image aspect ratio
-      // Reference: kTileWidth = 800, so height = 800 * imgH / imgW
-      final codec = await ui.instantiateImageCodec(file.bytes!);
-      final frame = await codec.getNextFrame();
-      final imgW = frame.image.width;
-      final imgH = frame.image.height;
+      // Tile height is derived from the image aspect ratio:
+      // kTileWidth = 800, so height = 800 * imgH / imgW.
       final autoHeight = (800.0 * imgH / imgW).roundToDouble();
 
       setState(() {
@@ -373,7 +395,8 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Önerilen genişlik: 1920px. '
+                                  'Önerilen genişlik: 1920px. En uzun kenar 2048px altı olmalı '
+                                  '(aksi halde mobilde görsel yüklenmez). '
                                   'Yükseklik görselin en-boy oranından otomatik hesaplanır.',
                                   style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
                                 ),
