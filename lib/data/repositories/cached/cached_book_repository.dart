@@ -416,7 +416,8 @@ class CachedBookRepository implements BookRepository {
       // 3. Add chapter to completed list if not already there
       final completedChapters =
           List<String>.from(progress.completedChapterIds);
-      if (!completedChapters.contains(chapterId)) {
+      final wasAlreadyCompleted = completedChapters.contains(chapterId);
+      if (!wasAlreadyCompleted) {
         completedChapters.add(chapterId);
       }
 
@@ -438,26 +439,31 @@ class CachedBookRepository implements BookRepository {
       // 6. Write to cache with dirty flag
       await _cacheStore.saveReadingProgress(updatedProgress, isDirty: true);
 
-      // 7. Queue pending actions for sync
-      await _cacheStore.queuePendingAction(
-        actionType: 'award_xp',
-        payload: {
-          'user_id': userId,
-          'book_id': bookId,
-          'chapter_id': chapterId,
-          'source': 'chapter_complete',
-          'source_id': chapterId,
-        },
-        bookId: bookId,
-      );
-      await _cacheStore.queuePendingAction(
-        actionType: 'log_daily_read',
-        payload: {
-          'user_id': userId,
-          'chapter_id': chapterId,
-        },
-        bookId: bookId,
-      );
+      // 7. Queue pending actions for sync — only on first-time completion.
+      //    Re-reads must not award XP again or count toward daily quests.
+      //    (XP is DB-idempotent via source_id, but the queued action is wasted
+      //    work; the daily read log is NOT idempotent across days.)
+      if (!wasAlreadyCompleted) {
+        await _cacheStore.queuePendingAction(
+          actionType: 'award_xp',
+          payload: {
+            'user_id': userId,
+            'book_id': bookId,
+            'chapter_id': chapterId,
+            'source': 'chapter_complete',
+            'source_id': chapterId,
+          },
+          bookId: bookId,
+        );
+        await _cacheStore.queuePendingAction(
+          actionType: 'log_daily_read',
+          payload: {
+            'user_id': userId,
+            'chapter_id': chapterId,
+          },
+          bookId: bookId,
+        );
+      }
 
       return Right(updatedProgress);
     } catch (e) {

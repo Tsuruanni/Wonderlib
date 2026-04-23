@@ -319,7 +319,8 @@ class SupabaseBookRepository implements BookRepository {
         (progress) async {
           // 2. Add chapter to completed list if not already there
           final completedChapters = List<String>.from(progress.completedChapterIds);
-          if (!completedChapters.contains(chapterId)) {
+          final wasAlreadyCompleted = completedChapters.contains(chapterId);
+          if (!wasAlreadyCompleted) {
             completedChapters.add(chapterId);
           }
 
@@ -344,9 +345,12 @@ class SupabaseBookRepository implements BookRepository {
 
               final result = await updateReadingProgress(updatedProgress);
 
-              // 5. Log for daily tracking (awaited so the row exists
-              //    before dailyQuestProgressProvider is invalidated).
-              await _logDailyChapterRead(userId, chapterId);
+              // 5. Log for daily tracking only on first-time completion.
+              //    Re-reading an already-completed chapter must not count
+              //    toward daily quests (read_chapters / read_words).
+              if (!wasAlreadyCompleted) {
+                await _logDailyChapterRead(userId, chapterId);
+              }
 
               return result;
             },
