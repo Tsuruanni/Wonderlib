@@ -42,13 +42,15 @@ class TileThemeModel {
 
   /// Rewrites a raw Supabase Storage URL to the image-transformation endpoint
   /// so the CDN returns a server-resized copy. Tile source images can be
-  /// 3072×11000 (~34M px) — above the decode limit of strict mobile browsers
-  /// like Samsung Internet, which silently render transparent. Asking the
-  /// server for width=1600 brings the image well under any browser limit
-  /// (≤9M px) and shrinks both transfer size and client decode RAM.
+  /// 3072×11000 — far above the decode ceiling of strict mobile browsers.
   ///
-  /// resize=contain is mandatory: the default mode caps height at 8192 and
-  /// crops vertically, which breaks the aspect ratio node positions depend on.
+  /// width=1024 keeps the output ≤ 3667 px tall after contain scaling, which
+  /// is under the ~4096 single-dimension cap Samsung Internet and iOS Safari
+  /// enforce. Higher widths (1600) decoded fine on Chrome but silently
+  /// produced transparent output on Samsung even with resize=contain.
+  ///
+  /// resize=contain preserves aspect ratio; the default mode crops vertically
+  /// and misaligns the percentage-based node positions.
   static String? _rewriteToRenderEndpoint(String? url) {
     if (url == null || url.isEmpty) return url;
     const objectPath = '/storage/v1/object/public/';
@@ -56,7 +58,7 @@ class TileThemeModel {
     if (!url.contains(objectPath)) return url;
     final rewritten = url.replaceFirst(objectPath, renderPath);
     final separator = rewritten.contains('?') ? '&' : '?';
-    return '$rewritten${separator}width=1600&resize=contain&quality=80';
+    return '$rewritten${separator}width=1024&resize=contain&quality=80';
   }
 
   final String id;
