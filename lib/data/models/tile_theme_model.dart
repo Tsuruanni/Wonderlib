@@ -36,8 +36,24 @@ class TileThemeModel {
       nodePositions: positions,
       sortOrder: json['sort_order'] as int? ?? 0,
       isActive: json['is_active'] as bool? ?? true,
-      imageUrl: json['image_url'] as String?,
+      imageUrl: _rewriteToRenderEndpoint(json['image_url'] as String?),
     );
+  }
+
+  /// Rewrites a raw Supabase Storage URL to the image-transformation endpoint
+  /// so the CDN returns a server-resized copy. Tile source images can be
+  /// 3072×11000 (~34M px) — above the decode limit of strict mobile browsers
+  /// like Samsung Internet, which silently render transparent. Asking the
+  /// server for width=1600 brings the image well under any browser limit
+  /// (≤9M px) and shrinks both transfer size and client decode RAM.
+  static String? _rewriteToRenderEndpoint(String? url) {
+    if (url == null || url.isEmpty) return url;
+    const objectPath = '/storage/v1/object/public/';
+    const renderPath = '/storage/v1/render/image/public/';
+    if (!url.contains(objectPath)) return url;
+    final rewritten = url.replaceFirst(objectPath, renderPath);
+    final separator = rewritten.contains('?') ? '&' : '?';
+    return '$rewritten${separator}width=1600&quality=80';
   }
 
   final String id;
