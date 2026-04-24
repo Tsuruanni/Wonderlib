@@ -46,6 +46,9 @@ class TileThemeModel {
   /// like Samsung Internet, which silently render transparent. Asking the
   /// server for width=1600 brings the image well under any browser limit
   /// (≤9M px) and shrinks both transfer size and client decode RAM.
+  ///
+  /// resize=contain is mandatory: the default mode caps height at 8192 and
+  /// crops vertically, which breaks the aspect ratio node positions depend on.
   static String? _rewriteToRenderEndpoint(String? url) {
     if (url == null || url.isEmpty) return url;
     const objectPath = '/storage/v1/object/public/';
@@ -53,7 +56,7 @@ class TileThemeModel {
     if (!url.contains(objectPath)) return url;
     final rewritten = url.replaceFirst(objectPath, renderPath);
     final separator = rewritten.contains('?') ? '&' : '?';
-    return '$rewritten${separator}width=1600&quality=80';
+    return '$rewritten${separator}width=1600&resize=contain&quality=80';
   }
 
   final String id;
