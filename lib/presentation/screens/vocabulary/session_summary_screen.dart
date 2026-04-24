@@ -41,9 +41,44 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
 
   AudioPlayer? _victoryPlayer;
 
+  late final int _totalQuestions;
+  late final int _correctCount;
+  late final int _incorrectCount;
+  late final int _maxCombo;
+  late final int _xpEarned;
+  late final int _durationSeconds;
+  late final List<WordSessionState> _words;
+  // Snapshots used when saving — derived from _words so that `_saveSession`
+  // is immune to the provider state being reset/mutated between this mount
+  // and the postFrame callback that triggers the save.
+  late final int _wordsStrong;
+  late final int _wordsWeak;
+  late final int _firstTryPerfectCount;
+  late final List<SessionWordResult> _wordResults;
+
   @override
   void initState() {
     super.initState();
+    final session = ref.read(vocabularySessionControllerProvider);
+    _totalQuestions = session.totalQuestionsAnswered;
+    _correctCount = session.correctCount;
+    _incorrectCount = session.incorrectCount;
+    _maxCombo = session.maxCombo;
+    _xpEarned = session.xpEarned;
+    _durationSeconds = session.durationSeconds;
+    _words = session.words;
+    _wordsStrong = _words.where((w) => w.incorrectCount == 0).length;
+    _wordsWeak = _words.where((w) => w.incorrectCount > 0).length;
+    _firstTryPerfectCount = _words.where((w) => w.isFirstTryPerfect).length;
+    _wordResults = _words
+        .map((w) => SessionWordResult(
+              wordId: w.wordId,
+              correctCount: w.correctCount,
+              incorrectCount: w.incorrectCount,
+              masteryLevel: w.masteryLevel,
+              isFirstTryPerfect: w.isFirstTryPerfect,
+            ))
+        .toList();
     _playVictorySound();
     _maybeSurprise();
     WidgetsBinding.instance.addPostFrameCallback((_) => _saveSession());
@@ -62,8 +97,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   void _maybeSurprise() {
     // 30% chance of showing a surprise stat
     if (Random().nextDouble() < 0.3) {
-      final session = ref.read(vocabularySessionControllerProvider);
-      final perfectWords = session.words.where((w) => w.isFirstTryPerfect).toList();
+      final perfectWords = _words.where((w) => w.isFirstTryPerfect).toList();
       if (perfectWords.isNotEmpty) {
         final word = perfectWords[Random().nextInt(perfectWords.length)];
         _surpriseStat =
@@ -76,56 +110,52 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
     final currentStatus = ref.read(sessionSaveProvider).status;
     if (currentStatus == SessionSaveStatus.saving) return;
 
-    final controller = ref.read(vocabularySessionControllerProvider.notifier);
-    final session = ref.read(vocabularySessionControllerProvider);
     final userId = ref.read(currentUserIdProvider);
 
     if (userId == null) return;
 
     final settings = ref.read(systemSettingsProvider).valueOrNull ?? SystemSettings.defaults();
-    final comboBonus = session.maxCombo * settings.comboBonusXp;
+    final comboBonus = _maxCombo * settings.comboBonusXp;
     setState(() => _comboBonus = comboBonus);
 
-    final wordResults = controller.buildWordResults();
-    final accuracy = session.correctCount + session.incorrectCount > 0
-        ? (session.correctCount /
-                (session.correctCount + session.incorrectCount)) *
-            100
+    final accuracy = _correctCount + _incorrectCount > 0
+        ? (_correctCount / (_correctCount + _incorrectCount)) * 100
         : 0.0;
 
     await ref.read(sessionSaveProvider.notifier).save(
           userId: userId,
           listId: widget.listId,
-          totalQuestions: session.totalQuestionsAnswered,
-          correctCount: session.correctCount,
-          incorrectCount: session.incorrectCount,
+          totalQuestions: _totalQuestions,
+          correctCount: _correctCount,
+          incorrectCount: _incorrectCount,
           accuracy: accuracy,
-          maxCombo: session.maxCombo,
-          xpEarned: session.xpEarned + comboBonus,
-          durationSeconds: session.durationSeconds,
-          wordsStrong: controller.wordsStrongCount,
-          wordsWeak: controller.wordsWeakCount,
-          firstTryPerfectCount: controller.firstTryPerfectCount,
-          wordResults: wordResults,
+          maxCombo: _maxCombo,
+          xpEarned: _xpEarned + comboBonus,
+          durationSeconds: _durationSeconds,
+          wordsStrong: _wordsStrong,
+          wordsWeak: _wordsWeak,
+          firstTryPerfectCount: _firstTryPerfectCount,
+          wordResults: _wordResults,
         );
   }
 
   @override
   void dispose() {
     _victoryPlayer?.dispose();
+    // Clear session state so a subsequent Practice Again on this same listId
+    // doesn't short-circuit on the `_loadAndStart` guard (which checks
+    // `isSessionComplete && currentListId == widget.listId`).
+    ref.read(vocabularySessionControllerProvider.notifier).reset();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final session = ref.watch(vocabularySessionControllerProvider);
     final saveState = ref.watch(sessionSaveProvider);
     final saved = saveState.status == SessionSaveStatus.saved;
-    final accuracy = session.correctCount + session.incorrectCount > 0
-        ? (session.correctCount /
-                (session.correctCount + session.incorrectCount)) *
-            100
+    final accuracy = _correctCount + _incorrectCount > 0
+        ? (_correctCount / (_correctCount + _incorrectCount)) * 100
         : 0.0;
 
     ref.listen<SessionSaveState>(sessionSaveProvider, (prev, next) {
@@ -145,7 +175,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
 
     final isWide = MediaQuery.sizeOf(context).width >= 600;
 
-    final reportSection = _WordStatusList(words: session.words)
+    final reportSection = _WordStatusList(words: _words)
         .animate()
         .fadeIn(delay: 800.ms);
 
@@ -228,13 +258,13 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: _buildStatsColumn(session, saveState, accuracy)),
+                      Expanded(child: _buildStatsColumn(saveState, accuracy)),
                       const SizedBox(width: 32),
                       Expanded(child: reportSection),
                     ],
                   )
                 else ...[
-                  _buildStatsColumn(session, saveState, accuracy),
+                  _buildStatsColumn(saveState, accuracy),
                   const SizedBox(height: 32),
                   reportSection,
                   const SizedBox(height: 20),
@@ -248,7 +278,6 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
   }
 
   Widget _buildStatsColumn(
-    VocabularySessionState session,
     SessionSaveState saveState,
     double accuracy,
   ) {
@@ -261,7 +290,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
               assetPath: 'assets/icons/gem_outline_256.png',
               label: 'Gems Earned',
               value:
-                  '+${saveState.actualXpAwarded ?? (session.xpEarned + _comboBonus)}',
+                  '+${saveState.actualXpAwarded ?? (_xpEarned + _comboBonus)}',
               subtitle: _comboBonus > 0 ? '(+$_comboBonus combo)' : null,
               delay: 500.ms,
             ),
@@ -282,7 +311,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
               icon: Icons.local_fire_department_rounded,
               iconColor: Colors.deepOrange,
               label: 'Max Combo',
-              value: 'x${session.maxCombo}',
+              value: 'x$_maxCombo',
               delay: 700.ms,
             ),
             const SizedBox(width: 12),
@@ -290,7 +319,7 @@ class _SessionSummaryScreenState extends ConsumerState<SessionSummaryScreen> {
               icon: Icons.timer_outlined,
               iconColor: Colors.teal,
               label: 'Time',
-              value: _formatDuration(session.durationSeconds),
+              value: _formatDuration(_durationSeconds),
               delay: 800.ms,
             ),
           ],

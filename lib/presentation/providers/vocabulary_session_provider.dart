@@ -36,6 +36,7 @@ class VocabularySessionState {
     this.reinforceQuestionsAsked = 0,
     this.finalQuestionsAsked = 0,
     this.micDisabledForSession = false,
+    this.currentListId,
   });
 
   final SessionPhase phase;
@@ -62,6 +63,10 @@ class VocabularySessionState {
   final int reinforceQuestionsAsked;
   final int finalQuestionsAsked;
   final bool micDisabledForSession;
+
+  /// The word-list ID this session is for. Used by the session screen to
+  /// detect remounts (same listId + isSessionComplete) and skip re-init.
+  final String? currentListId;
 
   /// Current pair of words being introduced (Faz 1)
   List<WordSessionState> get currentPair {
@@ -170,7 +175,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
   final _random = Random();
 
   /// Start a new session with words from a word list
-  void startSession(List<VocabularyWord> vocabularyWords) {
+  void startSession(List<VocabularyWord> vocabularyWords, {String? listId}) {
     if (vocabularyWords.isEmpty) return;
 
     final wordStates = vocabularyWords.map((w) => WordSessionState(
@@ -192,6 +197,7 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       introductionPairIndex: 0,
       isShowingIntroduction: true,
       startTime: DateTime.now(),
+      currentListId: listId,
     );
   }
 
@@ -902,6 +908,287 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     'was', 'but', 'or', 'an', 'up', 'out', 'so', 'no', 'if', 'at',
   ];
 
+  /// Confusion groups for phrase distractors.
+  ///
+  /// Each inner list is a set of mutually-confusable words (same grammatical
+  /// or semantic category). When a phrase contains a word from a group, the
+  /// other members become high-quality distractors — e.g. a phrase with "in"
+  /// pulls "on", "at", "by" instead of random function words.
+  ///
+  /// Entries must be lowercase and punctuation-free (matched via `_normalize`).
+  /// Overlapping entries are intentional (e.g. "may" is both a modal and a
+  /// month) — all matching groups contribute to the candidate pool.
+  static const _confusionGroups = <List<String>>[
+    // ── Function words ─────────────────────────
+    ['in', 'on', 'at', 'by', 'to', 'from', 'with', 'for', 'of', 'about', 'into', 'onto', 'under', 'over', 'between', 'through', 'across'],
+    ['every', 'some', 'any', 'all', 'most', 'many', 'few', 'several', 'none', 'each', 'both', 'either', 'neither'],
+    ['much', 'little', 'lots', 'plenty', 'enough'],
+    ['the', 'a', 'an'],
+    ['this', 'that', 'these', 'those'],
+    ['can', 'could', 'will', 'would', 'should', 'may', 'might', 'must', 'shall'],
+    ['he', 'she', 'it', 'they', 'we', 'you', 'i'],
+    ['him', 'her', 'them', 'us', 'me'],
+    ['my', 'your', 'his', 'her', 'its', 'our', 'their'],
+    ['mine', 'yours', 'hers', 'ours', 'theirs'],
+    ['myself', 'yourself', 'himself', 'herself', 'itself', 'ourselves', 'themselves'],
+    ['and', 'but', 'or', 'so', 'because', 'although', 'while', 'since', 'unless', 'until'],
+    ['is', 'are', 'was', 'were', 'am', 'be', 'been', 'being'],
+    ['do', 'does', 'did', 'have', 'has', 'had', 'having'],
+    ['what', 'where', 'when', 'why', 'how', 'who', 'which', 'whose', 'whom'],
+    ['very', 'quite', 'really', 'too', 'rather', 'fairly', 'pretty', 'extremely', 'absolutely'],
+    ['always', 'never', 'sometimes', 'often', 'usually', 'rarely', 'seldom', 'frequently', 'occasionally'],
+    ['here', 'there', 'everywhere', 'somewhere', 'anywhere', 'nowhere'],
+    ['now', 'then', 'today', 'tomorrow', 'yesterday', 'later', 'soon', 'already', 'yet', 'still'],
+    ['yes', 'no', 'maybe', 'perhaps', 'probably', 'definitely', 'certainly'],
+
+    // ── Time ───────────────────────────────────
+    ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+    [
+      'january', 'february', 'march', 'april', 'may', 'june',
+      'july', 'august', 'september', 'october', 'november', 'december',
+    ],
+    ['spring', 'summer', 'autumn', 'fall', 'winter'],
+    ['morning', 'afternoon', 'evening', 'night', 'noon', 'midnight', 'midday', 'dawn', 'dusk', 'sunrise', 'sunset'],
+    ['breakfast', 'lunch', 'dinner', 'brunch', 'snack', 'supper'],
+    ['second', 'minute', 'hour', 'day', 'week', 'month', 'year', 'decade', 'century'],
+    ['clock', 'watch', 'alarm', 'timer', 'calendar', 'schedule', 'date', 'time'],
+
+    // ── School / class ─────────────────────────
+    ['teacher', 'student', 'principal', 'classmate', 'pupil', 'tutor', 'professor', 'headmaster', 'instructor'],
+    ['classroom', 'library', 'cafeteria', 'gym', 'lab', 'laboratory', 'auditorium', 'playground', 'hallway', 'corridor'],
+    ['desk', 'chair', 'blackboard', 'whiteboard', 'board', 'projector', 'screen', 'locker'],
+    ['book', 'notebook', 'textbook', 'dictionary', 'notepad', 'diary', 'journal', 'workbook'],
+    ['pen', 'pencil', 'eraser', 'ruler', 'marker', 'crayon', 'highlighter', 'pencilcase', 'sharpener', 'stapler', 'glue', 'scissors', 'backpack', 'bag'],
+    ['lesson', 'class', 'course', 'subject', 'topic', 'unit', 'chapter'],
+    ['exam', 'test', 'quiz', 'homework', 'assignment', 'project', 'presentation', 'essay', 'report'],
+    ['break', 'recess', 'holiday', 'vacation', 'semester', 'term'],
+    ['math', 'mathematics', 'science', 'history', 'geography', 'english', 'literature', 'biology', 'chemistry', 'physics', 'art', 'music', 'sports'],
+    ['grade', 'mark', 'score', 'result', 'rank'],
+    ['study', 'learn', 'teach', 'revise', 'review', 'memorize'],
+
+    // ── Life & people ──────────────────────────
+    ['baby', 'child', 'kid', 'teenager', 'teen', 'adult', 'elderly', 'youth', 'toddler', 'infant', 'senior'],
+    ['birth', 'birthday', 'wedding', 'funeral', 'graduation', 'anniversary', 'christening'],
+    ['single', 'married', 'divorced', 'engaged', 'widowed'],
+    [
+      'mother', 'father', 'brother', 'sister', 'son', 'daughter',
+      'uncle', 'aunt', 'cousin', 'grandma', 'grandpa', 'grandmother', 'grandfather', 'niece', 'nephew',
+    ],
+    ['mom', 'dad', 'mum', 'parent', 'sibling', 'relative', 'spouse', 'husband', 'wife'],
+    ['friend', 'neighbor', 'stranger', 'enemy', 'colleague', 'buddy', 'partner', 'roommate'],
+    ['man', 'woman', 'boy', 'girl', 'gentleman', 'lady', 'person', 'people'],
+
+    // ── Universe / space ───────────────────────
+    ['sun', 'moon', 'star', 'planet', 'earth', 'mars', 'venus', 'jupiter', 'saturn', 'mercury', 'neptune', 'uranus', 'pluto'],
+    ['sky', 'space', 'galaxy', 'universe', 'cosmos', 'comet', 'meteor', 'asteroid', 'nebula', 'orbit'],
+    ['astronaut', 'rocket', 'spaceship', 'satellite', 'telescope', 'shuttle'],
+
+    // ── Habits / daily routine ─────────────────
+    ['wake', 'sleep', 'rest', 'nap', 'dream', 'snore', 'yawn'],
+    ['brush', 'wash', 'shower', 'bathe', 'rinse', 'scrub', 'shave', 'comb'],
+    ['dress', 'undress', 'wear', 'change', 'fold', 'hang'],
+    ['clean', 'tidy', 'iron', 'vacuum', 'sweep', 'mop', 'dust', 'polish'],
+    ['cook', 'bake', 'fry', 'boil', 'grill', 'roast', 'steam', 'chop', 'slice', 'peel', 'stir', 'mix'],
+    ['exercise', 'stretch', 'meditate', 'workout', 'train', 'practice'],
+    ['read', 'write', 'draw', 'paint', 'sketch', 'color'],
+    ['play', 'watch', 'listen', 'relax', 'chat', 'browse', 'scroll'],
+    ['walk', 'jog', 'run', 'hike', 'stroll'],
+    ['commute', 'drive', 'ride', 'travel'],
+
+    // ── Music ──────────────────────────────────
+    ['guitar', 'piano', 'drum', 'violin', 'flute', 'trumpet', 'saxophone', 'harp', 'bass', 'keyboard', 'cello', 'clarinet', 'tambourine', 'xylophone'],
+    ['singer', 'musician', 'composer', 'conductor', 'band', 'choir', 'orchestra', 'dj', 'drummer', 'guitarist', 'pianist', 'violinist'],
+    ['song', 'album', 'concert', 'melody', 'rhythm', 'beat', 'note', 'chord', 'harmony', 'lyrics', 'verse', 'chorus', 'tune', 'track', 'single'],
+    ['pop', 'rock', 'jazz', 'classical', 'hiphop', 'rap', 'country', 'blues', 'folk', 'metal', 'electronic', 'reggae'],
+    ['sing', 'play', 'perform', 'compose', 'record', 'dance', 'hum', 'whistle'],
+    ['loud', 'quiet', 'soft', 'noisy', 'silent'],
+
+    // ── Numbers ────────────────────────────────
+    [
+      'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten',
+      'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen',
+      'eighteen', 'nineteen', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
+      'eighty', 'ninety', 'hundred', 'thousand', 'million', 'billion',
+    ],
+    ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth', 'tenth', 'last', 'next', 'final'],
+    ['half', 'third', 'quarter', 'double', 'triple'],
+
+    // ── Colors ─────────────────────────────────
+    [
+      'red', 'blue', 'green', 'yellow', 'black', 'white', 'orange',
+      'purple', 'pink', 'brown', 'gray', 'grey', 'silver', 'gold',
+      'beige', 'navy', 'maroon', 'turquoise', 'violet', 'indigo',
+    ],
+    ['light', 'dark', 'bright', 'pale', 'deep'],
+
+    // ── Body ───────────────────────────────────
+    ['head', 'face', 'neck', 'forehead', 'eyebrow', 'eyelash', 'jaw'],
+    ['eye', 'ear', 'nose', 'mouth', 'tooth', 'teeth', 'tongue', 'lip', 'chin', 'cheek'],
+    ['hand', 'arm', 'leg', 'foot', 'finger', 'thumb', 'toe', 'knee', 'elbow', 'shoulder', 'wrist', 'ankle', 'hip', 'waist'],
+    ['hair', 'skin', 'bone', 'muscle', 'blood', 'nail'],
+    ['heart', 'brain', 'lung', 'stomach', 'liver', 'kidney'],
+    ['back', 'chest', 'belly', 'stomach'],
+
+    // ── Animals ────────────────────────────────
+    ['cat', 'dog', 'bird', 'fish', 'hamster', 'rabbit', 'parrot', 'turtle', 'lizard'],
+    ['cow', 'horse', 'sheep', 'pig', 'goat', 'chicken', 'duck', 'goose', 'donkey', 'rooster', 'hen'],
+    ['lion', 'tiger', 'bear', 'wolf', 'fox', 'elephant', 'monkey', 'snake', 'zebra', 'giraffe', 'hippo', 'kangaroo', 'leopard', 'cheetah', 'panda', 'koala'],
+    ['whale', 'dolphin', 'shark', 'octopus', 'crab', 'lobster', 'jellyfish', 'seal', 'penguin'],
+    ['butterfly', 'bee', 'ant', 'spider', 'fly', 'mosquito', 'beetle', 'grasshopper', 'ladybug', 'worm'],
+    ['eagle', 'owl', 'sparrow', 'pigeon', 'crow', 'hawk', 'dove', 'swan'],
+
+    // ── Food ───────────────────────────────────
+    ['apple', 'banana', 'orange', 'grape', 'strawberry', 'lemon', 'peach', 'pear', 'cherry', 'mango', 'pineapple', 'watermelon', 'melon', 'kiwi', 'plum', 'apricot'],
+    ['carrot', 'potato', 'tomato', 'onion', 'cucumber', 'lettuce', 'broccoli', 'pepper', 'pea', 'bean', 'corn', 'garlic', 'spinach', 'cabbage'],
+    ['bread', 'cake', 'cookie', 'pastry', 'croissant', 'muffin', 'donut', 'pie', 'bun', 'roll'],
+    ['cheese', 'butter', 'milk', 'yogurt', 'cream', 'ice'],
+    ['egg', 'meat', 'chicken', 'beef', 'pork', 'fish', 'lamb', 'turkey', 'sausage', 'bacon', 'ham'],
+    ['rice', 'pasta', 'noodle', 'cereal', 'oat', 'wheat', 'flour'],
+    ['water', 'juice', 'tea', 'coffee', 'soda', 'lemonade', 'milkshake', 'smoothie', 'cocoa'],
+    ['salt', 'pepper', 'sugar', 'honey', 'jam', 'sauce', 'oil', 'vinegar'],
+
+    // ── Weather ────────────────────────────────
+    ['sunny', 'rainy', 'cloudy', 'windy', 'snowy', 'foggy', 'stormy', 'misty', 'hazy'],
+    ['hot', 'cold', 'warm', 'cool', 'freezing', 'boiling', 'chilly', 'mild'],
+    ['rain', 'snow', 'wind', 'cloud', 'storm', 'thunder', 'lightning', 'fog', 'hail', 'rainbow', 'hurricane', 'tornado'],
+
+    // ── Nature ─────────────────────────────────
+    ['tree', 'flower', 'grass', 'leaf', 'plant', 'bush', 'root', 'branch', 'seed', 'petal', 'stem'],
+    ['forest', 'mountain', 'hill', 'valley', 'cave', 'cliff', 'field', 'meadow', 'jungle'],
+    ['river', 'lake', 'ocean', 'sea', 'beach', 'desert', 'island', 'coast', 'pond', 'stream', 'waterfall'],
+    ['rose', 'tulip', 'daisy', 'sunflower', 'lily', 'orchid'],
+
+    // ── Adjectives (many dimensions) ───────────
+    ['big', 'small', 'tiny', 'huge', 'large', 'little', 'giant', 'enormous', 'massive', 'mini'],
+    ['good', 'bad', 'nice', 'great', 'awful', 'terrible', 'wonderful', 'horrible', 'excellent', 'amazing', 'poor', 'fine'],
+    ['happy', 'sad', 'angry', 'scared', 'tired', 'excited', 'bored', 'surprised', 'nervous', 'proud', 'shy', 'lonely', 'jealous', 'confused'],
+    ['fast', 'slow', 'quick', 'rapid', 'swift', 'sluggish'],
+    ['new', 'old', 'young', 'ancient', 'modern', 'recent', 'fresh'],
+    ['easy', 'hard', 'difficult', 'simple', 'tough', 'tricky', 'complex'],
+    ['clean', 'dirty', 'messy', 'tidy', 'neat', 'filthy', 'spotless'],
+    ['beautiful', 'ugly', 'pretty', 'handsome', 'cute', 'gorgeous', 'stunning', 'plain'],
+    ['strong', 'weak', 'powerful', 'fragile', 'tough', 'delicate'],
+    ['rich', 'poor', 'wealthy', 'broke'],
+    ['smart', 'clever', 'intelligent', 'bright', 'brilliant', 'dumb', 'silly', 'foolish'],
+    ['kind', 'mean', 'cruel', 'gentle', 'friendly', 'rude', 'polite'],
+    ['brave', 'cowardly', 'bold', 'timid', 'fearless'],
+    ['long', 'short', 'tall', 'high', 'low'],
+    ['thick', 'thin', 'fat', 'skinny', 'slim'],
+    ['heavy', 'light'],
+    ['full', 'empty'],
+    ['open', 'closed', 'shut'],
+    ['wet', 'dry', 'damp', 'soaked'],
+    ['sweet', 'sour', 'bitter', 'salty', 'spicy', 'bland'],
+    ['soft', 'hard', 'rough', 'smooth'],
+    ['loud', 'quiet', 'silent', 'noisy'],
+    ['safe', 'dangerous', 'risky'],
+    ['funny', 'boring', 'interesting', 'exciting', 'dull'],
+    ['cheap', 'expensive', 'affordable', 'pricey'],
+    ['early', 'late', 'punctual'],
+    ['near', 'far', 'close', 'distant'],
+    ['same', 'different', 'similar'],
+    ['right', 'wrong', 'correct', 'incorrect'],
+    ['true', 'false', 'real', 'fake'],
+
+    // ── Verbs (common, by theme) ───────────────
+    ['go', 'come', 'arrive', 'leave', 'enter', 'exit', 'depart', 'return'],
+    ['eat', 'drink', 'chew', 'swallow', 'taste', 'bite', 'gulp', 'sip', 'slurp'],
+    ['run', 'walk', 'jump', 'climb', 'swim', 'fly', 'crawl', 'skip', 'hop'],
+    ['see', 'look', 'watch', 'observe', 'notice', 'stare', 'glance', 'peek'],
+    ['hear', 'listen', 'sound'],
+    ['say', 'speak', 'talk', 'tell', 'whisper', 'shout', 'yell', 'mumble', 'scream'],
+    ['make', 'build', 'create', 'produce', 'craft', 'construct', 'invent'],
+    ['give', 'take', 'receive', 'send', 'bring', 'fetch', 'pass', 'deliver', 'hand'],
+    ['buy', 'sell', 'pay', 'spend', 'earn', 'save', 'lend', 'borrow', 'owe'],
+    ['love', 'like', 'hate', 'enjoy', 'prefer', 'adore', 'dislike', 'admire'],
+    ['help', 'assist', 'support', 'aid'],
+    ['start', 'begin', 'finish', 'end', 'stop', 'continue', 'pause'],
+    ['find', 'lose', 'discover', 'search', 'seek'],
+    ['open', 'close', 'shut', 'lock', 'unlock'],
+    ['push', 'pull', 'lift', 'drop', 'carry', 'hold'],
+    ['throw', 'catch', 'kick', 'hit', 'punch', 'pass'],
+    ['break', 'fix', 'repair', 'mend', 'destroy'],
+    ['win', 'lose', 'tie', 'draw'],
+    ['think', 'know', 'believe', 'remember', 'forget', 'understand', 'realize', 'wonder', 'guess'],
+    ['ask', 'answer', 'reply', 'respond'],
+    ['agree', 'disagree', 'argue', 'discuss', 'debate'],
+    ['want', 'need', 'wish', 'hope', 'expect', 'desire'],
+    ['try', 'attempt', 'practice', 'succeed', 'fail'],
+    ['feel', 'touch', 'smell', 'taste'],
+
+    // ── Places / buildings ─────────────────────
+    ['home', 'house', 'apartment', 'flat', 'cottage', 'mansion', 'villa'],
+    ['school', 'university', 'college', 'kindergarten'],
+    ['work', 'office', 'factory', 'company', 'shop', 'store', 'market', 'supermarket', 'mall'],
+    ['hospital', 'clinic', 'pharmacy', 'dentist'],
+    ['park', 'garden', 'playground', 'zoo', 'aquarium'],
+    ['library', 'museum', 'gallery', 'theater', 'cinema', 'stadium'],
+    ['restaurant', 'cafe', 'bar', 'hotel', 'motel'],
+    ['church', 'mosque', 'temple', 'cathedral', 'synagogue'],
+    ['station', 'airport', 'port', 'harbor', 'terminal'],
+    ['bank', 'post', 'police', 'firestation'],
+    ['kitchen', 'bedroom', 'bathroom', 'living', 'dining', 'garage', 'attic', 'basement', 'hallway', 'balcony', 'porch'],
+    ['city', 'town', 'village', 'country', 'capital', 'neighborhood', 'district', 'suburb'],
+    ['street', 'road', 'avenue', 'highway', 'lane', 'alley', 'bridge', 'tunnel'],
+
+    // ── Direction ──────────────────────────────
+    ['up', 'down', 'left', 'right', 'front', 'back', 'above', 'below', 'near', 'far', 'inside', 'outside', 'beside', 'behind'],
+    ['north', 'south', 'east', 'west'],
+
+    // ── Clothes ────────────────────────────────
+    ['shirt', 'tshirt', 'blouse', 'sweater', 'hoodie', 'jumper', 'cardigan'],
+    ['pants', 'jeans', 'shorts', 'trousers', 'leggings'],
+    ['dress', 'skirt', 'gown'],
+    ['jacket', 'coat', 'raincoat', 'blazer', 'vest'],
+    ['hat', 'cap', 'beanie', 'helmet'],
+    ['shoe', 'boot', 'sneaker', 'sandal', 'slipper', 'heel'],
+    ['sock', 'glove', 'scarf', 'belt', 'tie', 'mitten'],
+    ['underwear', 'pajama', 'swimsuit', 'uniform', 'costume'],
+
+    // ── Technology ─────────────────────────────
+    ['computer', 'laptop', 'phone', 'tablet', 'monitor', 'screen', 'keyboard', 'mouse', 'printer', 'camera', 'headphone', 'speaker', 'microphone'],
+    ['internet', 'website', 'app', 'email', 'message', 'password', 'download', 'upload', 'link', 'page', 'browser'],
+    ['click', 'type', 'scroll', 'swipe', 'tap', 'drag', 'save', 'delete', 'copy', 'paste'],
+
+    // ── Transportation ─────────────────────────
+    ['car', 'bus', 'train', 'plane', 'airplane', 'boat', 'ship', 'bike', 'bicycle', 'taxi', 'truck', 'van', 'motorcycle', 'scooter', 'helicopter', 'submarine', 'tram', 'subway'],
+
+    // ── Sports ─────────────────────────────────
+    ['football', 'soccer', 'basketball', 'tennis', 'volleyball', 'baseball', 'hockey', 'rugby', 'cricket', 'golf', 'badminton'],
+    ['swimming', 'running', 'cycling', 'skiing', 'skating', 'surfing', 'climbing', 'diving'],
+    ['boxing', 'wrestling', 'karate', 'judo', 'taekwondo', 'fencing'],
+    ['ball', 'racket', 'bat', 'net', 'goal', 'court', 'field', 'track'],
+
+    // ── Tools / kitchen ────────────────────────
+    ['hammer', 'saw', 'nail', 'screw', 'screwdriver', 'wrench', 'drill', 'pliers'],
+    ['knife', 'spoon', 'fork', 'chopstick'],
+    ['plate', 'bowl', 'cup', 'glass', 'mug', 'jug', 'jar'],
+    ['pot', 'pan', 'kettle', 'oven', 'stove', 'microwave', 'fridge', 'freezer', 'blender', 'toaster'],
+
+    // ── Money ──────────────────────────────────
+    ['money', 'cash', 'coin', 'bill', 'wallet', 'card', 'credit', 'debit'],
+    ['dollar', 'euro', 'pound', 'lira', 'yen'],
+    ['price', 'cost', 'bill', 'receipt', 'change', 'tip'],
+
+    // ── Feelings / states ──────────────────────
+    ['joy', 'sorrow', 'fear', 'hope', 'love', 'hate', 'pride', 'shame', 'guilt', 'anger', 'sadness', 'happiness', 'surprise', 'disgust'],
+    ['hunger', 'thirst', 'pain', 'illness', 'tiredness'],
+  ];
+
+  /// Pulls distractor candidates from confusion groups that contain any word
+  /// of the phrase. Members already in the phrase are excluded.
+  List<String> _groupDistractorsFor(Set<String> phraseNormalized) {
+    final candidates = <String>{};
+    for (final group in _confusionGroups) {
+      final overlaps = group.any(phraseNormalized.contains);
+      if (!overlaps) continue;
+      for (final w in group) {
+        if (!phraseNormalized.contains(w)) candidates.add(w);
+      }
+    }
+    return candidates.toList()..shuffle(_random);
+  }
+
   SessionQuestion _buildScrambledWords(WordSessionState word) {
     final phraseWords = word.word.split(' ');
     final distractorCount = max(2, phraseWords.length - 1);
@@ -909,6 +1196,8 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
     final phraseWordsNormalized = phraseWords
         .map((w) => _normalize(w))
         .toSet();
+
+    final groupDistractors = _groupDistractorsFor(phraseWordsNormalized);
 
     final sessionDistractors = state.words
         .where((w) => !w.word.contains(' ') && w.wordId != word.wordId)
@@ -923,10 +1212,19 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
       ..shuffle(_random);
 
     final distractors = <String>[];
-    for (final d in sessionDistractors) {
+    // Priority 1 — confusion groups (semantically/grammatically related)
+    for (final d in groupDistractors) {
       if (distractors.length >= distractorCount) break;
       distractors.add(d);
     }
+    // Priority 2 — other words from the current session
+    for (final d in sessionDistractors) {
+      if (distractors.length >= distractorCount) break;
+      if (!distractors.any((x) => _normalize(x) == _normalize(d))) {
+        distractors.add(d);
+      }
+    }
+    // Priority 3 — hard-coded fallback pool
     for (final d in fallbackDistractors) {
       if (distractors.length >= distractorCount) break;
       if (!distractors.contains(d)) distractors.add(d);
@@ -1153,6 +1451,14 @@ class VocabularySessionController extends StateNotifier<VocabularySessionState> 
 
   /// Count of first-try-perfect words
   int get firstTryPerfectCount => state.words.where((w) => w.isFirstTryPerfect).length;
+
+  /// Clear all session state. Called by the summary screen on dispose so the
+  /// next Practice Again / restart on the same list starts a fresh session
+  /// instead of being short-circuited by the `currentListId` guard in
+  /// `_loadAndStart`.
+  void reset() {
+    state = const VocabularySessionState();
+  }
 }
 
 // =============================================
