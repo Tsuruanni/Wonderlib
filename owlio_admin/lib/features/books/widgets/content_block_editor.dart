@@ -483,7 +483,7 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
       final type = widget.block['type'] as String;
 
       final data = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
       if (type == 'text') {

@@ -71,13 +71,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   final Map<String, TextEditingController> _controllers = {};
   final Set<String> _savingKeys = {};
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void dispose() {
     for (final controller in _controllers.values) {
       controller.dispose();
     }
+    _searchController.dispose();
     super.dispose();
+  }
+
+  bool _matchesSearch(Map<String, dynamic> setting) {
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    final key = (setting['key'] as String).toLowerCase();
+    final desc = (setting['description'] as String? ?? '').toLowerCase();
+    final groupLabel =
+        (setting['group_label'] as String? ?? '').toLowerCase();
+    return key.contains(q) || desc.contains(q) || groupLabel.contains(q);
   }
 
   Future<void> _updateSetting(String key, dynamic value) async {
@@ -189,43 +202,104 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Info banner
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
+          // Filter sections + their settings by search query
+          final visibleSections = <String, List<Map<String, dynamic>>>{};
+          for (final cat in categoryOrder) {
+            final all = groupedSettings[cat];
+            if (all == null) continue;
+            final filtered = all.where(_matchesSearch).toList();
+            if (filtered.isNotEmpty) {
+              visibleSections[cat] = filtered;
+            }
+          }
+
+          return Column(
+            children: [
+              // Search bar (sticky at top)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText:
+                        'Ayar ara (key, açıklama veya grup adı)…',
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
                   ),
-                  child: Row(
+                  onChanged: (v) =>
+                      setState(() => _searchQuery = v.trim()),
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.info_outline, color: Colors.blue.shade700),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Değişiklikler otomatik kaydedilir. Ayar değişiklikleri, kullanıcılar uygulamayı yeniden başlattığında uygulanır.',
-                          style: TextStyle(color: Colors.blue.shade900),
+                      // Info banner
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border:
+                              Border.all(color: Colors.blue.shade200),
                         ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline,
+                                color: Colors.blue.shade700),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Değişiklikler otomatik kaydedilir. Ayar değişiklikleri, kullanıcılar uygulamayı yeniden başlattığında uygulanır.',
+                                style: TextStyle(
+                                    color: Colors.blue.shade900),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      if (visibleSections.isEmpty && _searchQuery.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(Icons.search_off,
+                                    size: 48,
+                                    color: Colors.grey.shade400),
+                                const SizedBox(height: 12),
+                                Text(
+                                  '"$_searchQuery" için ayar bulunamadı',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      // Settings sections (filtered)
+                      ...visibleSections.entries.map(
+                        (e) => _buildSection(e.key, e.value),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-
-                // Settings sections
-                ...categoryOrder
-                    .where((cat) => groupedSettings.containsKey(cat))
-                    .map((category) {
-                  final settings = groupedSettings[category]!;
-                  return _buildSection(category, settings);
-                }),
-              ],
-            ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -371,6 +445,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _formatKey(key),
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                key,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  color: Colors.grey.shade500,
                 ),
               ),
               if (description != null) ...[

@@ -293,7 +293,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
           'type': widget.activityType,
           'content': content,
           'vocabulary_words': vocabIds,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         }).eq('id', activityId);
       } else {
         activityId = const Uuid().v4();
@@ -307,7 +307,7 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
         });
         await supabase.from(DbTables.contentBlocks).update({
           'activity_id': activityId,
-          'updated_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         }).eq('id', widget.blockId);
       }
       widget.onSaved();
@@ -318,7 +318,12 @@ class _ActivityEditorState extends ConsumerState<ActivityEditor> {
               .from(DbTables.inlineActivities)
               .delete()
               .eq('id', activityId);
-        } catch (_) {}
+        } catch (rollbackError) {
+          debugPrint(
+            'activity_editor: rollback FAILED for orphan activity '
+            '$activityId — manual cleanup needed: $rollbackError',
+          );
+        }
       }
       setState(() => _error = 'Save failed: $e');
     } finally {

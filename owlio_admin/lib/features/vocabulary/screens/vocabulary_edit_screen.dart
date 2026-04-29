@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -369,6 +370,13 @@ class _VocabularyEditScreenState extends ConsumerState<VocabularyEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(isNewWord ? 'Yeni Kelime' : 'Kelime Düzenle'),

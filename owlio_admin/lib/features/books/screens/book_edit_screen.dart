@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -212,6 +213,13 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     final bookAsync = isNewBook ? null : ref.watch(bookDetailProvider(widget.bookId!));
 
     return Scaffold(

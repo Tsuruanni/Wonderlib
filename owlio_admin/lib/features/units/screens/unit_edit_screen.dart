@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/color_picker_field.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -91,7 +93,7 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
             ? null
             : _iconController.text.trim(),
         'is_active': _isActive,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
       if (_isNew) {
@@ -180,6 +182,13 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _save,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     // Load existing unit data if editing
     if (!_isNew) {
       final unitAsync = ref.watch(unitDetailProvider(widget.unitId!));
@@ -300,14 +309,13 @@ class _UnitEditScreenState extends ConsumerState<UnitEditScreen> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: TextFormField(
-                                controller: _colorController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Renk (hex)',
-                                  hintText: '#58CC02',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (_) => setState(() {}),
+                              child: ColorPickerField(
+                                initialValue: _colorController.text,
+                                labelText: 'Renk',
+                                onChanged: (hex) {
+                                  _colorController.text = hex;
+                                  setState(() {});
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),

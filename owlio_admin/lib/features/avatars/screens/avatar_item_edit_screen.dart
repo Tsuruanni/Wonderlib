@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 import '../providers/avatar_admin_providers.dart';
@@ -137,6 +139,69 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
     }
   }
 
+  Future<void> _handleClone() async {
+    if (widget.itemId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Aksesuarı Klonla'),
+        content: const Text(
+          'Bu aksesuar kopyalanarak yeni bir aksesuar oluşturulacak. '
+          'Görsel, kategori, fiyat ve nadir seviyesi aynı, isim "(Kopya)" '
+          'eki ile farklı olacak.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Klonla'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final original = await supabase
+          .from(DbTables.avatarItems)
+          .select()
+          .eq('id', widget.itemId!)
+          .single();
+
+      final newId = const Uuid().v4();
+      final clone = Map<String, dynamic>.from(original);
+      clone['id'] = newId;
+      clone['display_name'] =
+          '${original['display_name']} (Kopya)';
+      clone.remove('created_at');
+      clone.remove('updated_at');
+      await supabase.from(DbTables.avatarItems).insert(clone);
+
+      ref.invalidate(avatarItemsAdminProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aksesuar klonlandı')),
+        );
+        context.go('/avatars/items/$newId');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Klonlama başarısız: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     if (_categoryId == null) {
@@ -203,6 +268,13 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _save,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     final categoriesAsync = ref.watch(avatarItemCategoriesAdminProvider);
     final basesAsync = ref.watch(avatarBasesAdminProvider);
 
@@ -212,6 +284,15 @@ class _AvatarItemEditScreenState extends ConsumerState<AvatarItemEditScreen> {
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.go('/avatars')),
+        actions: [
+          if (_isEdit)
+            IconButton(
+              tooltip: 'Klonla',
+              icon: const Icon(Icons.content_copy_outlined),
+              onPressed: _isLoading ? null : _handleClone,
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: _isEdit
           ? ref.watch(avatarItemDetailProvider(widget.itemId!)).when(

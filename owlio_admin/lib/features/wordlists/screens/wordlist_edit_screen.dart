@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -753,6 +754,88 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     }
   }
 
+  Future<void> _handleClone() async {
+    if (widget.listId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kelime Listesini Klonla'),
+        content: const Text(
+          'Bu kelime listesi tüm kelimeleriyle birlikte kopyalanacak. '
+          'Kopya, "(Kopya)" eki ile yeni bir liste olarak oluşturulacak.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Klonla'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+
+      // Fetch original wordlist row
+      final original = await supabase
+          .from(DbTables.wordLists)
+          .select()
+          .eq('id', widget.listId!)
+          .single();
+
+      // Insert clone with new id, suffixed name, fresh timestamps
+      final newId = const Uuid().v4();
+      final cloneData = Map<String, dynamic>.from(original);
+      cloneData['id'] = newId;
+      cloneData['name'] = '${original['name']} (Kopya)';
+      cloneData.remove('created_at');
+      cloneData.remove('updated_at');
+      await supabase.from(DbTables.wordLists).insert(cloneData);
+
+      // Fetch and copy word_list_items
+      final items = await supabase
+          .from(DbTables.wordListItems)
+          .select('word_id, order_index')
+          .eq('word_list_id', widget.listId!);
+
+      if (items.isNotEmpty) {
+        final itemRows = (items as List<dynamic>)
+            .map((it) => {
+                  'id': const Uuid().v4(),
+                  'word_list_id': newId,
+                  'word_id': (it as Map<String, dynamic>)['word_id'],
+                  'order_index': it['order_index'],
+                })
+            .toList();
+        await supabase.from(DbTables.wordListItems).insert(itemRows);
+      }
+
+      ref.invalidate(wordlistsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Liste klonlandı')),
+        );
+        context.go('/wordlists/$newId');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Klonlama başarısız: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   void _showAddWordDialog() {
     _searchController.clear();
 
@@ -820,6 +903,13 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(isNewList ? 'Yeni Kelime Listesi' : 'Kelime Listesini Düzenle'),
@@ -880,6 +970,12 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
               label: Text(_isGeneratingImages ? 'Üretiliyor...' : 'Görselleri Üret'),
             ),
           const SizedBox(width: 8),
+          if (!isNewList)
+            IconButton(
+              tooltip: 'Klonla',
+              icon: const Icon(Icons.content_copy_outlined),
+              onPressed: _isSaving ? null : _handleClone,
+            ),
           if (!isNewList)
             IconButton(
               icon: const Icon(Icons.delete_outline),

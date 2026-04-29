@@ -1,28 +1,97 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // CountOption
 
 import '../../../core/supabase_client.dart';
 
-/// Provider for loading all books
-final booksProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-  final response = await supabase
-      .from(DbTables.books)
-      .select('*, chapters(count)')
-      .order('created_at', ascending: false);
+/// Search query (matches title / author)
+final bookSearchProvider = StateProvider<String>((ref) => '');
 
-  return List<Map<String, dynamic>>.from(response);
+/// Current page index (0-based)
+final bookPageProvider = StateProvider<int>((ref) => 0);
+
+/// Loads books with search and pagination.
+/// Returns `{ data, total, page, pageSize }`.
+final booksProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final search = ref.watch(bookSearchProvider);
+  final page = ref.watch(bookPageProvider);
+
+  const pageSize = 50;
+  final offset = page * pageSize;
+
+  var query = supabase.from(DbTables.books).select('*, chapters(count)');
+  var countQuery = supabase.from(DbTables.books).select();
+
+  if (search.isNotEmpty) {
+    final escaped = search.replaceAll(',', ' ');
+    final orFilter = 'title.ilike.%$escaped%,author.ilike.%$escaped%';
+    query = query.or(orFilter);
+    countQuery = countQuery.or(orFilter);
+  }
+
+  final response = await query
+      .order('created_at', ascending: false)
+      .range(offset, offset + pageSize - 1);
+  final countResult = await countQuery.count(CountOption.exact);
+
+  return {
+    'data': List<Map<String, dynamic>>.from(response),
+    'total': countResult.count,
+    'page': page,
+    'pageSize': pageSize,
+  };
 });
 
-class BookListScreen extends ConsumerWidget {
+class BookListScreen extends ConsumerStatefulWidget {
   const BookListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BookListScreen> createState() => _BookListScreenState();
+}
+
+class _BookListScreenState extends ConsumerState<BookListScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.text = ref.read(bookSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _resetPage() {
+    ref.read(bookPageProvider.notifier).state = 0;
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {}); // refresh suffixIcon
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final trimmed = value.trim();
+      if (ref.read(bookSearchProvider) != trimmed) {
+        ref.read(bookSearchProvider.notifier).state = trimmed;
+        _resetPage();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final booksAsync = ref.watch(booksProvider);
+    final currentPage = ref.watch(bookPageProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -46,68 +115,168 @@ class BookListScreen extends ConsumerWidget {
           const SizedBox(width: 16),
         ],
       ),
-      body: booksAsync.when(
-        data: (books) {
-          if (books.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.menu_book_outlined,
-                    size: 64,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No books yet',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FilledButton.icon(
-                    onPressed: () => context.go('/books/new'),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Create your first book'),
-                  ),
-                ],
+      body: Column(
+        children: [
+          // Search bar
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
               ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(24),
-            itemCount: books.length,
-            itemBuilder: (context, index) {
-              final book = books[index];
-              final chapterCount = book['chapters']?[0]?['count'] ?? 0;
-
-              return _BookCard(
-                book: book,
-                chapterCount: chapterCount,
-                onTap: () => context.go('/books/${book['id']}'),
-              );
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
-              const SizedBox(height: 16),
-              Text('Error: $error'),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => ref.invalidate(booksProvider),
-                child: const Text('Retry'),
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Başlık veya yazar ara...',
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _debounce?.cancel();
+                          _searchController.clear();
+                          ref.read(bookSearchProvider.notifier).state = '';
+                          _resetPage();
+                          setState(() {});
+                        },
+                      )
+                    : null,
               ),
-            ],
+              onChanged: _onSearchChanged,
+            ),
           ),
-        ),
+
+          // List + pagination
+          Expanded(
+            child: booksAsync.when(
+              data: (result) {
+                final books = result['data'] as List<Map<String, dynamic>>;
+                final total = result['total'] as int;
+                final pageSize = result['pageSize'] as int;
+                final totalPages = total == 0 ? 1 : (total / pageSize).ceil();
+
+                if (books.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.menu_book_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          ref.read(bookSearchProvider).isEmpty
+                              ? 'No books yet'
+                              : 'Aramaya uygun kitap bulunamadı',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton.icon(
+                          onPressed: () => context.go('/books/new'),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Create your first book'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$total kitaptan ${books.length} tanesi',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'Sayfa ${currentPage + 1} / $totalPages',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: books.length,
+                        itemBuilder: (context, index) {
+                          final book = books[index];
+                          final chapterCount =
+                              book['chapters']?[0]?['count'] ?? 0;
+
+                          return _BookCard(
+                            book: book,
+                            chapterCount: chapterCount,
+                            onTap: () => context.go('/books/${book['id']}'),
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: currentPage > 0
+                                ? () => ref
+                                    .read(bookPageProvider.notifier)
+                                    .state = currentPage - 1
+                                : null,
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          const SizedBox(width: 16),
+                          Text('Sayfa ${currentPage + 1} / $totalPages'),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            onPressed: currentPage < totalPages - 1
+                                ? () => ref
+                                    .read(bookPageProvider.notifier)
+                                    .state = currentPage + 1
+                                : null,
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline,
+                        size: 48, color: Colors.red.shade400),
+                    const SizedBox(height: 16),
+                    Text('Error: $error'),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () => ref.invalidate(booksProvider),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

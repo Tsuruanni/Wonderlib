@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import '../../../core/widgets/color_picker_field.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -210,7 +212,7 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
         'sort_order': int.tryParse(_sortOrderController.text) ?? 0,
         'is_active': _isActive,
         'image_url': _imageUrl,
-        'updated_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
       };
 
       if (_isNew) {
@@ -297,6 +299,13 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _save,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     if (!_isNew) {
       final themeAsync = ref.watch(tileThemeDetailProvider(widget.themeId!));
       return themeAsync.when(
@@ -469,26 +478,43 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                         Row(
                           children: [
                             Expanded(
-                              child: TextFormField(
-                                controller: _color1Controller,
-                                decoration: const InputDecoration(
-                                  labelText: 'Fallback Renk 1',
-                                  hintText: '#2E7D32',
-                                  border: OutlineInputBorder(),
-                                ),
-                                onChanged: (_) => setState(() {}),
+                              child: ColorPickerField(
+                                initialValue: _color1Controller.text,
+                                labelText: 'Fallback Renk 1',
+                                onChanged: (hex) {
+                                  _color1Controller.text = hex;
+                                  setState(() {});
+                                },
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: TextFormField(
-                                controller: _color2Controller,
-                                decoration: const InputDecoration(
-                                  labelText: 'Fallback Renk 2',
-                                  hintText: '#81C784',
-                                  border: OutlineInputBorder(),
+                              child: ColorPickerField(
+                                initialValue: _color2Controller.text,
+                                labelText: 'Fallback Renk 2',
+                                onChanged: (hex) {
+                                  _color2Controller.text = hex;
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Live gradient preview — updates as colors change
+                            Container(
+                              width: 80,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    _parseHex(_color1Controller.text),
+                                    _parseHex(_color2Controller.text),
+                                  ],
                                 ),
-                                onChanged: (_) => setState(() {}),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                    color: Colors.grey.shade300),
                               ),
                             ),
                           ],
@@ -524,70 +550,101 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                             Text('Node Pozisyonları (${_nodes.length})',
                                 style:
                                     Theme.of(context).textTheme.titleMedium),
-                            FilledButton.icon(
-                              onPressed: () {
-                                setState(
-                                    () => _nodes.add(_NodePosition(50, 50)));
-                              },
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Node Ekle'),
-                            ),
                           ],
                         ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.indigo.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.touch_app,
+                                  size: 16, color: Colors.indigo.shade700),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Sağdaki görsele tıklayarak yeni node ekleyin, '
+                                  'noktalara basılı tutarak sürükleyin.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.indigo.shade900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 12),
-                        ...List.generate(_nodes.length, (i) {
-                          final node = _nodes[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 60,
-                                  child: Text('Node ${i + 1}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                ),
-                                const Text('X: '),
-                                Expanded(
-                                  child: Slider(
-                                    value: node.x,
-                                    min: 0,
-                                    max: 100,
-                                    divisions: 100,
-                                    label: '${node.x.round()}%',
-                                    onChanged: (v) =>
-                                        setState(() => node.x = v),
-                                  ),
-                                ),
-                                SizedBox(
-                                    width: 40,
-                                    child: Text('${node.x.round()}%')),
-                                const SizedBox(width: 8),
-                                const Text('Y: '),
-                                Expanded(
-                                  child: Slider(
-                                    value: node.y,
-                                    min: 0,
-                                    max: 100,
-                                    divisions: 100,
-                                    label: '${node.y.round()}%',
-                                    onChanged: (v) =>
-                                        setState(() => node.y = v),
-                                  ),
-                                ),
-                                SizedBox(
-                                    width: 40,
-                                    child: Text('${node.y.round()}%')),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red, size: 20),
-                                  onPressed: () =>
-                                      setState(() => _nodes.removeAt(i)),
-                                ),
-                              ],
+                        if (_nodes.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Text(
+                              'Henüz node yok.',
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontStyle: FontStyle.italic,
+                              ),
                             ),
-                          );
-                        }),
+                          )
+                        else
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: List.generate(_nodes.length, (i) {
+                              final node = _nodes[i];
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.indigo.shade50,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.indigo.shade200),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 10,
+                                      backgroundColor: Colors.indigo,
+                                      child: Text(
+                                        '${i + 1}',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${node.x.round()}%, ${node.y.round()}%',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    InkWell(
+                                      onTap: () =>
+                                          setState(() => _nodes.removeAt(i)),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(2),
+                                        child: Icon(Icons.close,
+                                            size: 14,
+                                            color: Colors.red.shade400),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ),
                       ],
                     ),
                   ),
@@ -607,13 +664,19 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                       Text('Önizleme',
                           style: Theme.of(context).textTheme.titleLarge),
                       const SizedBox(height: 16),
-                      _TilePreview(
+                      _TileCanvas(
                         color1: _parseHex(_color1Controller.text),
                         color2: _parseHex(_color2Controller.text),
                         height: _height,
                         nodes: _nodes,
                         imageUrl: _imageUrl,
                         imageBytes: _imageBytes,
+                        onAddNode: (x, y) => setState(
+                            () => _nodes.add(_NodePosition(x, y))),
+                        onMoveNode: (i, x, y) => setState(() {
+                          _nodes[i].x = x;
+                          _nodes[i].y = y;
+                        }),
                       ),
                     ],
                   ),
@@ -647,17 +710,19 @@ class _NodePosition {
   _NodePosition(this.x, this.y);
 }
 
-/// Scaled-down tile preview with image or gradient + numbered node dots.
+/// Interactive canvas: tap empty area to add a node, drag a dot to move it.
 /// Uses LayoutBuilder to get actual rendered width — never hardcodes a width
 /// that might differ from the real constraint.
-class _TilePreview extends StatelessWidget {
-  const _TilePreview({
+class _TileCanvas extends StatelessWidget {
+  const _TileCanvas({
     required this.color1,
     required this.color2,
     required this.height,
     required this.nodes,
     this.imageUrl,
     this.imageBytes,
+    this.onAddNode,
+    this.onMoveNode,
   });
 
   final Color color1;
@@ -666,6 +731,12 @@ class _TilePreview extends StatelessWidget {
   final List<_NodePosition> nodes;
   final String? imageUrl;
   final Uint8List? imageBytes;
+
+  /// Called with (x%, y%) when the canvas background is tapped.
+  final void Function(double xPct, double yPct)? onAddNode;
+
+  /// Called with (index, x%, y%) when a node is dragged.
+  final void Function(int index, double xPct, double yPct)? onMoveNode;
 
   @override
   Widget build(BuildContext context) {
@@ -693,38 +764,71 @@ class _TilePreview extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
+              // Background + tap-to-add layer
               Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: background,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTapUp: onAddNode == null
+                      ? null
+                      : (details) {
+                          final p = details.localPosition;
+                          final xPct = (p.dx / w * 100).clamp(0.0, 100.0);
+                          final yPct = (p.dy / h * 100).clamp(0.0, 100.0);
+                          onAddNode!(xPct, yPct);
+                        },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: background,
+                  ),
                 ),
               ),
+              // Draggable node dots
               for (int i = 0; i < nodes.length; i++)
                 Positioned(
                   left: (nodes[i].x / 100) * w - 14,
                   top: (nodes[i].y / 100) * h - 14,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white70, width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                  child: GestureDetector(
+                    onPanUpdate: onMoveNode == null
+                        ? null
+                        : (details) {
+                            final cur = nodes[i];
+                            final pxX = (cur.x / 100) * w + details.delta.dx;
+                            final pxY = (cur.y / 100) * h + details.delta.dy;
+                            final newX =
+                                (pxX / w * 100).clamp(0.0, 100.0);
+                            final newY =
+                                (pxY / h * 100).clamp(0.0, 100.0);
+                            onMoveNode!(i, newX, newY);
+                          },
+                    child: MouseRegion(
+                      cursor: onMoveNode == null
+                          ? SystemMouseCursors.basic
+                          : SystemMouseCursors.move,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: Colors.indigo, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '${i + 1}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${i + 1}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.indigo,
+                          ),
+                        ),
                       ),
                     ),
                   ),

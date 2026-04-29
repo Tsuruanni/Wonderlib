@@ -294,7 +294,9 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
       // Force fetch if not loaded yet
       try {
         await ref.read(_allTemplatesProvider.future);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('assignment_screen: template prefetch failed: $e');
+      }
     }
 
     if (!mounted) return;
@@ -621,7 +623,7 @@ class _AssignmentScreenState extends ConsumerState<AssignmentScreen> {
         final unitAssignments = await supabase
             .from(DbTables.assignments)
             .select('id, content_config')
-            .eq('assignment_type', AssignmentType.unit.dbValue);
+            .eq('type', AssignmentType.unit.dbValue);
 
         final affectedCount = unitAssignments.where((a) {
           final config = a['content_config'] as Map<String, dynamic>?;

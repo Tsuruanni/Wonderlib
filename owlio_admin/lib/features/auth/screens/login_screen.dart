@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
 
 import '../../../core/supabase_client.dart';
 
@@ -52,8 +53,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final role = profile?['role'] as String?;
       if (role != UserRole.admin.dbValue && role != UserRole.head.dbValue) {
         await supabase.auth.signOut();
+        final roleLabel = role ?? 'profili eksik';
         setState(() {
-          _error = 'Erişim reddedildi. Yönetici veya Baş Öğretmen rolü gerekli.';
+          _error =
+              'Erişim reddedildi: bu hesabın rolü ($roleLabel) panele giriş için yetersiz. '
+              'Sadece Yönetici veya Baş Öğretmen girebilir.';
         });
         return;
       }
@@ -61,9 +65,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         context.go('/');
       }
+    } on AuthException catch (e) {
+      // Supabase auth error: distinguish invalid credentials vs network/server.
+      final msg = e.message.toLowerCase();
+      String friendly;
+      if (msg.contains('invalid login') ||
+          msg.contains('invalid credentials') ||
+          msg.contains('email') && msg.contains('password')) {
+        friendly = 'E-posta veya şifre yanlış. Tekrar deneyin.';
+      } else if (msg.contains('email') && msg.contains('confirm')) {
+        friendly = 'E-posta henüz onaylanmamış.';
+      } else if (msg.contains('rate') || msg.contains('too many')) {
+        friendly = 'Çok fazla deneme. Birkaç dakika sonra tekrar deneyin.';
+      } else if (msg.contains('network') || msg.contains('failed host')) {
+        friendly = 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.';
+      } else {
+        friendly = 'Giriş başarısız: ${e.message}';
+      }
+      setState(() => _error = friendly);
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = 'Beklenmeyen hata: $e';
       });
     } finally {
       if (mounted) {

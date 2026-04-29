@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -203,6 +204,67 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
     }
   }
 
+  Future<void> _handleClone() async {
+    if (widget.badgeId == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rozeti Klonla'),
+        content: const Text(
+          'Bu rozet kopyalanarak yeni bir rozet oluşturulacak. '
+          'Kopya, "(Kopya)" eki ile aynı şart ve değerlere sahip olacak.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Klonla'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isSaving = true);
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final original = await supabase
+          .from(DbTables.badges)
+          .select()
+          .eq('id', widget.badgeId!)
+          .single();
+
+      final newId = const Uuid().v4();
+      final clone = Map<String, dynamic>.from(original);
+      clone['id'] = newId;
+      clone['title'] = '${original['title']} (Kopya)';
+      clone.remove('created_at');
+      clone.remove('updated_at');
+      await supabase.from(DbTables.badges).insert(clone);
+
+      ref.invalidate(badgesProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Rozet klonlandı')),
+        );
+        context.go('/badges/$newId');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Klonlama başarısız: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
   Future<void> _handleDelete() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -358,6 +420,13 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(isNewBadge ? 'Yeni Rozet' : 'Rozet Düzenle'),
@@ -366,6 +435,12 @@ class _BadgeEditScreenState extends ConsumerState<BadgeEditScreen> {
           onPressed: () => context.go('/badges'),
         ),
         actions: [
+          if (!isNewBadge)
+            IconButton(
+              tooltip: 'Klonla',
+              icon: const Icon(Icons.content_copy_outlined),
+              onPressed: _isSaving ? null : _handleClone,
+            ),
           if (!isNewBadge)
             IconButton(
               icon: const Icon(Icons.delete_outline),

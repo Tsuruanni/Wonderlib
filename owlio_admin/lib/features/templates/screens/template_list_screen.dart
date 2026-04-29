@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 
@@ -182,6 +183,7 @@ class _TemplatesTab extends ConsumerWidget {
               template: template,
               onTap: () => context.go('/templates/${template['id']}'),
               onDelete: () => _deleteTemplate(context, ref, template),
+              onClone: () => _cloneTemplate(context, ref, template),
             );
           },
         );
@@ -224,6 +226,116 @@ class _TemplatesTab extends ConsumerWidget {
         .delete()
         .eq('id', template['id'] as String);
     ref.invalidate(templatesProvider);
+  }
+
+  Future<void> _cloneTemplate(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> template,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Şablonu Klonla'),
+        content: Text(
+          '"${template['name']}" şablonu tüm üniteleri ve item\'larıyla '
+          'birlikte kopyalanacak. Kopya, "(Kopya)" eki ile yeni bir '
+          'şablon olarak oluşturulacak.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Klonla'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final sourceId = template['id'] as String;
+
+      // 1. Fetch source template row
+      final source = await supabase
+          .from(DbTables.learningPathTemplates)
+          .select()
+          .eq('id', sourceId)
+          .single();
+
+      // 2. Insert clone with new id, suffixed name
+      final newId = const Uuid().v4();
+      final cloneRow = Map<String, dynamic>.from(source);
+      cloneRow['id'] = newId;
+      cloneRow['name'] = '${source['name']} (Kopya)';
+      cloneRow.remove('created_at');
+      cloneRow.remove('updated_at');
+      await supabase.from(DbTables.learningPathTemplates).insert(cloneRow);
+
+      // 3. Fetch source units, insert clones, remember id mapping
+      final sourceUnits = await supabase
+          .from(DbTables.learningPathTemplateUnits)
+          .select()
+          .eq('template_id', sourceId);
+
+      final unitIdMap = <String, String>{}; // old → new
+      if (sourceUnits.isNotEmpty) {
+        final newUnitRows = <Map<String, dynamic>>[];
+        for (final u in sourceUnits) {
+          final newUnitId = const Uuid().v4();
+          unitIdMap[u['id'] as String] = newUnitId;
+          final unitClone = Map<String, dynamic>.from(u);
+          unitClone['id'] = newUnitId;
+          unitClone['template_id'] = newId;
+          unitClone.remove('created_at');
+          unitClone.remove('updated_at');
+          newUnitRows.add(unitClone);
+        }
+        await supabase
+            .from(DbTables.learningPathTemplateUnits)
+            .insert(newUnitRows);
+
+        // 4. Fetch source items for those units, re-point to cloned units
+        final sourceItems = await supabase
+            .from(DbTables.learningPathTemplateItems)
+            .select()
+            .inFilter('template_unit_id', unitIdMap.keys.toList());
+
+        if (sourceItems.isNotEmpty) {
+          final newItemRows = sourceItems.map((it) {
+            final clone = Map<String, dynamic>.from(it);
+            clone['id'] = const Uuid().v4();
+            clone['template_unit_id'] =
+                unitIdMap[it['template_unit_id'] as String];
+            clone.remove('created_at');
+            clone.remove('updated_at');
+            return clone;
+          }).toList();
+          await supabase
+              .from(DbTables.learningPathTemplateItems)
+              .insert(newItemRows);
+        }
+      }
+
+      ref.invalidate(templatesProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Şablon klonlandı')),
+        );
+        context.go('/templates/$newId');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Klonlama başarısız: $e')),
+        );
+      }
+    }
   }
 }
 
@@ -405,11 +517,13 @@ class _TemplateCard extends StatelessWidget {
     required this.template,
     required this.onTap,
     required this.onDelete,
+    required this.onClone,
   });
 
   final Map<String, dynamic> template;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onClone;
 
   @override
   Widget build(BuildContext context) {
@@ -477,6 +591,11 @@ class _TemplateCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.content_copy_outlined),
+                tooltip: 'Klonla',
+                onPressed: onClone,
+              ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
                 tooltip: 'Sil',

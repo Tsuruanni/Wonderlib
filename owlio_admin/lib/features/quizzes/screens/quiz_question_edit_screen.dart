@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -115,7 +116,11 @@ class _QuizQuestionEditScreenState
       if (quiz != null && mounted) {
         setState(() => _bookId = quiz['book_id'] as String);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint(
+        'quiz_question_edit: failed to resolve book_id for quiz ${widget.quizId}: $e',
+      );
+    }
   }
 
   Future<void> _loadQuestion() async {
@@ -425,6 +430,13 @@ class _QuizQuestionEditScreenState
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(isNewQuestion ? 'New Question' : 'Edit Question'),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
@@ -226,8 +227,8 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
           'books_exempt_from_lock': _booksExemptFromLock,
           'unit_gate': _unitGate,
           'tile_theme_id': _pathTileThemeId,
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
         });
       } else {
         templateId = widget.templateId!;
@@ -241,7 +242,7 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
               'books_exempt_from_lock': _booksExemptFromLock,
               'unit_gate': _unitGate,
               'tile_theme_id': _pathTileThemeId,
-              'updated_at': DateTime.now().toIso8601String(),
+              'updated_at': DateTime.now().toUtc().toIso8601String(),
             })
             .eq('id', templateId);
       }
@@ -369,6 +370,13 @@ class _TemplateEditScreenState extends ConsumerState<TemplateEditScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return EditScreenShortcuts(
+      onSave: _isSaving ? null : _handleSave,
+      child: _buildScreen(context),
+    );
+  }
+
+  Widget _buildScreen(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(

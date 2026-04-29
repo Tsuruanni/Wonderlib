@@ -1,33 +1,108 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // CountOption
 
 import '../../../core/supabase_client.dart';
-
-/// Provider for loading all teacher-created assignments
-final teacherAssignmentsProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final supabase = ref.watch(supabaseClientProvider);
-  final response = await supabase
-      .from(DbTables.assignments)
-      .select(
-          '*, profiles!assignments_teacher_id_fkey(first_name, last_name), classes(name)')
-      .order('created_at', ascending: false);
-  return List<Map<String, dynamic>>.from(response);
-});
 
 /// Filter by assignment type
 final assignmentTypeFilterProvider =
     StateProvider<AssignmentType?>((ref) => null);
 
-class AssignmentListScreen extends ConsumerWidget {
+/// Search query (matches title)
+final assignmentSearchProvider = StateProvider<String>((ref) => '');
+
+/// Current page index (0-based)
+final assignmentPageProvider = StateProvider<int>((ref) => 0);
+
+/// Loads teacher-created assignments with type filter, search, pagination.
+/// Returns `{ data, total, page, pageSize }`.
+final teacherAssignmentsProvider =
+    FutureProvider<Map<String, dynamic>>((ref) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  final typeFilter = ref.watch(assignmentTypeFilterProvider);
+  final search = ref.watch(assignmentSearchProvider);
+  final page = ref.watch(assignmentPageProvider);
+
+  const pageSize = 50;
+  final offset = page * pageSize;
+
+  var query = supabase.from(DbTables.assignments).select(
+      '*, profiles!assignments_teacher_id_fkey(first_name, last_name), classes(name)');
+  var countQuery = supabase.from(DbTables.assignments).select();
+
+  if (typeFilter != null) {
+    query = query.eq('type', typeFilter.dbValue);
+    countQuery = countQuery.eq('type', typeFilter.dbValue);
+  }
+  if (search.isNotEmpty) {
+    final escaped = search.replaceAll(',', ' ');
+    query = query.ilike('title', '%$escaped%');
+    countQuery = countQuery.ilike('title', '%$escaped%');
+  }
+
+  final response = await query
+      .order('created_at', ascending: false)
+      .range(offset, offset + pageSize - 1);
+  final countResult = await countQuery.count(CountOption.exact);
+
+  return {
+    'data': List<Map<String, dynamic>>.from(response),
+    'total': countResult.count,
+    'page': page,
+    'pageSize': pageSize,
+  };
+});
+
+class AssignmentListScreen extends ConsumerStatefulWidget {
   const AssignmentListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AssignmentListScreen> createState() =>
+      _AssignmentListScreenState();
+}
+
+class _AssignmentListScreenState extends ConsumerState<AssignmentListScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.text = ref.read(assignmentSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _resetPage() {
+    ref.read(assignmentPageProvider.notifier).state = 0;
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final trimmed = value.trim();
+      if (ref.read(assignmentSearchProvider) != trimmed) {
+        ref.read(assignmentSearchProvider.notifier).state = trimmed;
+        _resetPage();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final assignmentsAsync = ref.watch(teacherAssignmentsProvider);
     final typeFilter = ref.watch(assignmentTypeFilterProvider);
+    final currentPage = ref.watch(assignmentPageProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -40,60 +115,104 @@ class AssignmentListScreen extends ConsumerWidget {
       body: Column(
         children: [
           // Filter bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-            child: Row(
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Column(
               children: [
-                SizedBox(
-                  width: 200,
-                  child: DropdownButtonFormField<AssignmentType?>(
-                    value: typeFilter,
-                    decoration: const InputDecoration(
-                      labelText: 'Tür',
-                      isDense: true,
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Tüm Türler'),
-                      ),
-                      ...AssignmentType.values.map((t) => DropdownMenuItem(
-                            value: t,
-                            child: Text(t.displayName),
-                          )),
-                    ],
-                    onChanged: (value) {
-                      ref.read(assignmentTypeFilterProvider.notifier).state =
-                          value;
-                    },
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Başlık ara...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _debounce?.cancel();
+                              _searchController.clear();
+                              ref
+                                  .read(assignmentSearchProvider.notifier)
+                                  .state = '';
+                              _resetPage();
+                              setState(() {});
+                            },
+                          )
+                        : null,
                   ),
+                  onChanged: _onSearchChanged,
                 ),
-                const SizedBox(width: 12),
-                if (typeFilter != null)
-                  TextButton.icon(
-                    onPressed: () {
-                      ref.read(assignmentTypeFilterProvider.notifier).state =
-                          null;
-                    },
-                    icon: const Icon(Icons.clear, size: 16),
-                    label: const Text('Temizle'),
-                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: 240,
+                      child: DropdownButtonFormField<AssignmentType?>(
+                        value: typeFilter,
+                        decoration: const InputDecoration(
+                          labelText: 'Tür',
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('Tüm Türler'),
+                          ),
+                          ...AssignmentType.values.map((t) => DropdownMenuItem(
+                                value: t,
+                                child: Text(t.displayName),
+                              )),
+                        ],
+                        onChanged: (value) {
+                          ref
+                              .read(assignmentTypeFilterProvider.notifier)
+                              .state = value;
+                          _resetPage();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (typeFilter != null ||
+                        ref.read(assignmentSearchProvider).isNotEmpty)
+                      TextButton.icon(
+                        onPressed: () {
+                          ref
+                              .read(assignmentTypeFilterProvider.notifier)
+                              .state = null;
+                          ref.read(assignmentSearchProvider.notifier).state =
+                              '';
+                          _searchController.clear();
+                          _resetPage();
+                        },
+                        icon: const Icon(Icons.clear, size: 16),
+                        label: const Text('Temizle'),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
           // List
           Expanded(
             child: assignmentsAsync.when(
-              data: (assignments) {
-                final filtered = typeFilter != null
-                    ? assignments
-                        .where(
-                            (a) => a['type'] == typeFilter.dbValue)
-                        .toList()
-                    : assignments;
+              data: (result) {
+                final assignments =
+                    result['data'] as List<Map<String, dynamic>>;
+                final total = result['total'] as int;
+                final pageSize = result['pageSize'] as int;
+                final totalPages = total == 0 ? 1 : (total / pageSize).ceil();
 
-                if (filtered.isEmpty) {
+                if (assignments.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -117,20 +236,69 @@ class AssignmentListScreen extends ConsumerWidget {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    return _AssignmentCard(
-                      assignment: filtered[index],
-                      onTap: () => context
-                          .go('/assignments/${filtered[index]['id']}'),
-                    );
-                  },
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$total ödevden ${assignments.length} tanesi',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'Sayfa ${currentPage + 1} / $totalPages',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: assignments.length,
+                        itemBuilder: (context, index) {
+                          return _AssignmentCard(
+                            assignment: assignments[index],
+                            onTap: () => context.go(
+                                '/assignments/${assignments[index]['id']}'),
+                          );
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: currentPage > 0
+                                ? () => ref
+                                    .read(assignmentPageProvider.notifier)
+                                    .state = currentPage - 1
+                                : null,
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          const SizedBox(width: 16),
+                          Text('Sayfa ${currentPage + 1} / $totalPages'),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            onPressed: currentPage < totalPages - 1
+                                ? () => ref
+                                    .read(assignmentPageProvider.notifier)
+                                    .state = currentPage + 1
+                                : null,
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
               },
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,

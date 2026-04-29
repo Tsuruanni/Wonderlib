@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // CountOption
 
 import '../../../core/supabase_client.dart';
 import '../../../core/utils/role_helpers.dart';
@@ -14,6 +17,12 @@ final classFilterProvider = StateProvider<String?>((ref) => null);
 
 /// Provider for role filter
 final roleFilterProvider = StateProvider<String?>((ref) => null);
+
+/// Search query (matches first_name / last_name / email / username)
+final userSearchProvider = StateProvider<String>((ref) => '');
+
+/// Current page index (0-based)
+final userPageProvider = StateProvider<int>((ref) => 0);
 
 /// Classes for selected school (for filter dropdown)
 final _filterClassesProvider =
@@ -29,27 +38,56 @@ final _filterClassesProvider =
   return List<Map<String, dynamic>>.from(response);
 });
 
-/// Provider for loading all users with filters
-final usersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+/// Loads users with filters, search, and pagination.
+/// Returns `{ data, total, page, pageSize }`.
+final usersProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final schoolFilter = ref.watch(schoolFilterProvider);
   final classFilter = ref.watch(classFilterProvider);
   final roleFilter = ref.watch(roleFilterProvider);
+  final search = ref.watch(userSearchProvider);
+  final page = ref.watch(userPageProvider);
 
-  var query = supabase.from(DbTables.profiles).select('*, schools(name), classes(name, grade)');
+  const pageSize = 50;
+  final offset = page * pageSize;
+
+  var query = supabase
+      .from(DbTables.profiles)
+      .select('*, schools(name), classes(name, grade)');
+  var countQuery = supabase.from(DbTables.profiles).select();
 
   if (schoolFilter != null) {
     query = query.eq('school_id', schoolFilter);
+    countQuery = countQuery.eq('school_id', schoolFilter);
   }
   if (classFilter != null) {
     query = query.eq('class_id', classFilter);
+    countQuery = countQuery.eq('class_id', classFilter);
   }
   if (roleFilter != null) {
     query = query.eq('role', roleFilter);
+    countQuery = countQuery.eq('role', roleFilter);
+  }
+  if (search.isNotEmpty) {
+    final escaped = search.replaceAll(',', ' ');
+    final orFilter =
+        'first_name.ilike.%$escaped%,last_name.ilike.%$escaped%,'
+        'email.ilike.%$escaped%,username.ilike.%$escaped%';
+    query = query.or(orFilter);
+    countQuery = countQuery.or(orFilter);
   }
 
-  final response = await query.order('created_at', ascending: false);
-  return List<Map<String, dynamic>>.from(response);
+  final response = await query
+      .order('created_at', ascending: false)
+      .range(offset, offset + pageSize - 1);
+  final countResult = await countQuery.count(CountOption.exact);
+
+  return {
+    'data': List<Map<String, dynamic>>.from(response),
+    'total': countResult.count,
+    'page': page,
+    'pageSize': pageSize,
+  };
 });
 
 /// Provider for loading all schools (for filter dropdown)
@@ -62,16 +100,54 @@ final allSchoolsProvider = FutureProvider<List<Map<String, dynamic>>>((ref) asyn
   return List<Map<String, dynamic>>.from(response);
 });
 
-class UserListScreen extends ConsumerWidget {
+class UserListScreen extends ConsumerStatefulWidget {
   const UserListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserListScreen> createState() => _UserListScreenState();
+}
+
+class _UserListScreenState extends ConsumerState<UserListScreen> {
+  final _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.text = ref.read(userSearchProvider);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _resetPage() {
+    ref.read(userPageProvider.notifier).state = 0;
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {});
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final trimmed = value.trim();
+      if (ref.read(userSearchProvider) != trimmed) {
+        ref.read(userSearchProvider.notifier).state = trimmed;
+        _resetPage();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
     final schoolsAsync = ref.watch(allSchoolsProvider);
     final selectedSchool = ref.watch(schoolFilterProvider);
     final selectedClass = ref.watch(classFilterProvider);
     final selectedRole = ref.watch(roleFilterProvider);
+    final currentPage = ref.watch(userPageProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -100,103 +176,159 @@ class UserListScreen extends ConsumerWidget {
                 bottom: BorderSide(color: Colors.grey.shade200),
               ),
             ),
-            child: Row(
+            child: Column(
               children: [
-                // School filter
-                Expanded(
-                  child: schoolsAsync.when(
-                    data: (schools) => DropdownButtonFormField<String?>(
-                      value: selectedSchool,
-                      decoration: const InputDecoration(
-                        labelText: 'Okul',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: [
-                        const DropdownMenuItem(
-                          value: null,
-                          child: Text('Tüm Okullar'),
-                        ),
-                        ...schools.map((school) => DropdownMenuItem(
-                              value: school['id'] as String,
-                              child: Text(school['name'] as String),
-                            )),
-                      ],
-                      onChanged: (value) {
-                        ref.read(schoolFilterProvider.notifier).state = value;
-                        ref.read(classFilterProvider.notifier).state = null;
-                      },
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                // Row 1: Search
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Ad, soyad, e-posta veya kullanıcı adı ara...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _debounce?.cancel();
+                              _searchController.clear();
+                              ref.read(userSearchProvider.notifier).state = '';
+                              _resetPage();
+                              setState(() {});
+                            },
+                          )
+                        : null,
                   ),
+                  onChanged: _onSearchChanged,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(height: 12),
+                // Row 2: Dropdowns
+                Row(
+                  children: [
+                    // School filter
+                    Expanded(
+                      child: schoolsAsync.when(
+                        data: (schools) => DropdownButtonFormField<String?>(
+                          value: selectedSchool,
+                          decoration: const InputDecoration(
+                            labelText: 'Okul',
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('Tüm Okullar'),
+                            ),
+                            ...schools.map((school) => DropdownMenuItem(
+                                  value: school['id'] as String,
+                                  child: Text(school['name'] as String),
+                                )),
+                          ],
+                          onChanged: (value) {
+                            ref.read(schoolFilterProvider.notifier).state =
+                                value;
+                            ref.read(classFilterProvider.notifier).state = null;
+                            _resetPage();
+                          },
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
 
-                // Class filter (only when school is selected)
-                if (selectedSchool != null)
-                  Expanded(
-                    child: ref.watch(_filterClassesProvider(selectedSchool)).when(
-                      data: (classes) => DropdownButtonFormField<String?>(
-                        value: selectedClass,
+                    // Class filter (only when school is selected)
+                    if (selectedSchool != null)
+                      Expanded(
+                        child: ref
+                            .watch(_filterClassesProvider(selectedSchool))
+                            .when(
+                          data: (classes) => DropdownButtonFormField<String?>(
+                            value: selectedClass,
+                            decoration: const InputDecoration(
+                              labelText: 'Sınıf',
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(),
+                            ),
+                            items: [
+                              const DropdownMenuItem(
+                                  value: null, child: Text('Tüm Sınıflar')),
+                              ...classes.map((cls) => DropdownMenuItem(
+                                    value: cls['id'] as String,
+                                    child: Text(
+                                      '${cls['name']} (${cls['grade'] ?? '?'}. Sınıf)',
+                                    ),
+                                  )),
+                            ],
+                            onChanged: (value) {
+                              ref.read(classFilterProvider.notifier).state =
+                                  value;
+                              _resetPage();
+                            },
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
+                      ),
+                    if (selectedSchool != null) const SizedBox(width: 16),
+
+                    // Role filter
+                    Expanded(
+                      child: DropdownButtonFormField<String?>(
+                        value: selectedRole,
                         decoration: const InputDecoration(
-                          labelText: 'Sınıf',
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          labelText: 'Rol',
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
                           border: OutlineInputBorder(),
                         ),
                         items: [
-                          const DropdownMenuItem(value: null, child: Text('Tüm Sınıflar')),
-                          ...classes.map((cls) => DropdownMenuItem(
-                                value: cls['id'] as String,
-                                child: Text(
-                                  '${cls['name']} (${cls['grade'] ?? '?'}. Sınıf)',
-                                ),
-                              )),
+                          const DropdownMenuItem(
+                              value: null, child: Text('Tüm Roller')),
+                          DropdownMenuItem(
+                              value: UserRole.student.dbValue,
+                              child: const Text('Öğrenci')),
+                          DropdownMenuItem(
+                              value: UserRole.teacher.dbValue,
+                              child: const Text('Öğretmen')),
+                          DropdownMenuItem(
+                              value: UserRole.head.dbValue,
+                              child: const Text('Baş Öğretmen')),
+                          DropdownMenuItem(
+                              value: UserRole.admin.dbValue,
+                              child: const Text('Admin')),
                         ],
                         onChanged: (value) {
-                          ref.read(classFilterProvider.notifier).state = value;
+                          ref.read(roleFilterProvider.notifier).state = value;
+                          _resetPage();
                         },
                       ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
                     ),
-                  ),
-                if (selectedSchool != null) const SizedBox(width: 16),
+                    const SizedBox(width: 16),
 
-                // Role filter
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    value: selectedRole,
-                    decoration: const InputDecoration(
-                      labelText: 'Rol',
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('Tüm Roller')),
-                      DropdownMenuItem(value: UserRole.student.dbValue, child: const Text('Öğrenci')),
-                      DropdownMenuItem(value: UserRole.teacher.dbValue, child: const Text('Öğretmen')),
-                      DropdownMenuItem(value: UserRole.head.dbValue, child: const Text('Baş Öğretmen')),
-                      DropdownMenuItem(value: UserRole.admin.dbValue, child: const Text('Admin')),
-                    ],
-                    onChanged: (value) {
-                      ref.read(roleFilterProvider.notifier).state = value;
-                    },
-                  ),
+                    // Clear filters
+                    if (selectedSchool != null ||
+                        selectedClass != null ||
+                        selectedRole != null ||
+                        ref.read(userSearchProvider).isNotEmpty)
+                      TextButton.icon(
+                        onPressed: () {
+                          ref.read(schoolFilterProvider.notifier).state = null;
+                          ref.read(classFilterProvider.notifier).state = null;
+                          ref.read(roleFilterProvider.notifier).state = null;
+                          ref.read(userSearchProvider.notifier).state = '';
+                          _searchController.clear();
+                          _resetPage();
+                        },
+                        icon: const Icon(Icons.clear, size: 18),
+                        label: const Text('Temizle'),
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-
-                // Clear filters
-                if (selectedSchool != null || selectedClass != null || selectedRole != null)
-                  TextButton.icon(
-                    onPressed: () {
-                      ref.read(schoolFilterProvider.notifier).state = null;
-                      ref.read(classFilterProvider.notifier).state = null;
-                      ref.read(roleFilterProvider.notifier).state = null;
-                    },
-                    icon: const Icon(Icons.clear, size: 18),
-                    label: const Text('Temizle'),
-                  ),
               ],
             ),
           ),
@@ -204,7 +336,12 @@ class UserListScreen extends ConsumerWidget {
           // Users list
           Expanded(
             child: usersAsync.when(
-              data: (users) {
+              data: (result) {
+                final users = result['data'] as List<Map<String, dynamic>>;
+                final total = result['total'] as int;
+                final pageSize = result['pageSize'] as int;
+                final totalPages = total == 0 ? 1 : (total / pageSize).ceil();
+
                 if (users.isEmpty) {
                   return Center(
                     child: Column(
@@ -225,7 +362,7 @@ class UserListScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Supabase Dashboard üzerinden kullanıcı oluşturun',
+                          'Filtreleri değiştirin veya yeni kullanıcı oluşturun',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade500,
@@ -236,16 +373,69 @@ class UserListScreen extends ConsumerWidget {
                   );
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return _UserCard(
-                      user: user,
-                      onTap: () => context.go('/users/${user['id']}'),
-                    );
-                  },
+                return Column(
+                  children: [
+                    // Results info
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '$total kullanıcıdan ${users.length} tanesi',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                          Text(
+                            'Sayfa ${currentPage + 1} / $totalPages',
+                            style: TextStyle(color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // List
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: users.length,
+                        itemBuilder: (context, index) {
+                          final user = users[index];
+                          return _UserCard(
+                            user: user,
+                            onTap: () => context.go('/users/${user['id']}'),
+                          );
+                        },
+                      ),
+                    ),
+                    // Pagination controls
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: currentPage > 0
+                                ? () => ref
+                                    .read(userPageProvider.notifier)
+                                    .state = currentPage - 1
+                                : null,
+                            icon: const Icon(Icons.chevron_left),
+                          ),
+                          const SizedBox(width: 16),
+                          Text('Sayfa ${currentPage + 1} / $totalPages'),
+                          const SizedBox(width: 16),
+                          IconButton(
+                            onPressed: currentPage < totalPages - 1
+                                ? () => ref
+                                    .read(userPageProvider.notifier)
+                                    .state = currentPage + 1
+                                : null,
+                            icon: const Icon(Icons.chevron_right),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -253,7 +443,8 @@ class UserListScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+                    Icon(Icons.error_outline,
+                        size: 48, color: Colors.red.shade400),
                     const SizedBox(height: 16),
                     Text('Hata: $error'),
                     const SizedBox(height: 16),

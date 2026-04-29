@@ -16,11 +16,19 @@ final vocabularySearchProvider = StateProvider<String>((ref) => '');
 /// Current page for vocabulary pagination
 final vocabularyPageProvider = StateProvider<int>((ref) => 0);
 
+/// IDs of vocabulary rows currently selected for bulk actions.
+final vocabularySelectedIdsProvider =
+    StateProvider<Set<String>>((ref) => <String>{});
+
 /// Audio filter: null = all, true = has audio, false = no audio
 final vocabularyAudioFilterProvider = StateProvider<bool?>((ref) => null);
 
 /// Image filter: null = all, true = has image, false = no image
 final vocabularyImageFilterProvider = StateProvider<bool?>((ref) => null);
+
+/// Missing-content filter: when true, only words missing any of
+/// [meaning_tr, meaning_en, phonetic] are shown.
+final vocabularyMissingContentProvider = StateProvider<bool>((ref) => false);
 
 /// Vocabulary words with pagination, search, and content filters
 final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
@@ -28,6 +36,7 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final search = ref.watch(vocabularySearchProvider);
   final audioFilter = ref.watch(vocabularyAudioFilterProvider);
   final imageFilter = ref.watch(vocabularyImageFilterProvider);
+  final missingContent = ref.watch(vocabularyMissingContentProvider);
   final page = ref.watch(vocabularyPageProvider);
 
   const pageSize = 50;
@@ -60,6 +69,16 @@ final vocabularyProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   } else if (imageFilter == false) {
     query = query.or('image_url.is.null,image_url.eq.');
     countQuery = countQuery.or('image_url.is.null,image_url.eq.');
+  }
+
+  // Missing-content filter (any of meaning_tr / meaning_en / phonetic empty)
+  if (missingContent) {
+    const orFilter =
+        'meaning_tr.is.null,meaning_tr.eq.,'
+        'meaning_en.is.null,meaning_en.eq.,'
+        'phonetic.is.null,phonetic.eq.';
+    query = query.or(orFilter);
+    countQuery = countQuery.or(orFilter);
   }
 
   final response =
@@ -174,6 +193,66 @@ class _VocabularyTab extends ConsumerWidget {
 
   void _resetPage(WidgetRef ref) {
     ref.read(vocabularyPageProvider.notifier).state = 0;
+    ref.read(vocabularySelectedIdsProvider.notifier).state = <String>{};
+  }
+
+  void _changePage(WidgetRef ref, int newPage) {
+    ref.read(vocabularyPageProvider.notifier).state = newPage;
+    ref.read(vocabularySelectedIdsProvider.notifier).state = <String>{};
+  }
+
+  Future<void> _bulkDelete(BuildContext context, WidgetRef ref) async {
+    final selectedIds =
+        ref.read(vocabularySelectedIdsProvider).toList(growable: false);
+    if (selectedIds.isEmpty) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Seçili Kelimeleri Sil'),
+        content: Text(
+          '${selectedIds.length} kelime kalıcı olarak silinecek. '
+          'Tüm kelime listelerinden ve öğrenci ilerlemelerinden de kaldırılacak. '
+          'Bu işlem geri alınamaz.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      await supabase
+          .from(DbTables.vocabularyWords)
+          .delete()
+          .inFilter('id', selectedIds);
+      ref.read(vocabularySelectedIdsProvider.notifier).state = <String>{};
+      ref.invalidate(vocabularyProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${selectedIds.length} kelime silindi'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Silme başarısız: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -182,6 +261,7 @@ class _VocabularyTab extends ConsumerWidget {
     final currentPage = ref.watch(vocabularyPageProvider);
     final audioFilter = ref.watch(vocabularyAudioFilterProvider);
     final imageFilter = ref.watch(vocabularyImageFilterProvider);
+    final selectedIds = ref.watch(vocabularySelectedIdsProvider);
 
     return Column(
       children: [
@@ -226,61 +306,102 @@ class _VocabularyTab extends ConsumerWidget {
                   },
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // Audio filter
-              SizedBox(
-                width: 140,
-                child: DropdownButtonFormField<bool?>(
-                  value: audioFilter,
-                  decoration: const InputDecoration(
-                    labelText: 'Ses',
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('Tümü')),
-                    DropdownMenuItem(
-                        value: true, child: Text('Ses Var')),
-                    DropdownMenuItem(
-                        value: false, child: Text('Ses Yok')),
-                  ],
-                  onChanged: (value) {
-                    ref
-                        .read(vocabularyAudioFilterProvider.notifier)
-                        .state = value;
-                    _resetPage(ref);
-                  },
+            ],
+          ),
+        ),
+        // Filter chips row
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            border:
+                Border(bottom: BorderSide(color: Colors.grey.shade200)),
+          ),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              FilterChip(
+                avatar: Icon(
+                  Icons.volume_up,
+                  size: 16,
+                  color: audioFilter == true
+                      ? Colors.green.shade700
+                      : Colors.grey.shade600,
                 ),
+                label: const Text('Sesli'),
+                selected: audioFilter == true,
+                onSelected: (selected) {
+                  ref.read(vocabularyAudioFilterProvider.notifier).state =
+                      selected ? true : null;
+                  _resetPage(ref);
+                },
               ),
-              const SizedBox(width: 12),
-
-              // Image filter
-              SizedBox(
-                width: 140,
-                child: DropdownButtonFormField<bool?>(
-                  value: imageFilter,
-                  decoration: const InputDecoration(
-                    labelText: 'Görsel',
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: null, child: Text('Tümü')),
-                    DropdownMenuItem(
-                        value: true, child: Text('Görsel Var')),
-                    DropdownMenuItem(
-                        value: false, child: Text('Görsel Yok')),
-                  ],
-                  onChanged: (value) {
-                    ref
-                        .read(vocabularyImageFilterProvider.notifier)
-                        .state = value;
-                    _resetPage(ref);
-                  },
+              FilterChip(
+                avatar: Icon(
+                  Icons.volume_off,
+                  size: 16,
+                  color: audioFilter == false
+                      ? Colors.orange.shade700
+                      : Colors.grey.shade600,
                 ),
+                label: const Text('Sessiz'),
+                selected: audioFilter == false,
+                onSelected: (selected) {
+                  ref.read(vocabularyAudioFilterProvider.notifier).state =
+                      selected ? false : null;
+                  _resetPage(ref);
+                },
+              ),
+              FilterChip(
+                avatar: Icon(
+                  Icons.image,
+                  size: 16,
+                  color: imageFilter == true
+                      ? Colors.green.shade700
+                      : Colors.grey.shade600,
+                ),
+                label: const Text('Görselli'),
+                selected: imageFilter == true,
+                onSelected: (selected) {
+                  ref.read(vocabularyImageFilterProvider.notifier).state =
+                      selected ? true : null;
+                  _resetPage(ref);
+                },
+              ),
+              FilterChip(
+                avatar: Icon(
+                  Icons.hide_image,
+                  size: 16,
+                  color: imageFilter == false
+                      ? Colors.orange.shade700
+                      : Colors.grey.shade600,
+                ),
+                label: const Text('Görselsiz'),
+                selected: imageFilter == false,
+                onSelected: (selected) {
+                  ref.read(vocabularyImageFilterProvider.notifier).state =
+                      selected ? false : null;
+                  _resetPage(ref);
+                },
+              ),
+              FilterChip(
+                avatar: Icon(
+                  Icons.warning_amber,
+                  size: 16,
+                  color: ref.watch(vocabularyMissingContentProvider)
+                      ? Colors.red.shade700
+                      : Colors.grey.shade600,
+                ),
+                label: const Text('Eksik içerik'),
+                tooltip: 'Anlam (TR/EN) veya fonetik eksik kelimeler',
+                selected: ref.watch(vocabularyMissingContentProvider),
+                onSelected: (selected) {
+                  ref
+                      .read(vocabularyMissingContentProvider.notifier)
+                      .state = selected;
+                  _resetPage(ref);
+                },
               ),
             ],
           ),
@@ -324,6 +445,45 @@ class _VocabularyTab extends ConsumerWidget {
 
               return Column(
                 children: [
+                  // Bulk action bar
+                  if (selectedIds.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
+                      color: Colors.red.shade50,
+                      child: Row(
+                        children: [
+                          Text(
+                            '${selectedIds.length} kelime seçili',
+                            style: TextStyle(
+                              color: Colors.red.shade900,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          TextButton(
+                            onPressed: () {
+                              ref
+                                  .read(vocabularySelectedIdsProvider
+                                      .notifier)
+                                  .state = <String>{};
+                            },
+                            child: const Text('Seçimi Temizle'),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.red.shade600,
+                            ),
+                            onPressed: () => _bulkDelete(context, ref),
+                            icon: const Icon(Icons.delete_outline,
+                                size: 18),
+                            label: const Text('Seçilenleri Sil'),
+                          ),
+                        ],
+                      ),
+                    ),
                   // Results info
                   Padding(
                     padding: const EdgeInsets.symmetric(
@@ -353,14 +513,15 @@ class _VocabularyTab extends ConsumerWidget {
                           horizontal: 24),
                       child: Table(
                         columnWidths: const {
-                          0: FlexColumnWidth(1.3), // Kelime
-                          1: FlexColumnWidth(0.8), // Fonetik
-                          2: FlexColumnWidth(1.5), // Anlam TR
-                          3: FlexColumnWidth(1.5), // Anlam EN
-                          4: FlexColumnWidth(2),   // Örnek Cümle
-                          5: FixedColumnWidth(40),  // Ses
-                          6: FixedColumnWidth(40),  // Görsel
-                          7: FixedColumnWidth(36),  // >
+                          0: FixedColumnWidth(48),  // Checkbox
+                          1: FlexColumnWidth(1.3),  // Kelime
+                          2: FlexColumnWidth(0.8),  // Fonetik
+                          3: FlexColumnWidth(1.5),  // Anlam TR
+                          4: FlexColumnWidth(1.5),  // Anlam EN
+                          5: FlexColumnWidth(2),    // Örnek Cümle
+                          6: FixedColumnWidth(40),  // Ses
+                          7: FixedColumnWidth(40),  // Görsel
+                          8: FixedColumnWidth(36),  // >
                         },
                         border: TableBorder.all(
                           color: Colors.grey.shade200,
@@ -374,15 +535,16 @@ class _VocabularyTab extends ConsumerWidget {
                                   const BorderRadius.vertical(
                                       top: Radius.circular(8)),
                             ),
-                            children: const [
-                              _HeaderCell('Kelime'),
-                              _HeaderCell('Fonetik'),
-                              _HeaderCell('Anlam (TR)'),
-                              _HeaderCell('Anlam (EN)'),
-                              _HeaderCell('Örnek Cümle'),
-                              _HeaderIconCell(Icons.volume_up),
-                              _HeaderIconCell(Icons.image),
-                              SizedBox(),
+                            children: [
+                              _HeaderCheckboxCell(words: words),
+                              const _HeaderCell('Kelime'),
+                              const _HeaderCell('Fonetik'),
+                              const _HeaderCell('Anlam (TR)'),
+                              const _HeaderCell('Anlam (EN)'),
+                              const _HeaderCell('Örnek Cümle'),
+                              const _HeaderIconCell(Icons.volume_up),
+                              const _HeaderIconCell(Icons.image),
+                              const SizedBox(),
                             ],
                           ),
                           ...words.map((w) =>
@@ -400,10 +562,7 @@ class _VocabularyTab extends ConsumerWidget {
                       children: [
                         IconButton(
                           onPressed: currentPage > 0
-                              ? () => ref
-                                  .read(vocabularyPageProvider
-                                      .notifier)
-                                  .state = currentPage - 1
+                              ? () => _changePage(ref, currentPage - 1)
                               : null,
                           icon: const Icon(Icons.chevron_left),
                         ),
@@ -412,13 +571,9 @@ class _VocabularyTab extends ConsumerWidget {
                             'Sayfa ${currentPage + 1} / $totalPages'),
                         const SizedBox(width: 16),
                         IconButton(
-                          onPressed:
-                              currentPage < totalPages - 1
-                                  ? () => ref
-                                      .read(vocabularyPageProvider
-                                          .notifier)
-                                      .state = currentPage + 1
-                                  : null,
+                          onPressed: currentPage < totalPages - 1
+                              ? () => _changePage(ref, currentPage + 1)
+                              : null,
                           icon: const Icon(Icons.chevron_right),
                         ),
                       ],
@@ -466,6 +621,8 @@ class _VocabularyTab extends ConsumerWidget {
 
     return TableRow(
       children: [
+        // Checkbox
+        _RowCheckboxCell(wordId: w['id'] as String),
         // Kelime
         InkWell(
           onTap: () => context.push('/vocabulary/${w['id']}'),
@@ -916,6 +1073,81 @@ class _HeaderIconCell extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Icon(icon, size: 16, color: Colors.grey.shade700),
+    );
+  }
+}
+
+/// Header-level checkbox: toggles selection for all words on the current page.
+class _HeaderCheckboxCell extends ConsumerWidget {
+  const _HeaderCheckboxCell({required this.words});
+
+  final List<Map<String, dynamic>> words;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIds = ref.watch(vocabularySelectedIdsProvider);
+    final pageIds = words.map((w) => w['id'] as String).toSet();
+    final selectedOnPage = pageIds.intersection(selectedIds);
+
+    bool? value;
+    if (selectedOnPage.isEmpty) {
+      value = false;
+    } else if (selectedOnPage.length == pageIds.length) {
+      value = true;
+    } else {
+      value = null; // indeterminate
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: Center(
+        child: Checkbox(
+          tristate: true,
+          value: value,
+          onChanged: (_) {
+            final notifier =
+                ref.read(vocabularySelectedIdsProvider.notifier);
+            if (value == true) {
+              // Currently all selected → unselect all on page
+              notifier.state = selectedIds.difference(pageIds);
+            } else {
+              // None or some → select all on page
+              notifier.state = {...selectedIds, ...pageIds};
+            }
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// Per-row checkbox for bulk-select.
+class _RowCheckboxCell extends ConsumerWidget {
+  const _RowCheckboxCell({required this.wordId});
+
+  final String wordId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIds = ref.watch(vocabularySelectedIdsProvider);
+    final isSelected = selectedIds.contains(wordId);
+
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: Center(
+        child: Checkbox(
+          value: isSelected,
+          onChanged: (_) {
+            final notifier =
+                ref.read(vocabularySelectedIdsProvider.notifier);
+            if (isSelected) {
+              notifier.state = {...selectedIds}..remove(wordId);
+            } else {
+              notifier.state = {...selectedIds, wordId};
+            }
+          },
+        ),
+      ),
     );
   }
 }

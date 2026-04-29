@@ -6,16 +6,33 @@ import 'package:owlio_shared/owlio_shared.dart';
 import '../../../core/supabase_client.dart';
 
 // ============================================
-// PROVIDER
+// PROVIDERS
 // ============================================
+
+/// Time range for recent-activity sections.
+/// `null` = all time, otherwise restrict each section to the given window.
+final recentActivityRangeProvider =
+    StateProvider<Duration?>((ref) => const Duration(days: 7));
+
+/// Maps the active range to a Turkish label (used in UI + section subtitles).
+String recentActivityRangeLabel(Duration? range) {
+  if (range == null) return 'Tümü';
+  if (range == const Duration(hours: 24)) return 'Son 24 saat';
+  if (range == const Duration(days: 7)) return 'Son 7 gün';
+  if (range == const Duration(days: 30)) return 'Son 30 gün';
+  return 'Son ${range.inDays} gün';
+}
 
 final recentActivityProvider =
     FutureProvider<Map<String, dynamic>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
+  final range = ref.watch(recentActivityRangeProvider);
   final now = DateTime.now().toUtc();
   final todayStart =
       DateTime.utc(now.year, now.month, now.day).toIso8601String();
   final weekAgo = now.subtract(const Duration(days: 7)).toIso8601String();
+  final rangeStart =
+      range == null ? null : now.subtract(range).toIso8601String();
 
   final results = await Future.wait([
     // 0: summary - today's active users
@@ -24,81 +41,134 @@ final recentActivityProvider =
         .select('user_id')
         .gte('created_at', todayStart)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
-    // 1: summary - week's total XP
-    supabase
-        .from(DbTables.xpLogs)
-        .select('amount')
-        .gte('created_at', weekAgo)
+    // 1: summary - selected-window total XP
+    (rangeStart == null
+            ? supabase.from(DbTables.xpLogs).select('amount').gte(
+                'created_at', weekAgo) // fall back to week if range is "all"
+            : supabase
+                .from(DbTables.xpLogs)
+                .select('amount')
+                .gte('created_at', rangeStart))
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 2: Son Eklenen Kitaplar
-    supabase
-        .from(DbTables.books)
-        .select('id, title, level, created_at')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.books)
+                .select('id, title, level, created_at')
+            : supabase
+                .from(DbTables.books)
+                .select('id, title, level, created_at')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 3: Son Eklenen Bölümler
-    supabase
-        .from(DbTables.chapters)
-        .select('id, title, created_at, books(title)')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.chapters)
+                .select('id, title, created_at, books(title)')
+            : supabase
+                .from(DbTables.chapters)
+                .select('id, title, created_at, books(title)')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 4: Son Eklenen Kelimeler
-    supabase
-        .from(DbTables.vocabularyWords)
-        .select('id, word, meaning_tr, source, created_at')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.vocabularyWords)
+                .select('id, word, meaning_tr, source, created_at')
+            : supabase
+                .from(DbTables.vocabularyWords)
+                .select('id, word, meaning_tr, source, created_at')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 5: Son Eklenen Aktiviteler
-    supabase
-        .from(DbTables.inlineActivities)
-        .select('id, type, created_at, chapters(title)')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.inlineActivities)
+                .select('id, type, created_at, chapters(title)')
+            : supabase
+                .from(DbTables.inlineActivities)
+                .select('id, type, created_at, chapters(title)')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 6: Son Ödevler
-    supabase
-        .from(DbTables.scopeLearningPaths)
-        .select('id, created_at, learning_path_templates(name)')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.scopeLearningPaths)
+                .select('id, created_at, learning_path_templates(name)')
+            : supabase
+                .from(DbTables.scopeLearningPaths)
+                .select('id, created_at, learning_path_templates(name)')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 7: Son Eklenen Kullanıcılar
-    supabase
-        .from(DbTables.profiles)
-        .select('id, first_name, last_name, role, created_at')
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.profiles)
+                .select('id, first_name, last_name, role, created_at')
+            : supabase
+                .from(DbTables.profiles)
+                .select('id, first_name, last_name, role, created_at')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
-    // 8: Son Aktif Kullanıcılar
-    supabase
-        .from(DbTables.profiles)
-        .select('id, first_name, last_name, last_activity_date')
-        .not('last_activity_date', 'is', null)
+    // 8: Son Aktif Kullanıcılar (filtered on last_activity_date)
+    (rangeStart == null
+            ? supabase
+                .from(DbTables.profiles)
+                .select('id, first_name, last_name, last_activity_date')
+                .not('last_activity_date', 'is', null)
+            : supabase
+                .from(DbTables.profiles)
+                .select('id, first_name, last_name, last_activity_date')
+                .not('last_activity_date', 'is', null)
+                .gte('last_activity_date', rangeStart))
         .order('last_activity_date', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
-    // 9: Son Tamamlanan Aktiviteler
-    supabase
-        .from(DbTables.inlineActivityResults)
-        .select(
-            'id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
+    // 9: Son Tamamlanan Aktiviteler (filtered on answered_at)
+    (rangeStart == null
+            ? supabase.from(DbTables.inlineActivityResults).select(
+                'id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
+            : supabase
+                .from(DbTables.inlineActivityResults)
+                .select(
+                    'id, is_correct, answered_at, profiles(first_name, last_name), inline_activities(type)')
+                .gte('answered_at', rangeStart))
         .order('answered_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
-    // 10: Son Okuma İlerlemeleri
-    supabase
-        .from(DbTables.readingProgress)
-        .select('id, updated_at, profiles(first_name, last_name), chapters(title)')
+    // 10: Son Okuma İlerlemeleri (filtered on updated_at)
+    (rangeStart == null
+            ? supabase.from(DbTables.readingProgress).select(
+                'id, updated_at, profiles(first_name, last_name), chapters(title)')
+            : supabase
+                .from(DbTables.readingProgress)
+                .select(
+                    'id, updated_at, profiles(first_name, last_name), chapters(title)')
+                .gte('updated_at', rangeStart))
         .order('updated_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
     // 11: Son XP Kazanımları
-    supabase
-        .from(DbTables.xpLogs)
-        .select('id, amount, source, created_at, profiles(first_name, last_name)')
+    (rangeStart == null
+            ? supabase.from(DbTables.xpLogs).select(
+                'id, amount, source, created_at, profiles(first_name, last_name)')
+            : supabase
+                .from(DbTables.xpLogs)
+                .select(
+                    'id, amount, source, created_at, profiles(first_name, last_name)')
+                .gte('created_at', rangeStart))
         .order('created_at', ascending: false)
         .limit(10)
         .then<List<dynamic>>((v) => v, onError: (_) => <dynamic>[]),
@@ -167,9 +237,10 @@ class RecentActivityScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, WidgetRef _, Map<String, dynamic> data) {
+  Widget _buildBody(BuildContext context, WidgetRef ref, Map<String, dynamic> data) {
     final todayUsers = data['todayUsers'] as int? ?? 0;
     final weeklyXp = data['weeklyXp'] as int? ?? 0;
+    final selectedRange = ref.watch(recentActivityRangeProvider);
     final books = data['books'] as List? ?? [];
     final chapters = data['chapters'] as List? ?? [];
     final words = data['words'] as List? ?? [];
@@ -186,6 +257,47 @@ class RecentActivityScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ---- Time range selector ----
+          Row(
+            children: [
+              Text(
+                'Zaman aralığı:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 12),
+              SegmentedButton<Duration?>(
+                showSelectedIcon: false,
+                segments: const [
+                  ButtonSegment(
+                    value: Duration(hours: 24),
+                    label: Text('24 saat'),
+                  ),
+                  ButtonSegment(
+                    value: Duration(days: 7),
+                    label: Text('7 gün'),
+                  ),
+                  ButtonSegment(
+                    value: Duration(days: 30),
+                    label: Text('30 gün'),
+                  ),
+                  ButtonSegment(
+                    value: null,
+                    label: Text('Tümü'),
+                  ),
+                ],
+                selected: {selectedRange},
+                onSelectionChanged: (s) {
+                  ref.read(recentActivityRangeProvider.notifier).state =
+                      s.first;
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           // ---- Summary Cards ----
           Row(
             children: [
