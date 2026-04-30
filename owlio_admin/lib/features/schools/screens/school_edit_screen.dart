@@ -658,6 +658,8 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                     const Divider(),
                     const SizedBox(height: 24),
                     _buildClassesSection(context),
+                    const SizedBox(height: 32),
+                    _buildUnassignedStudentsSection(context),
                   ],
                 ],
               ),
@@ -861,6 +863,115 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
           },
         ),
       ],
+    );
+  }
+
+  // ============================================
+  // UNASSIGNED STUDENTS SECTION
+  // ============================================
+
+  Widget _buildUnassignedStudentsSection(BuildContext context) {
+    final asyncStudents =
+        ref.watch(_availableStudentsProvider(widget.schoolId!));
+
+    return asyncStudents.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (students) {
+        if (students.isEmpty) return const SizedBox.shrink();
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.orange.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.orange.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.person_off,
+                      color: Colors.orange.shade700, size: 22),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sınıfa atanmamış öğrenciler (${students.length})',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.orange.shade900,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Bu öğrenciler okula kayıtlı ama hiçbir sınıfa atanmamış. '
+                'Yukarıdaki sınıflarda + butonu ile ekleyin.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.orange.shade800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: students.map((s) {
+                  final name =
+                      '${s['first_name'] ?? ''} ${s['last_name'] ?? ''}'
+                          .trim();
+                  return InkWell(
+                    onTap: () =>
+                        context.go('/users/${s['id']}'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border:
+                            Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircleAvatar(
+                            radius: 10,
+                            backgroundColor:
+                                Colors.orange.shade100,
+                            child: Text(
+                              name.isNotEmpty
+                                  ? name[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.orange.shade900,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            name.isNotEmpty
+                                ? name
+                                : (s['email'] as String? ?? '?'),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

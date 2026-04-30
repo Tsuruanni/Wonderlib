@@ -63,6 +63,20 @@ class _ContentBlockList extends ConsumerStatefulWidget {
   ConsumerState<_ContentBlockList> createState() => _ContentBlockListState();
 }
 
+/// Add-block menu items. Listed in one place so the PopupMenuButton entries
+/// and the activity sub-section share a single source of truth.
+const _kBlockTypes = [
+  ('text', Icons.text_fields, 'Metin', null),
+  ('image', Icons.image, 'Görsel', null),
+];
+
+const _kActivityTypes = [
+  ('true_false', Icons.check_circle_outline, 'True / False'),
+  ('word_translation', Icons.translate, 'Word Translation'),
+  ('find_words', Icons.checklist, 'Find Words (çoklu seçim)'),
+  ('matching', Icons.compare_arrows, 'Matching'),
+];
+
 class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
   late List<Map<String, dynamic>> _localBlocks;
   bool _isGeneratingChapterAudio = false;
@@ -88,6 +102,201 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
         }
         return Map<String, dynamic>.from(block);
       }).toList();
+    }
+  }
+
+  // Bulk-select state — toggle-into-selection-mode pattern (mirrors vocab list).
+  bool _isSelectionMode = false;
+  final Set<String> _selectedIds = {};
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _enterSelectionMode() {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedIds.clear();
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  Future<void> _bulkDelete() async {
+    if (_selectedIds.isEmpty) return;
+    final count = _selectedIds.length;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Seçili Blokları Sil'),
+        content: Text(
+          '$count blok kalıcı olarak silinecek. '
+          'İlişkili inline aktiviteler de kaldırılacak. '
+          'Bu işlem geri alınamaz.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('İptal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final supabase = ref.read(supabaseClientProvider);
+    final idsToDelete = _selectedIds.toList();
+    final activityIds = _localBlocks
+        .where((b) => idsToDelete.contains(b['id']))
+        .map((b) => b['activity_id'] as String?)
+        .whereType<String>()
+        .toList();
+
+    setState(() {
+      _localBlocks =
+          _localBlocks.where((b) => !idsToDelete.contains(b['id'])).toList();
+    });
+
+    try {
+      await supabase
+          .from(DbTables.contentBlocks)
+          .delete()
+          .inFilter('id', idsToDelete);
+      if (activityIds.isNotEmpty) {
+        await supabase
+            .from(DbTables.inlineActivities)
+            .delete()
+            .inFilter('id', activityIds);
+      }
+      _exitSelectionMode();
+      widget.onRefresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$count blok silindi')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Toplu silme başarısız: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Duplicates a single block. Inserts a new content_blocks row right after
+  /// the source. If the source has an inline_activity, that activity is also
+  /// cloned and linked to the new block.
+  Future<void> _duplicateBlock(Map<String, dynamic> source) async {
+    final supabase = ref.read(supabaseClientProvider);
+    final sourceOrder = source['order_index'] as int? ?? 0;
+
+    // Shift everything after sourceOrder down by 1, then insert at sourceOrder+1.
+    setState(() {
+      _localBlocks = _localBlocks.map((b) {
+        final idx = b['id'] == source['id']
+            ? sourceOrder
+            : (b['order_index'] as int? ?? 0);
+        if (idx > sourceOrder) {
+          return {...b, 'order_index': idx + 1};
+        }
+        return b;
+      }).toList();
+    });
+
+    try {
+      // Bump existing rows that were after the source
+      for (final b in _localBlocks) {
+        if (b['id'] == source['id']) continue;
+        final idx = b['order_index'] as int? ?? 0;
+        if (idx > sourceOrder + 1) {
+          await supabase
+              .from(DbTables.contentBlocks)
+              .update({'order_index': idx})
+              .eq('id', b['id'] as String);
+        }
+      }
+
+      // Optionally clone activity
+      String? newActivityId;
+      final sourceActivityId = source['activity_id'] as String?;
+      if (sourceActivityId != null) {
+        final original = await supabase
+            .from(DbTables.inlineActivities)
+            .select()
+            .eq('id', sourceActivityId)
+            .maybeSingle();
+        if (original != null) {
+          newActivityId = const Uuid().v4();
+          final clone = Map<String, dynamic>.from(original);
+          clone['id'] = newActivityId;
+          clone.remove('created_at');
+          clone.remove('updated_at');
+          await supabase.from(DbTables.inlineActivities).insert(clone);
+        }
+      }
+
+      // Insert duplicated block
+      final newId = const Uuid().v4();
+      final newBlock = <String, dynamic>{
+        'id': newId,
+        'chapter_id': widget.chapterId,
+        'order_index': sourceOrder + 1,
+        'type': source['type'],
+        'text': source['text'],
+        'audio_url': null, // audio is per-block, don't copy stale URL
+        'word_timings': [],
+        'audio_start_ms': null,
+        'audio_end_ms': null,
+        'image_url': source['image_url'],
+        'caption': source['caption'],
+        'activity_id': newActivityId,
+      };
+      await supabase.from(DbTables.contentBlocks).insert(newBlock);
+
+      setState(() {
+        _localBlocks = [..._localBlocks, newBlock]
+          ..sort((a, b) => (a['order_index'] as int)
+              .compareTo(b['order_index'] as int));
+      });
+      widget.onRefresh();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Blok kopyalandı')),
+        );
+      }
+    } catch (e) {
+      // Rollback local state on failure
+      widget.onRefresh();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Kopyalama başarısız: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -305,67 +514,18 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Toolbar
+        // Toolbar — switches between regular mode and selection mode.
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
+            color: _isSelectionMode ? Colors.indigo.shade50 : null,
             border: Border(
               bottom: BorderSide(color: Colors.grey.shade200),
             ),
           ),
-          child: Row(
-            children: [
-              Text(
-                'İçerik Blokları (${_localBlocks.length})',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const Spacer(),
-              // Generate Chapter Audio
-              OutlinedButton.icon(
-                onPressed: _isGeneratingChapterAudio ? null : _generateChapterAudio,
-                icon: _isGeneratingChapterAudio
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.music_note, size: 18),
-                label: Text(_isGeneratingChapterAudio
-                    ? 'Üretiliyor...'
-                    : 'Bölüm Sesi Üret'),
-              ),
-              const SizedBox(width: 12),
-              // Add block buttons
-              FilledButton.tonalIcon(
-                onPressed: () => _addBlock('text'),
-                icon: const Icon(Icons.text_fields, size: 18),
-                label: const Text('Metin'),
-              ),
-              const SizedBox(width: 8),
-              FilledButton.tonalIcon(
-                onPressed: () => _addBlock('image'),
-                icon: const Icon(Icons.image, size: 18),
-                label: const Text('Görsel'),
-              ),
-              const SizedBox(width: 8),
-              PopupMenuButton<String>(
-                onSelected: (type) => _addBlock('activity', activityType: type),
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'true_false', child: ListTile(leading: Icon(Icons.check_circle_outline), title: Text('True/False'), dense: true)),
-                  PopupMenuItem(value: 'word_translation', child: ListTile(leading: Icon(Icons.translate), title: Text('Word Translation'), dense: true)),
-                  PopupMenuItem(value: 'find_words', child: ListTile(leading: Icon(Icons.checklist), title: Text('Select Multiple'), dense: true)),
-                  PopupMenuItem(value: 'matching', child: ListTile(leading: Icon(Icons.compare_arrows), title: Text('Matching'), dense: true)),
-                ],
-                child: IgnorePointer(
-                  child: FilledButton.tonalIcon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.quiz, size: 18),
-                    label: const Text('Aktivite'),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          child: _isSelectionMode
+              ? _buildSelectionToolbar()
+              : _buildRegularToolbar(),
         ),
 
         // Block list
@@ -413,16 +573,165 @@ class _ContentBlockListState extends ConsumerState<_ContentBlockList> {
                   },
                   itemBuilder: (context, index) {
                     final block = _localBlocks[index];
+                    final id = block['id'] as String;
                     return _BlockCard(
-                      key: ValueKey(block['id']),
+                      key: ValueKey(id),
                       block: block,
                       index: index,
                       chapterId: widget.chapterId,
-                      onDelete: () => _deleteBlock(block['id'] as String),
+                      onDelete: () => _deleteBlock(id),
+                      onDuplicate: () => _duplicateBlock(block),
                       onRefresh: widget.onRefresh,
+                      isSelectionMode: _isSelectionMode,
+                      isSelected: _selectedIds.contains(id),
+                      onToggleSelection: () => _toggleSelection(id),
                     );
                   },
                 ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRegularToolbar() {
+    return Row(
+      children: [
+        Text(
+          'İçerik Blokları (${_localBlocks.length})',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const Spacer(),
+        // Multi-select toggle
+        if (_localBlocks.isNotEmpty) ...[
+          OutlinedButton.icon(
+            onPressed: _enterSelectionMode,
+            icon: const Icon(Icons.checklist, size: 18),
+            label: const Text('Seç'),
+          ),
+          const SizedBox(width: 8),
+        ],
+        // Generate chapter audio
+        OutlinedButton.icon(
+          onPressed:
+              _isGeneratingChapterAudio ? null : _generateChapterAudio,
+          icon: _isGeneratingChapterAudio
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.music_note, size: 18),
+          label: Text(_isGeneratingChapterAudio
+              ? 'Üretiliyor...'
+              : 'Bölüm Sesi Üret'),
+        ),
+        const SizedBox(width: 12),
+        // Single consolidated add-block menu
+        PopupMenuButton<String>(
+          tooltip: 'Yeni blok ekle',
+          onSelected: (value) {
+            if (value == 'text' || value == 'image') {
+              _addBlock(value);
+            } else {
+              // value is an activity sub-type
+              _addBlock('activity', activityType: value);
+            }
+          },
+          itemBuilder: (context) => [
+            for (final t in _kBlockTypes)
+              PopupMenuItem(
+                value: t.$1,
+                child: ListTile(
+                  leading: Icon(t.$2),
+                  title: Text(t.$3),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              enabled: false,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Text(
+                  'AKTİVİTE',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+            ),
+            for (final a in _kActivityTypes)
+              PopupMenuItem(
+                value: a.$1,
+                child: ListTile(
+                  leading: Icon(a.$2),
+                  title: Text(a.$3, style: const TextStyle(fontSize: 13)),
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+          ],
+          child: IgnorePointer(
+            child: FilledButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Blok Ekle'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectionToolbar() {
+    final n = _selectedIds.length;
+    final allOnPage = _localBlocks.length;
+    return Row(
+      children: [
+        Checkbox(
+          tristate: true,
+          value: n == 0
+              ? false
+              : (n == allOnPage ? true : null),
+          onChanged: (_) {
+            setState(() {
+              if (n == allOnPage) {
+                _selectedIds.clear();
+              } else {
+                _selectedIds.addAll(
+                    _localBlocks.map((b) => b['id'] as String));
+              }
+            });
+          },
+        ),
+        const SizedBox(width: 4),
+        Text(
+          n == 0
+              ? '$allOnPage blok — seçim yapın'
+              : '$n / $allOnPage seçili',
+          style: TextStyle(
+            color: Colors.indigo.shade900,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const Spacer(),
+        FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.red.shade600,
+          ),
+          onPressed: n == 0 ? null : _bulkDelete,
+          icon: const Icon(Icons.delete_outline, size: 18),
+          label: Text(n == 0 ? 'Sil' : 'Sil ($n)'),
+        ),
+        const SizedBox(width: 8),
+        TextButton.icon(
+          onPressed: _exitSelectionMode,
+          icon: const Icon(Icons.close, size: 18),
+          label: const Text('Çıkış'),
         ),
       ],
     );
@@ -436,14 +745,22 @@ class _BlockCard extends ConsumerStatefulWidget {
     required this.index,
     required this.chapterId,
     required this.onDelete,
+    required this.onDuplicate,
     required this.onRefresh,
+    required this.isSelectionMode,
+    required this.isSelected,
+    required this.onToggleSelection,
   });
 
   final Map<String, dynamic> block;
   final int index;
   final String chapterId;
   final VoidCallback onDelete;
+  final VoidCallback onDuplicate;
   final VoidCallback onRefresh;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback onToggleSelection;
 
   @override
   ConsumerState<_BlockCard> createState() => _BlockCardState();
@@ -525,27 +842,50 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: _getTypeColor(type).withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            ),
-            child: Row(
-              children: [
-                Icon(_getTypeIcon(type), size: 20, color: _getTypeColor(type)),
-                const SizedBox(width: 8),
-                Text(
-                  '${widget.index + 1}. ${_getTypeName(type)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _getTypeColor(type),
+      // Visually highlight selected card while in selection mode
+      shape: widget.isSelected
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: Colors.indigo, width: 2),
+            )
+          : null,
+      child: InkWell(
+        // In selection mode, tapping the card body toggles selection
+        onTap: widget.isSelectionMode
+            ? widget.onToggleSelection
+            : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: _getTypeColor(type).withValues(alpha: 0.1),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(12)),
+              ),
+              child: Row(
+                children: [
+                  if (widget.isSelectionMode) ...[
+                    Checkbox(
+                      value: widget.isSelected,
+                      onChanged: (_) => widget.onToggleSelection(),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  Icon(_getTypeIcon(type),
+                      size: 20, color: _getTypeColor(type)),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${widget.index + 1}. ${_getTypeName(type)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _getTypeColor(type),
+                    ),
                   ),
-                ),
                 if (hasAudio) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -600,60 +940,79 @@ class _BlockCardState extends ConsumerState<_BlockCard> {
                     ),
                   ),
                 ],
-                const Spacer(),
-                if (_isEditing && type != 'activity') ...[
-                  TextButton(
-                    onPressed: () => setState(() => _isEditing = false),
-                    child: const Text('İptal'),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _isSaving ? null : _saveBlock,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Kaydet'),
-                  ),
-                ] else ...[
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 18),
-                    tooltip: 'Düzenle',
-                    onPressed: () => setState(() {
-                      _isEditing = true;
-                      _cancelledNewActivity = false;
-                    }),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete, size: 18),
-                    color: Colors.red,
-                    tooltip: 'Sil',
-                    onPressed: widget.onDelete,
-                  ),
-                  ReorderableDragStartListener(
-                    index: widget.index,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.grab,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(Icons.drag_handle, color: Colors.grey.shade600),
+                  const Spacer(),
+                  // Action buttons — hidden in selection mode (checkbox handles)
+                  if (!widget.isSelectionMode) ...[
+                    if (_isEditing && type != 'activity') ...[
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => _isEditing = false),
+                        child: const Text('İptal'),
                       ),
-                    ),
-                  ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        onPressed: _isSaving ? null : _saveBlock,
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
+                              )
+                            : const Text('Kaydet'),
+                      ),
+                    ] else ...[
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 18),
+                        tooltip: 'Düzenle',
+                        onPressed: () => setState(() {
+                          _isEditing = true;
+                          _cancelledNewActivity = false;
+                        }),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.content_copy_outlined,
+                            size: 18),
+                        tooltip: 'Aşağıya kopyala',
+                        onPressed: widget.onDuplicate,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, size: 18),
+                        color: Colors.red,
+                        tooltip: 'Sil',
+                        onPressed: widget.onDelete,
+                      ),
+                      ReorderableDragStartListener(
+                        index: widget.index,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.grab,
+                          child: Container(
+                            margin: const EdgeInsets.only(left: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              color: Colors.grey.shade200
+                                  .withValues(alpha: 0.6),
+                            ),
+                            child: Icon(Icons.drag_indicator,
+                                size: 18, color: Colors.grey.shade700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
 
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: _buildContent(type),
-          ),
-
-        ],
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildContent(type),
+            ),
+          ],
+        ),
       ),
     );
   }

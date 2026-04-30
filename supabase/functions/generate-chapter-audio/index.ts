@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getApiConfig } from "../_shared/api_config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,7 +106,7 @@ Deno.serve(async (req) => {
     const blockBoundaries = calculateBlockBoundaries(blocks as ContentBlock[]);
 
     // 3. Call Fal AI with combined text - SINGLE API CALL
-    const FAL_KEY = Deno.env.get("FAL_KEY");
+    const FAL_KEY = await getApiConfig("fal_api_key", "FAL_KEY");
     if (!FAL_KEY) {
       return new Response(
         JSON.stringify({ error: "FAL_KEY not configured" }),

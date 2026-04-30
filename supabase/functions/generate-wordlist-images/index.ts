@@ -5,6 +5,7 @@ import {
   MagickFormat,
   MagickGeometry,
 } from "npm:@imagemagick/magick-wasm@0.0.38";
+import { getApiConfig } from "../_shared/api_config.ts";
 
 // --- Constants ---
 
@@ -311,7 +312,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const FAL_KEY = Deno.env.get("FAL_KEY");
+    const FAL_KEY = await getApiConfig("fal_api_key", "FAL_KEY");
     if (!FAL_KEY) {
       return new Response(
         JSON.stringify({ error: "FAL_KEY not configured" }),

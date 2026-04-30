@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { getApiConfig } from '../_shared/api_config.ts'
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,10 +41,10 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    const GEMINI_API_KEY = await getApiConfig("gemini_api_key", "GEMINI_API_KEY");
     if (!GEMINI_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY not configured" }),
+        JSON.stringify({ error: "Gemini API key not configured (env or system_settings)" }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },

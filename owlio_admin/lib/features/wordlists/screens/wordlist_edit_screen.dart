@@ -1,9 +1,13 @@
+import 'dart:convert';
+
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import '../../../core/widgets/edit_screen_shortcuts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:owlio_shared/owlio_shared.dart';
+import 'package:universal_html/html.dart' as html;
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
@@ -38,6 +42,16 @@ final wordlistWordSearchProvider =
   return List<Map<String, dynamic>>.from(response);
 });
 
+enum _WordlistSortMode {
+  manual('Manuel sıra'),
+  alphabetic('Alfabetik (A→Z)'),
+  mostIncomplete('En eksik önce'),
+  recentlyAdded('En yeni eklenen');
+
+  const _WordlistSortMode(this.label);
+  final String label;
+}
+
 class WordlistEditScreen extends ConsumerStatefulWidget {
   const WordlistEditScreen({super.key, this.listId});
 
@@ -51,9 +65,17 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _searchController = TextEditingController();
+  final _searchController = TextEditingController(); // used by _AddWordDialog
+  final _listSearchController = TextEditingController(); // filters _wordItems display
 
   List<Map<String, dynamic>> _wordItems = [];
+  String _listSearchQuery = '';
+  // Active "missing X" filters — keys: audio, image, tr, en, example.
+  // Multiple selections combine with OR (a word matches if it's missing any
+  // of the selected fields), since the typical workflow is "find anything
+  // that needs work" rather than "find words missing both X and Y".
+  final Set<String> _missingFilters = {};
+  _WordlistSortMode _sortMode = _WordlistSortMode.manual;
   bool _isLoading = false;
   bool _isSaving = false;
   bool _isGeneratingAudio = false;
@@ -62,6 +84,101 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
   String _contentProgress = '';
 
   bool get isNewList => widget.listId == null;
+
+  bool get _isAnyGenerationActive =>
+      _isGeneratingAudio || _isGeneratingImages || _isGeneratingContent;
+
+  /// Items filtered by [_listSearchQuery] + [_missingFilters], then sorted
+  /// per [_sortMode]. Stats are still computed against the full [_wordItems]
+  /// so completion percentages don't lie when filters are active.
+  List<Map<String, dynamic>> get _filteredWordItems {
+    Iterable<Map<String, dynamic>> items = _wordItems;
+
+    // 1. Text search
+    if (_listSearchQuery.isNotEmpty) {
+      final q = _listSearchQuery.toLowerCase();
+      items = items.where((w) {
+        final word = (w['word'] as String? ?? '').toLowerCase();
+        final tr = (w['meaning_tr'] as String? ?? '').toLowerCase();
+        final en = (w['meaning_en'] as String? ?? '').toLowerCase();
+        return word.contains(q) || tr.contains(q) || en.contains(q);
+      });
+    }
+
+    // 2. Missing-content filters (OR — match if missing any selected field)
+    if (_missingFilters.isNotEmpty) {
+      items = items.where((w) {
+        for (final filter in _missingFilters) {
+          switch (filter) {
+            case 'audio':
+              if (_isEmpty(w['audio_url'])) return true;
+            case 'image':
+              if (_isEmpty(w['image_url'])) return true;
+            case 'tr':
+              if (_isEmpty(w['meaning_tr'])) return true;
+            case 'en':
+              if (_isEmpty(w['meaning_en'])) return true;
+            case 'example':
+              if (_isEmptyList(w['example_sentences'])) return true;
+          }
+        }
+        return false;
+      });
+    }
+
+    // 3. Sort
+    final list = items.toList();
+    switch (_sortMode) {
+      case _WordlistSortMode.manual:
+        // Already in order_index order from _loadWordList; nothing to do.
+        break;
+      case _WordlistSortMode.alphabetic:
+        list.sort((a, b) => (a['word'] as String? ?? '')
+            .toLowerCase()
+            .compareTo((b['word'] as String? ?? '').toLowerCase()));
+      case _WordlistSortMode.mostIncomplete:
+        int missingCount(Map<String, dynamic> w) {
+          var n = 0;
+          if (_isEmpty(w['audio_url'])) n++;
+          if (_isEmpty(w['image_url'])) n++;
+          if (_isEmpty(w['meaning_tr'])) n++;
+          if (_isEmpty(w['meaning_en'])) n++;
+          if (_isEmpty(w['phonetic'])) n++;
+          if (_isEmptyList(w['example_sentences'])) n++;
+          return n;
+        }
+
+        list.sort((a, b) => missingCount(b).compareTo(missingCount(a)));
+      case _WordlistSortMode.recentlyAdded:
+        list.sort((a, b) {
+          final aDate = a['created_at'] as String? ?? '';
+          final bDate = b['created_at'] as String? ?? '';
+          return bDate.compareTo(aDate); // newest first
+        });
+    }
+
+    return list;
+  }
+
+  /// Returns aggregated content-completion stats for the full word list.
+  ({int total, int audio, int image, int complete}) _computeStats() {
+    int audio = 0;
+    int image = 0;
+    int complete = 0;
+    for (final w in _wordItems) {
+      final hasAudio = !_isEmpty(w['audio_url']);
+      final hasImage = !_isEmpty(w['image_url']);
+      final hasMeaningEn = !_isEmpty(w['meaning_en']);
+      final hasPhonetic = !_isEmpty(w['phonetic']);
+      final hasExamples = !_isEmptyList(w['example_sentences']);
+      if (hasAudio) audio++;
+      if (hasImage) image++;
+      if (hasAudio && hasImage && hasMeaningEn && hasPhonetic && hasExamples) {
+        complete++;
+      }
+    }
+    return (total: _wordItems.length, audio: audio, image: image, complete: complete);
+  }
 
   @override
   void initState() {
@@ -114,6 +231,7 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _searchController.dispose();
+    _listSearchController.dispose();
     super.dispose();
   }
 
@@ -375,19 +493,223 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
         _isGeneratingContent = false;
         _contentProgress = '';
       });
+      // Always surface a brief snackbar; if there were failures, also show
+      // a dialog so the operator can copy the failed-word list.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '$successCount kelime güncellendi'
-            '${failCount > 0 ? ', $failCount başarısız: ${failedWords.join(", ")}' : ''}',
+            failCount > 0
+                ? '$successCount güncellendi · $failCount başarısız'
+                : '$successCount kelime güncellendi',
           ),
           backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
-          duration: failCount > 0 ? const Duration(seconds: 10) : const Duration(seconds: 4),
+          duration: const Duration(seconds: 3),
         ),
       );
+      if (failCount > 0 && failedWords.isNotEmpty) {
+        _showFailedWordsDialog(failedWords);
+      }
       ref.invalidate(wordlistDetailProvider(widget.listId!));
       _loadWordList();
     }
+  }
+
+  /// Exports the current wordlist as a CSV file via browser download.
+  /// Includes one row per word with all primary content fields.
+  void _exportCsv() {
+    if (_wordItems.isEmpty) return;
+
+    final rows = <List<dynamic>>[
+      ['word', 'meaning_tr', 'meaning_en', 'phonetic', 'audio_url',
+        'image_url', 'example_sentences', 'part_of_speech'],
+      ..._wordItems.map((w) => [
+            w['word'] ?? '',
+            w['meaning_tr'] ?? '',
+            w['meaning_en'] ?? '',
+            w['phonetic'] ?? '',
+            w['audio_url'] ?? '',
+            w['image_url'] ?? '',
+            // Example sentences as pipe-separated single cell
+            (w['example_sentences'] as List?)
+                    ?.map((e) => e.toString())
+                    .join(' | ') ??
+                '',
+            w['part_of_speech'] ?? '',
+          ]),
+    ];
+
+    final csv = const ListToCsvConverter().convert(rows);
+    final bytes = utf8.encode('﻿$csv'); // BOM for Excel UTF-8
+
+    final listName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text
+            .trim()
+            .toLowerCase()
+            .replaceAll(RegExp(r'[^a-z0-9_-]+'), '_')
+        : 'wordlist';
+    final filename = '${listName}_${_wordItems.length}_kelime.csv';
+
+    final blob = html.Blob([bytes], 'text/csv;charset=utf-8;');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    html.AnchorElement(href: url)
+      ..setAttribute('download', filename)
+      ..click();
+    html.Url.revokeObjectUrl(url);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${_wordItems.length} kelime CSV olarak indirildi'),
+        ),
+      );
+    }
+  }
+
+  /// Regenerates AI content for a single word (phonetic / meaning / examples)
+  /// without touching other words. Uses the same `generate-word-data` edge
+  /// function as bulk gen but with a 1-element word array.
+  Future<void> _regenerateWordContent(int index) async {
+    final word = _wordItems[index];
+    final wordName = (word['word'] as String? ?? '').trim();
+    if (wordName.isEmpty) return;
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('"$wordName" için AI içerik üretiliyor…'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+
+    try {
+      final supabase = ref.read(supabaseClientProvider);
+      final response = await supabase.functions.invoke(
+        'generate-word-data',
+        body: {
+          'words': [wordName]
+        },
+      );
+
+      if (response.status != 200) {
+        throw Exception(
+            'Edge function status ${response.status}: ${response.data}');
+      }
+
+      final data = response.data as Map<String, dynamic>?;
+      final results =
+          (data?['results'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      if (results.isEmpty) {
+        throw Exception('AI sonucu yok');
+      }
+
+      final result = results.first;
+      final updates = <String, dynamic>{};
+      if (_isEmpty(word['meaning_tr']) && result['meaning_tr'] != null) {
+        updates['meaning_tr'] = result['meaning_tr'];
+      }
+      if (_isEmpty(word['meaning_en']) && result['meaning_en'] != null) {
+        updates['meaning_en'] = result['meaning_en'];
+      }
+      if (_isEmpty(word['phonetic']) && result['phonetic'] != null) {
+        updates['phonetic'] = result['phonetic'];
+      }
+      if (_isEmptyList(word['example_sentences']) &&
+          result['example_sentences'] != null) {
+        updates['example_sentences'] = result['example_sentences'];
+      }
+      if (_isEmpty(word['part_of_speech']) &&
+          result['part_of_speech'] != null) {
+        updates['part_of_speech'] = result['part_of_speech'];
+      }
+
+      if (updates.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('"$wordName" için doldurulacak alan yok'),
+            ),
+          );
+        }
+        return;
+      }
+
+      await supabase
+          .from(DbTables.vocabularyWords)
+          .update(updates)
+          .eq('id', word['id']);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '"$wordName" güncellendi (${updates.length} alan)',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+        ref.invalidate(wordlistDetailProvider(widget.listId!));
+        _loadWordList();
+      }
+    } catch (e) {
+      debugPrint('Per-word regen FAIL ($wordName): $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('İçerik üretilemedi: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showFailedWordsDialog(List<String> failedWords) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.orange.shade700),
+            const SizedBox(width: 8),
+            const Text('Başarısız Kelimeler'),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints:
+              const BoxConstraints(maxHeight: 360, maxWidth: 480),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${failedWords.length} kelime AI ile doldurulamadı. '
+                'Manuel olarak düzenleyebilirsin:',
+                style: TextStyle(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    failedWords.join('\n'),
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _isEmpty(dynamic value) {
@@ -843,19 +1165,26 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
       context: context,
       builder: (context) => _AddWordDialog(
         searchController: _searchController,
-        onWordSelected: (word) {
-          // Check if word already exists
-          if (_wordItems.any((item) => item['id'] == word['id'])) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kelime zaten listede')),
-            );
-            return;
-          }
-
-          setState(() {
-            _wordItems.add(word);
-          });
-          Navigator.pop(context);
+        existingWordIds:
+            _wordItems.map((w) => w['id'] as String).toSet(),
+        onWordsSelected: (words) {
+          if (words.isEmpty) return;
+          final existingIds =
+              _wordItems.map((w) => w['id'] as String).toSet();
+          final fresh = words
+              .where((w) => !existingIds.contains(w['id']))
+              .toList();
+          if (fresh.isEmpty) return;
+          setState(() => _wordItems.addAll(fresh));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                fresh.length == 1
+                    ? '1 kelime eklendi'
+                    : '${fresh.length} kelime eklendi',
+              ),
+            ),
+          );
         },
       ),
     );
@@ -891,6 +1220,196 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
     }
   }
 
+  Widget _missingChip(String label, String key, IconData icon) {
+    final selected = _missingFilters.contains(key);
+    return FilterChip(
+      avatar: Icon(
+        icon,
+        size: 14,
+        color: selected ? Colors.red.shade700 : Colors.grey.shade600,
+      ),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      selected: selected,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      onSelected: (s) {
+        setState(() {
+          if (s) {
+            _missingFilters.add(key);
+          } else {
+            _missingFilters.remove(key);
+          }
+        });
+      },
+    );
+  }
+
+  Widget _buildStatsBadges() {
+    final s = _computeStats();
+    if (s.total == 0) return const SizedBox.shrink();
+    int pct(int n) => ((n / s.total) * 100).round();
+
+    Widget badge(String label, int n, Color color) {
+      final percent = pct(n);
+      return Tooltip(
+        message: '$n / ${s.total}',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '$label %$percent',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      children: [
+        badge('Ses', s.audio, Colors.blue.shade700),
+        badge('Görsel', s.image, Colors.green.shade700),
+        badge('Tamam', s.complete, Colors.indigo.shade700),
+      ],
+    );
+  }
+
+  Widget _buildGenerateMenu() {
+    // Active-job label override — keep operator informed of in-flight work.
+    String? activeLabel;
+    if (_isGeneratingAudio) {
+      activeLabel = 'Ses üretiliyor…';
+    } else if (_isGeneratingContent) {
+      activeLabel = _contentProgress.isEmpty
+          ? 'İçerik üretiliyor…'
+          : 'İçerik $_contentProgress';
+    } else if (_isGeneratingImages) {
+      activeLabel = 'Görsel üretiliyor…';
+    }
+
+    final disabled = _isAnyGenerationActive;
+
+    return PopupMenuButton<String>(
+      tooltip: 'Üret menüsü',
+      enabled: !disabled,
+      onSelected: (value) {
+        switch (value) {
+          case 'audio':
+            _generateWordlistAudio();
+          case 'images':
+            _showImageGenerationDialog();
+          case 'content':
+            _generateBulkContent();
+          case 'clear':
+            _clearAllContent();
+        }
+      },
+      itemBuilder: (_) => [
+        const PopupMenuItem(
+          value: 'audio',
+          child: ListTile(
+            leading: Icon(Icons.volume_up),
+            title: Text('Sesleri Üret'),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'images',
+          child: ListTile(
+            leading: Icon(Icons.image),
+            title: Text('Görselleri Üret'),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuItem(
+          value: 'content',
+          child: ListTile(
+            leading: Icon(Icons.auto_fix_high),
+            title: Text('İçerikleri Üret'),
+            subtitle: Text(
+              'Phonetic + anlam + örnekler',
+              style: TextStyle(fontSize: 11),
+            ),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'clear',
+          child: ListTile(
+            leading: Icon(Icons.cleaning_services,
+                color: Colors.orange.shade700),
+            title: Text(
+              'İçerikleri Temizle',
+              style: TextStyle(color: Colors.orange.shade700),
+            ),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ],
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: disabled
+              ? Colors.indigo.shade50
+              : Colors.indigo.shade100,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (disabled)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            else
+              const Icon(Icons.auto_fix_high,
+                  size: 18, color: Colors.indigo),
+            const SizedBox(width: 8),
+            Text(
+              activeLabel ?? 'Üret',
+              style: const TextStyle(
+                color: Colors.indigo,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (!disabled) ...[
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_drop_down,
+                  size: 18, color: Colors.indigo),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   void _moveWord(int oldIndex, int newIndex) {
     if (newIndex > oldIndex) {
       newIndex -= 1;
@@ -918,58 +1437,21 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
           onPressed: () => context.go('/vocabulary'),
         ),
         actions: [
-          if (!isNewList && _wordItems.isNotEmpty)
-            OutlinedButton.icon(
-              onPressed: _isGeneratingContent ? null : _generateBulkContent,
-              icon: _isGeneratingContent
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.auto_fix_high, size: 18),
-              label: Text(_isGeneratingContent
-                  ? 'İçerik ($_contentProgress)'
-                  : 'İçerikleri Üret'),
-            ),
-          const SizedBox(width: 4),
-          if (!isNewList && _wordItems.isNotEmpty)
-            OutlinedButton.icon(
-              onPressed: _clearAllContent,
-              icon: const Icon(Icons.cleaning_services, size: 18),
-              label: const Text('İçerikleri Temizle'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.orange,
-                side: const BorderSide(color: Colors.orange),
-              ),
-            ),
+          if (!isNewList && _wordItems.isNotEmpty) _buildGenerateMenu(),
           const SizedBox(width: 8),
-          if (!isNewList && _wordItems.isNotEmpty)
-            OutlinedButton.icon(
-              onPressed: _isGeneratingAudio ? null : _generateWordlistAudio,
-              icon: _isGeneratingAudio
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.volume_up, size: 18),
-              label: Text(_isGeneratingAudio ? 'Üretiliyor...' : 'Sesleri Üret'),
+          if (!isNewList)
+            IconButton(
+              tooltip: 'CSV Yükle',
+              icon: const Icon(Icons.file_upload_outlined),
+              onPressed: () =>
+                  context.go('/wordlists/${widget.listId}/import'),
             ),
-          const SizedBox(width: 8),
           if (!isNewList && _wordItems.isNotEmpty)
-            OutlinedButton.icon(
-              onPressed: _isGeneratingImages ? null : _showImageGenerationDialog,
-              icon: _isGeneratingImages
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.image, size: 18),
-              label: Text(_isGeneratingImages ? 'Üretiliyor...' : 'Görselleri Üret'),
+            IconButton(
+              tooltip: 'CSV İndir',
+              icon: const Icon(Icons.file_download_outlined),
+              onPressed: _exportCsv,
             ),
-          const SizedBox(width: 8),
           if (!isNewList)
             IconButton(
               tooltip: 'Klonla',
@@ -1060,25 +1542,124 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                   ),
                 ),
 
-                // Header bar
+                // Header bar (title + add) + stats + search row
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 12),
                   color: Colors.grey.shade50,
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Kelimeler (${_wordItems.length})',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        children: [
+                          Text(
+                            'Kelimeler (${_wordItems.length})',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(width: 16),
+                          if (_wordItems.isNotEmpty) _buildStatsBadges(),
+                          const Spacer(),
+                          TextButton.icon(
+                            onPressed: _showAddWordDialog,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Kelime Ekle'),
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-                      TextButton.icon(
-                        onPressed: _showAddWordDialog,
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Kelime Ekle'),
-                      ),
+                      if (_wordItems.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                height: 36,
+                                child: TextField(
+                                  controller: _listSearchController,
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Kelimelerde ara (kelime / TR / EN anlamı)…',
+                                    prefixIcon:
+                                        const Icon(Icons.search, size: 18),
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                    border: const OutlineInputBorder(),
+                                    suffixIcon: _listSearchQuery.isEmpty
+                                        ? null
+                                        : IconButton(
+                                            icon: const Icon(Icons.clear,
+                                                size: 18),
+                                            onPressed: () {
+                                              _listSearchController.clear();
+                                              setState(() =>
+                                                  _listSearchQuery = '');
+                                            },
+                                          ),
+                                  ),
+                                  onChanged: (v) => setState(
+                                      () => _listSearchQuery = v.trim()),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Sort selector
+                            SizedBox(
+                              width: 200,
+                              child:
+                                  DropdownButtonFormField<_WordlistSortMode>(
+                                value: _sortMode,
+                                isDense: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Sıralama',
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  border: OutlineInputBorder(),
+                                ),
+                                items: _WordlistSortMode.values
+                                    .map((m) => DropdownMenuItem(
+                                          value: m,
+                                          child: Text(m.label),
+                                        ))
+                                    .toList(),
+                                onChanged: (m) => setState(() =>
+                                    _sortMode =
+                                        m ?? _WordlistSortMode.manual),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Missing-content filter chips
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _missingChip(
+                                'Ses eksik', 'audio', Icons.volume_off),
+                            _missingChip('Görsel eksik', 'image',
+                                Icons.hide_image),
+                            _missingChip(
+                                'TR eksik', 'tr', Icons.language),
+                            _missingChip(
+                                'EN eksik', 'en', Icons.translate),
+                            _missingChip('Örnek eksik', 'example',
+                                Icons.format_quote),
+                            if (_missingFilters.isNotEmpty)
+                              TextButton.icon(
+                                onPressed: () => setState(
+                                    () => _missingFilters.clear()),
+                                icon: const Icon(Icons.clear, size: 14),
+                                label: const Text('Filtreleri temizle',
+                                    style: TextStyle(fontSize: 12)),
+                                style: TextButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1112,35 +1693,63 @@ class _WordlistEditScreenState extends ConsumerState<WordlistEditScreen> {
                             ],
                           ),
                         )
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: List.generate(_wordItems.length, (index) {
-                              final word = _wordItems[index];
-                              return _WordCard(
-                                key: ValueKey(word['id']),
-                                word: word,
-                                index: index,
-                                total: _wordItems.length,
-                                onRemove: () => _removeWord(index),
-                                onMoveLeft: index > 0
-                                    ? () => _moveWord(index, index - 1)
-                                    : null,
-                                onMoveRight: index < _wordItems.length - 1
-                                    ? () => _moveWord(index, index + 2)
-                                    : null,
-                                onSaveField: (field, value) =>
-                                    _saveWordField(index, field, value),
-                                onTap: () => context.push('/vocabulary/${word['id']}').then((_) {
-                                  ref.invalidate(wordlistDetailProvider(widget.listId!));
-                                  _loadWordList();
-                                }),
-                              );
-                            }),
-                          ),
-                        ),
+                      : Builder(builder: (_) {
+                          final filtered = _filteredWordItems;
+                          if (filtered.isEmpty && _listSearchQuery.isNotEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.search_off,
+                                      size: 48,
+                                      color: Colors.grey.shade400),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    '"$_listSearchQuery" için kelime bulunamadı',
+                                    style: TextStyle(
+                                        color: Colors.grey.shade600),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(16),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: filtered.map((word) {
+                                final index = _wordItems.indexOf(word);
+                                return _WordCard(
+                                  key: ValueKey(word['id']),
+                                  word: word,
+                                  index: index,
+                                  total: _wordItems.length,
+                                  onRemove: () => _removeWord(index),
+                                  onMoveLeft: index > 0
+                                      ? () => _moveWord(index, index - 1)
+                                      : null,
+                                  onMoveRight:
+                                      index < _wordItems.length - 1
+                                          ? () =>
+                                              _moveWord(index, index + 2)
+                                          : null,
+                                  onSaveField: (field, value) =>
+                                      _saveWordField(index, field, value),
+                                  onTap: () => context
+                                      .push('/vocabulary/${word['id']}')
+                                      .then((_) {
+                                    ref.invalidate(wordlistDetailProvider(
+                                        widget.listId!));
+                                    _loadWordList();
+                                  }),
+                                  onRegenerateContent: () =>
+                                      _regenerateWordContent(index),
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        }),
                 ),
 
                 // Bottom: Content completeness table
@@ -1173,6 +1782,7 @@ class _WordCard extends ConsumerStatefulWidget {
     required this.onMoveRight,
     required this.onSaveField,
     required this.onTap,
+    required this.onRegenerateContent,
   });
 
   final Map<String, dynamic> word;
@@ -1183,6 +1793,7 @@ class _WordCard extends ConsumerStatefulWidget {
   final VoidCallback? onMoveRight;
   final Future<void> Function(String field, dynamic value) onSaveField;
   final VoidCallback onTap;
+  final Future<void> Function() onRegenerateContent;
 
   @override
   ConsumerState<_WordCard> createState() => _WordCardState();
@@ -1422,6 +2033,33 @@ class _WordCardState extends ConsumerState<_WordCard> {
                     ],
                   ),
                 ),
+                // Completeness ribbon — at-a-glance field-fill state
+                Positioned(
+                  bottom: 4,
+                  left: 4,
+                  right: 4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _ribbonIcon(Icons.volume_up, hasAudio),
+                        _ribbonIcon(Icons.image, hasImage),
+                        _ribbonText('TR', meaningTr.isNotEmpty),
+                        _ribbonText('EN', meaningEn.isNotEmpty),
+                        _ribbonIcon(
+                          Icons.format_quote,
+                          examples != null && examples.isNotEmpty,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
 
@@ -1591,6 +2229,53 @@ class _WordCardState extends ConsumerState<_WordCard> {
                           ),
                         ),
                         const Spacer(),
+                        // Per-word actions menu
+                        PopupMenuButton<String>(
+                          tooltip: 'Eylemler',
+                          padding: EdgeInsets.zero,
+                          iconSize: 16,
+                          icon: Icon(Icons.more_vert,
+                              size: 16, color: Colors.grey.shade500),
+                          onSelected: (value) {
+                            if (value == 'regenerate') {
+                              widget.onRegenerateContent();
+                            } else if (value == 'open') {
+                              widget.onTap();
+                            }
+                          },
+                          itemBuilder: (_) => [
+                            const PopupMenuItem(
+                              value: 'regenerate',
+                              child: ListTile(
+                                leading: Icon(Icons.auto_fix_high,
+                                    size: 18),
+                                title: Text(
+                                  'AI ile içerik tamamla',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                subtitle: Text(
+                                  'Sadece bu kelime',
+                                  style: TextStyle(fontSize: 11),
+                                ),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'open',
+                              child: ListTile(
+                                leading: Icon(Icons.open_in_new, size: 18),
+                                title: Text(
+                                  'Detayda aç',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 4),
                         InkWell(
                           onTap: widget.onRemove,
                           child: Icon(Icons.delete_outline,
@@ -1619,6 +2304,39 @@ class _WordCardState extends ConsumerState<_WordCard> {
           borderRadius: BorderRadius.circular(4),
         ),
         child: Icon(icon, size: 16, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _ribbonIcon(IconData icon, bool hasValue) {
+    return Tooltip(
+      message: hasValue ? 'Var' : 'Eksik',
+      child: Icon(
+        icon,
+        size: 12,
+        color: hasValue
+            ? Colors.greenAccent.shade400
+            : Colors.redAccent.shade100,
+      ),
+    );
+  }
+
+  Widget _ribbonText(String label, bool hasValue) {
+    return Tooltip(
+      message: hasValue ? '$label var' : '$label eksik',
+      child: SizedBox(
+        width: 18,
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: hasValue
+                ? Colors.greenAccent.shade400
+                : Colors.redAccent.shade100,
+          ),
+        ),
       ),
     );
   }
@@ -1879,11 +2597,19 @@ class _WordContentTable extends StatelessWidget {
 class _AddWordDialog extends ConsumerStatefulWidget {
   const _AddWordDialog({
     required this.searchController,
-    required this.onWordSelected,
+    required this.existingWordIds,
+    required this.onWordsSelected,
   });
 
   final TextEditingController searchController;
-  final void Function(Map<String, dynamic> word) onWordSelected;
+
+  /// Word IDs already in the parent wordlist — these are shown as
+  /// "Zaten listede" and can't be selected.
+  final Set<String> existingWordIds;
+
+  /// Called once with all selected words when the operator commits via
+  /// "N kelime ekle". Empty list means cancelled / nothing to add.
+  final void Function(List<Map<String, dynamic>> words) onWordsSelected;
 
   @override
   ConsumerState<_AddWordDialog> createState() => _AddWordDialogState();
@@ -1893,7 +2619,25 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
   String _searchQuery = '';
   bool _isCreating = false;
 
-  Future<void> _createAndAddWord(String wordText) async {
+  /// Words selected for batch add. Insertion-ordered list keyed implicitly
+  /// by `id`; checks use [_isSelected].
+  final List<Map<String, dynamic>> _selected = [];
+
+  bool _isSelected(String id) =>
+      _selected.any((w) => w['id'] == id);
+
+  void _toggle(Map<String, dynamic> word) {
+    final id = word['id'] as String;
+    setState(() {
+      if (_isSelected(id)) {
+        _selected.removeWhere((w) => w['id'] == id);
+      } else {
+        _selected.add(word);
+      }
+    });
+  }
+
+  Future<void> _createAndSelect(String wordText) async {
     setState(() => _isCreating = true);
 
     try {
@@ -1906,7 +2650,7 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
         'word': word,
       });
 
-      widget.onWordSelected({
+      final created = <String, dynamic>{
         'id': id,
         'word': word,
         'meaning_tr': null,
@@ -1915,6 +2659,13 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
         'audio_url': null,
         'image_url': null,
         'example_sentences': null,
+      };
+
+      // Add to selection + clear search so the user can keep adding more.
+      setState(() {
+        _selected.add(created);
+        widget.searchController.clear();
+        _searchQuery = '';
       });
     } catch (e) {
       if (mounted) {
@@ -1935,17 +2686,39 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
     final searchResults = ref.watch(wordlistWordSearchProvider(_searchQuery));
 
     return AlertDialog(
-      title: const Text('Kelime Ekle'),
+      title: Row(
+        children: [
+          const Text('Kelime Ekle'),
+          const Spacer(),
+          if (_selected.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.indigo.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_selected.length} seçili',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.indigo,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
       content: SizedBox(
-        width: 400,
-        height: 400,
+        width: 480,
+        height: 460,
         child: Column(
           children: [
             TextField(
               controller: widget.searchController,
               decoration: const InputDecoration(
                 labelText: 'Kelime ara',
-                hintText: 'Aramak için yazın...',
+                hintText: 'Aramak için yazın…',
                 prefixIcon: Icon(Icons.search),
               ),
               autofocus: true,
@@ -1953,27 +2726,71 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                 setState(() => _searchQuery = value.trim());
               },
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            // Selected chips strip — quick at-a-glance + remove
+            if (_selected.isNotEmpty) ...[
+              SizedBox(
+                height: 36,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selected.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 6),
+                  itemBuilder: (_, i) {
+                    final w = _selected[i];
+                    return InputChip(
+                      label: Text(
+                        w['word'] as String? ?? '',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      onDeleted: () => _toggle(w),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize:
+                          MaterialTapTargetSize.shrinkWrap,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             Expanded(
               child: searchResults.when(
                 data: (words) {
                   if (_searchQuery.isEmpty) {
                     return Center(
-                      child: Text(
-                        'Aramak için yazmaya başlayın',
-                        style: TextStyle(color: Colors.grey.shade600),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search,
+                              size: 36,
+                              color: Colors.grey.shade400),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Aramak için yazmaya başlayın',
+                            style: TextStyle(
+                                color: Colors.grey.shade600),
+                          ),
+                          if (_selected.isEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Birden fazla kelime seçebilirsin',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     );
                   }
 
-                  // Check if exact match exists
                   final hasExactMatch = words.any((w) =>
                       (w['word'] as String?)?.toLowerCase() ==
                       _searchQuery.toLowerCase());
 
                   return Column(
                     children: [
-                      // Results list
                       Expanded(
                         child: words.isEmpty
                             ? Center(
@@ -1987,40 +2804,62 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                                 itemCount: words.length,
                                 itemBuilder: (context, index) {
                                   final word = words[index];
+                                  final id = word['id'] as String;
+                                  final alreadyInList =
+                                      widget.existingWordIds.contains(id);
+                                  final isChecked = _isSelected(id);
                                   return ListTile(
+                                    leading: Checkbox(
+                                      value: alreadyInList || isChecked,
+                                      onChanged: alreadyInList
+                                          ? null
+                                          : (_) => _toggle(word),
+                                    ),
                                     title: Text(word['word'] ?? ''),
-                                    subtitle:
-                                        Text(word['meaning_tr'] ?? ''),
+                                    subtitle: alreadyInList
+                                        ? Text(
+                                            'Zaten listede',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color:
+                                                  Colors.grey.shade500,
+                                              fontStyle:
+                                                  FontStyle.italic,
+                                            ),
+                                          )
+                                        : Text(
+                                            (word['meaning_tr'] as String?) ??
+                                                '',
+                                          ),
                                     trailing: Text(
-                                      word['level'] ?? '',
+                                      (word['level'] as String?) ?? '',
                                       style: TextStyle(
                                         color: Colors.grey.shade600,
                                         fontSize: 12,
                                       ),
                                     ),
-                                    onTap: () =>
-                                        widget.onWordSelected(word),
+                                    enabled: !alreadyInList,
+                                    onTap: alreadyInList
+                                        ? null
+                                        : () => _toggle(word),
                                   );
                                 },
                               ),
                       ),
-                      // Always show "create new" if no exact match
                       if (!hasExactMatch) ...[
                         const Divider(height: 1),
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 8),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 8),
                           child: FilledButton.icon(
                             onPressed: _isCreating
                                 ? null
-                                : () => _createAndAddWord(
-                                    _searchQuery),
+                                : () => _createAndSelect(_searchQuery),
                             icon: _isCreating
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child:
-                                        CircularProgressIndicator(
+                                    child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       color: Colors.white,
                                     ),
@@ -2028,8 +2867,8 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                                 : const Icon(Icons.add, size: 18),
                             label: Text(
                               _isCreating
-                                  ? 'Ekleniyor...'
-                                  : '"$_searchQuery" yeni kelime olarak ekle',
+                                  ? 'Oluşturuluyor…'
+                                  : '"$_searchQuery" oluştur ve seç',
                             ),
                           ),
                         ),
@@ -2037,10 +2876,10 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
                     ],
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(
-                  child: Text('Hata: $error'),
-                ),
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (error, _) =>
+                    Center(child: Text('Hata: $error')),
               ),
             ),
           ],
@@ -2048,8 +2887,25 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            widget.onWordsSelected(const []);
+            Navigator.pop(context);
+          },
           child: const Text('İptal'),
+        ),
+        FilledButton.icon(
+          onPressed: _selected.isEmpty
+              ? null
+              : () {
+                  widget.onWordsSelected(List.of(_selected));
+                  Navigator.pop(context);
+                },
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(
+            _selected.isEmpty
+                ? 'Kelime ekle'
+                : '${_selected.length} kelime ekle',
+          ),
         ),
       ],
     );

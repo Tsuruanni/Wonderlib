@@ -105,6 +105,64 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
     super.dispose();
   }
 
+  void _showLexileHelp(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: const [
+            Icon(Icons.menu_book_outlined),
+            SizedBox(width: 8),
+            Text('Lexile Score Nedir?'),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Lexile, bir metnin okuma zorluğunu ölçen sayısal bir '
+                'değerdir. Aralık genellikle 0L (kolay) – 2000L (çok zor).',
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Yaş + Sınıf referansı:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 6),
+              Text('• 1. sınıf  →  ~100–400L'),
+              Text('• 2. sınıf  →  ~300–600L'),
+              Text('• 3. sınıf  →  ~500–700L'),
+              Text('• 4. sınıf  →  ~600–800L'),
+              Text('• 5. sınıf  →  ~700–900L'),
+              Text('• 6. sınıf  →  ~800–1000L'),
+              Text('• 7-8. sınıf  →  ~900–1100L'),
+              Text('• Lise  →  ~1000–1300L'),
+              Text('• Yetişkin  →  ~1200–1400L'),
+              SizedBox(height: 12),
+              Text(
+                'Daha detaylı bilgi: hub.lexile.com',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -344,10 +402,17 @@ class _BookEditScreenState extends ConsumerState<BookEditScreen> {
                           // Lexile Score
                           TextFormField(
                             controller: _lexileController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Lexile Score',
                               hintText: 'e.g. 820',
-                              helperText: 'Typical range: 0–2000',
+                              helperText:
+                                  'Tipik aralık: 0–2000 (yaş/seviye için referans)',
+                              suffixIcon: IconButton(
+                                tooltip: 'Lexile nedir?',
+                                icon: const Icon(Icons.help_outline,
+                                    size: 18),
+                                onPressed: () => _showLexileHelp(context),
+                              ),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
@@ -432,6 +497,7 @@ class _ChaptersList extends ConsumerStatefulWidget {
 
 class _ChaptersListState extends ConsumerState<_ChaptersList> {
   bool _isExtracting = false;
+  bool _isQuizCollapsed = false;
 
   Future<void> _extractVocabulary() async {
     if (widget.chapters.isEmpty) {
@@ -556,18 +622,35 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Quiz section
+        // Quiz section (collapsible — saves vertical space when editing chapters)
         Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Quiz',
-                style: Theme.of(context).textTheme.titleMedium,
+              InkWell(
+                onTap: () =>
+                    setState(() => _isQuizCollapsed = !_isQuizCollapsed),
+                child: Row(
+                  children: [
+                    Text(
+                      'Quiz',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const Spacer(),
+                    Icon(
+                      _isQuizCollapsed
+                          ? Icons.keyboard_arrow_down
+                          : Icons.keyboard_arrow_up,
+                      size: 20,
+                      color: Colors.grey.shade600,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              quizAsync.when(
+              if (!_isQuizCollapsed) ...[
+                const SizedBox(height: 12),
+                quizAsync.when(
                 loading: () => const SizedBox(
                   height: 40,
                   child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
@@ -648,6 +731,7 @@ class _ChaptersListState extends ConsumerState<_ChaptersList> {
                   }
                 },
               ),
+              ],
             ],
           ),
         ),

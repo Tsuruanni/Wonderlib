@@ -15,12 +15,18 @@ final bookSearchProvider = StateProvider<String>((ref) => '');
 /// Current page index (0-based)
 final bookPageProvider = StateProvider<int>((ref) => 0);
 
+/// Sort column for book list. `created_at` = newest first by creation date,
+/// `updated_at` = most recently edited bubbles to top (key when actively
+/// editing several books).
+final bookSortColumnProvider = StateProvider<String>((ref) => 'created_at');
+
 /// Loads books with search and pagination.
 /// Returns `{ data, total, page, pageSize }`.
 final booksProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final supabase = ref.watch(supabaseClientProvider);
   final search = ref.watch(bookSearchProvider);
   final page = ref.watch(bookPageProvider);
+  final sortColumn = ref.watch(bookSortColumnProvider);
 
   const pageSize = 50;
   final offset = page * pageSize;
@@ -36,7 +42,7 @@ final booksProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   }
 
   final response = await query
-      .order('created_at', ascending: false)
+      .order(sortColumn, ascending: false)
       .range(offset, offset + pageSize - 1);
   final countResult = await countQuery.count(CountOption.exact);
 
@@ -92,6 +98,7 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
   Widget build(BuildContext context) {
     final booksAsync = ref.watch(booksProvider);
     final currentPage = ref.watch(bookPageProvider);
+    final sortColumn = ref.watch(bookSortColumnProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -126,28 +133,58 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                 bottom: BorderSide(color: Colors.grey.shade200),
               ),
             ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Başlık veya yazar ara...',
-                prefixIcon: const Icon(Icons.search),
-                border: const OutlineInputBorder(),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _debounce?.cancel();
-                          _searchController.clear();
-                          ref.read(bookSearchProvider.notifier).state = '';
-                          _resetPage();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: _onSearchChanged,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Başlık veya yazar ara...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _debounce?.cancel();
+                                _searchController.clear();
+                                ref.read(bookSearchProvider.notifier).state =
+                                    '';
+                                _resetPage();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                    ),
+                    onChanged: _onSearchChanged,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Sort toggle
+                SegmentedButton<String>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(
+                      value: 'created_at',
+                      icon: Icon(Icons.add_circle_outline, size: 16),
+                      label: Text('Eklenen'),
+                    ),
+                    ButtonSegment(
+                      value: 'updated_at',
+                      icon: Icon(Icons.history, size: 16),
+                      label: Text('Düzenlenen'),
+                    ),
+                  ],
+                  selected: {sortColumn},
+                  onSelectionChanged: (s) {
+                    ref.read(bookSortColumnProvider.notifier).state =
+                        s.first;
+                    _resetPage();
+                  },
+                ),
+              ],
             ),
           ),
 
@@ -173,7 +210,7 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                         const SizedBox(height: 16),
                         Text(
                           ref.read(bookSearchProvider).isEmpty
-                              ? 'No books yet'
+                              ? 'Henüz kitap yok'
                               : 'Aramaya uygun kitap bulunamadı',
                           style: TextStyle(
                             fontSize: 18,
@@ -184,7 +221,7 @@ class _BookListScreenState extends ConsumerState<BookListScreen> {
                         FilledButton.icon(
                           onPressed: () => context.go('/books/new'),
                           icon: const Icon(Icons.add),
-                          label: const Text('Create your first book'),
+                          label: const Text('İlk kitabını oluştur'),
                         ),
                       ],
                     ),

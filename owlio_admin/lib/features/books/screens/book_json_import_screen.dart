@@ -8,6 +8,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
+import '../../../core/widgets/template_download_button.dart';
 import '../services/book_json_validator.dart';
 import 'book_list_screen.dart';
 
@@ -30,12 +31,36 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
   // Step 3 state
   bool _isImporting = false;
   final _importLog = <_ImportLogEntry>[];
+  final _logScrollController = ScrollController();
   String? _importedBookId;
+
+  // Rollback summary counters — incremented as objects are inserted, used
+  // by the catch block to tell the operator what got cleaned up.
+  int _insertedChapters = 0;
+  int _insertedBlocks = 0;
+  int _insertedActivities = 0;
+  int _insertedQuizQuestions = 0;
 
   @override
   void dispose() {
     _jsonController.dispose();
+    _logScrollController.dispose();
     super.dispose();
+  }
+
+  /// Animate the import log to the latest entry. Called after every
+  /// `_addLog` / `_updateLog` so long imports stay visually fresh.
+  void _scrollLogToBottom() {
+    if (!_logScrollController.hasClients) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_logScrollController.hasClients) {
+        _logScrollController.animateTo(
+          _logScrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   Future<void> _pickFile() async {
@@ -117,6 +142,10 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
       _currentStep = 2;
       _isImporting = true;
       _importLog.clear();
+      _insertedChapters = 0;
+      _insertedBlocks = 0;
+      _insertedActivities = 0;
+      _insertedQuizQuestions = 0;
     });
 
     final supabase = ref.read(supabaseClientProvider);
@@ -162,6 +191,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
           'vocabulary': ch['vocabulary'] ?? [],
           'use_content_blocks': true,
         });
+        _insertedChapters++;
 
         // 3. Create inline activities first (need activity_ids for content blocks)
         final activityIdMap = <int, String>{}; // contentBlockIndex -> activityId
@@ -178,6 +208,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
             'xp_reward': pa.activity['xp_reward'] ?? 5,
             'vocabulary_words': pa.activity['vocabulary_words'] ?? [],
           });
+          _insertedActivities++;
         }
 
         // 4. Create content blocks
@@ -197,6 +228,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
             'caption': block['caption'],
             'activity_id': activityIdMap[j],
           });
+          _insertedBlocks++;
         }
 
         _updateLog('Bölüm ${i + 1}/${data.chapters.length}: "${ch['title']}" ✓');
@@ -232,6 +264,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
             'explanation': q['explanation'],
             'points': q['points'] ?? 1,
           });
+          _insertedQuizQuestions++;
         }
 
         _updateLog('Final quiz oluşturuldu ✓');
@@ -246,13 +279,34 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
 
       ref.invalidate(booksProvider);
     } catch (e) {
-      // Rollback: delete the partially created book (cascades to chapters, content_blocks, etc.)
+      // Rollback: delete the partially created book (cascades to chapters,
+      // content_blocks, inline_activities, book_quizzes, quiz_questions).
+      var rollbackOk = true;
       try {
         await supabase.from(DbTables.books).delete().eq('id', bookId);
       } catch (_) {
-        // Rollback failed — log but don't mask original error
+        rollbackOk = false;
       }
-      _addLog('Hata: $e — değişiklikler geri alındı', isError: true);
+      _addLog('Hata: $e', isError: true);
+      // Concrete rollback summary so the operator knows what was cleaned up.
+      final summaryParts = <String>[];
+      if (_insertedChapters > 0) summaryParts.add('$_insertedChapters bölüm');
+      if (_insertedBlocks > 0) summaryParts.add('$_insertedBlocks içerik bloğu');
+      if (_insertedActivities > 0) {
+        summaryParts.add('$_insertedActivities inline aktivite');
+      }
+      if (_insertedQuizQuestions > 0) {
+        summaryParts.add('$_insertedQuizQuestions quiz sorusu');
+      }
+      final summary = summaryParts.isEmpty
+          ? 'Değişiklik yapılmamıştı'
+          : '${summaryParts.join(' + ')} dahil 1 kitap kaydı';
+      _addLog(
+        rollbackOk
+            ? 'Geri alındı: $summary'
+            : 'GERI ALMA BAŞARISIZ — manuel temizlik gerekebilir: $summary',
+        isError: !rollbackOk,
+      );
       if (!mounted) return;
       setState(() => _isImporting = false);
     }
@@ -263,6 +317,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
     setState(() {
       _importLog.add(_ImportLogEntry(message, isError: isError));
     });
+    _scrollLogToBottom();
   }
 
   void _updateLog(String message) {
@@ -271,6 +326,7 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
       if (_importLog.isNotEmpty) {
         _importLog[_importLog.length - 1] = _ImportLogEntry(message, isComplete: true);
       }
+      _scrollLogToBottom();
     });
   }
 
@@ -283,6 +339,15 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/books'),
         ),
+        actions: const [
+          TemplateDownloadButton(
+            assetPath: 'assets/import_templates/book_template.json',
+            downloadFilename: 'kitap_sablonu.json',
+            contentType: 'application/json',
+            label: 'Örnek JSON İndir',
+          ),
+          SizedBox(width: 16),
+        ],
       ),
       body: Stepper(
         currentStep: _currentStep,
@@ -537,33 +602,54 @@ class _BookJsonImportScreenState extends ConsumerState<BookJsonImportScreen> {
                 padding: EdgeInsets.only(bottom: 16),
                 child: LinearProgressIndicator(),
               ),
-            ..._importLog.map((entry) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      if (entry.isError)
-                        Icon(Icons.error, size: 18, color: Colors.red.shade600)
-                      else if (entry.isComplete)
-                        Icon(Icons.check_circle, size: 18, color: Colors.green.shade600)
-                      else
-                        const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          entry.message,
-                          style: TextStyle(
-                            color: entry.isError ? Colors.red.shade700 : null,
-                            fontWeight: entry.isError ? FontWeight.w600 : null,
+            // Bounded scrollable log — auto-scrolls to latest entry on
+            // every _addLog/_updateLog. Cap at ~360px so the page doesn't
+            // grow forever during long imports.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 360),
+              child: ListView.builder(
+                controller: _logScrollController,
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: _importLog.length,
+                itemBuilder: (_, i) {
+                  final entry = _importLog[i];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        if (entry.isError)
+                          Icon(Icons.error,
+                              size: 18, color: Colors.red.shade600)
+                        else if (entry.isComplete)
+                          Icon(Icons.check_circle,
+                              size: 18, color: Colors.green.shade600)
+                        else
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            entry.message,
+                            style: TextStyle(
+                              color: entry.isError
+                                  ? Colors.red.shade700
+                                  : null,
+                              fontWeight: entry.isError
+                                  ? FontWeight.w600
+                                  : null,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                )),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
             if (_importedBookId != null) ...[
               const SizedBox(height: 16),
               Container(

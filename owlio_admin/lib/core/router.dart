@@ -19,6 +19,7 @@ import '../features/vocabulary/screens/vocabulary_edit_screen.dart';
 import '../features/vocabulary/screens/vocabulary_import_screen.dart';
 import '../features/vocabulary/screens/vocabulary_list_screen.dart';
 import '../features/wordlists/screens/wordlist_edit_screen.dart';
+import '../features/wordlists/screens/wordlist_import_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/templates/screens/template_list_screen.dart';
 import '../features/templates/screens/template_edit_screen.dart';
@@ -163,6 +164,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                 GoRoute(
                   path: ':listId',
                   builder: (_, state) => WordlistEditScreen(listId: state.pathParameters['listId']),
+                  routes: [
+                    GoRoute(
+                      path: 'import',
+                      builder: (_, state) => WordlistImportScreen(
+                        listId: state.pathParameters['listId']!,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -356,7 +365,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               path: '/settings',
               builder: (_, __) => const SettingsScreen(
                 title: 'Ayarlar',
-                categories: ['xp_reading', 'xp_vocab', 'progression', 'game', 'app'],
+                categories: [
+                  'xp_reading',
+                  'xp_vocab',
+                  'progression',
+                  'game',
+                  'api',
+                  'app',
+                ],
               ),
             ),
           ]),

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/csv_import_dialog.dart';
+import '../../../core/widgets/template_download_button.dart';
 import 'vocabulary_list_screen.dart';
 
 class VocabularyImportScreen extends ConsumerWidget {
@@ -69,10 +70,22 @@ class VocabularyImportScreen extends ConsumerWidget {
                 style: TextStyle(color: Colors.grey.shade600),
               ),
               const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () => _showImportDialog(context, ref),
-                icon: const Icon(Icons.upload),
-                label: const Text('CSV Dosyası Seç'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const TemplateDownloadButton(
+                    assetPath:
+                        'assets/import_templates/vocabulary_template.csv',
+                    downloadFilename: 'kelime_sablonu.csv',
+                    contentType: 'text/csv;charset=utf-8;',
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton.icon(
+                    onPressed: () => _showImportDialog(context, ref),
+                    icon: const Icon(Icons.upload),
+                    label: const Text('CSV Dosyası Seç'),
+                  ),
+                ],
               ),
               const SizedBox(height: 32),
 

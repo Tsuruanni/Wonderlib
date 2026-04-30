@@ -187,9 +187,27 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
   }
 
   Widget _buildScreen(BuildContext context) {
+    // Compute live word count from content_blocks (only for existing chapters)
+    final wordCount = isNewChapter
+        ? 0
+        : ref.watch(chapterDetailProvider(widget.chapterId!)).maybeWhen(
+              data: (ch) => _countWords(ch),
+              orElse: () => 0,
+            );
+
+    final liveTitle = _titleController.text.trim();
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(isNewChapter ? 'New Chapter' : 'Edit Chapter'),
+        title: Text(
+          isNewChapter
+              ? 'Yeni Bölüm'
+              : (liveTitle.isEmpty
+                  ? 'Bölüm Düzenle'
+                  : 'Bölüm: $liveTitle'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -198,6 +216,36 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
           },
         ),
         actions: [
+          if (!isNewChapter && wordCount > 0)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F46E5).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.text_fields,
+                          size: 14, color: Color(0xFF4F46E5)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$wordCount kelime',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF4F46E5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (!isNewChapter)
             IconButton(
               icon: const Icon(Icons.delete_outline),
@@ -216,7 +264,7 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
                       color: Colors.white,
                     ),
                   )
-                : Text(isNewChapter ? 'Create' : 'Save'),
+                : Text(isNewChapter ? 'Oluştur' : 'Kaydet'),
           ),
           const SizedBox(width: 16),
         ],
@@ -225,7 +273,8 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Title field at top
+                // Title field at top — already sticky relative to scrolling
+                // content blocks below. AppBar title also reflects live value.
                 Container(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                   decoration: BoxDecoration(
@@ -239,16 +288,17 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
                     child: TextFormField(
                       controller: _titleController,
                       decoration: const InputDecoration(
-                        labelText: 'Chapter Title',
-                        hintText: 'Enter chapter title',
+                        labelText: 'Bölüm Başlığı',
+                        hintText: 'Bölüm başlığını girin',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Title is required';
+                          return 'Başlık zorunludur';
                         }
                         return null;
                       },
+                      onChanged: (_) => setState(() {}),
                     ),
                   ),
                 ),
@@ -272,11 +322,18 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
                               size: 64, color: Colors.grey.shade300),
                           const SizedBox(height: 16),
                           Text(
-                            'Create the chapter first, then add content blocks',
+                            'İçerik blokları için önce bölümü oluşturmalısın',
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.grey.shade500,
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Auto-create + jump-to-edit shortcut
+                          FilledButton.icon(
+                            onPressed: _isSaving ? null : _handleSave,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Bölümü oluştur ve devam et'),
                           ),
                         ],
                       ),
@@ -285,5 +342,20 @@ class _ChapterEditScreenState extends ConsumerState<ChapterEditScreen> {
               ],
             ),
     );
+  }
+
+  /// Counts whitespace-separated tokens across all `text` content blocks.
+  int _countWords(Map<String, dynamic>? chapter) {
+    if (chapter == null) return 0;
+    final blocks = chapter['content_blocks'] as List? ?? [];
+    var n = 0;
+    for (final b in blocks) {
+      if (b is Map && b['type'] == 'text') {
+        final text = (b['text'] as String? ?? '').trim();
+        if (text.isEmpty) continue;
+        n += text.split(RegExp(r'\s+')).length;
+      }
+    }
+    return n;
   }
 }

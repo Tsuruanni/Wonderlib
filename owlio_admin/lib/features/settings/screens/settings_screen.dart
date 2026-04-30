@@ -48,6 +48,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_vocab': 'Vocab Session XP',
     'progression': 'Seviye ve İlerleme',
     'game': 'Oyun Ekonomisi',
+    'api': 'API Yapılandırması',
     'app': 'Uygulama Yapılandırması',
   };
 
@@ -56,6 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_vocab': Icons.school,
     'progression': Icons.trending_up,
     'game': Icons.casino,
+    'api': Icons.key,
     'app': Icons.settings_applications,
   };
 
@@ -64,8 +66,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     'xp_vocab': Color(0xFF10B981),
     'progression': Color(0xFF8B5CF6),
     'game': Color(0xFFEC4899),
+    'api': Color(0xFF0891B2),
     'app': Color(0xFF6B7280),
   };
+
+  /// Keys whose value should be masked in the UI (rendered as a password
+  /// field with a show/hide toggle). Detected by suffix to avoid editing
+  /// this list every time a new sensitive setting is added.
+  bool _isSecretKey(String key) =>
+      key.endsWith('_api_key') ||
+      key.endsWith('_secret') ||
+      key.endsWith('_token');
+
+  /// Per-key visibility toggle for secret inputs.
+  final Set<String> _visibleSecrets = {};
 
   List<String> get categoryOrder => widget.categories;
 
@@ -495,6 +509,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildInput(String key, String value) {
+    // Secret (API key / token) — masked with show/hide toggle.
+    if (_isSecretKey(key)) {
+      _controllers.putIfAbsent(
+          key, () => TextEditingController(text: value));
+      final controller = _controllers[key]!;
+      if (controller.text != value && !_savingKeys.contains(key)) {
+        controller.text = value;
+      }
+      final isVisible = _visibleSecrets.contains(key);
+      return SizedBox(
+        width: 320,
+        child: TextFormField(
+          controller: controller,
+          obscureText: !isVisible,
+          textAlign: TextAlign.start,
+          style: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 13,
+          ),
+          decoration: InputDecoration(
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            border: const OutlineInputBorder(),
+            isDense: true,
+            hintText: value.isEmpty ? 'Anahtar yok' : null,
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  iconSize: 18,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: isVisible ? 'Gizle' : 'Göster',
+                  icon: Icon(
+                    isVisible ? Icons.visibility_off : Icons.visibility,
+                    size: 18,
+                  ),
+                  onPressed: () => setState(() {
+                    if (isVisible) {
+                      _visibleSecrets.remove(key);
+                    } else {
+                      _visibleSecrets.add(key);
+                    }
+                  }),
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+          ),
+          onFieldSubmitted: (v) {
+            if (v != value) _updateSetting(key, v);
+          },
+        ),
+      );
+    }
+
     // Boolean (switch)
     if (value == 'true' || value == 'false') {
       return Switch(

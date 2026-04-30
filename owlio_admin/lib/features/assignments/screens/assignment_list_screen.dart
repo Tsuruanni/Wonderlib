@@ -345,8 +345,14 @@ class _AssignmentCard extends StatelessWidget {
     final className = classData?['name'] as String? ?? 'Sınıf yok';
     final startDate = DateTime.tryParse(assignment['start_date'] ?? '');
     final dueDate = DateTime.tryParse(assignment['due_date'] ?? '');
-    final isOverdue =
-        dueDate != null && dueDate.isBefore(DateTime.now());
+    final now = DateTime.now();
+    final isOverdue = dueDate != null && dueDate.isBefore(now);
+    final isUpcoming = startDate != null && startDate.isAfter(now);
+    final _AssignmentStatus status = isOverdue
+        ? _AssignmentStatus.overdue
+        : isUpcoming
+            ? _AssignmentStatus.upcoming
+            : _AssignmentStatus.active;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -387,6 +393,8 @@ class _AssignmentCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        _StatusChip(status: status),
+                        const SizedBox(width: 6),
                         _TypeChip(type: type),
                       ],
                     ),
@@ -427,22 +435,6 @@ class _AssignmentCard extends StatelessWidget {
                                 : Colors.grey.shade600,
                           ),
                         ),
-                        if (isOverdue) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'Süresi Geçmiş',
-                              style: TextStyle(
-                                  fontSize: 10, color: Colors.red.shade700),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                   ],
@@ -505,6 +497,57 @@ class _TypeChip extends StatelessWidget {
           color: color,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    );
+  }
+}
+
+enum _AssignmentStatus { upcoming, active, overdue }
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.status});
+
+  final _AssignmentStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    late final String label;
+    late final Color color;
+    late final IconData icon;
+    switch (status) {
+      case _AssignmentStatus.upcoming:
+        label = 'Yakında';
+        color = Colors.blue.shade700;
+        icon = Icons.schedule;
+      case _AssignmentStatus.active:
+        label = 'Aktif';
+        color = Colors.green.shade700;
+        icon = Icons.play_circle_outline;
+      case _AssignmentStatus.overdue:
+        label = 'Süresi Geçmiş';
+        color = Colors.red.shade700;
+        icon = Icons.error_outline;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:owlio_shared/owlio_shared.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // CountOption
+import 'package:universal_html/html.dart' as html;
 
 import '../../../core/supabase_client.dart';
 import '../../../core/utils/role_helpers.dart';
@@ -140,6 +143,113 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     });
   }
 
+  /// Exports all users matching the active filters (school / class / role /
+  /// search) as a CSV. Bypasses pagination — re-fetches the full result set
+  /// so the export matches the operator's mental "what's on screen" model.
+  Future<void> _exportCsv() async {
+    final supabase = ref.read(supabaseClientProvider);
+    final schoolFilter = ref.read(schoolFilterProvider);
+    final classFilter = ref.read(classFilterProvider);
+    final roleFilter = ref.read(roleFilterProvider);
+    final search = ref.read(userSearchProvider);
+
+    var query = supabase
+        .from(DbTables.profiles)
+        .select('*, schools(name), classes(name, grade)');
+
+    if (schoolFilter != null) query = query.eq('school_id', schoolFilter);
+    if (classFilter != null) query = query.eq('class_id', classFilter);
+    if (roleFilter != null) query = query.eq('role', roleFilter);
+    if (search.isNotEmpty) {
+      final escaped = search.replaceAll(',', ' ');
+      query = query.or(
+        'first_name.ilike.%$escaped%,last_name.ilike.%$escaped%,'
+        'email.ilike.%$escaped%,username.ilike.%$escaped%',
+      );
+    }
+
+    try {
+      final rows = await query.order('created_at', ascending: false);
+
+      if (rows.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('İndirilecek kullanıcı yok')),
+          );
+        }
+        return;
+      }
+
+      final csvRows = <List<dynamic>>[
+        [
+          'first_name',
+          'last_name',
+          'username',
+          'email',
+          'role',
+          'school',
+          'class',
+          'grade',
+          'level',
+          'xp',
+          'created_at',
+        ],
+        ...rows.map((u) {
+          final school = u['schools'] as Map<String, dynamic>?;
+          final cls = u['classes'] as Map<String, dynamic>?;
+          return [
+            u['first_name'] ?? '',
+            u['last_name'] ?? '',
+            u['username'] ?? '',
+            u['email'] ?? '',
+            u['role'] ?? '',
+            school?['name'] ?? '',
+            cls?['name'] ?? '',
+            cls?['grade']?.toString() ?? '',
+            u['level']?.toString() ?? '',
+            u['xp']?.toString() ?? '',
+            u['created_at'] ?? '',
+          ];
+        }),
+      ];
+
+      final csv = const ListToCsvConverter().convert(csvRows);
+      final bytes = utf8.encode('﻿$csv'); // BOM for Excel UTF-8
+
+      // Filename reflects active filters
+      final parts = <String>['kullanicilar'];
+      if (roleFilter != null) parts.add(roleFilter);
+      if (search.isNotEmpty) {
+        parts.add(search.toLowerCase().replaceAll(RegExp(r'\s+'), '_'));
+      }
+      final filename = '${parts.join('_')}_${rows.length}.csv';
+
+      final blob = html.Blob([bytes], 'text/csv;charset=utf-8;');
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      html.AnchorElement(href: url)
+        ..setAttribute('download', filename)
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${rows.length} kullanıcı CSV olarak indirildi'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('CSV indirme hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
@@ -157,6 +267,12 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
           onPressed: () => context.go('/'),
         ),
         actions: [
+          OutlinedButton.icon(
+            onPressed: _exportCsv,
+            icon: const Icon(Icons.file_download_outlined, size: 18),
+            label: const Text('CSV İndir'),
+          ),
+          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => context.go('/users/create'),
             icon: const Icon(Icons.person_add, size: 18),

@@ -10,6 +10,7 @@ import 'package:owlio_shared/owlio_shared.dart';
 import 'package:universal_html/html.dart' as html;
 
 import '../../../core/supabase_client.dart';
+import '../../../core/widgets/template_download_button.dart';
 
 // --- Providers ---
 
@@ -617,11 +618,21 @@ class _UserCreateScreenState extends ConsumerState<UserCreateScreen>
           ),
           const SizedBox(height: 16),
 
-          // File picker
-          OutlinedButton.icon(
-            onPressed: _isProcessing ? null : _pickCsvFile,
-            icon: const Icon(Icons.upload_file),
-            label: const Text('CSV Dosyası Seç'),
+          // File picker + template download
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _isProcessing ? null : _pickCsvFile,
+                icon: const Icon(Icons.upload_file),
+                label: const Text('CSV Dosyası Seç'),
+              ),
+              const SizedBox(width: 12),
+              const TemplateDownloadButton(
+                assetPath: 'assets/import_templates/users_template.csv',
+                downloadFilename: 'kullanici_sablonu.csv',
+                contentType: 'text/csv;charset=utf-8;',
+              ),
+            ],
           ),
 
           if (_csvError != null) ...[

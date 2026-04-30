@@ -65,3 +65,7 @@ flutter:
     - assets/icons/rank-gold-3_large.png
     - assets/icons/rank-platinum-5_large.png
     - assets/icons/rank-diamond-7_large.png
+    - assets/import_templates/vocabulary_template.csv
+    - assets/import_templates/users_template.csv
+    - assets/import_templates/wordlist_template.csv
+    - assets/import_templates/book_template.json

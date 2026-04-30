@@ -1,0 +1,215 @@
+{
+  "_comment": "Owlio book JSON import template. All 4 inline activity types and 5 quiz question types are demonstrated below. Replace the demo content with real values. The 'slug' must be lowercase-hyphenated. Levels: A1, A2, B1, B2, C1, C2. Statuses: draft, published, archived.",
+
+  "book": {
+    "title": "Örnek Kitap (Tüm Aktivite Tipleri)",
+    "slug": "ornek-kitap-tum-tipler",
+    "level": "A2",
+    "description": "JSON import şablonu — her tipten en az bir örnek içerir.",
+    "cover_url": "https://example.com/cover.jpg",
+    "genre": "fiction",
+    "age_group": "8-12",
+    "estimated_minutes": 15,
+    "word_count": 250,
+    "lexile_score": 500,
+    "status": "draft",
+    "metadata": {
+      "author": "Yazar Adı",
+      "publisher": "Yayınevi"
+    }
+  },
+
+  "chapters": [
+    {
+      "title": "Bölüm 1 — Inline Aktivitelerin Hepsi",
+      "order_index": 1,
+      "content_blocks": [
+        {
+          "type": "text",
+          "order_index": 0,
+          "text": "Bu metin paragrafının ardından inline aktiviteler gelir. Aktiviteler content_block içinde 'inline_activity' olarak yer alır."
+        },
+
+        {
+          "_comment": "1) TRUE/FALSE — content needs 'statement' + 'correct_answer' (boolean).",
+          "type": "activity",
+          "order_index": 1,
+          "inline_activity": {
+            "type": "true_false",
+            "after_paragraph_index": 0,
+            "xp_reward": 5,
+            "vocabulary_words": [],
+            "content": {
+              "statement": "Kediler süt içer.",
+              "correct_answer": true,
+              "explanation": "Kediler genellikle süt sevse de, yetişkin kediler için kedimama daha sağlıklıdır."
+            }
+          }
+        },
+
+        {
+          "type": "image",
+          "order_index": 2,
+          "image_url": "https://example.com/chapter-1-cat.jpg",
+          "caption": "Bir kedi (opsiyonel açıklama)"
+        },
+
+        {
+          "_comment": "2) WORD_TRANSLATION — content needs 'word', 'correct_answer', and 'options' (min 2). The options must include the correct answer.",
+          "type": "activity",
+          "order_index": 3,
+          "inline_activity": {
+            "type": "word_translation",
+            "after_paragraph_index": 0,
+            "xp_reward": 5,
+            "vocabulary_words": [],
+            "content": {
+              "word": "cat",
+              "correct_answer": "kedi",
+              "options": ["kedi", "köpek", "kuş", "balık"]
+            }
+          }
+        },
+
+        {
+          "_comment": "3) FIND_WORDS — content needs 'instruction', 'options' (non-empty), 'correct_answers' (non-empty subset of options).",
+          "type": "activity",
+          "order_index": 4,
+          "inline_activity": {
+            "type": "find_words",
+            "after_paragraph_index": 0,
+            "xp_reward": 8,
+            "vocabulary_words": [],
+            "content": {
+              "instruction": "Hayvanları seçin",
+              "options": ["kedi", "masa", "köpek", "kalem", "kuş"],
+              "correct_answers": ["kedi", "köpek", "kuş"]
+            }
+          }
+        },
+
+        {
+          "_comment": "4) MATCHING (inline) — content needs 'instruction' + 'pairs' (min 2 of {left, right}).",
+          "type": "activity",
+          "order_index": 5,
+          "inline_activity": {
+            "type": "matching",
+            "after_paragraph_index": 0,
+            "xp_reward": 10,
+            "vocabulary_words": [],
+            "content": {
+              "instruction": "İngilizce kelimeleri Türkçe karşılıklarıyla eşleştirin",
+              "pairs": [
+                { "left": "cat", "right": "kedi" },
+                { "left": "dog", "right": "köpek" },
+                { "left": "bird", "right": "kuş" }
+              ]
+            }
+          }
+        },
+
+        {
+          "type": "text",
+          "order_index": 6,
+          "text": "Bölüm 1 sona erer. Sıradaki bölümde quiz örnekleri yer alır."
+        }
+      ]
+    },
+
+    {
+      "title": "Bölüm 2 — Sade Metin",
+      "order_index": 2,
+      "content_blocks": [
+        {
+          "type": "text",
+          "order_index": 0,
+          "text": "Bu bölümde sadece metin var. Aktivite gerektirmeyen pasajlar bu şekilde tutulabilir."
+        }
+      ]
+    }
+  ],
+
+  "book_quiz": {
+    "_comment": "Final quiz — passing_score is 0-100. Questions cover all 5 types. The top-level 'question' field is the prompt; type-specific data lives in 'content'.",
+
+    "title": "Kitap Sonu Quizi",
+    "passing_score": 70,
+    "questions": [
+      {
+        "_comment": "1) MULTIPLE_CHOICE — options (min 2), correct_answer must be in options.",
+        "type": "multiple_choice",
+        "question": "Birinci bölüm hangi hayvanla ilgilidir?",
+        "explanation": "Birinci bölümün ana konusu kediler.",
+        "points": 1,
+        "order_index": 0,
+        "content": {
+          "options": ["kediler", "köpekler", "kuşlar", "balıklar"],
+          "correct_answer": "kediler"
+        }
+      },
+
+      {
+        "_comment": "2) FILL_BLANK — sentence must contain '___' placeholder. correct_answer is what fills the blank.",
+        "type": "fill_blank",
+        "question": "Cümleyi tamamlayın",
+        "explanation": "Kediler süt veya kedimama içer.",
+        "points": 1,
+        "order_index": 1,
+        "content": {
+          "sentence": "Kediler ___ içer.",
+          "correct_answer": "süt",
+          "alternatives": ["kedimama"]
+        }
+      },
+
+      {
+        "_comment": "3) EVENT_SEQUENCING — events array; correct_order is the index sequence (length must equal events length, all indices in range).",
+        "type": "event_sequencing",
+        "question": "Olayları doğru sıraya koyun",
+        "explanation": "Önce kedi uyandı, sonra mama yedi, en son uyudu.",
+        "points": 2,
+        "order_index": 2,
+        "content": {
+          "events": [
+            "Kedi mama yedi",
+            "Kedi uyandı",
+            "Kedi uyudu"
+          ],
+          "correct_order": [1, 0, 2]
+        }
+      },
+
+      {
+        "_comment": "4) MATCHING (quiz) — left/right arrays (same length, min 2). correct_pairs is a Map from leftIndex -> rightIndex (string keys/values).",
+        "type": "matching",
+        "question": "Hayvanları sesleriyle eşleştirin",
+        "explanation": "Her hayvanın kendine özgü bir sesi var.",
+        "points": 2,
+        "order_index": 3,
+        "content": {
+          "left": ["kedi", "köpek", "inek"],
+          "right": ["miyav", "hav hav", "möö"],
+          "correct_pairs": { "0": "0", "1": "1", "2": "2" }
+        }
+      },
+
+      {
+        "_comment": "5) WHO_SAYS_WHAT — characters/quotes arrays (same length, min 2). correct_pairs maps character index -> quote index.",
+        "type": "who_says_what",
+        "question": "Kim hangi cümleyi söyledi?",
+        "explanation": "Karakterlerin diyaloğunu hatırlayın.",
+        "points": 2,
+        "order_index": 4,
+        "content": {
+          "characters": ["Anne", "Ali", "Ayşe"],
+          "quotes": [
+            "Akşam yemekte ne var?",
+            "Hadi parka gidelim!",
+            "Bu kitabı okudum."
+          ],
+          "correct_pairs": { "0": "0", "1": "1", "2": "2" }
+        }
+      }
+    ]
+  }
+}

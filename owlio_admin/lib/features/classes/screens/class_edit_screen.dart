@@ -57,7 +57,26 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
   bool _isLoading = false;
   bool _isSaving = false;
 
+  // Roster search filter — local-only, no DB hit.
+  final _rosterSearchController = TextEditingController();
+  String _rosterSearchQuery = '';
+
   bool get isNewClass => widget.classId == null;
+
+  List<Map<String, dynamic>> get _filteredStudents {
+    if (_rosterSearchQuery.isEmpty) return _students;
+    final q = _rosterSearchQuery.toLowerCase();
+    return _students.where((s) {
+      final first = (s['first_name'] as String? ?? '').toLowerCase();
+      final last = (s['last_name'] as String? ?? '').toLowerCase();
+      final email = (s['email'] as String? ?? '').toLowerCase();
+      final username = (s['username'] as String? ?? '').toLowerCase();
+      return first.contains(q) ||
+          last.contains(q) ||
+          email.contains(q) ||
+          username.contains(q);
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -93,7 +112,101 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
     _nameController.dispose();
     _gradeController.dispose();
     _academicYearController.dispose();
+    _rosterSearchController.dispose();
     super.dispose();
+  }
+
+  /// Moves a student to a different class within the same school. Opens a
+  /// picker dialog of sibling classes; on confirm, UPDATEs profiles.class_id.
+  Future<void> _moveStudentToOtherClass(Map<String, dynamic> student) async {
+    if (_schoolId == null) return;
+
+    final supabase = ref.read(supabaseClientProvider);
+
+    // Fetch sibling classes (same school, not this one)
+    final siblings = await supabase
+        .from(DbTables.classes)
+        .select('id, name, grade')
+        .eq('school_id', _schoolId!)
+        .neq('id', widget.classId!)
+        .order('grade')
+        .order('name');
+
+    if (!mounted) return;
+
+    if (siblings.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Aynı okulda taşınabilecek başka sınıf yok')),
+      );
+      return;
+    }
+
+    final targetId = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return SimpleDialog(
+          title: Text(
+            '"${student['first_name'] ?? ''} ${student['last_name'] ?? ''}"'
+                ' öğrencisini taşı',
+          ),
+          children: [
+            for (final c in siblings)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, c['id'] as String),
+                child: Row(
+                  children: [
+                    const Icon(Icons.class_outlined, size: 18),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '${c['name']}'
+                        '${c['grade'] != null ? ' (${c['grade']}. sınıf)' : ''}',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 8),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'İptal',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (targetId == null || !mounted) return;
+
+    try {
+      await supabase
+          .from(DbTables.profiles)
+          .update({'class_id': targetId})
+          .eq('id', student['id'] as String);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Öğrenci taşındı')),
+        );
+        // Reflect locally without re-fetch — student left this class
+        setState(() {
+          _students.removeWhere((s) => s['id'] == student['id']);
+        });
+        ref.invalidate(classDetailProvider(widget.classId!));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Taşıma başarısız: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _handleSave() async {
@@ -482,19 +595,65 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                            child: Column(
                               children: [
-                                Text(
-                                  'Öğrenciler (${_students.length})',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Öğrenciler (${_students.length})',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                    ),
+                                    FilledButton.icon(
+                                      onPressed: _addStudent,
+                                      icon: const Icon(Icons.add, size: 18),
+                                      label: const Text('Ekle'),
+                                    ),
+                                  ],
                                 ),
-                                FilledButton.icon(
-                                  onPressed: _addStudent,
-                                  icon: const Icon(Icons.add, size: 18),
-                                  label: const Text('Ekle'),
-                                ),
+                                if (_students.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 36,
+                                    child: TextField(
+                                      controller: _rosterSearchController,
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            'Ad, soyad, e-posta veya kullanıcı adı ara…',
+                                        prefixIcon: const Icon(
+                                            Icons.search,
+                                            size: 18),
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 8),
+                                        border:
+                                            const OutlineInputBorder(),
+                                        suffixIcon:
+                                            _rosterSearchQuery.isEmpty
+                                                ? null
+                                                : IconButton(
+                                                    icon: const Icon(
+                                                        Icons.clear,
+                                                        size: 18),
+                                                    onPressed: () {
+                                                      _rosterSearchController
+                                                          .clear();
+                                                      setState(() =>
+                                                          _rosterSearchQuery =
+                                                              '');
+                                                    },
+                                                  ),
+                                      ),
+                                      onChanged: (v) => setState(() =>
+                                          _rosterSearchQuery = v.trim()),
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -518,39 +677,110 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                                       ],
                                     ),
                                   )
-                                : ListView.builder(
-                                    itemCount: _students.length,
-                                    itemBuilder: (context, index) {
-                                      final student = _students[index];
-                                      final name =
-                                          '${student['first_name'] ?? ''} ${student['last_name'] ?? ''}'
-                                              .trim();
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor:
-                                              Colors.green.withValues(alpha: 0.1),
-                                          child: Text(
-                                            name.isNotEmpty
-                                                ? name[0].toUpperCase()
-                                                : '?',
-                                            style: const TextStyle(
-                                              color: Colors.green,
-                                              fontWeight: FontWeight.bold,
+                                : Builder(builder: (_) {
+                                    final filtered = _filteredStudents;
+                                    if (filtered.isEmpty &&
+                                        _rosterSearchQuery.isNotEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.search_off,
+                                                size: 40,
+                                                color:
+                                                    Colors.grey.shade400),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              '"$_rosterSearchQuery" için öğrenci bulunamadı',
+                                              style: TextStyle(
+                                                  color: Colors
+                                                      .grey.shade600),
                                             ),
-                                          ),
-                                        ),
-                                        title: Text(name.isNotEmpty
-                                            ? name
-                                            : student['email'] ?? 'Unknown'),
-                                        subtitle: Text(student['email'] ?? ''),
-                                        trailing: IconButton(
-                                          icon: const Icon(Icons.remove_circle_outline),
-                                          color: Colors.red,
-                                          onPressed: () => _removeStudent(student),
+                                          ],
                                         ),
                                       );
-                                    },
-                                  ),
+                                    }
+                                    return ListView.builder(
+                                      itemCount: filtered.length,
+                                      itemBuilder: (context, index) {
+                                        final student = filtered[index];
+                                        final name =
+                                            '${student['first_name'] ?? ''} ${student['last_name'] ?? ''}'
+                                                .trim();
+                                        return ListTile(
+                                          leading: CircleAvatar(
+                                            backgroundColor: Colors.green
+                                                .withValues(alpha: 0.1),
+                                            child: Text(
+                                              name.isNotEmpty
+                                                  ? name[0].toUpperCase()
+                                                  : '?',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          title: Text(name.isNotEmpty
+                                              ? name
+                                              : student['email'] ??
+                                                  'Unknown'),
+                                          subtitle: Text(
+                                              student['email'] ?? ''),
+                                          trailing: PopupMenuButton<String>(
+                                            tooltip: 'Eylemler',
+                                            icon: const Icon(
+                                                Icons.more_vert),
+                                            onSelected: (value) {
+                                              if (value == 'move') {
+                                                _moveStudentToOtherClass(
+                                                    student);
+                                              } else if (value ==
+                                                  'remove') {
+                                                _removeStudent(student);
+                                              }
+                                            },
+                                            itemBuilder: (_) => [
+                                              const PopupMenuItem(
+                                                value: 'move',
+                                                child: ListTile(
+                                                  leading: Icon(
+                                                      Icons.swap_horiz),
+                                                  title: Text(
+                                                      'Başka sınıfa taşı'),
+                                                  dense: true,
+                                                  contentPadding:
+                                                      EdgeInsets.zero,
+                                                ),
+                                              ),
+                                              PopupMenuItem(
+                                                value: 'remove',
+                                                child: ListTile(
+                                                  leading: Icon(
+                                                    Icons
+                                                        .remove_circle_outline,
+                                                    color:
+                                                        Colors.red.shade600,
+                                                  ),
+                                                  title: Text(
+                                                    'Sınıftan çıkar',
+                                                    style: TextStyle(
+                                                      color: Colors
+                                                          .red.shade700,
+                                                    ),
+                                                  ),
+                                                  dense: true,
+                                                  contentPadding:
+                                                      EdgeInsets.zero,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  }),
                           ),
                         ],
                       ),
