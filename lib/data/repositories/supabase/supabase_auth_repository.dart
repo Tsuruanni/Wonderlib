@@ -17,21 +17,40 @@ class SupabaseAuthRepository implements AuthRepository {
     _initializeAuthState();
 
     // Listen to Supabase auth changes and broadcast domain User
-    _supabase.auth.onAuthStateChange.listen((data) async {
-      debugPrint('Auth state change: event=${data.event}, hasSession=${data.session != null}');
-      if (data.session != null) {
-        final userResult = await getCurrentUser();
-        userResult.fold(
-          (failure) => _authStateController.add(null),
-          (user) {
-            debugPrint('Auth: user loaded - id=${user?.id}, role=${user?.role}');
-            _authStateController.add(user);
-          },
-        );
-      } else {
-        _authStateController.add(null);
-      }
-    });
+    _supabase.auth.onAuthStateChange.listen(
+      (data) async {
+        debugPrint('Auth state change: event=${data.event}, hasSession=${data.session != null}');
+        if (data.session != null) {
+          final userResult = await getCurrentUser();
+          userResult.fold(
+            (failure) => _authStateController.add(null),
+            (user) {
+              debugPrint('Auth: user loaded - id=${user?.id}, role=${user?.role}');
+              _authStateController.add(user);
+            },
+          );
+        } else {
+          _authStateController.add(null);
+        }
+      },
+      onError: _handleAuthStreamError,
+    );
+  }
+
+  /// Handle errors surfaced by the auth state stream.
+  ///
+  /// Stale/invalid refresh tokens (refresh_token_not_found, 400) are expected
+  /// when a user's session was revoked server-side — emit null so consumers
+  /// treat it as a silent logout instead of bubbling the exception to the
+  /// zone guard (which would mark it fatal in Sentry).
+  void _handleAuthStreamError(Object error, StackTrace stack) {
+    if (error is AuthException) {
+      debugPrint('Auth stream AuthException (expected): ${error.message}');
+      _authStateController.add(null);
+      return;
+    }
+    debugPrint('Auth stream unexpected error: $error');
+    _authStateController.addError(error, stack);
   }
 
   /// Initialize auth state from existing session

@@ -68,8 +68,42 @@ class _CsvImportDialogState extends State<CsvImportDialog> {
     }
 
     try {
-      final content = utf8.decode(file.bytes!);
-      final csvData = const CsvToListConverter().convert(content);
+      // Decode with fallback: try UTF-8 first (with BOM tolerance), then
+      // Latin-1 for Excel-saved CSVs. Both are very common.
+      String content;
+      try {
+        content = utf8.decode(file.bytes!);
+      } catch (_) {
+        content = latin1.decode(file.bytes!);
+      }
+
+      // Strip UTF-8 BOM if present (Excel adds this on TR-Windows saves).
+      if (content.startsWith('﻿')) {
+        content = content.substring(1);
+      }
+
+      // Normalize line endings to \n. Default csv parser expects \r\n;
+      // macOS-saved files use \n which would otherwise produce one giant
+      // row showing "0 satır". This handles Windows/Unix/old-Mac all.
+      content = content.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
+      // Auto-detect delimiter: Excel-Turkish locale saves with `;`. Sample
+      // the first non-empty line and pick whichever splits more.
+      final firstLine = content
+          .split('\n')
+          .firstWhere((l) => l.trim().isNotEmpty, orElse: () => '');
+      final commaCount = ','.allMatches(firstLine).length;
+      final semicolonCount = ';'.allMatches(firstLine).length;
+      final tabCount = '\t'.allMatches(firstLine).length;
+      final delimiter = (semicolonCount > commaCount && semicolonCount > tabCount)
+          ? ';'
+          : (tabCount > commaCount ? '\t' : ',');
+
+      final csvData = CsvToListConverter(
+        eol: '\n',
+        fieldDelimiter: delimiter,
+        shouldParseNumbers: false,
+      ).convert(content);
 
       if (csvData.isEmpty) {
         setState(() => _validationError = 'CSV dosyası boş');

@@ -546,24 +546,31 @@ class _ClassEditScreenState extends ConsumerState<ClassEditScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Grade
-                          TextFormField(
-                            controller: _gradeController,
+                          // Grade — dropdown (1-12) prevents typos / out-of-range values
+                          DropdownButtonFormField<int?>(
+                            value: int.tryParse(_gradeController.text.trim()),
                             decoration: const InputDecoration(
                               labelText: 'Sınıf Seviyesi *',
-                              hintText: 'ör. 5, 7, 12',
                             ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Sınıf seviyesi zorunludur';
-                              }
-                              final grade = int.tryParse(value.trim());
-                              if (grade == null || grade < 1 || grade > 12) {
-                                return '1-12 arası bir değer girin';
-                              }
-                              return null;
+                            items: [
+                              const DropdownMenuItem<int?>(
+                                value: null,
+                                child: Text('Seçiniz'),
+                              ),
+                              for (var i = 1; i <= 12; i++)
+                                DropdownMenuItem<int?>(
+                                  value: i,
+                                  child: Text('$i. Sınıf'),
+                                ),
+                            ],
+                            onChanged: (v) {
+                              setState(() {
+                                _gradeController.text =
+                                    v == null ? '' : v.toString();
+                              });
                             },
+                            validator: (v) =>
+                                v == null ? 'Sınıf seviyesi zorunludur' : null,
                           ),
                           const SizedBox(height: 16),
 

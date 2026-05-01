@@ -19,7 +19,20 @@ class VocabularyImportScreen extends ConsumerWidget {
     'meaning_tr',
     'meaning_en',
     'level',
+    'example_sentences',
   ];
+
+  /// Splits a CSV cell containing example sentences. Accepts pipe (`|`)
+  /// as the inner separator (matching what `_exportCsv` writes). Falls
+  /// back to a single-element list when no separator is present.
+  static List<String> parseExamples(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return const [];
+    return raw
+        .split('|')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList(growable: false);
+  }
 
   static const requiredHeaders = ['word', 'meaning_tr'];
 
@@ -36,7 +49,39 @@ class VocabularyImportScreen extends ConsumerWidget {
     'interjection',
     'article',
     'determiner',
+    'phrase', // multi-word entries (our own generate-word-data uses this)
   ];
+
+  // Common shorthand → canonical POS for tolerant validation.
+  static const _posShorthand = {
+    'adj': 'adjective',
+    'adv': 'adverb',
+    'n': 'noun',
+    'v': 'verb',
+    'prep': 'preposition',
+    'conj': 'conjunction',
+    'pron': 'pronoun',
+    'interj': 'interjection',
+    'art': 'article',
+    'det': 'determiner',
+  };
+
+  /// Validates part_of_speech tolerantly:
+  /// - Accepts canonical forms (`noun`, `verb`, etc.)
+  /// - Accepts shorthand (`adj`, `n`, `v`, ...) via [_posShorthand]
+  /// - Accepts compound/ambiguous tags (`verb/noun`, `adverb/adj`) — splits
+  ///   on `/` and passes if any segment is valid.
+  /// Returns true when the value should be accepted.
+  static bool isValidPartOfSpeech(String pos) {
+    if (pos.isEmpty) return true;
+    final segments =
+        pos.split(RegExp(r'[/,]')).map((s) => s.trim()).where((s) => s.isNotEmpty);
+    for (final seg in segments) {
+      if (validPartsOfSpeech.contains(seg)) return true;
+      if (_posShorthand.containsKey(seg)) return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -119,8 +164,17 @@ class VocabularyImportScreen extends ConsumerWidget {
                       style: TextStyle(color: Colors.green.shade900),
                     ),
                     Text(
-                      'Opsiyonel sütunlar: phonetic, part_of_speech, meaning_en, level',
+                      'Opsiyonel sütunlar: phonetic, part_of_speech, meaning_en, level, example_sentences',
                       style: TextStyle(color: Colors.green.shade700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'example_sentences için: birden çok örneği " | " ile ayır.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Container(
@@ -130,9 +184,9 @@ class VocabularyImportScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'word,phonetic,part_of_speech,meaning_tr,meaning_en,level\n'
-                        'apple,/ˈæp.əl/,noun,elma,a round fruit,A1\n'
-                        'run,/rʌn/,verb,koşmak,to move fast,A1',
+                        'word,phonetic,part_of_speech,meaning_tr,meaning_en,level,example_sentences\n'
+                        'apple,/ˈæp.əl/,noun,elma,a round fruit,A1,I eat an apple. | She likes apples.\n'
+                        'run,/rʌn/,verb,koşmak,to move fast,A1,He can run.',
                         style: TextStyle(
                           fontFamily: 'monospace',
                           fontSize: 12,
@@ -191,6 +245,7 @@ class VocabularyImportScreen extends ConsumerWidget {
     final partOfSpeech = row['part_of_speech']?.trim().toLowerCase();
     final meaningEn = row['meaning_en']?.trim();
     final level = row['level']?.trim().toUpperCase();
+    final examples = parseExamples(row['example_sentences']);
 
     // Validate word
     if (word == null || word.isEmpty) {
@@ -207,10 +262,10 @@ class VocabularyImportScreen extends ConsumerWidget {
       return 'Geçersiz seviye: $level (${validLevels.join(', ')} olmalıdır)';
     }
 
-    // Validate part_of_speech if provided
+    // Validate part_of_speech if provided (tolerant: shorthand + compound)
     if (partOfSpeech != null &&
         partOfSpeech.isNotEmpty &&
-        !validPartsOfSpeech.contains(partOfSpeech)) {
+        !isValidPartOfSpeech(partOfSpeech)) {
       return 'Geçersiz sözcük türü: $partOfSpeech';
     }
 
@@ -229,6 +284,7 @@ class VocabularyImportScreen extends ConsumerWidget {
         'part_of_speech': partOfSpeech,
       if (meaningEn != null && meaningEn.isNotEmpty) 'meaning_en': meaningEn,
       if (level != null && level.isNotEmpty) 'level': level,
+      if (examples.isNotEmpty) 'example_sentences': examples,
     };
 
     if (existing != null) {

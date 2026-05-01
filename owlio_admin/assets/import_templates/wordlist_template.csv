@@ -1,6 +1,6 @@
-word,meaning_tr,meaning_en,phonetic,part_of_speech,level
-cat,kedi,a small furry animal kept as a pet,/kæt/,noun,A1
-dog,köpek,an animal often kept as a pet,/dɒɡ/,noun,A1
-big,büyük,large in size,/bɪɡ/,adjective,A1
-small,küçük,little in size,/smɔːl/,adjective,A1
-happy,mutlu,feeling pleasure,/ˈhæp.i/,adjective,A1
+word,meaning_tr,meaning_en,phonetic,part_of_speech,level,example_sentences
+cat,kedi,a small furry animal kept as a pet,/kæt/,noun,A1,The cat is sleeping on the sofa. | I have a black cat.
+dog,köpek,an animal often kept as a pet,/dɒɡ/,noun,A1,The dog wagged its tail. | My dog likes to play.
+big,büyük,large in size,/bɪɡ/,adjective,A1,That is a big house.
+small,küçük,little in size,/smɔːl/,adjective,A1,The mouse is small.
+happy,mutlu,feeling pleasure,/ˈhæp.i/,adjective,A1,She is happy today. | I feel happy when I see you.

@@ -231,13 +231,20 @@ class _SplashScreenState extends State<_SplashScreen> {
 /// Auth state notifier for GoRouter refresh
 class _AuthNotifier extends ChangeNotifier {
   _AuthNotifier() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      // Only notify for sign in/out, not initial session
-      if (data.event == AuthChangeEvent.signedIn ||
-          data.event == AuthChangeEvent.signedOut) {
+    Supabase.instance.client.auth.onAuthStateChange.listen(
+      (data) {
+        if (data.event == AuthChangeEvent.signedIn ||
+            data.event == AuthChangeEvent.signedOut) {
+          notifyListeners();
+        }
+      },
+      // Stale refresh tokens surface on this stream as AuthException; treat
+      // them as a sign-out so the router redirects to /login instead of
+      // letting the exception bubble to the zone guard (Sentry fatal).
+      onError: (Object err) {
         notifyListeners();
-      }
-    });
+      },
+    );
   }
 }
 

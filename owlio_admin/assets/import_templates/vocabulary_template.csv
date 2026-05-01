@@ -1,6 +1,6 @@
-word,phonetic,part_of_speech,meaning_tr,meaning_en,level
-apple,/ˈæp.əl/,noun,elma,a round fruit that is typically red or green,A1
-run,/rʌn/,verb,koşmak,to move quickly using your legs,A1
-beautiful,/ˈbjuː.tɪ.fəl/,adjective,güzel,pleasing the senses or mind,A2
-quickly,/ˈkwɪk.li/,adverb,hızlıca,at a fast speed,A2
-significant,/sɪɡˈnɪf.ɪ.kənt/,adjective,önemli,sufficiently great or important,B2
+word,phonetic,part_of_speech,meaning_tr,meaning_en,level,example_sentences
+apple,/ˈæp.əl/,noun,elma,a round fruit that is typically red or green,A1,I eat an apple every morning. | She picked a red apple from the tree.
+run,/rʌn/,verb,koşmak,to move quickly using your legs,A1,He can run very fast. | We run in the park together. | Don't run in the hallway.
+beautiful,/ˈbjuː.tɪ.fəl/,adjective,güzel,pleasing the senses or mind,A2,The garden is beautiful in spring.
+quickly,/ˈkwɪk.li/,adverb,hızlıca,at a fast speed,A2,She ran quickly to catch the bus.
+significant,/sɪɡˈnɪf.ɪ.kənt/,adjective,önemli,sufficiently great or important,B2,The discovery was significant for science.

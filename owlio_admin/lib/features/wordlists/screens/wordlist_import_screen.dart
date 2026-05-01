@@ -7,6 +7,8 @@ import 'package:uuid/uuid.dart';
 import '../../../core/supabase_client.dart';
 import '../../../core/widgets/csv_import_dialog.dart';
 import '../../../core/widgets/template_download_button.dart';
+import '../../vocabulary/screens/vocabulary_import_screen.dart'
+    show VocabularyImportScreen;
 import '../../vocabulary/screens/vocabulary_list_screen.dart';
 import 'wordlist_edit_screen.dart' show wordlistDetailProvider;
 
@@ -30,6 +32,7 @@ class WordlistImportScreen extends ConsumerWidget {
     'phonetic',
     'part_of_speech',
     'level',
+    'example_sentences',
   ];
 
   static const requiredHeaders = ['word'];
@@ -135,6 +138,15 @@ class WordlistImportScreen extends ConsumerWidget {
                       style: TextStyle(color: Colors.green.shade700),
                     ),
                     const SizedBox(height: 12),
+                    Text(
+                      'example_sentences için: birden çok örneği " | " ile ayır.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green.shade700,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -142,9 +154,9 @@ class WordlistImportScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        'word,meaning_tr,meaning_en,phonetic,part_of_speech,level\n'
-                        'cat,kedi,a small furry animal,/kæt/,noun,A1\n'
-                        'happy,mutlu,feeling pleasure,/ˈhæp.i/,adjective,A1',
+                        'word,meaning_tr,meaning_en,phonetic,part_of_speech,level,example_sentences\n'
+                        'cat,kedi,a small furry animal,/kæt/,noun,A1,The cat is sleeping. | I have a cat.\n'
+                        'happy,mutlu,feeling pleasure,/ˈhæp.i/,adjective,A1,She is happy.',
                         style: TextStyle(
                           fontFamily: 'monospace',
                           fontSize: 12,
@@ -191,13 +203,14 @@ class WordlistImportScreen extends ConsumerWidget {
     final phonetic = row['phonetic']?.trim();
     final partOfSpeech = row['part_of_speech']?.trim().toLowerCase();
     final level = row['level']?.trim().toUpperCase();
+    final examples = VocabularyImportScreen.parseExamples(row['example_sentences']);
 
     if (level != null && level.isNotEmpty && !validLevels.contains(level)) {
       return 'Geçersiz seviye: $level';
     }
     if (partOfSpeech != null &&
         partOfSpeech.isNotEmpty &&
-        !validPartsOfSpeech.contains(partOfSpeech)) {
+        !VocabularyImportScreen.isValidPartOfSpeech(partOfSpeech)) {
       return 'Geçersiz sözcük türü: $partOfSpeech';
     }
 
@@ -223,6 +236,7 @@ class WordlistImportScreen extends ConsumerWidget {
         if (partOfSpeech != null && partOfSpeech.isNotEmpty)
           'part_of_speech': partOfSpeech,
         if (level != null && level.isNotEmpty) 'level': level,
+        if (examples.isNotEmpty) 'example_sentences': examples,
       };
       await supabase.from(DbTables.vocabularyWords).insert(newWord);
     } else {

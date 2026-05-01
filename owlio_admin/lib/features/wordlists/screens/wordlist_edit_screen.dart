@@ -26,18 +26,25 @@ final wordlistDetailProvider =
   return response;
 });
 
-/// Provider for searching vocabulary words
+/// Provider for searching vocabulary words. With an empty query it returns
+/// the most-recently-added words (ordered by created_at DESC) so the picker
+/// dialog has something useful to show before the operator types anything.
 final wordlistWordSearchProvider =
     FutureProvider.family<List<Map<String, dynamic>>, String>((ref, query) async {
-  if (query.isEmpty) return [];
-
   final supabase = ref.watch(supabaseClientProvider);
-  final response = await supabase
+  var q = supabase
       .from(DbTables.vocabularyWords)
-      .select('id, word, meaning_tr, level')
-      .ilike('word', '%$query%')
-      .order('word')
-      .limit(10);
+      .select('id, word, meaning_tr, level, created_at');
+  if (query.isNotEmpty) {
+    q = q.ilike('word', '%$query%');
+  }
+  // Primary sort: created_at DESC (microsecond precision — distinguishes even
+  // rapid-fire CSV inserts). Secondary: id DESC as a stable tiebreaker for
+  // the rare case two rows share the exact same timestamp.
+  final response = await q
+      .order('created_at', ascending: false)
+      .order('id', ascending: false)
+      .limit(query.isEmpty ? 30 : 20);
 
   return List<Map<String, dynamic>>.from(response);
 });
@@ -2755,47 +2762,48 @@ class _AddWordDialogState extends ConsumerState<_AddWordDialog> {
             Expanded(
               child: searchResults.when(
                 data: (words) {
-                  if (_searchQuery.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search,
-                              size: 36,
-                              color: Colors.grey.shade400),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Aramak için yazmaya başlayın',
-                            style: TextStyle(
-                                color: Colors.grey.shade600),
-                          ),
-                          if (_selected.isEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Birden fazla kelime seçebilirsin',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade500,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  }
-
-                  final hasExactMatch = words.any((w) =>
-                      (w['word'] as String?)?.toLowerCase() ==
-                      _searchQuery.toLowerCase());
+                  final hasExactMatch = _searchQuery.isNotEmpty &&
+                      words.any((w) =>
+                          (w['word'] as String?)?.toLowerCase() ==
+                          _searchQuery.toLowerCase());
 
                   return Column(
                     children: [
+                      // Header label: "Son eklenenler" or "X sonuç"
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 4, right: 4, bottom: 6),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _searchQuery.isEmpty
+                                  ? Icons.history
+                                  : Icons.search,
+                              size: 14,
+                              color: Colors.grey.shade500,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              _searchQuery.isEmpty
+                                  ? 'Son eklenen kelimeler'
+                                  : '${words.length} sonuç',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       Expanded(
                         child: words.isEmpty
                             ? Center(
                                 child: Text(
-                                  'Sonuç bulunamadı',
+                                  _searchQuery.isEmpty
+                                      ? 'Henüz kelime yok'
+                                      : 'Sonuç bulunamadı',
                                   style: TextStyle(
                                       color: Colors.grey.shade600),
                                 ),

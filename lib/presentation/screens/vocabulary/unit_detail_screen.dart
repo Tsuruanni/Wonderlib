@@ -89,22 +89,26 @@ class _UnitDetailScreenState extends ConsumerState<UnitDetailScreen> {
             if (activeIdx != null && !_hasScrolled) {
               final theme = _resolveTheme(unitData.tileThemeId, widget.unitIdx, dbThemes);
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!_hasScrolled && _scrollController.hasClients) {
-                  _hasScrolled = true;
-                  if (activeIdx! < theme.nodePositions.length) {
-                    final nodeY = theme.nodePositions[activeIdx].dy * theme.height;
-                    final screenW = MediaQuery.sizeOf(context).width;
-                    final scale = screenW / kTileWidth;
-                    final scrollTarget = (nodeY * scale - MediaQuery.sizeOf(context).height / 3).clamp(
-                      0.0,
-                      _scrollController.position.maxScrollExtent,
-                    );
-                    _scrollController.animateTo(
-                      scrollTarget,
-                      duration: const Duration(milliseconds: 1500),
-                      curve: Curves.easeOutCubic,
-                    );
-                  }
+                if (_hasScrolled || !_scrollController.hasClients) return;
+                final position = _scrollController.position;
+                // hasClients alone isn't enough: viewport dimensions may not
+                // be applied yet (e.g., post-frame races during save-time
+                // provider invalidations). Skip until layout is ready.
+                if (!position.hasContentDimensions) return;
+                _hasScrolled = true;
+                if (activeIdx! < theme.nodePositions.length) {
+                  final nodeY = theme.nodePositions[activeIdx].dy * theme.height;
+                  final screenW = MediaQuery.sizeOf(context).width;
+                  final scale = screenW / kTileWidth;
+                  final scrollTarget = (nodeY * scale - MediaQuery.sizeOf(context).height / 3).clamp(
+                    0.0,
+                    position.maxScrollExtent,
+                  );
+                  _scrollController.animateTo(
+                    scrollTarget,
+                    duration: const Duration(milliseconds: 1500),
+                    curve: Curves.easeOutCubic,
+                  );
                 }
               });
             }

@@ -391,10 +391,13 @@ serve(async (req: Request) => {
           continue
         }
 
-        // Update profile with school and password
+        // Update profile with role, school and password.
+        // The handle_new_user trigger hardcodes role='student' to prevent
+        // privilege escalation via signup metadata; trusted server paths
+        // (this function uses service_role) must set the real role here.
         const { error: updateError } = await supabaseAdmin
           .from('profiles')
-          .update({ school_id: school_id, password_plain: password })
+          .update({ role: 'teacher', school_id: school_id, password_plain: password })
           .eq('id', authData.user.id)
 
         if (updateError) {

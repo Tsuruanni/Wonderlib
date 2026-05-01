@@ -255,14 +255,32 @@ class _SchoolEditScreenState extends ConsumerState<SchoolEditScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: gradeCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Sınıf Seviyesi',
-                  hintText: 'ör. 5, 7, 12',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
+              StatefulBuilder(
+                builder: (ctx, setLocal) {
+                  final current = int.tryParse(gradeCtrl.text.trim());
+                  return DropdownButtonFormField<int?>(
+                    value: current,
+                    decoration: const InputDecoration(
+                      labelText: 'Sınıf Seviyesi',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text('Belirtilmedi'),
+                      ),
+                      for (var i = 1; i <= 12; i++)
+                        DropdownMenuItem<int?>(
+                          value: i,
+                          child: Text('$i. Sınıf'),
+                        ),
+                    ],
+                    onChanged: (v) {
+                      gradeCtrl.text = v == null ? '' : v.toString();
+                      setLocal(() {});
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 12),
               TextField(

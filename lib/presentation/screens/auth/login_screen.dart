@@ -37,6 +37,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    // Entry-point guard: _quickLogin() awaits 200ms before calling us, so
+    // the widget may have disposed (navigation away, hot reload, etc.)
+    // before we run. Bail before touching ref.
+    if (!mounted) return;
     if (!_formKey.currentState!.validate()) return;
 
     context.unfocus();

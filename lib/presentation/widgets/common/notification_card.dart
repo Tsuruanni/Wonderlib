@@ -5,6 +5,7 @@ import '../../../app/text_styles.dart';
 import '../../../app/theme.dart';
 import '../../../domain/entities/badge_earned.dart';
 import '../../../domain/entities/daily_quest.dart';
+import '../../utils/app_icons.dart';
 import 'app_chip.dart';
 import 'game_button.dart';
 
@@ -347,13 +348,15 @@ class NotificationCard extends StatefulWidget {
       body: Column(
         mainAxisSize: MainAxisSize.min,
         children: quests.map((p) {
-          final (text, color) = _questRewardTextAndColor(p.quest);
+          final color = _questRewardColor(p.quest);
+          final icon = switch (p.quest.rewardType) {
+            QuestRewardType.coins => AppIcons.gem(size: 40),
+            QuestRewardType.cardPack => AppIcons.card(size: 40),
+          };
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(vertical: 6),
             child: Row(
               children: [
-                Text(p.quest.icon, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     p.quest.title,
@@ -361,18 +364,13 @@ class NotificationCard extends StatefulWidget {
                         .copyWith(fontWeight: FontWeight.w700),
                   ),
                 ),
-                AppChip(
-                  label: text,
-                  variant: AppChipVariant.custom,
-                  customColor: color,
-                  uppercase: false,
-                  icon: p.quest.rewardType == QuestRewardType.coins
-                      ? Image.asset(
-                          'assets/icons/gem_outline_256.png',
-                          width: 14,
-                          height: 14,
-                        )
-                      : null,
+                const SizedBox(width: 12),
+                icon,
+                const SizedBox(width: 6),
+                Text(
+                  '+${p.quest.rewardAmount}',
+                  style: AppTextStyles.headlineMedium(color: color)
+                      .copyWith(fontSize: 26, fontWeight: FontWeight.w900),
                 ),
               ],
             ),
@@ -401,11 +399,10 @@ class NotificationCard extends StatefulWidget {
     );
   }
 
-  static (String, Color) _questRewardTextAndColor(DailyQuest quest) {
+  static Color _questRewardColor(DailyQuest quest) {
     return switch (quest.rewardType) {
-      QuestRewardType.coins => ('+${quest.rewardAmount} gems', AppColors.wasp),
-      QuestRewardType.cardPack =>
-        ('+${quest.rewardAmount} pack', AppColors.gemBlue),
+      QuestRewardType.coins => AppColors.wasp,
+      QuestRewardType.cardPack => AppColors.gemBlue,
     };
   }
 

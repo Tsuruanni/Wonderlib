@@ -92,6 +92,15 @@ class _VocabularySessionScreenState
   }
 
   Future<void> _loadAndStart() async {
+    // Guard against remount-after-completion: if this listId's session is
+    // already completed (we're being re-created under the summary page),
+    // skip re-initializing so state stays intact.
+    final existing = ref.read(vocabularySessionControllerProvider);
+    if (existing.isSessionComplete && existing.currentListId == widget.listId) {
+      setState(() => _initialized = true);
+      return;
+    }
+
     final wordsResult = await ref.read(wordsForListProvider(widget.listId).future);
     if (!mounted) return;
 
@@ -110,10 +119,10 @@ class _VocabularySessionScreenState
       return;
     }
 
-    // Precache all word images so they're instant when questions appear
     _precacheWordImages(words);
 
-    ref.read(vocabularySessionControllerProvider.notifier).startSession(words);
+    ref.read(vocabularySessionControllerProvider.notifier)
+        .startSession(words, listId: widget.listId);
     setState(() => _initialized = true);
   }
 
@@ -173,8 +182,19 @@ class _VocabularySessionScreenState
 
   @override
   Widget build(BuildContext context) {
-    // Watch the session provider early to keep it alive during async _loadAndStart.
-    // Without this, autoDispose disposes the provider before the first real build.
+    // One-shot navigation on session completion. Using ref.listen instead of a
+    // build-time addPostFrameCallback prevents re-firing context.go every time
+    // this screen rebuilds while isSessionComplete stays true (e.g., as the
+    // summary page's parent in the nav stack).
+    ref.listen<VocabularySessionState>(vocabularySessionControllerProvider, (prev, next) {
+      final wasComplete = prev?.isSessionComplete ?? false;
+      if (!wasComplete && next.isSessionComplete) {
+        context.go(
+          widget.summaryRoute ?? AppRoutes.vocabularySessionSummaryPath(widget.listId),
+        );
+      }
+    });
+
     final sessionState = ref.watch(vocabularySessionControllerProvider);
     final controller = ref.read(vocabularySessionControllerProvider.notifier);
     final theme = Theme.of(context);
@@ -196,15 +216,9 @@ class _VocabularySessionScreenState
       );
     }
 
-    // Session complete → navigate to summary
+    // After completion we render a spinner while summary takes over above us.
+    // Navigation itself is handled by the ref.listen above — only fires once.
     if (sessionState.isSessionComplete) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go(
-            widget.summaryRoute ?? AppRoutes.vocabularySessionSummaryPath(widget.listId),
-          );
-        }
-      });
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 

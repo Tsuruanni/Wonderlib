@@ -97,7 +97,10 @@ class _PathNodeState extends State<PathNode>
 
   // Bounce animation for active nodes
   late final AnimationController _bounceController;
-  late final Animation<double> _bounce;
+  // Not `final`: didUpdateWidget rebuilds the Tween when the node state
+  // changes (active ↔ available ↔ completed) since the end value depends on
+  // `_isActive`.
+  late Animation<double> _bounce;
 
   bool get _isActive => widget.state == NodeState.active;
 

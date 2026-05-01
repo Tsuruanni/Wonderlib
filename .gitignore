@@ -85,3 +85,10 @@ supabase/.temp/
 .fvm/
 .playwright-mcp/
 .env.production
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json
+
+# Claude Code worktrees (per-session scratch checkouts)
+.claude/worktrees/

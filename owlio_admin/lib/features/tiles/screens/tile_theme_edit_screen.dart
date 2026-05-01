@@ -118,31 +118,10 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
 
     setState(() => _isLoading = true);
     try {
-      // Validate dimensions BEFORE upload. Many Android GPUs cap texture
-      // size at 4096; going over produces a blank tile on mobile even
-      // when the file is small on disk.
       final codec = await ui.instantiateImageCodec(file.bytes!);
       final frame = await codec.getNextFrame();
       final imgW = frame.image.width;
       final imgH = frame.image.height;
-      const maxDim = 2048;
-      if (imgW > maxDim || imgH > maxDim) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Görsel çok büyük: $imgW×$imgH px. '
-                'Lütfen en uzun kenarı $maxDim px altında olacak şekilde yeniden boyutlandırıp yükleyin '
-                '(mobilde GPU texture limiti aşılırsa görsel hiç görünmez).',
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 8),
-            ),
-          );
-        }
-        setState(() => _isLoading = false);
-        return;
-      }
 
       final supabase = ref.read(supabaseClientProvider);
 
@@ -389,29 +368,6 @@ class _TileThemeEditScreenState extends ConsumerState<TileThemeEditScreen> {
                           validator: (v) =>
                               v == null || v.trim().isEmpty ? 'Zorunlu' : null,
                           onChanged: (_) => setState(() {}),
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.blue.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, color: Colors.blue.shade600, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Önerilen genişlik: 1920px. En uzun kenar 2048px altı olmalı '
-                                  '(aksi halde mobilde görsel yüklenmez). '
-                                  'Yükseklik görselin en-boy oranından otomatik hesaplanır.',
-                                  style: TextStyle(fontSize: 12, color: Colors.blue.shade800),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                         const SizedBox(height: 16),
                         Row(
